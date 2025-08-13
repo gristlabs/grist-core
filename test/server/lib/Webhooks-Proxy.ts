@@ -197,7 +197,7 @@ describe('Webhooks-Proxy', function () {
         const {data, status} = await axios.post(
           `${serverUrl}/api/docs/${docId}/tables/${options?.tableId ?? 'Table1'}/_subscribe`,
           {
-            eventTypes: options?.eventTypes ?? ['add', 'update'],
+            eventTypes: options?.eventTypes ?? ['add', 'update', 'remove'],
             url: `${serving.url}/${endpoint}`,
             isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn
           }, chimpy

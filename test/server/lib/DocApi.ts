@@ -3914,7 +3914,7 @@ function testDocApi(settings: {
       await oldSubscribeCheck({eventTypes: 0}, 400, /url is missing/, /eventTypes is not an array/);
       await oldSubscribeCheck({eventTypes: []}, 400, /url is missing/);
       await oldSubscribeCheck({eventTypes: [], url: "https://example.com"}, 400, /eventTypes must be a non-empty array/);
-      await oldSubscribeCheck({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0] is none of "add", "update"/);
+      await oldSubscribeCheck({eventTypes: ["foo"], url: "https://example.com"}, 400, /eventTypes\[0] is none of "add", "update", "remove"/);
       await oldSubscribeCheck({eventTypes: ["add"]}, 400, /url is missing/);
       await oldSubscribeCheck({eventTypes: ["add"], url: "https://evil.com"}, 403, /Provided url is forbidden/);
       await oldSubscribeCheck({eventTypes: ["add"], url: "http://example.com"}, 403, /Provided url is forbidden/);  // not https
@@ -3935,7 +3935,7 @@ function testDocApi(settings: {
         400, /eventTypes must be a non-empty array/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["foo"],
               url: "https://example.com"}}]},
-        400, /eventTypes\[0] is none of "add", "update"/);
+        400, /eventTypes\[0] is none of "add", "update", "remove"/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"]}}]},
         400, /url is missing/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
@@ -4411,7 +4411,7 @@ function testDocApi(settings: {
       const {data, status} = await axios.post(
         `${serverUrl}/api/docs/${docId}/tables/${options?.tableId ?? 'Table1'}/_subscribe`,
         {
-          eventTypes: options?.eventTypes ?? ['add', 'update'],
+          eventTypes: options?.eventTypes ?? ['add', 'update', 'remove'],
           url: `${serving.url}/${endpoint}`,
           isReadyColumn: options?.isReadyColumn === undefined ? 'B' : options?.isReadyColumn,
           ...pick(options, 'name', 'memo', 'enabled', 'watchedColIds'),
@@ -4993,7 +4993,7 @@ function testDocApi(settings: {
 
         // Webhook with only one watchedColId.
         const webhook1 = await autoSubscribe('200', docId, {
-          watchedColIds: ['A'], eventTypes: ['add', 'update']
+          watchedColIds: ['A'], eventTypes: ['add', 'update', 'remove']
         });
         successCalled.reset();
         // Create record, that will call the webhook.
@@ -5046,7 +5046,7 @@ function testDocApi(settings: {
               url: `${serving.url}/200`,
               authorization: '',
               unsubscribeKey: first.unsubscribeKey,
-              eventTypes: ['add', 'update'],
+              eventTypes: ['add', 'update', 'remove'],
               enabled: true,
               isReadyColumn: 'B',
               tableId: 'Table1',
@@ -5065,7 +5065,7 @@ function testDocApi(settings: {
               url: `${serving.url}/404`,
               authorization: '',
               unsubscribeKey: second.unsubscribeKey,
-              eventTypes: ['add', 'update'],
+              eventTypes: ['add', 'update', 'remove'],
               enabled: true,
               isReadyColumn: 'B',
               tableId: 'Table1',
@@ -5511,9 +5511,9 @@ function testDocApi(settings: {
           await check({tableId: 'Santa'}, 404, `Table not found "Santa"`);
           await check({tableId: 'Table2', isReadyColumn: 'Foo', watchedColIds: []}, 200);
 
-          await check({eventTypes: ['add', 'update']}, 200);
+          await check({eventTypes: ['add', 'update', 'remove']}, 200);
           await check({eventTypes: []}, 400, "eventTypes must be a non-empty array");
-          await check({eventTypes: ["foo"]}, 400, /eventTypes\[0] is none of "add", "update"/);
+          await check({eventTypes: ["foo"]}, 400, /eventTypes\[0] is none of "add", "update", "remove"/);
 
           await check({isReadyColumn: null}, 200);
           await check({isReadyColumn: "bar"}, 404, `Column not found "bar"`);
