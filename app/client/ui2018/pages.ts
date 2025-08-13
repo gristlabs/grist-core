@@ -225,10 +225,6 @@ const cssPageItem = styled('div', `
   height: 28px;
   align-items: center;
   flex-grow: 1;
-  .${treeViewContainer.className}-close & {
-    display: flex;
-    justify-content: center;
-  }
   &, &:hover, &:focus {
     text-decoration: none;
     outline: none;
@@ -236,11 +232,32 @@ const cssPageItem = styled('div', `
   }
 `);
 
+const notClosedTreeViewContainer = `.${treeViewContainer.className}:not(.${treeViewContainer.className}-close)`;
+
 const cssPageLink = styled(unstyledLink, `
   display: flex;
   align-items: center;
   height: 100%;
   flex-grow: 1;
+  max-width: 100%;
+  ${notClosedTreeViewContainer} .${cssPageItem.className}:focus-within &,
+  ${notClosedTreeViewContainer} .${cssPageItem.className}:has(.weasel-popup-open) & {
+    max-width: calc(100% - 28px);
+  }
+  @media ${onHoverSupport(true)} {
+    ${notClosedTreeViewContainer} .${itemHeaderWrapper.className}-not-dragging:hover & {
+      max-width: calc(100% - 28px);
+    }
+  }
+  @media ${onHoverSupport(false)} {
+    ${notClosedTreeViewContainer} .${itemHeaderWrapper.className}-not-dragging > .${itemHeader.className}.selected & {
+      max-width: calc(100% - 28px);
+    }
+  }
+  .${treeViewContainer.className}-close & {
+    display: flex;
+    justify-content: center;
+  }
 `);
 
 const cssPageInitial = styled('div', `
