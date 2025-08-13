@@ -616,7 +616,9 @@ const isFocusableElement = (el: EventTarget | null): boolean => {
   if (el instanceof HTMLElement && ['input', 'textarea', 'select', 'iframe'].includes(el.tagName.toLocaleLowerCase())) {
     return true;
   }
-  if (el instanceof HTMLElement && el.getAttribute('tabindex') === "0") {
+  // Sometimes, we don't want to consider an element with tabindex as something we want to keep focus on with the mouse,
+  // so we use the 'ignore_tabindex' class to bypass the default behavior.
+  if (el instanceof HTMLElement && el.getAttribute('tabindex') === "0" && !el.classList.contains('ignore_tabindex')) {
     return true;
   }
   return false;
