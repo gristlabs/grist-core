@@ -201,23 +201,23 @@ export class RegionFocusSwitcher extends Disposable {
     const targetRegionId = closestRegion.getAttribute(ATTRS.regionId);
     const targetsMain = targetRegionId === 'main';
 
-    if (targetsMain) {
+    // When not targeting the main panel, we don't always want to focus the given region _on click_.
+    // We only do it if clicking an empty area in the panel, or a focusable element like an input.
+    // Otherwise, we assume clicks are on elements like buttons or links,
+    // and we don't want to lose focus of the main section in that case.
+    // For example I don't want to focus out current table if I just click the "undo" button in the header.
+    const isFocusableElement = isMouseFocusableElement(event.target) || closestRegion === event.target;
+
+    if (targetsMain || !isFocusableElement) {
       this.focusRegion(
         {type: 'section', id: gristDoc.viewModel.activeSectionId()},
         {initiator: {type: 'mouse', event}}
       );
     } else {
-      // When not targeting the main panel, we don't always want to focus the given region _on click_.
-      // We only do it if clicking an empty area in the panel, or a focusable element like an input.
-      // Otherwise, we assume clicks are on elements like buttons or links,
-      // and we don't want to lose focus of current section in this case.
-      // For example I don't want to focus out current table if just click the "undo" button in the header.
-      if (isFocusableElement(event.target) || closestRegion === event.target) {
-        this.focusRegion(
-          {type: 'panel', id: targetRegionId as Panel},
-          {initiator: {type: 'mouse', event}}
-        );
-      }
+      this.focusRegion(
+        {type: 'panel', id: targetRegionId as Panel},
+        {initiator: {type: 'mouse', event}}
+      );
     }
   }
 
@@ -285,7 +285,7 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   private _onStateChange(current: State | undefined, prev: State | undefined) {
-    if (isEqual(current, prev)) {
+    if (isEqual(current?.region, prev?.region)) {
       return;
     }
 
@@ -307,7 +307,10 @@ export class RegionFocusSwitcher extends Disposable {
     const isPanel = current?.region?.type === 'panel';
     const panelElement = isPanel && current.region?.id && getPanelElement((current.region as PanelRegion).id);
 
-    // if kb-focusing a panel: actually focus panel element
+    // if kb-focusing a panel:
+    //   - actually focus the panel dom element, or its previously focused child,
+    //   - trap the Tab key inside it (see `enableFocusLock`).
+    //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
       focusPanel(
         current.region as PanelRegion,
@@ -315,11 +318,13 @@ export class RegionFocusSwitcher extends Disposable {
         gristDoc
       );
 
-    // if clicking on a panel: just make sure view layout commands are disabled
+    // if clicking on a panel: only make sure view layout commands are disabled,
+    // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
     } else if (mouseEvent && isPanel && panelElement && gristDoc) {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
 
-    // if clicking or kb-focusing a section: focus the section
+    // if clicking or kb-focusing a section: focus the section,
+    // enabling back the view layout commands (see `focusSection`).
     } else if (current?.region?.type === 'section' && gristDoc) {
       focusSection(current.region, gristDoc);
     }
@@ -452,7 +457,9 @@ const ATTRS = {
 };
 
 /**
- * Focus the given panel (or the given element inside it, if any), and let the grist doc view know about it.
+ * Focus the given panel dom element (or the given element inside it, if any), and let the grist doc view know about it.
+ *
+ * When focusing a panel, the tab key is trapped inside it (see `enableFocusLock`).
  */
 const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: GristDoc | null) => {
   const panelElement = getPanelElement(panel.id);
@@ -496,16 +503,30 @@ const focusViewLayout = (gristDoc: GristDoc) => {
   gristDoc.viewModel.focusedRegionState('in');
 };
 
-// When going out of the view layout, default view state is 'out' to remove active session
-// borders and disable the view kb commands.
-// You can specific a special case 'related' to the view. It still disable commands, but keeps
-// the active session borders, so that user understands what session the current panel is related to.
+/**
+ * Let the given grist doc know that the current region is not the view layout anymore.
+ *
+ * When escaping the view layout:
+ *  - view layout keyboard commands are disabled[*]
+ *  - active section border (the left, green border of the widget) gets hidden
+ *
+ * Setting `isRelated` to true is a special case made for when focusing panels "related" to the view layout:
+ * instead of hiding the active section border, it dims it but keeps it slightly visible,
+ * so that the user understands what view layout section the current panel is related to.
+ *
+ * [*] Disabling the view keyboard commands is a crucial step for enabling keyboard navigation with Tab key in a panel.
+ * This is because amongst the disabled view commands are the `nextField` and `prevField` commands,
+ * which are the ones overriding the Tab key normal browser behavior and trapping the Tab key usage in a Table/Card/etc.
+ */
 const escapeViewLayout = (gristDoc: GristDoc, isRelated = false) => {
   gristDoc.viewModel.focusedRegionState(isRelated ? 'related' : 'out');
 };
 
 /**
  * Focus the given doc view section id
+ *
+ * This enables the view layout keyboard commands, noticeably making the Tab key
+ * respond to the `nextField` and `prevField` commands instead of normal browser behavior.
  */
 const focusSection = (section: SectionRegion, gristDoc: GristDoc) => {
   focusViewLayout(gristDoc);
@@ -609,14 +630,16 @@ const getPanelElementId = (id: Panel): string => {
   return `[${ATTRS.regionId}="${id}"]`;
 };
 
-const isFocusableElement = (el: EventTarget | null): boolean => {
+const isMouseFocusableElement = (el: EventTarget | null): boolean => {
   if (!el) {
     return false;
   }
   if (el instanceof HTMLElement && ['input', 'textarea', 'select', 'iframe'].includes(el.tagName.toLocaleLowerCase())) {
     return true;
   }
-  if (el instanceof HTMLElement && el.getAttribute('tabindex') === "0") {
+  // Sometimes, we don't want to consider an element with tabindex as something we want to keep focus on with the mouse,
+  // so we use the 'ignore_tabindex' class to bypass the default behavior.
+  if (el instanceof HTMLElement && el.getAttribute('tabindex') === "0" && !el.classList.contains('ignore_tabindex')) {
     return true;
   }
   return false;
