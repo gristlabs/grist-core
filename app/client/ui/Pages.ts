@@ -93,9 +93,10 @@ function buildDomFromTable(
     isCollapsedByDefault: pageRec.isCollapsedByDefault,
     onCollapseByDefault: (value) => pageRec.setAndSaveCollapsed(value),
     hasSubPages: () => item.children().get().length > 0,
+    href: urlState().setLinkUrl({docPage: viewId}),
   };
 
-  return buildPageDom(fromKo(pageName), options, urlState().setLinkUrl({docPage: viewId}));
+  return buildPageDom(fromKo(pageName), options);
 }
 
 function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {

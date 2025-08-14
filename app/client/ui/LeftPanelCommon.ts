@@ -231,7 +231,7 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
   flex: none;
   border-radius: 3px;
   --icon-color: ${theme.controlFg};
-  & > .${cssPageLink.className} {
+  & > .${cssPageLink.className}, & > .${cssPageButton.className} {
     padding: 0 8px 0 16px;
   }
   &:hover {
