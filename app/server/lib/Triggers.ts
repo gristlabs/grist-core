@@ -826,8 +826,10 @@ export class DocTriggers {
           },
           signal,
         });
-        if (response.status === 200) {
-          await this._stats.logBatch(id, 'success', { size, httpStatus: 200, error: null, attempts: attempt + 1 });
+        if (response.ok) {
+          await this._stats.logBatch(id, 'success', {
+            size, httpStatus: response.status, error: null, attempts: attempt + 1
+          });
           return true;
         }
         await this._stats.logBatch(id, 'failure', {

@@ -29,6 +29,9 @@ describe('LeftPanel', function() {
     // check panel is open
     assert.equal(await gu.isSidePanelOpen('left'), true);
 
+    // move away the cursor to prevent auto-expanding after reload
+    await driver.find('.test-top-header').mouseMove();
+
     // refresh
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();

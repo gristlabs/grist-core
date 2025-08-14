@@ -558,8 +558,11 @@ export const componentsCssMapping = {
   attachmentsCellIconHoverBg: 'attachments-cell-icon-hover-bg',
   announcementPopupFg: 'announcement-popup-fg',
   announcementPopupBg: 'announcement-popup-bg',
-  switchSliderFg: 'switch-slider-fg',
-  switchCircleFg: 'switch-circle-fg',
+  switchInactiveSlider: 'switch-inactive-slider',
+  switchInactivePill: 'switch-inactive-pill',
+  switchActiveSlider: 'switch-active-slider',
+  switchActivePill: 'switch-active-pill',
+  switchHoverShadow: 'switch-hover-shadow',
   scrollShadow: 'scroll-shadow',
   toggleCheckboxFg: 'toggle-checkbox-fg',
   numericSpinnerFg: 'numeric-spinner-fg',
@@ -971,7 +974,6 @@ export interface SpecificThemeTokens {
     attachmentsCellIconBg: Token;
     attachmentsCellIconHoverBg: Token;
     announcementPopupBg: Token;
-    switchSliderFg: Token;
     scrollShadow: Token;
     toggleCheckboxFg: Token;
     numericSpinnerFg: Token;
@@ -1303,7 +1305,6 @@ export interface BaseThemeTokens {
     attachmentsEditorButtonBorder: Token;
     attachmentsEditorButtonIcon: Token;
     announcementPopupFg: Token;
-    switchCircleFg: Token;
     widgetGalleryBorderSelected: Token;
     widgetGalleryBgHover: Token;
     widgetGallerySecondaryHeaderFg: Token;
@@ -1314,6 +1315,11 @@ export interface BaseThemeTokens {
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
     kbFocusHighlight: Token;
+    switchInactiveSlider: Token;
+    switchInactivePill: Token;
+    switchActiveSlider: Token;
+    switchActivePill: Token;
+    switchHoverShadow: Token;
   };
 }
 

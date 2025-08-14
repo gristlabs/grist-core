@@ -147,7 +147,6 @@ import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
-import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
@@ -170,8 +169,6 @@ import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import throttle = require('lodash/throttle');
 import without = require('lodash/without');
-
-bluebird.promisifyAll(tmp);
 
 const MAX_RECENT_ACTIONS = 100;
 

@@ -20,6 +20,9 @@ import {
 } from "app/client/ui2018/cssVars";
 import { IconName } from "app/client/ui2018/IconList";
 import { icon as cssIcon } from "app/client/ui2018/icons";
+import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
+import { stretchedLink } from "app/client/ui2018/stretchedLink";
+import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
 import { menu, menuItem, select } from "app/client/ui2018/menus";
 import { confirmModal, saveModal } from "app/client/ui2018/modals";
 import { HomePageTab } from "app/common/gristUrls";
@@ -98,6 +101,7 @@ export class DocList extends Disposable {
 
   private _buildHeader() {
     return cssHeader(
+      visuallyHidden(unstyledH2(t("Documents list"))),
       buildTabs(this._tabs, this._tab),
       this._buildViewSettings()
     );
@@ -136,92 +140,104 @@ export class DocList extends Disposable {
           docs = sortAndFilterDocs(docs, { sort, tab });
           if (docs.length === 0) {
             return cssNoDocsMessage(
-              cssNoDocsImage({ src: "img/create-document.svg" }),
+              cssNoDocsImage({ alt: '', width: '150', height: '140', src: "img/create-document.svg" }),
               dom("div", cssParagraph(t("No documents to show."))),
               testId("no-docs-message")
             );
           }
 
           return [
+            // the aria-hidden attributes are there to prevent screen reader annoucements,
+            // as they are not relevant in that case
             cssDocHeaderRow(
               dom.hide(isNarrowScreenObs()),
-              cssNameColumn(t("Name")),
-              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace)),
-              cssEditedAtColumn(t("Last edited")),
+              cssNameColumn(t("Name"), {'aria-hidden': 'true'}),
+              cssWorkspaceColumn(t("Workspace"), dom.show(this._showWorkspace), {'aria-hidden': 'true'}),
+              cssEditedAtColumn(t("Last edited"), {'aria-hidden': 'true'}),
               cssOptionsColumn()
             ),
-            dom.forEach(docs, (doc) => {
-              return cssDocRow(
-                cssDoc(
-                  urlState().setLinkUrl(docUrl(doc)),
-                  cssDoc.cls("-no-access", !roles.canView(doc.access)),
-                  cssDocIconAndName(
-                    buildDocIcon(
-                      {
-                        docId: doc.id,
-                        docName: doc.name,
-                        icon: doc.options?.appearance?.icon,
-                      },
-                      testId("doc-icon")
+            unstyledUl(
+              dom.forEach(docs, (doc) => {
+                return cssDocRow(
+                  cssDoc(
+                    cssDoc.cls("-no-access", !roles.canView(doc.access)),
+                    cssDocIconAndName(
+                      buildDocIcon(
+                        {
+                          docId: doc.id,
+                          docName: doc.name,
+                          icon: doc.options?.appearance?.icon,
+                        },
+                        testId("doc-icon"),
+                        {'aria-hidden': 'true'},
+                      ),
+                      cssDocNameAndBadges(
+                        cssDocName(
+                          urlState().setLinkUrl(docUrl(doc)),
+                          stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
+                          testId("doc-name")
+                        ),
+                        cssDocBadges(
+                          !doc.isPinned
+                            ? null
+                            : cssPinIcon("Pin2", testId("doc-pinned")),
+                          !doc.public
+                            ? null
+                            : cssWorldIcon("World", testId("doc-public"))
+                        )
+                      )
                     ),
-                    cssDocNameAndBadges(
+                    cssDocWorkspace(
+                      dom.show(this._showWorkspace),
+                      dom('span',
+                        visuallyHidden(t("Workspace")),
+                        workspaceName(this._home.app, doc.workspace)
+                      ),
+                      testId("doc-workspace")
+                    ),
+                    cssDocEditedAt(
+                      t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) }),
+                      testId("doc-edited-at")
+                    ),
+                    cssDocDetailsCompact(
                       cssDocName(
-                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji)),
-                        testId("doc-name")
+                        urlState().setLinkUrl(docUrl(doc)),
+                        stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))
+                      ),
+                      cssDocEditedAt(
+                        t("Edited {{at}}", {
+                          at: getTimeFromNow(doc.updatedAt),
+                        })
                       ),
                       cssDocBadges(
                         !doc.isPinned
                           ? null
-                          : cssPinIcon("Pin2", testId("doc-pinned")),
+                          : cssPinIcon("Pin2"),
                         !doc.public
                           ? null
-                          : cssWorldIcon("World", testId("doc-public"))
+                          : cssWorldIcon("World")
                       )
-                    )
-                  ),
-                  cssDocWorkspace(
-                    dom.show(this._showWorkspace),
-                    workspaceName(this._home.app, doc.workspace),
-                    testId("doc-workspace")
-                  ),
-                  cssDocEditedAt(
-                    t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) }),
-                    testId("doc-edited-at")
-                  ),
-                  cssDocDetailsCompact(
-                    cssDocName(stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))),
-                    cssDocEditedAt(
-                      t("Edited {{at}}", {
-                        at: getTimeFromNow(doc.updatedAt),
-                      })
                     ),
-                    cssDocBadges(
-                      !doc.isPinned
-                        ? null
-                        : cssPinIcon("Pin2"),
-                      !doc.public
-                        ? null
-                        : cssWorldIcon("World")
-                    )
-                  ),
-                  cssDocOptions(
-                    cssDotsIcon("Dots"),
-                    menu(() => makeDocOptionsMenu(this._home, doc), {
-                      placement: "bottom-start",
+                    cssDocOptions(
+                      cssDotsIcon("Dots"),
+                      menu(() => makeDocOptionsMenu(this._home, doc), {
+                        placement: "bottom-start",
+                        // Keep the document highlighted while the menu is open.
+                        parentSelectorToMark: "." + cssDocRow.className,
+                      }),
+                      dom.on("click", (ev) => stopEvent(ev)),
+                      {'aria-label': t("context menu - {{- documentName }}", {documentName: `"${doc.name}"`})},
+                      testId("doc-options")
+                    ),
+                    contextMenu(() => makeDocOptionsMenu(this._home, doc), {
                       // Keep the document highlighted while the menu is open.
                       parentSelectorToMark: "." + cssDocRow.className,
                     }),
-                    dom.on("click", (ev) => stopEvent(ev)),
-                    testId("doc-options")
-                  ),
-                  contextMenu(() => makeDocOptionsMenu(this._home, doc), {
-                    // Keep the document highlighted while the menu is open.
-                    parentSelectorToMark: "." + cssDocRow.className,
-                  }),
-                  testId("doc")
-                )
-              );
-            }),
+                    testId("doc")
+                  )
+                );
+              }),
+            ),
           ];
         }
       ),
@@ -489,7 +505,7 @@ const cssOptionsColumn = styled("div", `
   display: flex;
 `);
 
-const cssDocRow = styled("div", `
+const cssDocRow = styled("li", `
   position: relative;
   border-radius: 3px;
   font-size: 14px;
@@ -501,18 +517,13 @@ const cssDocRow = styled("div", `
   }
 `);
 
-const cssDoc = styled("a", `
+const cssDoc = styled("div", `
   display: flex;
+  position: relative;
   align-items: center;
   border-radius: 3px;
   outline: none;
   padding: 8px;
-
-  &, &:hover, &:focus {
-    text-decoration: none;
-    outline: none;
-    color: inherit;
-  }
 
   &-no-access, &-no-access:hover, &-no-access:focus {
     color: ${theme.disabledText};
@@ -546,7 +557,7 @@ const cssDocDetailsCompact = styled("div", `
 const cssDocIconAndName = styled(cssNameColumn, `
   display: flex;
   align-items: center;
-  column-gap: 16px;
+  column-gap: 11px;
   overflow: hidden;
 
   @media ${mediaMedium} {
@@ -562,7 +573,7 @@ const cssDocNameAndBadges = styled("div", `
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-right: 40px;
+  margin-right: 35px;
   overflow: hidden;
 
   @media ${mediaMedium} {
@@ -580,16 +591,35 @@ const noAccessStyles = `
   }
 `;
 
-const cssDocName = styled("div", `
+const cssDocName = styled(stretchedLink, `
   font-size: 14px;
   flex: 0 1 auto;
+  padding: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: ${theme.text};
   font-weight: 600;
 
+  &, &:hover, &:focus {
+    text-decoration: none;
+    outline: none;
+    color: inherit;
+  }
+
+  &:focus-visible {
+    outline-offset: -3px;
+  }
+
   ${noAccessStyles}
+
+  .${cssDocDetailsCompact.className} & {
+    padding: 0;
+  }
+
+  .${cssDocDetailsCompact.className} &:focus-visible {
+    outline-offset: 3px;
+  }
 
   @media ${mediaMedium} {
     & {
@@ -653,7 +683,9 @@ const cssDocEditedAt = styled(cssEditedAtColumn, `
   }
 `);
 
-const cssDocOptions = styled("div", `
+const cssDocOptions = styled(unstyledButton, `
+  position: relative;
+  z-index: 2; /* make sure this is above the stretched link row */
   flex: none;
   display: flex;
   justify-content: center;
