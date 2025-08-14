@@ -15,9 +15,11 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
     const users = userProfiles
       .slice()
       .sort(compareUserProfiles)
-      .map(userProfile => ({...userProfile, id: undefined }));
+      .map(userProfile => ({...userProfile, id: undefined }))
+      // Limits the display to the first 99 users to avoid overly long lists on public documents.
+      .slice(0, 99);
     const usersToRender = users.slice(0, 3);
-    const remainingUsers = users.slice(3);
+    const remainingUsers = users.slice(3,);
 
     const firstUserImage = usersToRender.length > 0 ? [createUserIndicator(usersToRender[0])] : [];
     const overlappingUserImages = usersToRender.slice(1).map(user => createUserIndicator(user, { overlapLeft: true }));
