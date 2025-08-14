@@ -201,23 +201,23 @@ export class RegionFocusSwitcher extends Disposable {
     const targetRegionId = closestRegion.getAttribute(ATTRS.regionId);
     const targetsMain = targetRegionId === 'main';
 
-    if (targetsMain) {
+    // When not targeting the main panel, we don't always want to focus the given region _on click_.
+    // We only do it if clicking an empty area in the panel, or a focusable element like an input.
+    // Otherwise, we assume clicks are on elements like buttons or links,
+    // and we don't want to lose focus of the main section in that case.
+    // For example I don't want to focus out current table if I just click the "undo" button in the header.
+    const isFocusableElement = isMouseFocusableElement(event.target) || closestRegion === event.target;
+
+    if (targetsMain || !isFocusableElement) {
       this.focusRegion(
         {type: 'section', id: gristDoc.viewModel.activeSectionId()},
         {initiator: {type: 'mouse', event}}
       );
     } else {
-      // When not targeting the main panel, we don't always want to focus the given region _on click_.
-      // We only do it if clicking an empty area in the panel, or a focusable element like an input.
-      // Otherwise, we assume clicks are on elements like buttons or links,
-      // and we don't want to lose focus of current section in this case.
-      // For example I don't want to focus out current table if just click the "undo" button in the header.
-      if (isFocusableElement(event.target) || closestRegion === event.target) {
-        this.focusRegion(
-          {type: 'panel', id: targetRegionId as Panel},
-          {initiator: {type: 'mouse', event}}
-        );
-      }
+      this.focusRegion(
+        {type: 'panel', id: targetRegionId as Panel},
+        {initiator: {type: 'mouse', event}}
+      );
     }
   }
 
@@ -285,7 +285,7 @@ export class RegionFocusSwitcher extends Disposable {
   }
 
   private _onStateChange(current: State | undefined, prev: State | undefined) {
-    if (isEqual(current, prev)) {
+    if (isEqual(current?.region, prev?.region)) {
       return;
     }
 
@@ -609,7 +609,7 @@ const getPanelElementId = (id: Panel): string => {
   return `[${ATTRS.regionId}="${id}"]`;
 };
 
-const isFocusableElement = (el: EventTarget | null): boolean => {
+const isMouseFocusableElement = (el: EventTarget | null): boolean => {
   if (!el) {
     return false;
   }
