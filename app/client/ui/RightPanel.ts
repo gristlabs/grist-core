@@ -244,7 +244,7 @@ export class RightPanel extends Disposable {
       const isForm = use(this._isForm);
 
       return [
-        dom('div',
+        cssTabPanel(
           this._topTabComponents.tabPanel('pageWidget',
             isForm
               ? [
@@ -259,7 +259,7 @@ export class RightPanel extends Disposable {
                 : null
           ),
         ),
-        dom('div',
+        cssTabPanel(
           this._topTabComponents.tabPanel('field',
             isForm
               ? dom.create(this._buildQuestionContent.bind(this))
@@ -1315,6 +1315,12 @@ const cssSubTab = styled(unstyledButton, `
     height: 0;
     overflow: hidden;
   }
+`);
+
+const cssTabPanel = styled('div', `
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `);
 
 const cssTabContents = styled('div', `
