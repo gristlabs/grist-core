@@ -986,7 +986,6 @@ export interface SpecificThemeTokens {
     appHeaderBorder: Token;
     appHeaderBorderHover: Token;
     cardButtonBorder: Token;
-    userListRemainingUsersBg: Token;
   };
 }
 
@@ -1316,6 +1315,7 @@ export interface BaseThemeTokens {
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
     kbFocusHighlight: Token;
+    userListRemainingUsersBg: Token;
   };
 }
 

@@ -6,7 +6,7 @@ import {hoverTooltip} from 'app/client/ui/tooltips';
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {components} from 'app/common/ThemePrefs';
-import {dom, domComputed, DomElementArg, DomElementMethod, styled} from 'grainjs';
+import {dom, domComputed, DomElementArg, styled} from 'grainjs';
 
 // TODO - Hide this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
@@ -33,7 +33,7 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
     userImages.reverse();
 
     return cssActiveUserList(
-      ...userImages,
+      ...userImages.map(image => dom('li', image)),
     );
   });
 }
@@ -48,12 +48,14 @@ function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: f
 
 function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: number) {
   const count = userCount ?? users.length;
-  return cssRemainingUsersImage(
-    `+${count}`,
-    cssUserImage.cls("-medium"),
-    cssUserImage.cls("-border"),
-    dom.style("font-size", "12px"),
-    hoverMenu(
+  return cssRemainingUsersButton(
+    cssRemainingUsersImage(
+      `+${count}`,
+      cssUserImage.cls("-medium"),
+      cssUserImage.cls("-border"),
+      dom.style("font-size", "12px"),
+    ),
+    menu(
       () => users.map(user => remainingUsersMenuItem(
         createUserImage(user, 'medium'),
         user.name,
@@ -62,21 +64,16 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
   );
 }
 
-function hoverMenu(...args: Parameters<typeof menu>): DomElementMethod {
-  return (elem) => {
-    const options = args[1];
-    const newArgs: typeof args = [...args];
-    // Hover menu needs to be attached to the element itself, otherwise it closes when moused over.
-    newArgs[1] = { ...options, trigger: ['hover'], attach: elem, hideDelay: 100 };
-    return menu(...newArgs);
-  };
-}
-
 // Flex-direction is reversed to give us the correct overlaps without messing with z-indexes.
-const cssActiveUserList = styled('div', `
+const cssActiveUserList = styled('ul', `
   display: flex;
   align-items: center;
   justify-content: end;
+  list-style: none;
+
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
 
   flex-direction: row-reverse;
 `);
@@ -98,6 +95,19 @@ const createOverlappingUserListImage = styled(createUserListImage, `
 const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
   background-color: ${components.userListRemainingUsersBg};
+`);
+
+const cssRemainingUsersButton = styled('button', `
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+  appearance: button;
 `);
 
 export const remainingUsersMenuItem = styled(`div`, `

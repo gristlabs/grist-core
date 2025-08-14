@@ -498,5 +498,8 @@ export const Base: BaseThemeTokens = {
 
     /* Keyboard Focus Highlighter */
     kbFocusHighlight: tokens.primary,
+
+    /* Active User List */
+    userListRemainingUsersBg: tokens.primary,
   }
 };

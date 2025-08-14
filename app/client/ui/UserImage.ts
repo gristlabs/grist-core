@@ -3,6 +3,7 @@ import {colors, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {dom, DomElementArg, styled} from 'grainjs';
+import {components} from 'app/common/ThemePrefs';
 
 export type Size = 'small' | 'medium' | 'large';
 
@@ -105,8 +106,8 @@ export const cssUserImage = styled('div', `
     --reduced-font-size: 16px;
   }
   &-border {
-    --border-size: 2px;
-    border: var(--border-size) solid rgba(255,255,255,0.25);
+    --border-size: 0px;
+    border: 2px solid ${components.topHeaderBg};
   }
   &-large {
     --icon-size: 40px;
