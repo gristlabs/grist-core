@@ -307,7 +307,10 @@ export class RegionFocusSwitcher extends Disposable {
     const isPanel = current?.region?.type === 'panel';
     const panelElement = isPanel && current.region?.id && getPanelElement((current.region as PanelRegion).id);
 
-    // if kb-focusing a panel: actually focus panel element
+    // if kb-focusing a panel:
+    //   - actually focus the panel dom element, or its previously focused child,
+    //   - trap the Tab key inside it (see `enableFocusLock`).
+    //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
     if (!mouseEvent && isPanel && panelElement && current.region) {
       focusPanel(
         current.region as PanelRegion,
@@ -315,11 +318,13 @@ export class RegionFocusSwitcher extends Disposable {
         gristDoc
       );
 
-    // if clicking on a panel: just make sure view layout commands are disabled
+    // if clicking on a panel: only make sure view layout commands are disabled,
+    // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
     } else if (mouseEvent && isPanel && panelElement && gristDoc) {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
 
-    // if clicking or kb-focusing a section: focus the section
+    // if clicking or kb-focusing a section: focus the section,
+    // enabling back the view layout commands (see `focusSection`).
     } else if (current?.region?.type === 'section' && gristDoc) {
       focusSection(current.region, gristDoc);
     }
@@ -452,7 +457,9 @@ const ATTRS = {
 };
 
 /**
- * Focus the given panel (or the given element inside it, if any), and let the grist doc view know about it.
+ * Focus the given panel dom element (or the given element inside it, if any), and let the grist doc view know about it.
+ *
+ * When focusing a panel, the tab key is trapped inside it (see `enableFocusLock`).
  */
 const focusPanel = (panel: PanelRegion, child: HTMLElement | null, gristDoc: GristDoc | null) => {
   const panelElement = getPanelElement(panel.id);
@@ -496,16 +503,30 @@ const focusViewLayout = (gristDoc: GristDoc) => {
   gristDoc.viewModel.focusedRegionState('in');
 };
 
-// When going out of the view layout, default view state is 'out' to remove active session
-// borders and disable the view kb commands.
-// You can specific a special case 'related' to the view. It still disable commands, but keeps
-// the active session borders, so that user understands what session the current panel is related to.
+/**
+ * Let the given grist doc know that the current region is not the view layout anymore.
+ *
+ * When escaping the view layout:
+ *  - view layout keyboard commands are disabled[*]
+ *  - active section border (the left, green border of the widget) gets hidden
+ *
+ * Setting `isRelated` to true is a special case made for when focusing panels "related" to the view layout:
+ * instead of hiding the active section border, it dims it but keeps it slightly visible,
+ * so that the user understands what view layout section the current panel is related to.
+ *
+ * [*] Disabling the view keyboard commands is a crucial step for enabling keyboard navigation with Tab key in a panel.
+ * This is because amongst the disabled view commands are the `nextField` and `prevField` commands,
+ * which are the ones overriding the Tab key normal browser behavior and trapping the Tab key usage in a Table/Card/etc.
+ */
 const escapeViewLayout = (gristDoc: GristDoc, isRelated = false) => {
   gristDoc.viewModel.focusedRegionState(isRelated ? 'related' : 'out');
 };
 
 /**
  * Focus the given doc view section id
+ *
+ * This enables the view layout keyboard commands, noticeably making the Tab key
+ * respond to the `nextField` and `prevField` commands instead of normal browser behavior.
  */
 const focusSection = (section: SectionRegion, gristDoc: GristDoc) => {
   focusViewLayout(gristDoc);
