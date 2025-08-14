@@ -60,6 +60,11 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
         createUserImage(user, 'medium'),
         user.name,
       )),
+      {
+        // Avoids an issue where the menu code will infinitely loop trying to find the
+        // next selectable option, when using keyboard navigation, due to having none.
+        allowNothingSelected: true,
+      }
     ),
   );
 }
