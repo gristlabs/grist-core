@@ -2393,6 +2393,7 @@ export class HomeDBManager {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
+        firstLoginAt: undefined, // Not part of PermissionData.
         loginEmail: undefined,    // Not part of PermissionData.
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
