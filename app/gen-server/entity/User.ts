@@ -52,6 +52,9 @@ export class User extends BaseEntity {
   @Column({name: 'is_first_time_user', type: Boolean, default: false})
   public isFirstTimeUser: boolean;
 
+  @Column({name: 'is_enabled', type: Boolean, default: true})
+  public isEnabled: boolean;
+
   @Column({name: 'options', type: nativeValues.jsonEntityType, nullable: true})
   public options: UserOptions | null;
 

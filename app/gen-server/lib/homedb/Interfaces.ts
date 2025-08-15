@@ -30,6 +30,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
+  isEnabled?: boolean;
   options?: Partial<UserOptions>;
 }
 
