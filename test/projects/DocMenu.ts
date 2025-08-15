@@ -25,7 +25,7 @@ describe('DocMenu', function() {
     if (workspace) {
       const results = await Promise.all(
         docs.map(
-          async (d) => (await d.find('.test-dm-doc-workspace').getText()) === workspace
+          async (d) => (await d.find('.test-dm-doc-workspace').getText()) === "Workspace\n" + workspace
         )
       );
       docs = docs.filter((_, index) => results[index]);
@@ -35,9 +35,10 @@ describe('DocMenu', function() {
 
   const getDocNames = stackWrapFunc(async function(workspace?: string) {
     const docs = await getDocs(workspace);
-    return await Promise.all(
+    const result = await Promise.all(
       docs.map((d) => d.find('.test-dm-doc-name').getText())
     );
+    return result;
   });
 
   const getDocTimes = stackWrapFunc(async function(workspace?: string) {

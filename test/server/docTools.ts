@@ -166,7 +166,7 @@ export async function createDocManager(
 }
 
 export async function createTmpDir(): Promise<string> {
-  const tmpRootDir = process.env.TESTDIR || tmpdir();
+  const tmpRootDir = path.resolve(process.env.TESTDIR || tmpdir());
   await fse.mkdirs(tmpRootDir);
   return (await tmp.dir({
     dir: tmpRootDir,

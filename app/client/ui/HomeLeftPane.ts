@@ -141,7 +141,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       cssHomeTools(
         {'aria-labelledby': 'grist-resources-heading'},
         cssSectionHeader(
-          cssPageColorIcon('GristLogo', {title: appVersion}),
+          cssPageColorIcon('GristLogo', {title: appVersion, id: 'grist-resources-logo'}),
           cssSectionHeaderText(t("Grist Resources"), {id: 'grist-resources-heading'})
         ),
         cssPageEntry(
