@@ -508,7 +508,8 @@
         "Team Site": "Сайт команди",
         "Grist Templates": "Шаблони від Grist",
         "Billing Account": "Розрахунковий рахунок",
-        "Manage Team": "Керувати командою"
+        "Manage Team": "Керувати командою",
+        "{{ organizationName }} - Back to home": "{{ organizationName }} - Назад додому"
     },
     "CellContextMenu": {
         "Clear cell": "Очистити клітинку",
@@ -764,7 +765,8 @@
         "Workspaces": "Робочій простір",
         "Tutorial": "Туторіал",
         "Terms of service": "Умови надання послуг",
-        "Grist Resources": "Ресурси зерна"
+        "Grist Resources": "Ресурси зерна",
+        "context menu - {{- workspaceName }}": "контекстне меню - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Об'єднати рядки, які відповідають цим полям:",
@@ -812,7 +814,8 @@
         "The following tables will no longer be visible_one": "Наступна таблиця більше не відображатиметься",
         "The following tables will no longer be visible_other": "Наступні таблиці більше не відображатимуться",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Зберегти дані та видалити сторінку. Таблиця залишиться доступною в {{rawDataLink}}",
-        "raw data page": "сторінка необроблених даних"
+        "raw data page": "сторінка необроблених даних",
+        "Document pages": "Сторінки документа"
     },
     "PermissionsWidget": {
         "Read Only": "Тільки для читання",
@@ -944,7 +947,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Невідомий користувач",
         "View as Yourself": "Переглянути як себе",
-        "You are viewing this document as": "Ви переглядаєте цей документ як"
+        "You are viewing this document as": "Ви переглядаєте цей документ як",
+        "You're seeing what this user would see if given access": "Ви бачите те, що бачив би цей користувач, якби йому надали доступ"
     },
     "ViewConfigTab": {
         "Advanced settings": "Розширені налаштування",
@@ -1108,7 +1112,9 @@
     "ACLUsers": {
         "Example Users": "Приклади користувачів",
         "View As": "Переглянути як",
-        "Users from table": "Користувачі з таблиці"
+        "Users from table": "Користувачі з таблиці",
+        "Other users from table": "Інші користувачі з таблиці",
+        "Shared users": "Спільні користувачі"
     },
     "NTextBox": {
         "true": "true",
@@ -1355,7 +1361,9 @@
         "Creator panel (right panel)": "Панель творця (права панель)",
         "Document header": "Заголовок документа",
         "Main content": "Основний зміст",
-        "Main navigation and document settings (left panel)": "Основна навігація та налаштування документа (ліва панель)"
+        "Main navigation and document settings (left panel)": "Основна навігація та налаштування документа (ліва панель)",
+        "Close navigation panel (left panel)": "Закрити панель навігації (ліва панель)",
+        "Open navigation panel (left panel)": "Відкрити панель навігації (ліва панель)"
     },
     "ColumnTitle": {
         "Add description": "Додати опис",
@@ -1941,7 +1949,9 @@
         "Start a new document": "Створити новий документ",
         "Templates": "Шаблони",
         "Tutorial": "Підручник",
-        "Webinars": "Вебінари"
+        "Webinars": "Вебінари",
+        "Find solutions and explore more resources": "Знайдіть рішення та ознайомтеся з іншими ресурсами",
+        "Learn more": "Дізнатися більше"
     },
     "ReverseReferenceConfig": {
         "Add two-way reference": "Додати двостороннє посилання",
@@ -2031,7 +2041,9 @@
         "Sort by date": "Сортувати за датою",
         "Sort by name": "Сортувати за назвою",
         "Unpin": "Відкріпити",
-        "Workspace": "Робочий простір"
+        "Workspace": "Робочий простір",
+        "context menu - {{- documentName }}": "контекстне меню - {{- documentName }}",
+        "Documents list": "Список документів"
     },
     "RenameDocModal": {
         "Choose color": "Виберіть колір",
