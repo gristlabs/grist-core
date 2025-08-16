@@ -1341,7 +1341,8 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Внутрішнє сховище означає, що всі вкладення зберігаються у файлі SQLite документа, тоді як зовнішнє сховище означає, що всі вкладення зберігаються в одному зовнішньому сховищі.",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Це дозволяє додавати вкладення, яких немає на зовнішньому сховищі, наприклад, в імпортованому документі. Сюди можна завантажувати лише архіви вкладень .tar, завантажені з Grist.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Розумійте, змінюйте та працюйте зі своїми даними й формулами за допомогою нового ШІ-помічника Grist!",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Цю форму створив користувач Grist і не схвалює Grist Labs. Не надсилайте паролі через цю форму та будьте обережні з посиланнями в ній. Повідомляйте про шкідливі форми на адресу [{{mail}}](mailto:{{mail}})."
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Цю форму створив користувач Grist і не схвалює Grist Labs. Не надсилайте паролі через цю форму та будьте обережні з посиланнями в ній. Повідомляйте про шкідливі форми на адресу [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Встановіть максимальну кількість рядків для багаторядкового тексту."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИС"
@@ -2162,5 +2163,10 @@
         "Preview not available.": "Попередній перегляд недоступний.",
         "{{index}} of {{total}}": "{{index}} з {{total}}",
         "Uploading…": "Вавантаження…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Розгорнути всі рядки до цієї висоти",
+        "Max height": "Максимальна висота",
+        "Max row height": "Максимальна висота рядка"
     }
 }
