@@ -177,6 +177,7 @@ export class DocClients {
         "docUserPresenceUpdate",
         undefined,
         async (destSession: DocSession, messageData: any) => {
+          if (originSession === destSession) { return; }
           // TODO - If a user has their access removed, they need to refresh their own user list
           const profile = getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
           if (!profile) { return; }
