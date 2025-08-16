@@ -1,8 +1,20 @@
-import {decodeUrl, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart} from 'app/common/gristUrls';
+import {
+  decodeUrl, getHostType, getSlugIfNeeded, IGristUrlState, parseFirstUrlPart
+} from 'app/common/gristUrls';
 import {assert} from 'chai';
+import Sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
 describe('gristUrls', function() {
+  let sandbox: Sinon.SinonSandbox;
+
+  beforeEach(function () {
+    sandbox = Sinon.createSandbox();
+  });
+
+  afterEach(function () {
+    sandbox.restore();
+  });
 
   function assertUrlDecode(url: string, expected: Partial<IGristUrlState>) {
     const actual = decodeUrl({}, new URL(url));
@@ -117,12 +129,13 @@ describe('gristUrls', function() {
     });
 
     it('should interpret doc internal url as "native"', function() {
-      process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal/path';
+      sandbox.define(process.env, 'APP_DOC_INTERNAL_URL', 'https://doc-worker-123.internal/path');
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'native');
       assert.equal(getHostType('doc-worker-123.internal:8080', defaultOptions), 'custom');
       assert.equal(getHostType('doc-worker-124.internal', defaultOptions), 'custom');
 
-      process.env.APP_DOC_INTERNAL_URL = 'https://doc-worker-123.internal:8080/path';
+      sandbox.restore();
+      sandbox.define(process.env, 'APP_DOC_INTERNAL_URL', 'https://doc-worker-123.internal:8080/path');
       assert.equal(getHostType('doc-worker-123.internal:8080', defaultOptions), 'native');
       assert.equal(getHostType('doc-worker-123.internal', defaultOptions), 'custom');
       assert.equal(getHostType('doc-worker-124.internal:8080', defaultOptions), 'custom');

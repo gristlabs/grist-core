@@ -7,7 +7,7 @@
  */
 import {makeT} from 'app/client/lib/localization';
 import {normalizeEmail} from 'app/common/emails';
-import {commonUrls, isOrgInPathOnly} from 'app/common/gristUrls';
+import {isOrgInPathOnly} from 'app/common/gristUrls';
 import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/LoginSessionAPI';
@@ -428,7 +428,7 @@ export class UserManager extends Disposable {
           }),
           t(`Add {{member}} to your team`, { member: member.name || t('member') })));
       } else if (limit.at >= limit.top) {
-        elements.push(cssLink({href: commonUrls.plans, target: '_blank'},
+        elements.push(cssLink({href: window.gristConfig.commonUrls.plans, target: '_blank'},
           t('Create a team to share with more people')));
       }
       return elements;

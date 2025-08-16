@@ -11,7 +11,7 @@ import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {ActivationState, commonUrls} from 'app/common/gristUrls';
+import {ActivationState} from 'app/common/gristUrls';
 import {not} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
 import {BindableValue, Computed, Disposable, dom, input, MultiHolder, Observable, styled} from 'grainjs';
@@ -135,8 +135,8 @@ of 30 days has expired. Get an activation key by [contacting us]({{contactLink}}
 not need an activation key to run Grist Core.
 
 Learn more in our [Help Center]({{helpCenter}}).`, {
-            contactLink: commonUrls.contact,
-            helpCenter: commonUrls.helpEnterpriseOptIn
+            contactLink: window.gristConfig.commonUrls.contact,
+            helpCenter: window.gristConfig.commonUrls.helpEnterpriseOptIn
         }))
       ),
       this._buildPasteYourKey(),
@@ -262,7 +262,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
             markdown((txt ? txt + ' ' : '') + t(
               `To continue using Grist Enterprise, you need to
                   [contact us]({{signupLink}}) to get your activation key.`, {
-              signupLink: commonUrls.contact,
+              signupLink: window.gristConfig.commonUrls.contact,
             })),
           )),
         ),
@@ -309,7 +309,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
           markdown(t(
             `Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to
 [sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.`, {
-            signupLink: commonUrls.plans,
+            signupLink: window.gristConfig.commonUrls.plans,
             expireAt,
           }))
         ),
@@ -320,7 +320,7 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
           markdown(t(`An active subscription is required to continue using Grist Enterprise. You can
 you activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your
 activation key below.`, {
-            signupLink: commonUrls.plans,
+            signupLink: window.gristConfig.commonUrls.plans,
           }))
         ),
       ]),
@@ -348,7 +348,7 @@ function enterpriseNotEnabledCopy() {
       markdown(t(`An activation key is used to run Grist Enterprise after a trial period
         of 30 days has expired. Get an activation key by [signing up for Grist
         Enterprise]({{signupLink}}). You do not need an activation key to run
-        Grist Core.`, {signupLink: commonUrls.plans})),
+        Grist Core.`, {signupLink: window.gristConfig.commonUrls.plans})),
     ),
     learnMoreLink(),
   ];
@@ -357,8 +357,8 @@ function enterpriseNotEnabledCopy() {
 function learnMoreLink() {
   return cssParagraph(
     markdown(t(`Learn more in our [Help Center]({{helpCenter}}).`, {
-      signupLink: commonUrls.plans,
-      helpCenter: commonUrls.helpEnterpriseOptIn
+      signupLink: window.gristConfig.commonUrls.plans,
+      helpCenter: window.gristConfig.commonUrls.helpEnterpriseOptIn
     })));
 }
 

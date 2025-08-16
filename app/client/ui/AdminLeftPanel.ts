@@ -10,7 +10,6 @@ import {colors, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {cssLink} from 'app/client/ui2018/links';
 import {AdminPanelPage} from 'app/common/gristUrls';
-import {commonUrls} from 'app/common/gristUrls';
 import {getGristConfig} from "app/common/urlUtils";
 import {Computed, dom, DomContents, MultiHolder, Observable, styled} from 'grainjs';
 
@@ -77,7 +76,7 @@ export function buildAdminLeftPanel(owner: MultiHolder, appModel: AppModel): Pag
       buildPageEntry('docs', 'Page', adminControlsAvailable),
       (adminControlsAvailable ? null :
         cssPanelLink(cssLearnMoreLink(
-          {href: commonUrls.helpAdminControls, target: "_blank"},
+          {href: window.gristConfig.commonUrls.helpAdminControls, target: "_blank"},
           t("Learn more"), css.cssPageIcon('FieldLink'),
           testId('learn-more'),
         ))
