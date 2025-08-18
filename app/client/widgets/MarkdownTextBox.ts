@@ -29,7 +29,11 @@ export class MarkdownTextBox extends NTextBox {
           }
         }),
         dom.onMatch('a', 'click', (ev, el) => handleGristLinkClick(ev as MouseEvent, el as HTMLAnchorElement)),
-        dom.domComputed(valueObs, value => renderCellMarkdown(String(value))),
+        dom.domComputed(valueObs, value => renderCellMarkdown(String(value), {
+          onMarkedResolved: () => {
+            this.field.viewSection().events.trigger('rowHeightChange');
+          },
+        })),
       )
     );
   }
