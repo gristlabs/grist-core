@@ -1,12 +1,12 @@
-import createDOMPurifier from "dompurify";
+import createDOMPurifier, { Config } from "dompurify";
 
 export function sanitizeHTML(source: string | Node): string {
   return defaultPurifier.sanitize(source);
 }
 
-export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
+export function sanitizeHTMLIntoDOM(source: string | Node, config: Config = {}): DocumentFragment {
   try {
-    return defaultPurifier.sanitize(source, { RETURN_DOM_FRAGMENT: true });
+    return defaultPurifier.sanitize(source, { ...config, RETURN_DOM_FRAGMENT: true });
   } catch (err) {
     // There seems to be a regression in Chrome during printing related to TrustedTypes (see
     // https://issues.chromium.org/issues/40138301). We attempt a workaround by forcing
@@ -14,6 +14,7 @@ export function sanitizeHTMLIntoDOM(source: string | Node): DocumentFragment {
     if ((window as any).isCurrentlyPrinting) {
       console.warn("Working around error from dompurify during printing", err);
       return defaultPurifier.sanitize(source, {
+        ...config,
         RETURN_DOM_FRAGMENT: true,
         TRUSTED_TYPES_POLICY: {
           createHTML: (html: string) => html,

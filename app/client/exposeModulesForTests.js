@@ -9,4 +9,5 @@ Object.assign(window.exposedModules, {
   Comm: require("app/client/components/Comm"),
   loadScript: require("./lib/loadScript"),
   ConnectState: require("./models/ConnectState"),
+  sanitizeHTML: require("app/client/ui/sanitizeHTML"),
 });

@@ -29,6 +29,12 @@ exports.loadAce = () => import("ace-builds")
     return m.default;
   });
 exports.loadEmojiPicker = () => import("app/client/ui/EmojiPicker" /* webpackChunkName: "emojipicker" */);
+// Resolves to the KaTeX-based marked extension, including mhchem extension and KaTeX stylesheets.
+exports.loadMarkedKatex = () => Promise.all([
+  import("marked-katex-extension" /* webpackChunkName: "katex" */),
+  import("katex/contrib/mhchem" /* webpackChunkName: "katex" */),
+  loadCss("katex/katex.min.css"),
+]).then(([m]) => m.default);
 exports.loadMomentTimezone = () => import("moment-timezone").then(m => m.default);
 exports.loadPlotly = () => import("plotly.js-basic-dist" /* webpackChunkName: "plotly" */);
 // Toast UI Calendar, used by the native CalendarView. Its stylesheet is served from static/ (a

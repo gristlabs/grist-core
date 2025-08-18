@@ -14,6 +14,10 @@ import { dom, styled } from "grainjs";
 export class MarkdownTextBox extends NTextBox {
   constructor(field: ViewFieldRec) {
     super(field);
+    // KaTeX fonts load lazily, on the first render that needs the font. So remeasure rows after
+    // every font load; scrolly coalesces the triggers when a load affects several columns.
+    this.autoDispose(dom.onElem(document.fonts, "loadingdone",
+      () => this.field.viewSection().events.trigger("rowHeightChange")));
   }
 
   public buildDom(row: DataRowModel) {
@@ -61,10 +65,10 @@ export const cssMarkdown = styled("div", `
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  & > *:first-child {
+  & > :not(.katex-display):first-child {
      margin-top: 0px !important;
   }
-  & > :not(blockquote, ol, pre, ul):last-child {
+  & > :not(blockquote, ol, pre, ul, .katex-display):last-child {
      margin-bottom: 0px !important;
   }
   & h1, & h2, & h3, & h4, & h5, & h6 {
