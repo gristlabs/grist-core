@@ -40,14 +40,22 @@ const markedAsync = new AsyncCreate<Marked>(async () => {
   );
 });
 
+interface RenderOptions {
+  onMarkedResolved?: () => void;
+}
+
 // Call render() synchronously if possible, or asynchronously otherwise. Aside from the first
 // batch of renders, this will always be synchronous. This matters for printing, where we
 // prepare a view in "beforeprint" callback, and async renders take place too late.
 let markedResolved: Marked|undefined;
-function domAsyncOrDirect(render: (markedObj: Marked) => DomContents) {
+function domAsyncOrDirect(
+  render: (markedObj: Marked) => DomContents,
+  options: RenderOptions = {}
+) {
   return markedResolved ?
     render(markedResolved) :
     domAsync(markedAsync.get().then(markedObj => {
+      options.onMarkedResolved?.();
       markedResolved = markedObj;
       return render(markedResolved);
     }));
@@ -61,7 +69,10 @@ function domAsyncOrDirect(render: (markedObj: Marked) => DomContents) {
  * The actual rendering will happen asynchronously on first use, while the markdown loads some
  * extensions (specifically, the code highlighter).
  */
-export function renderCellMarkdown(markdownValue: string): DomContents {
+export function renderCellMarkdown(
+  markdownValue: string,
+  options: RenderOptions = {}
+): DomContents {
   return domAsyncOrDirect((markedObj: Marked) => {
     const source = markedObj.parse(markdownValue, {
       async: false,
@@ -69,5 +80,5 @@ export function renderCellMarkdown(markdownValue: string): DomContents {
       renderer,
     });
     return sanitizeHTMLIntoDOM(source);
-  });
+  }, options);
 }
