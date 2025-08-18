@@ -273,6 +273,7 @@ export class UsersManager {
     return await this._connection.transaction(async manager => {
       let isWelcomed = false;
       let needsSave = false;
+      let wasDisabled = false;
       const user = await manager.findOne(User, {
         relations: ['logins'],
         where: {id: userId},
@@ -283,6 +284,13 @@ export class UsersManager {
       if (props.name && props.name !== user.name) {
         user.name = props.name;
         needsSave = true;
+      }
+      if (props.isEnabled !== undefined && props.isEnabled !== user.isEnabled) {
+        user.isEnabled = props.isEnabled;
+        needsSave = true;
+        // We just disabled a user. Need to disconnect their websocket
+        // connexions.
+        if (!props.isEnabled) { wasDisabled = true; }
       }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
         user.isFirstTimeUser = props.isFirstTimeUser;
@@ -295,7 +303,7 @@ export class UsersManager {
       if (needsSave) {
         await manager.save(user);
       }
-      return {previous, current: user, isWelcomed};
+      return {previous, current: user, isWelcomed, wasDisabled};
     });
   }
 

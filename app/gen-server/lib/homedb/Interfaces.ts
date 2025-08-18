@@ -19,6 +19,7 @@ export interface QueryResult<T> {
 export interface PreviousAndCurrent<T> {
   previous: T;
   current: T;
+  wasDisabled?: boolean;
 }
 
 export interface GetUserOptions {
