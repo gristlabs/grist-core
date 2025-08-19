@@ -19,7 +19,8 @@ import {
 import {BEHAVIOR} from 'app/client/models/entities/ColumnRec';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {removeRule, RuleOwner} from 'app/client/models/RuleOwner';
-import {LinkConfig} from 'app/client/ui/selectBy';
+import type {Style} from 'app/client/models/Styles';
+import {LinkConfig} from 'app/client/ui/LinkConfig';
 import {getWidgetTypes} from "app/client/ui/widgetTypesMap";
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {AccessLevel, ICustomWidget} from 'app/common/CustomWidget';
@@ -31,7 +32,7 @@ import {WidgetType} from 'app/common/widgetTypes';
 import {ColumnsToMap, WidgetColumnMap} from 'app/plugin/CustomSectionAPI';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {GristObjCode} from 'app/plugin/GristData';
-import {Computed, Holder, Observable} from 'grainjs';
+import {Computed, Holder, Observable, subscribe} from 'grainjs';
 import * as ko from 'knockout';
 import defaults = require('lodash/defaults');
 
@@ -60,6 +61,40 @@ export interface NewFieldInfo extends NewColInfo {
   fieldRef: number;
 }
 
+export interface ChartOptions {
+  // Options for ChartView.
+  multiseries?: boolean;
+  lineConnectGaps?: boolean;
+  lineMarkers?: boolean;
+  stacked?: boolean;
+  invertYAxis?: boolean;
+  logYAxis?: boolean;
+  // If "symmetric", one series after each Y series gives the length of the error bars around it. If
+  // "separate", two series after each Y series give the length of the error bars above and below it.
+  errorBars?: 'symmetric' | 'separate';
+  donutHoleSize?: number;
+  showTotal?: boolean;
+  textSize?: number;
+  isXAxisUndefined?: boolean;
+  orientation?: 'v'|'h';
+  aggregate?: boolean;
+}
+
+export interface ViewSectionOptions extends ChartOptions {
+  // Options for GridView.
+  verticalGridlines?: boolean;
+  horizontalGridlines?: boolean;
+  zebraStripes?: boolean;
+  numFrozen?: number;
+  rowHeight?: number;           // Optional limit on height of rows, in lines.
+  rowHeightUniform?: boolean;   // Whether rowHeight should make rows uniform height, by expanding shorter rows.
+
+  // Other options.
+  customView?: string;    // Configuration for custom widgets in JSON format.
+  disabled?: boolean;     // Applies to the "default record card".
+  rulesOptions?: Style[];
+}
+
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
 // a grid section and a chart section).
 export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleOwner {
@@ -71,7 +106,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // All table columns associated with this view section, excluding hidden helper columns.
   columns: ko.Computed<ColumnRec[]>;
 
-  optionsObj: modelUtil.SaveableObjObservable<any>;
+  optionsObj: modelUtil.SaveableObjObservable<ViewSectionOptions>;
   shareOptionsObj: modelUtil.SaveableObjObservable<any>;
 
   customDef: CustomViewSectionDef;
@@ -224,11 +259,15 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   isSorted: ko.Computed<boolean>;
   disableDragRows: ko.Computed<boolean>;
   // Number of frozen columns
-  rawNumFrozen: modelUtil.CustomComputed<number>;
+  rawNumFrozen: modelUtil.CustomComputed<number|undefined>;
   // Number for frozen columns to display.
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
   activeCustomOptions: modelUtil.CustomComputed<any>;
+
+  // Observables used for styling rows with limited heights.
+  rowHeight: Computed<number>;
+  rowHeightUniform: Computed<boolean>;
 
   // Temporary fields used to communicate with the Custom Widget. There are set through the Widget API.
 
@@ -408,7 +447,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       docModel.editingFormula(val);
     }
   });
-  const defaultOptions = {
+  const defaultOptions: ViewSectionOptions = {
     verticalGridlines: true,
     horizontalGridlines: true,
     zebraStripes: false,
@@ -416,7 +455,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     numFrozen: 0
   };
   this.optionsObj = modelUtil.jsonObservable(this.options,
-    (obj: any) => defaults(obj || {}, defaultOptions));
+    (obj: ViewSectionOptions) => defaults(obj || {}, defaultOptions));
   this.shareOptionsObj = modelUtil.jsonObservable(this.shareOptions);
 
   const customViewDefaults = {
@@ -814,11 +853,19 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     Math.max(
       0,
       Math.min(
-        this.rawNumFrozen(),
+        this.rawNumFrozen() || 0,
         this.viewFields().all().length - 1
       )
     )
   );
+
+  // Observables used for styling rows with limited heights.
+  this.rowHeight = Computed.create<number>(this, use => Number(use(this.optionsObj).rowHeight) || 0);
+  this.rowHeightUniform = Computed.create(this, (use) =>
+    Boolean(use(this.rowHeight) && use(this.optionsObj).rowHeightUniform));
+
+  // Subscription to trigger row resizing whenever row-height settings change.
+  this.autoDispose(subscribe(this.rowHeight, this.rowHeightUniform, () => this.events.trigger('rowHeightChange')));
 
   this.hasCustomOptions = ko.observable(false);
   this.desiredAccessLevel = ko.observable<AccessLevel|null>(null);

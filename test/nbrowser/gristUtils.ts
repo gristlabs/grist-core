@@ -665,7 +665,7 @@ async function catchNoSuchElem(query: () => any) {
   }
 }
 
-async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
+export async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
   try {
     return await query();
   } catch (err) {
@@ -1106,8 +1106,8 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 /**
  * Wait for the focus to be on the first element matching given selector.
  */
-export async function waitForFocus(selector: string): Promise<void> {
-  await driver.wait(async () => (await hasFocus(selector)), 1000);
+export async function waitForFocus(selector: string, yesNo: boolean = true, waitMs: number = 1000): Promise<void> {
+  await driver.wait(async () => (await hasFocus(selector) === yesNo), waitMs);
 }
 
 export async function waitForLabelInput(): Promise<void> {
@@ -1152,11 +1152,14 @@ export async function hideBanners() {
     document.head.appendChild(style);`);
 }
 
-export async function assertBannerText(text: string | null) {
+export async function assertBannerText(text: string | null | RegExp) {
   if (text === null) {
     assert.isFalse(await driver.find('.test-banner-element').isPresent());
   } else {
-    assert.equal(await driver.findWait('.test-doc-usage-banner-text', 2000).getText(), text);
+    assert.match(
+      await driver.findWait('.test-doc-usage-banner-text', 2000).getText(),
+      typeof text === 'string' ? exactMatch(text) : text
+    );
   }
 }
 
@@ -1578,7 +1581,17 @@ export async function selectAllVisibleColumns() {
  * Toggle checkbox for a column in visible columns section.
  */
 export async function toggleVisibleColumn(col: string) {
-  const row = await driver.findContent(".test-vfc-visible-fields .kf_draggable_content", exactMatch(col));
+  await openWidgetPanel('widget');
+  const row = await driver.findContent(".test-vfc-visible-field", exactMatch(col));
+  await row.find('input').click();
+}
+
+/**
+ * Toggle checkbox for a column in hidden columns section.
+ */
+export async function toggleHiddenColumn(col: string) {
+  await openWidgetPanel('widget');
+  const row = await driver.findContent(".test-vfc-hidden-field", exactMatch(col));
   await row.find('input').click();
 }
 
@@ -1586,7 +1599,7 @@ export async function toggleVisibleColumn(col: string) {
  * Lists all columns in the visible columns section.
  */
 export async function getVisibleColumns() {
-  return await driver.findAll(".test-vfc-visible-fields .kf_draggable_content", async (row) => {
+  return await driver.findAll(".test-vfc-visible-field", async (row) => {
     return row.getText();
   });
 }
@@ -1595,7 +1608,7 @@ export async function getVisibleColumns() {
  * Lists all columns in the hidden columns section.
  */
 export async function getHiddenColumns() {
-  return await driver.findAll(".test-vfc-hidden-fields .kf_draggable_content", async (row) => {
+  return await driver.findAll(".test-vfc-hidden-field", async (row) => {
     return row.getText();
   });
 }
@@ -1603,8 +1616,13 @@ export async function getHiddenColumns() {
 /**
  * Clicks `Hide Columns` button in visible columns section.
  */
-export async function hideVisibleColumns() {
+export async function hideColumns() {
   await driver.find('.test-vfc-visible-hide').click();
+  await waitForServer();
+}
+
+export async function showColumns() {
+  await driver.find('.test-vfc-hidden-show').click();
   await waitForServer();
 }
 
@@ -1968,7 +1986,7 @@ export async function editOrgAcls(): Promise<void> {
 
 export async function addUser(email: string|string[], role?: 'Owner'|'Viewer'|'Editor'): Promise<void> {
   await driver.findWait('.test-user-icon', 5000).click();
-  await driver.find('.test-dm-org-access').click();
+  await driver.findWait('.test-dm-org-access', 200).click();
   await driver.findWait('.test-um-members', 500);
   const orgInput = await driver.find('.test-um-member-new input');
 
@@ -2156,6 +2174,7 @@ export enum TestUserEnum {
   user3 = 'kiwi',
   user4 = 'ham',
   userz = 'userz',    // a user for old tests, that doesn't overlap with others.
+  fresh = 'fresh',    // user with no resources in seed.ts, safe to recreate as needed
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',
@@ -2254,6 +2273,7 @@ export class Session {
                                 freshAccount?: boolean,
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
+                                showGristTour?: boolean,
                                 userName?: string,
                                 email?: string,
                                 retainExistingLogin?: boolean}) {
@@ -3384,20 +3404,21 @@ export async function getSectionTitles() {
 export async function renameSection(sectionTitle: string, name: string) {
   const renameWidget = driver.findContent(`.test-viewsection-title`, sectionTitle);
   await renameWidget.find(".test-widget-title-text").click();
-  await driver.findWait('.test-widget-title-popup', 100);
-  await driver.find(".test-widget-title-section-name-input").click();
-  await selectAll();
-  await driver.sendKeys(name || Key.DELETE, Key.ENTER);
-  await waitForServer();
+  await doRenameSection(name);
 }
 
 export async function renameActiveSection(name: string) {
   await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await doRenameSection(name);
+}
+
+async function doRenameSection(name: string) {
   await driver.findWait('.test-widget-title-popup', 100);
   await driver.find(".test-widget-title-section-name-input").click();
   await selectAll();
   await driver.sendKeys(name || Key.DELETE, Key.ENTER);
   await waitForServer();
+  await notPresent(".test-widget-title-section-name-input");
 }
 
 /**
@@ -3959,21 +3980,6 @@ export const choicesEditor = {
   }
 };
 
-export function findValue(selector: string, value: string|RegExp) {
-  const inner = async () => {
-    const all = await driver.findAll(selector);
-    const tested: string[] = [];
-    for(const el of all) {
-      const elValue = await el.value();
-      tested.push(elValue);
-      const found = typeof value === 'string' ? elValue === value : value.test(elValue);
-      if (found) { return el; }
-    }
-    throw new Error(`No element found matching ${selector}, tested ${tested.join(', ')}`);
-  };
-  return new WebElementPromise(driver, inner());
-}
-
 export async function switchUser(email: string) {
   await driver.findWait('.test-user-icon', 1000).click();
   await driver.findContentWait('.test-usermenu-other-email', exactMatch(email), 1000).click();
@@ -4152,6 +4158,37 @@ export async function selectTab(name: string|RegExp) {
   await driver.findContentWait('.test-component-tabs-tab', name, 100).click();
 }
 
+/**
+ * Resize browser window more reliably by setting the viewport size.
+ */
+export async function setViewportDimensions(targetWidth: number, targetHeight: number) {
+  // Step 1: Set fixed size of the window to ensure consistent outer dimensions, and prevent maximized
+  // state which gives different outer dimensions.
+  await driver.manage().window().setRect({ width: 1000, height: 800 });
+
+  // Step 2: Get outer vs inner difference
+  const sizeDiff: {widthDiff: number, heightDiff: number} = await driver.executeScript(() => {
+    return {
+      widthDiff: window.outerWidth - window.innerWidth,
+      heightDiff: window.outerHeight - window.innerHeight,
+    };
+  });
+
+  const width = targetWidth + sizeDiff.widthDiff;
+  const height = targetHeight + sizeDiff.heightDiff;
+
+  // Step 3: Set outer window size to match desired viewport
+  await driver.manage().window().setRect({ width, height });
+}
+
+export async function getViewportDimensions(): Promise<WindowDimensions> {
+  return await driver.executeScript(() => {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  });
+}
 
 } // end of namespace gristUtils
 

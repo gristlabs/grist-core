@@ -90,6 +90,6 @@ export class BillingAccount extends BaseEntity {
   public isManager?: boolean;
 
   public getFeatures(): Features {
-    return mergedFeatures(this.features, this.product.features) ?? {};
+    return mergedFeatures(this.features, this.product?.features) ?? {};
   }
 }

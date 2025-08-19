@@ -1,6 +1,7 @@
 import {colors, mediaXSmall, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {numericSpinner} from 'app/client/widgets/NumericSpinner';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {styled} from 'grainjs';
 
 export const label = styled('div', `
@@ -68,7 +69,7 @@ export const resetButton = styled('button', `
     color: ${vars.primaryBgHover};
     border-color: ${vars.primaryBgHover};
   }
-  &:disabled {
+  &[aria-disabled="true"] {
     cursor: not-allowed;
     color: ${colors.light};
     background-color: ${colors.slate};
@@ -81,7 +82,11 @@ export const submitButton = styled('div', `
   justify-content: center;
   align-items: center;
 
-  & input[type="submit"] {
+  & button[type="submit"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     background-color: ${vars.primaryBg};
     border: 1px solid ${vars.primaryBg};
     color: white;
@@ -92,11 +97,11 @@ export const submitButton = styled('div', `
     line-height: inherit;
     outline-color: ${vars.primaryBgHover};
   }
-  & input[type="submit"]:hover {
+  & button[type="submit"]:hover {
     border-color: ${vars.primaryBgHover};
     background-color: ${vars.primaryBgHover};
   }
-  & input[type="submit"]:disabled {
+  & button[type="submit"][aria-disabled="true"] {
     cursor: not-allowed;
     color: ${colors.light};
     background-color: ${colors.slate};
@@ -391,4 +396,14 @@ export const attachmentInput = styled('input', `
     background-color: ${colors.slate};
     border-color: ${colors.slate};
   }
+`);
+
+export const buttonLoadingSpinner = styled(loadingSpinner, `
+  width: 1em;
+  height: 1em;
+  line-height: inherit;
+  border-radius: 50%;
+  border-width: 1px;
+  margin-bottom: 1px;
+  --loader-fg: currentColor;
 `);

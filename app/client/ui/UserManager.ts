@@ -5,7 +5,8 @@
  *
  * It can be instantiated by calling showUserManagerModal with the UserAPI and IUserManagerOptions.
  */
-import { makeT } from 'app/client/lib/localization';
+import {makeT} from 'app/client/lib/localization';
+import {normalizeEmail} from 'app/common/emails';
 import {commonUrls, isOrgInPathOnly} from 'app/common/gristUrls';
 import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -259,7 +260,7 @@ export class UserManager extends Disposable {
 
   private _onAddOrEdit(email: string, role: roles.NonGuestRole) {
     const members = this._model.membersEdited.get();
-    const maybeMember = members.find(m => m.email === email);
+    const maybeMember = members.find(m => normalizeEmail(m.email) === email);
     if (maybeMember) {
       maybeMember.access.set(role);
     } else {

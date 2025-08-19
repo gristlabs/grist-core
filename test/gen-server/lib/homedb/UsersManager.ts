@@ -464,7 +464,8 @@ describe('UsersManager', function () {
           picture: input.picture,
           ref: input.ref,
           locale: someUserLocale,
-          prefs: prefWithoutOrg.prefs
+          prefs: prefWithoutOrg.prefs,
+          firstLoginAt: null,
         });
       });
 

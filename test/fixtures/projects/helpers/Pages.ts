@@ -2,7 +2,7 @@ import { find, fromTableData, TreeItemRecord, TreeNodeRecord } from "app/client/
 import { addTreeView } from "app/client/ui/TreeViewComponent";
 import { buildPageDom } from "app/client/ui2018/pages";
 import { nativeCompare } from "app/common/gutil";
-import { dom, makeTestId, observable, Observable } from 'grainjs';
+import { Computed, dom, makeTestId, observable, Observable } from 'grainjs';
 
 const testId = makeTestId('test-pages-');
 
@@ -73,10 +73,27 @@ function buildDom(id: number) {
   const isRemoveDisabled = () => false;
   const isReadonly = Observable.create(null, false);
   const onDuplicate = () => null;
+  const isCollapsed = Observable.create(null, false);
+  const onCollapse = () => {};
+  const isCollapsedByDefault = Computed.create(null, () => false);
+  const onCollapseByDefault = async () => {};
+  const hasSubPages = () => false;
   return buildPageDom(
-    page.name, {onRename, onRemove, isRemoveDisabled, isReadonly, onDuplicate},
-    testId('page'),
-    dom.on('click', () => {
+    page.name,
+    {
+      onRename,
+      onRemove,
+      isRemoveDisabled,
+      isReadonly,
+      onDuplicate,
+      isCollapsed,
+      onCollapse,
+      isCollapsedByDefault,
+      onCollapseByDefault,
+      hasSubPages,
+    },
+    testId("page"),
+    dom.on("click", () => {
       const item = find(pagesModel.get(), (i: any) => i.record.id === id);
       selected.set(item || null);
     })

@@ -131,6 +131,10 @@ export const cssUserImage = styled('div', `
     background-color: ${colors.slate};
     border: 1px solid ${colors.slate};
   }
+  /* make sure the kb highlight is on top of the image when used in app logo */
+  &-inAppLogo {
+    z-index: -1;
+  }
 `);
 
 const cssUserPicture = styled('img', `

@@ -44,10 +44,12 @@ export class ViewAsBanner extends Disposable {
 
   private _buildContent(userOverride: UserOverride) {
     const {user, access} = userOverride;
+    const sharedUser = user && user.id > 0;
     return cssContent(
       cssMessageText(
         cssMessageIcon('EyeShow'),
-        t('You are viewing this document as'),
+        sharedUser ? t('You are viewing this document as')
+                   : t("You're seeing what this user would see if given access")
       ),
       cssSelectBtn(
         {tabIndex: '0'},

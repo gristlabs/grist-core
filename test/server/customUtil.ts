@@ -7,6 +7,10 @@ import {AddressInfo, Socket} from 'net';
 import * as path from 'path';
 import {fixturesRoot} from 'test/server/testUtils';
 
+// An alternative domain for localhost, to test links that look external. We have a record for
+// localtest.datagrist.com set up to point to localhost.
+const TEST_GRIST_HOST = 'localtest.datagrist.com';
+
 export interface Serving {
   url: string;
   shutdown: () => Promise<void>;
@@ -164,4 +168,27 @@ export interface FakeUpdateServer {
   resume: () => void;
   url: () => string;
   bumpVersion: () => void;
+}
+
+/**
+ * Call this in describe() to set up before/after hooks to serve some content on a non-Grist URL,
+ * just so we can reliably open such URLs. (When we used "example.com", it was occasionally
+ * unresponsive, causing tests to fail.)
+ *
+ * Any request just returns the provided content.
+ */
+export function setupExternalSite(content: string) {
+  let serving: Serving;
+  let servingUrl: URL;
+  before(async function() {
+    serving = await serveSinglePage("Dolphins are cool.");
+    servingUrl = new URL(serving.url);
+    servingUrl.hostname = TEST_GRIST_HOST;
+  });
+  after(async function() {
+    if (serving) { await serving.shutdown(); }
+  });
+  return {
+    getUrl() { return servingUrl; }
+  };
 }

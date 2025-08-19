@@ -1,3 +1,5 @@
+import {components} from 'app/common/ThemePrefs';
+import {cssFocusedPanel} from 'app/client/components/RegionFocusSwitcher';
 import {transientInput} from 'app/client/ui/transientInput';
 import {mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -107,6 +109,12 @@ export const otherSitesHeader = templatesHeader;
 
 export const STICKY_HEADER_HEIGHT_PX = 76;
 
+// The main panel may have a focus ring, but it is hidden by the header that is sticky positioned
+// at `top: 0px`. In theory we'd want to say that the sticky header is at `top: 3px` to compensate for
+// potential focus ring; but in that case other issues arise (like we see 3px of content below the sticky
+// header when scrolling).
+// The trick here is to set a top border that is transparent by default, and colored when the main
+// panel has focus. We basically replicate the top-side of the focus ring on the header.
 export const stickyHeader = styled(headerWrap, `
   height: ${STICKY_HEADER_HEIGHT_PX}px;
   position: sticky;
@@ -114,7 +122,11 @@ export const stickyHeader = styled(headerWrap, `
   background-color: ${theme.mainPanelBg};
   z-index: ${vars.stickyHeaderZIndex};
   margin-bottom: 0px;
-  padding: 16px 0px 24px 0px;
+  padding: 13px 0px 24px 0px;
+  border-top: 3px solid transparent;
+  .${cssFocusedPanel.className}-focused:focus & {
+    border-top-color: ${components.kbFocusHighlight};
+  }
 `);
 
 export const allDocsTemplates = styled('div', `

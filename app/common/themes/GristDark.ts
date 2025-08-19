@@ -329,7 +329,7 @@ export const GristDark: ThemeTokens = {
     announcementPopupBg: '#404150',
 
     /* Switches */
-    switchSliderFg: tokens.decoration,
+    switchActivePill: tokens.bgSecondary,
 
     /* Scroll Shadow */
     scrollShadow: 'rgba(0,0,0,0.25)',

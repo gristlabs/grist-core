@@ -39,7 +39,7 @@ describe("LanguageSettings", function() {
         assert.isTrue(flag.endsWith(countryCode + '.svg")'), `Flag is ${flag} search for ${countryCode}`);
         // Make sure we see the all languages in the menu.
         await button.click();
-        const menu = await gu.currentDriver().findWait(".grist-floating-menu", 100);
+        const menu = await gu.currentDriver().findWait(".grist-floating-menu", 200);
         const allLangues = (await menu.findAll("li", e => e.getText())).map(l => l.toLowerCase());
         for (const [, , language] of locales) {
           assert.include(allLangues, language.toLowerCase());
@@ -68,7 +68,7 @@ describe("LanguageSettings", function() {
       // By default we have English (US) selected.
       assert.equal(await selectedLang(), "english");
       // Change to French.
-      await gu.currentDriver().find(".test-language-lang-fr").click();
+      await gu.currentDriver().findWait(".test-language-lang-fr", 200).click();
       // We will be reloaded, so wait until we see the new language.
       await waitForLangButton("fr");
       // Now we have a cookie with the language selected, so reloading the page should keep it.
@@ -78,7 +78,7 @@ describe("LanguageSettings", function() {
       assert.equal(await languageInCookie(), "fr");
       // Switch to German.
       await langButton().click();
-      await gu.currentDriver().find(".test-language-lang-de").click();
+      await gu.currentDriver().findWait(".test-language-lang-de", 200).click();
       await waitForLangButton("de");
       // Make sure we see new cookie.
       assert.equal(await languageInCookie(), "de");
@@ -104,8 +104,9 @@ describe("LanguageSettings", function() {
       // By default we have English (US) selected ()
       assert.equal(await selectedLang(), "english");
 
-      // Now login to the account.
-      const user = await gu.session().personalSite.user('user1').login();
+      // Now login to the account. Make sure it's a fresh one, in case previous test suites
+      // changed any preferences.
+      const user = await gu.session().personalSite.user('fresh').login({freshAccount: true});
       await user.loadRelPath("/");
       await gu.waitForDocMenuToLoad();
       // Language should still be english.
@@ -121,7 +122,7 @@ describe("LanguageSettings", function() {
 
       // Change language to french.
       await langButton().click();
-      await driver.find(".test-language-lang-fr").click();
+      await driver.findWait(".test-language-lang-fr", 200).click();
       await waitForLangButton("fr");
       assert.equal(await languageInCookie(), "fr");
 

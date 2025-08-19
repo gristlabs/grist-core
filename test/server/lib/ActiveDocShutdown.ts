@@ -211,7 +211,7 @@ return c
 
     // Check how long this took.
     const expectedTime = Deps.KEEP_DOC_OPEN_TIMEOUT_MS  // Max wait for hanging applyUserActions
-      + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging RemoveTransformColumns action on shutdown
+      + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging cleanup actions on shutdown
       + inactivityTimerMsec   // Time after which ActiveDoc decides to shut down
       + 1000;   // Hard-coded extra time NSandbox takes to kill an unresponsive process
     assert.closeTo(totalMsec, expectedTime, 500);
@@ -307,7 +307,7 @@ return c
 
     // Check how long this took.
     const expectedTime = Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging UpdateCurrentTime call.
-      + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging RemoveTransformColumns action on shutdown
+      + Deps.SHUTDOWN_ITEM_TIMEOUT_MS  // Timeout for the hanging RemoveStaleObjects action on shutdown
       + 1000;   // Hard-coded extra time NSandbox takes to kill an unresponsive process
     assert.closeTo(totalMsec, expectedTime, 500);
   });

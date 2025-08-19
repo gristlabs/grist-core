@@ -21,6 +21,35 @@ describe('FormView2', function() {
 
   gu.withClipboardTextArea();
 
+  describe('general', function() {
+    before(async function() {
+      session = await gu.session().login();
+      api = session.createHomeApi();
+      await session.tempNewDoc(cleanup);
+      await gu.addNewPage('Form', 'Table1');
+    });
+
+    it('properly maps fields in the creator panel', async function() {
+      assert.deepEqual(await labels(), ['A', 'B', 'C']);
+
+      // Check A column and use `Unmap fields` button to check it works properly.
+      await gu.toggleVisibleColumn('A');
+      await gu.toggleVisibleColumn('B');
+      await gu.hideColumns();
+
+      // Check that the field is no longer in the form.
+      assert.deepEqual(await labels(), ['C']);
+
+      // Now map them back.
+      await gu.toggleHiddenColumn('A');
+      await gu.toggleHiddenColumn('B');
+      await gu.showColumns();
+
+      // Check that the fields are back.
+      assert.deepEqual(await labels(), ['C', 'A', 'B']);
+    });
+  });
+
   describe('form borders', function() {
     before(async function() {
       session = await gu.session().login();
@@ -260,7 +289,7 @@ describe('FormView2', function() {
       // Submit a record
       await driver.findWait('input[name="A"]', 2000).click();
       await driver.findWait('input[name="A"]', 100).sendKeys('Hello');
-      await driver.findWait('input[type="submit"]', 1000).click();
+      await driver.findWait('button[type="submit"]', 1000).click();
       await driver.findWait('.test-form-success-page-text', 1000);
 
       // Check that the record was added to the table.

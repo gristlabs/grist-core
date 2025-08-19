@@ -6,5 +6,8 @@
         "Loading...": "Chargement en cours...",
         "og-description": "Un tableur moderne et open source qui va au-delà de la feuille de calcul",
         "og-title": "Grist, le tableur évolué"
+    },
+    "access": {
+        "docNoAccess": "Vous n'avez pas accès à ce document."
     }
 }

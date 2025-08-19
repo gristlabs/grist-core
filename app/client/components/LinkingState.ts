@@ -5,7 +5,7 @@ import {DocModel} from 'app/client/models/DocModel';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
 import {TableRec} from "app/client/models/entities/TableRec";
 import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
-import {LinkConfig} from "app/client/ui/selectBy";
+import {LinkConfig} from "app/client/ui/LinkConfig";
 import {FilterColValues, QueryOperation} from "app/common/ActiveDocAPI";
 import {isList, isListType, isRefListType} from "app/common/gristTypes";
 import * as gutil from "app/common/gutil";

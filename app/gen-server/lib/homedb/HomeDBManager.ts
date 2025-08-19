@@ -5,7 +5,14 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features, isFreePlan} from 'app/common/Features';
+import {
+  ANONYMOUS_PLAN,
+  canAddOrgMembers,
+  Features,
+  isFreePlan,
+  mergedFeatures,
+  PERSONAL_FREE_PLAN
+} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -39,11 +46,17 @@ import {Group} from 'app/gen-server/entity/Group';
 import {Limit} from 'app/gen-server/entity/Limit';
 import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
 import {Pref} from 'app/gen-server/entity/Pref';
-import {getDefaultProductNames, personalFreeFeatures, Product} from 'app/gen-server/entity/Product';
+import {
+  getAnonymousFeatures,
+  getDefaultProductNames,
+  personalFreeFeatures,
+  Product
+} from 'app/gen-server/entity/Product';
 import {Secret} from 'app/gen-server/entity/Secret';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
+import {HomeDBCaches} from 'app/gen-server/lib/homedb/Caches';
 import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
@@ -80,11 +93,12 @@ import {makeId} from 'app/server/lib/idUtils';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
+import {IPubSubManager} from 'app/server/lib/PubSubManager';
 import {getScope} from 'app/server/lib/requestUtils';
 import {expectedResetDate} from 'app/server/lib/serverUtils';
 import {WebHookSecret} from 'app/server/lib/Triggers';
 import {Request} from 'express';
-import {defaultsDeep, flatten, pick, size} from 'lodash';
+import {flatten, pick, size} from 'lodash';
 import moment from 'moment';
 import {
   Brackets,
@@ -269,6 +283,8 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * encapsulating the typeorm logic.
  */
 export class HomeDBManager {
+  public caches: HomeDBCaches|null;
+
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
   private _connection: DataSource;
@@ -285,8 +301,12 @@ export class HomeDBManager {
     return this._connection.driver.options.type;
   }
 
-  public constructor(public storageCoordinator?: StorageCoordinator,
-                     private _notifier: INotifier = EmptyNotifier) {
+  public constructor(
+    public storageCoordinator?: StorageCoordinator,
+    private _notifier: INotifier = EmptyNotifier,
+    pubSubManager?: IPubSubManager,
+  ) {
+    this.caches = pubSubManager ? new HomeDBCaches(this, pubSubManager) : null;
   }
 
   public usersManager() {
@@ -896,6 +916,10 @@ export class HomeDBManager {
         .select('shares')
         .from(Share, 'shares')
         .leftJoinAndSelect('shares.doc', 'doc')
+        .leftJoinAndSelect('doc.workspace', 'workspace')
+        .leftJoinAndSelect('workspace.org', 'org')
+        .leftJoinAndSelect('org.billingAccount', 'billing_account')
+        .leftJoinAndSelect('billing_account.product', 'product')
         .where('key = :key', {key: shareKey})
         .andWhere('doc.removed_at IS NULL')
         .getOne();
@@ -910,16 +934,12 @@ export class HomeDBManager {
         updatedAt: new Date().toISOString(),
         isPinned: false,
         urlId: key.urlId,
-        // For the moment, I don't include a useful workspace.
-        // TODO: look up the document properly, perhaps delegating
-        // to the regular path through this method.
-        workspace: this.unwrapQueryResult<Workspace>(
-          await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
-                                   this._exampleWorkspaceId)),
+        workspace: res.doc.workspace,
         aliases: [],
         access: 'editors',  // a share may have view/edit access,
                             // need to check at granular level
       } as any;
+
       return doc;
     }
     const urlId = trunkId;
@@ -940,10 +960,16 @@ export class HomeDBManager {
         urlId: null,
         workspace: this.unwrapQueryResult<Workspace>(
           await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
-                                   this._exampleWorkspaceId)),
+                                   this._exampleWorkspaceId, transaction)),
         aliases: [],
         access
       } as any;
+
+      // Use free personal account features for documents opened this way.
+      doc.workspace.org.billingAccount = patch(new BillingAccount(), {
+        features: getAnonymousFeatures(),
+        product: patch(new Product(), {name: PERSONAL_FREE_PLAN})
+      });
     } else {
       // We can't delegate filtering of removed documents to the db, since we'll be
       // caching authentication.  But we also don't need to delegate filtering, since
@@ -961,7 +987,7 @@ export class HomeDBManager {
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
-      const features = doc.workspace.org.billingAccount.getFeatures();
+      const features = doc.workspace.org.billingAccount?.getFeatures() || {};
       if (features.readOnlyDocs || this.isReadonly()) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
@@ -1030,6 +1056,12 @@ export class HomeDBManager {
   // Used in tests, and to clear all timeouts when exiting.
   public flushDocAuthCache() {
     this._docAuthCache.clear();
+  }
+
+  // Clear all caches. This is used, in particular, on server exit.
+  public clearCaches() {
+    this.flushDocAuthCache();
+    this.caches?.clear();
   }
 
   // Flush cached access information about a specific document
@@ -1755,8 +1787,9 @@ export class HomeDBManager {
     props: Partial<DocumentProperties>,
     transaction?: EntityManager
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
+    const notifications: Array<() => Promise<void>> = [];
     const markPermissions = Permissions.SCHEMA_EDIT;
-    return await this.runInTransaction(transaction, async (manager) => {
+    const result = await this.runInTransaction(transaction, async (manager) => {
       const {forkId} = parseUrlId(scope.urlId);
       let query: SelectQueryBuilder<Document>;
       if (forkId) {
@@ -1808,8 +1841,14 @@ export class HomeDBManager {
           .execute();
         // TODO: we could limit the max number of aliases stored per document.
       }
+      // Slightly strange but doc metadata may affect doc-access results because docs of type
+      // 'tutorial' adjust returned access differently from other docs (which may not be ideal).
+      // The callback approach is to publish the invalidation after the transaction commits.
+      this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
       return {status: 200, data: {previous, current: doc}};
     });
+    for (const notification of notifications) { await notification(); }
+    return result;
   }
 
   // Checks that the user has REMOVE permissions to the given document. If not, throws an
@@ -2020,6 +2059,11 @@ export class HomeDBManager {
             await scrubUserFromOrg(org.id, parseInt(deltaUser, 10), userId, manager);
           }
         }
+
+        // Get docIds to invalidate, but publish the invalidation once the transaction commits.
+        this.caches?.addInvalidationDocAccess(notifications,
+          await this._getDocsInheritingFrom(manager, {orgId: org.id}));
+
         // Emit an event if the number of org users is changing.
         const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countAfter = removeRole(membersAfter).length;
@@ -2118,6 +2162,9 @@ export class HomeDBManager {
       // If the users in workspace were changed, make a call to repair the guests in the org.
       if (userIdDelta) {
         await this._repairOrgGuests(scope, orgId, manager);
+        // Get docIds to invalidate, but publish the invalidation once the transaction commits.
+        this.caches?.addInvalidationDocAccess(notifications,
+          await this._getDocsInheritingFrom(manager, {wsId: ws.id}));
         notifications.push(this._inviteNotification(userId, ws, userIdDelta, membersBefore));
       }
       return {
@@ -2189,6 +2236,8 @@ export class HomeDBManager {
         // If the users in the doc were changed, make calls to repair workspace then org guests.
         await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
         await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
+        // The callback approach is to publish the invalidation after the transaction commits.
+        this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
         notifications.push(this._inviteNotification(userId, doc, userIdDelta, membersBefore));
       }
       return {
@@ -2344,6 +2393,7 @@ export class HomeDBManager {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
+        firstLoginAt: undefined, // Not part of PermissionData.
         loginEmail: undefined,    // Not part of PermissionData.
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
@@ -2440,7 +2490,8 @@ export class HomeDBManager {
     scope: DocScope,
     wsId: number
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
-    return await this._connection.transaction(async manager => {
+    const notifications: Array<() => Promise<void>> = [];
+    const result = await this._connection.transaction(async manager => {
       // Get the doc
       const docQuery = this._doc(scope, {
         manager,
@@ -2546,8 +2597,12 @@ export class HomeDBManager {
           await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
         }
       }
+      // The callback approach is to publish the invalidation after the transaction commits.
+      this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
       return {status: 200, data: {previous, current}};
     });
+    for (const notification of notifications) { await notification(); }
+    return result;
   }
 
   // Pin or unpin a doc.
@@ -2652,8 +2707,8 @@ export class HomeDBManager {
       .getOne() || undefined;
   }
 
-  public async getDocFeatures(docId: string): Promise<Features | undefined> {
-    const billingAccount = await this._connection.createQueryBuilder()
+  public async getDocFeatures(docId: string, transaction?: EntityManager): Promise<Features | undefined> {
+    const billingAccount = await (transaction || this._connection).createQueryBuilder()
       .select('account')
       .from(BillingAccount, 'account')
       .leftJoinAndSelect('account.product', 'product')
@@ -2667,7 +2722,7 @@ export class HomeDBManager {
       return undefined;
     }
 
-    return defaultsDeep(billingAccount.features, billingAccount.product.features);
+    return mergedFeatures(billingAccount.features, billingAccount.product.features);
   }
 
   public async getDocProduct(docId: string): Promise<Product | undefined> {
@@ -3225,7 +3280,8 @@ export class HomeDBManager {
 
   public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
     const {urlId: docId, userId} = scope;
-    return await this.runInTransaction(undefined, async (manager) => {
+    const notifications: Array<() => Promise<void>> = [];
+    await this.runInTransaction(undefined, async (manager) => {
       const [doc, origPrefs] = await this._doGetDocPrefs(scope, manager);
       const updates = [];
       if (newPrefs.docDefaults) {
@@ -3244,7 +3300,10 @@ export class HomeDBManager {
         .values(updates)
         .onConflict(`(doc_id, COALESCE(user_id, 0)) DO UPDATE SET prefs = EXCLUDED.prefs`)
         .execute();
+
+      this.caches?.addInvalidationDocPrefs(notifications, [docId]);
     });
+    for (const notification of notifications) { await notification(); }
   }
 
   /**
@@ -3442,19 +3501,19 @@ export class HomeDBManager {
 
         return existing;
       }
-      const product = await manager.createQueryBuilder()
-        .select('product')
-        .from(Product, 'product')
-        .innerJoinAndSelect('product.accounts', 'account')
-        .where('account.id = :accountId', {accountId})
+      const ba = await manager.createQueryBuilder()
+        .select('billing_accounts')
+        .from(BillingAccount, 'billing_accounts')
+        .leftJoinAndSelect('billing_accounts.product', 'products')
+        .where('billing_accounts.id = :accountId', {accountId})
         .getOne();
-      if (!product) {
+      if (!ba) {
         throw new Error(`getLimit: no product for account ${accountId}`);
       }
       existing = new Limit();
-      existing.billingAccountId = product.accounts[0].id;
+      existing.billingAccountId = ba.id;
       existing.type = limitType;
-      existing.limit = product.features.baseMaxAssistantCalls ?? 0;
+      existing.limit = ba.getFeatures().baseMaxAssistantCalls ?? 0;
       existing.usage = 0;
       await manager.save(existing);
       return existing;
@@ -4638,6 +4697,25 @@ export class HomeDBManager {
     return this._joinToAllGroupUsers(qb);
   }
 
+  private async _getDocsInheritingFrom(manager: EntityManager, options: {orgId: number} | {wsId: number}) {
+    const queryBuilder = manager.createQueryBuilder()
+      .from(Document, 'docs')
+      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
+      .leftJoin('group_groups', 'gg1', 'gg1.group_id = acl_rules.group_id')
+      .leftJoin('group_groups', 'gg2', 'gg2.group_id = gg1.subgroup_id')
+      .leftJoin('group_groups', 'gg3', 'gg3.group_id = gg2.subgroup_id')
+      .innerJoin('acl_rules', 'rules', 'rules.group_id in (gg1.subgroup_id, gg2.subgroup_id, gg3.subgroup_id)')
+      .chain(qb => (
+        'orgId' in options ? qb.where('rules.org_id = :orgId', {orgId: options.orgId}) :
+        'wsId' in options ? qb.where('rules.workspace_id = :wsId', {wsId: options.wsId}) :
+        qb
+      ))
+      .select('docs.id', 'docId')
+      .distinct(true);
+    const result = await queryBuilder.getRawMany();
+    return result.map(r => r.docId);
+  }
+
   // Takes a query that includes 'acl_rules' and joins it to all group_users records that are
   // connected to it directly or via subgroups.
   // Public for limited use by extensions of HomeDBManager in some flavors of Grist.
@@ -5119,4 +5197,8 @@ function getDocResult(queryResult: QueryResult<any>) {
     Object.setPrototypeOf(doc, Document.prototype);
   }
   return doc;
+}
+
+function patch<T extends object>(obj: T, ...patches: Partial<T>[]): T {
+  return Object.assign(obj, ...patches);
 }

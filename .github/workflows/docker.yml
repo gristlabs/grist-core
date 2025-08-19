@@ -41,19 +41,39 @@ jobs:
         if: matrix.image.name != 'grist-oss'
         run: buildtools/checkout-ext-directory.sh ${{ matrix.image.repo }}
 
+      - name: Generate metadata tag input
+        id: meta_input
+        run: |
+          {
+            echo "tags<<EOF"
+            echo "type=ref,event=branch"
+            echo "type=ref,event=pr"
+            echo "type=semver,pattern={{version}}"
+            echo "type=semver,pattern={{major}}.{{minor}}"
+            echo "type=semver,pattern={{major}}"
+            echo "${{ env.TAG }}"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: |
-            ${{ github.repository_owner }}/${{ matrix.image.name }}
+            ${{ env.DOCKER_HUB_OWNER }}/${{ matrix.image.name }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            ${{ env.TAG }}
+            ${{ steps.meta_input.outputs.tags }}
+
+      - name: Docker meta (EE)
+        if: ${{ matrix.image.name == 'grist' }}
+        id: meta_ee
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ env.DOCKER_HUB_OWNER }}/grist-ee
+          tags: |
+            ${{ steps.meta_input.outputs.tags }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -90,6 +110,6 @@ jobs:
           file: ext/Dockerfile
           platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ env.DOCKER_HUB_OWNER }}/grist-ee:${{ env.TAG }}
+          tags: ${{ steps.meta_ee.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

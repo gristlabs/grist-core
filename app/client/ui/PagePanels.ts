@@ -7,6 +7,7 @@ import {hoverTooltip} from 'app/client/ui/tooltips';
 import {transition, TransitionWatcher} from 'app/client/ui/transitions';
 import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {icon} from 'app/client/ui2018/icons';
 import {
   dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId
@@ -292,22 +293,38 @@ export function pagePanels(page: PageContents) {
           testId('top-header'),
           regionFocusSwitcher?.panelAttrs('top', t('Document header')),
           (left.hideOpener ? null :
-            cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
-              testId('left-opener'),
+            unstyledButton(
+              {'aria-label': left.panelOpen.get()
+                ? t('Close navigation panel (left panel)')
+                : t('Open navigation panel (left panel)')},
               dom.on('click', () => toggleObs(left.panelOpen)),
-              cssHideForNarrowScreen.cls(''))
+              cssPanelOpener(
+                'PanelRight',
+                cssPanelOpener.cls('-open', left.panelOpen),
+                testId('left-opener'),
+                cssHideForNarrowScreen.cls('')
+              ),
+            )
           ),
 
           page.headerMain,
 
           (!right || right.hideOpener ? null :
-            cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
-              testId('right-opener'),
-              dom.cls('tour-creator-panel'),
-              hoverTooltip(() => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')),
-                {key: 'topBarBtnTooltip'}),
+            unstyledButton(
+              {'aria-label': right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')},
               dom.on('click', () => toggleObs(right.panelOpen)),
-              cssHideForNarrowScreen.cls(''))
+              cssPanelOpener(
+                'PanelLeft',
+                cssPanelOpener.cls('-open', right.panelOpen),
+                testId('right-opener'),
+                dom.cls('tour-creator-panel'),
+                hoverTooltip(
+                  () => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')),
+                  {key: 'topBarBtnTooltip'}
+                ),
+                cssHideForNarrowScreen.cls('')
+              ),
+            )
           ),
           dom.style('margin-bottom', use => use(bannerHeight) + 'px'),
         ),

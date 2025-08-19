@@ -151,6 +151,7 @@ export const IconList = [
   "Stop",
   "Tick",
   "TickSolid",
+  "TickSwitch",
   "Undo",
   "Validation",
   "Video",

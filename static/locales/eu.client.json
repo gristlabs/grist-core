@@ -370,7 +370,12 @@
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Lehendik dauden fitxategi erantsi batzuk [barnekoak]({{internalLink}}) dira oraindik** (SQLite fitxategian gordeta).",
         "Internal": "Barnekoa",
         "Transfer in progress": "Transferentzia abian da",
-        "[Learn more.]({{learnLink}})": "[Ikasi gehiago.]({{learnLink}})"
+        "[Learn more.]({{learnLink}})": "[Ikasi gehiago.]({{learnLink}})",
+        "Upload": "Igo",
+        "Upload missing attachments": "Igo falta diren eranskinak",
+        "Uploading...": "Igotzen…",
+        "Default": "Defektuzkoa",
+        "Document type": "Dokumentu mota"
     },
     "DocumentUsage": {
         "Attachments Size": "Eranskinen tamaina",
@@ -590,7 +595,14 @@
         "Replacing the original requires editing rights on the original document.": "Jatorrizkoa ordezkatzeko, jatorrizko dokumentua editatzeko-eskubidea behar da.",
         "Download document structure only (no data, for template use)": "Kendu datu guztiak baina gorde egitura txantiloi gisa erabiltzeko",
         "Download document without history (can significantly reduce file size)": "Kendu dokumentuaren historia (fitxategiaren tamaina nabarmen murriztu daiteke)",
-        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Kontuz, jatorrizkoan egindako aldaketa ez daude dokumentu honetan. Aldaketa horiek gainidatziko dira."
+        "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Kontuz, jatorrizkoan egindako aldaketa ez daude dokumentu honetan. Aldaketa horiek gainidatziko dira.",
+        ".tar (recommended)": ".tar (gomendatua)",
+        ".zip": ".zip",
+        "Download attachments": "Deskargatu eranskinak",
+        "Download full document and history": "Deskargatu dokumentu osoa eta historia",
+        "Format:": "Formatua:",
+        "Learn more": "Ikasi gehiago",
+        "download attachments": "deskargatu eranskinak"
     },
     "NotifyUI": {
         "Ask for help": "Eskatu laguntza",
@@ -613,7 +625,8 @@
         "Delete": "Ezabatu",
         "Delete data and this page.": "Ezabatu datuak eta orri hau.",
         "The following tables will no longer be visible_one": "Ondorengo taula ez da aurrerantzean ikusgai egongo",
-        "The following tables will no longer be visible_other": "Ondorengo taulak ez dira aurrerantzean ikusgai egongo"
+        "The following tables will no longer be visible_other": "Ondorengo taulak ez dira aurrerantzean ikusgai egongo",
+        "raw data page": "datu gordinen orria"
     },
     "PermissionsWidget": {
         "Allow All": "Baimendu guztia",
@@ -728,7 +741,9 @@
         "Unsaved": "Gorde gabe",
         "Comma Separated Values (.csv)": "Komaz bereizitako balioak (.csv)",
         "DOO Separated Values (.dsv)": "DOOz bereizitako balioak (.dsv)",
-        "Tab Separated Values (.tsv)": "Tabuladorez bereizitako balioak (.tsv)"
+        "Tab Separated Values (.tsv)": "Tabuladorez bereizitako balioak (.tsv)",
+        "Download attachments...": "Deskargatu eranskinak…",
+        "Download document...": "Deskargatu dokumentua…"
     },
     "SiteSwitcher": {
         "Create new team site": "Sortu taldearen gune berria",
@@ -802,7 +817,8 @@
         "Make On-Demand": "Egin nahieran",
         "Plugin: ": "Plugina: ",
         "Unmark On-Demand": "Utzi nahieran egiteari",
-        "Blocks": "Blokeak"
+        "Blocks": "Blokeak",
+        "⚠️ Deprecated Feature": "⚠️ Zaharkitutako ezaugarria"
     },
     "ViewLayoutMenu": {
         "Advanced Sort & Filter": "Sailkatu eta Iragazi aurreratua",
@@ -819,7 +835,8 @@
         "Data selection": "Datuen hautaketa",
         "Delete record": "Ezabatu erregistroa",
         "Delete widget": "Ezabatu widgeta",
-        "Edit Card Layout": "Editatu txartelen antolaketa"
+        "Edit Card Layout": "Editatu txartelen antolaketa",
+        "Duplicate widget": "Bikoiztu widgeta"
     },
     "ViewSectionMenu": {
         "(empty)": "(hutsik)",
@@ -1012,7 +1029,9 @@
         "Reply to a comment": "Erantzun iruzkin bati",
         "Show resolved comments": "Erakutsi konpondutako iruzkinak",
         "Only my threads": "Soilik nire hariak",
-        "Started discussion": "Eztabaida hasi du"
+        "Started discussion": "Eztabaida hasi du",
+        "Remove thread": "Kendu haria",
+        "updated": "eguneratua"
     },
     "FieldBuilder": {
         "Changing column type": "Zutabe mota aldatzen",
@@ -1175,7 +1194,8 @@
         "Cut": "Ebaki",
         "Hide field": "Ezkutatu eremua",
         "Paste": "Itsatsi",
-        "Copy anchor link": "Kopiatu aingura-esteka"
+        "Copy anchor link": "Kopiatu aingura-esteka",
+        "Comment": "Iruzkina"
     },
     "WebhookPage": {
         "Enabled": "Gaituta",
@@ -1240,7 +1260,15 @@
         "Each Y series is followed by a series for the length of error bars.": "Y segida bakoitzaren ondoren errore-barren luzerarako segida bat dator.",
         "Toggle chart aggregation": "Grafikoaren agregazioa bai/ez",
         "selected new group data columns": "hautatutako taldekako datu-zutabe berriak",
-        "Each Y series is followed by two series, for top and bottom error bars.": "Y segida bakoitzaren ondoren goiko eta beheko errore-barrentzako segida bana dator."
+        "Each Y series is followed by two series, for top and bottom error bars.": "Y segida bakoitzaren ondoren goiko eta beheko errore-barrentzako segida bana dator.",
+        "Orientation": "Orientazioa",
+        "Vertical": "Bertikala",
+        "Horizontal": "Horizontala",
+        "Text Size": "Testuaren neurria",
+        "None": "Bat ere ez",
+        "Symmetric": "Simetrikoa",
+        "Above+Below": "Gainean+Azpian",
+        "Remove": "Kendu"
     },
     "FilterBar": {
         "SearchColumns": "Bilatu zutabeak",
@@ -1691,7 +1719,9 @@
     },
     "PagePanels": {
         "Close Creator Panel": "Itxi sortzailearen mahaigaina",
-        "Open Creator Panel": "Ireki sortzailearen mahaigaina"
+        "Open Creator Panel": "Ireki sortzailearen mahaigaina",
+        "Document header": "Dokumentuaren goiburua",
+        "Main content": "Eduki nagusia"
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Ezkutatutako eremuak"
@@ -1992,5 +2022,18 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Idatzi DELETE hemen aurrera egin nahi baduzu.\nZiur ez bazaude, edo eragiketak zer egingo duen ulertzen ez baduzu,\nzuhur jokatu eta utzi bertan behera.",
         "Confirm Deletion": "Baieztatu ezabapena",
         "Are you sure you want to delete the following?": "Ziur honakoa ezabatu nahi duzula?"
+    },
+    "Experiments": {
+        "Disable feature": "Desgaitu ezaugarria",
+        "Don't worry, you can disable it later if needed.": "Ez kezkatu, geroago desgai desakezu behar izanez gero.",
+        "Enable feature": "Gaitu ezaugarria",
+        "Experimental feature": "Ezaugarri esperimentala",
+        "Reload the page": "Birkargatu orria",
+        "{{experiment}} disabled.": "{{experiment}} desgaitu da.",
+        "{{experiment}} enabled.": "{{experiment}} gaitu da."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "Bikoiztu widgeta",
+        "Duplicate widgets": "Bikoiztu widgetak"
     }
 }

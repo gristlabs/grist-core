@@ -457,7 +457,7 @@ describe('CellColor', function() {
   });
 
   const toggleDefaultColor = 'rgba(96, 96, 96, 1)';
-  const switchDefaultColor = 'rgba(44, 176, 175, 1)';
+  const switchDefaultColor = 'rgba(0, 144, 88, 1)';
   const getPickerCurrentTextColor = () => driver.find('.test-text-color-square').getCssValue('background-color');
 
   it('should handle correctly default text color', async function() {
@@ -555,7 +555,9 @@ describe('CellColor', function() {
     await gu.waitForServer();
 
     // check the switch's color
-    assert.equal(await cell().find('.switch_slider').getCssValue('background-color'), gu.hexToRgb('#2CB0AF'));
+    assert.equal(
+      await cell().find('.test-toggle-switch-slider').getCssValue('background-color'), gu.hexToRgb('#009058')
+    );
 
   });
 });

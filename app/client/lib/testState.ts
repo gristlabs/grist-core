@@ -9,3 +9,10 @@ export function setTestState(state: Partial<TestState>) {
   }
   Object.assign(G.window.testGrist, state);
 }
+
+export function getTestState(): TestState {
+  if (!('testGrist' in G.window)) {
+    G.window.testGrist = {};
+  }
+  return G.window.testGrist as TestState;
+}

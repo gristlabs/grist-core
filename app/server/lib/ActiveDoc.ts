@@ -61,7 +61,7 @@ import {
   RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {Product} from 'app/common/Features';
+import {Features, Product} from 'app/common/Features';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
@@ -116,7 +116,6 @@ import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
 import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
-import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
@@ -148,7 +147,6 @@ import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
-import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
@@ -171,8 +169,6 @@ import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import throttle = require('lodash/throttle');
 import without = require('lodash/without');
-
-bluebird.promisifyAll(tmp);
 
 const MAX_RECENT_ACTIONS = 100;
 
@@ -220,6 +216,13 @@ export const Deps = {
   KEEP_DOC_OPEN_TIMEOUT_MS,
   MAX_INTERNAL_ATTACHMENTS_BYTES,
 };
+
+interface ActiveDocOptions {
+  safeMode?: boolean;
+  docUrl?: string;
+  docApiUrl?: string;
+  doc?: Document;
+}
 
 interface UpdateUsageOptions {
   // Whether usage should be synced to the home database. Defaults to true.
@@ -296,6 +299,7 @@ export class ActiveDoc extends EventEmitter {
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
+  private _features?: Features;
   private _gracePeriodStart: Date|null = null;
   private _isSnapshot: boolean;
   private _isForkOrSnapshot: boolean;
@@ -336,7 +340,7 @@ export class ActiveDoc extends EventEmitter {
     private readonly _docManager: DocManager,
     private _docName: string,
     private _attachmentStoreProvider?: IAttachmentStoreProvider,
-    private _options?: ICreateActiveDocOptions
+    private _options?: ActiveDocOptions
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
@@ -384,16 +388,18 @@ export class ActiveDoc extends EventEmitter {
       const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
+      this._features = billingAccount?.getFeatures();
       this._gracePeriodStart = gracePeriodStart;
 
       if (billingAccount) {
-        this._pubSubUnsubscribe = this._docManager.gristServer.getPubSubManager()
+        this._pubSubUnsubscribe = this._server.getPubSubManager()
           .subscribe(`billingAccount-${billingAccount.id}-product-changed`, async () => {
             // A product change has just happened in Billing.
             // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
             this._log.debug(null, 'reload after product change');
             await this.reloadDoc();
-          });
+          })
+          .unsubscribeCB;
       }
 
       if (!(this.isFork || this._isSnapshot)) {
@@ -476,6 +482,8 @@ export class ActiveDoc extends EventEmitter {
 
   public get docName(): string { return this._docName; }
 
+  public get features(): Features|undefined { return this._features; }
+
   public get recoveryMode(): boolean { return this._recoveryMode; }
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
@@ -485,25 +493,25 @@ export class ActiveDoc extends EventEmitter {
   public get rowLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.rowCount?.total,
-      this._product?.features.baseMaxRowsPerDocument
+      this._features?.baseMaxRowsPerDocument
     );
   }
 
   public get dataSizeLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.dataSizeBytes,
-      this._product?.features.baseMaxDataSizePerDocument
+      this._features?.baseMaxDataSizePerDocument
     );
   }
 
   public get dataLimitRatio(): number {
-    return getDataLimitRatio(this._docUsage, this._product?.features);
+    return getDataLimitRatio(this._docUsage, this._features);
   }
 
   public get dataLimitInfo(): DataLimitInfo {
     return getDataLimitInfo({
       docUsage: this._docUsage,
-      productFeatures: this._product?.features,
+      productFeatures: this._features,
       gracePeriodStart: this._gracePeriodStart,
     });
   }
@@ -1839,10 +1847,11 @@ export class ActiveDoc extends EventEmitter {
     if (!userId) { throw new Error('Cannot determine user'); }
 
     const parsed = parseUrlId(this.docName);
+    const db = this.getHomeDbManager();
+
     // If this is not a temporary document (i.e. created by anonymous user).
     if (parsed.trunkId !== NEW_DOCUMENT_CODE) {
       // Collect users the document is shared with.
-      const db = this.getHomeDbManager();
       if (db) {
         const access = db.unwrapQueryResult(
           await db.getDocAccess({userId, urlId: this.docName}, {
@@ -1867,6 +1876,17 @@ export class ActiveDoc extends EventEmitter {
 
     // Add some example users.
     result.exampleUsers = this._granularAccess.getExampleViewAsUsers();
+
+    // If there are example users with no access, use the public access level.
+    const publicUsers = result.exampleUsers.filter(u => !u.access);
+    if (publicUsers.length && db) {
+      const docAuth = await db.getDocAuthCached({
+        urlId: this.docName,
+        userId: db.getAnonymousUserId(),
+      });
+      publicUsers.forEach(u => u.access = docAuth.access);
+    }
+
     return result;
   }
 
@@ -2144,7 +2164,7 @@ export class ActiveDoc extends EventEmitter {
     event: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ) {
-    this._docManager.gristServer.getTelemetry().logEvent(docSession, event, merge(
+    this._server.getTelemetry().logEvent(docSession, event, merge(
       this._getTelemetryMeta(docSession),
       metadata,
     ));
@@ -2409,8 +2429,8 @@ export class ActiveDoc extends EventEmitter {
         if (this._dataEngine && this._fullyLoaded) {
           // Note that this must happen before `this._shuttingDown = true` because of this line in Sharing.ts:
           //     if (this._activeDoc.isShuttingDown && isCalculate) {
-          await safeCallAndWait("removeTransformColumns",
-            () => this.applyUserActions(docSession, [["RemoveTransformColumns"]])
+          await safeCallAndWait("RemoveStaleObjects",
+            () => this.applyUserActions(docSession, [["RemoveStaleObjects"]])
           );
         }
 

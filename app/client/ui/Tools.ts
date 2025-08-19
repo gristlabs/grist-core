@@ -43,8 +43,9 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
   updateCanViewAccessRules();
   return cssTools(
+    {'aria-labelledby': 'grist-tools-heading'},
     cssTools.cls('-collapsed', (use) => !use(leftPanelOpen)),
-    cssSectionHeader(cssSectionHeaderText(t("TOOLS"))),
+    cssSectionHeader(cssSectionHeaderText(t("TOOLS"), {id: 'grist-tools-heading'})),
     buildOpenAssistantButton(gristDoc, testId('assistant')),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'acl'),

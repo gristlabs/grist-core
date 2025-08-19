@@ -86,7 +86,7 @@ export class MappedFieldsConfig extends Disposable {
           primaryButton(
             dom.text(t("Unmap fields")),
             dom.on('click', unMapSelected),
-            testId('visible-hide')
+            testId('visible-hide'),
           ),
           basicButton(
             t("Clear"),
@@ -116,12 +116,12 @@ export class MappedFieldsConfig extends Disposable {
           primaryButton(
             dom.text(t("Map fields")),
             dom.on('click', mapSelected),
-            testId('visible-hide')
+            testId('hidden-show'),
           ),
           basicButton(
             t("Clear"),
             dom.on('click', () => unmappedColumns.get().forEach((col) => col.selected.set(false))),
-            testId('visible-clear')
+            testId('hidden-clear')
           ),
           testId('visible-batch-buttons')
         ),

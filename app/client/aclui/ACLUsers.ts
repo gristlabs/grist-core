@@ -33,12 +33,12 @@ export class ACLUsersPopup extends Disposable {
   private _currentUser: FullUser|null = null;
 
   constructor(public pageModel: DocPageModel,
-              public fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
+              private _fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
     super();
   }
 
   public async load() {
-    const permissionData = await this.fetch();
+    const permissionData = await this._fetch();
     if (this.isDisposed()) { return; }
     this.init(permissionData);
   }
@@ -67,7 +67,7 @@ export class ACLUsersPopup extends Disposable {
     }
   }
 
-  // Optionnally have document page reverts to the default page upon activation of the view as mode
+  // Optionally have document page reverts to the default page upon activation of the view as mode
   // by setting `options.resetDocPage` to true.
   public attachPopup(elem: Element, options: IPopupOptions & {resetDocPage?: boolean}) {
     setPopupToCreateDom(elem, (ctl) => {
@@ -79,9 +79,9 @@ export class ACLUsersPopup extends Disposable {
         dom.cls(menuCssClass),
         dom.cls(gristFloatingMenuClass),
         cssUsers.cls(''),
-        cssHeader(t('View As'), dom.show(this._shareUsers.length > 0)),
+        cssHeader(t('Shared users'), dom.show(this._shareUsers.length > 0)),
         dom.forEach(this._shareUsers, buildRow),
-        (this._attributeTableUsers.length > 0) ? cssHeader(t("Users from table")) : null,
+        (this._attributeTableUsers.length > 0) ? cssHeader(t("Other users from table")) : null,
         dom.forEach(this._attributeTableUsers, buildExampleUserRow),
         // Include example users only if there are not many "real" users.
         // It might be better to have an expandable section with these users, collapsed

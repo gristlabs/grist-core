@@ -11,6 +11,7 @@ import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocMode
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
 import {SortedRowSet} from 'app/client/models/rowset';
+import {ChartOptions, ViewSectionOptions} from 'app/client/models/entities/ViewSectionRec';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
@@ -80,24 +81,6 @@ export function isNumericLike(col: ColumnRec, use: UseCB = unwrap) {
 
 function isCategoryType(pureType: string): boolean {
   return !['Numeric', 'Int', 'Any', 'Date', 'DateTime'].includes(pureType);
-}
-
-interface ChartOptions {
-  multiseries?: boolean;
-  lineConnectGaps?: boolean;
-  lineMarkers?: boolean;
-  stacked?: boolean;
-  invertYAxis?: boolean;
-  logYAxis?: boolean;
-  // If "symmetric", one series after each Y series gives the length of the error bars around it. If
-  // "separate", two series after each Y series give the length of the error bars above and below it.
-  errorBars?: 'symmetric' | 'separate';
-  donutHoleSize?: number;
-  showTotal?: boolean;
-  textSize?: number;
-  isXAxisUndefined?: boolean;
-  orientation?: 'v'|'h';
-  aggregate?: boolean;
 }
 
 // tslint:disable:no-console
@@ -188,7 +171,7 @@ export class ChartView extends Disposable {
   protected gristDoc: GristDoc;
 
   private _chartType: ko.Observable<string>;
-  private _options: ObjObservable<any>;
+  private _options: ObjObservable<ViewSectionOptions>;
   private _chartDom: HTMLElement;
   private _update: () => void;
   private _resize: () => void;

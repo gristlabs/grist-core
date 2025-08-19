@@ -8,9 +8,11 @@ import { fieldWithDefault, KoSaveableObservable } from 'app/client/models/modelU
 import { FormToggleFormat } from 'app/client/ui/FormAPI';
 import { cssLabel, cssRow } from 'app/client/ui/RightPanelStyles';
 import { buttonSelect } from 'app/client/ui2018/buttonSelect';
+import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
 import { theme } from 'app/client/ui2018/cssVars';
+import { components } from 'app/common/ThemePrefs';
 import { NewAbstractWidget, Options } from 'app/client/widgets/NewAbstractWidget';
-import { dom, DomContents, DomElementArg, makeTestId } from 'grainjs';
+import { dom, DomContents, DomElementArg, fromKo, makeTestId, styled } from 'grainjs';
 
 const t = makeT('Toggle');
 
@@ -81,7 +83,9 @@ export class ToggleCheckBox extends ToggleBase {
 
 export class ToggleSwitch extends ToggleBase {
   constructor(field: ViewFieldRec, _options: Options = {}) {
-    super(field, {defaultTextColor: '#2CB0AF'});
+    super(field, {
+      defaultTextColor: components.switchActiveSlider.getRawValue()
+    });
   }
 
   public override buildDom(row: DataRowModel) {
@@ -115,11 +119,15 @@ function buildSwitch(
   value: KoSaveableObservable<boolean>,
   isTransitionEnabled: ko.Observable<boolean>,
   ...args: DomElementArg[]) {
-  return dom('div.widget_switch',
-    dom.cls('switch_on', value),
-    dom.cls('switch_transition', isTransitionEnabled),
-    dom('div.switch_slider'),
-    dom('div.switch_circle'),
-    ...args
-  );
+  return toggleSwitch(fromKo(value), {
+    args: [dom.cls(cssToggleSwitch.className), ...args],
+    useHiddenInput: false,
+    enableTransitions: fromKo(isTransitionEnabled),
+  });
 }
+
+/* user can define a color in the column config: expose it to the switch component */
+const cssToggleSwitch = styled('div', `
+  margin: -1px auto;
+  --grist-theme-switch-active-slider: var(--grist-actual-cell-color, ${components.switchActiveSlider.getRawValue()});
+`);

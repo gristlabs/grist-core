@@ -84,7 +84,7 @@ export interface BillingAccount {
   stripePlanId: string; // Stripe price id.
   isManager: boolean;
   inGoodStanding: boolean;
-  features: Features;
+  features?: Features; // Features override, not the final set of features.
   externalOptions?: {
     invoiceId?: string;
   };

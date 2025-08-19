@@ -87,6 +87,7 @@ describe('CustomView', function() {
         await gu.waitForServer();
         await driver.find('.test-right-select-by').click();
         await gu.findOpenMenuItem('li', /Performances record • Film/).click();
+        await gu.waitForServer();
         await driver.find('.test-pwc-editDataSelection').click();
         await driver.findContentWait('.test-wselect-type', /Custom/, 500).click();
         await driver.find('.test-wselect-addBtn').click();
@@ -505,6 +506,7 @@ describe('CustomView', function() {
     await gu.waitForServer();
     await driver.find('.test-right-select-by').click();
     await gu.findOpenMenuItem('li', /Performances record • Film/).click();
+    await gu.waitForServer();
     await driver.find('.test-pwc-editDataSelection').click();
     await driver.findContentWait('.test-wselect-type', /Custom/, 500).click();
     await driver.find('.test-wselect-addBtn').click();

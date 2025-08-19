@@ -10,6 +10,7 @@
 import {DocComm} from 'app/client/components/DocComm';
 import {UserError} from 'app/client/models/errors';
 import {FileDialogOptions, openFilePicker} from 'app/client/ui/FileDialog';
+import {getTestState} from 'app/client/lib/testState';
 import {GristLoadConfig} from 'app/common/gristUrls';
 import {byteString, safeJsonParse} from 'app/common/gutil';
 import {FetchUrlOptions, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
@@ -45,13 +46,17 @@ export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", "
  */
 export async function selectFiles(options: SelectFileOptions,
                                   onProgress: ProgressCB = noop): Promise<UploadResult|null> {
-  onProgress(0);
   let result: UploadResult|null = null;
   const electronSelectFiles: any = (window as any).electronSelectFiles;
   if (typeof electronSelectFiles === 'function') {
+    onProgress(0);
     result = await electronSelectFiles(getElectronOptions(options));
   } else {
-    result = await uploadFiles(await selectPicker(options), options, onProgress);
+    const fileList = await selectPicker(options);
+    // start the progress bar only after the user selected the files
+    onProgress(0);
+    await maybeFakeSlowUploadsForTests();
+    result = await uploadFiles(fileList, options, onProgress);
   }
   onProgress(100);
   return result;
@@ -105,6 +110,8 @@ export async function uploadFiles(
     formData.append('upload', file);
   }
 
+  await maybeFakeSlowUploadsForTests();
+
   // Check for upload limits.
   const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
   const {maxUploadSizeImport, maxUploadSizeAttachment} = gristConfig;
@@ -142,6 +149,7 @@ async function uploadFormData(
     xhr.open('post', url, true);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.withCredentials = true;
+    onProgress(0);
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable) {
         onProgress(e.loaded / e.total * 100);   // percentage complete
@@ -159,6 +167,7 @@ async function uploadFormData(
         const err = safeJsonParse(xhr.responseText, null);
         reject(new UserError('Upload failed: ' + (err && err.error || xhr.status)));
       } else {
+        onProgress(100);
         resolve(JSON.parse(xhr.responseText));
       }
     });
@@ -204,3 +213,11 @@ export function isDriveUrl(url: string) {
   const match = /^https:\/\/(docs|drive).google.com\/(spreadsheets|file)\/d\/([^/]*)/i.exec(url);
   return !!match;
 }
+
+const maybeFakeSlowUploadsForTests = (): Promise<void> => {
+  const fakeSlowUploads = getTestState().fakeSlowUploads;
+  if (fakeSlowUploads) {
+    return new Promise(resolve => setTimeout(resolve, 1200));
+  }
+  return Promise.resolve();
+};

@@ -165,6 +165,22 @@ export function getDefaultProductNames() {
   };
 }
 
+export function getAnonymousFeatures(): Features {
+  if (!process.env.GRIST_DEFAULT_PRODUCT) {
+    // If GRIST_DEFAULT_PRODUCT is not set, we assume that anonymous users
+    // should have access to the free personal product.
+    return personalFreeFeatures;
+  } else {
+    // If GRIST_DEFAULT_PRODUCT is set, we assume that anonymous users
+    // should have access to the product specified by it.
+    const product = PRODUCTS.find(p => p.name === process.env.GRIST_DEFAULT_PRODUCT);
+    if (!product) {
+      throw new Error(`Unknown default product: ${process.env.GRIST_DEFAULT_PRODUCT}`);
+    }
+    return product.features;
+  }
+}
+
 /**
  * A Grist product.  Corresponds to a set of enabled features and a choice of limits.
  */

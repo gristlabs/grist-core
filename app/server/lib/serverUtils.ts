@@ -177,7 +177,7 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
  *   https://redis.io/docs/manual/pubsub/#database--scoping
  */
 export function getPubSubPrefix(): string {
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
   if (!redisUrl) { return 'db-x-'; }
   const dbNumber = new URL(redisUrl).pathname.replace(/^\//, '');
   if (dbNumber.match(/[^0-9]/)) {

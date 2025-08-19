@@ -72,6 +72,7 @@ export type Tooltip =
   | 'uploadAttachments'
   | 'adminControls'
   | 'formFraming'
+  | 'rowHeight'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -255,6 +256,9 @@ it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
         mail: getGristConfig().supportEmail
       }
     )),
+  ),
+  rowHeight: (...args: DomElementArg[]) => cssTooltipContent(
+    t('Set the maximum number of lines for multi-line text.'),
     ...args,
   ),
 };

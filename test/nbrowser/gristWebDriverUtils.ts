@@ -191,7 +191,14 @@ export class GristWebDriverUtils {
 
     // Keep dismissing prompts until there are no more, up to a maximum of 10 times.
     while (i < max && await this.driver.find('.test-behavioral-prompt').isPresent()) {
-      await this.driver.find('.test-behavioral-prompt-dismiss').click();
+      try {
+        await this.driver.findWait('.test-behavioral-prompt-dismiss', 100).click();
+      } catch (e) {
+        if (await this.driver.find('.test-behavioral-prompt').isPresent()) {
+          throw e;
+        }
+        break;
+      }
       await this.waitForServer();
       i += 1;
     }
@@ -239,8 +246,16 @@ export class GristWebDriverUtils {
   /**
    * Accepts an alert.
    */
-  public async acceptAlert() {
-    await (await this.driver.switchTo().alert()).accept();
+  public async acceptAlert({ignore} = {ignore: false}) {
+    try {
+      await (await this.driver.switchTo().alert()).accept();
+    } catch (e) {
+      if (!ignore) {
+        throw new Error(`Failed to accept alert: ${String(e)}`);
+      }
+      // If we are ignoring the alert, just log the error.
+      console.warn(`Ignoring alert accept error: ${String(e)}`);
+    }
   }
 
   /**
@@ -361,8 +376,13 @@ export class GristWebDriverUtils {
   /**
    * Changes browser window dimensions to FullHd for a test suite.
    */
-  public bigScreen() {
-    this.resizeWindowForSuite(1920, 1080);
+  public bigScreen(size: 'big'|'medium' = 'big') {
+    // Note that the default (small) is 1024x640.
+    if (size === 'medium') {
+      this.resizeWindowForSuite(1440, 900);
+    } else {
+      this.resizeWindowForSuite(1920, 1080);
+    }
   }
 
   /**
