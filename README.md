@@ -57,7 +57,7 @@ Here are some specific feature highlights of Grist:
   * [Incremental imports](https://support.getgrist.com/imports/#updating-existing-records).
     - Import a CSV of the last three months activity from your bank...
     - ...and import new activity a month later without fuss or duplication.
-  * [Native forms](support.getgrist.com/widget-form/). Create forms that feed directly into your spreadsheet without fuss.
+  * [Native forms](https://support.getgrist.com/widget-form/). Create forms that feed directly into your spreadsheet without fuss.
   * Integrations.
     - A [REST API](https://support.getgrist.com/api/), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
     - Import/export to Google drive, Excel format, CSV.
