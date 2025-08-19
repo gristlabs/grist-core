@@ -199,13 +199,16 @@ if args.mount:
   preserve(*args.mount)
 
 for directory in os.listdir('/'):
-  if directory not in exceptions and ("/" + directory) not in preserved:
+  directorys_realpath = os.path.realpath("/" + directory)
+  if directorys_realpath not in exceptions and ("/" + directory) not in preserved:
     mounts.insert(0, {
       # This places an empty directory at this destination.
       # Follow any symlinks since otherwise there is an error.
-      "destination": os.path.realpath("/" + directory),
+      "destination": directorys_realpath,
       "type": "tmpfs"
     })
+  # To avoid duplicates due to usrmerge pattern symlinks
+  exceptions.append(directorys_realpath)
 
 # Set up faketime inside the sandbox if requested.  Can't be set up outside the sandbox,
 # because gvisor is written in Go and doesn't use the standard library that faketime
