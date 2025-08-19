@@ -52,6 +52,7 @@ include_bash = args.command == 'bash'
 # Basic settings for gvisor's runsc.  This follows the standard OCI specification:
 #   https://github.com/opencontainers/runtime-spec/blob/master/config.md
 cmd_args = []
+tmpfs_mounts = []
 mounts = [             # These will be filled in more fully programmatically below.
   {
     "destination": "/proc",  # gvisor virtualizes /proc
@@ -70,6 +71,7 @@ mounts = [             # These will be filled in more fully programmatically bel
     ]
   }
 ]
+binds = []
 preserved = set()
 env = [
   "PATH=/usr/local/bin:/usr/bin:/bin",
@@ -140,7 +142,7 @@ def preserve(*locations, short_failure=False):
         raise Exception('cannot find: ' + location)
       raise Exception('cannot find: ' + location + ' ' +
                       '(if tmp path, make sure TMPDIR when running grist and GRIST_TMP line up)')
-    mounts.append({
+    binds.append({
       "destination": location,
       "source": location,
       "options": ["ro"],
@@ -201,7 +203,7 @@ if args.mount:
 for directory in os.listdir('/'):
   directorys_realpath = os.path.realpath("/" + directory)
   if directorys_realpath not in exceptions and ("/" + directory) not in preserved:
-    mounts.insert(0, {
+    tmpfs_mounts.append({
       # This places an empty directory at this destination.
       # Follow any symlinks since otherwise there is an error.
       "destination": directorys_realpath,
@@ -209,6 +211,8 @@ for directory in os.listdir('/'):
     })
   # To avoid duplicates due to usrmerge pattern symlinks
   exceptions.append(directorys_realpath)
+
+settings['mounts'] = sorted(tmpfs_mounts, key=lambda mount: mount["destination"]) + mounts + binds
 
 # Set up faketime inside the sandbox if requested.  Can't be set up outside the sandbox,
 # because gvisor is written in Go and doesn't use the standard library that faketime
