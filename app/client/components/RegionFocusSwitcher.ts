@@ -20,7 +20,7 @@ interface PanelRegion {
 }
 interface SectionRegion {
   type: 'section',
-  id: number // this matches a grist document view section id
+  id?: number // this matches a grist document view section id. If none is provided, it means "view layout" is focused.
 }
 type Region = PanelRegion | SectionRegion;
 type StateUpdateInitiator = {type: 'cycle'} | {type: 'mouse', event?: MouseEvent};
@@ -207,15 +207,11 @@ export class RegionFocusSwitcher extends Disposable {
     const isFocusableElement = isMouseFocusableElement(event.target) || closestRegion === event.target;
 
     if (targetsMain || !isFocusableElement) {
-      this.focusRegion(
-        {type: 'section', id: gristDoc.viewModel.activeSectionId()},
-        {initiator: {type: 'mouse', event}}
-      );
+      // don't specify a section id here: we just want to focus back the view layout,
+      // we don't specifically know which section, the view layout will take care of that.
+      this.focusRegion({type: 'section'}, {initiator: {type: 'mouse', event}});
     } else {
-      this.focusRegion(
-        {type: 'panel', id: targetRegionId as Panel},
-        {initiator: {type: 'mouse', event}}
-      );
+      this.focusRegion({type: 'panel', id: targetRegionId as Panel}, {initiator: {type: 'mouse', event}});
     }
   }
 
@@ -305,7 +301,7 @@ export class RegionFocusSwitcher extends Disposable {
     const isPanel = current.region?.type === 'panel';
     const panelElement = isPanel && current.region?.id && getPanelElement((current.region as PanelRegion).id);
 
-    // if kb-focusing a panel:
+    // If kb-focusing a panel:
     //   - actually focus the panel dom element, or its previously focused child,
     //   - trap the Tab key inside it (see `enableFocusLock`).
     //   - make the Tab key available for normal browser navigation in the panel (see `escapeViewLayout`)
@@ -316,18 +312,18 @@ export class RegionFocusSwitcher extends Disposable {
         gristDoc
       );
 
-    // if clicking on a panel: only make sure view layout commands are disabled,
+    // If clicking on a panel: only make sure view layout commands are disabled,
     // making the Tab key available for normal browser navigation (see `escapeViewLayout`)
     } else if (mouseEvent && isPanel && panelElement && gristDoc) {
       escapeViewLayout(gristDoc, !!(mouseEvent.target as Element)?.closest(`[${ATTRS.regionId}="right"]`));
 
-    // if clicking or kb-focusing a section: focus the section,
+    // If clicking or kb-focusing a section: focus the section,
     // enabling back the view layout commands (see `focusSection`).
     } else if (current.region?.type === 'section' && gristDoc) {
       focusSection(current.region, gristDoc);
     }
 
-    // if we reset the focus switch, clean all necessary state
+    // If we reset the focus switch, clean all necessary state
     if (current.region === undefined) {
       if (gristDoc) {
         focusViewLayout(gristDoc);
@@ -345,9 +341,8 @@ export class RegionFocusSwitcher extends Disposable {
     const current = this._state.get().region;
     const gristDoc = this._getGristDoc();
     if (current?.type === 'panel' && current.id === 'right') {
-      return this.focusRegion(gristDoc
-        ? {type: 'section', id: gristDoc.viewModel.activeSectionId()}
-        : {type: 'panel', id: 'main'},
+      return this.focusRegion(
+        gristDoc ? {type: 'section'} : {type: 'panel', id: 'main'},
         {initiator: {type: 'cycle'}}
       );
     }
@@ -521,14 +516,16 @@ const escapeViewLayout = (gristDoc: GristDoc, isRelated = false) => {
 };
 
 /**
- * Focus the given doc view section id
+ * Focus the given doc view section id, or only the view layout if no id is provided.
  *
  * This enables the view layout keyboard commands, noticeably making the Tab key
  * respond to the `nextField` and `prevField` commands instead of normal browser behavior.
  */
 const focusSection = (section: SectionRegion, gristDoc: GristDoc) => {
   focusViewLayout(gristDoc);
-  gristDoc.viewModel.activeSectionId(section.id);
+  if (section.id) {
+    gristDoc.viewModel.activeSectionId(section.id);
+  }
 };
 
 /**
