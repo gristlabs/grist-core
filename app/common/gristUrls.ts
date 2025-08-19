@@ -190,6 +190,8 @@ export interface IGristUrlState {
     themeAppearance?: ThemeAppearance;
     themeName?: ThemeName;
     details?: boolean; // Used on admin pages to show details tab.
+    assistantPrompt?: string;
+    assistantState?: string;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
   api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
@@ -581,6 +583,14 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   const linkParameters = decodeLinkParameters(sp);
   if (linkParameters) {
     state.params!.linkParameters = linkParameters;
+  }
+
+  if (sp.has('assistantPrompt')) {
+    state.params!.assistantPrompt = sp.get('assistantPrompt')!;
+  }
+
+  if (sp.has('assistantState')) {
+    state.params!.assistantState = sp.get('assistantState')!;
   }
 
   if (location.hash) {

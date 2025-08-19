@@ -33,7 +33,7 @@ import {
   getConfiguredAttachmentStoreConfigs,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
-import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
+import {addRequestUser, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
@@ -41,6 +41,7 @@ import {Comm} from 'app/server/lib/Comm';
 import {ConfigBackendAPI} from 'app/server/lib/ConfigBackendAPI';
 import {IGristCoreConfig} from 'app/server/lib/configCore';
 import {create} from 'app/server/lib/create';
+import {createSavedDoc} from 'app/server/lib/createSavedDoc';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
@@ -1206,6 +1207,20 @@ export class FlexServer implements GristServer {
           // Give a chance to the login system to react to the first visit after signup.
           this._loginMiddleware.onFirstVisit?.(req);
 
+          // If the assistant needs to perform some work (e.g. redirect to a new document with a
+          // particular prompt pre-filled), do it now.
+          //
+          // TODO: break out this and other parts of `welcomeNewUser` into separate Express middleware.
+          // `onFirstVisit` may send a response, which is why we awkwardly check `headersSent` wasn't
+          // set before resuming the current middleware. This wouldn't be necessary if `onFirstVisit`
+          // was a proper Express middleware that called `next` when not sending a response.
+          if (this._assistant?.version === 2 && this._assistant.onFirstVisit) {
+            await this._assistant.onFirstVisit(req, res);
+            if (res.headersSent) {
+              return;
+            }
+          }
+
           // If we need to copy an unsaved document or template as part of sign-up, do so now
           // and redirect to it.
           const docId = await this._maybeCopyDocToHomeWorkspace(mreq, res);
@@ -1955,6 +1970,17 @@ export class FlexServer implements GristServer {
   public addAssistant() {
     if (this._check('assistant')) { return; }
     this._assistant = this.create.Assistant(this);
+    if (this._assistant?.version === 2) {
+      const middleware = [
+        this._redirectToHostMiddleware,
+        this._userIdMiddleware,
+      ];
+      this._assistant?.addEndpoints?.(
+        this.app,
+        middleware,
+        (req, res, options) => this._redirectToLoginOrSignup(options, req, res)
+      );
+    }
   }
 
   // for test purposes, check if any notifications are in progress
@@ -2509,11 +2535,14 @@ export class FlexServer implements GristServer {
    */
   private async _redirectToLoginOrSignup(
     options: {
-      signUp?: boolean, nextUrl?: URL,
+      signUp?: boolean;
+      nextUrl?: URL;
+      params?: Record<string, string | undefined>;
     },
     req: express.Request, resp: express.Response,
   ) {
     let {nextUrl, signUp} = options;
+    const {params = {}} = options;
 
     const mreq = req as RequestWithLogin;
 
@@ -2531,7 +2560,13 @@ export class FlexServer implements GristServer {
       signUp = (mreq.session.users === undefined);
     }
     const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-    resp.redirect(await getRedirectUrl(req, nextUrl));
+    const url = new URL(await getRedirectUrl(req, nextUrl));
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        url.searchParams.set(key, value);
+      }
+    }
+    resp.redirect(url.href);
   }
 
   private async _redirectToHomeOrWelcomePage(
@@ -2565,7 +2600,8 @@ export class FlexServer implements GristServer {
     resp: express.Response
   ): Promise<string|null> {
     const cookies = cookie.parse(req.headers.cookie || '');
-    if (!cookies) { return null; }
+
+    resp.clearCookie('gr_signup_state');
 
     const stateCookie = cookies['gr_signup_state'];
     if (!stateCookie) { return null; }
@@ -2576,42 +2612,11 @@ export class FlexServer implements GristServer {
 
     let newDocId: string | null = null;
     try {
-      newDocId = await this._copyDocToHomeWorkspace(req, srcDocId);
+      newDocId = await createSavedDoc(this, req, {srcDocId});
     } catch (e) {
       log.error(`FlexServer failed to copy doc ${srcDocId} to Home workspace`, e);
-    } finally {
-      resp.clearCookie('gr_signup_state');
     }
     return newDocId;
-  }
-
-  private async _copyDocToHomeWorkspace(
-    req: express.Request,
-    docId: string,
-  ): Promise<string> {
-    const userId = getUserId(req);
-    const doc = await this._dbManager.getDoc({userId, urlId: docId});
-    if (!doc) { throw new Error(`Doc ${docId} not found`); }
-
-    const workspacesQueryResult = await this._dbManager.getOrgWorkspaces(getScope(req), 0);
-    const workspaces = this._dbManager.unwrapQueryResult(workspacesQueryResult);
-    const workspace = workspaces.find(w => w.name === 'Home');
-    if (!workspace) { throw new Error('Home workspace not found'); }
-
-    const copyDocUrl = this.getHomeInternalUrl('/api/docs');
-    const response = await fetch(copyDocUrl, {
-      headers: {
-        ...getTransitiveHeaders(req, { includeOrigin: false }),
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        sourceDocumentId: doc.id,
-        workspaceId: workspace.id,
-        documentName: doc.name,
-      }),
-    });
-    return await response.json();
   }
 
   /**

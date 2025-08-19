@@ -62,7 +62,7 @@ import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
 import {CommentMonitor, DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
+import {AssistantState, ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
 import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -99,6 +99,7 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+import omit = require('lodash/omit');
 import pick = require('lodash/pick');
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
@@ -519,8 +520,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         return;
       }
 
-      // Onboarding tours can conflict with rick rowing.
-      if (state.hash?.rickRow) {
+      // Onboarding tours can conflict with rick rowing and the assistant.
+      if (state.hash?.rickRow || state.params?.assistantState) {
         this._disableAutoStartingTours = true;
       }
 
@@ -747,6 +748,23 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       }
       return true;
     });
+
+    this.autoDispose(subscribe(urlState().state, async (_use, state) => {
+      const {params} = state;
+      if (!params?.assistantState) {
+        return;
+      }
+
+      await urlState().pushUrl(
+        {params: omit(params, "assistantState")},
+        {replace: true, avoidReload: true}
+      );
+
+      const assistantState = await this.docComm.getAssistantState(params.assistantState);
+      if (this.isDisposed() || !assistantState) { return; }
+
+      this._activateAssistant({state: assistantState});
+    }));
   }
 
   /**
@@ -1995,14 +2013,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     });
   }
 
-  private _activateAssistant() {
+  private _activateAssistant(options: {state?: AssistantState} = {}) {
     if (!this._assistantPopupHolder.isEmpty()) {
       // If an AssistantPopup is already open, don't dispose and reopen it, which
       // would cause its state to be reset.
       return;
     }
 
-    AssistantPopup.create(this._assistantPopupHolder, this);
+    AssistantPopup.create(this._assistantPopupHolder, this, options);
   }
 }
 

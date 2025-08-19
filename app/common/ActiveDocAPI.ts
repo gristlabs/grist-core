@@ -341,6 +341,13 @@ export interface TimingStatus {
   timing?: FormulaTimingInfo[];
 }
 
+/**
+ * Assistant state associated with the document.
+ */
+export interface AssistantState {
+  prompt: string;
+}
+
 export interface ActiveDocAPI {
   /**
    * Closes a document, and unsubscribes from its userAction events.
@@ -511,4 +518,9 @@ export interface ActiveDocAPI {
    * Stops collecting timing information and returns the collected data.
    */
   stopTiming(): Promise<TimingInfo[]>;
+
+  /**
+   * Get assistant state associated with the document.
+   */
+  getAssistantState(id: string): Promise<AssistantState|null>;
 }
