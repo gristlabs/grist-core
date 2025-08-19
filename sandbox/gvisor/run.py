@@ -56,12 +56,12 @@ mounts = [             # These will be filled in more fully programmatically bel
   {
     "destination": "/proc",  # gvisor virtualizes /proc
     "source": "/proc",
-    "type": "/procfs"
+    "type": "proc"
   },
   {
     "destination": "/sys",  # gvisor virtualizes /sys
     "source": "/sys",
-    "type": "/sysfs",
+    "type": "sysfs",
     "options": [
       "nosuid",
       "noexec",
