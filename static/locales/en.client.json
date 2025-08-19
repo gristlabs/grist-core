@@ -121,7 +121,7 @@
         "Grist Templates": "Grist Templates",
         "Billing Account": "Billing Account",
         "Manage Team": "Manage Team",
-        "{{ organizationName }} - Back to home": "{{ organizationName }} - Back to home"
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Back to home"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
