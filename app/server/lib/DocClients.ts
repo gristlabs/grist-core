@@ -82,7 +82,6 @@ export class DocClients {
     }
   }
 
-  // TODO - See if we make DocSession more specific, when everything is working.
   public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
     const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
     const docUserRoles = await this._getDocUserRoles();
@@ -178,7 +177,6 @@ export class DocClients {
         undefined,
         async (destSession: DocSession, messageData: any) => {
           if (originSession === destSession) { return; }
-          // TODO - If a user has their access removed, they need to refresh their own user list
           const profile = getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
           if (!profile) { return; }
           return {

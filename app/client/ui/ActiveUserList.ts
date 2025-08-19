@@ -8,7 +8,6 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import {components} from 'app/common/ThemePrefs';
 import {dom, domComputed, DomElementArg, styled} from 'grainjs';
 
-// TODO - Hide this list on smaller screens
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
     // Need to delete id as it's incompatible with createUserImage's parameters.
