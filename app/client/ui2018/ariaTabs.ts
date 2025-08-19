@@ -1,37 +1,93 @@
-import { dom, Observable } from "grainjs";
+import { dom, DomContents, Observable } from "grainjs";
 
+/**
+ * Helper to simplify building tabs following the ARIA Tabs pattern.
+ *
+ * This uses `ariaTabList`, `ariaTab` and `ariaTabPanel` internally,
+ * exposing functions with the correct `tabListId` and `state` arguments already set.
+ *
+ * @param tabListId - The id of the tablist. Unique name that is used to generate various `id` dom attributes.
+ * @param state - The observable that contains the current active tab id. It gets updated when tab changes.
+ */
+export const ariaTabs = (tabListId: string, state: Observable<string>) => {
+  return {
+    tabList: ariaTabList,
+    tab: (tabId: string) => ariaTab(tabListId, tabId, state),
+    tabPanel: (tabId: string, children: DomContents) => ariaTabPanel(tabListId, tabId, state, children),
+  };
+};
+
+/**
+ * Returns a list of DOM args to attach to an element we want to expose as a "tab list",
+ * following the ARIA Tabs pattern. https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
+ *
+ * A "tab list" is a dom element containing multiple "tabs" (see `ariaTab`).
+ */
 export const ariaTabList = () => ({role: "tablist"});
 
 /**
- * Returns a list of DOM arguments to generate a tab following the ARIA tab pattern.
+ * Returns a list of DOM args to attach to an element we want to expose as a "tab",
+ * following the ARIA Tabs pattern. https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
  *
- * @param tabId - The id of the tab. It matches the value representing the tab in the state.
- * @param state - The observable that gets updated when tab changes
+ * A "tab" is a button that is a child of a "tablist". It is used to switch the current active tab
+ * of the tablist.
+ *
+ * For tab content, see `ariaTabPanel`.
+ *
+ * @param tabListId - The id of the tablist. It helps building the final element `id` attribute of the tab.
+ * @param tabId - The id for this tab. It matches the value representing the tab in the state.
+ *                It helps building the final element `id` attribute of the tab.
+ * @param state - The observable that contains the current active tab id. It gets updated when tab changes.
  */
-export const ariaTab = (context: string, tabId: string, state: Observable<string>) => {
+export const ariaTab = (tabListId: string, tabId: string, state: Observable<string>) => {
   return [
     {
-      id: `aria-tab-${context}-${tabId}`,
+      id: `aria-tab-${tabListId}-${tabId}`,
       role: "tab",
       "data-tab-id": tabId,
-      "aria-controls": `aria-tabpanel-${context}-${tabId}`,
+      "aria-controls": `aria-tabpanel-${tabListId}-${tabId}`,
     },
     dom.attr("aria-selected", (use) => use(state) === tabId ? "true" : "false"),
     dom.attr("tabindex", (use) => use(state) === tabId ? "0" : "-1"),
     dom.on('click', () => state.set(tabId)),
     dom.onKeyDown({
+      // Only horizontal tabs are currently implemented.
       ArrowLeft: (event) => cycle(event.target, state, -1),
       ArrowRight: (event) => cycle(event.target, state, 1),
     })
   ];
 };
 
-export const ariaTabPanel = (context: string, tabId: string) => {
-  return {
-    id: `aria-tabpanel-${context}-${tabId}`,
-    role: "tabpanel",
-    "aria-labelledby": `aria-tab-${context}-${tabId}`,
-  };
+/**
+ * Returns a list of DOM args to attach to an element we want to expose as a "tab panel",
+ * and automatically renders its content only when the tab is active.
+ *
+ * This follows the ARIA Tabs pattern: https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
+ *
+ * A "tab panel" is a content area containing children elements that are displayed only
+ * when the tied `ariaTab` is the active one.
+ *
+ * Note that the tab panel itself must always be in the DOM, whether or not it is the active one.
+ * This helper takes care of rendering the tab panel content or not based on the current active tab state.
+ *
+ * For tab buttons, see `ariaTab`.
+ *
+ * @param tabListId - The id of the tablist. It helps building the final element `id` attribute of the tabpanel.
+ * @param tabId - The id for this tabpanel. It matches the value representing the tab in the state of the tied
+ *                `ariaTab`. It helps building the final element `id` attribute of the tabpanel.
+ * @param state - The observable that contains the current active tab id. It gets updated when tab changes.
+ * @param children - The tab content, automatically appended in the DOM only when the tab is active.
+ */
+export const ariaTabPanel = (tabListId: string, tabId: string, state: Observable<string>, children: DomContents) => {
+  return [
+    {
+      id: `aria-tabpanel-${tabListId}-${tabId}`,
+      role: "tabpanel",
+      "aria-labelledby": `aria-tab-${tabListId}-${tabId}`,
+    },
+    dom.attr('aria-hidden', (use) => use(state) !== tabId ? "true" : "false"),
+    dom.domComputed(state, (currentTabId) => currentTabId === tabId ? children : null),
+  ];
 };
 
 const cycle = (fromElement: EventTarget | null, state: Observable<string>, direction: number) => {

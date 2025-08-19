@@ -57,7 +57,7 @@ describe('RowHeights', function() {
 
     // Click the "change" link. This should take us to the table config.
     await driver.find('.test-row-height-change-link').click();
-    assert.equal(await driver.find('.test-right-tab-pagewidget').matches('[class*=-selected]'), true);
+    assert.equal(await driver.find('.test-right-tab-pagewidget').matches('[aria-selected="true"]'), true);
 
     // Check what we see in the row-config spinner.
     assert.equal(await driver.find('.test-row-height-max input').value(), '');

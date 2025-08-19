@@ -49,7 +49,7 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
-import {ariaTab, ariaTabList, ariaTabPanel} from 'app/client/ui2018/ariaTabs';
+import {ariaTabs} from 'app/client/ui2018/ariaTabs';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {components} from 'app/common/ThemePrefs';
@@ -98,9 +98,11 @@ export class RightPanel extends Disposable {
 
   // Which of the two standard top tabs (page widget or field) is selected, or was last selected.
   private _topTab = createSessionObs(this, "rightTopTab", "pageWidget", TopTab.guard);
+  private _topTabComponents: ReturnType<typeof ariaTabs>;
 
   // Which subtab is open for configuring page widget.
   private _subTab = createSessionObs(this, "rightPageSubTab", "widget", PageSubTab.guard);
+  private _subTabComponents: ReturnType<typeof ariaTabs>;
 
   // Which type of page widget is active, e.g. "record" or "chart". This affects the names and
   // icons in the top tab.
@@ -149,6 +151,9 @@ export class RightPanel extends Disposable {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('submission'));
       }
     }));
+
+    this._topTabComponents = ariaTabs('rightTopbar', this._topTab);
+    this._subTabComponents = ariaTabs('rightSubbar', this._subTab);
   }
 
   private _openFieldTab() {
@@ -214,19 +219,17 @@ export class RightPanel extends Disposable {
       const fieldInfo = getFieldType(type);
       return [
         cssTopBarTabList(
-          ariaTabList(),
+          this._topTabComponents.tabList(),
           cssTopBarItem(
-            ariaTab('rightTopbar', 'pageWidget', this._topTab),
+            this._topTabComponents.tab('pageWidget'),
             cssTopBarIcon(widgetInfo.icon),
             widgetInfo.getLabel(),
-            cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'pageWidget'),
             testId('right-tab-pagewidget')
           ),
           cssTopBarItem(
-            ariaTab('rightTopbar', 'field', this._topTab),
+            this._topTabComponents.tab('field'),
             cssTopBarIcon(fieldInfo.icon),
             fieldInfo.label,
-            cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'field'),
             testId('right-tab-field')
           )
         )
@@ -241,32 +244,28 @@ export class RightPanel extends Disposable {
       if (tool) { return tabContentToDom(tool.content); }
       const isForm = use(this._isForm);
 
-      const topTab = use(this._topTab);
-
       return [
-        dom('div',
-          ariaTabPanel('rightTopbar', 'pageWidget'),
-          topTab === 'pageWidget'
-            ? isForm
+        cssTabPanel(
+          this._topTabComponents.tabPanel('pageWidget',
+            isForm
               ? [
                 dom.create(this._buildPageFormHeader.bind(this)),
-                dom.create(this._buildPageWidgetContent.bind(this)),
+                dom.create(() => this._buildPageWidgetContent(isForm)),
               ]
               : use(this._hasActiveWidget)
                 ? [
                   dom.create(this._buildPageWidgetHeader.bind(this)),
-                  dom.create(this._buildPageWidgetContent.bind(this)),
+                  dom.create(() => this._buildPageWidgetContent(isForm)),
                 ]
                 : null
-            : null
+          ),
         ),
-        dom('div',
-          ariaTabPanel('rightTopbar', 'field'),
-          topTab === 'field'
-            ? isForm
+        cssTabPanel(
+          this._topTabComponents.tabPanel('field',
+            isForm
               ? dom.create(this._buildQuestionContent.bind(this))
               : dom.create(this._buildFieldContent.bind(this))
-            : null
+          ),
         )
       ];
     });
@@ -381,54 +380,53 @@ export class RightPanel extends Disposable {
     });
   }
 
-  private _buildPageWidgetContent() {
-    const content = (activeSection: ViewSectionRec, type: typeof PageSubTab.type) => {
+  private _buildPageWidgetContent(isForm: boolean) {
+    const content = (activeSection: ViewSectionRec) => {
       return [
         dom('div',
-          ariaTabPanel('rightSubbar', 'widget'),
-          type === 'widget' ? dom.create(this._buildPageWidgetConfig.bind(this), activeSection) : null
+          this._subTabComponents.tabPanel('widget',
+            dom.create(this._buildPageWidgetConfig.bind(this), activeSection)
+          ),
         ),
-        dom('div',
-          ariaTabPanel('rightSubbar', 'sortAndFilter'),
-          type === 'sortAndFilter' ? [
-            dom.create(this._buildPageSortFilterConfig.bind(this)),
+        isForm
+          ? dom('div',
+            this._subTabComponents.tabPanel('submission',
+              dom.create(this._buildPageSubmissionConfig.bind(this), activeSection)
+            ),
+          )
+          : dom('div',
+            this._subTabComponents.tabPanel('sortAndFilter',
+              dom.create(this._buildPageSortFilterConfig.bind(this)),
+            ),
             cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
-          ] : null
-        ),
+          ),
         dom('div',
-          ariaTabPanel('rightSubbar', 'data'),
-          type === 'data' ? dom.create(this._buildPageDataConfig.bind(this), activeSection) : null
-        ),
-        dom('div',
-          ariaTabPanel('rightSubbar', 'submission'),
-          type === 'submission' ? dom.create(this._buildPageSubmissionConfig.bind(this), activeSection) : null
+          this._subTabComponents.tabPanel('data',
+            dom.create(this._buildPageDataConfig.bind(this), activeSection)
+          ),
         ),
       ];
     };
-    return dom.domComputed(this._subTab, (subTab) => (
-      dom.maybe(this._validSection, (activeSection) => (
-        buildConfigContainer(
-          content(activeSection, subTab)
-        )
-      ))
-    ));
+    return dom.maybe(this._validSection, (activeSection) =>
+      buildConfigContainer(content(activeSection))
+    );
   }
 
   private _buildPageFormHeader(_owner: MultiHolder) {
     return [
       cssSubTabContainer(
-        ariaTabList(),
+        this._subTabComponents.tabList(),
         cssSubTab(t("Configuration"),
-          ariaTab('rightSubbar', 'widget', this._subTab),
+          this._subTabComponents.tab('widget'),
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
           dom.attr('data-text', t("Configuration")),
           testId('config-widget')),
         cssSubTab(t("Submission"),
-          ariaTab('rightSubbar', 'submission', this._subTab),
+          this._subTabComponents.tab('submission'),
           dom.attr('data-text', t("Submission")),
           testId('config-submission')),
         cssSubTab(t("Data"),
-          ariaTab('rightSubbar', 'data', this._subTab),
+          this._subTabComponents.tab('data'),
           dom.attr('data-text', t("Data")),
           testId('config-data')),
       ),
@@ -438,18 +436,18 @@ export class RightPanel extends Disposable {
   private _buildPageWidgetHeader(_owner: MultiHolder) {
     return [
       cssSubTabContainer(
-        ariaTabList(),
+        this._subTabComponents.tabList(),
         cssSubTab(t("Widget"),
-          ariaTab('rightSubbar', 'widget', this._subTab),
+          this._subTabComponents.tab('widget'),
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
           dom.attr('data-text', t("Widget")),
           testId('config-widget')),
         cssSubTab(t("Sort & Filter"),
-          ariaTab('rightSubbar', 'sortAndFilter', this._subTab),
+          this._subTabComponents.tab('sortAndFilter'),
           dom.attr('data-text', t("Sort & Filter")),
           testId('config-sortAndFilter')),
         cssSubTab(t("Data"),
-          ariaTab('rightSubbar', 'data', this._subTab),
+          this._subTabComponents.tab('data'),
           dom.attr('data-text', t("Data")),
           testId('config-data')),
       ),
@@ -1224,6 +1222,7 @@ const cssTopBarItem = styled(unstyledButton, `
   &:last-child {
     border-right: 0;
   }
+  /* the -selected class is used when the topbar item is not a tab */
   &-selected, &[aria-selected="true"] {
     background-color: ${theme.rightPanelTabSelectedBg};
     font-weight: ${vars.headerControlTextWeight};
@@ -1233,7 +1232,7 @@ const cssTopBarItem = styled(unstyledButton, `
     border-left-color: ${theme.rightPanelTabBorder};
     border-right-color: ${theme.rightPanelTabBorder};
   }
-  &:not(&-selected):hover, &:not(&[aria-selected="true"]):hover {
+  &:not(&-selected, &[aria-selected="true"]):hover {
     background-color: ${theme.rightPanelTabHoverBg};
     border-left-color: ${theme.rightPanelTabHoverBg};
     border-right-color: ${theme.rightPanelTabHoverBg};
@@ -1289,18 +1288,19 @@ const cssSubTab = styled(unstyledButton, `
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  align-items: center;
   text-align: center;
   padding-bottom: 8px;
   cursor: default;
   border-bottom: 2px solid transparent;
   outline-offset: -3px;
 
-  &-selected, &[aria-selected="true"] {
+  &[aria-selected="true"] {
     font-weight: 600;
     color: ${components.rightPanelSubtabSelectedFg};
     border-bottom-color: ${components.rightPanelSubtabSelectedUnderline};
   }
-  &:not(&-selected):hover, &:not(&[aria-selected="true"]):hover {
+  &:not(&[aria-selected="true"]):hover {
     color: ${components.rightPanelSubtabHoverFg};
   }
   &:hover {
@@ -1317,6 +1317,12 @@ const cssSubTab = styled(unstyledButton, `
     height: 0;
     overflow: hidden;
   }
+`);
+
+const cssTabPanel = styled('div', `
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `);
 
 const cssTabContents = styled('div', `
