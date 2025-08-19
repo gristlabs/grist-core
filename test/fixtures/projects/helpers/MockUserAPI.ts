@@ -472,6 +472,10 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     // do nothing
   }
 
+  public async updateIsEnabled(userId: number, isEnabled: boolean): Promise<void> {
+    // do nothing
+  }
+
   public async deleteUser(userId: number, name: string): Promise<void> {
     // do nothing
   }

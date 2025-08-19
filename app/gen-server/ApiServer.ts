@@ -484,6 +484,30 @@ export class ApiServer {
       res.sendStatus(200);
     }));
 
+    this._app.post('/api/profile/user/isEnabled', expressWrap(async (req, res) => {
+      const userId = getAuthorizedUserId(req);
+      const isAuthorized = (
+        userId == this._dbManager.getSupportUserId()
+        || await this._gristServer.getInstallAdmin().isAdminReq(req)
+      );
+      if (!isAuthorized) {
+        throw new ApiError('Only support or admin users can enable/disable users', 401);
+      }
+      const isEnabled: boolean | undefined = req.body.isEnabled;
+      const targetUserId: number | undefined = req.body.userId;
+      if (isEnabled === undefined) {
+        throw new ApiError('Missing body param: isEnabled', 400);
+      }
+      if (targetUserId === undefined) {
+        throw new ApiError('Missing body param: userId', 400);
+      }
+      const {wasDisabled} = await this._dbManager.updateUser(targetUserId, {isEnabled});
+      if(wasDisabled === true) {
+        await this._gristServer.getDocManager().interruptConnections(targetUserId);
+      }
+      res.sendStatus(200);
+    }));
+
     // GET /api/profile/apikey
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
