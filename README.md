@@ -21,7 +21,7 @@ https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-97
 
 To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or do [`docker run`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately, but if you do, please read the list of [extra extensions](#features-not-in-grist-core) that are not in `grist-core`.
 
-Howewer you try it, you'll quickly see that Grist is a hybrid database/spreadsheet, meaning that:
+However you try it, you'll quickly see that Grist is a hybrid database/spreadsheet, meaning that:
 
   - Columns work like they do in databases: they are named, and they hold one kind of data.
   - Columns can be filled by formula, spreadsheet-style, with automatic updates when referenced cells change.
