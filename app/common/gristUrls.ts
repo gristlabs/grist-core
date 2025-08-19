@@ -122,6 +122,7 @@ export const commonUrls = {
   helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
+  helpSharing: 'https://support.getgrist.com/sharing',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
