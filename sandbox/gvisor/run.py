@@ -178,7 +178,7 @@ if os.path.exists('/usr/lib64'):
 preserve("/usr/lib")
 
 # include python3 for bash and python3
-best = None
+best_python_executable = None
 # We expect python3 in /usr/bin or /usr/local/bin.
 candidates = [
   path
@@ -191,8 +191,8 @@ candidates = [
 ]
 if not candidates:
   raise Exception('could not find python3')
-best = os.path.realpath(candidates[0])
-preserve(best)
+best_python_executable = os.path.realpath(candidates[0])
+preserve(best_python_executable)
 
 # Set up any specific shares requested.
 if args.mount:
@@ -222,7 +222,7 @@ if args.faketime:
 if start:
   cmd_args.append(start)
 else:
-  cmd_args.append('bash' if include_bash else best)
+  cmd_args.append('bash' if include_bash else best_python_executable)
 
 # Add any requested arguments for the program that will be run.
 cmd_args += more_args
