@@ -259,6 +259,7 @@ export class RightPanel extends Disposable {
                 ]
                 : null
           ),
+          testId('right-tabpanel-pagewidget')
         ),
         cssTabPanel(
           this._topTabComponents.tabPanel('field',
@@ -266,6 +267,7 @@ export class RightPanel extends Disposable {
               ? dom.create(this._buildQuestionContent.bind(this))
               : dom.create(this._buildFieldContent.bind(this))
           ),
+          testId('right-tabpanel-field')
         )
       ];
     });
@@ -387,23 +389,27 @@ export class RightPanel extends Disposable {
           this._subTabComponents.tabPanel('widget',
             dom.create(this._buildPageWidgetConfig.bind(this), activeSection)
           ),
+          testId('right-subtabpanel-widget')
         ),
         isForm
           ? dom('div',
             this._subTabComponents.tabPanel('submission',
               dom.create(this._buildPageSubmissionConfig.bind(this), activeSection)
             ),
+            testId('right-subtabpanel-submission')
           )
           : dom('div',
             this._subTabComponents.tabPanel('sortAndFilter',
               dom.create(this._buildPageSortFilterConfig.bind(this)),
             ),
             cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
+            testId('right-subtabpanel-sortAndFilter')
           ),
         dom('div',
           this._subTabComponents.tabPanel('data',
             dom.create(this._buildPageDataConfig.bind(this), activeSection)
           ),
+          testId('right-subtabpanel-data')
         ),
       ];
     };
