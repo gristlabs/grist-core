@@ -52,7 +52,8 @@ export interface CommMessageBase {
   data?: unknown;
 }
 
-export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown | CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
+export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown |
+                             CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
 export type CommMessage = CommDocMessage | CommDocListAction | CommClientConnect;
 
 export type CommResponseBase = CommResponse | CommResponseError | CommMessage;

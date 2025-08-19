@@ -20,7 +20,7 @@ import {
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
-  DataSourceTransformed, VisibleUserProfile,
+  DataSourceTransformed,
   ForkResult,
   FormulaTimingInfo,
   ImportOptions,
@@ -31,7 +31,8 @@ import {
   QueryResult,
   ServerQuery,
   TableFetchResult,
-  TransformRule
+  TransformRule,
+  VisibleUserProfile
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
