@@ -96,11 +96,11 @@ const cycle = (fromElement: EventTarget | null, state: Observable<string>, direc
   if (!fromElement) {
     return;
   }
-  const tablist = (fromElement as HTMLElement)?.closest('[role="tablist"]');
-  if (!tablist) {
+  const tabList = (fromElement as HTMLElement)?.closest('[role="tablist"]');
+  if (!tabList) {
     return;
   }
-  const tabs = tablist.querySelectorAll('[role="tab"]');
+  const tabs = tabList.querySelectorAll('[role="tab"]');
   const currentIndex = Array.from(tabs).indexOf(fromElement as HTMLElement);
   const newIndex = (currentIndex + direction + tabs.length) % tabs.length;
   const newTabId = tabs[newIndex].getAttribute('data-tab-id');
