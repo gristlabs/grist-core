@@ -113,7 +113,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         });
       }
       // We're going down, so we're no longer ready to serve requests.
-      gristServer.setReady(false);
+      gristServer.ready = false;
       return res.status(200).send({ msg: "ok" });
     })
   );
