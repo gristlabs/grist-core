@@ -2564,6 +2564,28 @@ export class GranularAccess implements GranularAccessForBundle {
     return gatherAttachmentIds(attachmentColumns, action);
   }
 
+  private async _filterSchemaActionsForNotifications(
+    docSession: OptDocSession,
+    docActions: DocAction[]
+  ): Promise<DocAction[]> {
+    try {
+      await this._assertSchemaAccess(docSession);
+      return docActions;
+    } catch (e: unknown) {
+      if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
+        return docActions.filter((a) => {
+          const tableId = getTableId(a);
+          return (
+            !isSchemaAction(a) &&
+            (!tableId.startsWith('_grist_') || tableId === '_grist_Cells')
+          );
+        });
+      }
+
+      throw e;
+    }
+  }
+
   private async _getRuler(cursor: ActionCursor) {
     if (cursor.actionIdx === null) { return this._ruler; }
     const step = await this._getMetaStep(cursor);
@@ -2746,7 +2768,8 @@ export class GranularAccess implements GranularAccessForBundle {
       return relevant;
     }
     const userDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
-    const filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    let filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    filtered = await this._filterSchemaActionsForNotifications(userDocSession, filtered);
     return filtered;
   }
 }
