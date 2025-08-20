@@ -9,7 +9,7 @@ describe('everyone', function() {
 
   before(async function() {
     home = new TestServer(this);
-    await home.start();
+    await home.start(['home', 'docs']);
   });
 
   after(async function() {

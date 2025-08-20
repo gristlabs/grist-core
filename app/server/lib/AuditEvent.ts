@@ -269,6 +269,7 @@ export interface AuditEventDetails {
   };
   "site.delete": {
     site: Pick<Organization, "id" | "name" | "domain">;
+    error?: string;
   };
   "site.rename": PreviousAndCurrent<{
     site: Pick<Organization, "id" | "name" | "domain">;
@@ -309,6 +310,7 @@ export interface AuditEventDetails {
   };
   "workspace.delete": {
     workspace: Pick<Workspace, "id" | "name">;
+    error?: string;
   };
   "workspace.move_to_trash": {
     workspace: Pick<Workspace, "id" | "name">;
