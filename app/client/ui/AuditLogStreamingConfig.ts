@@ -14,7 +14,6 @@ import {
   AuditLogStreamingDestinationName,
   AuditLogStreamingDestinationNameChecker,
 } from "app/common/Config";
-import { commonUrls } from "app/common/gristUrls";
 import { Computed, Disposable, dom, makeTestId, Observable, styled } from "grainjs";
 
 const t = makeT("AuditLogStreamingConfig");
@@ -42,7 +41,7 @@ security information and event management (SIEM) system like \
 Splunk. {{learnMoreLink}}.",
               {
                 learnMoreLink: cssLink(
-                  { href: commonUrls.helpInstallAuditLogs, target: "_blank" },
+                  { href: window.gristConfig.commonUrls.helpInstallAuditLogs, target: "_blank" },
                   t("Learn more")
                 ),
               }

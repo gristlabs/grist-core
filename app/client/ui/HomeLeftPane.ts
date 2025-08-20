@@ -29,7 +29,7 @@ import {newDocMethods} from 'app/client/ui/NewDocMethods';
 import {menu, menuIcon, menuItem, upgradableMenuItem, upgradeText} from 'app/client/ui2018/menus';
 import {confirmModal} from 'app/client/ui2018/modals';
 import * as version from 'app/common/version';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Workspace} from 'app/common/UserAPI';
@@ -176,10 +176,10 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
-        (commonUrls.termsOfService ?
+        (window.gristConfig.commonUrls.termsOfService ?
           cssPageEntry(
             cssPageLink(cssPageIcon('Memo'), cssLinkText(t("Terms of service")),
-              { href: commonUrls.termsOfService, target: '_blank' },
+              { href: window.gristConfig.commonUrls.termsOfService, target: '_blank' },
               testId('dm-tos'),
             ),
           ) : null

@@ -27,7 +27,6 @@ import { AssistanceResponse } from "app/common/Assistance";
 import { AsyncCreate } from "app/common/AsyncCreate";
 import { DocAction } from "app/common/DocActions";
 import { isFreePlan } from "app/common/Features";
-import { commonUrls } from "app/common/gristUrls";
 import { TelemetryEvent, TelemetryMetadata } from "app/common/Telemetry";
 import { getGristConfig } from "app/common/urlUtils";
 import {
@@ -219,7 +218,7 @@ export class Assistant extends Disposable {
           content: buildBannerMessage(
             t("Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}", {
               learnMoreLink: cssBannerAnchorLink(
-                { href: commonUrls.helpAssistant, target: "_blank" },
+                { href: window.gristConfig.commonUrls.helpAssistant, target: "_blank" },
                 t("Learn more.")
               )
             }),
