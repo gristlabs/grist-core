@@ -92,7 +92,7 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - With `grist-core` you can store snapshots in anything S3-compatible, which covers a lot of services, but not Azure specifically. The Azure back-end fills that gap.
 	- Unless you are a Microsoft shop you probably don't care about this.
   * [Audit Log Streaming](https://support.getgrist.com/install/audit-log-streaming/) (2024)
-    - With `grist-core` a lot of useful information is logged, but not organized specifically with auditing in mind. Audit log streaming takes care of that.
+    - With `grist-core` a lot of useful information is logged, but not organized specifically with auditing in mind. Audit log streaming supplies that organization, and a UI for setting things up.
 	- Enterprises may care about this.
   * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
     - This a special page for a Grist installation administrator to monitor and edit user access to resources.
