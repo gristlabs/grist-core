@@ -83,17 +83,17 @@ If you are curious about where Grist is heading, see [our roadmap](https://githu
 
 ## Features not in `grist-core`
 
-If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or do [`docker run`](#using-grist). Here is a list of features you may see in Grist Labs hosting or enterprise offerings that are not in `grist-core`, in chronological order of creation.
+If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or do [`docker run`](#using-grist). Here is a list of features you may see in Grist Labs' hosting or enterprise offerings that are not in `grist-core`, in chronological order of creation.
 
-  * (2022) With [GristConnect](https://support.getgrist.com/install/grist-connect/) any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins. This was a niche feature built for a client, and with `grist-core` OIDC and SAML support covers most use-cases. You probably don't care about this.
+  * (2022) With [GristConnect](https://support.getgrist.com/install/grist-connect/) any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins. GristConnect is a niche feature built for a specific client which you probably don't care about – `OIDC` and `SAML` support *is* part of `grist-core` and covers most authentication use cases.
 
-  * (2022) An [azure back-end for snapshots](https://support.getgrist.com/install/cloud-storage/#azure). With `grist-core` you can store snapshots in anything S3-compatible, which covers a lot of services, but not Azure specifically. Unless you are a Microsoft shop you probably don't care about this.
+  * (2022) An [Azure back-end for snapshots](https://support.getgrist.com/install/cloud-storage/#azure). With `grist-core` you can store snapshots in anything S3-compatible, which covers a lot of services, but not Azure specifically. Unless you are a Microsoft shop you probably don't care about this.
 
   * (2024) Native support for [audit log streaming](https://support.getgrist.com/install/audit-log-streaming/). With `grist-core` a lot of useful information is logged, but not organized specifically with auditing in mind. Enterprises may care about this.
 
   * (2025) [Advanced Admin Controls](https://support.getgrist.com/admin-controls/). This a special page for a Grist installation administrator to monitor and edit user access to resources. It uses a special set of administrative endpoints. With `grist-core`, these administrative operations have not been streamlined. If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
 
-  * (2025) [Grist Assistant V2](https://support.getgrist.com/assistant/#assistant). There is an assistant in `grist-core` to help set up formulas, but the newer assistant can help with a wider range of tasks. You can use `grist-core` with other agents, with some work. Hard to guess if you'll care about this one.
+  * (2025) [Grist Assistant](https://support.getgrist.com/assistant/#assistant). There is an earlier AI Formula Assistant in `grist-core` to help set up formulas, but the newer assistant can help with a wider range of tasks. You can use `grist-core` with other agents, with some work. Hard to guess if you'll care about this one.
 
   * (2025) [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications). With email notifications, when a user is added to a document, a workspace, or a site, they will be emailed a link to access the resource. This link isn't special – with `grist-core` you can just send a link yourself. Handy, but big Grist installations were running for years before this feature was added outside of the Grist Labs SaaS, without any particular pressure for it.
 
