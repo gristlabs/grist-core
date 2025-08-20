@@ -95,7 +95,7 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
 
   * (2025) [Grist Assistant V2](https://support.getgrist.com/assistant/#assistant). There is an assistant in `grist-core` to help set up formulas, but the newer assistant can help with a wider range of tasks. You can use `grist-core` with other agents, with some work. Hard to guess if you'll care about this one.
 
-  * (2025) [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications). When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource. This link isn't special, with `grist-core` you can just send a link yourself. This one feels like you'd care about it? But big Grist installations were running for years before this feature was added outside of the Grist Labs SaaS, without any particular pressure for it.
+  * (2025) [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications). With email notifications, when a user is added to a document, a workspace, or a site, they will be emailed a link to access the resource. This link isn't special – with `grist-core` you can just send a link yourself. Handy, but big Grist installations were running for years before this feature was added outside of the Grist Labs SaaS, without any particular pressure for it.
 
   * (2025) Document Change and Comment Notifications. You can achieve change notifications in `grist-core` using webhooks, but it is less convenient. This one, people have been asking for, for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 
