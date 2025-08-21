@@ -6,6 +6,7 @@ import { SchemaTypes } from 'app/common/schema';
 import { FlexServer } from 'app/server/lib/FlexServer';
 import axios from 'axios';
 import pick = require('lodash/pick');
+import {configForUser} from 'test/gen-server/testUtils';
 
 interface GristRequest {
   reqId: number;
@@ -157,7 +158,7 @@ export class GristClient {
     const msg = await this.readMessage();
     if (msg.type !== 'clientConnect') { throw new Error('expected clientConnect'); }
     const openDoc = await this.send('openDoc', docId);
-    if (openDoc.error) { throw new Error('error in openDocOnConnect'); }
+    if (openDoc.error) { throw new Error(`error in openDocOnConnect: ${openDoc.error}`, undefined); }
     return openDoc;
   }
 }
@@ -182,6 +183,26 @@ export async function openClient(server: FlexServer, email: string, org: string,
   }
   const ws = new GristClientSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {
     headers
+  });
+  const client = new GristClient(ws);
+  await new Promise(function(resolve, reject) {
+    ws.onopen = function() {
+      ws.onerror = null;
+      resolve(ws);
+    };
+    ws.onerror = function(err: Error) {
+      ws.onopen = null;
+      reject(err);
+    };
+  });
+  return client;
+}
+
+export async function openClientForUser(port: string | number, username: string, org: string,
+                                 emailHeader?: string): Promise<GristClient> {
+  const userConfig = configForUser(username);
+  const ws = new GristClientSocket('ws://localhost:' + port + `/o/${org}`, {
+    headers: { Authorization: userConfig.headers?.Authorization },
   });
   const client = new GristClient(ws);
   await new Promise(function(resolve, reject) {
