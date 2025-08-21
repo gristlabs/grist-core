@@ -22,6 +22,10 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
 
   public async initialize(): Promise<void> {
     const userProfiles = await this._docComm.listActiveUserProfiles();
+
+    if (this.isDisposed()) {
+      return;
+    }
     this.userProfiles.set(userProfiles);
   }
 
