@@ -4,7 +4,7 @@
  */
 
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
+import {CommDocEventType, CommDocUserPresenceUpdate, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {getRealAccess} from 'app/common/UserAPI';
@@ -175,7 +175,7 @@ export class DocClients {
         originSession.client,
         "docUserPresenceUpdate",
         undefined,
-        async (destSession: DocSession, messageData: any) => {
+        async (destSession: DocSession, messageData: any): Promise<CommDocUserPresenceUpdate["data"] | undefined> => {
           if (originSession === destSession) { return; }
           const profile = getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
           if (!profile) { return; }
@@ -195,10 +195,10 @@ export class DocClients {
       originSession.client,
       "docUserPresenceUpdate",
       undefined,
-      async (destSession: DocSession, messageData: any) => {
+      async (destSession: DocSession, messageData: any): Promise<CommDocUserPresenceUpdate["data"] | undefined> => {
         return {
           id: getVisibleUserProfileId(originSession),
-          profile: undefined,
+          profile: null,
         };
       }
     ).catch(err => {

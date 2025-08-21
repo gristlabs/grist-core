@@ -121,7 +121,8 @@ export interface CommDocUserPresenceUpdate extends CommMessageBase {
   docFD: number;
   data: {
     id: string;
-    profile?: VisibleUserProfile;
+    // Null entry indicates the user is no longer active and should be removed.
+    profile: VisibleUserProfile | null;
   }
 }
 
