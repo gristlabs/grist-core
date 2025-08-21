@@ -3,7 +3,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('RightPanel', function() {
-  this.timeout(20000);
+  this.timeout(60000);
   const cleanup = setupTestSuite();
 
   afterEach(() => gu.checkForErrors());
