@@ -31,11 +31,11 @@ export function buildDescriptionConfig(
   );
 
   return [
-    cssLabel(t("DESCRIPTION")),
+    cssLabel(t("DESCRIPTION"), {for: `${options.testPrefix}-description-input`}),
     cssRow(
       editor = cssTextArea(fromKo(description),
         { onInput: false },
-        { rows: '3' },
+        { rows: '3', id: `${options.testPrefix}-description-input` },
         dom.on('blur', async (e, elem) => {
           await description.saveOnly(elem.value);
         }),
