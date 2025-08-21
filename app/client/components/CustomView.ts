@@ -60,6 +60,21 @@ export interface CustomViewSettings {
  */
 export class CustomView extends Disposable {
 
+  // Commands enabled only when the custom view is the actually user-focused region.
+  private static _focusedCommands = {
+    async viewAsCard(event: Event) {
+      if (event instanceof KeyboardEvent) {
+        // Ignore the keyboard shortcut if pressed; it's disabled at this time for custom widgets.
+        return;
+      }
+
+      (this as unknown as BaseView).viewSelectedRecordAsCard();
+
+      // Move focus back to the app, so that keyboard shortcuts work in the popup.
+      document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
+    },
+  };
+  // Commands enabled when the view is the active section, even when user focuses another region.
   private static _commands = {
     async openWidgetConfiguration(this: CustomView) {
       if (!this.isDisposed() && !this._frame?.isDisposed()) {
@@ -73,17 +88,6 @@ export class CustomView extends Disposable {
           }
         }
       }
-    },
-    async viewAsCard(event: Event) {
-      if (event instanceof KeyboardEvent) {
-        // Ignore the keyboard shortcut if pressed; it's disabled at this time for custom widgets.
-        return;
-      }
-
-      (this as unknown as BaseView).viewSelectedRecordAsCard();
-
-      // Move focus back to the app, so that keyboard shortcuts work in the popup.
-      document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
     },
   };
   /**
@@ -129,7 +133,8 @@ export class CustomView extends Disposable {
 
     this.autoDispose(this.customDef.pluginId.subscribe(this._updatePluginInstance, this));
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
-    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasRegionFocus));
+    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
+    this.autoDispose(commands.createGroup(CustomView._focusedCommands, this, this.viewSection.hasRegionFocus));
 
     this._unmappedColumns = this.autoDispose(ko.pureComputed(() => {
       const columns = this.viewSection.columnsToMap();
