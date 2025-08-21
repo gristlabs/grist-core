@@ -509,7 +509,8 @@
         "Grist Templates": "Шаблони від Grist",
         "Billing Account": "Розрахунковий рахунок",
         "Manage Team": "Керувати командою",
-        "{{ organizationName }} - Back to home": "{{ organizationName }} - Назад додому"
+        "{{ organizationName }} - Back to home": "{{ organizationName }} - Назад додому",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Назад додому"
     },
     "CellContextMenu": {
         "Clear cell": "Очистити клітинку",
