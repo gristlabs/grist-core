@@ -3236,7 +3236,7 @@ const filterController = {
     return this;
   },
   async labels() {
-    return await driver.findAll('.test-filter-menu-list label', el => el.getText());
+    return await driver.findAll('.test-filter-menu-list .test-filter-menu-value', el => el.getText());
   },
   async allShown() {
     await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
@@ -3341,8 +3341,8 @@ export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
   const items = await driver.findAll('.test-filter-menu-list > *');
   return await Promise.all(items.map(async item => {
     const checked = (await item.find('input').getAttribute('checked')) === null ? false : true;
-    const value = await item.find('label').getText();
-    const count = parseInt(await item.find('label + div').getText(), 10);
+    const value = await item.find('.test-filter-menu-value').getText();
+    const count = parseInt(await item.find('.test-filter-menu-count').getText(), 10);
     return {checked, value, count};
   }));
 }

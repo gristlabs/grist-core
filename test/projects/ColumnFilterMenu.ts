@@ -252,7 +252,7 @@ describe('ColumnFilterMenu', function() {
   it('should filter items by search value', async () => {
     // Check that all items are displayed in the list
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
-    assert.lengthOf(await driver.findAll('.test-filter-menu-list label'), 17);
+    assert.lengthOf(await driver.findAll('.test-filter-menu-list .test-filter-menu-value'), 17);
 
     // Enter 'App'
     const searchInput = await driver.find('.test-filter-menu-search-input');
@@ -262,7 +262,7 @@ describe('ColumnFilterMenu', function() {
     assert.equal(await searchInput.value(), 'App');
 
     // Check that only Apples and Knapples are in the list
-    const elems = await driver.findAll('.test-filter-menu-list label');
+    const elems = await driver.findAll('.test-filter-menu-list .test-filter-menu-value');
     assert.lengthOf(elems, 2);
     assert.deepEqual(await Promise.all(elems.map(el => el.getText())), ['Apples', 'Knapples']);
 
@@ -292,7 +292,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('Oranges');
 
     // check only one matching value
-    assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Oranges']);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Oranges']
+    );
 
     // check 'Oranges' count is 14
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-count', (e) => e.getText()),
@@ -313,7 +315,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // check Apples and Knapples are visible
-    assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Apples', 'Knapples']);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Apples', 'Knapples']
+    );
 
     // check Others is checked
     assert.isTrue(await driver.findContent('.test-filter-menu-summary', /Others/).find('input').isSelected());
@@ -339,7 +343,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // check Apples and Knapples are visible
-    assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Apples', 'Knapples']);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Apples', 'Knapples']
+    );
 
     // check others is checked
     assert.isTrue(await driver.findContent('.test-filter-menu-summary', /Others/).find('input').isSelected());
@@ -409,7 +415,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // check values are filtered
-    assert.deepEqual(await menu.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Apples', 'Knapples']);
+    assert.deepEqual(
+      await menu.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Apples', 'Knapples']
+    );
   });
 
   it('should properly escape search and filter menu', async () => {

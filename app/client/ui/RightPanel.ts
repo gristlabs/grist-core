@@ -897,7 +897,7 @@ export class RightPanel extends Disposable {
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
-          cssGroupLabel(t("SELECTOR FOR"), {id: 'data-selector-for-label'}),
+          cssGroupLabel(t("SELECTOR FOR"), {id: 'data-selector-for-label'}, testId('selector-for')),
           cssRow(cssList(
             {'aria-labelledby': 'data-selector-for-label'},
             selectorFor.map((sec) => this._buildSectionItem(sec)),
