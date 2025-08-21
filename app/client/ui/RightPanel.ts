@@ -50,7 +50,7 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
+import {unstyledButton, unstyledUl} from 'app/client/ui2018/unstyled';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
@@ -1360,8 +1360,7 @@ const cssContent = styled('div', `
   min-width: 1em;
 `);
 
-const cssList = styled('div', `
-  list-style: none;
+const cssList = styled(unstyledUl, `
   width: 100%;
 `);
 
