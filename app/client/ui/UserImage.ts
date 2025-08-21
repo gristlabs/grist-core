@@ -1,9 +1,9 @@
 import {hashCode} from 'app/client/lib/hashUtils';
-import {colors, theme} from 'app/client/ui2018/cssVars';
+import {colors} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {UserProfile} from 'app/common/LoginSessionAPI';
-import {dom, DomElementArg, styled} from 'grainjs';
 import {components} from 'app/common/ThemePrefs';
+import {dom, DomElementArg, styled} from 'grainjs';
 
 export type Size = 'small' | 'medium' | 'large';
 
@@ -93,7 +93,7 @@ export const cssUserImage = styled('div', `
   flex-grow: 0;
   line-height: 1em;
 
-  background-color: ${theme.topHeaderBg};
+  background-color: ${components.topHeaderBg};
 
   &-small {
     --icon-size: 24px;
@@ -142,7 +142,7 @@ const cssUserPicture = styled('img', `
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background-color: ${theme.menuBg};
+  background-color: ${components.menuBg};
   border-radius: inherit;
   box-sizing: content-box;    /* keep the border outside of the size of the image */
 `);

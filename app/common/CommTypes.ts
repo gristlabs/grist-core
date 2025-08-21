@@ -1,10 +1,10 @@
 import {ActionGroup} from 'app/common/ActionGroup';
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {DocAction} from 'app/common/DocActions';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
 import {StringUnion} from 'app/common/StringUnion';
 import {AttachmentTransferStatus} from 'app/common/UserAPI';
-import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 
 export const ValidEvent = StringUnion(
   'docListAction', 'docUserAction', 'docShutdown', 'docError',
