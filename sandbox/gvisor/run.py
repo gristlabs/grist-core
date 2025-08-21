@@ -151,13 +151,13 @@ def preserve(*locations, short_failure=False):
     preserved.add(location)
 
 # Prepare the file system - blank out everything that need not be shared.
-exceptions = ["lib", "lib64"]   # to be shared (read-only)
-exceptions += ["proc", "sys"]   # already virtualized
+exceptions = ["/lib", "/lib64"]   # to be shared (read-only)
+exceptions += ["/proc", "/sys"]   # already virtualized
 
 # retain /bin and /usr/bin for utilities
 start = args.start
 if include_bash or start:
-  exceptions.append("bin")
+  exceptions.append("/bin")
   preserve("/usr/bin")
 
 preserve("/usr/local/lib")
@@ -202,7 +202,7 @@ if args.mount:
 
 for directory in os.listdir('/'):
   directorys_realpath = os.path.realpath("/" + directory)
-  if directorys_realpath not in exceptions and ("/" + directory) not in preserved:
+  if directorys_realpath not in exceptions and directorys_realpath not in preserved:
     tmpfs_mounts.append({
       # This places an empty directory at this destination.
       # Follow any symlinks since otherwise there is an error.
