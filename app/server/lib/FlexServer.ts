@@ -1974,6 +1974,7 @@ export class FlexServer implements GristServer {
       const middleware = [
         this._redirectToHostMiddleware,
         this._userIdMiddleware,
+        this._trustOriginsMiddleware,
       ];
       this._assistant?.addEndpoints?.(
         this.app,
