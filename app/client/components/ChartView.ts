@@ -22,6 +22,7 @@ import {gristThemeObs} from 'app/client/ui2018/theme';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {nativeCompare, unwrap} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
@@ -1309,7 +1310,7 @@ const cssAddIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssAddYAxis = styled('div', `
+const cssAddYAxis = styled(unstyledButton, `
   display: flex;
   cursor: pointer;
   color: ${theme.controlFg};
