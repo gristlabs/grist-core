@@ -43,7 +43,7 @@ export interface ITransientTipOptions extends ITipOptions {
 }
 
 export interface IHoverTipOptions extends ITransientTipOptions {
-  /** How soon after mouseenter to show it. Defaults to 200 ms. */
+  /** How soon after pointerenter to show it. Defaults to 200 ms. */
   openDelay?: number;
 
   /** If set and non-zero, remove the tip automatically after this time. */
@@ -272,7 +272,7 @@ export function setHoverTooltip(
     tipControl = undefined;
   }
 
-  // We simulate hover effect by handling mouseenter/mouseleave.
+  // We simulate hover effect by handling pointerenter/pointerleave.
   dom.onElem(refElem, 'pointerenter', () => {
     if (options.hidden?.get()) { return; }
 
