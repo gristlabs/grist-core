@@ -43,7 +43,7 @@ function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: f
   const imageConstructor = options.overlapLeft ? createOverlappingUserListImage : createUserListImage;
   return imageConstructor(
     user,
-    hoverTooltip(user.name, { openDelay: 0, closeDelay: 0 })
+    hoverTooltip(user.name, { key: "topBarBtnTooltip" })
   );
 }
 
