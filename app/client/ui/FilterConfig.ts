@@ -6,6 +6,7 @@ import {cssIcon, cssPinButton, cssRow, cssSortFilterColumn} from 'app/client/ui/
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {textButton} from 'app/client/ui2018/buttons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {Computed, Disposable, dom, makeTestId, styled} from 'grainjs';
 import {IMenuOptions} from 'popweasel';
 
@@ -51,6 +52,9 @@ export class FilterConfig extends Disposable {
               ),
             ),
             cssLabel(dom.text(fieldOrColumn.label)),
+            dom.attr('aria-label', use =>
+              t('{{- columnName }} column filters', {columnName: use(fieldOrColumn.label)}),
+            ),
             attachColumnFilterMenu(filterInfo, {
               popupOptions: {
                 placement: 'bottom-end',
@@ -65,6 +69,10 @@ export class FilterConfig extends Disposable {
           ),
           cssPinFilterButton(
             icon('PinTilted'),
+            dom.attr('aria-label', use => use(isPinned)
+              ? t('Unpin filter - {{- columnName}} column (current: pinned)', {columnName: use(fieldOrColumn.label)})
+              : t('Pin filter - {{- columnName}} column (current: unpinned)', {columnName: use(fieldOrColumn.label)}),
+            ),
             dom.on('click', () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
               pinned: !isPinned.peek()
             })),
@@ -72,7 +80,11 @@ export class FilterConfig extends Disposable {
             testId('pin-filter'),
           ),
           cssIconWrapper(
-            cssRemoveFilterButton('Remove',
+            cssRemoveFilterButton(
+              cssIcon('Remove'),
+              dom.attr('aria-label', use =>
+                t('remove filter - {{- columnName}} column', {columnName: use(fieldOrColumn.label)}),
+              ),
               dom.on('click',
                 () => this._section.setFilter(fieldOrColumn.origCol().origColRef(), {
                   filter: '',
@@ -125,13 +137,14 @@ const cssFilterIcon = styled(cssIcon, `
   }
 `);
 
-const cssRemoveFilterButton = styled(cssIcon, `
+const cssRemoveFilterButton = styled(unstyledButton, `
   flex: none;
   margin: 0 6px;
-  background-color: ${theme.controlSecondaryFg};
   cursor: pointer;
-
-  &:hover {
+  & .${cssIcon.className} {
+    background-color: ${theme.controlSecondaryFg};
+  }
+  &:hover .${cssIcon.className}{
     background-color: ${theme.controlSecondaryHoverFg};
   }
 `);
