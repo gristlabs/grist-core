@@ -293,7 +293,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '2019-06-07', count: 1}
       ]);
       assert.deepEqual(
-        await menu.findAll('.test-filter-menu-list label', (e) => e.getText()),
+        await menu.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
         ['2019-06-07']
       );
       await menu.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
