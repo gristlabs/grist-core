@@ -1,9 +1,9 @@
 import {Comm} from 'app/client/components/Comm';
 import {DocComm} from 'app/client/components/DocComm';
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
+import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {Disposable, Observable} from 'grainjs';
-import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
 
 export interface UserPresenceModel {
   userProfiles: Observable<VisibleUserProfile[]>;

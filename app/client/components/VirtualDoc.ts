@@ -15,6 +15,7 @@ import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel, DocPageModelImpl} from 'app/client/models/DocPageModel';
 import {QuerySetManager} from 'app/client/models/QuerySet';
+import {UserPresenceModel, UserPresenceModelStub} from 'app/client/models/UserPresenceModel';
 import {IExternalTable, VirtualTableData, VirtualTableRegistration} from 'app/client/models/VirtualTable';
 import {META_TABLES} from 'app/client/models/VirtualTableMeta';
 import type {App} from 'app/client/ui/App';
@@ -55,7 +56,6 @@ import {
 import * as ko from 'knockout';
 import difference from 'lodash/difference';
 import omit from 'lodash/omit';
-import {UserPresenceModel, UserPresenceModelStub} from 'app/client/models/UserPresenceModel';
 
 /**
  * Minimal implementation of the GristDoc interface that is suitable for virtual tables. The GristDoc created

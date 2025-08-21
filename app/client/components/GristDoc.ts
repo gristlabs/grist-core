@@ -40,6 +40,7 @@ import {UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
+import {UserPresenceModel, UserPresenceModelImpl} from 'app/client/models/UserPresenceModel';
 import {App} from 'app/client/ui/App';
 import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
 import {DocHistory} from 'app/client/ui/DocHistory';
@@ -100,7 +101,6 @@ import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
 import pick = require('lodash/pick');
-import {UserPresenceModel, UserPresenceModelImpl} from 'app/client/models/UserPresenceModel';
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
 
