@@ -254,7 +254,7 @@ function getVisibleUserProfileFromDocSession(
   return {
     id: getVisibleUserProfileId(session),
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
-    picture: user?.picture,
+    picture: isAnonymous ? undefined : user?.picture,
     isAnonymous,
   };
 }
