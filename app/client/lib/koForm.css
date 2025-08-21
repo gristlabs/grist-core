@@ -723,6 +723,12 @@ fieldset:disabled {
   position: relative;
 }
 
+.kf_drag_container {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .kf_drag_container.ui-sortable {
   overflow: auto;
 }
