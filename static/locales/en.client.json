@@ -889,7 +889,10 @@
         "Tour of this Document": "Tour of this Document",
         "Validate Data": "Validate Data",
         "Settings": "Settings",
-        "API Console": "API Console"
+        "API Console": "API Console",
+        "context menu - Access Rules": "context menu - Access Rules",
+        "Delete document tour": "Delete document tour",
+        "Preview the tutorial": "Preview the tutorial"
     },
     "TopBar": {
         "Manage Team": "Manage Team",
@@ -1097,7 +1100,8 @@
         "Collapse {{maybeDefault}}": "Collapse {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Expand {{maybeDefault}}",
         "Set default: Collapse": "Set default: Collapse",
-        "Set default: Expand": "Set default: Expand"
+        "Set default: Expand": "Set default: Expand",
+        "context menu - {{- pageName }}": "context menu - {{- pageName }}"
     },
     "search": {
         "Find Next ": "Find Next ",
@@ -2166,5 +2170,9 @@
         "Expand all rows to this height": "Expand all rows to this height",
         "Max height": "Max height",
         "Max row height": "Max row height"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Collapse",
+        "Expand": "Expand"
     }
 }
