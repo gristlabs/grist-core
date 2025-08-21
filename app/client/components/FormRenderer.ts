@@ -4,6 +4,7 @@ import {makeT} from 'app/client/lib/localization';
 import {FormField} from 'app/client/ui/FormAPI';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {isXSmallScreenObs} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {CellValue} from 'app/plugin/GristData';
@@ -419,8 +420,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           choices.reverse();
         }
       }
-      // Support for 1000 choices. TODO: make limit dynamic.
-      this._choices = choices.slice(0, 1000);
+      this._choices = choices.slice();
     }
 
     this.value = Observable.create<string>(this, '');
@@ -478,19 +478,16 @@ class ChoiceRenderer extends BaseFieldRenderer  {
       ),
       dom.maybe(use => !use(isXSmallScreenObs()), () =>
         css.searchSelect(
-          dom('div', dom.text(use => use(this.value) || selectPlaceholder())),
+          css.currentSelectValue(dom.text(use => use(this.value) || selectPlaceholder())),
           dropdownWithSearch<string>({
             action: (value) => this.value.set(value),
-            options: () => [
-              {label: selectPlaceholder(), value: '', placeholder: true},
-              ...this._choices.map((choice) => ({
-                label: choice,
-                value: choice,
-              }),
-            )],
+            options: () => this._choices.map((choice) => ({
+              label: choice,
+              value: choice,
+            })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
             placeholder: t('Search'),
-            acOptions: {maxResults: 1000, keepOrder: true, showEmptyItems: true},
+            acOptions: {maxResults: 100, keepOrder: false, showEmptyItems: true},
             popupOptions: {
               trigger: [
                 'click',
@@ -499,6 +496,11 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             },
             matchTriggerElemWidth: true,
           }),
+          css.resetSelectButton(
+            icon('CrossBig'),
+            dom.hide((use) => !use(this.value)),
+            dom.on('click', (ev) => { this.value.set(''); ev.stopPropagation(); ev.preventDefault(); })
+          ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
         ),
@@ -767,8 +769,7 @@ class RefRenderer extends BaseFieldRenderer {
         choices.reverse();
       }
     }
-    // Support for 1000 choices. TODO: make limit dynamic.
-    this._choices = choices.slice(0, 1000);
+    this._choices = choices.slice();
 
     this.value = Observable.create<string>(this, '');
 
@@ -836,21 +837,18 @@ class RefRenderer extends BaseFieldRenderer {
       ),
       dom.maybe(use => !use(isXSmallScreenObs()), () =>
         css.searchSelect(
-          dom('div', dom.text(use => {
+          css.currentSelectValue(dom.text(use => {
             const choice = this._choices.find((c) => String(c[0]) === use(this.value));
             return String(choice?.[1] || selectPlaceholder());
           })),
           dropdownWithSearch<string>({
             action: (value) => this.value.set(value),
-            options: () => [
-              {label: selectPlaceholder(), value: '', placeholder: true},
-              ...this._choices.map((choice) => ({
-                label: String(choice[1]),
-                value: String(choice[0]),
-              }),
-            )],
+            options: () => this._choices.map((choice) => ({
+              label: String(choice[1]),
+              value: String(choice[0]),
+            })),
             onClose: () => { setTimeout(() => this._selectElement.focus()); },
-            acOptions: {maxResults: 1000, keepOrder: true, showEmptyItems: true},
+            acOptions: {maxResults: 100, keepOrder: false, showEmptyItems: true},
             placeholder: 'Search',
             popupOptions: {
               trigger: [
@@ -860,6 +858,11 @@ class RefRenderer extends BaseFieldRenderer {
             },
             matchTriggerElemWidth: true,
           }),
+          css.resetSelectButton(
+            icon('CrossBig'),
+            dom.hide((use) => !use(this.value)),
+            dom.on('click', (ev) => { this.value.set(''); ev.stopPropagation(); ev.preventDefault(); })
+          ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
         ),
