@@ -494,6 +494,7 @@ export class RightPanel extends Disposable {
       this._disableIfReadonly(),
       dom.maybe(use => !use(activeSection.isRecordCard), () => [
         cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
+          {for: "right-widget-title-input"},
           dom.style('margin-bottom', '14px'),
         ),
         cssRow(cssTextInput(
@@ -504,6 +505,7 @@ export class RightPanel extends Disposable {
             const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
             return isRawTable && isSummaryTable;
           }),
+          {id: "right-widget-title-input"},
           testId('right-widget-title')
         )),
 
