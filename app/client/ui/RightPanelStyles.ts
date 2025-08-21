@@ -1,5 +1,6 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {numericSpinner} from 'app/client/widgets/NumericSpinner';
 import {styled} from 'grainjs';
 
@@ -52,10 +53,11 @@ export const cssRowWrapped = styled(cssRow, `
   row-gap: 5px;
 `);
 
-export const cssSortFilterColumn = styled('div', `
+export const cssSortFilterColumn = styled(unstyledButton, `
   cursor: pointer;
   display: flex;
   flex-grow: 1;
+  text-align: left;
   align-items: center;
   color: ${theme.text};
   background-color: ${theme.hover};
@@ -87,11 +89,12 @@ export const cssSaveButtonsRow = styled('div', `
   margin: 16px 16px 12px 16px;
 `);
 
-export const cssPinButton = styled('div', `
+export const cssPinButton = styled(unstyledButton, `
   cursor: pointer;
   --icon-color: ${theme.controlSecondaryFg};
   border-radius: ${vars.controlBorderRadius};
   padding: 3px;
+  outline-offset: 2px;
 
   &-pinned {
     background-color: ${theme.controlPrimaryBg};
