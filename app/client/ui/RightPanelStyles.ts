@@ -8,12 +8,17 @@ export const cssIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-export const cssLabel = styled('div', `
+const cssLabelBase = `
+  display: block;
   color: ${theme.text};
   text-transform: uppercase;
   margin: 16px 16px 12px 16px;
   font-size: ${vars.xsmallFontSize};
-`);
+`;
+
+export const cssLabel = styled('label', cssLabelBase);
+
+export const cssGroupLabel = styled('div', cssLabelBase);
 
 export const cssLabelText = styled('span', `
   color: ${theme.text};
