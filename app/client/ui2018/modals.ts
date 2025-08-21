@@ -1,3 +1,4 @@
+import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/errors';
@@ -244,7 +245,7 @@ export function modal(
 
       dialogDom = cssModalDialog(
         createFn(ctl, owner),
-        dom.cls('kb-focus-highlighter-group'),
+        dom.cls(kbFocusHighlighterClass),
         cssModalDialog.cls('-collapsing', variant === 'collapsing'),
         dom.on('click', (ev) => ev.stopPropagation()),
         noEscapeKey ? null : dom.onKeyDown({ Escape: close }),
