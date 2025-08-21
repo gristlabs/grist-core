@@ -52,16 +52,17 @@ include_bash = args.command == 'bash'
 # Basic settings for gvisor's runsc.  This follows the standard OCI specification:
 #   https://github.com/opencontainers/runtime-spec/blob/master/config.md
 cmd_args = []
+tmpfs_mounts = []
 mounts = [             # These will be filled in more fully programmatically below.
   {
     "destination": "/proc",  # gvisor virtualizes /proc
     "source": "/proc",
-    "type": "/procfs"
+    "type": "proc"
   },
   {
     "destination": "/sys",  # gvisor virtualizes /sys
     "source": "/sys",
-    "type": "/sysfs",
+    "type": "sysfs",
     "options": [
       "nosuid",
       "noexec",
@@ -70,6 +71,7 @@ mounts = [             # These will be filled in more fully programmatically bel
     ]
   }
 ]
+binds = []
 preserved = set()
 env = [
   "PATH=/usr/local/bin:/usr/bin:/bin",
@@ -140,7 +142,7 @@ def preserve(*locations, short_failure=False):
         raise Exception('cannot find: ' + location)
       raise Exception('cannot find: ' + location + ' ' +
                       '(if tmp path, make sure TMPDIR when running grist and GRIST_TMP line up)')
-    mounts.append({
+    binds.append({
       "destination": location,
       "source": location,
       "options": ["ro"],
@@ -149,13 +151,13 @@ def preserve(*locations, short_failure=False):
     preserved.add(location)
 
 # Prepare the file system - blank out everything that need not be shared.
-exceptions = ["lib", "lib64"]   # to be shared (read-only)
-exceptions += ["proc", "sys"]   # already virtualized
+exceptions = ["/lib", "/lib64"]   # to be shared (read-only)
+exceptions += ["/proc", "/sys"]   # already virtualized
 
 # retain /bin and /usr/bin for utilities
 start = args.start
 if include_bash or start:
-  exceptions.append("bin")
+  exceptions.append("/bin")
   preserve("/usr/bin")
 
 preserve("/usr/local/lib")
@@ -178,7 +180,7 @@ if os.path.exists('/usr/lib64'):
 preserve("/usr/lib")
 
 # include python3 for bash and python3
-best = None
+best_python_executable = None
 # We expect python3 in /usr/bin or /usr/local/bin.
 candidates = [
   path
@@ -191,21 +193,26 @@ candidates = [
 ]
 if not candidates:
   raise Exception('could not find python3')
-best = os.path.realpath(candidates[0])
-preserve(best)
+best_python_executable = os.path.realpath(candidates[0])
+preserve(best_python_executable)
 
 # Set up any specific shares requested.
 if args.mount:
   preserve(*args.mount)
 
 for directory in os.listdir('/'):
-  if directory not in exceptions and ("/" + directory) not in preserved:
-    mounts.insert(0, {
+  directorys_realpath = os.path.realpath("/" + directory)
+  if directorys_realpath not in exceptions and directorys_realpath not in preserved:
+    tmpfs_mounts.append({
       # This places an empty directory at this destination.
       # Follow any symlinks since otherwise there is an error.
-      "destination": os.path.realpath("/" + directory),
+      "destination": directorys_realpath,
       "type": "tmpfs"
     })
+  # To avoid duplicates due to usrmerge pattern symlinks
+  exceptions.append(directorys_realpath)
+
+settings['mounts'] = sorted(tmpfs_mounts, key=lambda mount: mount["destination"]) + mounts + binds
 
 # Set up faketime inside the sandbox if requested.  Can't be set up outside the sandbox,
 # because gvisor is written in Go and doesn't use the standard library that faketime
@@ -222,7 +229,7 @@ if args.faketime:
 if start:
   cmd_args.append(start)
 else:
-  cmd_args.append('bash' if include_bash else best)
+  cmd_args.append('bash' if include_bash else best_python_executable)
 
 # Add any requested arguments for the program that will be run.
 cmd_args += more_args
