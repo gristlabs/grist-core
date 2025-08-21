@@ -18,7 +18,7 @@ import {
   showCustomWidgetGallery,
 } from 'app/client/ui/CustomWidgetGallery';
 import {userTrustsCustomWidget} from 'app/client/ui/userTrustsCustomWidget';
-import {cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {cssGroupLabel, cssHelp, cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {cssDragRow, cssFieldEntry, cssFieldLabel} from 'app/client/ui/VisibleFieldsConfig';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
@@ -27,6 +27,8 @@ import {cssDragger} from 'app/client/ui2018/draggableList';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {cssOptionLabel, IOption, IOptionFull, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
+import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
 import {AccessLevel, ICustomWidget, isSatisfied, matchWidget} from 'app/common/CustomWidget';
 import {not, unwrap} from 'app/common/gutil';
 import {
@@ -104,7 +106,7 @@ class ColumnPicker extends Disposable {
         : t("Pick a column");
 
     return [
-      cssLabel(
+      cssGroupLabel(
         this._column.title,
         this._column.optional ? cssSubLabel(t(" (optional)")) : null,
         testId('label-for-' + this._column.name),
@@ -523,23 +525,31 @@ export class CustomSectionConfig extends Disposable {
       dom.on('click', () => {
         this._widgetDetailsExpanded.set(!this._widgetDetailsExpanded.get());
       }),
+      dom.attr('aria-expanded', use => use(this._widgetDetailsExpanded) ? 'true' : 'false'),
+      {'aria-controls': 'custom-widget-details'},
     );
   }
 
   private _buildWidgetName() {
+    // The widget name is a button that opens the widget gallery when clicked:
+    // make sure that screen reader users understand that, with a visually hidden text.
     return cssWidgetName(
-      dom.text(use => {
+      dom.domComputed(use => {
+        let visibleText = null;
         if (use(this._isCustomUrlWidget)) {
-          return t('Custom URL');
+          visibleText = t('Custom URL');
         } else {
           const widget = use(this._selectedWidget) ?? use(this._section.customDef.widgetDef);
-          return widget ? getWidgetName(widget) : use(this._widgetId);
+          visibleText = widget ? getWidgetName(widget) : use(this._widgetId);
         }
+        return [
+          dom('span', visibleText, testId('open-custom-widget-gallery')),
+          visuallyHidden(t('Change custom widget'))
+        ];
       }),
       dom.on('click', () => showCustomWidgetGallery(this._gristDoc, {
         sectionRef: this._section.id(),
       })),
-      testId('open-custom-widget-gallery'),
     );
   }
 
@@ -548,6 +558,7 @@ export class CustomSectionConfig extends Disposable {
       dom.domComputed(this._selectedWidget, (widget) =>
         cssRow(
           this._buildWidgetDetails(widget),
+          {id: 'custom-widget-details'},
         )
       )
     );
@@ -614,7 +625,7 @@ export class CustomSectionConfig extends Disposable {
   private _buildAccessLevelConfig() {
     return [
       cssSeparator({style: 'margin-top: 0px'}),
-      cssLabel(t('ACCESS LEVEL')),
+      cssGroupLabel(t('ACCESS LEVEL')),
       cssRow(select(this._currentAccess, getAccessLevels()), testId('access')),
       dom.maybeOwned(this._requiresAccess, (owner) => kf.prompt(
         (elem: HTMLDivElement) => { FocusLayer.create(owner, {defaultFocusElem: elem, pauseMousetrap: true}); },
@@ -773,7 +784,7 @@ const cssWidgetSelector = styled('div', `
   column-gap: 16px;
 `);
 
-const cssShowWidgetDetails = styled('div', `
+const cssShowWidgetDetails = styled(unstyledButton, `
   display: flex;
   align-items: center;
   column-gap: 4px;
@@ -794,7 +805,7 @@ const cssWidgetLabel = styled('div', `
   font-size: ${vars.xsmallFontSize};
 `);
 
-const cssWidgetName = styled('div', `
+const cssWidgetName = styled(unstyledButton, `
   color: ${theme.rightPanelCustomWidgetButtonFg};
   background-color: ${theme.rightPanelCustomWidgetButtonBg};
   height: 24px;
