@@ -28,7 +28,7 @@ export class SortFilterConfig extends Disposable {
       dom('div', {role: 'group', 'aria-labelledby': 'sortfilterconfig-sort-label'},
         cssLabel(t('Sort'), {id: 'sortfilterconfig-sort-label'}),
         dom.create(SortConfig, this._section, this._gristDoc, {
-          menuOptions: {attach: 'body'},
+          menuOptions: {attach: 'body', allowNothingSelected: true},
         }),
       ),
       dom('div', {role: 'group', 'aria-labelledby': 'sortfilterconfig-filter-label'},
