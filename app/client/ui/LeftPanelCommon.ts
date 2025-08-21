@@ -173,7 +173,13 @@ const cssPageAction = `
 
 export const cssPageLink = styled('a', cssPageAction);
 
-export const cssPageLinkContainer = styled('div', cssPageAction);
+export const cssPageLinkContainer = styled('div', `
+  ${cssPageAction}
+
+  .${cssPageEntry.className}-disabled & :is(a, button) {
+    cursor: default;
+  }
+`);
 
 export const cssPageButton = styled(unstyledButton, cssPageAction);
 
