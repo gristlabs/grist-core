@@ -25,14 +25,18 @@ export class SortFilterConfig extends Disposable {
 
   public buildDom() {
     return [
-      cssLabel(t('Sort')),
-      dom.create(SortConfig, this._section, this._gristDoc, {
-        menuOptions: {attach: 'body'},
-      }),
-      cssLabel(t('Filter')),
-      dom.create(FilterConfig, this._section, {
-        menuOptions: {attach: 'body'},
-      }),
+      dom('div', {role: 'group', 'aria-labelledby': 'sortfilterconfig-sort-label'},
+        cssLabel(t('Sort'), {id: 'sortfilterconfig-sort-label'}),
+        dom.create(SortConfig, this._section, this._gristDoc, {
+          menuOptions: {attach: 'body', allowNothingSelected: true},
+        }),
+      ),
+      dom('div', {role: 'group', 'aria-labelledby': 'sortfilterconfig-filter-label'},
+        cssLabel(t('Filter'), {id: 'sortfilterconfig-filter-label'}),
+        dom.create(FilterConfig, this._section, {
+          menuOptions: {attach: 'body'},
+        }),
+      ),
       dom.maybe(this._hasChanges, () => [
         cssSaveButtonsRow(
           cssSaveButton(t('Save'),
