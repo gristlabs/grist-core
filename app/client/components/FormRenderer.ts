@@ -497,7 +497,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
             matchTriggerElemWidth: true,
           }),
           css.resetSelectButton(
-            icon('CrossBig'),
+            icon('CrossSmall'),
             dom.hide((use) => !use(this.value)),
             dom.on('click', (ev) => { this.value.set(''); ev.stopPropagation(); ev.preventDefault(); })
           ),
@@ -859,7 +859,7 @@ class RefRenderer extends BaseFieldRenderer {
             matchTriggerElemWidth: true,
           }),
           css.resetSelectButton(
-            icon('CrossBig'),
+            icon('CrossSmall'),
             dom.hide((use) => !use(this.value)),
             dom.on('click', (ev) => { this.value.set(''); ev.stopPropagation(); ev.preventDefault(); })
           ),
