@@ -3,11 +3,11 @@ import { IPermitStore, Permit } from "app/server/lib/Permit";
 /**
  * A {@link Permit} that contains assistant-related state.
  *
- * This is currently used by the `/assistant/start` endpoint, which
+ * This is currently used by the `/api/assistant/start` endpoint, which
  * redirects to the signup page if the user is unauthenticated.
  * As part of this redirect, a `gr_signup_state` cookie is set which
  * includes the ID of a {@link AssistantStatePermit} containing the
- * prompt the user submitted to the `/assistant/start` endpoint. This
+ * prompt the user submitted to the `/api/assistant/start` endpoint. This
  * permit is later replaced with one containing the `docId` of a new
  * document created on the user's first visit after signup, as part of
  * welcoming the user. Finally, the permit is retrieved and cleared

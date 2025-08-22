@@ -43,21 +43,9 @@ export interface AssistantV2 {
     doc: AssistanceDoc,
     request: AssistanceRequestV2
   ): Promise<AssistanceResponseV2>;
-  addEndpoints?(
-    app: express.Express,
-    middleware: express.RequestHandler[],
-    redirectToSigninPage: RedirectToSigninPageHandler
-  ): void;
+  addEndpoints?(app: express.Express): void;
   onFirstVisit?(req: express.Request, res: Express.Response): Promise<void>;
 }
-
-export type RedirectToSigninPageHandler = (
-  req: express.Request,
-  res: express.Response,
-  options: {
-    params?: Record<string, string | undefined>;
-  }
-) => void;
 
 export interface AssistantV1Options {
   apiKey?: string;

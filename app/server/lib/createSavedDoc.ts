@@ -1,3 +1,4 @@
+import { ApiError } from "app/common/ApiError";
 import { localeCompare } from "app/common/gutil";
 import { getTransitiveHeaders, getUserId } from "app/server/lib/Authorizer";
 import { GristServer } from "app/server/lib/GristServer";
@@ -26,7 +27,7 @@ export async function createSavedDoc(
     ? await dbManager.getDoc({ userId, urlId: srcDocId })
     : undefined;
   if (srcDocId && !doc) {
-    throw new Error(`Doc ${srcDocId} not found`);
+    throw new ApiError(`Doc ${srcDocId} not found`, 400);
   }
 
   const workspacesQueryResult = await dbManager.getOrgWorkspaces(
@@ -38,9 +39,13 @@ export async function createSavedDoc(
     .filter((w) => !w.isSupportWorkspace)
     .sort((a, b) => localeCompare(a.name, b.name));
   if (userWorkspaces.length === 0) {
-    throw new Error(`User ${userId} has no workspaces in their personal site`);
+    throw new ApiError(
+      `User ${userId} has no workspaces in their personal site`,
+      500
+    );
   }
 
+  const [workspace] = userWorkspaces;
   const createDocUrl = server.getHomeInternalUrl("/api/docs");
   const response = await fetch(createDocUrl, {
     headers: {
@@ -50,9 +55,18 @@ export async function createSavedDoc(
     method: "POST",
     body: JSON.stringify({
       sourceDocumentId: doc?.id,
-      workspaceId: userWorkspaces[0].id,
+      workspaceId: workspace.id,
       documentName: doc?.name,
     }),
   });
-  return await response.json();
+  const body = await response.json();
+  if (!response.ok) {
+    throw new ApiError(
+      `Unable to create document in workspace ${workspace.name}`,
+      response.status,
+      body
+    );
+  }
+
+  return body;
 }

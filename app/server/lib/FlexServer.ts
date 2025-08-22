@@ -1971,16 +1971,7 @@ export class FlexServer implements GristServer {
     if (this._check('assistant')) { return; }
     this._assistant = this.create.Assistant(this);
     if (this._assistant?.version === 2) {
-      const middleware = [
-        this._redirectToHostMiddleware,
-        this._userIdMiddleware,
-        this._trustOriginsMiddleware,
-      ];
-      this._assistant?.addEndpoints?.(
-        this.app,
-        middleware,
-        (req, res, options) => this._redirectToLoginOrSignup(options, req, res)
-      );
+      this._assistant?.addEndpoints?.(this.app);
     }
   }
 
@@ -2183,6 +2174,43 @@ export class FlexServer implements GristServer {
 
   public onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>) {
     this._emitNotifier.on('streamingDestinationsChange', callback);
+  }
+
+  public async getSigninUrl(
+    req: express.Request,
+    options: {
+      signUp?: boolean;
+      nextUrl?: URL;
+      params?: Record<string, string | undefined>;
+    }
+  ) {
+    let {nextUrl, signUp} = options;
+    const {params = {}} = options;
+
+    const mreq = req as RequestWithLogin;
+
+    // This will ensure that express-session will set our cookie if it hasn't already -
+    // we'll need it when we redirect back.
+    forceSessionChange(mreq.session);
+
+    // Redirect to the requested URL after successful login.
+    if (!nextUrl) {
+      const nextPath = optStringParam(req.query.next, 'next');
+      nextUrl = new URL(getOrgUrl(req, nextPath));
+    }
+    if (signUp === undefined) {
+      // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
+      // user has ever logged in on this browser.
+      signUp = (mreq.session.users === undefined);
+    }
+    const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
+    const url = new URL(await getRedirectUrl(req, nextUrl));
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        url.searchParams.set(key, value);
+      }
+    }
+    return url.href;
   }
 
   // Adds endpoints that support imports and exports.
@@ -2542,32 +2570,8 @@ export class FlexServer implements GristServer {
     },
     req: express.Request, resp: express.Response,
   ) {
-    let {nextUrl, signUp} = options;
-    const {params = {}} = options;
-
-    const mreq = req as RequestWithLogin;
-
-    // This will ensure that express-session will set our cookie if it hasn't already -
-    // we'll need it when we redirect back.
-    forceSessionChange(mreq.session);
-    // Redirect to the requested URL after successful login.
-    if (!nextUrl) {
-      const nextPath = optStringParam(req.query.next, 'next');
-      nextUrl = new URL(getOrgUrl(req, nextPath));
-    }
-    if (signUp === undefined) {
-      // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
-      // user has ever logged in on this browser.
-      signUp = (mreq.session.users === undefined);
-    }
-    const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-    const url = new URL(await getRedirectUrl(req, nextUrl));
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined) {
-        url.searchParams.set(key, value);
-      }
-    }
-    resp.redirect(url.href);
+    const url = await this.getSigninUrl(req, options);
+    resp.redirect(url);
   }
 
   private async _redirectToHomeOrWelcomePage(
