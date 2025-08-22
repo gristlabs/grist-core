@@ -44,7 +44,7 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
 }
 
 function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
-  const imageConstructor = options.overlapLeft ? createOverlappingUserListImage : createUserListImageFromUser;
+  const imageConstructor = options.overlapLeft ? createOverlappingUserListImageFromUser : createUserListImageFromUser;
   return imageConstructor(
     user,
     hoverTooltip(user.name, { key: "topBarBtnTooltip" }),
@@ -106,7 +106,7 @@ const createUserListImageFromUser = (user: Parameters<typeof createUserImage>[0]
     ...args
   );
 
-const createOverlappingUserListImage = styled(createUserListImageFromUser, `
+const createOverlappingUserListImageFromUser = styled(createUserListImageFromUser, `
   margin-left: -4px;
 `);
 
