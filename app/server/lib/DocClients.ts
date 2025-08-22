@@ -15,6 +15,7 @@ import {LogMethods} from "app/server/lib/LogMethods";
 
 import {fromPairs} from 'lodash';
 import {appSettings} from 'app/server/lib/AppSettings';
+import {parseUrlId} from 'app/common/gristUrls';
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
@@ -214,6 +215,11 @@ export class DocClients {
 
     // Not enough information - no useful data to be had here.
     if (!homeDb || !docId || !authCache) {
+      return {};
+    }
+
+    // TODO - Forks error when fetching auth
+    if (parseUrlId(docId).forkId) {
       return {};
     }
 

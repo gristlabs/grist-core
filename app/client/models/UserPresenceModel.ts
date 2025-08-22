@@ -21,7 +21,13 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
   }
 
   public async initialize(): Promise<void> {
-    const userProfiles = await this._docComm.listActiveUserProfiles();
+    let userProfiles: VisibleUserProfile[] = [];
+    try {
+      userProfiles = await this._docComm.listActiveUserProfiles();
+    } catch(e) {
+      reportError(e);
+      reportError(`Unable to fetch current active user list`);
+    }
 
     if (this.isDisposed()) {
       return;
