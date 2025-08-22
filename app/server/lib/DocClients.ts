@@ -8,7 +8,6 @@ import {CommDocEventType, CommDocUserPresenceUpdate, CommMessage} from 'app/comm
 import {arrayRemove} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {getRealAccess} from 'app/common/UserAPI';
-import {DocScope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Client} from 'app/server/lib/Client';
 import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
@@ -169,7 +168,6 @@ export class DocClients {
   private _broadcastUserPresenceSessionUpdate(originSession: DocSession) {
     // Loading the doc user roles first allows the callback to be quick + synchronous,
     // avoiding a potentially linear series of async calls.
-    // TODO - Remove this TODO when the cached version has been implemented, this is nasty right now.
     this._getDocUserRoles()
       .then(docUserRoles => this.broadcastDocMessage(
         originSession.client,
@@ -206,19 +204,17 @@ export class DocClients {
     });
   }
 
-  // TODO - Make this use the cached version from HomeDBManager when possible.
   private async _getDocUserRoles(): Promise<UserIdRoleMap> {
     const homeDb = this.activeDoc.getHomeDbManager();
+    const authCache = homeDb?.caches;
     const docId = this.activeDoc.doc?.id;
 
     // Not enough information - no useful data to be had here.
-    // TODO - Do we need to issue a warning that we've hit this case?
-    if (!homeDb || !docId) {
+    if (!homeDb || !docId || !authCache) {
       return {};
     }
 
-    const bypassScope: DocScope = {userId: homeDb.getPreviewerUserId(), urlId: docId};
-    const queryResult = await homeDb.getDocAccess(bypassScope, {flatten: true, excludeUsersWithoutAccess: true});
+    const queryResult = await authCache.getDocAccess(docId);
     const { users, maxInheritedRole } = homeDb.unwrapQueryResult(queryResult);
 
     return fromPairs(users.map(user => [user.id, getRealAccess(user, { maxInheritedRole })]));
@@ -229,8 +225,6 @@ interface UserIdRoleMap {
   [id: string]: roles.Role | null
 }
 
-// TODO - It would be nice to decrease the abstraction level on these parameters when this is working,
-//        and make them more specific.
 function getVisibleUserProfileFromDocSession(
   session: DocSession, viewingSession: DocSession, docUserRoles: UserIdRoleMap,
 ): VisibleUserProfile | undefined {
