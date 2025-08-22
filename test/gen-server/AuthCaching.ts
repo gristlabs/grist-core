@@ -51,7 +51,7 @@ describe('AuthCaching', function() {
     await createInitialDb();
     process.env.GRIST_DATA_DIR = testDocDir;
     // Disables user presence features which cause additional cache hits / misses.
-    process.env.GRIST_USER_PRESENCE_DISABLE = 'true';
+    process.env.GRIST_ENABLE_USER_PRESENCE = 'false';
 
     const homeMS = await MergedServer.create(0, ['home'],
       {logToConsole: false, externalStorage: false});
@@ -81,7 +81,7 @@ describe('AuthCaching', function() {
 
   after(async function() {
     delete process.env.GRIST_DATA_DIR;
-    delete process.env.GRIST_USER_PRESENCE_DISABLE;
+    delete process.env.GRIST_ENABLE_USER_PRESENCE;
     sandbox.restore();
     await testUtils.captureLog('warn', async () => {
       await docsServer.close();
