@@ -173,7 +173,13 @@ const cssPageAction = `
 
 export const cssPageLink = styled('a', cssPageAction);
 
-export const cssPageLinkContainer = styled('div', cssPageAction);
+export const cssPageLinkContainer = styled('div', `
+  ${cssPageAction}
+
+  .${cssPageEntry.className}-disabled & :is(a, button) {
+    cursor: default;
+  }
+`);
 
 export const cssPageButton = styled(unstyledButton, cssPageAction);
 
@@ -231,7 +237,7 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
   flex: none;
   border-radius: 3px;
   --icon-color: ${theme.controlFg};
-  & > .${cssPageLink.className} {
+  & > .${cssPageLink.className}, & > .${cssPageButton.className} {
     padding: 0 8px 0 16px;
   }
   &:hover {

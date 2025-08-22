@@ -108,7 +108,7 @@ export class AppHeader extends Disposable {
                           ? null
                           : image();
 
-    const altText = t('{{ organizationName }} - Back to home', { organizationName: this._appLogoOrg.get().name });
+    const altText = t('{{- organizationName }} - Back to home', { organizationName: this._appLogoOrg.get().name });
 
     return cssAppHeader(
       cssAppHeader.cls('-widelogo', productFlavor.wideLogo || false),

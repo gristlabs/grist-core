@@ -115,6 +115,6 @@ const cssFlagIcon = styled('div', `
 `);
 
 const cssPlaceholderFlagIcon = styled(icon, `
-  position: absolute;
+  vertical-align: initial;
   --icon-color: ${theme.topBarButtonPrimaryFg};
 `);
