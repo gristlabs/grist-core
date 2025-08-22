@@ -12,22 +12,25 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {Client} from 'app/server/lib/Client';
 import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
-
 import {fromPairs} from 'lodash';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {parseUrlId} from 'app/common/gristUrls';
+
+const isUserPresenceEnabledByDefault = false;
+export const SETTING_ENABLE_USER_PRESENCE = appSettings.section('userPresence').flag('enable');
+SETTING_ENABLE_USER_PRESENCE.readBool({
+  envVar: 'GRIST_ENABLE_USER_PRESENCE',
+  defaultValue: isUserPresenceEnabledByDefault,
+});
+
+export function isUserPresenceDisabled(): boolean {
+  return !SETTING_ENABLE_USER_PRESENCE.getAsBool() ?? isUserPresenceEnabledByDefault;
+}
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
   BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
 };
-
-const userPresenceEnabledByDefault = false;
-const IS_USER_PRESENCE_ENABLED = appSettings.section('userPresence').flag('enable').readBool({
-  envVar: 'GRIST_ENABLE_USER_PRESENCE',
-  defaultValue: userPresenceEnabledByDefault,
-}) ?? userPresenceEnabledByDefault;
-export const IS_USER_PRESENCE_DISABLED = !IS_USER_PRESENCE_ENABLED;
 
 export class DocClients {
   private _docSessions: DocSession[] = [];
@@ -91,7 +94,7 @@ export class DocClients {
   }
 
   public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
-    if (IS_USER_PRESENCE_DISABLED) { return []; }
+    if (isUserPresenceDisabled()) { return []; }
     const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
     const docUserRoles = await this._getDocUserRoles();
     const userProfiles = otherDocSessions.map(
@@ -176,7 +179,7 @@ export class DocClients {
   }
 
   private _broadcastUserPresenceSessionUpdate(originSession: DocSession) {
-    if (IS_USER_PRESENCE_DISABLED) { return; }
+    if (isUserPresenceDisabled()) { return; }
     // Loading the doc user roles first allows the callback to be quick + synchronous,
     // avoiding a potentially linear series of async calls.
     this._getDocUserRoles()
@@ -200,7 +203,7 @@ export class DocClients {
   }
 
   private _broadcastUserPresenceSessionRemoval(originSession: DocSession) {
-    if (IS_USER_PRESENCE_DISABLED) { return; }
+    if (isUserPresenceDisabled()) { return; }
     this.broadcastDocMessage(
       originSession.client,
       "docUserPresenceUpdate",
