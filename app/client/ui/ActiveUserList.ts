@@ -7,6 +7,9 @@ import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {components} from 'app/common/ThemePrefs';
 import {dom, domComputed, DomElementArg, styled} from 'grainjs';
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('ActiveUserList');
 
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
@@ -35,6 +38,7 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
 
     return cssActiveUserList(
       ...userImages.map(image => dom('li', image)),
+      { "aria-label": t("active user list") },
     );
   });
 }
@@ -43,7 +47,8 @@ function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: f
   const imageConstructor = options.overlapLeft ? createOverlappingUserListImage : createUserListImageFromUser;
   return imageConstructor(
     user,
-    hoverTooltip(user.name, { key: "topBarBtnTooltip" })
+    hoverTooltip(user.name, { key: "topBarBtnTooltip" }),
+    { 'aria-label': `${t('active user')}: ${user.name}`}
   );
 }
 
@@ -66,6 +71,7 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
         allowNothingSelected: true,
       }
     ),
+    { 'aria-label': t('open full active user list') },
   );
 }
 
