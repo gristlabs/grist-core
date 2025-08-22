@@ -44,10 +44,10 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
 }
 
 function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
-  const imageConstructor = options.overlapLeft ? createOverlappingUserListImageFromUser : createUserListImageFromUser;
-  return imageConstructor(
+  return createUserListImage(
     user,
     hoverTooltip(user.name, { key: "topBarBtnTooltip" }),
+    options.overlapLeft ? createStyledUserImage.cls("-overlapping") : undefined,
     { 'aria-label': `${t('active user')}: ${user.name}`}
   );
 }
@@ -94,21 +94,22 @@ const userImageBorderCss = `
   box-sizing: content-box;
 `;
 
-const createUserListImage = styled(createUserImage, userImageBorderCss);
+const createStyledUserImage = styled(createUserImage, `
+  ${userImageBorderCss};
 
-const createUserListImageFromUser = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
-  createUserListImage(
+  &-overlapping {
+    margin-left: -4px;
+  }
+`);
+
+const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
+  createStyledUserImage(
     user,
     'medium',
-    dom.style("box-sizing", "content-box"),
     cssUserImage.cls('-reduced'),
     dom.hide(isXSmallScreenObs()),
     ...args
   );
-
-const createOverlappingUserListImageFromUser = styled(createUserListImageFromUser, `
-  margin-left: -4px;
-`);
 
 const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
