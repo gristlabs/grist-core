@@ -84,6 +84,7 @@ export class DocClients {
   }
 
   public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
+    if (isUserPresenceDisabled()) { return []; }
     const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
     const docUserRoles = await this._getDocUserRoles();
     const userProfiles = otherDocSessions.map(
