@@ -5,16 +5,16 @@
 
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {CommDocEventType, CommDocUserPresenceUpdate, CommMessage} from 'app/common/CommTypes';
+import {parseUrlId} from 'app/common/gristUrls';
 import {arrayRemove} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {getRealAccess} from 'app/common/UserAPI';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {Client} from 'app/server/lib/Client';
 import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {fromPairs} from 'lodash';
-import {appSettings} from 'app/server/lib/AppSettings';
-import {parseUrlId} from 'app/common/gristUrls';
 
 const isUserPresenceEnabledByDefault = false;
 export const SETTING_ENABLE_USER_PRESENCE = appSettings.section('userPresence').flag('enable');
