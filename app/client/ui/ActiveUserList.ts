@@ -8,6 +8,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import {components} from 'app/common/ThemePrefs';
 import {dom, domComputed, DomElementArg, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
+import {nativeCompare} from 'app/common/gutil';
 
 const t = makeT('ActiveUserList');
 
@@ -145,18 +146,5 @@ export const remainingUsersMenuItem = styled(`div`, `
 `);
 
 function compareUserProfiles(a: VisibleUserProfile, b: VisibleUserProfile) {
-  if (!a.isAnonymous && b.isAnonymous) {
-    return -1;
-  }
-
-  if (a.isAnonymous && !b.isAnonymous) {
-    return 1;
-  }
-
-  // If both have the same anonymity, compare based on name
-  if (a.name === b.name) {
-    return 0;
-  }
-
-  return (a.name < b.name) ? -1 : 1;
+  return nativeCompare(a.isAnonymous, b.isAnonymous) || nativeCompare(a.name, b.name);
 }
