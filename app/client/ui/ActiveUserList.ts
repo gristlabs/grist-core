@@ -40,7 +40,7 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
 }
 
 function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
-  const imageConstructor = options.overlapLeft ? createOverlappingUserListImage : createUserListImage;
+  const imageConstructor = options.overlapLeft ? createOverlappingUserListImage : createUserListImageFromUser;
   return imageConstructor(
     user,
     hoverTooltip(user.name, { key: "topBarBtnTooltip" })
@@ -53,7 +53,6 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
     cssRemainingUsersImage(
       `+${count}`,
       cssUserImage.cls("-medium"),
-      cssUserImage.cls("-border"),
       dom.style("font-size", "12px"),
     ),
     menu(
@@ -84,23 +83,31 @@ const cssActiveUserList = styled('ul', `
   flex-direction: row-reverse;
 `);
 
-const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
-  createUserImage(
+const userImageBorderCss = `
+  border: 2px solid ${components.topHeaderBg};
+  box-sizing: content-box;
+`;
+
+const createUserListImage = styled(createUserImage, userImageBorderCss);
+
+const createUserListImageFromUser = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
+  createUserListImage(
     user,
     'medium',
-    cssUserImage.cls("-border"),
+    dom.style("box-sizing", "content-box"),
     cssUserImage.cls('-reduced'),
     dom.hide(isXSmallScreenObs()),
     ...args
   );
 
-const createOverlappingUserListImage = styled(createUserListImage, `
+const createOverlappingUserListImage = styled(createUserListImageFromUser, `
   margin-left: -4px;
 `);
 
 const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
   background-color: ${components.userListRemainingUsersBg};
+  ${userImageBorderCss};
 `);
 
 const cssRemainingUsersButton = styled('button', `

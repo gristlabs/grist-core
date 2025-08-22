@@ -106,8 +106,7 @@ export const cssUserImage = styled('div', `
     --reduced-font-size: 16px;
   }
   &-border {
-    --border-size: 0px;
-    border: 2px solid ${components.topHeaderBg};
+    --border-size: 2px;
   }
   &-large {
     --icon-size: 40px;
