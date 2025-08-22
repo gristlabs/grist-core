@@ -925,7 +925,10 @@
         "Tour of this Document": "Огляд цього документа",
         "Validate Data": "Перевірити дані",
         "Settings": "Налаштування",
-        "API Console": "Консоль API"
+        "API Console": "Консоль API",
+        "context menu - Access Rules": "контекстне меню - Правила доступу",
+        "Delete document tour": "Видалити огляд документа",
+        "Preview the tutorial": "Попередній перегляд посібника"
     },
     "TopBar": {
         "Manage Team": "Керувати командою",
@@ -1098,7 +1101,8 @@
         "Collapse {{maybeDefault}}": "Згорнути {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Розгорнути {{maybeDefault}}",
         "Set default: Collapse": "Встановити за замовчуванням: Згорнути",
-        "Set default: Expand": "Встановити за замовчуванням: Розгорнути"
+        "Set default: Expand": "Встановити за замовчуванням: Розгорнути",
+        "context menu - {{- pageName }}": "контекстне меню - {{- pageName }}"
     },
     "search": {
         "Find Next ": "Знайти наступне ",
@@ -2169,5 +2173,9 @@
         "Expand all rows to this height": "Розгорнути всі рядки до цієї висоти",
         "Max height": "Максимальна висота",
         "Max row height": "Максимальна висота рядка"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Згорнути'",
+        "Expand": "Розгорнути"
     }
 }
