@@ -22,9 +22,11 @@ export const Deps = {
   BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
 };
 
+const userPresenceEnabledByDefault = false;
 const IS_USER_PRESENCE_ENABLED = appSettings.section('userPresence').flag('enable').readBool({
   envVar: 'GRIST_ENABLE_USER_PRESENCE',
-}) ?? true;
+  defaultValue: userPresenceEnabledByDefault,
+}) ?? userPresenceEnabledByDefault;
 export const IS_USER_PRESENCE_DISABLED = !IS_USER_PRESENCE_ENABLED;
 
 export class DocClients {
