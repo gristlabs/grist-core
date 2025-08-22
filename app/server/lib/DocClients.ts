@@ -22,6 +22,11 @@ export const Deps = {
   BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
 };
 
+const IS_USER_PRESENCE_ENABLED = appSettings.section('userPresence').flag('enable').readBool({
+  envVar: 'GRIST_ENABLE_USER_PRESENCE',
+}) ?? true;
+export const IS_USER_PRESENCE_DISABLED = !IS_USER_PRESENCE_ENABLED;
+
 export class DocClients {
   private _docSessions: DocSession[] = [];
   private _log = new LogMethods('DocClients ', (s: DocSession|null) => this.activeDoc.getLogMeta(s));
@@ -84,7 +89,7 @@ export class DocClients {
   }
 
   public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
-    if (isUserPresenceDisabled()) { return []; }
+    if (IS_USER_PRESENCE_DISABLED) { return []; }
     const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
     const docUserRoles = await this._getDocUserRoles();
     const userProfiles = otherDocSessions.map(
@@ -169,7 +174,7 @@ export class DocClients {
   }
 
   private _broadcastUserPresenceSessionUpdate(originSession: DocSession) {
-    if (isUserPresenceDisabled()) { return; }
+    if (IS_USER_PRESENCE_DISABLED) { return; }
     // Loading the doc user roles first allows the callback to be quick + synchronous,
     // avoiding a potentially linear series of async calls.
     this._getDocUserRoles()
@@ -193,7 +198,7 @@ export class DocClients {
   }
 
   private _broadcastUserPresenceSessionRemoval(originSession: DocSession) {
-    if (isUserPresenceDisabled()) { return; }
+    if (IS_USER_PRESENCE_DISABLED) { return; }
     this.broadcastDocMessage(
       originSession.client,
       "docUserPresenceUpdate",
@@ -268,10 +273,4 @@ function getVisibleUserProfileFromDocSession(
 
 function getVisibleUserProfileId(session: DocSession): string {
   return session.client.publicClientId;
-}
-
-export function isUserPresenceDisabled(): boolean {
-  return appSettings.section('userPresence').flag('disable').readBool({
-    envVar: 'GRIST_USER_PRESENCE_DISABLE',
-  }) ?? false;
 }
