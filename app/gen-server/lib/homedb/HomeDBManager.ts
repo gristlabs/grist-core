@@ -479,11 +479,11 @@ export class HomeDBManager {
     userId: number,
     props: UserProfileChange
   ): Promise<PreviousAndCurrent<User>> {
-    const {previous, current, isWelcomed} = await this._usersManager.updateUser(userId, props);
+    const {previous, current, isWelcomed, wasDisabled} = await this._usersManager.updateUser(userId, props);
     if (current && isWelcomed) {
       await this._notifier.firstLogin(this.makeFullUser(current));
     }
-    return {previous, current};
+    return {previous, current, wasDisabled};
   }
 
   public async updateUserOptions(userId: number, props: Partial<UserOptions>) {

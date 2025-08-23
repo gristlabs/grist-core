@@ -72,6 +72,20 @@ export class DocClients {
     }
   }
 
+  public interruptConnections(userId: number) {
+    let connectionCount = 0;
+    for (const docSession of this._docSessions) {
+      if(docSession.client.getUserId() == userId) {
+        docSession.client.interruptConnection();
+        connectionCount++;
+      }
+    }
+    this._log.debug(null, "interruptConnections() interrupted %s connections for user ID %s",
+      connectionCount,
+      userId
+    );
+  }
+
   /**
    * Broadcasts a message to all clients of this document using Comm.sendDocMessage. Also sends all
    * docAction to active doc's plugin manager.

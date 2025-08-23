@@ -392,8 +392,9 @@ export async function addRequestUser(
     }
   }
 
-  // If no userId has been found yet, fall back on anonymous.
-  if (!mreq.userId) {
+  // If no userId has been found yet, or if the user is disabled, fall
+  // back on anonymous.
+  if (!mreq.userId || mreq.user?.isEnabled === false) {
     setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
   }
 

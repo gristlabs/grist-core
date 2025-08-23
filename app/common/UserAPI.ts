@@ -435,6 +435,7 @@ export interface UserAPI {
   updateUserName(name: string): Promise<void>;
   updateUserLocale(locale: string|null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
+  updateIsEnabled(userId: number, isEnabled: boolean): Promise<void>;
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
   getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo>;
@@ -870,6 +871,13 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/profile/isConsultant`, {
       method: 'POST',
       body: JSON.stringify({userId, isConsultant})
+    });
+  }
+
+  public async updateIsEnabled(userId: number, isEnabled: boolean): Promise<void> {
+    await this.request(`${this._url}/api/profile/user/isEnabled`, {
+      method: 'POST',
+      body: JSON.stringify({userId, isEnabled})
     });
   }
 

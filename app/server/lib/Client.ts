@@ -192,6 +192,10 @@ export class Client {
     }
   }
 
+  public getUserId(): number|null {
+    return this._authSession.userId;
+  }
+
   /**
    * Sends a message to the client. If the send fails in a way that the message can't get queued
    * (e.g. due to an unexpected exception in code), logs an error and interrupts the connection.

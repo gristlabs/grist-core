@@ -19,6 +19,7 @@ export interface QueryResult<T> {
 export interface PreviousAndCurrent<T> {
   previous: T;
   current: T;
+  wasDisabled?: boolean;
 }
 
 export interface GetUserOptions {
@@ -30,6 +31,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
+  isEnabled?: boolean;
   options?: Partial<UserOptions>;
 }
 

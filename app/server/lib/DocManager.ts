@@ -177,6 +177,15 @@ export class DocManager extends EventEmitter {
     return activeDoc.docName;
   }
 
+  public async interruptConnections(userId: number) {
+    await Promise.all(Array.from(
+      this._activeDocs.values(),
+      doc => doc.then(async activeDoc => {
+        activeDoc.docClients.interruptConnections(userId);
+      })
+    ));
+  }
+
   /**
    * Creates a new document, fetches it, and adds a table to it.
    * @param {String} sampleDocName: Doc name of a sample document.
