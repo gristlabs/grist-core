@@ -1,10 +1,11 @@
+import { GristClientSocket } from 'app/client/components/GristClientSocket';
+import { ValidEvent } from 'app/common/CommTypes';
 import { DocAction } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { SchemaTypes } from 'app/common/schema';
 import { FlexServer } from 'app/server/lib/FlexServer';
 import axios from 'axios';
 import pick = require('lodash/pick');
-import {GristClientSocket} from 'app/client/components/GristClientSocket';
 
 interface GristRequest {
   reqId: number;
@@ -20,7 +21,7 @@ interface GristResponse {
 }
 
 interface GristMessage {
-  type: 'clientConnect' | 'docUserAction';
+  type: ValidEvent;
   docFD: number;
   data: any;
 }
