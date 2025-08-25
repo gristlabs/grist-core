@@ -10,40 +10,74 @@ import {nativeCompare} from 'app/common/gutil';
 import {components, tokens} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 
-import {dom, domComputed, DomElementArg, makeTestId, styled} from 'grainjs';
+import {
+  Computed,
+  dom,
+  domComputed,
+  DomElementArg, IDisposableOwner,
+  IDomArgs,
+  makeTestId,
+  Observable,
+  styled
+} from 'grainjs';
 
 const t = makeT('ActiveUserList');
 const testId = makeTestId('test-aul-');
 
-export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
-  return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
+export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: UserPresenceModel) {
+  const usersObs = Computed.create(owner, (use) => {
+    const userProfiles = use(userPresenceModel.userProfiles);
     // Clamps max users between 0 and 99 to prevent display issues and errors
     const maxUsers = Math.min(Math.max(0, getGristConfig().userPresenceMaxUsers ?? 99), 99);
-    const users = userProfiles
+    return userProfiles
       .slice()
       .sort(compareUserProfiles)
       // Limits the display to avoid overly long lists on public documents.
       .slice(0, maxUsers);
-
-    const maxUserImages = 4;
-    const renderAllUsersButton = users.length > maxUserImages;
-    const usersToRender = users.slice(0, renderAllUsersButton ? 3 : 4);
-
-    const userImages = usersToRender.map((user, index) => createUserIndicator(user, { overlapLeft: index > 0 }));
-    const allUsersButtons = renderAllUsersButton
-      ? [createRemainingUsersIndicator(users, (users.length - usersToRender.length))]
-      : [];
-
-    // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
-    userImages.reverse();
-
-    return cssActiveUserList(
-      ...allUsersButtons.map(button => dom('li', button)),
-      ...userImages.map(image => dom('li', image)),
-      { "aria-label": t("active user list") },
-      testId('container')
-    );
   });
+
+  const totalUserIconSlots = 4;
+  const computedUserIcons: IDomArgs<HTMLUListElement> = [];
+  const showRemainingUsersIconObs = Computed.create(owner, (use) => {
+    return totalUserIconSlots < use(usersObs).length;
+  });
+
+  for (let i = 0; i < (totalUserIconSlots - 1); i++) {
+    computedUserIcons.push(domComputed(use => {
+      const users = use(usersObs);
+      const user = users[i];
+      if (!user) {
+        return null;
+      }
+      return dom('li', createUserIndicator(user, { overlapLeft: i > 0 }));
+    }));
+  }
+
+  computedUserIcons.push(domComputed(use => {
+    const users = use(usersObs);
+    if (users.length !== totalUserIconSlots) { return null; }
+    const user = users[totalUserIconSlots - 1];
+    return dom('li', createUserIndicator(user));
+  }));
+
+  computedUserIcons.push(dom.maybe(showRemainingUsersIconObs, () => {
+    return domComputed(() => {
+      return dom('li', createRemainingUsersIndicator(
+        usersObs,
+        Computed.create(owner,
+          (use) => use(usersObs).length - (totalUserIconSlots - 1)))
+      );
+    });
+  }));
+
+  // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
+  computedUserIcons.reverse();
+
+  return cssActiveUserList(
+    ...computedUserIcons,
+    { "aria-label": t("active user list") },
+    testId('container')
+  );
 }
 
 function createUserIndicator(user: VisibleUserProfile, options = { overlapLeft: false }) {
@@ -56,20 +90,19 @@ function createUserIndicator(user: VisibleUserProfile, options = { overlapLeft: 
   );
 }
 
-function createRemainingUsersIndicator(users: VisibleUserProfile[], userCount?: number) {
-  const count = userCount ?? users.length;
+function createRemainingUsersIndicator(usersObs: Observable<VisibleUserProfile[]>, userCountObs?: Observable<number>) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
-      `+${count}`,
+      domComputed(use => `+${userCountObs ? use(userCountObs) : use(usersObs).length}`),
       cssUserImage.cls("-medium"),
       dom.style("font-size", "12px"),
     ),
     menu(
-      () => users.map(user => remainingUsersMenuItem(
+      () => domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
         createUserImage(user, 'medium'),
         dom('div', createUsername(user.name), createEmail(user.email)),
         testId('user-list-user')
-      )),
+      ))),
       {
         // Avoids an issue where the menu code will infinitely loop trying to find the
         // next selectable option, when using keyboard navigation, due to having none.
