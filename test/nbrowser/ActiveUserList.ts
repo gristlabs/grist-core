@@ -1,8 +1,9 @@
-import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import * as gu from 'test/nbrowser/gristUtils';
-import {driver} from 'mocha-webdriver';
 import {UserAPI} from 'app/common/UserAPI';
+import * as gu from 'test/nbrowser/gristUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+
 import {assert} from 'chai';
+import {driver} from 'mocha-webdriver';
 
 interface Window {
   handle: string;

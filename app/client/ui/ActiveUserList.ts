@@ -1,15 +1,16 @@
+import {makeT} from 'app/client/lib/localization';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {menu} from 'app/client/ui2018/menus';
-import {hoverTooltip} from 'app/client/ui/tooltips';
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
+import {nativeCompare} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {components} from 'app/common/ThemePrefs';
-import {dom, domComputed, DomElementArg, makeTestId, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
-import {nativeCompare} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
+
+import {dom, domComputed, DomElementArg, makeTestId, styled} from 'grainjs';
 
 const t = makeT('ActiveUserList');
 const testId = makeTestId('test-aul-');
