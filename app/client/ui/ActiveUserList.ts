@@ -9,18 +9,21 @@ import {components} from 'app/common/ThemePrefs';
 import {dom, domComputed, DomElementArg, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 import {nativeCompare} from 'app/common/gutil';
+import {getGristConfig} from 'app/common/urlUtils';
 
 const t = makeT('ActiveUserList');
 
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
-    // Need to delete id as it's incompatible with createUserImage's parameters.
+    // Clamps max users between 0 and 99 to prevent display issues and errors
+    const maxUsers = Math.min(Math.max(0, getGristConfig().userPresenceMaxUsers ?? 99), 99);
     const users = userProfiles
       .slice()
       .sort(compareUserProfiles)
+      // Need to delete id as it's incompatible with createUserImage's parameters.
       .map(userProfile => ({...userProfile, id: undefined }))
-      // Limits the display to the first 99 users to avoid overly long lists on public documents.
-      .slice(0, 99);
+      // Limits the display to avoid overly long lists on public documents.
+      .slice(0, maxUsers);
     const usersToRender = users.slice(0, 3);
     const remainingUsers = users.slice(3,);
 

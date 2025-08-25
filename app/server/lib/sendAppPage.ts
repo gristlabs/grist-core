@@ -22,7 +22,11 @@ import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
-import {getOnboardingTutorialDocId, getTemplateOrg} from 'app/server/lib/gristSettings';
+import {
+  getOnboardingTutorialDocId,
+  getTemplateOrg,
+  getUserPresenceMaxUsers
+} from 'app/server/lib/gristSettings';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 import * as express from 'express';
@@ -135,6 +139,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     featureNotifications: isAffirmative(process.env.GRIST_TEST_ENABLE_NOTIFICATIONS),
     formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
+    userPresenceMaxUsers: getUserPresenceMaxUsers(),
     ...extra,
   };
 }
