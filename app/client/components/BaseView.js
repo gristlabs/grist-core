@@ -26,7 +26,6 @@ const {UnionRowSource} = require('app/client/models/UnionRowSource');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {closeRegisteredMenu} = require('app/client/ui2018/menus');
-const {COMMENTS} = require('app/client/models/features');
 const {DismissedPopup} = require('app/common/Prefs');
 const {markAsSeen} = require('app/client/models/UserPrefs');
 const {buildConfirmDelete, reportUndo} = require('app/client/components/modals');
@@ -381,8 +380,7 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
 /**
  * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
  */
- BaseView.prototype._openDiscussionAtCursor = function(text) {
-  if (!COMMENTS().get()) { return false; }
+BaseView.prototype._openDiscussionAtCursor = function(text) {
   var builder = this.activeFieldBuilder();
   if (builder.isEditorActive()) {
     return false;

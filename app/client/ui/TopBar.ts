@@ -4,7 +4,6 @@ import {loadSearch} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {COMMENTS} from 'app/client/models/features';
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
@@ -139,11 +138,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     }),
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
-      dom.maybe(use =>
-        (
-          use(pageModel.gristDoc)
-          && use(COMMENTS())
-        ),
+      dom.maybe(pageModel.gristDoc,
         () => buildShowDiscussionButton(pageModel)),
       dom.update(
         buildNotifyMenuButton(appModel.notifier, appModel),

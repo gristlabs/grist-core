@@ -15,7 +15,6 @@ let ownerRef: string;
 describe('Comments', function() {
   this.timeout('8m');
   const cleanup = setupTestSuite();
-  gu.withEnvironmentSnapshot({COMMENTS: '1'});
   afterEach(() => gu.checkForErrors());
   const chimpy = gu.translateUser('user1');
   const kiwi = gu.translateUser('user3');

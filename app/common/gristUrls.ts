@@ -909,9 +909,6 @@ export interface GristLoadConfig {
   // Loaded namespaces for translations.
   namespaces?: readonly string[];
 
-  // TODO: remove when comments will be released.
-  featureComments?: boolean;
-
   assistant?: AssistantConfig;
 
   permittedCustomWidgets?: IAttachedCustomWidget[];
@@ -950,9 +947,6 @@ export interface GristLoadConfig {
 
   // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
   adminControls?: boolean;
-
-  // TODO: remove once released (this is only expected to be released in enterprise edition)
-  featureNotifications?: boolean;
 
   formFraming?: FormFraming;
 }
