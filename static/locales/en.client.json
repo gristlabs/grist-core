@@ -2174,5 +2174,10 @@
     "TreeViewComponent": {
         "Collapse": "Collapse",
         "Expand": "Expand"
+    },
+    "ActiveUserList": {
+        "active user": "active user",
+        "active user list": "active user list",
+        "open full active user list": "open full active user list"
     }
 }
