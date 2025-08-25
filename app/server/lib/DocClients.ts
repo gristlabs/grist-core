@@ -24,7 +24,7 @@ SETTING_ENABLE_USER_PRESENCE.readBool({
 });
 
 export function isUserPresenceDisabled(): boolean {
-  return !SETTING_ENABLE_USER_PRESENCE.getAsBool() ?? isUserPresenceEnabledByDefault;
+  return !SETTING_ENABLE_USER_PRESENCE.getAsBool();
 }
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
