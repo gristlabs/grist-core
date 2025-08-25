@@ -516,6 +516,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     return Promise.resolve();
   }
 
+  public async copyAnchorLink(_anchorInfo: unknown) {}
+
   public getCsvLink() {
     return '';
   }

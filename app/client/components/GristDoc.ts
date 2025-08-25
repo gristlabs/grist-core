@@ -23,20 +23,21 @@ import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoSta
 import {ViewLayout} from 'app/client/components/ViewLayout';
 import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {setTestState} from 'app/client/lib/testState';
-import {AppModel, reportError} from 'app/client/models/AppModel';
+import {AppModel} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
 import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {UserError} from 'app/client/models/errors';
+import {reportError, reportSuccess, UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
@@ -212,6 +213,7 @@ export interface GristDoc extends DisposableWithEvents {
     visitedSections?: number[]
   ): Promise<boolean>;
   activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
+  copyAnchorLink(anchorInfo: HashLink & CursorPos): Promise<void>;
 }
 
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
@@ -1218,6 +1220,26 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public async activateEditorAtCursor(options?: { init?: string, state?: any }) {
     const view = await this._waitForView();
     view?.activateEditorAtCursor(options);
+  }
+
+  /**
+   * Copy an anchor link for the current row (or comment) to the clipboard.
+   */
+  public async copyAnchorLink(anchorInfo: HashLink & CursorPos) {
+    const hash: HashLink = anchorInfo;
+    if (!hash.colRef && anchorInfo.fieldIndex && anchorInfo.sectionId) {
+      const section = this.docModel.viewSections.getRowModel(anchorInfo.sectionId);
+      const column = section.viewFields.peek().peek()[anchorInfo.fieldIndex].column.peek();
+      hash.colRef = column.id.peek();
+    }
+    try {
+      const link = urlState().makeUrl({hash});
+      await copyToClipboard(link);
+      setTestState({clipboard: link});
+      reportSuccess('Link copied to clipboard', {key: 'clipboard'});
+    } catch (e) {
+      throw new Error('cannot copy to clipboard');
+    }
   }
 
   /**

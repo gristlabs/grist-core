@@ -166,7 +166,7 @@ describe('Comments', function() {
 
     // Open the menu make sure we don't see edit button.
     await openCommentMenu(0);
-    assert.deepEqual(await menuOptions(), ['Resolve', 'Remove thread', 'Edit']);
+    assert.deepEqual(await menuOptions(), ['Copy link', 'Resolve', 'Remove thread', 'Edit']);
     assert.deepEqual(await disabledMenuOptions(), ['Resolve', 'Remove thread', 'Edit']);
 
     // Click on B,1
@@ -1069,6 +1069,27 @@ describe('Comments', function() {
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE2');
   });
 
+  it('should offer menu option to copy anchor link', async function() {
+    // Add first comment to second table
+    await gu.openPage('Table2');
+    await addComment('B', 2, 'Testing anchor link');
+    await openCommentsWithMouse('B', 2);
+    await waitForPopup('filled');
+    await openCommentMenu(0);
+    await gu.findOpenMenuItem('li', /Copy link/).click();
+
+    await driver.findContentWait('.test-notifier-toast-message', /Link copied/, 500);
+    const anchor = (await gu.getTestState()).clipboard!;
+    assert.isOk(anchor);
+    await gu.onNewTab(async () => {
+      await driver.get(anchor);
+      await gu.waitForDocToLoad();
+      await waitForPopup('filled');
+      assert.equal(await commentCount(), 1);
+      assert.equal((await getCommentsData())[0].text, 'Testing anchor link');
+    });
+  });
+
   it('should hide comments from hidden columns', async function() {
     // Start with a fresh doc.
     docId = (await session.tempNewDoc(cleanup, 'Hello.grist', {load: false}));
@@ -1878,7 +1899,7 @@ async function openCommentsWithKey() {
 
 async function openCommentsWithMouse(col: string, row: number) {
   await gu.rightClick(await gu.getCell(col, row));
-  await driver.findContent('.test-cmd-name', /Comment/).click();
+  await gu.findOpenMenuItem('.test-cmd-name', /Comment/).click();
 }
 
 interface Comment {
