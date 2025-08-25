@@ -113,23 +113,6 @@ describe('ActiveUserList', async function() {
     extraWindowHandles.push(window.handle);
     return window;
   }
-
-  /*
-  async function openTrackedClientForUser() {
-    const serverUrl = new URL(server.getHost());
-    const client = await openClientForUser(serverUrl.port, 'chimpy', 'Chimpyland');
-    clients.push(client);
-    return client;
-  }
-
-  async function closeClient(client: GristClient) {
-    if (client.ws.isOpen()) {
-      await client.send("closeDoc", 0);
-    }
-    await client.close();
-    clients = clients.filter(clientToTest => clientToTest !== client);
-  }
-  */
 });
 
 async function switchToWindow(window: Window): Promise<void> {
