@@ -2257,7 +2257,7 @@ export class GranularAccess implements GranularAccessForBundle {
       null,
     );
     // Read the structural tables.
-    await Promise.all([...STRUCTURAL_TABLES].map(tableId => metaDocData.syncTable(tableId)));
+    await Promise.all(['_grist_Pages', ...STRUCTURAL_TABLES].map(tableId => metaDocData.syncTable(tableId)));
     if (applied) {
       for (const docAction of [...undo].reverse()) { metaDocData.receiveAction(docAction); }
     }
