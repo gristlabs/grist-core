@@ -1,4 +1,5 @@
 import {ActionGroup} from 'app/common/ActionGroup';
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {DocAction} from 'app/common/DocActions';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Product} from 'app/common/Features';
@@ -7,7 +8,7 @@ import {AttachmentTransferStatus} from 'app/common/UserAPI';
 
 export const ValidEvent = StringUnion(
   'docListAction', 'docUserAction', 'docShutdown', 'docError',
-  'docUsage', 'docChatter', 'clientConnect');
+  'docUsage', 'docChatter', 'docUserPresenceUpdate', 'clientConnect');
 export type ValidEvent = typeof ValidEvent.type;
 
 
@@ -51,7 +52,8 @@ export interface CommMessageBase {
   data?: unknown;
 }
 
-export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown | CommDocError | CommDocChatter;
+export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown |
+                             CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
 export type CommMessage = CommDocMessage | CommDocListAction | CommClientConnect;
 
 export type CommResponseBase = CommResponse | CommResponseError | CommMessage;
@@ -112,6 +114,16 @@ export interface CommDocChatter extends CommMessageBase {
     },
     attachmentTransfer?: AttachmentTransferStatus;
   };
+}
+
+export interface CommDocUserPresenceUpdate extends CommMessageBase {
+  type: 'docUserPresenceUpdate';
+  docFD: number;
+  data: {
+    id: string;
+    // Null entry indicates the user is no longer active and should be removed.
+    profile: VisibleUserProfile | null;
+  }
 }
 
 /**

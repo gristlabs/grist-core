@@ -40,6 +40,7 @@ import {UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
+import {UserPresenceModel, UserPresenceModelImpl} from 'app/client/models/UserPresenceModel';
 import {App} from 'app/client/ui/App';
 import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
 import {DocHistory} from 'app/client/ui/DocHistory';
@@ -154,6 +155,7 @@ export interface GristDoc extends DisposableWithEvents {
   docPageModel: DocPageModel;
   docModel: DocModel;
   viewModel: ViewRec;
+  userPresenceModel: UserPresenceModel;
   activeViewId: Observable<IDocPage>;
   currentPageName: Observable<string>;
   docData: DocData;
@@ -216,6 +218,7 @@ export interface GristDoc extends DisposableWithEvents {
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public docModel: DocModel;
   public viewModel: ViewRec;
+  public userPresenceModel: UserPresenceModel;
   public activeViewId: Observable<IDocPage>;
   public currentPageName: Observable<string>;
   public docData: DocData;
@@ -341,6 +344,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
+    this.userPresenceModel = UserPresenceModelImpl.create(this, this.docComm, this.app.comm);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager({
       plugins,
@@ -641,6 +645,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
       activateAssistant: this._activateAssistant.bind(this),
     }, this, true));
+
+    this.userPresenceModel.initialize().catch(reportError);
 
     this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
 

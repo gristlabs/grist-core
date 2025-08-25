@@ -135,6 +135,7 @@ export class DocWorker {
       getShare:                 activeDocMethod.bind(null, 'owners', 'getShare'),
       startTiming:              activeDocMethod.bind(null, 'owners', 'startTiming'),
       stopTiming:               activeDocMethod.bind(null, 'owners', 'stopTiming'),
+      listActiveUserProfiles:   activeDocMethod.bind(null, null, 'listActiveUserProfiles'),
     });
   }
 

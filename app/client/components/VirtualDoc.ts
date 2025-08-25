@@ -15,6 +15,7 @@ import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel, DocPageModelImpl} from 'app/client/models/DocPageModel';
 import {QuerySetManager} from 'app/client/models/QuerySet';
+import {UserPresenceModel, UserPresenceModelStub} from 'app/client/models/UserPresenceModel';
 import {IExternalTable, VirtualTableData, VirtualTableRegistration} from 'app/client/models/VirtualTable';
 import {META_TABLES} from 'app/client/models/VirtualTableMeta';
 import type {App} from 'app/client/ui/App';
@@ -79,6 +80,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public docInfo: DocInfoRec = {timezone: Observable.create(null, 'UTC')} as any;
   public docModel: DocModel;
   public viewModel: ViewRec;
+  public userPresenceModel: UserPresenceModel = new UserPresenceModelStub();
   public activeViewId = Observable.create(this, 0);
   public currentPageName: Observable<string>;
   public docPluginManager: DocPluginManager;
