@@ -60,13 +60,13 @@
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "L'authentification à double facteur est une couche supplémentaire de sécurité pour votre compte Grist qui permet de s'assurer que vous êtes la seule personne qui peut accéder à votre compte, même si quelqu'un d'autre connaît votre mot de passe.",
         "Theme": "Thème",
         "API Key": "Clé d’API",
-        "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateurs ne doivent contenir que des lettres, des chiffres et certains caractères spéciaux",
+        "Names only allow letters, numbers and certain special characters": "Les noms d'utilisateur ne doivent contenir que des lettres, des chiffres et certains caractères spéciaux",
         "Language": "Langue"
     },
     "AccountWidget": {
         "Sign in": "Connexion",
         "Document Settings": "Paramètres du document",
-        "Toggle Mobile Mode": "Activer/désactiver le mode mobile",
+        "Toggle Mobile Mode": "Activer/Désactiver le mode mobile",
         "Pricing": "Tarifs",
         "Profile Settings": "Paramètres du compte",
         "Manage Team": "Gestion de l'équipe",
@@ -116,7 +116,8 @@
         "Team Site": "Espace d'équipe",
         "Grist Templates": "Modèles Grist",
         "Billing Account": "Compte de facturation",
-        "Manage Team": "Gestion de l'équipe"
+        "Manage Team": "Gestion de l'équipe",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Retour à l'accueil"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Le site de cette équipe est suspendu. Les documents peuvent être lus, mais pas modifiés."
@@ -153,7 +154,7 @@
         "Create separate series for each value of the selected column.": "Créer une série séparée pour chaque valeur de la colonne sélectionnée.",
         "Pick a column": "Choisir une colonne",
         "selected new group data columns": "nouveau groupe de colonnes sélectionné",
-        "Toggle chart aggregation": "Activer/désactiver l'agrégation des graphiques",
+        "Toggle chart aggregation": "Activer/Désactiver l'agrégation des graphiques",
         "Orientation": "Orientation",
         "Vertical": "Vertical",
         "Horizontal": "Horizontal",
@@ -1085,7 +1086,8 @@
         "Collapse {{maybeDefault}}": "Fermer {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Ouvrir {{maybeDefault}}",
         "Set default: Collapse": "Définir par défaut : Fermer",
-        "Set default: Expand": "Définir par défaut : Ouvrir"
+        "Set default: Expand": "Définir par défaut : Ouvrir",
+        "context menu - {{- pageName }}": ""
     },
     "search": {
         "Search in document": "Rechercher dans le document",
@@ -1336,7 +1338,7 @@
         "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Crée une nouvelle colonne de type \"Référence multiple\" dans la table cible. Cette colonne et la colonne cible sont modifiables et synchronisées.",
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Le stockage interne signifie que toutes les PJ sont stockées dans le fichier SQLite du document, tandis que le stockage externe indique que toutes les PJ sont stockées dans le même stockage externe.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Comprenez, modifiez et travaillez vos données et formules avec l'aide du nouvel assistant IA de Grist !",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par un·e utilisateur·ice de Grist et n'est pas vérifié par Grist Labs. N'utilisez pas ce formulaire pour communiquer vos mots de passe et soyez prudent·e avec les liens qu'il contient. Signalez les formulaires malveillants à [{{mail}}](mailto:{{mail}}).",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par un utilisateur de Grist et n'est pas vérifié par Grist Labs. N'utilisez pas ce formulaire pour communiquer vos mots de passe et soyez prudent avec les liens qu'il contient. Signalez les formulaires malveillants à [{{mail}}](mailto:{{mail}}).",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Cela vous permet d'ajouter des PJ manquantes, par exemple lorsque vous importez un document dont les PJ étaient externalisées. Seules les archives de PJ au format .tar téléchargées depuis Grist peuvent être chargées ici."
     },
     "ColumnTitle": {
@@ -1426,7 +1428,7 @@
         "Formula Help. ": "Aide pour les formules. ",
         "What do you need help with?": "Quel est votre besoin d'aide ?",
         "For higher limits, contact the site owner.": "Pour un plafond supérieur, contactez le propriétaire du site.",
-        "Formula AI Assistant is only available for logged in users.": "L'Assistant de Formule IA n'est disponible que pour les utilisateurs connectés.",
+        "Formula AI Assistant is only available for logged in users.": "L'assistant IA pour les formules n'est disponible que pour les utilisateurs connectés.",
         "upgrade to the Pro Team plan": "passer au plan Pro Team",
         "You have used all available credits.": "Vous avez utiliser tout vos crédits disponibles.",
         "upgrade your plan": "mettez à niveau",
@@ -1586,9 +1588,9 @@
         "Your form description goes here.": "Votre description se place ici.",
         "# **Form Title**": "# **Titre du formulaire**",
         "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "La publication de votre formulaire générera un lien de partage. Toute personne disposant du lien pourra accéder au formulaire et soumettre une réponse.",
-        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "La dépublication du formulaire désactivera le lien de partage. Les utilisateur·ice·s accédant au formulaire via ce lien verront une erreur.",
-        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Les utilisateur·ice·s sont limité·e·s à la soumission d'entrées (enregistrements dans votre table) et à la lecture de valeurs prédéfinies dans des champs tels que les colonnes de référence et de choix.",
-        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Votre formulaire est publié. Chaque modification est visible par les utilisateur·ice·s ayant accès au formulaire. Si vous souhaitez apporter des modifications en \"mode brouillon\", dépubliez le formulaire."
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "La dépublication du formulaire désactivera le lien de partage. Les utilisateurs accédant au formulaire via ce lien verront une erreur.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Les utilisateurs sont limités à la soumission d'entrées (enregistrements dans votre table) et à la lecture de valeurs prédéfinies dans des champs tels que les colonnes de référence et de choix.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Votre formulaire est publié. Chaque modification est visible par les utilisateurs ayant accès au formulaire. Si vous souhaitez apporter des modifications en \"mode brouillon\", dépubliez le formulaire."
     },
     "HiddenQuestionConfig": {
         "Hidden fields": "Champs cachés"
@@ -1772,7 +1774,7 @@
     "Toggle": {
         "Field Format": "Format du champ",
         "Checkbox": "Case à cocher",
-        "Switch": "Changer"
+        "Switch": "Interrupteur"
     },
     "Columns": {
         "Remove Column": "Supprimer la colonne"
@@ -1863,7 +1865,7 @@
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Désactiver Grist Entreprise",
         "Enable Grist Enterprise": "Activer Grist Entreprise",
-        "Grist Enterprise is **enabled**.": "Grist Entreprise est **activité**.",
+        "Grist Enterprise is **enabled**.": "Grist Entreprise est **activé**.",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Une clef d'activation est nécessaire pour utiliser Grist Enterprise au delà de la période d'évaluation\nde 30 jours. Obtenez une clef d'activation en [nous contactant]({{contactLink}}) aujourd'hui. Vous\nn'avez pas besoin de clef d'activation pour utiliser Grist Core.\n\nEn savoir plus dans le [Centre d'Aide]({{helpCenter}}).",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "Une clef d'activation est nécessaire pour utiliser Grist Enterprise après la période d'évaluation\nde 30 jours. Obtenez une clef d'activation en [vous connectant à Grist\nEnterprise]({{signupLink}}). Vous n'avez pas besoin de clef d'activation pour utiliser\nGrist Core.\n\nEn savoir plus dans notre [Centre d'Aide]({{helpCenter}}).",
         "Activate": "Activer",
@@ -1912,8 +1914,8 @@
         "Add Your Own Widget": "Ajouter votre propre widget"
     },
     "markdown": {
-        "The toggle is **off**": "Le switch est **désactivé**",
-        "The toggle is **on**": "The switch est **actif**",
+        "The toggle is **off**": "L'interrupteur est sur **désactivé**",
+        "The toggle is **on**": "L'interrupteur est sur **activé**",
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
             "": {
                 "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ du [Markdown hibituel](https://markdownguide.org) *à l'intérieur*\n *      d'un Élément Grainjs."
@@ -1921,8 +1923,8 @@
         }
     },
     "markdown.d": {
-        "The toggle is **off**": "Le switch est **désactivé**",
-        "The toggle is **on**": "Le switch est **actif**",
+        "The toggle is **off**": "L'interrupteur est sur **désactivé**",
+        "The toggle is **on**": "L'interrupteur est sur **activé**",
         "# New Markdown Function\n *\n *      We can _write_ [the usual Markdown](https:": {
             "": {
                 "markdownguide.org) *inside*\n *      a Grainjs element.": "# Nouvelle fonction Markdown\n *\n *      Nous pouvons _écrire_ [avec la syntaxe Markdown](https://markdownguide.org) *directement*\n *      dans un élément Grainjs."
@@ -1940,7 +1942,8 @@
         "Start a new document": "Commencer un nouveau document",
         "Templates": "Modèles",
         "Tutorial": "Tutoriel",
-        "Webinars": "Webinaires"
+        "Webinars": "Webinaires",
+        "Learn more": "En savoir plus"
     },
     "ReverseReferenceConfig": {
         "Add two-way reference": "Ajouter une référence bi-directionnelle",
@@ -1961,7 +1964,7 @@
         "Opt in to Telemetry": "Activer la télémétrie",
         "Opted In": "Activé",
         "Support Grist": "Soutenir Grist",
-        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Merci ! Votre confiance et votre soutien est grandement apprécié. Vous pouvez désactiver à n'importe quel moment via {{link}} dans le menu utilisateur.",
+        "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Nous vous remercions ! Votre confiance et votre soutien sont très appréciés. Vous pouvez vous désinscrire à tout moment en cliquant sur le {{link}} dans le menu utilisateur.",
         "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Activez la télémétrie pour nous aider à comprendre comment le produit est utilisé, afin que nous puissions prioriser les améliorations futures.",
         "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "Nous collectons uniquement des statistiques d'utilisation, comme détaillé dans notre {{helpCenterLink}} - jamais le contenu des documents. Vous pouvez désactivez la fonctionnalité à tout moment via {{supportGristLink}} dans le menu."
     },
@@ -2152,5 +2155,13 @@
         "Preview not available.": "Aperçu non disponible.",
         "{{index}} of {{total}}": "{{index}} sur {{total}}",
         "Uploading…": "En cours de téléversement…"
+    },
+    "RowHeightConfig": {
+        "Max height": "",
+        "Max row height": ""
+    },
+    "TreeViewComponent": {
+        "Collapse": "Replier",
+        "Expand": "Déplier"
     }
 }
