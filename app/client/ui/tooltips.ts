@@ -225,7 +225,7 @@ export function setHoverTooltip(
   let mouseGrabbed = false;
   function grabMouse(tip: Element) {
     mouseGrabbed = true;
-    const listener = dom.onElem(window, 'pointerup', () => {
+    const listener = dom.onElem(window, 'mouseup', () => {
       mouseGrabbed = false;
       if (timer === POSTPONED) {
         scheduleCloseIfOpen(1400);
@@ -261,7 +261,7 @@ export function setHoverTooltip(
     const tipDom = tipControl.getDom();
     dom.onElem(tipDom, 'pointerenter', clearTimer);
     dom.onElem(tipDom, 'pointerleave', () => scheduleCloseIfOpen());
-    dom.onElem(tipDom, 'pointerdown', grabMouse.bind(null, tipDom));
+    dom.onElem(tipDom, 'mousedown', grabMouse.bind(null, tipDom));
     dom.onDisposeElem(tipDom, () => close());
     if (timeoutMs) { resetTimer(close, timeoutMs); }
   }
