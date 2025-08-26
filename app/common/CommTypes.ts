@@ -8,8 +8,7 @@ import {AttachmentTransferStatus} from 'app/common/UserAPI';
 
 export const ValidEvent = StringUnion(
   'docListAction', 'docUserAction', 'docShutdown', 'docError',
-  'docUsage', 'docChatter', 'docUserPresenceUpdate', 'clientConnect',
-  'docUserPresenceUpdate');
+  'docUsage', 'docChatter', 'docUserPresenceUpdate', 'clientConnect');
 export type ValidEvent = typeof ValidEvent.type;
 
 
