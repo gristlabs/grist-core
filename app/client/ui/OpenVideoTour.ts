@@ -6,7 +6,7 @@ import {YouTubePlayer} from 'app/client/ui/YouTubePlayer';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssModalCloseButton, modal} from 'app/client/ui2018/modals';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {dom, keyframes, makeTestId, styled} from 'grainjs';
 
 const t = makeT('OpenVideoTour');
@@ -20,7 +20,7 @@ const testId = makeTestId('test-video-tour-');
   return modal(
     (ctl, owner) => {
       const youtubePlayer = YouTubePlayer.create(owner,
-        commonUrls.onboardingTutorialVideoId,
+        window.gristConfig.commonUrls.onboardingTutorialVideoId,
         {
           onPlayerReady: (player) => player.playVideo(),
           height: '100%',

@@ -1,15 +1,8 @@
 import {AssistantConfig} from 'app/common/Assistant';
 import {
-  commonUrls,
   Features,
   FormFraming,
-  getContactSupportUrl,
-  getFreeCoachingCallUrl,
-  getHelpCenterUrl,
-  getOnboardingVideoId,
   getPageTitleSuffix,
-  getTermsOfServiceUrl,
-  getWebinarsUrl,
   GristLoadConfig,
   IFeature
 } from 'app/common/gristUrls';
@@ -18,6 +11,7 @@ import {getTagManagerSnippet} from 'app/common/tagManager';
 import {Document} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget} from "app/common/widgetTypes";
 import {appSettings} from "app/server/lib/AppSettings";
+import {commonUrls} from 'app/server/lib/commonUrls';
 import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
@@ -25,6 +19,7 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {getOnboardingTutorialDocId, getTemplateOrg} from 'app/server/lib/gristSettings';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
+
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as handlebars from 'handlebars';
@@ -89,12 +84,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
    // True if no subdomains or separate servers are defined for the home servers or doc workers.
     serveSameOrigin: !baseDomain && pathOnly,
     singleOrg: process.env.GRIST_SINGLE_ORG,
-    helpCenterUrl: getHelpCenterUrl(),
-    termsOfServiceUrl: getTermsOfServiceUrl(),
-    freeCoachingCallUrl: getFreeCoachingCallUrl(),
-    onboardingTutorialVideoId: getOnboardingVideoId(),
-    webinarsUrl: getWebinarsUrl(),
-    contactSupportUrl: getContactSupportUrl(),
     pathOnly,
     supportAnon: shouldSupportAnon(),
     enableAnonPlayground: isAffirmative(process.env.GRIST_ANON_PLAYGROUND ?? true),
@@ -134,7 +123,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     notifierEnabled: server?.hasNotifier(),
     featureNotifications: isAffirmative(process.env.GRIST_TEST_ENABLE_NOTIFICATIONS),
     formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
-    adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
+    commonUrls,
     ...extra,
   };
 }

@@ -19,7 +19,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {colorIcon, icon} from 'app/client/ui2018/icons';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, Observable, styled} from 'grainjs';
 
@@ -41,13 +41,13 @@ export function createHelpTools(appModel: AppModel): DomContents {
         dom.cls('tour-help-center'),
         deploymentType === 'saas'
           ? dom.on('click', () => beaconOpenMessage({appModel}))
-          : {href: commonUrls.help, target: '_blank'},
+          : {href: window.gristConfig.commonUrls.help, target: '_blank'},
         testId('left-feedback'),
       ),
     ),
     cssPageEntrySmall(
       cssPageLink(cssPageIcon('FieldLink'),
-        {href: commonUrls.help, 'aria-label': t("Help Center"), target: '_blank'},
+        {href: window.gristConfig.commonUrls.help, 'aria-label': t("Help Center"), target: '_blank'},
       ),
     ),
   );
