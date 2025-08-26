@@ -87,20 +87,20 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
-	- GristConnect is a niche feature built for a specific client which you probably don't care about – `OIDC` and `SAML` support *is* part of `grist-core` and covers most authentication use cases.
+    - GristConnect is a niche feature built for a specific client which you probably don't care about – `OIDC` and `SAML` support *is* part of `grist-core` and covers most authentication use cases.
   * [Azure Back-end for Document Storage](https://support.getgrist.com/install/cloud-storage/#azure) (2022)
     - With `grist-core` you can store document versions in anything S3-compatible, which covers a lot of services, but not Azure specifically. The Azure back-end fills that gap.
-	- Unless you are a Microsoft shop you probably don't care about this.
+    - Unless you are a Microsoft shop you probably don't care about this.
   * [Audit Log Streaming](https://support.getgrist.com/install/audit-log-streaming/) (2024)
     - With `grist-core` a lot of useful information is logged, but not organized specifically with auditing in mind. Audit log streaming supplies that organization, and a UI for setting things up.
-	- Enterprises may care about this.
+    - Enterprises may care about this.
   * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
-    - This a special page for a Grist installation administrator to monitor and edit user access to resources.
-	- It uses a special set of administrative endpoints not present on  `grist-core`.
+    - This is a special page for a Grist installation administrator to monitor and edit user access to resources.
+	- It uses a special set of administrative endpoints not present on `grist-core`.
 	- If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
   * [Grist Assistant](https://support.getgrist.com/assistant/#assistant) (2025)
     - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards and modifying data.
-	- If you have many users who need help building documents or working with data, you may care about this one.
+    - If you have many users who need help building documents or working with data, you may care about this one.
   * [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications) (2025)
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
 	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
