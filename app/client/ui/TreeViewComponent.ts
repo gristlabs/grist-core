@@ -1,3 +1,4 @@
+import { makeT } from "app/client/lib/localization";
 import { TreeItem, TreeModel, TreeNode, walkTree } from "app/client/models/TreeModel";
 import { mouseDrag, MouseDragHandler, MouseDragStart } from "app/client/ui/mouseDrag";
 import * as css from 'app/client/ui/TreeViewComponentCss';
@@ -6,6 +7,8 @@ import { Disposable, IDisposable, makeTestId, ObsArray, Observable, observable }
 import debounce = require('lodash/debounce');
 import defaults = require("lodash/defaults");
 import noop = require('lodash/noop');
+
+const t = makeT('TreeViewComponent');
 
 // DropZone identifies a location where an item can be inserted
 interface DropZone {
@@ -314,18 +317,21 @@ export class TreeViewComponent extends Disposable {
           dom.cls('highlight', highlight),
           dom.cls('selected', (use) => use(this._options.selected) === treeItem),
           offsetElement = css.offset(testId('offset')),
+          // The label is first in the DOM but visibly shown after the arrow thanks to flexbox re-ordering.
+          // This is done mostly so that screen reader users better understand the context of the arrow button.
+          labelElement = css.itemLabel(
+            testId('label'),
+            treeItem.buildDom(),
+            dom.style('top', (use) => use(deltaY) + 'px')
+          ),
           arrowElement = css.arrow(
+            dom.attr('aria-label', (use) => use(collapsed) ? t('Expand') : t('Collapse')),
             css.dropdown('Dropdown'),
             testId('itemArrow'),
             dom.style('transform', (use) => use(collapsed) ? 'rotate(-90deg)' : ''),
             dom.on('click', (ev) => toggle(collapsed)),
             // Let's prevent dragging to start when un-intentionally holding the mouse down on an arrow.
             dom.on('mousedown', (ev) => ev.stopPropagation()),
-          ),
-          labelElement = css.itemLabel(
-            testId('label'),
-            treeItem.buildDom(),
-            dom.style('top', (use) => use(deltaY) + 'px')
           ),
           delayedMouseDrag(this._startDrag.bind(this), this._options.dragStartDelay),
         ),

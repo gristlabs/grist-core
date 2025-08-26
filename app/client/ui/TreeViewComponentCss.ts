@@ -1,5 +1,6 @@
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
+import { unstyledButton } from "app/client/ui2018/unstyled";
 import { styled } from "grainjs";
 
 export const treeViewContainer = styled('div', `
@@ -80,6 +81,7 @@ export const centeredIcon = styled(icon, `
 `);
 
 export const itemLabel = styled('div', `
+  order: 99;
   flex-grow: 1;
   min-width: 0;
   cursor: pointer;
@@ -90,7 +92,7 @@ export const itemLabel = styled('div', `
   }
 `);
 
-export const arrow = styled('div', `
+export const arrow = styled(unstyledButton, `
   display: flex;
   flex-shrink: 0;
   align-items: center;

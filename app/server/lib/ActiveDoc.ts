@@ -32,7 +32,8 @@ import {
   QueryResult,
   ServerQuery,
   TableFetchResult,
-  TransformRule
+  TransformRule,
+  VisibleUserProfile
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
@@ -631,6 +632,10 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.disable();
     }
     return docSession;
+  }
+
+  public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
+    return this.docClients.listVisibleUserProfiles(docSession);
   }
 
   /**

@@ -374,6 +374,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | FREE_COACHING_CALL_URL | set the link to the human help (example: email adress or meeting scheduling tool) |
 | GRIST_CONTACT_SUPPORT_URL | set the link to contact support on error pages (example: email adress or online form) |
 | GRIST_ONBOARDING_VIDEO_ID | set the ID of the YouTube video shown on the homepage and during onboarding |
+| GRIST_CUSTOM_COMMON_URLS | overwrite the default commons URLs. Its value is expected to be a JSON object and a subset of the [ICommonUrls interface](./app/common/ICommonUrls.ts). |
 | GRIST_SUPPORT_ANON | if set to 'true', show UI for anonymous access (not shown by default) |
 | GRIST_SUPPORT_EMAIL | if set, give a user with the specified email support powers. The main extra power is the ability to share sites, workspaces, and docs with all users in a listed way. |
 | GRIST_OPEN_GRAPH_PREVIEW_IMAGE | the URL of the preview image when sharing the link on websites like social medias or chat applications. |
@@ -402,6 +403,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
 | GRIST_FALSY_VALUES | optional. Comma-separated list of extra words that should be considered as falsy by the data engine beyond english defaults. Ex: "non,nein,no" |
+| GRIST_ENABLE_USER_PRESENCE | optional, disabled by default. If set to 'false', disables all user presence features. |
 #### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose

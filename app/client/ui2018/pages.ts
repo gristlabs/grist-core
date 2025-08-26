@@ -5,6 +5,7 @@ import { itemHeader, itemHeaderWrapper, treeViewContainer } from "app/client/ui/
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
 import { hoverTooltip, overflowTooltip } from 'app/client/ui/tooltips';
+import { unstyledButton, unstyledLink } from 'app/client/ui2018/unstyled';
 import { menu, menuDivider, menuItem, menuItemAsync, menuText } from "app/client/ui2018/menus";
 import { Computed, dom, domComputed, DomElementArg, makeTestId, observable, Observable, styled } from "grainjs";
 
@@ -23,6 +24,7 @@ export interface PageOptions {
   isCollapsedByDefault: Computed<boolean>;
   onCollapseByDefault: (value: boolean) => Promise<void>;
   hasSubPages: () => boolean;
+  href: DomElementArg;
 }
 
 function isTargetSelected(target: HTMLElement) {
@@ -47,6 +49,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     isCollapsedByDefault,
     onCollapseByDefault,
     hasSubPages,
+    href
   } = options;
   const isRenaming = observable(false);
   const pageMenu = () => [
@@ -147,18 +150,23 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             // firefox.
           ) :
           cssPageItem(
-            cssPageInitial(
-              testId('initial'),
-              dom.text((use) => use(splitName).initial),
-              cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
-            ),
-            cssPageName(
-              dom.text((use) => use(splitName).displayName),
-              testId('label'),
-              dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
-              overflowTooltip(),
+            cssPageLink(
+              testId('link'),
+              href,
+              cssPageInitial(
+                testId('initial'),
+                dom.text((use) => use(splitName).initial),
+                cssPageInitial.cls('-emoji', (use) => use(splitName).hasEmoji),
+              ),
+              cssPageName(
+                dom.text((use) => use(splitName).displayName),
+                testId('label'),
+                dom.on('click', (ev) => isTargetSelected(ev.target as HTMLElement) && isRenaming.set(true)),
+                overflowTooltip(),
+              ),
             ),
             cssPageMenuTrigger(
+              dom.attr('aria-label', (use) => t("context menu - {{- pageName }}", {pageName: use(name)})),
               cssPageMenuIcon('Dots'),
               menu(pageMenu, {placement: 'bottom-start', parentSelectorToMark: '.' + itemHeader.className}),
               dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
@@ -210,20 +218,45 @@ export function splitPageInitial(name: string): {initial: string, displayName: s
   }
 }
 
-const cssPageItem = styled('a', `
+const cssPageItem = styled('div', `
+  position: relative;
   display: flex;
   flex-direction: row;
   height: 28px;
   align-items: center;
   flex-grow: 1;
-  .${treeViewContainer.className}-close & {
-    display: flex;
-    justify-content: center;
-  }
   &, &:hover, &:focus {
     text-decoration: none;
     outline: none;
     color: inherit;
+  }
+`);
+
+const notClosedTreeViewContainer = `.${treeViewContainer.className}:not(.${treeViewContainer.className}-close)`;
+
+const cssPageLink = styled(unstyledLink, `
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-grow: 1;
+  max-width: 100%;
+  ${notClosedTreeViewContainer} .${cssPageItem.className}:focus-within &,
+  ${notClosedTreeViewContainer} .${cssPageItem.className}:has(.weasel-popup-open) & {
+    max-width: calc(100% - 28px);
+  }
+  @media ${onHoverSupport(true)} {
+    ${notClosedTreeViewContainer} .${itemHeaderWrapper.className}-not-dragging:hover & {
+      max-width: calc(100% - 28px);
+    }
+  }
+  @media ${onHoverSupport(false)} {
+    ${notClosedTreeViewContainer} .${itemHeaderWrapper.className}-not-dragging > .${itemHeader.className}.selected & {
+      max-width: calc(100% - 28px);
+    }
+  }
+  .${treeViewContainer.className}-close & {
+    display: flex;
+    justify-content: center;
   }
 `);
 
@@ -286,7 +319,9 @@ function onHoverSupport(yesNo: boolean) {
   }
 }
 
-const cssPageMenuTrigger = styled('div', `
+const cssPageMenuTrigger = styled(unstyledButton, `
+  position: relative;
+  z-index: 2;
   cursor: default;
   display: none;
   margin-right: 4px;
@@ -300,7 +335,7 @@ const cssPageMenuTrigger = styled('div', `
   .${treeViewContainer.className}-close & {
     display: none !important;
   }
-  &.weasel-popup-open {
+  .${cssPageItem.className}:focus-within &, &.weasel-popup-open {
     display: block;
   }
   @media ${onHoverSupport(true)} {

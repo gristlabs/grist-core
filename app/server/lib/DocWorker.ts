@@ -136,6 +136,7 @@ export class DocWorker {
       startTiming:              activeDocMethod.bind(null, 'owners', 'startTiming'),
       stopTiming:               activeDocMethod.bind(null, 'owners', 'stopTiming'),
       getAssistantState:        activeDocMethod.bind(null, 'owners', 'getAssistantState'),
+      listActiveUserProfiles:   activeDocMethod.bind(null, null, 'listActiveUserProfiles'),
     });
   }
 

@@ -185,7 +185,7 @@
         "Stack series": "Empiler les séries",
         "Above+Below": "Asymétrique",
         "selected new x-axis": "Nouvel axe horizontal sélectionné",
-        "Pie Chart": "Camembert",
+        "Pie Chart": "Diagramme circulaire",
         "LABEL": "LABEL"
     },
     "CodeEditorPanel": {
@@ -598,7 +598,7 @@
         "Invite Team Members": "Inviter un nouveau membre à l'espace d'équipe",
         "Browse Templates": "Parcourir les modèles",
         "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un fichier",
+        "Import Document": "Importer un document",
         "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
         "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. ",
         "Welcome to Grist, {{- name}}!": "Bienvenue sur Grist, {{- name}} !",
@@ -613,7 +613,7 @@
         "All Documents": "Tous les documents",
         "Examples & Templates": "Modèles",
         "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un fichier",
+        "Import Document": "Importer un document",
         "Create Workspace": "Créer un nouveau dossier",
         "Trash": "Corbeille",
         "Rename": "Renommer",
@@ -644,7 +644,7 @@
         "Column Mapping": "Cartographie de Colonne",
         "Destination table": "Table de destination",
         "Skip Table on Import": "Ignorer la table à l'import",
-        "Import from file": "Importer un fichier",
+        "Import from file": "Importer depuis un fichier",
         "Source column": "Colonne source"
     },
     "LeftPanelCommon": {
@@ -1080,7 +1080,12 @@
         "Rename": "Renommer",
         "Remove": "Supprimer",
         "Duplicate Page": "Dupliquer la page",
-        "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document"
+        "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
+        "(default)": "(par défaut)",
+        "Collapse {{maybeDefault}}": "Fermer {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Ouvrir {{maybeDefault}}",
+        "Set default: Collapse": "Définir par défaut : Fermer",
+        "Set default: Expand": "Définir par défaut : Ouvrir"
     },
     "search": {
         "Search in document": "Rechercher dans le document",
@@ -1799,7 +1804,8 @@
         "Submit": "Soumettre",
         "Select...": "Sélectionner...",
         "Search": "Rechercher",
-        "Reset": "Réinitialiser"
+        "Reset": "Réinitialiser",
+        "Submitting…": "En cours de soumission…"
     },
     "widgetTypesMap": {
         "Table": "Table",
@@ -1945,7 +1951,7 @@
         "Delete two-way reference?": "Supprimer la référence bi-directionnelle ?",
         "Column": "Colonne",
         "Table": "Table",
-        "It is the reverse of the reference column {{column}} in table {{table}}.": "C'est l'inverse de la colonne de référence {{colonne}} dans le tableau {{table}}.",
+        "It is the reverse of the reference column {{column}} in table {{table}}.": "C'est l'inverse de la colonne de référence {{column}} dans le tableau {{table}}.",
         "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Cela supprimera la colonne référence {{refCol}} de la table {{refTable}}. La colonne référence {{myName}} restera dans la table actuelle {{myTable}}."
     },
     "SupportGristButton": {
@@ -1978,7 +1984,7 @@
         "Add streaming destination": "Ajouter une destination de streaming",
         "Are you sure you want to delete this streaming destination? This action cannot be undone.": "Êtes-vous certain·e de vouloir supprimer cette destination de streaming ? Cette action ne pourra pas être annulée.",
         "Delete streaming destination?": "Effacer la destination de streaming ?",
-        "Delete": "Effacer",
+        "Delete": "Supprimer",
         "Destination": "Destination",
         "Destinations": "Destinations",
         "Edit": "Modifier",
@@ -2092,7 +2098,7 @@
         "Deletion was not confirmed, skipping.": "Suppression non confirmée, action ignorée.",
         "Confirm Deletion": "Confirmer la suppression",
         "Are you sure you want to delete the following?": "Êtes-vous sûr·e de vouloir supprimer les éléments suivants ?",
-        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Tapez DELETE si vous êtes sûr·e de vouloir supprimer.\nEn cas de doute sur l'effet de cette action, nous vous conseillons de ne pas poursuivre."
+        "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Tapez DELETE si vous êtes sûr·e de vouloir supprimer.\nEn cas de doute sur l'effet de cette action,\nnous vous conseillons de ne pas poursuivre."
     },
     "MentionTextBox": {
         "no access": "pas d'accès"
@@ -2132,5 +2138,19 @@
     "duplicateWidget": {
         "Duplicate widget": "Dupliquer la vue",
         "Duplicate widgets": "Dupliquer les vues"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "En cours de téléversement, merci de patienter…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Ajouter",
+        "Delete": "Supprimer",
+        "Download": "Télécharger",
+        "Drop files here to attach": "Déposer les fichiers ici pour les joindre",
+        "Drop files here to attach.": "Déposer les fichiers ici pour les joindre.",
+        "No attachments": "Aucune pièce-jointe",
+        "Preview not available.": "Aperçu non disponible.",
+        "{{index}} of {{total}}": "{{index}} sur {{total}}",
+        "Uploading…": "En cours de téléversement…"
     }
 }

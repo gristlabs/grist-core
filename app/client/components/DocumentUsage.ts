@@ -13,6 +13,7 @@ import {displayPlanName, Features, isFreePlan} from 'app/common/Features';
 import {capitalizeFirstWord} from 'app/common/gutil';
 import {APPROACHING_LIMIT_RATIO} from 'app/common/Limits';
 import {canUpgradeOrg} from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
@@ -20,11 +21,16 @@ const t = makeT('DocumentUsage');
 
 const testId = makeTestId('test-doc-usage-');
 
+const {deploymentType} = getGristConfig();
+
 // Default used by the progress bar to visually indicate row usage.
-const DEFAULT_MAX_ROWS = 20000;
+// For self-hosters, the 20,000 rows limit is not actually the limit
+// So we use a larger default value to avoid confusion.
+const DEFAULT_MAX_ROWS = deploymentType == "saas" ? 20000 : 150000;
 
 // Default used by the progress bar to visually indicate data size usage.
-const DEFAULT_MAX_DATA_SIZE = DEFAULT_MAX_ROWS * 2 * 1024; // 40MB (2KiB per row)
+// 40MB on SaaS, 300MB for self-hosters (2KiB per row)
+const DEFAULT_MAX_DATA_SIZE = DEFAULT_MAX_ROWS * 2 * 1024;
 
 // Default used by the progress bar to visually indicate attachments size usage.
 const DEFAULT_MAX_ATTACHMENTS_SIZE = 1 * 1024 * 1024 * 1024; // 1GiB

@@ -50,6 +50,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   public startTiming = this._wrapMethod("startTiming");
   public stopTiming = this._wrapMethod("stopTiming");
   public getAssistantState = this._wrapMethod("getAssistantState");
+  public listActiveUserProfiles = this._wrapMethod("listActiveUserProfiles");
 
   public changeUrlIdEmitter = this.autoDispose(new Emitter());
 

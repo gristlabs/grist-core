@@ -121,7 +121,7 @@
         "Grist Templates": "Grist Templates",
         "Billing Account": "Billing Account",
         "Manage Team": "Manage Team",
-        "{{ organizationName }} - Back to home": "{{ organizationName }} - Back to home"
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Back to home"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "This team site is suspended. Documents can be read, but not modified."
@@ -889,7 +889,10 @@
         "Tour of this Document": "Tour of this Document",
         "Validate Data": "Validate Data",
         "Settings": "Settings",
-        "API Console": "API Console"
+        "API Console": "API Console",
+        "context menu - Access Rules": "context menu - Access Rules",
+        "Delete document tour": "Delete document tour",
+        "Preview the tutorial": "Preview the tutorial"
     },
     "TopBar": {
         "Manage Team": "Manage Team",
@@ -1097,7 +1100,8 @@
         "Collapse {{maybeDefault}}": "Collapse {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Expand {{maybeDefault}}",
         "Set default: Collapse": "Set default: Collapse",
-        "Set default: Expand": "Set default: Expand"
+        "Set default: Expand": "Set default: Expand",
+        "context menu - {{- pageName }}": "context menu - {{- pageName }}"
     },
     "search": {
         "Find Next ": "Find Next ",
@@ -1341,7 +1345,8 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}})."
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Set the maximum number of lines for multi-line text."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -2160,5 +2165,19 @@
         "Preview not available.": "Preview not available.",
         "{{index}} of {{total}}": "{{index}} of {{total}}",
         "Uploading…": "Uploading…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Expand all rows to this height",
+        "Max height": "Max height",
+        "Max row height": "Max row height"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Collapse",
+        "Expand": "Expand"
+    },
+    "ActiveUserList": {
+        "active user": "active user",
+        "active user list": "active user list",
+        "open full active user list": "open full active user list"
     }
 }

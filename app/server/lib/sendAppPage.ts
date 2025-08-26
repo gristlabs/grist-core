@@ -132,6 +132,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
     formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
+    adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     ...extra,
   };
 }
