@@ -19,7 +19,7 @@ https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-97
 
 ## Features in `grist-core`
 
-To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or do [`docker run`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately, but if you do, please read the list of [extra extensions](#features-not-in-grist-core) that are not in `grist-core`.
+To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately, but if you do, please read the list of [extra extensions](#features-not-in-grist-core) that are not in `grist-core`.
 
 However you try it, you'll quickly see that Grist is a hybrid database/spreadsheet, meaning that:
 
@@ -83,7 +83,7 @@ If you are curious about where Grist is heading, see [our roadmap](https://githu
 
 ## Features not in `grist-core`
 
-If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or do [`docker run`](#using-grist). Here is a list of features you may see in Grist Labs' hosting or enterprise offerings that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them using the Enterprise toggle on the [Admin Panel](https://support.getgrist.com/admin-panel/).
+If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). Here is a list of features you may see in Grist Labs' hosting or enterprise offerings that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them using the Enterprise toggle on the [Admin Panel](https://support.getgrist.com/admin-panel/).
 
   * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
     - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
