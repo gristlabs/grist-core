@@ -24,6 +24,7 @@ export interface ICommonUrls {
   helpLinkKeys: string;
   helpFilteringReferenceChoices: string;
   helpSandboxing: string;
+  helpSharing: string;
   helpAPI: string;
   helpSummaryFormulas: string;
   helpAdminControls: string;
