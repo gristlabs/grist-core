@@ -2375,6 +2375,23 @@ export class HomeDBManager {
     // up for the fork immediately afterwards).
     const {trunkId, forkId, forkUserId, snapshotId} = parseUrlId(scope.urlId);
 
+    // Unsaved documents don't live in the database and don't
+    // have access control. Anyone with the URL can access them.
+    // In the absence of anything better, we'll just echo back
+    // the current user to confirm their ownership.
+    if (trunkId === NEW_DOCUMENT_CODE) {
+      const user = await this.getUser(scope.userId);
+      return {
+        status: 200,
+        data: {
+          users: [{
+            ...this.makeFullUser(user || this.getAnonymousUser()),
+            access: 'owners',
+          }],
+        },
+      };
+    }
+
     const doc = await this._loadDocAccess({...scope, urlId: trunkId}, Permissions.VIEW);
     // The docMap gives the doc access of the user. It maps user to owners/editors/viewers/guests (member is org only),
     // but since, doc is a leaf resource, in practice we won't have the guests group here.
