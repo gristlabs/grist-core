@@ -1227,7 +1227,8 @@
         "Cancel": "Abbrechen",
         "Showing last {{nb}} comments": "Letzte {{nb}} Kommentare anzeigen",
         "Remove thread": "Thema entfernen",
-        "updated": "aktualisiert"
+        "updated": "aktualisiert",
+        "Copy link": "Link kopieren"
     },
     "ColumnInfo": {
         "COLUMN DESCRIPTION": "SPALTENBESCHREIBUNG",
@@ -2240,5 +2241,10 @@
     "TreeViewComponent": {
         "Collapse": "Zusammenklappen",
         "Expand": "Erweitern"
+    },
+    "ActiveUserList": {
+        "active user": "aktiver Nutzer",
+        "active user list": "aktive Benutzerliste",
+        "open full active user list": "vollständige Liste der aktiven Benutzer öffnen"
     }
 }
