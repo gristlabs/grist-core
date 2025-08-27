@@ -10,6 +10,9 @@ import {IconList, IconName} from 'app/client/ui2018/IconList';
 import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
 import sortBy = require('lodash/sortBy');
+import {marked} from "marked";
+import {renderer} from 'app/client/ui/DocTutorialRenderer';
+import {sanitizeTourHTML} from "app/client/ui/sanitizeHTML";
 
 const t = makeT('DocTour');
 
@@ -44,16 +47,21 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       return String(tableData.getValue(rowId, colId) || "");
     }
     const title = getValue("Title");
-    let body: HTMLElement | string = getValue("Body");
+    const bodyValue = getValue("Body");
+
+    if (!title && !(bodyValue.trim()) ) {
+      return null;
+    }
+    //const bodyHtmlContent
+    const element = sanitizeTourHTML(marked.parse(bodyValue, {
+      async: false, renderer
+    }));
+
     const linkText = getValue("Link_Text");
     const linkUrl = getValue("Link_URL");
     const linkIcon = getValue("Link_Icon") as IconName;
     const locationValue = getValue("Location");
     let placement = getValue("Placement");
-
-    if (!(title || body)) {
-      return null;
-    }
 
     const urlState = sameDocumentUrlState(locationValue);
     if (isNarrowScreen() || !placements.includes(placement as Placement)) {
@@ -67,10 +75,12 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       validLinkUrl = false;
     }
 
+    let body: HTMLElement = dom('div', element);
+
     if (validLinkUrl && linkText) {
       body = dom(
         'div',
-        dom('p', body),
+        body,
         dom('p',
           cssButtons(cssLinkBtn(
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
