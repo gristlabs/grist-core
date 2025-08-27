@@ -27,6 +27,12 @@ export const unstyledLink = styled('a', `
   color: inherit;
   -webkit-text-decoration: inherit;
   text-decoration: inherit;
+
+  &:hover, &:focus {
+    color: inherit;
+    -webkit-text-decoration: inherit;
+    text-decoration: inherit;
+  }
 `);
 
 export const unstyledUl = styled('ul', `
