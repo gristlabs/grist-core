@@ -164,7 +164,7 @@
         "Remove": "Retirer",
         "Symmetric": "Symétrique",
         "Connect gaps": "Relier les points manquants",
-        "Bar Chart": "Graphique à barres",
+        "Bar Chart": "Graphique en barres",
         "Donut Chart": "Graphique en anneau",
         "Area Chart": "Graphique en aires",
         "Line Chart": "Graphique en courbes",
@@ -191,7 +191,7 @@
     },
     "CodeEditorPanel": {
         "Access denied": "Accès refusé",
-        "Code View is available only when you have full document access.": "La vue code n’est disponible que lorsque vous avez un accès complet au document."
+        "Code View is available only when you have full document access.": "La vue code n’est accessible que lorsque vous avez un accès complet au document."
     },
     "ColorSelect": {
         "Default cell style": "Style de cellule par défaut",
@@ -279,7 +279,7 @@
         "This service is not available right now": "Ce service n'est pas disponible pour le moment",
         "(The organization needs a paid plan)": "(L'organisation a besoin d'un plan payant)",
         "Pinned Documents": "Documents épinglés",
-        "Featured": "A la une",
+        "Featured": "À la une",
         "Trash": "Corbeille",
         "Documents stay in Trash for 30 days, after which they get deleted permanently.": "Les documents restent dans la corbeille pendant 30 jours, après quoi ils seront supprimés définitivement.",
         "Trash is empty.": "La corbeille est vide.",
@@ -384,8 +384,8 @@
         "Timing is on": "Le chronomètre tourne",
         "You can make changes to the document, then stop timing to see the results.": "Vous pouvez apporter des modifications au document, puis arrêter le chronométrage pour voir les résultats.",
         "Formula times": "Minuteur de formule",
-        "Only available to document editors": "Seulement disponible aux éditeurs du document",
-        "Only available to document owners": "Seulement disponible aux propriétaires du document",
+        "Only available to document editors": "Accessible uniquement aux éditeurs du document",
+        "Only available to document owners": "Accessible uniquement aux propriétaires du document",
         "Edit": "Modifier",
         "Template": "Modèle",
         "Tutorial": "Tutoriel",
@@ -426,7 +426,7 @@
         "Document type": "Type de document"
     },
     "DocumentUsage": {
-        "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont disponibles qu'aux utilisateurs ayant un accès complet aux données du document.",
+        "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont accessibles qu'aux utilisateurs ayant un accès complet aux données du document.",
         "Attachments Size": "Taille des pièces jointes",
         "Data Size": "Taille des données",
         "Usage": "Utilisation",
@@ -846,7 +846,7 @@
         "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
         "Download document...": "Télécharger le document...",
         "Download attachments...": "Télécharger les PJ...",
-        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est disponible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer."
+        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer."
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
