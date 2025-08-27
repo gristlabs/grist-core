@@ -1156,7 +1156,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     for (const tableId of STRUCTURAL_TABLES) {
-      censor.apply(tables[tableId]);
+      censor.filter(tables[tableId]);
     }
     if (await this.needAttachmentControl(docSession)) {
       // Attachments? No attachments here (whistles innocently).
@@ -2423,7 +2423,7 @@ export class GranularAccess implements GranularAccessForBundle {
                                       ruler.ruleCollection,
                                       step.metaAfter,
                                       await this.hasAccessRulesPermission(cursor.docSession));
-    if (censor.apply(act)) {
+    if (censor.filter(act)) {
       results.push(act);
     }
 
@@ -3195,21 +3195,17 @@ export class CensorshipInfo {
     }
   }
 
-  public apply(a: DataAction) {
-    const tableId = getTableId(a);
-    if (!STRUCTURAL_TABLES.has(tableId)) { return true; }
-    return this.filter(a);
-  }
-
   public filter(a: DataAction) {
     const tableId = getTableId(a);
-    if (!(tableId in this.censored)) {
+    if (['_grist_ACLResources', '_grist_ACLRules', '_grist_Shares'].includes(tableId)) {
       if (!this._canViewACLs && a[0] === 'TableData') {
         a[2] = [];
         a[3] = {};
       }
       return this._canViewACLs;
     }
+    if (!(tableId in this.censored)) { return true; }
+
     const rec = new RecordEditor(a, undefined, true);
     const method = getCensorMethod(getTableId(a));
     const censoredRows = (this.censored as any)[tableId] as Set<number>;
@@ -3237,12 +3233,6 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
         .set('formula', '').set('type', 'Any').set('parentId', 0);
     case '_grist_Views_section_field':
       return rec => rec.set('widgetOptions', '').set('filter', '').set('parentId', 0);
-    case '_grist_ACLResources':
-      return rec => rec;
-    case '_grist_ACLRules':
-      return rec => rec;
-    case '_grist_Shares':
-      return rec => rec;
     case '_grist_Cells':
         return rec => rec.set('content', [GristObjCode.Censored]).set('userRef', '');
     default:
