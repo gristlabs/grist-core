@@ -59,11 +59,12 @@ export class MinIOExternalStorage implements ExternalStorage {
       accessKey?: string,
       secretKey?: string,
       credentialsProvider?: IamAwsProvider,
+      authAutoDetect?: boolean,
       region: string
     },
     private _batchSize?: number
   ) {
-    if (!options.accessKey || !options.secretKey) {
+    if (options.authAutoDetect) {
       options.credentialsProvider = new IamAwsProvider({});
     }
     this._s3 = new minio.Client(options) as unknown as MinIOClient;
