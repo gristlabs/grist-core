@@ -3,8 +3,10 @@ import * as commands from 'app/client/components/commands';
 import {dragOverClass} from 'app/client/lib/dom';
 import {stopEvent} from 'app/client/lib/domUtils';
 import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
+import {makeT} from "app/client/lib/localization";
 import {cssRow} from 'app/client/ui/RightPanelStyles';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {loadingSpinner} from "app/client/ui2018/loaders";
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {encodeQueryParams} from 'app/common/gutil';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
@@ -13,11 +15,13 @@ import {MetaTableData} from 'app/client/models/TableData';
 import { SingleCell } from 'app/common/TableData';
 import {KoSaveableObservable} from 'app/client/models/modelUtil';
 import {UploadResult} from 'app/common/uploads';
+import {UIRowId} from 'app/plugin/GristAPI';
 import { GristObjCode } from 'app/plugin/GristData';
-import {Computed, dom, DomContents, fromKo, input, onElem, styled} from 'grainjs';
+import {Computed, dom, DomContents, fromKo, input, Observable, onElem, styled} from 'grainjs';
 import {extname} from 'path';
 import {FormFieldRulesConfig} from "app/client/components/Forms/FormConfig";
 
+const t = makeT('AttachmentsWidget');
 
 /**
  * AttachmentsWidget - A widget for displaying attachments as image previews.
@@ -26,6 +30,8 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _height: KoSaveableObservable<string>;
+  private _uploadingTimeouts: Partial<Record<UIRowId, number>> = {};
+  private _uploadingStatesObs: Observable<Partial<Record<UIRowId, boolean>>>;
 
   constructor(field: ViewFieldRec) {
     super(field);
@@ -35,10 +41,15 @@ export class AttachmentsWidget extends NewAbstractWidget {
     this._attachmentsTable = this._getDocData().getMetaTable('_grist_Attachments');
 
     this._height = this.options.prop('height');
+    this._uploadingStatesObs = Observable.create(this, {});
 
     this.autoDispose(this._height.subscribe(() => {
       this.field.viewSection().events.trigger('rowHeightChange');
     }));
+
+    this.onDispose(() => {
+      Object.values(this._uploadingTimeouts).forEach(timeout => clearTimeout(timeout));
+    });
   }
 
   public buildDom(row: DataRowModel) {
@@ -50,8 +61,14 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
     const colId = this.field.colId();
     const tableId = this.field.column().table().tableId();
+
+    const isUploadingObs = Computed.create(null, this._uploadingStatesObs, (use, states) =>
+      states[row.getRowId()] || false
+    );
+
     return cssAttachmentWidget(
       dom.autoDispose(values),
+      dom.autoDispose(isUploadingObs),
 
       dom.cls('field_clip'),
       dragOverClass('attachment_drag_over'),
@@ -69,6 +86,13 @@ export class AttachmentsWidget extends NewAbstractWidget {
             rowId, colId, tableId,
           }));
       }),
+      dom.maybe(isUploadingObs, () =>
+        cssSpinner(
+          cssSpinner.cls('-has-attachments', (use) => use(values).length > 0),
+          testId('attachment-spinner'),
+          {title: t('Uploading, please wait…')}
+        )
+      ),
       dom.on('drop', ev => this._uploadAndSave(row, cellValue, ev.dataTransfer!.files)),
       testId('attachment-widget'),
     );
@@ -141,36 +165,112 @@ export class AttachmentsWidget extends NewAbstractWidget {
     });
   }
 
+  private _setUploadingState(rowId: UIRowId, uploading: boolean): void {
+    const timeouts = this._uploadingTimeouts;
+    const states = this._uploadingStatesObs.get();
+    if (timeouts[rowId]) {
+      clearTimeout(timeouts[rowId]);
+    }
+    if (uploading) {
+      timeouts[rowId] = window.setTimeout(() => {
+        if (this.isDisposed()) {
+          return;
+        }
+        states[rowId] = true;
+        this._uploadingStatesObs.set({...states});
+        // let the view know about the spinner so that it can expands the row height for it if needed
+        const viewInstance = this.field.viewSection().viewInstance();
+        const rowModel = viewInstance?.viewData.getRowModel(rowId);
+        if (rowModel) {
+          viewInstance?.onRowResize([rowModel]);
+        }
+      }, 750);
+    } else {
+      states[rowId] = false;
+      this._uploadingStatesObs.set({...states});
+    }
+  }
+
   private async _selectAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>): Promise<void> {
-    const uploadResult = await selectFiles({docWorkerUrl: this._getDocComm().docWorkerUrl,
-                                            multiple: true, sizeLimit: 'attachment'});
-    return this._save(row, value, uploadResult);
+    // keep a copy of the row id at the beginning ; because the given row may change while uploading
+    // (example: user starts uploading in card 2/10, then switches to card 3/10, the upload must save to card 2/10)
+    const rowId = row.getRowId();
+    try {
+      const uploadResult = await selectFiles({
+        docWorkerUrl: this._getDocComm().docWorkerUrl,
+        multiple: true,
+        sizeLimit: 'attachment',
+      }, (progress) => {
+        if (progress === 0) {
+          this._setUploadingState(rowId, true);
+        }
+      });
+      this._setUploadingState(rowId, false);
+      return this._save(rowId, value, uploadResult);
+    } catch (error) {
+      this._setUploadingState(rowId, false);
+      throw error;
+    }
   }
 
   private async _uploadAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>,
         files: FileList): Promise<void> {
-    const uploadResult = await uploadFiles(Array.from(files),
-                                           {docWorkerUrl: this._getDocComm().docWorkerUrl,
-                                            sizeLimit: 'attachment'});
-    return this._save(row, value, uploadResult);
+    // keep a copy of the row id at the beginning ; because the given row may change while uploading
+    // (example: user starts uploading in card 2/10, then switches to card 3/10, the upload must save to card 2/10)
+    const rowId = row.getRowId();
+    // Move the cursor here (note that this may involve switching active section when dragging
+    // into a cell of an inactive section).
+    commands.allCommands.setCursor.run(row, this.field);
+    try {
+      const uploadResult = await uploadFiles(
+        Array.from(files),
+        {docWorkerUrl: this._getDocComm().docWorkerUrl, sizeLimit: 'attachment'},
+        (progress) => {
+          if (progress === 0) {
+            this._setUploadingState(rowId, true);
+          }
+        }
+      );
+      this._setUploadingState(rowId, false);
+      return this._save(rowId, value, uploadResult);
+    } catch (error) {
+      this._setUploadingState(rowId, false);
+      throw error;
+    }
   }
 
-  private async _save(row: DataRowModel, value: KoSaveableObservable<CellValue>,
+  private async _save(rowId: UIRowId, value: KoSaveableObservable<CellValue>,
         uploadResult: UploadResult|null
   ): Promise<void> {
     if (!uploadResult) { return; }
+
+    // Add a row if one doesn't already exist.
+    if (rowId === "new") {
+      const viewSection = this.field.viewSection();
+      const view = viewSection.viewInstance();
+      if (!view) {
+        throw new Error(`Widget ${viewSection.getRowId()} not found`);
+      }
+
+      rowId = await view.insertRow();
+    }
+
+    // Upload the attachments.
     const rowIds = await this._getDocComm().addAttachments(uploadResult.uploadId);
+
+    const tableId = this.field.tableId();
+    const tableData = this._getDocData().getTable(tableId);
+    if (!tableData) {
+      throw new Error(`Table ${tableId} not found`);
+    }
+
+    // Save the attachment IDs to the cell.
     // Values should be saved with a leading "L" to fit Grist's list value encoding.
     const formatted: CellValue = value() ? value() : [GristObjCode.List];
     const newValue = (formatted as number[]).concat(rowIds) as CellValue;
-
-    // Move the cursor here (note that this may involve switching active section when dragging
-    // into a cell of an inactive section). Then send the 'input' command; it is normally used for
-    // key presses to open an editor; here the "typed text" is the new value. It is handled by
-    // AttachmentsEditor.skipEditor(), and makes the edit apply to editRow, which handles setting
-    // default values based on widget linking.
-    commands.allCommands.setCursor.run(row, this.field);
-    commands.allCommands.input.run(newValue);
+    await tableData.sendTableAction(["UpdateRecord", rowId, {
+        [this.field.colId()]: newValue,
+    }]);
   }
 }
 
@@ -271,4 +371,17 @@ const cssFileType = styled('div', `
   &-small { font-size: ${vars.xxsmallFontSize}; }
   &-medium { font-size: ${vars.smallFontSize}; }
   &-large { font-size: ${vars.mediumFontSize}; }
+`);
+
+const cssSpinner = styled(loadingSpinner, `
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin-left: 23px;
+
+  &-has-attachments {
+    margin-left: 2px;
+    margin-top: 2px;
+    margin-bottom: 6px;
+  }
 `);

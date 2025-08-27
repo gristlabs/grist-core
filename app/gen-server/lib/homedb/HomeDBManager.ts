@@ -5,7 +5,14 @@ import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {ANONYMOUS_PLAN, canAddOrgMembers, Features, isFreePlan} from 'app/common/Features';
+import {
+  ANONYMOUS_PLAN,
+  canAddOrgMembers,
+  Features,
+  isFreePlan,
+  mergedFeatures,
+  PERSONAL_FREE_PLAN
+} from 'app/common/Features';
 import {buildUrlId, MIN_URLID_PREFIX_LENGTH, parseUrlId} from 'app/common/gristUrls';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
@@ -34,16 +41,22 @@ import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
 import {BillingAccountManager} from 'app/gen-server/entity/BillingAccountManager';
 import {Config} from 'app/gen-server/entity/Config';
 import {DocPref} from 'app/gen-server/entity/DocPref';
-import {Document} from 'app/gen-server/entity/Document';
+import {Document, FilteredDocument} from 'app/gen-server/entity/Document';
 import {Group} from 'app/gen-server/entity/Group';
 import {Limit} from 'app/gen-server/entity/Limit';
 import {AccessOption, AccessOptionWithRole, Organization} from 'app/gen-server/entity/Organization';
 import {Pref} from 'app/gen-server/entity/Pref';
-import {getDefaultProductNames, personalFreeFeatures, Product} from 'app/gen-server/entity/Product';
+import {
+  getAnonymousFeatures,
+  getDefaultProductNames,
+  personalFreeFeatures,
+  Product
+} from 'app/gen-server/entity/Product';
 import {Secret} from 'app/gen-server/entity/Secret';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
+import {HomeDBCaches} from 'app/gen-server/lib/homedb/Caches';
 import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
@@ -63,7 +76,7 @@ import {
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
-import {applyPatch} from 'app/gen-server/lib/TypeORMPatches';
+import {applyPatch, maybePrepareStatement} from 'app/gen-server/lib/TypeORMPatches';
 import {
   bitOr,
   getRawAndEntities,
@@ -80,11 +93,12 @@ import {makeId} from 'app/server/lib/idUtils';
 import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
+import {IPubSubManager} from 'app/server/lib/PubSubManager';
 import {getScope} from 'app/server/lib/requestUtils';
 import {expectedResetDate} from 'app/server/lib/serverUtils';
 import {WebHookSecret} from 'app/server/lib/Triggers';
 import {Request} from 'express';
-import {defaultsDeep, flatten, pick, size} from 'lodash';
+import {flatten, pick, size} from 'lodash';
 import moment from 'moment';
 import {
   Brackets,
@@ -139,6 +153,11 @@ export const Deps = {
         minValue: 1,
       }),
   },
+  usePreparedStatements: appSettings.section('db').section('postgres').flag('usePreparedStatements')
+    .readBool({
+      envVar: 'GRIST_POSTGRES_USE_PREPARED_STATEMENTS',
+      defaultValue: false
+    }),
 };
 
 // Name of a special workspace with examples in it.
@@ -269,6 +288,8 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * encapsulating the typeorm logic.
  */
 export class HomeDBManager {
+  public caches: HomeDBCaches|null;
+
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager();
   private _connection: DataSource;
@@ -285,8 +306,12 @@ export class HomeDBManager {
     return this._connection.driver.options.type;
   }
 
-  public constructor(public storageCoordinator?: StorageCoordinator,
-                     private _notifier: INotifier = EmptyNotifier) {
+  public constructor(
+    public storageCoordinator?: StorageCoordinator,
+    private _notifier: INotifier = EmptyNotifier,
+    pubSubManager?: IPubSubManager,
+  ) {
+    this.caches = pubSubManager ? new HomeDBCaches(this, pubSubManager) : null;
   }
 
   public usersManager() {
@@ -896,6 +921,10 @@ export class HomeDBManager {
         .select('shares')
         .from(Share, 'shares')
         .leftJoinAndSelect('shares.doc', 'doc')
+        .leftJoinAndSelect('doc.workspace', 'workspace')
+        .leftJoinAndSelect('workspace.org', 'org')
+        .leftJoinAndSelect('org.billingAccount', 'billing_account')
+        .leftJoinAndSelect('billing_account.product', 'product')
         .where('key = :key', {key: shareKey})
         .andWhere('doc.removed_at IS NULL')
         .getOne();
@@ -910,16 +939,12 @@ export class HomeDBManager {
         updatedAt: new Date().toISOString(),
         isPinned: false,
         urlId: key.urlId,
-        // For the moment, I don't include a useful workspace.
-        // TODO: look up the document properly, perhaps delegating
-        // to the regular path through this method.
-        workspace: this.unwrapQueryResult<Workspace>(
-          await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
-                                   this._exampleWorkspaceId)),
+        workspace: res.doc.workspace,
         aliases: [],
         access: 'editors',  // a share may have view/edit access,
                             // need to check at granular level
       } as any;
+
       return doc;
     }
     const urlId = trunkId;
@@ -940,10 +965,16 @@ export class HomeDBManager {
         urlId: null,
         workspace: this.unwrapQueryResult<Workspace>(
           await this.getWorkspace({userId: this._usersManager.getSupportUserId()},
-                                   this._exampleWorkspaceId)),
+                                   this._exampleWorkspaceId, transaction)),
         aliases: [],
         access
       } as any;
+
+      // Use free personal account features for documents opened this way.
+      doc.workspace.org.billingAccount = patch(new BillingAccount(), {
+        features: getAnonymousFeatures(),
+        product: patch(new Product(), {name: PERSONAL_FREE_PLAN})
+      });
     } else {
       // We can't delegate filtering of removed documents to the db, since we'll be
       // caching authentication.  But we also don't need to delegate filtering, since
@@ -961,7 +992,7 @@ export class HomeDBManager {
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
-      const features = doc.workspace.org.billingAccount.getFeatures();
+      const features = doc.workspace.org.billingAccount?.getFeatures() || {};
       if (features.readOnlyDocs || this.isReadonly()) {
         // Don't allow any access to docs that is stronger than "viewers".
         doc.access = roles.getWeakestRole('viewers', doc.access);
@@ -1030,6 +1061,12 @@ export class HomeDBManager {
   // Used in tests, and to clear all timeouts when exiting.
   public flushDocAuthCache() {
     this._docAuthCache.clear();
+  }
+
+  // Clear all caches. This is used, in particular, on server exit.
+  public clearCaches() {
+    this.flushDocAuthCache();
+    this.caches?.clear();
   }
 
   // Flush cached access information about a specific document
@@ -1755,8 +1792,9 @@ export class HomeDBManager {
     props: Partial<DocumentProperties>,
     transaction?: EntityManager
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
+    const notifications: Array<() => Promise<void>> = [];
     const markPermissions = Permissions.SCHEMA_EDIT;
-    return await this.runInTransaction(transaction, async (manager) => {
+    const result = await this.runInTransaction(transaction, async (manager) => {
       const {forkId} = parseUrlId(scope.urlId);
       let query: SelectQueryBuilder<Document>;
       if (forkId) {
@@ -1775,7 +1813,7 @@ export class HomeDBManager {
         return queryResult;
       }
       // Update the name and save.
-      const doc: Document = queryResult.data;
+      const doc = getDocResult(queryResult);
       const previous = structuredClone(doc);
       doc.checkProperties(props);
       doc.updateFromProperties(props);
@@ -1808,8 +1846,14 @@ export class HomeDBManager {
           .execute();
         // TODO: we could limit the max number of aliases stored per document.
       }
+      // Slightly strange but doc metadata may affect doc-access results because docs of type
+      // 'tutorial' adjust returned access differently from other docs (which may not be ideal).
+      // The callback approach is to publish the invalidation after the transaction commits.
+      this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
       return {status: 200, data: {previous, current: doc}};
     });
+    for (const notification of notifications) { await notification(); }
+    return result;
   }
 
   // Checks that the user has REMOVE permissions to the given document. If not, throws an
@@ -1828,7 +1872,7 @@ export class HomeDBManager {
           // If the query for the fork failed, return the failure result.
           return queryResult;
         }
-        const fork: Document = queryResult.data;
+        const fork = getDocResult(queryResult);
         const data = structuredClone(fork);
         await manager.remove(fork);
         return {status: 200, data};
@@ -1847,7 +1891,7 @@ export class HomeDBManager {
           // If the query for the doc failed, return the failure result.
           return queryResult;
         }
-        const doc: Document = queryResult.data;
+        const doc = getDocResult(queryResult);
         const data = structuredClone(doc);
         const docGroups = doc.aclRules.map(docAcl => docAcl.group);
         // Delete the doc and doc ACLs/groups.
@@ -2020,6 +2064,11 @@ export class HomeDBManager {
             await scrubUserFromOrg(org.id, parseInt(deltaUser, 10), userId, manager);
           }
         }
+
+        // Get docIds to invalidate, but publish the invalidation once the transaction commits.
+        this.caches?.addInvalidationDocAccess(notifications,
+          await this._getDocsInheritingFrom(manager, {orgId: org.id}));
+
         // Emit an event if the number of org users is changing.
         const membersAfter = UsersManager.getUsersWithRole(groups, this._usersManager.getExcludedUserIds());
         const countAfter = removeRole(membersAfter).length;
@@ -2118,6 +2167,9 @@ export class HomeDBManager {
       // If the users in workspace were changed, make a call to repair the guests in the org.
       if (userIdDelta) {
         await this._repairOrgGuests(scope, orgId, manager);
+        // Get docIds to invalidate, but publish the invalidation once the transaction commits.
+        this.caches?.addInvalidationDocAccess(notifications,
+          await this._getDocsInheritingFrom(manager, {wsId: ws.id}));
         notifications.push(this._inviteNotification(userId, ws, userIdDelta, membersBefore));
       }
       return {
@@ -2189,6 +2241,8 @@ export class HomeDBManager {
         // If the users in the doc were changed, make calls to repair workspace then org guests.
         await this._repairWorkspaceGuests(scope, doc.workspace.id, manager);
         await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
+        // The callback approach is to publish the invalidation after the transaction commits.
+        this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
         notifications.push(this._inviteNotification(userId, doc, userIdDelta, membersBefore));
       }
       return {
@@ -2344,6 +2398,7 @@ export class HomeDBManager {
       const orgAccess = orgMapWithMembership[u.id] || null;
       return {
         ...this.makeFullUser(u),
+        firstLoginAt: undefined, // Not part of PermissionData.
         loginEmail: undefined,    // Not part of PermissionData.
         access: docMap[u.id] || null,
         parentAccess: roles.getEffectiveRole(
@@ -2440,7 +2495,8 @@ export class HomeDBManager {
     scope: DocScope,
     wsId: number
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
-    return await this._connection.transaction(async manager => {
+    const notifications: Array<() => Promise<void>> = [];
+    const result = await this._connection.transaction(async manager => {
       // Get the doc
       const docQuery = this._doc(scope, {
         manager,
@@ -2460,7 +2516,7 @@ export class HomeDBManager {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
       }
-      const doc: Document = docQueryResult.data;
+      const doc = getDocResult(docQueryResult);
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -2546,8 +2602,12 @@ export class HomeDBManager {
           await this._repairOrgGuests(scope, doc.workspace.org.id, manager);
         }
       }
+      // The callback approach is to publish the invalidation after the transaction commits.
+      this.caches?.addInvalidationDocAccess(notifications, [doc.id]);
       return {status: 200, data: {previous, current}};
     });
+    for (const notification of notifications) { await notification(); }
+    return result;
   }
 
   // Pin or unpin a doc.
@@ -2568,7 +2628,7 @@ export class HomeDBManager {
         // If the query for the doc failed, return the failure result.
         return docQueryResult;
       }
-      const doc: Document = docQueryResult.data;
+      const doc = getDocResult(docQueryResult);
       if (doc.isPinned !== setPinned) {
         doc.isPinned = setPinned;
         // Forcibly remove the aliases relation from the document object, so that TypeORM
@@ -2652,8 +2712,8 @@ export class HomeDBManager {
       .getOne() || undefined;
   }
 
-  public async getDocFeatures(docId: string): Promise<Features | undefined> {
-    const billingAccount = await this._connection.createQueryBuilder()
+  public async getDocFeatures(docId: string, transaction?: EntityManager): Promise<Features | undefined> {
+    const billingAccount = await (transaction || this._connection).createQueryBuilder()
       .select('account')
       .from(BillingAccount, 'account')
       .leftJoinAndSelect('account.product', 'product')
@@ -2667,7 +2727,7 @@ export class HomeDBManager {
       return undefined;
     }
 
-    return defaultsDeep(billingAccount.features, billingAccount.product.features);
+    return mergedFeatures(billingAccount.features, billingAccount.product.features);
   }
 
   public async getDocProduct(docId: string): Promise<Product | undefined> {
@@ -3225,7 +3285,8 @@ export class HomeDBManager {
 
   public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
     const {urlId: docId, userId} = scope;
-    return await this.runInTransaction(undefined, async (manager) => {
+    const notifications: Array<() => Promise<void>> = [];
+    await this.runInTransaction(undefined, async (manager) => {
       const [doc, origPrefs] = await this._doGetDocPrefs(scope, manager);
       const updates = [];
       if (newPrefs.docDefaults) {
@@ -3244,7 +3305,10 @@ export class HomeDBManager {
         .values(updates)
         .onConflict(`(doc_id, COALESCE(user_id, 0)) DO UPDATE SET prefs = EXCLUDED.prefs`)
         .execute();
+
+      this.caches?.addInvalidationDocPrefs(notifications, [docId]);
     });
+    for (const notification of notifications) { await notification(); }
   }
 
   /**
@@ -3442,19 +3506,19 @@ export class HomeDBManager {
 
         return existing;
       }
-      const product = await manager.createQueryBuilder()
-        .select('product')
-        .from(Product, 'product')
-        .innerJoinAndSelect('product.accounts', 'account')
-        .where('account.id = :accountId', {accountId})
+      const ba = await manager.createQueryBuilder()
+        .select('billing_accounts')
+        .from(BillingAccount, 'billing_accounts')
+        .leftJoinAndSelect('billing_accounts.product', 'products')
+        .where('billing_accounts.id = :accountId', {accountId})
         .getOne();
-      if (!product) {
+      if (!ba) {
         throw new Error(`getLimit: no product for account ${accountId}`);
       }
       existing = new Limit();
-      existing.billingAccountId = product.accounts[0].id;
+      existing.billingAccountId = ba.id;
       existing.type = limitType;
-      existing.limit = product.features.baseMaxAssistantCalls ?? 0;
+      existing.limit = ba.getFeatures().baseMaxAssistantCalls ?? 0;
       existing.usage = 0;
       await manager.save(existing);
       return existing;
@@ -3940,10 +4004,15 @@ export class HomeDBManager {
     }
   }
 
-  private _docs(manager?: EntityManager) {
-    return (manager || this._connection).createQueryBuilder()
+  // If cte is provided, assume it is a common table
+  // expression that selects certain rows of docs, and
+  // substitute it in.
+  private _docs(manager?: EntityManager, cte?: string) {
+    const builder = (manager || this._connection).createQueryBuilder();
+    const docs = (cte ? builder.addCommonTableExpression(cte, 'filtered_docs') : builder)
       .select('docs')
-      .from(Document, 'docs');
+      .from(cte ? FilteredDocument : Document, 'docs');
+    return docs;
   }
 
   /**
@@ -3961,7 +4030,25 @@ export class HomeDBManager {
     // to support https://docs.getgrist.com/api/docs/<docid> for team
     // site documents.
     const mergedOrg = this.isMergedOrg(scope.org || null);
-    let query = this._docs(options.manager)
+    // OPTIMIZATION: we add a CTE to prefilter docs table for a union
+    // of matches on docs.id or on aliases. We observe the Postgres query
+    // planner having a hard time with the WHERE clause that does this
+    // filtering later with an OR.
+    // QUIRK: the :urlId parameter in the CTE relies on it being introduced
+    // later in the where clause. There's nowhere to add it in TypeORM's CTE
+    // interface.
+    let query = this._docs(options.manager, `
+  SELECT docs.*
+  FROM docs
+  WHERE docs.id = :urlId
+
+  UNION ALL
+
+  SELECT docs.*
+  FROM aliases
+  JOIN docs ON docs.id = aliases.doc_id
+  WHERE aliases.url_id = :urlId
+`)
       .leftJoinAndSelect('docs.workspace', 'workspaces')
       .leftJoinAndSelect('workspaces.org', 'orgs')
       .leftJoinAndSelect('docs.aliases', 'aliases')
@@ -4140,9 +4227,10 @@ export class HomeDBManager {
 
   private _withAccess(qb: SelectQueryBuilder<any>, users: AvailableUsers,
                       table: 'orgs'|'workspaces'|'docs',
-                      accessStyle: AccessStyle = 'open') {
+                      accessStyle: AccessStyle = 'open',
+                      variableNamePrefix?: string) {
     return qb
-      .addSelect(this._markIsPermitted(table, users, accessStyle, null), `${table}_permissions`);
+      .addSelect(this._markIsPermitted(table, users, accessStyle, null, variableNamePrefix), `${table}_permissions`);
   }
 
   /**
@@ -4280,6 +4368,10 @@ export class HomeDBManager {
       scope?: Scope,
     } = {}
   ): Promise<QueryResult<T[]>> {
+    if (Deps.usePreparedStatements) {
+      const sql = options.rawQueryBuilder?.getSql() || queryBuilder.getSql();
+      maybePrepareStatement(sql);
+    }
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
@@ -4459,7 +4551,8 @@ export class HomeDBManager {
     resType: 'orgs'|'workspaces'|'docs',
     users: AvailableUsers,
     accessStyle: AccessStyle,
-    permissions: Permissions|null = Permissions.VIEW
+    permissions: Permissions|null = Permissions.VIEW,
+    variableNamePrefix?: string,
   ): (qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any> {
     const idColumn = resType.slice(0, -1) + "_id";
     return qb => {
@@ -4516,10 +4609,10 @@ export class HomeDBManager {
           );
         }
         q = q.from('acl_rules', 'acl_rules');
-        q = this._getUsersAcls(q, users, accessStyle);
+        q = this._getUsersAcls(q, users, accessStyle, variableNamePrefix);
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
-          q = q.andWhere(`(acl_rules.permissions & ${permissions}) = ${permissions}`).limit(1);
+          q = q.andWhere(`(acl_rules.permissions & :permissions) = :permissions`, {permissions}).limit(1);
         } else if (!UsersManager.isSingleUser(users)) {
           q = q.addSelect('profiles.id');
           q = q.addSelect('profiles.display_email');
@@ -4551,7 +4644,7 @@ export class HomeDBManager {
   // for implementing something like teams in the future.  It has no measurable effect on
   // speed.
   private _getUsersAcls(qb: SelectQueryBuilder<any>, users: AvailableUsers,
-                        accessStyle: AccessStyle) {
+                        accessStyle: AccessStyle, variableNamePrefix: string = 'acls') {
     // Every acl_rule is associated with a single group.  A user may
     // be a direct member of that group, via the group_users table.
     // Or they may be a member of a group that is a member of that
@@ -4559,6 +4652,8 @@ export class HomeDBManager {
     // removed.  We unroll to a fixed number of steps, and use joins
     // rather than a recursive query, since we need this step to be as
     // fast as possible.
+    const userIdVariable = `${variableNamePrefix}UserId`;
+    const permissionsVariable = `${variableNamePrefix}Permissions`;
     qb = qb
       // filter for the specified user being a direct or indirect member of the acl_rule's group
       .where(new Brackets(cond => {
@@ -4567,7 +4662,8 @@ export class HomeDBManager {
           // didn't, we'd need to use distinct parameter names, since
           // we may include this code with different user ids in the
           // same query
-          cond = cond.where(`${users} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
+          cond = cond.where(`:${userIdVariable} IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`,
+                            {[userIdVariable]: users});
           // Support public access via the special "everyone" user, except for 'openStrict' mode.
           if (accessStyle !== 'openNoPublic') {
             const everyoneId = this._usersManager.getEveryoneUserId();
@@ -4584,8 +4680,8 @@ export class HomeDBManager {
           const previewerId = this._usersManager.getSpecialUserId(PREVIEWER_EMAIL);
           if (users === previewerId) {
             // All acl_rules granting view access are available to previewer user.
-            cond = cond.orWhere('acl_rules.permissions = :permission',
-                                {permission: Permissions.VIEW});
+            cond = cond.orWhere(`acl_rules.permissions = :${permissionsVariable}`,
+                                {[permissionsVariable]: Permissions.VIEW});
           }
         } else {
           cond = cond.where(`profiles.id IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
@@ -4613,6 +4709,25 @@ export class HomeDBManager {
     }
     // join the relevant groups and subgroups
     return this._joinToAllGroupUsers(qb);
+  }
+
+  private async _getDocsInheritingFrom(manager: EntityManager, options: {orgId: number} | {wsId: number}) {
+    const queryBuilder = manager.createQueryBuilder()
+      .from(Document, 'docs')
+      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
+      .leftJoin('group_groups', 'gg1', 'gg1.group_id = acl_rules.group_id')
+      .leftJoin('group_groups', 'gg2', 'gg2.group_id = gg1.subgroup_id')
+      .leftJoin('group_groups', 'gg3', 'gg3.group_id = gg2.subgroup_id')
+      .innerJoin('acl_rules', 'rules', 'rules.group_id in (gg1.subgroup_id, gg2.subgroup_id, gg3.subgroup_id)')
+      .chain(qb => (
+        'orgId' in options ? qb.where('rules.org_id = :orgId', {orgId: options.orgId}) :
+        'wsId' in options ? qb.where('rules.workspace_id = :wsId', {wsId: options.wsId}) :
+        qb
+      ))
+      .select('docs.id', 'docId')
+      .distinct(true);
+    const result = await queryBuilder.getRawMany();
+    return result.map(r => r.docId);
   }
 
   // Takes a query that includes 'acl_rules' and joins it to all group_users records that are
@@ -4646,7 +4761,7 @@ export class HomeDBManager {
     }
     if (limit.users || limit.userId) {
       for (const res of resources) {
-        qb = this._withAccess(qb, limit.users || limit.userId, res, accessStyle);
+        qb = this._withAccess(qb, limit.users || limit.userId, res, accessStyle, 'limit');
       }
     }
     if (resources.includes('docs') && resources.includes('workspaces') && !limit.showAll) {
@@ -4995,6 +5110,10 @@ async function verifyEntity(
   queryBuilder: SelectQueryBuilder<any>,
   options: { skipPermissionCheck?: boolean } = {}
 ): Promise<QueryResult<any>> {
+  if (Deps.usePreparedStatements) {
+    const sql = queryBuilder.getSql();
+    maybePrepareStatement(sql);
+  }
   const results = await queryBuilder.getRawAndEntities();
   if (results.entities.length === 0) {
     return {
@@ -5021,7 +5140,9 @@ async function verifyEntity(
 // Extract a human-readable name for the type of entity being selected.
 function getFrom(queryBuilder: SelectQueryBuilder<any>): string {
   const alias = queryBuilder.expressionMap.mainAlias;
-  return (alias && alias.metadata && alias.metadata.name.toLowerCase()) || 'resource';
+  const name = (alias && alias.metadata && alias.metadata.name.toLowerCase()) || 'resource';
+  if (name === 'filtereddocument') { return 'document'; }
+  return name;
 }
 
 // Flatten a map of users per role into a simple list of users.
@@ -5078,4 +5199,26 @@ function getUserAccessChanges({
     email: user.loginEmail,
     access: userIdDelta[user.id],
   }));
+}
+
+/**
+ * Extract a Document from a query result that is expected to
+ * contain one. If it is a FilteredDocument, reset the prototype
+ * to be Document - that class is just a tiny variant of Document
+ * with a different alias for use with CTEs as a hack around
+ * some TypeORM limitations.
+ * CAUTION: this modifies material in the queryResult.
+ */
+function getDocResult(queryResult: QueryResult<any>) {
+  const doc: Document = queryResult.data;
+  // The result may be a Document or a FilteredDocument,
+  // For our purposes they are the same.
+  if (Object.getPrototypeOf(doc) === FilteredDocument.prototype) {
+    Object.setPrototypeOf(doc, Document.prototype);
+  }
+  return doc;
+}
+
+function patch<T extends object>(obj: T, ...patches: Partial<T>[]): T {
+  return Object.assign(obj, ...patches);
 }

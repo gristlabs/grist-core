@@ -305,7 +305,7 @@ describe('CellColor', function() {
     // Empty cell to clear error from converting toggle to date
     await cell.click();
     await driver.sendKeys(Key.DELETE);
-    await gu.waitAppFocus(true);
+    await gu.waitAppFocus();
 
     const clip = cell.find('.field_clip');
 
@@ -457,13 +457,13 @@ describe('CellColor', function() {
   });
 
   const toggleDefaultColor = 'rgba(96, 96, 96, 1)';
-  const switchDefaultColor = 'rgba(44, 176, 175, 1)';
+  const switchDefaultColor = 'rgba(0, 144, 88, 1)';
   const getPickerCurrentTextColor = () => driver.find('.test-text-color-square').getCssValue('background-color');
 
   it('should handle correctly default text color', async function() {
     // Create new checkbox column
     await driver.find('.mod-add-column').click();
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
     await gu.waitForServer();
     await gu.setType(/Toggle/);
 
@@ -527,7 +527,7 @@ describe('CellColor', function() {
 
     // create a new checkbox column
     await driver.find('.mod-add-column').click();
-    await driver.find('.test-new-columns-menu-add-new').click();
+    await driver.findWait('.test-new-columns-menu-add-new', 100).click();
 
     await gu.waitForServer();
     await gu.setType(/Toggle/);
@@ -555,7 +555,9 @@ describe('CellColor', function() {
     await gu.waitForServer();
 
     // check the switch's color
-    assert.equal(await cell().find('.switch_slider').getCssValue('background-color'), gu.hexToRgb('#2CB0AF'));
+    assert.equal(
+      await cell().find('.test-toggle-switch-slider').getCssValue('background-color'), gu.hexToRgb('#009058')
+    );
 
   });
 });

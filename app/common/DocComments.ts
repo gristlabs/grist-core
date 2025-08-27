@@ -90,13 +90,68 @@ export function makeDocComment(
   };
 }
 
+
+type MentionChunk =
+  | string
+  | { name: string; ref: string };
+
+const mentionRegex = /\[(@[^\]]+?)\]\(user:(\w+)\)/;
+
+/**
+ * Splits a string into chunks of plain text and mention objects.
+ * Each mention is of the form [@name](user:ref).
+ *
+ * Example:
+ *   Input: "Hello [@Alice](user:123) and [@Bob](user:456)"
+ *   Output:
+ *     [
+ *       "Hello ",
+ *       { name: "@Alice", ref: "123" },
+ *       " and ",
+ *       { name: "@Bob", ref: "456" }
+ *     ]
+ *
+ *    Input: "No mentions here"
+ *    Output: ["No mentions here"]
+ *
+ *    Input: "[@Alice](user:123)"
+ *    Output: [{ name: "@Alice", ref: "123" }]
+ */
+export function splitTextWithMentions(text: string): MentionChunk[] {
+  if (!text) { return []; }
+
+  // Use split to divide the string by mentionRegex, the result will look like:
+  // for single mention [text1, name1, ref1, text2]
+  // for no mentions [text1] if there are no mentions
+  // for multiple mentions [text1, name1, ref1, text2, name2, ref2, text3]
+  const parts = text.split(mentionRegex);
+  const chunks: MentionChunk[] = [];
+  for (let i = 0; i < parts.length; i += 3) {
+    // Always push the plain text part
+    if (parts[i]) {
+      chunks.push(parts[i]);
+    }
+
+    // If there is anything after the text part, it should be a mention
+    if (i + 2 < parts.length) {
+      const name = parts[i + 1];
+      const ref = parts[i + 2];
+      chunks.push({ name, ref });
+    }
+  }
+
+  return chunks;
+}
+
+
 function replaceMentionsInText(text: string) {
-  if (!text) { return text; }
   // Very simple replacement of links mentions.
   // [@user](user:XXXXX) -> @user
   // Also, replace 'nbsp' characters (non-breaking spaces) with regular spaces in this text
   // version. (E.g. in Gmail, they seem to cause 'Message clipped' footer.)
-  return text.replace(/\[(@[^\]]+?)\]\(user:\w+\)/g, '$1')
+  return splitTextWithMentions(text)
+    .map(chunk => typeof chunk === 'string' ? chunk : chunk.name)
+    .join('')
     .replace(/\u00A0/g, ' ');
 }
 

@@ -104,6 +104,11 @@ export interface GristServer extends StorageCoordinator {
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
   setReady(value: boolean): void;
+  getSigninUrl(req: express.Request, options: {
+    signUp?: boolean;
+    nextUrl?: URL;
+    params?: Record<string, string | undefined>;
+  }): Promise<string>;
 }
 
 export interface GristLoginSystem {
@@ -215,6 +220,7 @@ export function createDummyGristServer(): GristServer {
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
     setReady() { /* do nothing */ },
+    getSigninUrl() { return Promise.resolve(''); },
   };
 }
 

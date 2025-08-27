@@ -112,6 +112,7 @@ export const getSection = webdriverUtils.getSection.bind(webdriverUtils);
 export const getVisibleGridCells = webdriverUtils.getVisibleGridCells.bind(webdriverUtils);
 export const getCell = webdriverUtils.getCell.bind(webdriverUtils);
 export const selectSectionByTitle = webdriverUtils.selectSectionByTitle.bind(webdriverUtils);
+export const selectSectionByIndex = webdriverUtils.selectSectionByIndex.bind(webdriverUtils);
 
 export const fixturesRoot: string = testUtils.fixturesRoot;
 
@@ -664,7 +665,7 @@ async function catchNoSuchElem(query: () => any) {
   }
 }
 
-async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
+export async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
   try {
     return await query();
   } catch (err) {
@@ -686,7 +687,6 @@ export async function enterCell(...keys: string[]) {
   }
   await driver.sendKeys(...keys);
   await waitForServer();    // Wait for the value to be saved
-  await waitAppFocus();     // Wait for the cell editor to be closed (maybe unnecessary)
 }
 
 /**
@@ -1090,6 +1090,9 @@ export async function docMenuImport(filePath: string) {
   });
 }
 
+export async function hasFocus(selector: string): Promise<boolean> {
+  return await driver.find(selector).hasFocus();
+}
 
 /**
  * Wait for the focus to return to the main application, i.e. the special .copypaste element that
@@ -1098,6 +1101,13 @@ export async function docMenuImport(filePath: string) {
  */
 export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
   await driver.wait(async () => (await driver.find('.copypaste').hasFocus()) === yesNo, 5000);
+}
+
+/**
+ * Wait for the focus to be on the first element matching given selector.
+ */
+export async function waitForFocus(selector: string, yesNo: boolean = true, waitMs: number = 1000): Promise<void> {
+  await driver.wait(async () => (await hasFocus(selector) === yesNo), waitMs);
 }
 
 export async function waitForLabelInput(): Promise<void> {
@@ -1142,11 +1152,14 @@ export async function hideBanners() {
     document.head.appendChild(style);`);
 }
 
-export async function assertBannerText(text: string | null) {
+export async function assertBannerText(text: string | null | RegExp) {
   if (text === null) {
     assert.isFalse(await driver.find('.test-banner-element').isPresent());
   } else {
-    assert.equal(await driver.findWait('.test-doc-usage-banner-text', 2000).getText(), text);
+    assert.match(
+      await driver.findWait('.test-doc-usage-banner-text', 2000).getText(),
+      typeof text === 'string' ? exactMatch(text) : text
+    );
   }
 }
 
@@ -1520,7 +1533,7 @@ export async function getAppErrors() {
  */
 export async function openWidgetPanel(tab: 'widget'|'sortAndFilter'|'data' = 'widget') {
   await toggleSidePanel('right', 'open');
-  await driver.find('.test-right-tab-pagewidget').click();
+  await retryOnStale(() => driver.findWait('.test-right-tab-pagewidget', 100).click());
   await driver.find(`.test-config-${tab}`).click();
 }
 
@@ -1568,15 +1581,48 @@ export async function selectAllVisibleColumns() {
  * Toggle checkbox for a column in visible columns section.
  */
 export async function toggleVisibleColumn(col: string) {
-  const row = await driver.findContent(".test-vfc-visible-fields .kf_draggable_content", exactMatch(col));
+  await openWidgetPanel('widget');
+  const row = await driver.findContent(".test-vfc-visible-field", exactMatch(col));
   await row.find('input').click();
+}
+
+/**
+ * Toggle checkbox for a column in hidden columns section.
+ */
+export async function toggleHiddenColumn(col: string) {
+  await openWidgetPanel('widget');
+  const row = await driver.findContent(".test-vfc-hidden-field", exactMatch(col));
+  await row.find('input').click();
+}
+
+/**
+ * Lists all columns in the visible columns section.
+ */
+export async function getVisibleColumns() {
+  return await driver.findAll(".test-vfc-visible-field", async (row) => {
+    return row.getText();
+  });
+}
+
+/**
+ * Lists all columns in the hidden columns section.
+ */
+export async function getHiddenColumns() {
+  return await driver.findAll(".test-vfc-hidden-field", async (row) => {
+    return row.getText();
+  });
 }
 
 /**
  * Clicks `Hide Columns` button in visible columns section.
  */
-export async function hideVisibleColumns() {
+export async function hideColumns() {
   await driver.find('.test-vfc-visible-hide').click();
+  await waitForServer();
+}
+
+export async function showColumns() {
+  await driver.find('.test-vfc-hidden-show').click();
   await waitForServer();
 }
 
@@ -1698,6 +1744,15 @@ export async function openSectionMenu(which: 'sortAndFilter'|'viewLayout', secti
   const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
   await sectionElem.find(`.test-section-menu-${which}`).click();
   return await findOpenMenu(100);
+}
+
+/**
+ * Closes the section menu for a section, or the active section if no section is given
+ */
+export async function closeSectionMenu(which: 'sortAndFilter'|'viewLayout', section?: string|WebElement) {
+  const sectionElem = section ? await getSection(section) : await driver.findWait('.active_section', 4000);
+  await sectionElem.find(`.test-section-menu-${which}`).click();
+  return notPresent(`.grist-floating-menu`);
 }
 
 /**
@@ -1931,7 +1986,7 @@ export async function editOrgAcls(): Promise<void> {
 
 export async function addUser(email: string|string[], role?: 'Owner'|'Viewer'|'Editor'): Promise<void> {
   await driver.findWait('.test-user-icon', 5000).click();
-  await driver.find('.test-dm-org-access').click();
+  await driver.findWait('.test-dm-org-access', 200).click();
   await driver.findWait('.test-um-members', 500);
   const orgInput = await driver.find('.test-um-member-new input');
 
@@ -2119,6 +2174,7 @@ export enum TestUserEnum {
   user3 = 'kiwi',
   user4 = 'ham',
   userz = 'userz',    // a user for old tests, that doesn't overlap with others.
+  fresh = 'fresh',    // user with no resources in seed.ts, safe to recreate as needed
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',
@@ -2217,6 +2273,7 @@ export class Session {
                                 freshAccount?: boolean,
                                 isFirstLogin?: boolean,
                                 showTips?: boolean,
+                                showGristTour?: boolean,
                                 userName?: string,
                                 email?: string,
                                 retainExistingLogin?: boolean}) {
@@ -2946,6 +3003,21 @@ export function findSortRow(colName: RegExp|string) {
   return driver.findContent(".test-sort-config-row", colName);
 }
 
+export async function getSortColumns() {
+  return await driver.findAll(".grist-floating-menu .test-sort-config-column", async (col) => {
+    const classes = await col.find('.test-sort-config-order').getAttribute("class");
+    const match = classes.match(/test-sort-config-sort-order-(\w+)/);
+    // Shouldn't happen - a sort should always have a direction.
+    if (!match) {
+      throw new Error("Sort element is missing direction");
+    }
+    return {
+      column: await col.getText(),
+      dir: match[1],
+    };
+  });
+}
+
 // Opens more sort options menu
 export async function openMoreSortOptions(colName: RegExp|string) {
   const row = await findSortRow(colName);
@@ -3119,6 +3191,7 @@ export async function openPinnedFilter(col: string) {
   const filterBar = driver.find('.active_section .test-filter-bar');
   const pinnedFilter = filterBar.findContent('.test-filter-field', col);
   await pinnedFilter.click();
+  await driver.findWait('.test-filter-menu-wrapper', 500);
   return {
     ...filterController,
     open: () => openPinnedFilter(col)
@@ -3331,20 +3404,21 @@ export async function getSectionTitles() {
 export async function renameSection(sectionTitle: string, name: string) {
   const renameWidget = driver.findContent(`.test-viewsection-title`, sectionTitle);
   await renameWidget.find(".test-widget-title-text").click();
-  await driver.findWait('.test-widget-title-popup', 100);
-  await driver.find(".test-widget-title-section-name-input").click();
-  await selectAll();
-  await driver.sendKeys(name || Key.DELETE, Key.ENTER);
-  await waitForServer();
+  await doRenameSection(name);
 }
 
 export async function renameActiveSection(name: string) {
   await driver.find(".active_section .test-viewsection-title .test-widget-title-text").click();
+  await doRenameSection(name);
+}
+
+async function doRenameSection(name: string) {
   await driver.findWait('.test-widget-title-popup', 100);
   await driver.find(".test-widget-title-section-name-input").click();
   await selectAll();
   await driver.sendKeys(name || Key.DELETE, Key.ENTER);
   await waitForServer();
+  await notPresent(".test-widget-title-section-name-input");
 }
 
 /**
@@ -3906,21 +3980,6 @@ export const choicesEditor = {
   }
 };
 
-export function findValue(selector: string, value: string|RegExp) {
-  const inner = async () => {
-    const all = await driver.findAll(selector);
-    const tested: string[] = [];
-    for(const el of all) {
-      const elValue = await el.value();
-      tested.push(elValue);
-      const found = typeof value === 'string' ? elValue === value : value.test(elValue);
-      if (found) { return el; }
-    }
-    throw new Error(`No element found matching ${selector}, tested ${tested.join(', ')}`);
-  };
-  return new WebElementPromise(driver, inner());
-}
-
 export async function switchUser(email: string) {
   await driver.findWait('.test-user-icon', 1000).click();
   await driver.findContentWait('.test-usermenu-other-email', exactMatch(email), 1000).click();
@@ -3955,6 +4014,26 @@ export async function deleteWidgetWithData(title?: string) {
   await driver.find('.test-modal-confirm').click();
   await waitForServer();
 }
+
+export async function duplicateWidget(title?: string, targetPageTitle?: string) {
+  const menu = await openSectionMenu('viewLayout', title);
+  await menu.findContent('.test-cmd-name', 'Duplicate widget').click();
+
+  if (targetPageTitle) {
+    const select = buildSelectComponent('.test-duplicate-widget-page-select');
+    const option = (await select.options()).find(option => option.startsWith(targetPageTitle));
+    if (!option) {
+      await driver.find('.test-modal-cancel').click();
+      throw new Error(`Unable to find page ${targetPageTitle} when duplicating widget`);
+    }
+    await select.select(option);
+  }
+
+  await driver.find('.test-modal-confirm').click();
+  await waitForServer();
+}
+
+
 
 export async function waitForTrue(check: () => Promise<boolean>, timeMs: number = 4000) {
   await waitToPass(async () => {
@@ -4079,6 +4158,37 @@ export async function selectTab(name: string|RegExp) {
   await driver.findContentWait('.test-component-tabs-tab', name, 100).click();
 }
 
+/**
+ * Resize browser window more reliably by setting the viewport size.
+ */
+export async function setViewportDimensions(targetWidth: number, targetHeight: number) {
+  // Step 1: Set fixed size of the window to ensure consistent outer dimensions, and prevent maximized
+  // state which gives different outer dimensions.
+  await driver.manage().window().setRect({ width: 1000, height: 800 });
+
+  // Step 2: Get outer vs inner difference
+  const sizeDiff: {widthDiff: number, heightDiff: number} = await driver.executeScript(() => {
+    return {
+      widthDiff: window.outerWidth - window.innerWidth,
+      heightDiff: window.outerHeight - window.innerHeight,
+    };
+  });
+
+  const width = targetWidth + sizeDiff.widthDiff;
+  const height = targetHeight + sizeDiff.heightDiff;
+
+  // Step 3: Set outer window size to match desired viewport
+  await driver.manage().window().setRect({ width, height });
+}
+
+export async function getViewportDimensions(): Promise<WindowDimensions> {
+  return await driver.executeScript(() => {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  });
+}
 
 } // end of namespace gristUtils
 

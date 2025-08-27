@@ -2056,19 +2056,41 @@ export class GranularAccess implements GranularAccessForBundle {
     const dbUser = linkParameters.aclAsUserId ?
       (await this._homeDbManager?.getUser(integerParam(linkParameters.aclAsUserId, 'aclAsUserId'))) :
       (await this._homeDbManager?.getExistingUserByLogin(linkParameters.aclAsUser));
-    // If this is one of example users we will pretend that it doesn't exist, otherwise we would
-    // end up using permissions of the real user.
-    const isExampleUser = this.getExampleViewAsUsers().some(e => e.email === dbUser?.loginEmail);
-    const userExists = dbUser && !isExampleUser;
-    if (!userExists && linkParameters.aclAsUser) {
+
+    const dbAccess = dbUser ? await this._homeDbManager?.getDocAuthCached({
+      urlId: this._docId,
+      userId: dbUser.id
+    }) : null;
+
+    // If we want to preview as an existing user who has access to the document, we will use users' real
+    // access level.
+    if (dbUser && dbAccess?.access) {
+      return {
+        access: dbAccess.access,
+        user: this._homeDbManager?.makeFullUser(dbUser) || null
+      };
+    } else if (linkParameters.aclAsUser) {
       // Look further for the user, in user attribute tables or examples.
       const otherUsers = (await this.collectViewAsUsersFromUserAttributeTables())
-        .concat(this.getExampleViewAsUsers());
+                          .concat(this.getExampleViewAsUsers());
       const email = normalizeEmail(linkParameters.aclAsUser);
       const dummyUser = otherUsers.find(user => normalizeEmail(user?.email || '') === email);
-      if (dummyUser) {
+      if (!dummyUser) {
+        // Make sure the user is in the table or examples, otherwise we return no access.
+        return {access: null, user: null};
+      } else {
+        let access = dummyUser.access || null;
+        if (!access) {
+          // In case the dummy user has no access to the document, check if the document
+          // is shared publicly, and there is a default access for anonymous users.
+          const docAuth =  await this._homeDbManager?.getDocAuthCached({
+            urlId: this._docId,
+            userId: this._homeDbManager.getAnonymousUserId(),
+          });
+          access = docAuth?.access || null;
+        }
         return {
-          access: dummyUser.access || null,
+          access,
           user: {
             id: -1,
             email: dummyUser.email!,
@@ -2076,14 +2098,9 @@ export class GranularAccess implements GranularAccessForBundle {
           }
         };
       }
+    } else {
+      return {access: null, user: null};
     }
-    const docAuth = userExists ? await this._homeDbManager?.getDocAuthCached({
-      urlId: this._docId,
-      userId: dbUser.id
-    }) : null;
-    const access = docAuth?.access || null;
-    const user = userExists ? this._homeDbManager?.makeFullUser(dbUser) : null;
-    return { access, user: user || null };
   }
 
   /**
@@ -2172,13 +2189,20 @@ export class GranularAccess implements GranularAccessForBundle {
     // First figure out what rows in which tables are touched during the actions.
     const rows = new Map(getRelatedRows(applied ? [...undo].reverse() : docActions));
     // Populate a minimal in-memory version of the database with these rows.
+    // We need sufficient metadata to know column types, if there are any row additions.
+    // Otherwise we may assume a cell contains "null" when it should contain "false" for
+    // example (for a Bool column).
+    const metaData = {
+      _grist_Tables: this._docData.getMetaTable('_grist_Tables').getTableDataAction(),
+      _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction(),
+    };
     const docData = new DocData(
       async (tableId) => {
         return {
           tableData: await this._fetchQueryFromDB({tableId, filters: {id: [...rows.get(tableId)!]}})
         };
       },
-      null,
+      metaData,
     );
     // Load pre-existing rows touched by the bundle.
     await Promise.all([...rows.keys()].map(tableId => docData.syncTable(tableId)));
@@ -2540,6 +2564,28 @@ export class GranularAccess implements GranularAccessForBundle {
     return gatherAttachmentIds(attachmentColumns, action);
   }
 
+  private async _filterSchemaActionsForNotifications(
+    docSession: OptDocSession,
+    docActions: DocAction[]
+  ): Promise<DocAction[]> {
+    try {
+      await this._assertSchemaAccess(docSession);
+      return docActions;
+    } catch (e: unknown) {
+      if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
+        return docActions.filter((a) => {
+          const tableId = getTableId(a);
+          return (
+            !isSchemaAction(a) &&
+            (!tableId.startsWith('_grist_') || tableId === '_grist_Cells')
+          );
+        });
+      }
+
+      throw e;
+    }
+  }
+
   private async _getRuler(cursor: ActionCursor) {
     if (cursor.actionIdx === null) { return this._ruler; }
     const step = await this._getMetaStep(cursor);
@@ -2722,7 +2768,8 @@ export class GranularAccess implements GranularAccessForBundle {
       return relevant;
     }
     const userDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
-    const filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    let filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    filtered = await this._filterSchemaActionsForNotifications(userDocSession, filtered);
     return filtered;
   }
 }

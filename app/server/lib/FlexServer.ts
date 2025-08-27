@@ -33,7 +33,7 @@ import {
   getConfiguredAttachmentStoreConfigs,
   IAttachmentStoreProvider
 } from 'app/server/lib/AttachmentStoreProvider';
-import {addRequestUser, getTransitiveHeaders, getUser, getUserId, isAnonymousUser,
+import {addRequestUser, getUser, getUserId, isAnonymousUser,
         isSingleUserMode, redirectToLoginUnconditionally} from 'app/server/lib/Authorizer';
 import {redirectToLogin, RequestWithLogin, signInStatusMiddleware} from 'app/server/lib/Authorizer';
 import {forceSessionChange} from 'app/server/lib/BrowserSession';
@@ -41,6 +41,7 @@ import {Comm} from 'app/server/lib/Comm';
 import {ConfigBackendAPI} from 'app/server/lib/ConfigBackendAPI';
 import {IGristCoreConfig} from 'app/server/lib/configCore';
 import {create} from 'app/server/lib/create';
+import {createSavedDoc} from 'app/server/lib/createSavedDoc';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
 import {addDocApiRoutes} from 'app/server/lib/DocApi';
 import {DocManager} from 'app/server/lib/DocManager';
@@ -268,7 +269,7 @@ export class FlexServer implements GristServer {
     this._pluginUrl = options.pluginUrl || process.env.APP_UNTRUSTED_URL;
 
     // We don't bother unsubscribing because that's automatic when we close this._pubSubManager.
-    this.getPubSubManager().subscribe(latestVersionChannel, (message) => {
+    void this.getPubSubManager().subscribe(latestVersionChannel, (message) => {
       const latestVersionAvailable: LatestVersionAvailable = JSON.parse(message);
       log.debug('FlexServer: setting latest version', latestVersionAvailable);
       this.setLatestVersionAvailable(latestVersionAvailable);
@@ -870,7 +871,7 @@ export class FlexServer implements GristServer {
 
   public async initHomeDBManager() {
     if (this._check('homedb')) { return; }
-    this._dbManager = new HomeDBManager(this, this._emitNotifier);
+    this._dbManager = new HomeDBManager(this, this._emitNotifier, this._pubSubManager);
     this._dbManager.setPrefix(process.env.GRIST_ID_PREFIX || "");
     await this._dbManager.connect();
     await this._dbManager.initializeSpecialIds();
@@ -1054,9 +1055,7 @@ export class FlexServer implements GristServer {
     if (this.usage)  { await this.usage.close(); }
     if (this._hosts) { this._hosts.close(); }
     this._emitNotifier.removeAllListeners();
-    if (this._dbManager) {
-      this._dbManager.flushDocAuthCache();
-    }
+    this._dbManager?.clearCaches();
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
@@ -1207,6 +1206,20 @@ export class FlexServer implements GristServer {
 
           // Give a chance to the login system to react to the first visit after signup.
           this._loginMiddleware.onFirstVisit?.(req);
+
+          // If the assistant needs to perform some work (e.g. redirect to a new document with a
+          // particular prompt pre-filled), do it now.
+          //
+          // TODO: break out this and other parts of `welcomeNewUser` into separate Express middleware.
+          // `onFirstVisit` may send a response, which is why we awkwardly check `headersSent` wasn't
+          // set before resuming the current middleware. This wouldn't be necessary if `onFirstVisit`
+          // was a proper Express middleware that called `next` when not sending a response.
+          if (this._assistant?.version === 2 && this._assistant.onFirstVisit) {
+            await this._assistant.onFirstVisit(req, res);
+            if (res.headersSent) {
+              return;
+            }
+          }
 
           // If we need to copy an unsaved document or template as part of sign-up, do so now
           // and redirect to it.
@@ -1957,6 +1970,9 @@ export class FlexServer implements GristServer {
   public addAssistant() {
     if (this._check('assistant')) { return; }
     this._assistant = this.create.Assistant(this);
+    if (this._assistant?.version === 2) {
+      this._assistant?.addEndpoints?.(this.app);
+    }
   }
 
   // for test purposes, check if any notifications are in progress
@@ -2158,6 +2174,43 @@ export class FlexServer implements GristServer {
 
   public onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>) {
     this._emitNotifier.on('streamingDestinationsChange', callback);
+  }
+
+  public async getSigninUrl(
+    req: express.Request,
+    options: {
+      signUp?: boolean;
+      nextUrl?: URL;
+      params?: Record<string, string | undefined>;
+    }
+  ) {
+    let {nextUrl, signUp} = options;
+    const {params = {}} = options;
+
+    const mreq = req as RequestWithLogin;
+
+    // This will ensure that express-session will set our cookie if it hasn't already -
+    // we'll need it when we redirect back.
+    forceSessionChange(mreq.session);
+
+    // Redirect to the requested URL after successful login.
+    if (!nextUrl) {
+      const nextPath = optStringParam(req.query.next, 'next');
+      nextUrl = new URL(getOrgUrl(req, nextPath));
+    }
+    if (signUp === undefined) {
+      // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
+      // user has ever logged in on this browser.
+      signUp = (mreq.session.users === undefined);
+    }
+    const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
+    const url = new URL(await getRedirectUrl(req, nextUrl));
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined) {
+        url.searchParams.set(key, value);
+      }
+    }
+    return url.href;
   }
 
   // Adds endpoints that support imports and exports.
@@ -2511,29 +2564,14 @@ export class FlexServer implements GristServer {
    */
   private async _redirectToLoginOrSignup(
     options: {
-      signUp?: boolean, nextUrl?: URL,
+      signUp?: boolean;
+      nextUrl?: URL;
+      params?: Record<string, string | undefined>;
     },
     req: express.Request, resp: express.Response,
   ) {
-    let {nextUrl, signUp} = options;
-
-    const mreq = req as RequestWithLogin;
-
-    // This will ensure that express-session will set our cookie if it hasn't already -
-    // we'll need it when we redirect back.
-    forceSessionChange(mreq.session);
-    // Redirect to the requested URL after successful login.
-    if (!nextUrl) {
-      const nextPath = optStringParam(req.query.next, 'next');
-      nextUrl = new URL(getOrgUrl(req, nextPath));
-    }
-    if (signUp === undefined) {
-      // Like redirectToLogin in Authorizer, redirect to sign up if it doesn't look like the
-      // user has ever logged in on this browser.
-      signUp = (mreq.session.users === undefined);
-    }
-    const getRedirectUrl = signUp ? this._getSignUpRedirectUrl : this._getLoginRedirectUrl;
-    resp.redirect(await getRedirectUrl(req, nextUrl));
+    const url = await this.getSigninUrl(req, options);
+    resp.redirect(url);
   }
 
   private async _redirectToHomeOrWelcomePage(
@@ -2567,7 +2605,8 @@ export class FlexServer implements GristServer {
     resp: express.Response
   ): Promise<string|null> {
     const cookies = cookie.parse(req.headers.cookie || '');
-    if (!cookies) { return null; }
+
+    resp.clearCookie('gr_signup_state');
 
     const stateCookie = cookies['gr_signup_state'];
     if (!stateCookie) { return null; }
@@ -2578,42 +2617,11 @@ export class FlexServer implements GristServer {
 
     let newDocId: string | null = null;
     try {
-      newDocId = await this._copyDocToHomeWorkspace(req, srcDocId);
+      newDocId = await createSavedDoc(this, req, {srcDocId});
     } catch (e) {
       log.error(`FlexServer failed to copy doc ${srcDocId} to Home workspace`, e);
-    } finally {
-      resp.clearCookie('gr_signup_state');
     }
     return newDocId;
-  }
-
-  private async _copyDocToHomeWorkspace(
-    req: express.Request,
-    docId: string,
-  ): Promise<string> {
-    const userId = getUserId(req);
-    const doc = await this._dbManager.getDoc({userId, urlId: docId});
-    if (!doc) { throw new Error(`Doc ${docId} not found`); }
-
-    const workspacesQueryResult = await this._dbManager.getOrgWorkspaces(getScope(req), 0);
-    const workspaces = this._dbManager.unwrapQueryResult(workspacesQueryResult);
-    const workspace = workspaces.find(w => w.name === 'Home');
-    if (!workspace) { throw new Error('Home workspace not found'); }
-
-    const copyDocUrl = this.getHomeInternalUrl('/api/docs');
-    const response = await fetch(copyDocUrl, {
-      headers: {
-        ...getTransitiveHeaders(req, { includeOrigin: false }),
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        sourceDocumentId: doc.id,
-        workspaceId: workspace.id,
-        documentName: doc.name,
-      }),
-    });
-    return await response.json();
   }
 
   /**

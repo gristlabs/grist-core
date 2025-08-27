@@ -6,5 +6,8 @@
         "Loading...": "Načítavam...",
         "og-description": "Moderný, open source tabuľkový procesor, ktorý presahuje tabuľku",
         "og-title": "Grist, vývoj tabuľkových procesorov"
+    },
+    "access": {
+        "docNoAccess": "Nemáte prístup k tomuto dokumentu."
     }
 }

@@ -9,10 +9,12 @@ import {selectFiles, uploadFiles} from 'app/client/lib/uploads';
 import {DocData} from 'app/client/models/DocData';
 import {MetaTableData} from 'app/client/models/TableData';
 import {basicButton, basicButtonLink, cssButtonGroup} from 'app/client/ui2018/buttons';
-import {testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {makeT} from 'app/client/lib/localization';
+import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {editableLabel} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {IModalControl, modal} from 'app/client/ui2018/modals';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {renderFileType} from 'app/client/widgets/AttachmentsWidget';
 import {FieldOptions, NewBaseEditor} from 'app/client/widgets/NewBaseEditor';
 import {CellValue} from 'app/common/DocActions';
@@ -20,6 +22,8 @@ import {SingleCell} from 'app/common/TableData';
 import {clamp, encodeQueryParams} from 'app/common/gutil';
 import {UploadResult} from 'app/common/uploads';
 import * as mimeTypes from 'mime-types';
+
+const t = makeT('AttachmentsEditor');
 
 interface Attachment {
   rowId: number;
@@ -48,17 +52,12 @@ interface Attachment {
  * download, add or remove attachments in the edited cell.
  */
 export class AttachmentsEditor extends NewBaseEditor {
-  public static skipEditor(typedVal: CellValue|undefined, origVal: CellValue): CellValue|undefined {
-    if (Array.isArray(typedVal)) {
-      return typedVal;
-    }
-  }
-
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _docComm: DocComm;
 
   private _rowIds: MutableObsArray<number>;
   private _attachments: ObsArray<Attachment>;
+  private _isUploading: Observable<boolean>;
   private _index: LiveIndex;
   private _selected: Computed<Attachment|null>;
 
@@ -100,6 +99,7 @@ export class AttachmentsEditor extends NewBaseEditor {
       const index = use(this._index);
       return index === null ? null : use(this._attachments)[index];
     }));
+    this._isUploading = Observable.create(this, false);
   }
 
   // This "attach" is not about "attachments", but about attaching this widget to the page DOM.
@@ -139,11 +139,19 @@ export class AttachmentsEditor extends NewBaseEditor {
   private _buildDom(ctl: IModalControl) {
     return [
       cssHeader(
-        cssFlexExpand(dom.text(use => {
+        cssFlexExpand(
+          dom.text(use => {
             const len = use(this._attachments).length;
-            return len ? `${(use(this._index) || 0) + 1} of ${len}` : '';
+            return len ? t('{{index}} of {{total}}', {index: (use(this._index) || 0) + 1, total: len}) : '';
           }),
-          testId('pw-counter')
+          testId('pw-counter'),
+          dom.maybe(this._isUploading, () =>
+            cssLoading(
+              loadingSpinner(),
+              t('Uploading…'),
+              testId('pw-spinner')
+            )
+          ),
         ),
         dom.maybe(this._selected, selected =>
           cssTitle(
@@ -156,7 +164,7 @@ export class AttachmentsEditor extends NewBaseEditor {
         cssFlexExpand(
           cssFileButtons(
             dom.maybe(this._selected, selected =>
-              basicButtonLink(cssButton.cls(''), cssButtonIcon('Download'), 'Download',
+              basicButtonLink(cssButton.cls(''), cssButtonIcon('Download'), t('Download'),
                 dom.attr('href', selected.url),
                 dom.attr('target', '_blank'),
                 dom.attr('download', selected.filename),
@@ -164,12 +172,12 @@ export class AttachmentsEditor extends NewBaseEditor {
               ),
             ),
             this.options.readonly ? null : [
-              cssButton(cssButtonIcon('FieldAttachment'), 'Add',
+              cssButton(cssButtonIcon('FieldAttachment'), t('Add'),
                 dom.on('click', () => this._select()),
                 testId('pw-add')
               ),
               dom.maybe(this._selected, () =>
-                cssButton(cssButtonIcon('Remove'), 'Delete',
+                cssButton(cssButtonIcon('Remove'), t('Delete'),
                   dom.on('click', () => this._remove()),
                   testId('pw-remove')
                 ),
@@ -192,7 +200,7 @@ export class AttachmentsEditor extends NewBaseEditor {
 
       // Drag-over logic
       (elem: HTMLElement) => dragOverClass(elem, cssDropping.className),
-      cssDragArea(this.options.readonly ? null : cssWarning('Drop files here to attach')),
+      cssDragArea(this.options.readonly ? null : cssWarning(t('Drop files here to attach'))),
       this.options.readonly ? null : dom.on('drop', ev => this._upload(ev.dataTransfer!.files)),
       testId('pw-modal')
     ];
@@ -231,16 +239,42 @@ export class AttachmentsEditor extends NewBaseEditor {
   }
 
   private async _select(): Promise<void> {
-    const uploadResult = await selectFiles({docWorkerUrl: this._docComm.docWorkerUrl,
-                                            multiple: true, sizeLimit: 'attachment'});
-    return this._add(uploadResult);
+    try {
+      const uploadResult = await selectFiles({
+        docWorkerUrl: this._docComm.docWorkerUrl,
+        multiple: true,
+        sizeLimit: 'attachment'
+      }, (progress) => {
+        if (progress === 0) {
+          this._isUploading.set(true);
+          }
+        }
+      );
+      this._isUploading.set(false);
+      return this._add(uploadResult);
+    } catch (error) {
+      this._isUploading.set(false);
+      throw error;
+    }
   }
 
   private async _upload(files: FileList): Promise<void> {
-    const uploadResult = await uploadFiles(Array.from(files),
-                                           {docWorkerUrl: this._docComm.docWorkerUrl,
-                                            sizeLimit: 'attachment'});
-    return this._add(uploadResult);
+    try {
+      const uploadResult = await uploadFiles(
+        Array.from(files),
+        {docWorkerUrl: this._docComm.docWorkerUrl, sizeLimit: 'attachment'},
+        (progress) => {
+          if (progress === 0) {
+            this._isUploading.set(true);
+          }
+        }
+      );
+      this._isUploading.set(false);
+      return this._add(uploadResult);
+    } catch (error) {
+      this._isUploading.set(false);
+      throw error;
+    }
   }
 
   private async _add(uploadResult: UploadResult|null): Promise<void> {
@@ -261,7 +295,11 @@ function isInEditor(ev: KeyboardEvent): boolean {
 function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
   const commonArgs = [cssContent.cls(''), testId('pw-attachment-content')];
   if (!att) {
-    return cssWarning('No attachments', readonly ? null : cssDetails('Drop files here to attach.'), ...commonArgs);
+    return cssWarning(
+      t('No attachments'),
+      readonly ? null : cssDetails(t('Drop files here to attach.')),
+      ...commonArgs
+    );
   } else if (att.hasPreview) {
     return dom('img', dom.attr('src', att.url), ...commonArgs);
   } else if (att.fileType.startsWith('video/')) {
@@ -273,12 +311,12 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
     // but probably not using object tag (which needs work to look acceptable).
     return dom('div', ...commonArgs,
       cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails('Preview not available.')));
+        cssDetails(t('Preview not available.'))));
   } else {
     // Setting 'type' attribute is important to avoid a download prompt from Chrome.
     return dom('object', {type: att.fileType}, dom.attr('data', att.inlineUrl), ...commonArgs,
       cssWarning(cssContent.cls(''), renderFileType(att.filename.get(), att.fileIdent),
-        cssDetails('Preview not available.'))
+        cssDetails(t('Preview not available.')))
     );
   }
 }
@@ -309,11 +347,22 @@ const cssFullScreenModal = styled('div', `
 const cssHeader = styled('div', `
   padding: 16px 24px;
   position: fixed;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  @media ${mediaSmall} {
+    & {
+      align-items: flex-start;
+      flex-direction: column-reverse;
+      gap: 8px;
+      padding: 0 16px;
+    }
+  }
 `);
 
 const cssCloseButton = styled('div', `
@@ -326,6 +375,12 @@ const cssCloseButton = styled('div', `
   &:hover {
     background-color: ${theme.attachmentsEditorButtonHoverBg};
     --icon-color: ${theme.attachmentsEditorButtonHoverFg};
+  }
+
+  @media ${mediaSmall} {
+    & {
+      margin-left: auto;
+    }
   }
 `);
 
@@ -346,6 +401,12 @@ const cssTitle = styled('div', `
   &:focus-within {
     outline: 1px solid ${theme.controlFg};
   }
+
+  @media ${mediaSmall} {
+    & {
+      outline: 1px solid ${theme.lightText};
+    }
+  }
 `);
 
 const cssEditableLabel = styled(editableLabel, `
@@ -357,6 +418,29 @@ const cssEditableLabel = styled(editableLabel, `
 const cssFlexExpand = styled('div', `
   flex: 1;
   display: flex;
+  align-items: center;
+  @media ${mediaSmall} {
+    & {
+      width: 100%;
+    }
+  }
+`);
+
+const cssLoading = styled('div', `
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+  & .${loadingSpinner.className} {
+    --loader-fg: currentColor;
+  }
+  @media ${mediaSmall} {
+    & .${loadingSpinner.className} {
+      width: 16px;
+      height: 16px;
+      border-width: 1px;
+    }
+  }
 `);
 
 const cssFileButtons = styled(cssButtonGroup, `
@@ -364,6 +448,13 @@ const cssFileButtons = styled(cssButtonGroup, `
   margin-right: 16px;
   height: 32px;
   flex: none;
+
+  @media ${mediaSmall} {
+    & {
+      margin-left: 0px;
+      margin-right: 0px;
+    }
+  }
 `);
 
 const cssButton = styled(basicButton, `
@@ -440,6 +531,12 @@ const cssContent = styled('div', `
   }
   .${cssDropping.className} > & {
     display: none;
+  }
+  @media ${mediaSmall} {
+    & {
+      margin-top: 102px;
+      height: calc(100% - 102px);
+    }
   }
 `);
 

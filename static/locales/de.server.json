@@ -6,5 +6,8 @@
         "og-title": "Grist, die Entwicklung von Tabellenkalkulationen",
         "Loading...": "Laden...",
         "og-description": "Ein modernes, offenes Quell-Spreadsheet, das über das Raster hinausgeht"
+    },
+    "access": {
+        "docNoAccess": "Sie haben keinen Zugang zu diesem Dokument."
     }
 }

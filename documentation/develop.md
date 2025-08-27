@@ -126,7 +126,7 @@ You may run the tests using one of these commands:
  - `yarn test:python` to run the data engine tests
  - `yarn test:stubs` to run the end-to-end tests with stubs, which are simplified versions of the tests for faster execution   
 
-Also some options that may interest you:
+Also some options that may interest you, especially in order to troubleshoot:
  - `GREP_TESTS="pattern"` in order to filter the tests to run, for example: `GREP_TESTS="Boot" yarn test:nbrowser`
  - `VERBOSE=1` in order to view logs when a server is spawned (especially useful to debug the end-to-end and backend tests)
  - `SERVER_NODE_OPTIONS="node options"` in order to pass options to the server being tested,
@@ -136,6 +136,9 @@ Also some options that may interest you:
  - `NO_CLEANUP=1` to not restart/clean state after test ends, used with `DEBUG=1`
  - `DEBUG=1` to keep the server running after the tests are done and to provide more detailed output
  - `MOCHA_WEBDRIVER_LOGDIR=/tmp/grist-tests` to specify the directory where the logs of the end-to-end tests will be stored (together with screenshots of the browser at the time of failure)
+ - `TYPEORM_DATABASE=/path/to/test-database.sqlite` (adapt the path to wherever you want the file to be created) in order to
+   debug tests that work with a database. You may then inspect the database using the `sqlite3` command.
+ - `TYPEORM_LOGGING=true` to print every SQL commands during the tests
 
 ## End-to-end tests
 

@@ -83,12 +83,13 @@ describe('CustomView', function() {
         await driver.findContent('.test-treeview-itemHeader', /All/).click();
         await gu.getSection('Friends record').click();
         await driver.find('.test-pwc-editDataSelection').click();
-        await driver.find('.test-wselect-addBtn').click();
+        await driver.findWait('.test-wselect-addBtn', 500).click();
         await gu.waitForServer();
         await driver.find('.test-right-select-by').click();
         await gu.findOpenMenuItem('li', /Performances record • Film/).click();
+        await gu.waitForServer();
         await driver.find('.test-pwc-editDataSelection').click();
-        await driver.findContent('.test-wselect-type', /Custom/).click();
+        await driver.findContentWait('.test-wselect-type', /Custom/, 500).click();
         await driver.find('.test-wselect-addBtn').click();
         await gu.waitForServer();
 
@@ -140,9 +141,8 @@ describe('CustomView', function() {
 
       it('gets notification of row changes and content changes', async function() {
         // Add a custom view linked to Friends
-        await driver.findContent('.test-treeview-itemHeader', /Friends/).click();
-        await driver.findWait('.test-dp-add-new', 1000).doClick();
-        await driver.find('.test-dp-add-widget-to-page').doClick();
+        await driver.findContentWait('.test-treeview-itemHeader', /Friends/, 500).click();
+        await gu.openAddWidgetToPage();
         await driver.findContent('.test-wselect-type', /Custom/).click();
         await driver.findContent('.test-wselect-table', /Friends/).doClick();
         await driver.find('.test-wselect-selectby').doClick();
@@ -206,12 +206,16 @@ describe('CustomView', function() {
         // Select new row and test if custom view has noticed it.
         await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 7}).click();
         await driver.switchTo().frame(iframe);
-        assert.equal(await driver.find('#rowId').getText(), withAccess('new', ''));
-        assert.equal(await driver.find('#record').getText(), withAccess('new', ''));
+        await gu.waitToPass(async () => {
+          assert.equal(await driver.find('#rowId').getText(), withAccess('new', ''));
+          assert.equal(await driver.find('#record').getText(), withAccess('new', ''));
+        });
         await driver.switchTo().defaultContent();
         await gu.getCell({section: 'FRIENDS', col: 0, rowNum: 1}).click();
         await driver.switchTo().frame(iframe);
-        assert.equal(await driver.find('#rowId').getText(), withAccess('1', ''));
+        await gu.waitToPass(async () => {
+          assert.equal(await driver.find('#rowId').getText(), withAccess('1', ''));
+        });
         assert.equal(readJson(await driver.find('#record').getText())?.Name, withAccess('Rabbit', undefined));
         await driver.switchTo().defaultContent();
 
@@ -225,7 +229,7 @@ describe('CustomView', function() {
       it (undoTestTitle, async function() {
         const iframe = gu.getSection('Friends custom').find('iframe');
         await driver.switchTo().frame(iframe);
-        await driver.find('body').click();
+        await driver.findWait('body', 500).click();
 
         await gu.sendKeys(Key.chord(Key.CONTROL, 'y'));
         const expected = access === 'full'
@@ -255,7 +259,8 @@ describe('CustomView', function() {
 
         // Check that the right section is active, and its settings visible in the side panel.
         await driver.switchTo().defaultContent();
-        assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS Custom');
+        await gu.waitToPass(async () =>
+          assert.equal(await gu.getActiveSectionTitle(), 'FRIENDS Custom'), 200);
         assert.equal(await driver.find('.test-config-widget-open-custom-widget-gallery').isPresent(), true);
 
         // Switch back.
@@ -497,12 +502,13 @@ describe('CustomView', function() {
     await driver.findContent('.test-treeview-itemHeader', /All/).click();
     await gu.getSection('Friends record').click();
     await driver.find('.test-pwc-editDataSelection').click();
-    await driver.find('.test-wselect-addBtn').click();
+    await driver.findWait('.test-wselect-addBtn', 500).click();
     await gu.waitForServer();
     await driver.find('.test-right-select-by').click();
     await gu.findOpenMenuItem('li', /Performances record • Film/).click();
+    await gu.waitForServer();
     await driver.find('.test-pwc-editDataSelection').click();
-    await driver.findContent('.test-wselect-type', /Custom/).click();
+    await driver.findContentWait('.test-wselect-type', /Custom/, 500).click();
     await driver.find('.test-wselect-addBtn').click();
     await gu.waitForServer();
 

@@ -202,6 +202,7 @@ describe('AccessRules1', function() {
     await driver.find('.test-tools-access-rules').click();
     await driver.findWait('.test-rule-set', 2000);
     const ruleSet = findDefaultRuleSet(/FinancialsTable/);
+    await gu.scrollIntoView(ruleSet);
     await enterRulePart(ruleSet, 1, `rec.id == 1`, 'Allow All');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();

@@ -17,6 +17,7 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
+import {cssMarkdown} from 'app/client/widgets/MarkdownTextBox';
 import {buildMentionTextBox, CommentText} from 'app/client/widgets/MentionTextBox';
 import {CellInfoType} from 'app/common/gristTypes';
 import {FullUser, PermissionData} from 'app/common/UserAPI';
@@ -232,6 +233,7 @@ export class CommentPopup extends Disposable {
               text: this._newText,
               cell: _props.cell,
               gristDoc: _props.gristDoc,
+              cursorPos: _props.cursorPos,
               access,
               closeClicked: _props.closeClicked,
             });
@@ -390,6 +392,7 @@ class SingleThread extends Disposable implements IDomComponent {
     cell: DiscussionModel,
     access: PermissionData,
     gristDoc: GristDoc,
+    cursorPos: CursorPos,
     closeClicked?: () => void
   }) {
     super();
@@ -599,6 +602,7 @@ class Comment extends Disposable {
       access: PermissionData,
       cell: DiscussionModel,
       gristDoc: GristDoc,
+      cursorPos?: CursorPos,
       parent?: CellRec|null,
       panel?: boolean,
       args?: DomArg<HTMLDivElement>[]
@@ -675,9 +679,8 @@ class Comment extends Disposable {
                 testId('comment-text'),
               );
             }
-            return cssCommentPre(
-              dom.domComputed(comment.text, (text?: string) => text && renderCellMarkdown(text, {inline: true})),
-              {style: 'margin-top: 4px'},
+            return cssRenderedCommentMarkdown(
+              dom.domComputed(comment.text, (text?: string) => text && renderCellMarkdown(text)),
               testId('comment-text'),
             );
           })
@@ -804,6 +807,15 @@ class Comment extends Disposable {
       && lastComment === comment; // and this is the last comment
     const editVisible = !this._resolved.get();
     return [
+      // Show option for anchor link, except in the side-panel view where we don't have cursorPos.
+      // Without it, we don't know the section, and anchor links can't work without it.
+      (this.props.cursorPos ?
+        menuItem(
+          () => this.props.gristDoc.copyAnchorLink({comments: true, ...this.props.cursorPos}).catch(reportError),
+          t("Copy link")
+        ) :
+        null
+      ),
       !resolveVisible ? null :
         menuItem(
           () => this.props.cell.resolve(comment),
@@ -1416,17 +1428,11 @@ const cssCommentCensored = styled('div', `
   margin-top: 4px;
 `);
 
-const cssCommentPre = styled('pre', `
+const cssRenderedCommentMarkdown = styled(cssMarkdown, `
   color: ${theme.text};
-  padding: 0px;
-  font-size: revert;
-  border: 0px;
-  background: inherit;
-  font-family: inherit;
-  margin: 0px;
-  white-space: break-spaces;
+  margin-top: 4px;
+  white-space: normal;
   word-break: break-word;
-  word-wrap: break-word;
 `);
 
 const cssCommentList = styled('div', `
@@ -1454,9 +1460,9 @@ const cssComment = styled('div', `
 
 const cssReplyList = styled('div', `
   margin-left: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  & > div + div {
+    margin-top: 20px;
+  }
 `);
 
 const cssCommentHeader = styled('div', `

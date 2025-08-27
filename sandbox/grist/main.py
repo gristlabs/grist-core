@@ -225,6 +225,11 @@ def run(sandbox):
       return '*' * inputs[0]
     raise Exception('unrecognized operation')
 
+  @export
+  def test_tz_data():
+    import moment   # pylint: disable=import-outside-toplevel
+    return moment.read_tz_raw_data()
+
   export(parse_predicate_formula)
   export(eng.load_empty)
   export(eng.load_done)

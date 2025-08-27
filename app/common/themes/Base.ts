@@ -1,4 +1,4 @@
-import { BaseThemeTokens, tokens } from "app/common/ThemePrefs";
+import { BaseThemeTokens, components, tokens } from "app/common/ThemePrefs";
 
 /**
  * Base theme tokens that can be used as a starting point for any theme.
@@ -193,6 +193,7 @@ export const Base: BaseThemeTokens = {
     widgetBg: tokens.bg,
     widgetBorder: tokens.decoration,
     widgetActiveBorder: tokens.primary,
+    widgetActiveNonFocusedBorder: tokens.primaryTranslucent,
     widgetInactiveStripesLight: tokens.bgSecondary,
 
     /* Pinned Docs */
@@ -475,7 +476,11 @@ export const Base: BaseThemeTokens = {
     announcementPopupFg: tokens.emphasis,
 
     /* Switches */
-    switchCircleFg: tokens.veryLight,
+    switchInactiveSlider: tokens.bgSecondary,
+    switchInactivePill: tokens.secondary,
+    switchActiveSlider: tokens.primaryMuted,
+    switchActivePill: tokens.bg,
+    switchHoverShadow: components.switchActiveSlider,
 
     /* Custom Widget Gallery */
     widgetGalleryBorderSelected: tokens.primary,
@@ -494,5 +499,11 @@ export const Base: BaseThemeTokens = {
     /* Text Button */
     textButtonHoverBg: 'transparent',
     textButtonHoverBorder: 'transparent',
+
+    /* Keyboard Focus Highlighter */
+    kbFocusHighlight: tokens.primary,
+
+    /* Active User List */
+    userListRemainingUsersBg: tokens.primary,
   }
 };

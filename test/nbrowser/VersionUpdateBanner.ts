@@ -28,7 +28,12 @@ describe('VersionUpdateBanner', function() {
   beforeEach(async function() {
     fakeServer.payload = null;
     await server.restart(true);
-    assert.isNotNull(fakeServer.payload, 'fake server should have received a version payload');
+    // Race conditions might happen when checking the grist version. Wait a tiny bit just in case
+    await driver.wait(
+      () => fakeServer.payload !== null,
+      100,
+      'fake server should have received a version payload'
+    );
   });
 
   after(async function() {

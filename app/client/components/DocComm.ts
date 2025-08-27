@@ -20,7 +20,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   // that we haven't missed any.
   // closeDoc has a special implementation below.
   public fetchTable = this._wrapMethod("fetchTable");
-  public fetchTableSchema = this._wrapMethod("fetchTableSchema");
+  public fetchPythonCode = this._wrapMethod("fetchPythonCode");
   public useQuerySet = this._wrapMethod("useQuerySet");
   public disposeQuerySet = this._wrapMethod("disposeQuerySet");
   // applyUserActions has a special implementation below.
@@ -49,6 +49,8 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   public getShare = this._wrapMethod("getShare");
   public startTiming = this._wrapMethod("startTiming");
   public stopTiming = this._wrapMethod("stopTiming");
+  public getAssistantState = this._wrapMethod("getAssistantState");
+  public listActiveUserProfiles = this._wrapMethod("listActiveUserProfiles");
 
   public changeUrlIdEmitter = this.autoDispose(new Emitter());
 

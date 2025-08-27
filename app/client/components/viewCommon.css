@@ -125,6 +125,28 @@
   color: var(--grist-actual-cell-color, unset);
 }
 
+/**
+ * Implement row-height modes.
+ * Note: the height calculation here is manual, based on "line-height: 18px" + padding in viewCommon.css.
+ * The -webkit-* settings allow cells to show an overflow ellipsis. See https://css-tricks.com/line-clampin/.
+ */
+.row_height_set .field_clip {
+  max-height: calc(3px + var(--row-height-lines) * 18px);
+
+  display: -webkit-box;
+  -webkit-line-clamp: var(--row-height-lines);
+  -webkit-box-orient: vertical;
+
+  /* Same as .text_wrapping; consider wrapping to be on with .row_height_set. */
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.row_height_uniform .field_clip {
+  min-height: calc(3px + var(--row-height-lines) * 18px);
+}
+
+
 .gridview_row .field.selected > .selection {
   background-color: var(--grist-theme-selection, var(--grist-color-selection));
   position: absolute;

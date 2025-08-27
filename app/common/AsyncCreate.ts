@@ -114,8 +114,16 @@ export class MapWithTTL<K, V> extends Map<K, V> {
     const curr = this._timeouts.get(key);
     if (curr) { clearTimeout(curr); }
     super.set(key, value);
-    this._timeouts.set(key, setTimeout(this.delete.bind(this, key), ttlMs));
+    this._timeouts.set(key, setTimeout(this.expire.bind(this, key), ttlMs));
     return this;
+  }
+
+  /**
+   * By default it simply deletes the key from the map, returning true if the element existed.
+   * It's a separate method to allow overriding it.
+   */
+  public expire(key: K): boolean {
+    return this.delete(key);
   }
 
   /**
@@ -142,6 +150,21 @@ export class MapWithTTL<K, V> extends Map<K, V> {
     super.clear();
   }
 }
+
+
+/**
+ * Just like MapWithTTL, but supports an extra callback to call when a value expires.
+ */
+export class MapWithCustomExpire<K, V> extends MapWithTTL<K, V> {
+  constructor(ttlMs: number, private _onExpire: (key: K) => void) {
+    super(ttlMs);
+  }
+  public override expire(key: K): boolean {
+    this._onExpire(key);
+    return super.expire(key);
+  }
+}
+
 
 /**
  * Sometimes it is desirable to cache either fulfilled or rejected

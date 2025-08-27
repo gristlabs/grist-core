@@ -42,7 +42,7 @@ import {
   UserAttributeRule
 } from 'app/common/GranularAccessClause';
 import {getDefaultForType, isHiddenCol} from 'app/common/gristTypes';
-import {isNonNullish, unwrap} from 'app/common/gutil';
+import {isNonNullish, localeCompare, unwrap} from 'app/common/gutil';
 import {EmptyRecordView, InfoView, RecordView} from 'app/common/RecordView';
 import {
   getPredicateFormulaProperties,
@@ -129,6 +129,7 @@ export class AccessRules extends Disposable {
 
   // Array of all per-table rules.
   private _tableRules = this.autoDispose(obsArray<TableRules>());
+  private _sortedTableRules: Computed<TableRules[]>;
 
   // The default rule set for the document (for "*:*").
   private _docDefaultRuleSet = Observable.create<DefaultObsRuleSet|null>(this, null);
@@ -183,6 +184,12 @@ export class AccessRules extends Disposable {
         specialRulesSeparate ? use(specialRulesSeparate.ruleStatus) : RuleStatus.Unchanged,
       );
     });
+
+    this._sortedTableRules = Computed.create(this, (use) =>
+      [...use(this._tableRules)].sort((a, b) =>
+        localeCompare(a.tableId, b.tableId)
+      )
+    );
 
     this._savingEnabled = Computed.create(this, this._ruleStatus, (use, s) =>
       (s === RuleStatus.ChangedValid));
@@ -479,7 +486,7 @@ export class AccessRules extends Disposable {
             ),
           ),
         ),
-        dom.forEach(this._tableRules, (tableRules) => tableRules.buildDom()),
+        dom.forEach(this._sortedTableRules, (tableRules) => tableRules.buildDom()),
         cssSection(
           cssSectionHeading(t("Default Rules"), testId('rule-table-header')),
           dom.maybe(this._specialRulesWithDefault, tableRules => cssSeedRule(

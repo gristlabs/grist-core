@@ -19,21 +19,19 @@ const FieldBuilder = require('../widgets/FieldBuilder');
 const commands = require('./commands');
 const BackboneEvents = require('backbone').Events;
 const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
-const {reportError, reportSuccess} = require('app/client/models/errors');
+const {reportError} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
 const {SectionFilter} = require('app/client/models/SectionFilter');
 const {UnionRowSource} = require('app/client/models/UnionRowSource');
-const {copyToClipboard} = require('app/client/lib/clipboardUtils');
-const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {closeRegisteredMenu} = require('app/client/ui2018/menus');
-const {COMMENTS} = require('app/client/models/features');
 const {DismissedPopup} = require('app/common/Prefs');
 const {markAsSeen} = require('app/client/models/UserPrefs');
 const {buildConfirmDelete, reportUndo} = require('app/client/components/modals');
 const {buildReassignModal} = require('app/client/ui/buildReassignModal');
 const {MutedError} = require('app/client/models/errors');
+const {viewCommands} = require('app/client/components/RegionFocusSwitcher');
 
 
 /**
@@ -128,7 +126,8 @@ function BaseView(gristDoc, viewSectionModel, options) {
   this.listenTo(this.viewSection.events, 'rowHeightChange', this.onResize );
 
   // Create a command group for keyboard shortcuts common to all views.
-  this.autoDispose(commands.createGroup(BaseView.commonCommands, this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(viewCommands(BaseView.commonCommands, this), this, this.viewSection.hasFocus));
+  this.autoDispose(commands.createGroup(BaseView.commonFocusedCommands, this, this.viewSection.hasRegionFocus));
 
   //--------------------------------------------------
   // Prepare logic for linking with other sections.
@@ -233,30 +232,54 @@ _.extend(Base.prototype, BackboneEvents);
 
 /**
  * These commands are common to GridView and DetailView.
+ *
+ * They work when the view is the currently active one, but not necessarily user-focused.
+ *
+ * That means the user can be focusing a button in the creator panel and run these commands:
+ * they will apply to the active view.
+ * When a command from here is executed, keyboard focus is set back to the view.
+ *
+ * There is no strict rule for which command goes here and which goes in the commonFocusedCommands list.
+ * The goal of the distinction is to:
+ *   1) allow users to run most commands easily, without having to think about actually focusing an active view,
+ *   2) make sure command keyboard shortcuts don't interfere with user keyboard navigation when the user is
+ *      focused on something else.
+ * The main thing to watch out for is the 2) point. When adding a command, ask yourself if "blocking" the kb shortcut
+ * when not focusing the view is risky: is the shortcut so generic that it's likely to be used outside of the view,
+ * for example for navigation? If so, the command should go in the "focused" list.
+ * Most commands triggered by arrow keys, Tab, Enter, pagination keys, should usually go in the focused list.
+ * Most commands with relatively hard or specific triggers should usually go in the normal list.
  */
 BaseView.commonCommands = {
   input: function(init) {
     this.scrollToCursor(true).catch(reportError);
     this.activateEditorAtCursor({init});
   },
-  editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
-
-  insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
-  insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
-
-  insertCurrentDate: function() { this.insertCurrentDate(false); },
-  insertCurrentDateTime: function() { this.insertCurrentDate(true); },
-
   copyLink: function() { this.copyLink().catch(reportError); },
-
-  deleteRecords: function(source) { this.deleteRecords(source); },
-
   filterByThisCellValue: function() { this.filterByThisCellValue(); },
   duplicateRows: function() { this._duplicateRows().catch(reportError); },
   openDiscussion: function(ev, payload) {
     const state = typeof payload === 'object' && payload ? payload : null;
     this._openDiscussionAtCursor(state);
   },
+  insertRecordBefore: function() { this.insertRow(this.cursor.rowIndex()); },
+  insertRecordAfter: function() { this.insertRow(this.cursor.rowIndex() + 1); },
+};
+
+/**
+ * These commands are common to GridView and DetailView.
+ *
+ * They are enabled only when the user is actually focusing the view, meaning
+ * they don't work when the view is the active one but the user is focused on something else, like the creator panel.
+ */
+BaseView.commonFocusedCommands = {
+  editField: function(event) { closeRegisteredMenu(); this.scrollToCursor(true); this.activateEditorAtCursor({event}); },
+
+  insertCurrentDate: function() { this.insertCurrentDate(false); },
+  insertCurrentDateTime: function() { this.insertCurrentDate(true); },
+
+  deleteRecords: function(source) { this.deleteRecords(source); },
+
   viewAsCard: function() {
     /* Overridden by subclasses.
      *
@@ -357,8 +380,7 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
 /**
  * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
  */
- BaseView.prototype._openDiscussionAtCursor = function(text) {
-  if (!COMMENTS().get()) { return false; }
+BaseView.prototype._openDiscussionAtCursor = function(text) {
   var builder = this.activeFieldBuilder();
   if (builder.isEditorActive()) {
     return false;
@@ -411,14 +433,7 @@ BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
 BaseView.prototype.copyLink = async function() {
   const sectionId = this.viewSection.getRowId();
   const anchorUrlState = this.getAnchorLinkForSection(sectionId);
-  try {
-    const link = urlState().makeUrl(anchorUrlState);
-    await copyToClipboard(link);
-    setTestState({clipboard: link});
-    reportSuccess('Link copied to clipboard', {key: 'clipboard'});
-  } catch (e) {
-    throw new Error('cannot copy to clipboard');
-  }
+  return this.gristDoc.copyAnchorLink(anchorUrlState.hash);
 };
 
 BaseView.prototype.filterByThisCellValue = function() {

@@ -35,7 +35,10 @@ export interface AssistanceRequestV1 extends BaseAssistanceRequest {
  */
 export interface AssistanceRequestV2 extends BaseAssistanceRequest {
   context: AssistanceContextV2;
+  developerPromptVersion?: DeveloperPromptVersion;
 }
+
+export type DeveloperPromptVersion = "default" | "new-document";
 
 interface BaseAssistanceRequest {
   conversationId: string;

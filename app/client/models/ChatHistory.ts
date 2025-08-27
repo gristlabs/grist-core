@@ -1,5 +1,5 @@
 import { ApiError } from "app/common/ApiError";
-import { AssistanceState } from "app/common/Assistance";
+import { AssistanceState, DeveloperPromptVersion } from "app/common/Assistance";
 
 /**
  * The state of assistance.
@@ -13,6 +13,7 @@ export interface ChatHistory {
   messages: ChatMessage[];
   conversationId?: string;
   state?: AssistanceState;
+  developerPromptVersion?: DeveloperPromptVersion;
 }
 
 /**

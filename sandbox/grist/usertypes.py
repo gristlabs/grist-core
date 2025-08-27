@@ -18,6 +18,7 @@ import io
 import json
 import logging
 import math
+import os
 from collections import OrderedDict
 
 import depend
@@ -49,6 +50,17 @@ _type_defaults = {
   'RefList':      None,
   'Text':         u'',
 }
+
+# Compute truthy and falsy values for Bool type here so they are not
+# recomputed for every Bool conversion.
+# These are the default values, which can be extended by environment variables.
+_truthy_values = {"true", "yes", "1"}
+_falsy_values = {"false", "no", "0"}
+# If the environment variables are set, extend the truthy and falsy values.
+if extra_truthy_values := os.environ.get('GRIST_TRUTHY_VALUES', ''):
+  _truthy_values |= set(extra_truthy_values.lower().split(','))
+if extra_falsy_values := os.environ.get('GRIST_FALSY_VALUES', ''):
+  _falsy_values |= set(extra_falsy_values.lower().split(','))
 
 def get_pure_type(col_type):
   """
@@ -223,9 +235,12 @@ class Bool(BaseColumnType):
   Bool is the type for a field holding boolean data.
   """
   @classmethod
+  # We'll convert any falsy value to False, non-zero numbers to True, and only strings we
+  # recognize.
+  # The GRIST_TRUTHY_VALUES and GRIST_FALSY_VALUES environment variables
+  # can be set to extend this list.
+  # Everything else will result in alttext.
   def do_convert(cls, value):
-    # We'll convert any falsy value to False, non-zero numbers to True, and only strings we
-    # recognize. Everything else will result in alttext.
     if not value:
       return False
     if isinstance(value, _numeric_types):
@@ -233,9 +248,9 @@ class Bool(BaseColumnType):
     if isinstance(value, AltText):
       value = str(value)
     if isinstance(value, str):
-      if value.lower() in ("false", "no", "0"):
+      if value.lower() in _falsy_values:
         return False
-      if value.lower() in ("true", "yes", "1"):
+      if value.lower() in _truthy_values:
         return True
     raise objtypes.ConversionError("Bool")
 

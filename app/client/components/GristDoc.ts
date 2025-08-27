@@ -21,24 +21,27 @@ import {RawDataPage, RawDataPopup} from 'app/client/components/RawDataPage';
 import {RecordCardPopup} from 'app/client/components/RecordCardPopup';
 import {ActionGroupWithCursorPos, UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout} from 'app/client/components/ViewLayout';
+import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import {ImportSourceElement} from 'app/client/lib/ImportSourceElement';
 import {makeT} from 'app/client/lib/localization';
 import {createSessionObs} from 'app/client/lib/sessionObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {setTestState} from 'app/client/lib/testState';
-import {AppModel, reportError} from 'app/client/models/AppModel';
+import {AppModel} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
 import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
 import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {UserError} from 'app/client/models/errors';
+import {reportError, reportSuccess, UserError} from 'app/client/models/errors';
 import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {getFilterFunc, QuerySetManager} from 'app/client/models/QuerySet';
 import {getUserOrgPrefObs, getUserOrgPrefsObs, markAsSeen} from 'app/client/models/UserPrefs';
+import {UserPresenceModel, UserPresenceModelImpl} from 'app/client/models/UserPresenceModel';
 import {App} from 'app/client/ui/App';
 import {showCustomWidgetGallery} from 'app/client/ui/CustomWidgetGallery';
 import {DocHistory} from 'app/client/ui/DocHistory';
@@ -61,7 +64,7 @@ import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
 import {CommentMonitor, DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
+import {AssistantState, ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
 import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -98,6 +101,7 @@ import {
 import * as ko from 'knockout';
 import cloneDeepWith = require('lodash/cloneDeepWith');
 import isEqual = require('lodash/isEqual');
+import omit = require('lodash/omit');
 import pick = require('lodash/pick');
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
@@ -153,6 +157,7 @@ export interface GristDoc extends DisposableWithEvents {
   docPageModel: DocPageModel;
   docModel: DocModel;
   viewModel: ViewRec;
+  userPresenceModel: UserPresenceModel;
   activeViewId: Observable<IDocPage>;
   currentPageName: Observable<string>;
   docData: DocData;
@@ -181,6 +186,7 @@ export interface GristDoc extends DisposableWithEvents {
   attachmentTransfer: Observable<AttachmentTransferStatus | null>;
   canShowRawData: Observable<boolean>;
   currentUser: Observable<ExtendedUser|null>;
+  regionFocusSwitcher?: RegionFocusSwitcher;
 
   docId(): string;
   openDocPage(viewId: IDocPage): Promise<void>;
@@ -209,11 +215,13 @@ export interface GristDoc extends DisposableWithEvents {
     visitedSections?: number[]
   ): Promise<boolean>;
   activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
+  copyAnchorLink(anchorInfo: HashLink & CursorPos): Promise<void>;
 }
 
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public docModel: DocModel;
   public viewModel: ViewRec;
+  public userPresenceModel: UserPresenceModel;
   public activeViewId: Observable<IDocPage>;
   public currentPageName: Observable<string>;
   public docData: DocData;
@@ -224,6 +232,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public isReadonly = this.docPageModel.isReadonly;
   public isReadonlyKo = toKo(ko, this.isReadonly);
   public comparison: DocStateComparison | null;
+  public get regionFocusSwitcher() { return this.app.regionFocusSwitcher; }
   // component for keeping track of latest cursor position
   public cursorMonitor: CursorMonitor;
   // component for keeping track of a cell that is being edited
@@ -338,6 +347,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.isTimingOn.set(openDocResponse.isTimingOn);
     this.docData = new DocData(this.docComm, openDocResponse.doc);
     this.docModel = this.autoDispose(new DocModel(this.docData, this.docPageModel));
+    this.userPresenceModel = UserPresenceModelImpl.create(this, this.docComm, this.app.comm);
     this.querySetManager = QuerySetManager.create(this, this.docModel, this.docComm);
     this.docPluginManager = new DocPluginManager({
       plugins,
@@ -516,8 +526,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         return;
       }
 
-      // Onboarding tours can conflict with rick rowing.
-      if (state.hash?.rickRow) {
+      // Onboarding tours can conflict with rick rowing and the assistant.
+      if (state.hash?.rickRow || state.params?.assistantState) {
         this._disableAutoStartingTours = true;
       }
 
@@ -639,6 +649,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       activateAssistant: this._activateAssistant.bind(this),
     }, this, true));
 
+    this.userPresenceModel.initialize().catch(reportError);
+
     this.listenTo(app.comm, 'docUserAction', this._onDocUserAction);
 
     this.listenTo(app.comm, 'docUsage', this._onDocUsageMessage);
@@ -744,6 +756,23 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       }
       return true;
     });
+
+    this.autoDispose(subscribe(urlState().state, async (_use, state) => {
+      const {params} = state;
+      if (!params?.assistantState) {
+        return;
+      }
+
+      await urlState().pushUrl(
+        {params: omit(params, "assistantState")},
+        {replace: true, avoidReload: true}
+      );
+
+      const assistantState = await this.docComm.getAssistantState(params.assistantState);
+      if (this.isDisposed() || !assistantState) { return; }
+
+      this._activateAssistant({state: assistantState});
+    }));
   }
 
   /**
@@ -1197,6 +1226,26 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public async activateEditorAtCursor(options?: { init?: string, state?: any }) {
     const view = await this._waitForView();
     view?.activateEditorAtCursor(options);
+  }
+
+  /**
+   * Copy an anchor link for the current row (or comment) to the clipboard.
+   */
+  public async copyAnchorLink(anchorInfo: HashLink & CursorPos) {
+    const hash: HashLink = anchorInfo;
+    if (!hash.colRef && anchorInfo.fieldIndex && anchorInfo.sectionId) {
+      const section = this.docModel.viewSections.getRowModel(anchorInfo.sectionId);
+      const column = section.viewFields.peek().peek()[anchorInfo.fieldIndex].column.peek();
+      hash.colRef = column.id.peek();
+    }
+    try {
+      const link = urlState().makeUrl({hash});
+      await copyToClipboard(link);
+      setTestState({clipboard: link});
+      reportSuccess('Link copied to clipboard', {key: 'clipboard'});
+    } catch (e) {
+      throw new Error('cannot copy to clipboard');
+    }
   }
 
   /**
@@ -1992,14 +2041,14 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     });
   }
 
-  private _activateAssistant() {
+  private _activateAssistant(options: {state?: AssistantState} = {}) {
     if (!this._assistantPopupHolder.isEmpty()) {
       // If an AssistantPopup is already open, don't dispose and reopen it, which
       // would cause its state to be reset.
       return;
     }
 
-    AssistantPopup.create(this._assistantPopupHolder, this);
+    AssistantPopup.create(this._assistantPopupHolder, this, options);
   }
 }
 

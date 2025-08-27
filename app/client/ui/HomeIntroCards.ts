@@ -6,6 +6,7 @@ import {openVideoTour} from 'app/client/ui/OpenVideoTour';
 import {basicButtonLink, bigPrimaryButton, primaryButtonLink} from 'app/client/ui2018/buttons';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton, unstyledH2} from 'app/client/ui2018/unstyled';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, dom, IDisposableOwner, makeTestId, styled, subscribeElem} from 'grainjs';
@@ -102,24 +103,22 @@ export function buildHomeIntroCards(
     cssWebinars(
       dom.show(isFeatureEnabled('helpCenter')),
       cssWebinarsImage({src: 'img/webinars.svg'}),
-      t('Learn more {{webinarsLinks}}', {
-        webinarsLinks: cssWebinarsButton(
-          t('Webinars'),
-          {href: commonUrls.webinars, target: '_blank'},
-          testId('webinars'),
-        ),
-      }),
+      unstyledH2(t('Learn more')),
+      cssWebinarsButton(
+        t('Webinars'),
+        {href: commonUrls.webinars, target: '_blank'},
+        testId('webinars'),
+      )
     ),
     cssHelpCenter(
       dom.show(isFeatureEnabled('helpCenter')),
       cssHelpCenterImage({src: 'img/help-center.svg'}),
-      t('Find solutions and explore more resources {{helpCenterLink}}', {
-        helpCenterLink: cssHelpCenterButton(
-          t('Help center'),
-          {href: commonUrls.help, target: '_blank'},
-          testId('help-center'),
-        ),
-      }),
+      unstyledH2(t('Find solutions and explore more resources')),
+      cssHelpCenterButton(
+        t('Help center'),
+        {href: commonUrls.help, target: '_blank'},
+        testId('help-center'),
+      ),
     ),
     testId('cards'),
   ));
@@ -135,6 +134,7 @@ const mediaSmall = `(max-width: ${828 - 0.02}px)`;
 const cssHomeIntroCards = styled('div', `
   display: grid;
   gap: 24px;
+  margin-top: 4px;
   margin-bottom: 24px;
   display: grid;
   grid-template-columns: 239px minmax(0, 437px) minmax(196px, 1fr) minmax(196px, 1fr);
@@ -158,7 +158,7 @@ const cssHomeIntroCards = styled('div', `
   }
 `);
 
-const cssVideoTour = styled('div', `
+const cssVideoTour = styled(unstyledButton, `
   grid-area: 1 / 1 / 2 / 2;
   flex-shrink: 0;
   width: 239px;
@@ -166,6 +166,8 @@ const cssVideoTour = styled('div', `
   cursor: pointer;
   border-radius: 4px;
   aspect-ratio: 16 / 9;
+
+  outline-offset: 1px;
 
   @media ${mediaSmall} {
     & {
@@ -293,7 +295,8 @@ const cssNewDocument = styled('div', `
   min-height: 140px;
 `);
 
-const cssNewDocumentHeader = styled('div', `
+const cssNewDocumentHeader = styled('h2', `
+  margin: 0;
   font-weight: 500;
   font-size: ${vars.xxlargeFontSize};
 `);

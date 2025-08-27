@@ -7,6 +7,7 @@ import {hoverTooltip} from 'app/client/ui/tooltips';
 import {transition, TransitionWatcher} from 'app/client/ui/transitions';
 import {cssHideForNarrowScreen, isScreenResizing, mediaNotSmall, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {isNarrowScreenObs} from 'app/client/ui2018/cssVars';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {icon} from 'app/client/ui2018/icons';
 import {
   dom, DomElementArg, DomElementMethod, MultiHolder, noTestId, Observable, styled, subscribe, TestId
@@ -15,6 +16,8 @@ import noop from 'lodash/noop';
 import once from 'lodash/once';
 import {SessionObs} from 'app/client/lib/sessionObs';
 import debounce from 'lodash/debounce';
+import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
+import {App} from 'app/client/ui/App';
 
 const t = makeT('PagePanels');
 
@@ -45,6 +48,8 @@ export interface PageContents {
   testId?: TestId;
   contentTop?: DomElementArg;
   contentBottom?: DomElementArg;
+
+  app?: App;
 }
 
 export function pagePanels(page: PageContents) {
@@ -57,6 +62,8 @@ export function pagePanels(page: PageContents) {
   const bannerHeight = Observable.create(null, 0);
   const isScreenResizingObs = isScreenResizing();
 
+  const appObj = page.app;
+
   let lastLeftOpen = left.panelOpen.get();
   let lastRightOpen = right?.panelOpen.get() || false;
   let leftPaneDom: HTMLElement;
@@ -64,6 +71,13 @@ export function pagePanels(page: PageContents) {
   let mainHeaderDom: HTMLElement;
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
+
+  let regionFocusSwitcher: RegionFocusSwitcher|undefined;
+  // Create a RegionFocusSwitcher when we have a valid appObj (some tests don't include one).
+  if (appObj && appObj.topAppModel) {
+    regionFocusSwitcher = RegionFocusSwitcher.create(null, appObj);
+    appObj.regionFocusSwitcher = regionFocusSwitcher;
+  }
 
   // When switching to mobile mode, close panels; when switching to desktop, restore the
   // last desktop state.
@@ -79,12 +93,15 @@ export function pagePanels(page: PageContents) {
     leftOverlap.set(false);
   });
 
-  // When url changes, we must have navigated; close the left panel since if it were open, it was
-  // the likely cause of the navigation (e.g. switch to another page or workspace).
+  // When url changes, we must have navigated;
+  //   - close the left panel since if it were open, it was the likely cause of the navigation
+  //     (e.g. switch to another page or workspace).
+  //   - reset the focus switcher to behave like a normal browser navigation (lose focus).
   const sub2 = subscribe(isNarrowScreenObs(), urlState().state, (use, narrow, state) => {
     if (narrow) {
       left.panelOpen.set(false);
     }
+    regionFocusSwitcher?.reset();
   });
 
   const pauseSavingLeft = (yesNo: boolean) => {
@@ -115,6 +132,7 @@ export function pagePanels(page: PageContents) {
     dom.autoDispose(sub2),
     dom.autoDispose(commandsGroup),
     dom.autoDispose(leftOverlap),
+    regionFocusSwitcher ? dom.autoDispose(regionFocusSwitcher) : null,
     dom('div', testId('top-panel'), page.contentTop, elem => { contentTopDom = elem; }),
     dom.maybe(page.banner, () => {
       let elem: HTMLElement;
@@ -131,8 +149,12 @@ export function pagePanels(page: PageContents) {
       );
     }),
     cssContentMain(
+      (el) => {
+        regionFocusSwitcher?.onPageDomLoaded(el);
+      },
       leftPaneDom = cssLeftPane(
         testId('left-panel'),
+        regionFocusSwitcher?.panelAttrs('left', t('Main navigation and document settings (left panel)')),
         cssOverflowContainer(
           contentWrapper = cssLeftPanelContainer(
             cssLeftPaneHeader(
@@ -269,27 +291,50 @@ export function pagePanels(page: PageContents) {
       cssMainPane(
         mainHeaderDom = cssTopHeader(
           testId('top-header'),
+          regionFocusSwitcher?.panelAttrs('top', t('Document header')),
           (left.hideOpener ? null :
-            cssPanelOpener('PanelRight', cssPanelOpener.cls('-open', left.panelOpen),
-              testId('left-opener'),
+            unstyledButton(
+              {'aria-label': left.panelOpen.get()
+                ? t('Close navigation panel (left panel)')
+                : t('Open navigation panel (left panel)')},
               dom.on('click', () => toggleObs(left.panelOpen)),
-              cssHideForNarrowScreen.cls(''))
+              cssPanelOpener(
+                'PanelRight',
+                cssPanelOpener.cls('-open', left.panelOpen),
+                testId('left-opener'),
+                cssHideForNarrowScreen.cls('')
+              ),
+            )
           ),
 
           page.headerMain,
 
           (!right || right.hideOpener ? null :
-            cssPanelOpener('PanelLeft', cssPanelOpener.cls('-open', right.panelOpen),
-              testId('right-opener'),
-              dom.cls('tour-creator-panel'),
-              hoverTooltip(() => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')),
-                {key: 'topBarBtnTooltip'}),
+            unstyledButton(
+              {'aria-label': right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')},
               dom.on('click', () => toggleObs(right.panelOpen)),
-              cssHideForNarrowScreen.cls(''))
+              cssPanelOpener(
+                'PanelLeft',
+                cssPanelOpener.cls('-open', right.panelOpen),
+                testId('right-opener'),
+                dom.cls('tour-creator-panel'),
+                hoverTooltip(
+                  () => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')),
+                  {key: 'topBarBtnTooltip'}
+                ),
+                cssHideForNarrowScreen.cls('')
+              ),
+            )
           ),
           dom.style('margin-bottom', use => use(bannerHeight) + 'px'),
         ),
-        page.contentMain,
+
+        cssContentMainPane(
+          testId('main-content'),
+          regionFocusSwitcher?.panelAttrs('main', t('Main content')),
+          page.contentMain,
+        ),
+
         cssMainPane.cls('-left-overlap', leftOverlap),
         testId('main-pane'),
       ),
@@ -303,6 +348,7 @@ export function pagePanels(page: PageContents) {
 
         rightPaneDom = cssRightPane(
           testId('right-panel'),
+          regionFocusSwitcher?.panelAttrs('right', t('Creator panel (right panel)')),
           cssRightPaneHeader(
             right.header,
             dom.style('margin-bottom', use => use(bannerHeight) + 'px')
@@ -399,6 +445,13 @@ const cssContentMain = styled(cssHBox, `
   overflow: hidden;
   position: relative;
 `);
+
+// div wrapping the contentMain passed to pagePanels
+const cssContentMainPane = styled(cssVBox, `
+  flex-grow: 1;
+  overflow: auto;
+`);
+
 export const cssLeftPane = styled(cssVBox, `
   position: relative;
   background-color: ${theme.leftPanelBg};

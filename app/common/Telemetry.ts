@@ -119,6 +119,10 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'The role ("user" or "system"), content, and index of the message sent to the AI Assistant.',
         dataType: 'object',
       },
+      developerPromptVersion: {
+        description: 'The developer prompt version. May be either `"default"` or `"new-document"`.',
+        dataType: 'string',
+      }
     },
   },
   assistantReceive: {
@@ -357,6 +361,26 @@ export const TelemetryContracts: TelemetryContracts = {
       },
       altSessionId: {
         description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
+  assistantStartDocument: {
+    category: 'AIAssistant',
+    description: 'Triggered when a user begins the process of creating a document using the AI Assistant.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'short',
+    metadataContracts: {
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+      prompt: {
+        description: 'The message sent to the AI Assistant.',
         dataType: 'string',
       },
     },
@@ -1608,6 +1632,30 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
+  duplicatedWidget: {
+    category: 'WidgetUsage',
+    description: 'Triggered when a widget is duplicated.',
+    minimumTelemetryLevel: Level.full,
+    retentionPeriod: 'indefinitely',
+    metadataContracts: {
+      docIdDigest: {
+        description: 'A hash of the doc id.',
+        dataType: 'string',
+      },
+      destPage: {
+        description: 'The type of page the widget is being duplicated to. One of "SAME", "NEW", "OTHER"',
+        dataType: 'string',
+      },
+      userId: {
+        description: 'The id of the user that triggered this event.',
+        dataType: 'number',
+      },
+      altSessionId: {
+        description: 'A random, session-based identifier for the user that triggered this event.',
+        dataType: 'string',
+      },
+    },
+  },
   linkedWidget: {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is linked.',
@@ -1802,6 +1850,7 @@ export const TelemetryEvents = StringUnion(
   'assistantApplySuggestion',
   'assistantClearConversation',
   'assistantClose',
+  'assistantStartDocument',
   'beaconOpen',
   'beaconArticleViewed',
   'beaconEmailSent',
@@ -1851,6 +1900,7 @@ export const TelemetryEvents = StringUnion(
   'deletedPage',
   'addedWidget',
   'deletedWidget',
+  'duplicatedWidget',
   'linkedWidget',
   'unlinkedWidget',
   'publishedForm',

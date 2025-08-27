@@ -25,7 +25,7 @@ describe('DocMenu', function() {
     if (workspace) {
       const results = await Promise.all(
         docs.map(
-          async (d) => (await d.find('.test-dm-doc-workspace').getText()) === workspace
+          async (d) => (await d.find('.test-dm-doc-workspace').getText()) === "Workspace\n" + workspace
         )
       );
       docs = docs.filter((_, index) => results[index]);
@@ -35,9 +35,10 @@ describe('DocMenu', function() {
 
   const getDocNames = stackWrapFunc(async function(workspace?: string) {
     const docs = await getDocs(workspace);
-    return await Promise.all(
+    const result = await Promise.all(
       docs.map((d) => d.find('.test-dm-doc-name').getText())
     );
+    return result;
   });
 
   const getDocTimes = stackWrapFunc(async function(workspace?: string) {
@@ -275,30 +276,29 @@ describe('DocMenu', function() {
 
     // Rename the doc.
     await openDocMenu(/Untitled document/);
-    await driver.find('.test-dm-rename-doc').doClick();
+    await driver.findWait('.test-dm-rename-doc', 100).doClick();
     await driver.findWait('.test-modal-dialog', 100);
-    // The input receives focus after a 10 ms delay.
-    await driver.sleep(10);
+    await gu.waitForFocus('#name');
     await driver.sendKeys('NewDocRenamed', Key.ENTER);
     assert.deepEqual(await getDocNames('August'), ['Doc22', 'Doc23', 'NewDocRenamed']);
 
     // Start to delete the doc, check that cancelling works.
     await openDocMenu(/NewDocRenamed/);
-    await driver.find('.test-dm-delete-doc').doClick();
-    await driver.find('.test-modal-cancel').doClick();
+    await driver.findWait('.test-dm-delete-doc', 100).doClick();
+    await driver.findWait('.test-modal-cancel', 100).doClick();
     assert.deepEqual(await getDocNames('August'), ['Doc22', 'Doc23', 'NewDocRenamed']);
 
     // Delete the doc.
     await openDocMenu(/NewDocRenamed/);
-    await driver.find('.test-dm-delete-doc').doClick();
-    await driver.find('.test-modal-confirm').doClick();
+    await driver.findWait('.test-dm-delete-doc', 100).doClick();
+    await driver.findWait('.test-modal-confirm', 100).doClick();
     assert.deepEqual(await getDocNames('August'), ['Doc22', 'Doc23']);
   });
 
   it('should allow adding, removing, and renaming workspaces', async function() {
     // Start adding a workspace, check that cancelling works.
     await openAddNew();
-    await driver.find('.test-dm-new-workspace').doClick();
+    await driver.findWait('.test-dm-new-workspace', 100).doClick();
     await driver.sendKeys(Key.ESCAPE);
     let wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate']);
@@ -310,15 +310,16 @@ describe('DocMenu', function() {
 
     // Rename the workspace.
     await openWorkspaceMenu(/October/);
-    await driver.find('.test-dm-rename-workspace').doClick();
+    await driver.findWait('.test-dm-rename-workspace', 100).doClick();
+    await gu.waitForFocus('.test-dm-ws-name-editor');
     await driver.find('.test-dm-ws-name-editor').sendKeys('WorkspaceRenamed', Key.ENTER);
     wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate', 'WorkspaceRenamed']);
 
     // Start to delete the workspace, check that cancelling works.
     await openWorkspaceMenu(/WorkspaceRenamed/);
-    await driver.find('.test-dm-delete-workspace').doClick();
-    await driver.find('.test-modal-cancel').click();
+    await driver.findWait('.test-dm-delete-workspace', 100).doClick();
+    await driver.findWait('.test-modal-cancel', 100).click();
     wsNames = await driver.findAll('.test-dm-workspace', (e) => e.getText());
     assert.deepEqual(wsNames, ['August', 'Personal', 'Real estate', 'WorkspaceRenamed']);
 
@@ -398,7 +399,7 @@ describe('DocMenu', function() {
   it('should prevent rename and delete actions without access', async function() {
     // Try to rename a workspace with view only access.
     await openWorkspaceMenu(/Real estate/);
-    await driver.find('.test-dm-rename-workspace').doClick();
+    await driver.findWait('.test-dm-rename-workspace', 100).doClick();
     assert.equal(await driver.find('.test-dm-ws-name-editor').isPresent(), false);
 
     // Click on a disabled item doesn't close the menu

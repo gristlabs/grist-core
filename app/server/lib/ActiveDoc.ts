@@ -20,6 +20,7 @@ import {
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
+  AssistantState,
   DataSourceTransformed,
   ForkResult,
   FormulaTimingInfo,
@@ -31,7 +32,8 @@ import {
   QueryResult,
   ServerQuery,
   TableFetchResult,
-  TransformRule
+  TransformRule,
+  VisibleUserProfile
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
@@ -61,7 +63,7 @@ import {
   RowCounts,
 } from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
-import {Product} from 'app/common/Features';
+import {Features, Product} from 'app/common/Features';
 import {isHiddenCol} from 'app/common/gristTypes';
 import {commonUrls, parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
@@ -103,11 +105,13 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
+import {getAssistantStatePermit} from 'app/server/lib/AssistantStatePermit';
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
 } from 'app/server/lib/IAssistant';
 import {AssistanceContextV1} from 'app/common/Assistance';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
@@ -115,7 +119,6 @@ import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
 import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
-import {ICreateActiveDocOptions} from 'app/server/lib/ICreate';
 import {makeForkIds} from 'app/server/lib/idUtils';
 import {GRIST_DOC_SQL, GRIST_DOC_WITH_TABLE1_SQL} from 'app/server/lib/initialDocSql';
 import {ISandbox} from 'app/server/lib/ISandbox';
@@ -147,7 +150,6 @@ import * as moment from 'moment-timezone';
 import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
-import tmp from 'tmp';
 
 import {ActionHistory} from './ActionHistory';
 import {ActionHistoryImpl} from './ActionHistoryImpl';
@@ -170,8 +172,6 @@ import pick = require('lodash/pick');
 import sum = require('lodash/sum');
 import throttle = require('lodash/throttle');
 import without = require('lodash/without');
-
-bluebird.promisifyAll(tmp);
 
 const MAX_RECENT_ACTIONS = 100;
 
@@ -198,6 +198,11 @@ const LOG_DOCUMENT_METRICS_DELAY = {delayMs: 60 * 60 * 1000, varianceMs: 30 * 10
 // For items of work that need to happen at shutdown, timeout before aborting the wait for them.
 const SHUTDOWN_ITEM_TIMEOUT_MS = 5000;
 
+const MAX_INTERNAL_ATTACHMENTS_BYTES =
+    appSettings.section('externalStorage').flag('maxInternalBytes').readInt({
+      envVar: 'GRIST_MAX_INTERNAL_ATTACHMENTS_BYTES',
+    });
+
 // We keep a doc open while a user action is pending, but not longer than this. If it's pending
 // this long, the ACTIVEDOC_TIMEOUT will still kick in afterwards, and in the absence of other
 // activity, the doc would still get shut down, with the action's effect lost. This is to prevent
@@ -212,7 +217,15 @@ export const Deps = {
   UPDATE_CURRENT_TIME_DELAY,
   SHUTDOWN_ITEM_TIMEOUT_MS,
   KEEP_DOC_OPEN_TIMEOUT_MS,
+  MAX_INTERNAL_ATTACHMENTS_BYTES,
 };
+
+interface ActiveDocOptions {
+  safeMode?: boolean;
+  docUrl?: string;
+  docApiUrl?: string;
+  doc?: Document;
+}
 
 interface UpdateUsageOptions {
   // Whether usage should be synced to the home database. Defaults to true.
@@ -289,6 +302,7 @@ export class ActiveDoc extends EventEmitter {
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
   private _docUsage: DocumentUsage|null = null;
   private _product?: Product;
+  private _features?: Features;
   private _gracePeriodStart: Date|null = null;
   private _isSnapshot: boolean;
   private _isForkOrSnapshot: boolean;
@@ -329,7 +343,7 @@ export class ActiveDoc extends EventEmitter {
     private readonly _docManager: DocManager,
     private _docName: string,
     private _attachmentStoreProvider?: IAttachmentStoreProvider,
-    private _options?: ICreateActiveDocOptions
+    private _options?: ActiveDocOptions
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
@@ -377,16 +391,18 @@ export class ActiveDoc extends EventEmitter {
       const { gracePeriodStart, workspace, usage } = _options.doc;
       const billingAccount = workspace.org.billingAccount;
       this._product = billingAccount?.product;
+      this._features = billingAccount?.getFeatures();
       this._gracePeriodStart = gracePeriodStart;
 
       if (billingAccount) {
-        this._pubSubUnsubscribe = this._docManager.gristServer.getPubSubManager()
+        this._pubSubUnsubscribe = this._server.getPubSubManager()
           .subscribe(`billingAccount-${billingAccount.id}-product-changed`, async () => {
             // A product change has just happened in Billing.
             // Reload the doc (causing connected clients to reload) to ensure everyone sees the effect of the change.
             this._log.debug(null, 'reload after product change');
             await this.reloadDoc();
-          });
+          })
+          .unsubscribeCB;
       }
 
       if (!(this.isFork || this._isSnapshot)) {
@@ -431,6 +447,10 @@ export class ActiveDoc extends EventEmitter {
       this.docStorage,
       _attachmentStoreProvider,
       forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
+      (extraBytes: number) => this._assertAttachmentSizeBelowLimit(extraBytes, {
+        checkInternal: true,
+        checkProduct: false,
+      }),
     );
 
     // Every time manager starts the transfer we need to notify clients about it.
@@ -465,6 +485,8 @@ export class ActiveDoc extends EventEmitter {
 
   public get docName(): string { return this._docName; }
 
+  public get features(): Features|undefined { return this._features; }
+
   public get recoveryMode(): boolean { return this._recoveryMode; }
 
   public get isShuttingDown(): boolean { return this._shuttingDown; }
@@ -474,25 +496,25 @@ export class ActiveDoc extends EventEmitter {
   public get rowLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.rowCount?.total,
-      this._product?.features.baseMaxRowsPerDocument
+      this._features?.baseMaxRowsPerDocument
     );
   }
 
   public get dataSizeLimitRatio(): number {
     return getUsageRatio(
       this._docUsage?.dataSizeBytes,
-      this._product?.features.baseMaxDataSizePerDocument
+      this._features?.baseMaxDataSizePerDocument
     );
   }
 
   public get dataLimitRatio(): number {
-    return getDataLimitRatio(this._docUsage, this._product?.features);
+    return getDataLimitRatio(this._docUsage, this._features);
   }
 
   public get dataLimitInfo(): DataLimitInfo {
     return getDataLimitInfo({
       docUsage: this._docUsage,
-      productFeatures: this._product?.features,
+      productFeatures: this._features,
       gracePeriodStart: this._gracePeriodStart,
     });
   }
@@ -610,6 +632,10 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.disable();
     }
     return docSession;
+  }
+
+  public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
+    return this.docClients.listVisibleUserProfiles(docSession);
   }
 
   /**
@@ -910,7 +936,7 @@ export class ActiveDoc extends EventEmitter {
       // We'll assert that the upload won't cause limits to be exceeded, retrying once after
       // soft-deleting any unused attachments.
       await retryOnce(
-        () => this._assertUploadSizeBelowLimit(upload),
+        () => this._assertUploadInfoSizeBelowLimit(upload),
         async (e) => {
           if (!(e instanceof LimitExceededError)) { throw e; }
 
@@ -922,7 +948,7 @@ export class ActiveDoc extends EventEmitter {
             await this._updateAttachmentsSize({syncUsageToDatabase: false});
           } else {
             // No point in retrying if nothing changed.
-            throw new LimitExceededError("Exceeded attachments limit for document");
+            throw e;
           }
         }
       );
@@ -1299,12 +1325,11 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Fetches the generated schema for a given table.
-   * @param {String} tableId: The string identifier of the table.
-   * @returns {Promise} Promise for a string representing the generated table schema.
+   * Fetches the generated Python code.
+   * @returns {Promise} Promise for a string representing the generated Python code.
    */
-  public async fetchTableSchema(docSession: DocSession): Promise<string> {
-    this._log.info(docSession, "fetchTableSchema(%s)", docSession);
+  public async fetchPythonCode(docSession: OptDocSession): Promise<string> {
+    this._log.info(docSession, "fetchPythonCode(%s)", docSession);
     // Permit code view if user can read everything, or can download/copy (perhaps
     // via an exceptional permission for sample documents)
     if (!(await this._granularAccess.canReadEverything(docSession) ||
@@ -1825,10 +1850,11 @@ export class ActiveDoc extends EventEmitter {
     if (!userId) { throw new Error('Cannot determine user'); }
 
     const parsed = parseUrlId(this.docName);
+    const db = this.getHomeDbManager();
+
     // If this is not a temporary document (i.e. created by anonymous user).
     if (parsed.trunkId !== NEW_DOCUMENT_CODE) {
       // Collect users the document is shared with.
-      const db = this.getHomeDbManager();
       if (db) {
         const access = db.unwrapQueryResult(
           await db.getDocAccess({userId, urlId: this.docName}, {
@@ -1853,6 +1879,17 @@ export class ActiveDoc extends EventEmitter {
 
     // Add some example users.
     result.exampleUsers = this._granularAccess.getExampleViewAsUsers();
+
+    // If there are example users with no access, use the public access level.
+    const publicUsers = result.exampleUsers.filter(u => !u.access);
+    if (publicUsers.length && db) {
+      const docAuth = await db.getDocAuthCached({
+        urlId: this.docName,
+        userId: db.getAnonymousUserId(),
+      });
+      publicUsers.forEach(u => u.access = docAuth.access);
+    }
+
     return result;
   }
 
@@ -2130,7 +2167,7 @@ export class ActiveDoc extends EventEmitter {
     event: TelemetryEvent,
     metadata?: TelemetryMetadataByLevel
   ) {
-    this._docManager.gristServer.getTelemetry().logEvent(docSession, event, merge(
+    this._server.getTelemetry().logEvent(docSession, event, merge(
       this._getTelemetryMeta(docSession),
       metadata,
     ));
@@ -2207,6 +2244,16 @@ export class ActiveDoc extends EventEmitter {
       return;
     }
     return await this._pyCall('get_timings');
+  }
+
+  public async getAssistantState(_docSession: OptDocSession, id: string): Promise<AssistantState|null> {
+    const store = this._server.getPermitStore();
+    const permit = await getAssistantStatePermit(store, id, {remove: true});
+    if (!permit || permit.docId !== this._docName) {
+      return null;
+    }
+
+    return pick(permit, "prompt");
   }
 
   public getMemoryUsedMB(): number {
@@ -2395,8 +2442,8 @@ export class ActiveDoc extends EventEmitter {
         if (this._dataEngine && this._fullyLoaded) {
           // Note that this must happen before `this._shuttingDown = true` because of this line in Sharing.ts:
           //     if (this._activeDoc.isShuttingDown && isCalculate) {
-          await safeCallAndWait("removeTransformColumns",
-            () => this.applyUserActions(docSession, [["RemoveTransformColumns"]])
+          await safeCallAndWait("RemoveStaleObjects",
+            () => this.applyUserActions(docSession, [["RemoveStaleObjects"]])
           );
         }
 
@@ -3179,27 +3226,41 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Throw an error if the provided upload would exceed the total attachment filesize limit for this document.
    */
-  private async _assertUploadSizeBelowLimit(upload: UploadInfo) {
+  private async _assertUploadInfoSizeBelowLimit(upload: UploadInfo) {
     // Minor flaw: while we don't double-count existing duplicate files in the total size,
     // we don't check here if any of the uploaded files already exist and could be left out of the calculation.
     const uploadSizeBytes = sum(upload.files.map(f => f.size));
-    if (await this._isUploadSizeBelowLimit(uploadSizeBytes)) { return; }
-
-    // TODO probably want a nicer error message here.
-    throw new LimitExceededError("Exceeded attachments limit for document");
+    await this._assertAttachmentSizeBelowLimit(uploadSizeBytes, {
+      checkProduct: true,
+      checkInternal: true,
+    });
   }
 
-  /**
-   * Returns true if an upload with size `uploadSizeBytes` won't cause attachment size
-   * limits to be exceeded.
-   */
-  private async _isUploadSizeBelowLimit(uploadSizeBytes: number): Promise<boolean> {
-    const maxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
-    if (!maxSize) { return true; }
-
+  private async _assertAttachmentSizeBelowLimit(uploadSizeBytes: number, options: {
+    checkProduct: boolean,
+    checkInternal: boolean,
+  }) {
     let currentSize = this._docUsage?.attachmentsSizeBytes;
     currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
-    return currentSize + uploadSizeBytes <= maxSize;
+    const futureSize = currentSize + uploadSizeBytes;
+
+    const productMaxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
+
+    if (options.checkProduct && productMaxSize !== undefined && futureSize > productMaxSize) {
+      // TODO probably want a nicer error message here.
+      throw new LimitExceededError("Exceeded attachments limit for document");
+    }
+
+    // If not using external attachments, apply installation limit on size.
+    // Technically the attachmentStoreId being set doesn't mean all attachments
+    // are actually stored externally, and a determined person could
+    // work around this limit at the API level. That's fine, their
+    // reward will be pain.
+    if (options.checkInternal && Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
+        futureSize > Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
+        !this.docData?.docSettings().attachmentStoreId) {
+      throw new LimitExceededError("Exceeded internal attachments limit for document");
+    }
   }
 
   /**

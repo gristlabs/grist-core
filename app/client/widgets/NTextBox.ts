@@ -7,6 +7,7 @@ import { ViewFieldRec } from 'app/client/models/entities/ViewFieldRec';
 import { fieldWithDefault } from 'app/client/models/modelUtil';
 import { FormTextFormat } from 'app/client/ui/FormAPI';
 import { cssLabel, cssNumericSpinner, cssRow } from 'app/client/ui/RightPanelStyles';
+import { rowHeightConfigColumn } from 'app/client/ui/RowHeightConfig';
 import { alignmentSelect, buttonSelect, cssButtonSelect, makeButtonSelect } from 'app/client/ui2018/buttonSelect';
 import { testId } from 'app/client/ui2018/cssVars';
 import { makeLinks } from 'app/client/ui2018/links';
@@ -57,6 +58,7 @@ export class NTextBox extends NewAbstractWidget {
           testId('tb-wrap-text'),
         ),
       ),
+      cssRow(rowHeightConfigColumn(this.field.viewSection.peek())),
     ];
   }
 

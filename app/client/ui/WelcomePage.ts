@@ -2,6 +2,7 @@ import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, sty
 
 import { handleSubmit } from "app/client/lib/formUtils";
 import { AppModel } from "app/client/models/AppModel";
+import { App } from 'app/client/ui/App';
 import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { AppHeader } from 'app/client/ui/AppHeader';
@@ -36,7 +37,7 @@ function handleSubmitForm(
 
 export class WelcomePage extends Disposable {
 
-  constructor(private _appModel: AppModel) {
+  constructor(private _appModel: AppModel, private _appObj: App) {
     super();
   }
 
@@ -58,6 +59,7 @@ export class WelcomePage extends Disposable {
         page === 'teams' ? dom.create(buildWelcomeSitePicker, this._appModel) :
         this._buildPageContent(page)
       ),
+      app: this._appObj,
     });
   }
 

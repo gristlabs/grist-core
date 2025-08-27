@@ -1618,10 +1618,15 @@ class UserActions(object):
         self._docmodel.update([col_rec], displayCol=display_col_ref)
 
   @useraction
-  def RemoveTransformColumns(self):
+  def RemoveStaleObjects(self):
     self._docmodel.remove([
       col for col in self._docmodel.columns.all if _is_transform_col(col.colId)
     ])
+    temporary_table_recs = [
+      tab for tab in self._docmodel.tables.all if _is_temporary_table(tab.tableId)
+    ]
+    for table_rec in temporary_table_recs:
+      self.RemoveTable(table_rec.tableId)
 
   # Helper function to get a helper column with the given formula, or to add one if none
   # currently exist.
@@ -2512,3 +2517,10 @@ def _is_transform_col(col_id):
     'gristHelper_Transform',
     'gristHelper_Converted',
   ))
+
+def _is_temporary_table(table_id):
+  """
+  Returns True if the table is a a temporary table (for example
+  created just for importing documents).
+  """
+  return table_id and table_id.startswith('GristHidden_import')

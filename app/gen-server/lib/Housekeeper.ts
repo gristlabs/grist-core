@@ -15,6 +15,7 @@ import { GristServer } from 'app/server/lib/GristServer';
 import { IElectionStore } from 'app/server/lib/IElectionStore';
 import log from 'app/server/lib/log';
 import { IPermitStore } from 'app/server/lib/Permit';
+import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
 import { optStringParam, stringParam } from 'app/server/lib/requestUtils';
 import { updateGristServerLatestVersion } from 'app/server/lib/updateChecker';
 import * as express from 'express';
@@ -27,6 +28,7 @@ export const Timings = {
   LOG_METRICS_PERIOD_MS: 24 * 60 * 60 * 1000,  // operate every day
   VERSION_CHECK_PERIOD_MS: 7 * 24 * 60 * 60 * 1000, // operate every week
   VERSION_CHECK_OFFSET_MS: 20 * 1000, // wait 20 seconds before running the first check
+  TEST_PROXY_URL_PERIOD_MS: 5 * 60 * 1000,     // every five minutes
   AGE_THRESHOLD_OFFSET: '-30 days',            // should be an interval known by postgres + sqlite
 
   // Don't keep doing synchronous work longer than this.
@@ -41,6 +43,10 @@ export const Timings = {
     defaultValue: 50,
   }),
 };
+
+export const GRIST_TEST_PROXY_URL = appSettings.section('proxy').flag('testUrl').readString({
+  envVar: 'GRIST_TEST_PROXY_URL',
+});
 
 /**
  * Take care of periodic tasks:
@@ -59,6 +65,7 @@ export class Housekeeper {
   private _logMetricsInterval?: NodeJS.Timeout;
   private _checkVersionUpdatesTimeout?: NodeJS.Timeout;
   private _checkVersionUpdatesInterval?: NodeJS.Timeout;
+  private _testProxyUrlInterval?: NodeJS.Timeout;
 
   private _electionKey?: string;
   private _telemetry = this._server.getTelemetry();
@@ -84,7 +91,11 @@ export class Housekeeper {
     this._checkVersionUpdatesInterval = setInterval(() => {
       this.checkVersionUpdatesExclusively().catch(log.warn.bind(log));
     }, Timings.VERSION_CHECK_PERIOD_MS);
-
+    if (GRIST_TEST_PROXY_URL) {
+      this._testProxyUrlInterval = setInterval(() => {
+        this.testProxyUrlExclusively().catch(log.warn.bind(log));
+      }, Timings.TEST_PROXY_URL_PERIOD_MS);
+    }
   }
 
   /**
@@ -94,7 +105,8 @@ export class Housekeeper {
     for (const interval of [
       '_deleteTrashinterval',
       '_logMetricsInterval',
-      '_checkVersionUpdatesInterval'] as const) {
+      '_checkVersionUpdatesInterval',
+      '_testProxyUrlInterval'] as const) {
       clearInterval(this[interval]);
       this[interval] = undefined;
     }
@@ -180,6 +192,44 @@ export class Housekeeper {
       } finally {
         await this._permitStore.removePermit(permitKey);
       }
+    }
+  }
+
+  public async testProxyUrlExclusively(): Promise<boolean> {
+    const electionKey = await this._electionStore.getElection('testProxyUrl', Timings.TEST_PROXY_URL_PERIOD_MS / 2.0);
+    if (!electionKey) {
+      log.info('Skipping testProxyUrl since another server is working on it or worked on it recently');
+      return false;
+    }
+    this._electionKey = electionKey;
+    await this.testProxyUrl();
+    return true;
+  }
+
+  public async testProxyUrl() {
+    const url = GRIST_TEST_PROXY_URL;
+    if (!url) { return; }
+    const response = await fetchUntrustedWithAgent(url, {
+      method: 'GET',
+      timeout: 5000,
+    }).catch(e => {
+      return {
+        ok: false,
+        status: 'error',
+        async text() { return String(e); },
+      };
+    });
+    if (response.ok) {
+      log.rawInfo('testProxyUrl passed', {
+        url,
+        status: response.status,
+      });
+    } else {
+      log.rawError('testProxyUrl failed', {
+        url,
+        status: response.status,
+        body: await response.text().catch(e => String(e)),
+      });
     }
   }
 

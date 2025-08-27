@@ -92,11 +92,16 @@ export class FormModelImpl extends Disposable implements FormModel {
     const colValues = typedFormDataToJson(formData);
     try {
       this.submitting.set(true);
-      await this._formAPI.createRecord({
-        ...this._getDocIdOrShareKeyParam(),
-        tableId: form.formTableId,
-        colValues,
-      });
+      // we virtually wait for at least a second to actually consider the form submitted;
+      // this makes for a tiny bit of a delay allowing users to see the "submitting…" state of the FormRenderer
+      await Promise.all([
+        this._formAPI.createRecord({
+          ...this._getDocIdOrShareKeyParam(),
+            tableId: form.formTableId,
+            colValues,
+          }),
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+      ]);
     } finally {
       this.submitting.set(false);
     }

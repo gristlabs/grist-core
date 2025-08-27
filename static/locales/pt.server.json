@@ -1,1 +1,13 @@
-{}
+{
+    "sendAppPage": {
+        "Loading...": "A carregar...",
+        "og-description": "Uma folha de cálculo moderna e de código aberto que ultrapassa os limites",
+        "og-title": "Grist, a evolução das folhas de cálculo"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Verifique o seu e-mail com o provedor de identidade e faça login novamente."
+    },
+    "access": {
+        "docNoAccess": "Não tem acesso a este documento."
+    }
+}

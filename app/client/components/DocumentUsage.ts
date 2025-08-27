@@ -9,10 +9,11 @@ import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {loadingDots, loadingSpinner} from 'app/client/ui2018/loaders';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
-import {Features, isFreePlan} from 'app/common/Features';
+import {displayPlanName, Features, isFreePlan} from 'app/common/Features';
 import {capitalizeFirstWord} from 'app/common/gutil';
 import {APPROACHING_LIMIT_RATIO} from 'app/common/Limits';
 import {canUpgradeOrg} from 'app/common/roles';
+import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, Disposable, dom, DomContents, DomElementArg, makeTestId, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
 
@@ -20,11 +21,16 @@ const t = makeT('DocumentUsage');
 
 const testId = makeTestId('test-doc-usage-');
 
+const {deploymentType} = getGristConfig();
+
 // Default used by the progress bar to visually indicate row usage.
-const DEFAULT_MAX_ROWS = 20000;
+// For self-hosters, the 20,000 rows limit is not actually the limit
+// So we use a larger default value to avoid confusion.
+const DEFAULT_MAX_ROWS = deploymentType == "saas" ? 20000 : 150000;
 
 // Default used by the progress bar to visually indicate data size usage.
-const DEFAULT_MAX_DATA_SIZE = DEFAULT_MAX_ROWS * 2 * 1024; // 40MB (2KiB per row)
+// 40MB on SaaS, 300MB for self-hosters (2KiB per row)
+const DEFAULT_MAX_DATA_SIZE = DEFAULT_MAX_ROWS * 2 * 1024;
 
 // Default used by the progress bar to visually indicate attachments size usage.
 const DEFAULT_MAX_ATTACHMENTS_SIZE = 1 * 1024 * 1024 * 1024; // 1GiB
@@ -93,7 +99,7 @@ export class DocumentUsage extends Disposable {
 
   private readonly _attachmentsSizeMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentFeatures, this._attachmentsSizeBytes, (_use, features, attachmentsSize) => {
-      const maxSize = features?.baseMaxAttachmentsBytesPerDocument;
+      const maxSize: number|undefined = features?.baseMaxAttachmentsBytesPerDocument;
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
@@ -158,6 +164,8 @@ export class DocumentUsage extends Disposable {
       const features = use(this._currentFeatures);
       const usageInfo = use(this._currentDocUsage);
       if (!org || !usageInfo) { return null; }
+      const productName = use(this._currentProduct)?.name || '';
+      const planLabel = displayPlanName[productName] || productName;
 
       return [
         // Pass on external storage recommendation if there is one.
@@ -165,7 +173,7 @@ export class DocumentUsage extends Disposable {
 
         // If usage limits have kicked in, say so.
         usageInfo?.dataLimitInfo?.status ? buildMessage([
-          buildLimitStatusMessage(usageInfo, features, {
+          buildLimitStatusMessage(planLabel, usageInfo, features, {
             disableRawDataLink: true
           }),
           (product && isFreePlan(product.name)
@@ -200,6 +208,7 @@ export class DocumentUsage extends Disposable {
 }
 
 export function buildLimitStatusMessage(
+  planName: string,
   usageInfo: NonNullable<Pick<FilteredDocUsageSummary, 'dataLimitInfo'>>,
   features?: Features|null,
   options: {
@@ -213,7 +222,7 @@ export function buildLimitStatusMessage(
       return [
         'This document is ',
         disableRawDataLink ? 'approaching' : buildRawDataPageLink('approaching'),
-        ' free plan limits.'
+        ` ${planName} plan limits.`
       ];
     }
     case 'gracePeriod': {
@@ -236,7 +245,7 @@ export function buildLimitStatusMessage(
       return [
         'This document ',
         disableRawDataLink ? 'exceeded' : buildRawDataPageLink('exceeded'),
-        ' free plan limits and is now read-only, but you can delete rows.'
+        ` ${planName} plan limits and is now read-only, but you can delete rows.`
       ];
     }
   }

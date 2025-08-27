@@ -271,18 +271,6 @@ export class FormView extends Disposable {
           await selected.deleteSelf();
         }).catch(reportError);
       },
-      hideFields: (colId: [string]) => {
-        // Get the ref from colId.
-        const existing: Array<[number, string]> =
-          this.viewSection.viewFields().all().map(f => [f.id(), f.column().colId()]);
-        const ref = existing.filter(([_, c]) => colId.includes(c)).map(([r, _]) => r);
-        if (!ref.length) { return; }
-        const box = Array.from(this._root.filter(b => ref.includes(b.prop('leaf')?.get())));
-        box.forEach(b => b.removeSelf());
-        this._root.save(async () => {
-          await this.viewSection.removeField(ref);
-        }).catch(reportError);
-      },
       insertFieldBefore: (what: NewBox) => {
         const selected = this.selectedBox.get();
         if (!selected) { return; }
@@ -313,6 +301,32 @@ export class FormView extends Disposable {
           selected.insertAfter(components.defaultElement(what.structure));
           this.save().catch(reportError);
         }
+      },
+    };
+    this.autoDispose(commands.createGroup({
+      ...keyboardActions,
+      cursorDown: keyboardActions.nextField,
+      cursorUp: keyboardActions.prevField,
+      cursorLeft: keyboardActions.prevField,
+      cursorRight: keyboardActions.nextField,
+      shiftDown: keyboardActions.lastField,
+      shiftUp: keyboardActions.firstField,
+      editField: keyboardActions.edit,
+      deleteFields: keyboardActions.clearValues,
+    }, this, this.viewSection.hasRegionFocus));
+
+    const commandHandlers = {
+      hideFields: (colId: [string]) => {
+        // Get the ref from colId.
+        const existing: Array<[number, string]> =
+          this.viewSection.viewFields().all().map(f => [f.id(), f.column().colId()]);
+        const ref = existing.filter(([_, c]) => colId.includes(c)).map(([r, _]) => r);
+        if (!ref.length) { return; }
+        const box = Array.from(this._root.filter(b => ref.includes(b.prop('leaf')?.get())));
+        box.forEach(b => b.removeSelf());
+        this._root.save(async () => {
+          await this.viewSection.removeField(ref);
+        }).catch(reportError);
       },
       showColumns: (colIds: string[]) => {
         // Sanity check that type is correct.
@@ -345,18 +359,8 @@ export class FormView extends Disposable {
         }).catch(reportError);
       },
     };
-    this.autoDispose(commands.createGroup({
-      ...keyboardActions,
-      cursorDown: keyboardActions.nextField,
-      cursorUp: keyboardActions.prevField,
-      cursorLeft: keyboardActions.prevField,
-      cursorRight: keyboardActions.nextField,
-      shiftDown: keyboardActions.lastField,
-      shiftUp: keyboardActions.firstField,
-      editField: keyboardActions.edit,
-      deleteFields: keyboardActions.clearValues,
-      hideFields: keyboardActions.hideFields,
-    }, this, this.viewSection.hasFocus));
+
+    this.autoDispose(commands.createGroup(commandHandlers, this, this.viewSection.hasFocus));
 
     this._previewUrl = Computed.create(this, use => {
       const doc = use(this.gristDoc.docPageModel.currentDoc);

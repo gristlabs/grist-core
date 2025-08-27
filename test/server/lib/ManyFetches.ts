@@ -24,6 +24,7 @@ describe('ManyFetches', function() {
   const email = 'chimpy@getgrist.com';
   const org = 'docs';
 
+  let testCounter = 0;
   let home: TestServer;
   let docs: TestServer;
   let userApi: UserAPIImpl;
@@ -37,7 +38,7 @@ describe('ManyFetches', function() {
   beforeEach(async function() {
     oldEnv = new EnvironmentSnapshot();   // Needed for prepareDatabase, which changes process.env
     log.info("Starting servers");
-    const testDir = await createTestDir("ManyFetches");
+    const testDir = await createTestDir(`ManyFetches-${testCounter++}`);
     await prepareDatabase(testDir);
     home = await TestServer.startServer('home', testDir, "home");
     docs = await TestServer.startServer('docs', testDir, "docs", {

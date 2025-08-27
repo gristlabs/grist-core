@@ -224,7 +224,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   public add(email: string, role: roles.Role|null): void {
     email = normalizeEmail(email);
     const members = this.membersEdited.get();
-    const index = members.findIndex((m) => m.email === email);
+    const index = members.findIndex((m) => normalizeEmail(m.email) === email);
     const existing = index > -1 ? members[index] : null;
     if (existing && existing.isRemoved) {
       // The member is replaced with the isRemoved set to false to trigger an

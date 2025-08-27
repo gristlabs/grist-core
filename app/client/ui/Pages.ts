@@ -13,7 +13,7 @@ import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/ch
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssLink} from 'app/client/ui2018/links';
 import {ISaveModalOptions, saveModal} from 'app/client/ui2018/modals';
-import {buildCensoredPage, buildPageDom, PageActions} from 'app/client/ui2018/pages';
+import {buildCensoredPage, buildPageDom, PageOptions} from 'app/client/ui2018/pages';
 import {mod} from 'app/common/gutil';
 import {Computed, Disposable, dom, fromKo, makeTestId, observable, Observable, styled} from 'grainjs';
 
@@ -31,6 +31,7 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
       pagePos: use(page.pagePos),
       viewRef: use(page.viewRef),
       hidden: use(page.isCensored),
+      collapsed: page.isCollapsed,
     }))
   );
   const getTreeTableData = (): TreeTableData => ({
@@ -55,31 +56,47 @@ export function buildPagesDom(owner: Disposable, activeDoc: GristDoc, isOpen: Ob
   }, null, true));
 
   // dom
-  return dom('div', dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly}));
+  return dom('nav',
+    {'aria-label': t("Document pages")},
+    dom.create(TreeViewComponent, model, {isOpen, selected, isReadonly: activeDoc.isReadonly})
+  );
 }
 
 const testId = makeTestId('test-removepage-');
 
-function buildDomFromTable(pagesTable: MetaTableModel<PageRec>, activeDoc: GristDoc, pageId: number, hidden: boolean) {
-
-  if (hidden) {
+function buildDomFromTable(
+  pagesTable: MetaTableModel<PageRec>,
+  activeDoc: GristDoc,
+  pageId: number,
+  item: TreeItemRecord
+) {
+  if (item.hidden) {
     return buildCensoredPage();
   }
 
   const {isReadonly} = activeDoc;
-  const pageName = pagesTable.rowModels[pageId].view.peek().name;
-  const viewId = pagesTable.rowModels[pageId].view.peek().id.peek();
+  const pageRec = pagesTable.rowModels[pageId];
+  const viewRec = pageRec.view.peek();
+  const pageName = viewRec.name;
+  const viewId = viewRec.id.peek();
+  const {docModel} = activeDoc;
 
-  const actions: PageActions = {
+  const options: PageOptions = {
     onRename: (newName: string) => newName.length && pageName.saveOnly(newName),
     onRemove: () => removeView(activeDoc, viewId, pageName.peek()),
     onDuplicate: () => buildDuplicatePageDialog(activeDoc, pageId),
     // Can't remove last visible page
-    isRemoveDisabled: () => activeDoc.docModel.visibleDocPages.peek().length <= 1,
-    isReadonly
+    isRemoveDisabled: () => docModel.visibleDocPages.peek().length <= 1,
+    isReadonly,
+    isCollapsed: pageRec.isCollapsed,
+    onCollapse: (value) => pageRec.isCollapsed.set(value),
+    isCollapsedByDefault: pageRec.isCollapsedByDefault,
+    onCollapseByDefault: (value) => pageRec.setAndSaveCollapsed(value),
+    hasSubPages: () => item.children().get().length > 0,
+    href: urlState().setLinkUrl({docPage: viewId}),
   };
 
-  return buildPageDom(fromKo(pageName), actions, urlState().setLinkUrl({docPage: viewId}));
+  return buildPageDom(fromKo(pageName), options);
 }
 
 function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {

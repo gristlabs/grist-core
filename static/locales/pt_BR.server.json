@@ -6,5 +6,8 @@
         "Loading...": "Carregando...",
         "og-description": "Uma planilha moderna e de código aberto que vai além da grade",
         "og-title": "Grist, a evolução das planilhas eletrônicas"
+    },
+    "access": {
+        "docNoAccess": "Você não tem acesso a este documento."
     }
 }

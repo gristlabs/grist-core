@@ -65,6 +65,11 @@ export class ChoiceListCell extends ChoiceTextBox {
   }
 }
 
+// When "max row height" is set, we try hard to keep lines to the same height as lines of normal
+// text, since the overflow ellipsis is based on lines of text rather than pixel height, and a
+// discrepancy will cause it to show below the visible area or in the middle of text.
+// We also treat it as if line-wrapping is on, as there seems little advantage to keep the cell to
+// a single line when an explicit max number of lines is set.
 export const cssChoiceList = styled('div', `
   display: flex;
   align-content: start;
@@ -77,6 +82,14 @@ export const cssChoiceList = styled('div', `
   &-wrap {
     flex-wrap: wrap;
   }
+
+  .row_height_set & {
+    flex-wrap: wrap;
+    word-break: break-word;
+    white-space: pre-wrap;
+    padding: 2px 3px 0 3px;
+    line-height: 0px;
+  }
 `);
 
 export const cssToken = styled('div', `
@@ -84,4 +97,11 @@ export const cssToken = styled('div', `
   min-width: 0px;
   margin: 2px;
   line-height: 16px;
+
+  .row_height_set & {
+    margin: 1px 2px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    vertical-align: text-bottom;
+  }
 `);

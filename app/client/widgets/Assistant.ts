@@ -23,7 +23,7 @@ import { cssLink, gristIconLink } from "app/client/ui2018/links";
 import { loadingDots } from "app/client/ui2018/loaders";
 import { MinimalActionGroup } from "app/common/ActionGroup";
 import { ApiError } from "app/common/ApiError";
-import { AssistanceResponse } from "app/common/Assistance";
+import { AssistanceResponse, DeveloperPromptVersion } from "app/common/Assistance";
 import { AsyncCreate } from "app/common/AsyncCreate";
 import { DocAction } from "app/common/DocActions";
 import { isFreePlan } from "app/common/Features";
@@ -141,6 +141,12 @@ export class Assistant extends Disposable {
     ];
   }
 
+  public async send(message: string): Promise<void> {
+    this._conversation.addQuestion(message);
+    this._userInput.set("");
+    await this._doAsk(message);
+  }
+
   public clear() {
     this._lastSendPromise = null;
     this._conversation.clear();
@@ -167,6 +173,10 @@ export class Assistant extends Disposable {
 
   public get conversationId() {
     return this._conversation.id.get();
+  }
+
+  public get developerPromptVersion() {
+    return this._conversation.developerPromptVersion;
   }
 
   public get conversationLength() {
@@ -505,6 +515,7 @@ class AssistantConversation extends Disposable {
   public suggestedFormulas: Computed<string[]>;
   public lastSuggestedFormula: Computed<string | null>;
   public thinking: Observable<boolean>;
+  public developerPromptVersion: DeveloperPromptVersion;
 
   private _history = this._options.history;
   private _gristDoc = this._options.gristDoc;
@@ -540,13 +551,27 @@ class AssistantConversation extends Disposable {
     this.id = Observable.create(this, conversationId);
     this.autoDispose(
       this.id.addListener((newId) => {
+        this.developerPromptVersion = "default";
+
         // If a new conversation id was generated (e.g. on Clear Conversation), save it.
         this._history.set({
           ...this._history.get(),
           conversationId: newId,
+          messages: [],
+          state: undefined,
+          developerPromptVersion: this.developerPromptVersion,
         });
+        this.allMessages.set([]);
+        this.newMessages.set([]);
       })
     );
+
+    let developerPromptVersion = this._history.get().developerPromptVersion;
+    if (!developerPromptVersion) {
+      developerPromptVersion = "default";
+      this._history.set({ ...this._history.get(), developerPromptVersion });
+    }
+    this.developerPromptVersion = developerPromptVersion;
 
     // Create observable array of messages that is connected to the ChatHistory.
     this.allMessages = this.autoDispose(obsArray(this._history.get().messages));
@@ -611,12 +636,11 @@ class AssistantConversation extends Disposable {
   public clear() {
     this.thinking.set(false);
     this.id.set(uuidv4());
-    this.allMessages.set([]);
-    this.newMessages.set([]);
-    this._history.set({ ...this._history.get(), state: undefined });
   }
 
   public scrollDown(options: { smooth?: boolean; } = {}) {
+    if (!this._element) { return; }
+
     const { smooth = true } = options;
     setTimeout(() => {
       this._element.scroll({

@@ -116,7 +116,8 @@
         "Team Site": "Site da Equipe",
         "Grist Templates": "Modelos de Grist",
         "Billing Account": "Conta de faturamento",
-        "Manage Team": "Gerenciar Equipe"
+        "Manage Team": "Gerenciar Equipe",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Voltar para a página inicial"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Este site da equipe está suspenso. Os documentos podem ser lidos, mas não modificados."
@@ -335,7 +336,8 @@
         "Reload": "Recarregar",
         "Sorry, access to this document has been denied. [{{error}}]": "Desculpe, o acesso a esse documento foi negado. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Você pode tentar recarregar o documento ou usar o modo de recuperação. O modo de recuperação abre o documento para ser totalmente acessível aos proprietários e inacessível a outras pessoas. Ele também desativa as fórmulas. [{{error}}]",
-        "You do not have edit access to this document": "Você não tem permissão de edição desse documento"
+        "You do not have edit access to this document": "Você não tem permissão de edição desse documento",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Por favor, recarregue o documento e se o erro persistir, entre em contato com o proprietário do documento para tentar uma recuperação de documentos. [{{error}}]"
     },
     "DocTour": {
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Não é possível construir um Tour a partir dos dados contidos neste documento. Certifique-se de que haja uma tabela chamada GristDocTour com colunas Title, Body, Placement, e Location.",
@@ -430,7 +432,10 @@
         "[Learn more.]({{learnLink}})": "[Saiba mais]({{learnLink}})",
         "Upload": "Carregar",
         "Upload missing attachments": "Carregar anexos ausentes",
-        "Uploading...": "Carregando..."
+        "Uploading...": "Carregando...",
+        "Default": "Padrão",
+        "Default, template, or tutorial": "Padrão, modelo ou tutorial",
+        "Document type": "Tipo de documento"
     },
     "DocumentUsage": {
         "Attachments Size": "Tamanho dos Anexos",
@@ -607,7 +612,8 @@
         "Added new linked section to view {{viewName}}": "Adicionada nova seção vinculada para visualizar {{viewName}}}",
         "Import from file": "Importação de arquivo",
         "Saved linked section {{title}} in view {{name}}": "Seção vinculada salva {{title}} em exibição {{name}}",
-        "go to webhook settings": "ir para configurações webhook"
+        "go to webhook settings": "ir para configurações webhook",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Novas alterações estão temporariamente suspensas. A fila de webhooks transbordou. Verifique as configurações dos webhooks, remova os webhooks inválidos e limpe a fila."
     },
     "HomeIntro": {
         ", or find an expert via our ": ", ou encontre um especialista através do nosso",
@@ -655,7 +661,8 @@
         "Workspaces": "Áreas de Trabalho",
         "Tutorial": "Tutorial",
         "Terms of service": "Termos de serviço",
-        "Grist Resources": "Recursos do Grist"
+        "Grist Resources": "Recursos do Grist",
+        "context menu - {{- workspaceName }}": "menu de contexto - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
@@ -716,7 +723,8 @@
         "download attachments": "baixar anexos",
         ".zip": ".zip",
         ".tar (recommended)": ".tar (recomendado)",
-        "Download an archive of all the attachments present in this document.": "Baixe um arquivo de todos os anexos presentes neste documento."
+        "Download an archive of all the attachments present in this document.": "Baixe um arquivo de todos os anexos presentes neste documento.",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Os anexos são externos e não estão incluídos neste download. Se fizer o upload do documento em uma instalação separada do Grist, também será necessário acessar {{downloadLink}} separadamente. "
     },
     "NTextBox": {
         "false": "falso",
@@ -761,7 +769,10 @@
         "The following table will no longer be visible": "A tabela a seguir não será mais visível",
         "The following tables will no longer be visible": "As seguintes tabelas não serão mais visíveis",
         "The following tables will no longer be visible_one": "A seguinte tabela não será mais visível",
-        "The following tables will no longer be visible_other": "As seguintes tabelas não serão mais visíveis"
+        "The following tables will no longer be visible_other": "As seguintes tabelas não serão mais visíveis",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Mantenha os dados e exclua a página. A tabela permanecerá disponível em {{rawDataLink}}",
+        "raw data page": "página de dados brutos",
+        "Document pages": "Páginas do documento"
     },
     "PermissionsWidget": {
         "Allow All": "Permitir Todos",
@@ -931,7 +942,10 @@
         "Tour of this Document": "Tour desse Documento",
         "Validate Data": "Validar dados",
         "Settings": "Configurações",
-        "API Console": "Consola API"
+        "API Console": "Consola API",
+        "context menu - Access Rules": "Menu de contexto - Regras de acesso",
+        "Delete document tour": "Excluir o tour do documento",
+        "Preview the tutorial": "Visualizar o tutorial"
     },
     "TopBar": {
         "Manage Team": "Gerenciar Equipe",
@@ -1003,7 +1017,8 @@
         "Widget options": "Opções do Widget",
         "Collapse widget": "Colapsar widget",
         "Add to page": "Adicionar à página",
-        "Create a form": "Criar um formulário"
+        "Create a form": "Criar um formulário",
+        "Duplicate widget": "Duplicar widget"
     },
     "ViewSectionMenu": {
         "(customized)": "(personalizado)",
@@ -1137,7 +1152,13 @@
         "Duplicate Page": "Duplicar a Página",
         "Remove": "Remover",
         "Rename": "Renomear",
-        "You do not have edit access to this document": "Você não tem permissão de edição desse documento"
+        "You do not have edit access to this document": "Você não tem permissão de edição desse documento",
+        "(default)": "(padrão)",
+        "Collapse {{maybeDefault}}": "Recolher {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Expandir {{maybeDefault}}",
+        "Set default: Collapse": "Definir padrão: Recolher",
+        "Set default: Expand": "Definir padrão: Expandir",
+        "context menu - {{- pageName }}": "menu de contexto - {{- pageName }}"
     },
     "search": {
         "Find Next ": "Encontrar Próximo ",
@@ -1152,7 +1173,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Usuário desconhecido",
         "View as Yourself": "Ver como você mesmo",
-        "You are viewing this document as": "Você está visualizando este documento como"
+        "You are viewing this document as": "Você está visualizando este documento como",
+        "You're seeing what this user would see if given access": "Você está vendo o que esse usuário veria se tivesse acesso"
     },
     "FilterBar": {
         "SearchColumns": "Procurar colunas",
@@ -1166,7 +1188,9 @@
     "ACLUsers": {
         "Users from table": "Usuários da tabela",
         "View As": "Ver como",
-        "Example Users": "Usuários de exemplo"
+        "Example Users": "Usuários de exemplo",
+        "Other users from table": "Outros usuários da tabela",
+        "Shared users": "Usuários compartilhados"
     },
     "WelcomeTour": {
         "Use {{helpCenter}} for documentation or questions.": "Use {{helpCenter}} para documentação ou perguntas.",
@@ -1379,14 +1403,27 @@
         "[Learn more.]({{link}})": "[Saiba mais]({{link}})",
         "Summary tables can only contain formula columns.": "As tabelas de resumo só podem conter colunas de fórmula.",
         "Manage users and resources in a Grist installation.": "Gerencie usuários e recursos em uma instalação do Grist.",
-        "The new Grist Assistant is here!": "O novo assistente Grist está aqui!"
+        "The new Grist Assistant is here!": "O novo assistente Grist está aqui!",
+        "Formulas support many Excel functions and full Python syntax.": "As fórmulas suportam muitas funções do Excel e a sintaxe completa do Python.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Cria uma nova coluna Lista de Referência na tabela de destino, com ambas as colunas de destino editáveis e sincronizadas.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Armazenamento interno significa que todos os anexos são armazenados no arquivo SQLite do documento, enquanto o armazenamento externo indica que todos os anexos são armazenados no mesmo armazenamento externo.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Isso permite adicionar anexos que estão faltando no armazenamento externo, por exemplo, em um documento importado. Somente arquivos de anexos .tar baixados do Grist podem ser carregados aqui.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Entenda, modifique e trabalhe com seus dados e fórmulas com a ajuda do novo Assistente de IA do Grist!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Este formulário foi criado por um usuário do Grist e não é endossado pelo Grist Labs. Não envie senhas por meio desse formulário e tenha cuidado com os links nele contidos. Denuncie formulários maliciosos para [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Defina o número máximo de linhas para texto com várias linhas."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
     },
     "PagePanels": {
         "Open Creator Panel": "Abrir o Painel do Criador",
-        "Close Creator Panel": "Fechar Painel do Criador"
+        "Close Creator Panel": "Fechar Painel do Criador",
+        "Creator panel (right panel)": "Painel do criador (painel direito)",
+        "Document header": "Cabeçalho do documento",
+        "Main content": "Conteúdo principal",
+        "Main navigation and document settings (left panel)": "Navegação principal e configurações do documento (painel esquerdo)",
+        "Close navigation panel (left panel)": "Fechar o painel de navegação (painel esquerdo)",
+        "Open navigation panel (left panel)": "Abrir o painel de navegação (painel esquerdo)"
     },
     "ColumnTitle": {
         "Cancel": "Cancelar",
@@ -1401,7 +1438,8 @@
     },
     "Clipboard": {
         "Got it": "Entendido",
-        "Unavailable Command": "Comando indisponível"
+        "Unavailable Command": "Comando indisponível",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "O comando de menu {{action}} não está disponível neste navegador. Mas você pode acessar {{action}} usando o atalho de teclado {{shortcut}}."
     },
     "WebhookPage": {
         "Clear Queue": "Limpar fila",
@@ -1429,7 +1467,8 @@
         "Paste": "Colar",
         "Clear field": "Limpar campo",
         "Copy": "Copiar",
-        "Cut": "Cortar"
+        "Cut": "Cortar",
+        "Comment": "Comentário"
     },
     "FormulaAssistant": {
         "Capabilities": "Capacidades",
@@ -1467,7 +1506,10 @@
         "You have used all available credits.": "Você utilizou todos os créditos disponíveis.",
         "upgrade your plan": "Atualize seu plano",
         "You have {{numCredits}} remaining credits.": "Você tem {{numCredits}} créditos restantes.",
-        "For higher limits, {{upgradeNudge}}.": "Para limites maiores, {{upgradeNudge}}."
+        "For higher limits, {{upgradeNudge}}.": "Para limites maiores, {{upgradeNudge}}.",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "Para obter mais ajuda com fórmulas, consulte nossos sites {{functionList}} e {{formulaCheatSheet}}, ou visite nosso site {{community}} para obter mais ajuda.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "Quando você fala comigo, suas perguntas e a estrutura do documento (visível em {{codeView}}) são enviadas para a OpenAI. {{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Fale comigo como uma pessoa. Não há necessidade de especificar tabelas e nomes de colunas. Por exemplo, você pode pedir \"Por favor, calcule o valor total da fatura.\""
     },
     "GridView": {
         "Click to insert": "Clique para inserir"
@@ -1505,7 +1547,11 @@
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Coletamos apenas estatísticas de uso, conforme detalhado em nosso {{link}}, nunca o conteúdo dos documentos.",
         "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "Esta instância foi desativada da telemetria. Somente o administrador do site tem permissão para alterar isso.",
         "You have opted in to telemetry. Thank you!": "Você optou pela telemetria. Obrigado!",
-        "Sponsor": "Patrocinador"
+        "Sponsor": "Patrocinador",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "O software Grist é desenvolvido pela Grist Labs, que oferece planos hospedados gratuitos e pagos. Também disponibilizamos o código do Grist sob uma licença OSS padrão gratuita e aberta (Apache 2.0) em {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Apoie o Grist optando pela telemetria, que nos ajuda a entender como o produto é usado, para que possamos priorizar melhorias futuras.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "Somos uma equipe pequena e determinada. Seu apoio é muito importante para nós. Ele também mostra aos outros que há uma comunidade determinada por trás desse produto.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "Você pode apoiar o desenvolvimento de código aberto do Grist patrocinando-nos em nosso site {{link}}."
     },
     "buildViewSectionDom": {
         "No data": "Sem dados",
@@ -1607,7 +1653,11 @@
         "Copy code": "Copiar código",
         "Preview": "Pré-visualização",
         "# **Form Title**": "# **Título do formulário**",
-        "Your form description goes here.": "A descrição do seu formulário vai aqui."
+        "Your form description goes here.": "A descrição do seu formulário vai aqui.",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "A publicação do formulário gerará um link de compartilhamento. Qualquer pessoa com o link poderá ver o formulário vazio e enviar uma resposta.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Ao cancelar a publicação do formulário, o link de compartilhamento será desativado, de modo que os usuários que acessarem o formulário por meio desse link verão um erro.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Os usuários estão limitados a enviar entradas (registros em sua tabela) e ler valores predefinidos em campos designados, como colunas de referência e de escolha.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Seu formulário está publicado. Todas as alterações estão ativas e visíveis para os usuários com acesso ao formulário. Se você quiser fazer alterações no rascunho, cancele a publicação do formulário."
     },
     "Menu": {
         "Columns": "Colunas",
@@ -1640,7 +1690,9 @@
         "free coaching call": "chamada gratuita de treinamento",
         "Maybe Later": "Talvez mais tarde",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Na chamada, vamos ter tempo para entender suas necessidades e adaptar a chamada para você. Podemos mostrar-lhe os princípios básicos do Grist ou começar a trabalhar com os seus dados imediatamente para construir os painéis que você precisa.",
-        "Schedule Call": "Agendar chamada"
+        "Schedule Call": "Agendar chamada",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Você também pode conferir {{ourWeeklyWebinars}} para saber mais sobre Grist.",
+        "our weekly webinars": "nossos webinars semanais"
     },
     "FormConfig": {
         "Field rules": "Regras de campo",
@@ -1767,7 +1819,11 @@
         "Audit Logs": "Registros de auditoria",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} mais",
         "On": "Ligado",
-        "Grist Instance": "Instância do Grist"
+        "Grist Instance": "Instância do Grist",
+        "Auto-check weekly": "Verificação automática semanal",
+        "No record of last version check": "Nenhum registro da última verificação de versão",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Você pode configurar a transmissão de eventos de auditoria do Grist para um sistema externo de gerenciamento de eventos e informações de segurança (SIEM) se ativar o Grist Enterprise. {{contactUsLink}} para saber mais.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "As verificações automáticas estão desativadas. Defina a variável de ambiente GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING como \"true\" para ativá-las."
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -1823,7 +1879,8 @@
         "Reset": "Redefinir",
         "Search": "Pesquisar",
         "Select...": "Selecionar...",
-        "Submit": "Enviar"
+        "Submit": "Enviar",
+        "Submitting…": "Enviando…"
     },
     "widgetTypesMap": {
         "Calendar": "Calendário",
@@ -1875,7 +1932,8 @@
         "Your role": "Sua função",
         "Skip step": "Pular passo",
         "Back": "Voltar",
-        "Welcome": "Bem-vindo"
+        "Welcome": "Bem-vindo",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "O Grist pode parecer uma planilha, mas nem sempre age como uma. Descubra o que torna o Grist diferente."
     },
     "ToggleEnterpriseWidget": {
         "Disable Grist Enterprise": "Desativar o Grist Empresarial",
@@ -1960,7 +2018,9 @@
         "Find solutions and explore more resources {{helpCenterLink}}": "Encontre soluções e explore mais recursos {{helpCenterLink}}",
         "Finish our basics tutorial": "Termine nosso tutorial básico",
         "Start a new document": "Inicie um novo documento",
-        "Templates": "Modelos"
+        "Templates": "Modelos",
+        "Find solutions and explore more resources": "Encontre soluções e explore mais recursos",
+        "Learn more": "Saiba mais"
     },
     "ReverseReferenceConfig": {
         "Add two-way reference": "Adicionar referência bidirecional",
@@ -1971,7 +2031,8 @@
         "Table": "Tabela",
         "Two-way Reference": "Referência bidirecional",
         "Delete two-way reference?": "Excluir referência bidirecional?",
-        "Target table": "Tabela de destino"
+        "Target table": "Tabela de destino",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Isso excluirá a coluna de referência {{refCol}} na tabela {{refTable}}. A coluna de referência {{myName}} permanecerá na tabela atual {{myTable}}."
     },
     "SupportGristButton": {
         "Admin Panel": "Painel de administração",
@@ -1980,7 +2041,9 @@
         "Opt in to Telemetry": "Aceitar a Telemetria",
         "Opted In": "Optou por participar",
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Obrigado! Sua confiança e seu apoio são muito apreciados. Cancele a qualquer momento no {{link}} no menu do usuário.",
-        "Support Grist": "Apoiar o Grist"
+        "Support Grist": "Apoiar o Grist",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Aceite a telemetria para nos ajudar a entender como o produto é usado, para que possamos priorizar melhorias futuras.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "Coletamos apenas estatísticas de uso, conforme detalhado em nosso {{helpCenterLink}}, nunca o conteúdo dos documentos. Desative a qualquer momento em {{supportGristLink}} no menu do usuário."
     },
     "buildReassignModal": {
         "Cancel": "Cancelar",
@@ -2011,7 +2074,8 @@
         "Delete": "Eliminar",
         "Destination": "Destino",
         "Start streaming": "Iniciar o streaming",
-        "Token": "Token"
+        "Token": "Token",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Configure a transmissão de eventos de auditoria do Grist para um sistema externo de gerenciamento de eventos e informações de segurança (SIEM), como o Splunk. {{learnMoreLink}}."
     },
     "AuditLogsPage": {
         "Audit Logs": "Registros de auditoria",
@@ -2020,7 +2084,9 @@
         "Contact us": "Entre em contato conosco",
         "Home": "Início",
         "Audit logs for {{siteName}}": "Registros de auditoria para {{siteName}}",
-        "upgrade your plan": "atualize seu plano"
+        "upgrade your plan": "atualize seu plano",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Você pode configurar a transmissão de eventos de auditoria do Grist para um sistema externo de gerenciamento de eventos e informações de segurança (SIEM) se ativar o Grist Enterprise. {{contactUsLink}} para saber mais.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Você pode configurar a transmissão de eventos de auditoria do Grist para um sistema SIEM (gerenciamento de eventos e informações de segurança) externo se {{upgradePlanButton}}."
     },
     "DocList": {
         "All": "Todo",
@@ -2044,7 +2110,9 @@
         "Sort by name": "Ordenar por Nome",
         "Unpin": "Liberar",
         "Manage users": "Gerenciar Usuarios",
-        "Move": "Mover"
+        "Move": "Mover",
+        "context menu - {{- documentName }}": "menu de contexto - {{- documentName }}",
+        "Documents list": "Lista de documentos"
     },
     "RenameDocModal": {
         "Choose icon": "Escolha o ícone",
@@ -2100,7 +2168,8 @@
         "Learn more.": "Saiba mais.",
         "Sign Up for Free": "Cadastre-se gratuitamente",
         "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Atualize para a Grist Enterprise para experimentar o novo assistente de Grist. {{learnMoreLink}}",
-        "You have used all available credits.": "Você utilizou todos os créditos disponíveis."
+        "You have used all available credits.": "Você utilizou todos os créditos disponíveis.",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "A conversa ficou muito longa e não consigo mais responder com eficiência. Acesse {{startANewChatButton}} para continuar recebendo assistência."
     },
     "apiconsole": {
         "Type DELETE here if you wish to proceed.": "Digite DELETE aqui se você deseja prosseguir.",
@@ -2109,5 +2178,67 @@
         "Are you sure you want to delete the following?": "Tem certeza de que deseja excluir o seguinte?",
         "Delete": "Eliminar",
         "Deletion was not confirmed, skipping.": "A exclusão não foi confirmada, pulando."
+    },
+    "MentionTextBox": {
+        "no access": "sem acesso"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Há uma atualização crítica do Grist disponível.\nConsidere fazer o upgrade para a versão {{version}} assim que possível.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Sua versão Grist está desatualizada.\nConsidere a atualização para a versão {{version}} o mais rápido possível."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Recomendação: {{storageRecommendation}}\nAo armazenar anexos grandes, ou muitos deles, recomendamos\nmantê-los em um armazenamento externo. Atualmente, este documento está\nusando o armazenamento interno para anexos, o que o mantém\nautônomo, mas pode limitar o desempenho.",
+        "Set the document to use external storage.": "Defina o documento para usar o armazenamento externo."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Por favor, espere que a operação anterior seja concluída.",
+        "Timed out on waiting for the Grist backend to restart": "Tempo limite de espera para que o back-end do Grist seja reiniciado"
+    },
+    "Experiments": {
+        "Disable feature": "Desativar recurso",
+        "Don't worry, you can disable it later if needed.": "Não se preocupe, você pode desabilitá-lo mais tarde, se necessário.",
+        "Enable feature": "Ativar recurso",
+        "Experimental feature": "Recurso experimental",
+        "New record button": "Botão Novo registro",
+        "Reload the page": "Recarregar a página",
+        "Visit this URL at any time to stop using this feature: {{url}}": "Visite este URL a qualquer momento para parar de usar este recurso: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "Você está prestes a desativar este recurso experimental: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "Você está prestes a ativar este recurso experimental: {{experiment}}",
+        "{{experiment}} disabled.": "{{experiment}} desativado.",
+        "{{experiment}} enabled.": "{{experiment}} activado."
+    },
+    "NewRecordButton": {
+        "New card": "Novo cartão",
+        "New record": "Novo registro"
+    },
+    "RegionFocusSwitcher": {
+        "Trying to access the creator panel? Use {{key}}.": "Está tentando acessar o painel do criador? Use {{key}}."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "Duplicar widget",
+        "Duplicate widgets": "Widgets duplicados"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Carregando, aguarde…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Adicionar",
+        "Delete": "Excluir",
+        "Download": "Baixar",
+        "Drop files here to attach": "Solte os arquivos aqui para anexá-los",
+        "Drop files here to attach.": "Solte arquivos aqui para anexar.",
+        "No attachments": "Sem anexos",
+        "Preview not available.": "Pré-visualização não disponível.",
+        "{{index}} of {{total}}": "{{index}} de {{total}}",
+        "Uploading…": "Carregando…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Expandir todas as linhas para essa altura",
+        "Max height": "Altura máxima",
+        "Max row height": "Altura máxima da linha"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Recolher",
+        "Expand": "Expandir"
     }
 }
