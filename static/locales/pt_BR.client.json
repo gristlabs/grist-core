@@ -1255,7 +1255,8 @@
         "Save": "Salvar",
         "Show resolved comments": "Mostrar comentários resolvidos",
         "Remove thread": "Remover tópico",
-        "updated": "atualizado"
+        "updated": "atualizado",
+        "Copy link": "Copiar link"
     },
     "FieldBuilder": {
         "CELL FORMAT": "FORMATO DA CÉLULA",
@@ -2240,5 +2241,10 @@
     "TreeViewComponent": {
         "Collapse": "Recolher",
         "Expand": "Expandir"
+    },
+    "ActiveUserList": {
+        "active user": "usuário ativo",
+        "active user list": "lista de usuários ativos",
+        "open full active user list": "abrir a lista completa de usuários ativos"
     }
 }
