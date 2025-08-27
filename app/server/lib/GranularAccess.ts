@@ -88,7 +88,7 @@ function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
 const STRUCTURAL_TABLES = new Set(['_grist_Tables', '_grist_Tables_column', '_grist_Views',
                                    '_grist_Views_section', '_grist_Views_section_field',
                                    '_grist_ACLResources', '_grist_ACLRules',
-                                   '_grist_Shares']);
+                                   '_grist_Shares', '_grist_Pages']);
 
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
 // A few may be innocuous, but that hasn't been figured out yet.
