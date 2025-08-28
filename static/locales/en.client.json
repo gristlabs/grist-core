@@ -1172,8 +1172,11 @@
         "Invalid currency": "Invalid currency"
     },
     "DiscussionEditor": {
+        "{{count}} comments_one": "{{count}} comment",
+        "{{count}} comments_other": "{{count}} comments",
         "Cancel": "Cancel",
         "Comment": "Comment",
+        "Copy link": "Copy link",
         "Edit": "Edit",
         "Marked as resolved": "Marked as resolved",
         "Only current page": "Only current page",

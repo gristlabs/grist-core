@@ -853,7 +853,7 @@ describe('Comments', function() {
     // Show resolved comments
     await panelOptions({resolved: true});
     assert.equal(await commentCount('panel'), 1);
-    assert.equal(await countText(), '1 comments');
+    assert.equal(await countText(), '1 comment');
     assert.isTrue(await isCommentResolved(0, 'panel'));
     // Add another one
     await gu.getCell('B', 2).click();
@@ -913,7 +913,7 @@ describe('Comments', function() {
     await openCommentMenu(1, 'panel');
     await clickMenuItem('Remove');
     assert.equal(await commentCount('panel'), 1);
-    assert.equal(await countText(), '1 comments');
+    assert.equal(await countText(), '1 comment');
     await gu.undo();
     assert.equal(await commentCount('panel'), 2);
     assert.equal(await countText(), '2 comments');
@@ -982,7 +982,7 @@ describe('Comments', function() {
     };
     const onlyB = async () => {
       assert.equal(await commentCount('panel'), 1);
-      assert.equal(await countText(), '1 comments');
+      assert.equal(await countText(), '1 comment');
       assert.isFalse(await isCommentResolved(0, 'panel'));
       assert.equal(await readComment(0, 'panel'), 'B edited');
       assert.equal(await readReply(0, 0, 'panel'), 'Reply to B edited');
