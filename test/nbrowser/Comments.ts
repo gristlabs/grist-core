@@ -518,8 +518,8 @@ describe('Comments', function() {
 
     await gu.addNewTable('Table2');
     await gu.getCell('A', 1).click();
+    await gu.waitAppFocus();
     await gu.enterCell('1');
-    await gu.waitForServer();
     await gu.getCell('A', 1).click();
 
     await openCommentsWithKey();
@@ -1045,6 +1045,7 @@ describe('Comments', function() {
   it('should navigate between tables and rows', async function() {
     // We have 3 comments on Table1.
     // Add one on Table2
+    await gu.openPage('Table2');
     await gu.getCell('B', 3).click();
     await openCommentsWithKey();
     await waitForPopup('empty');
@@ -1066,6 +1067,15 @@ describe('Comments', function() {
     await clickComment(3, 'panel');
     assert.deepEqual(await gu.getCursorPosition(), {rowNum: 3, col: 1});
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE2');
+  });
+
+  it('should disable Comment option on add-row', async function() {
+    await gu.openPage('Table2');
+    await gu.rightClick(await gu.getCell('B', 2));
+    assert.equal(await gu.findOpenMenuItem('li', /Comment/).matches('.disabled'), false);
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.rightClick(await gu.getCell('B', 4));
+    assert.equal(await gu.findOpenMenuItem('li', /Comment/).matches('.disabled'), true);
   });
 
   it('should offer menu option to copy anchor link', async function() {

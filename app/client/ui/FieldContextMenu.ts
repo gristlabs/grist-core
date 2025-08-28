@@ -10,10 +10,11 @@ export interface IFieldContextMenu {
   disableModify: boolean;
   isReadonly: boolean;
   field: ViewFieldRec;
+  isAddRow: boolean;
 }
 
 export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
-  const {disableModify, isReadonly, field} = fieldOptions;
+  const {disableModify, isReadonly, field, isAddRow} = fieldOptions;
   const disableForReadonlyColumn = dom.cls('disabled', disableModify || isReadonly);
 
   const isVirtual = typeof field.colRef.peek() === 'string';
@@ -27,7 +28,7 @@ export function FieldContextMenu(fieldOptions: IFieldContextMenu) {
     menuItemCmd(allCommands.clearValues, t('Clear field'), disableForReadonlyColumn),
     menuItemCmd(allCommands.hideCardFields, t('Hide field'), disableForReadonlyColumn),
     menuDivider(),
-    menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', isReadonly || isVirtual)),
+    menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', isReadonly || isVirtual || isAddRow)),
     menuItemCmd(allCommands.copyLink, t('Copy anchor link'), disabledForVirtual),
   ];
 }
