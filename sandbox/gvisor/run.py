@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import shutil
 
 # Separate arguments before and after a -- divider.
 from itertools import groupby
@@ -246,58 +247,56 @@ def make_command(root_dir, action):
              root_dir.replace('/', '_')]  # Derive an arbitrary container name.
   return command
 
-# Generate the OCI spec as config.json in a temporary directory, and either show
-# it (if --dry-run) or pass it on to gvisor runsc.
+# Either print the OCI spec (if --dry-run), or write it as config.json in a
+# temporary directory and pass it on to gvisor runsc.
+if args.dry_run:
+  print(json.dumps(settings, indent=2))
+  exit(0)
+
 with tempfile.TemporaryDirectory() as root:  # pylint: disable=no-member
   config_filename = os.path.join(root, 'config.json')
   with open(config_filename, 'w') as fout:
     json.dump(settings, fout, indent=2)
-  if args.dry_run:
-    with open(config_filename, 'r') as fin:
-      spec = json.load(fin)
-      print(json.dumps(spec, indent=2))
-  else:
-    if not args.checkpoint:
-      if args.restore:
-        command = make_command(root, ["restore", "--image-path=" + args.restore])
-      else:
-        command = make_command(root, ["run"])
-      result = subprocess.run(command, cwd=root)  # pylint: disable=no-member
-      if result.returncode != 0:
-        raise Exception('gvisor runsc problem: ' + json.dumps(command))
+  if not args.checkpoint:
+    if args.restore:
+      command = make_command(root, ["restore", "--image-path=" + args.restore])
+      # Overwrite config.json with that of the checkpoint
+      # Any change to the configuration (such as command-line arguments) would
+      # cause gvisor to reject the restore.
+      shutil.copy(os.path.join(args.restore, 'config.json'), config_filename)
     else:
-      # We've been asked to make a checkpoint.
-      # Start up the sandbox, and wait for it to emit a message on stderr ('Ready').
       command = make_command(root, ["run"])
-      process = subprocess.Popen(command, cwd=root, stderr=subprocess.PIPE)
-      text = process.stderr.readline().decode('utf-8')  # wait for ready
-      if 'Ready' in text:
-        sys.stderr.write('Ready message: ' + text)
+    result = subprocess.run(command, cwd=root)  # pylint: disable=no-member
+    if result.returncode != 0:
+      raise Exception('gvisor runsc problem: ' + json.dumps(command))
+  else:
+    # We've been asked to make a checkpoint.
+    # Start up the sandbox, and wait for it to emit a message on stderr ('Ready').
+    command = make_command(root, ["run"])
+    process = subprocess.Popen(command, cwd=root, stderr=subprocess.PIPE)
+    text = process.stderr.readline().decode('utf-8')  # wait for ready
+    if 'Ready' in text:
+      sys.stderr.write('Ready message: ' + text)
+      sys.stderr.flush()
+    else:
+      # Something unexpected has happened, echo the full error and hang.
+      while True:
+        sys.stderr.write('Problem: ' + text)
         sys.stderr.flush()
-      else:
-        # Something unexpected has happened, echo the full error and hang.
-        while True:
-          sys.stderr.write('Problem: ' + text)
-          sys.stderr.flush()
-          text = process.stderr.readline().decode('utf-8')
-      # Remove existing checkpoint if present.
-      if os.path.exists(os.path.join(args.checkpoint, 'checkpoint.img')):
-        os.remove(os.path.join(args.checkpoint, 'checkpoint.img'))
-      if os.path.exists(os.path.join(args.checkpoint, 'checkpoint.json')):
-        os.remove(os.path.join(args.checkpoint, 'checkpoint.json'))
-      # Make the directory, so we will later have the right to delete the checkpoint if
-      # we wish to replace it. Otherwise there is a muddle around permissions.
-      if not os.path.exists(args.checkpoint):
-        os.makedirs(args.checkpoint)
-      # Go ahead and run the runsc checkpoint command.
-      # This is destructive, it will kill the sandbox we are checkpointing.
-      command = make_command(root, ["checkpoint", "--image-path=" + args.checkpoint])
-      result = subprocess.run(command, cwd=root)  # pylint: disable=no-member
-      if result.returncode != 0:
-        raise Exception('gvisor runsc checkpointing problem: ' + json.dumps(command))
-      # Save the configuration of the checkpoint for easy reference.
-      with open(config_filename, 'r', encoding='utf-8') as fin:
-        with open(os.path.join(args.checkpoint, 'checkpoint.json'), 'w', encoding='utf-8') as fout:
-          spec = json.load(fin)
-          json.dump(spec, fout, indent=2)
-      # We are done!
+        text = process.stderr.readline().decode('utf-8')
+    # Remove existing checkpoint if present.
+    if os.path.exists(args.checkpoint):
+      shutil.rmtree(args.checkpoint)
+    # Make the directory, so we will later have the right to delete the checkpoint if
+    # we wish to replace it. Otherwise there is a muddle around permissions.
+    os.makedirs(args.checkpoint, exist_ok=True)
+    # Go ahead and run the runsc checkpoint command.
+    # This is destructive, it will kill the sandbox we are checkpointing.
+    command = make_command(root, ["checkpoint", "--image-path=" + args.checkpoint])
+    result = subprocess.run(command, cwd=root)  # pylint: disable=no-member
+    if result.returncode != 0:
+      raise Exception('gvisor runsc checkpointing problem: ' + json.dumps(command))
+    # Save the configuration of the checkpoint for reuse when restoring.
+    checkpoint_config_json = os.path.join(args.checkpoint, 'config.json')
+    shutil.copy(config_filename, checkpoint_config_json)
+    # We are done!
