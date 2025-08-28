@@ -13,7 +13,7 @@ import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/mode
 import {SortedRowSet} from 'app/client/models/rowset';
 import {ChartOptions, ViewSectionOptions} from 'app/client/models/entities/ViewSectionRec';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {cssGroupLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
 import {IconName} from 'app/client/ui2018/IconList';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
@@ -22,6 +22,7 @@ import {gristThemeObs} from 'app/client/ui2018/theme';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {nativeCompare, unwrap} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
@@ -658,54 +659,60 @@ export class ChartConfig extends GrainJSDisposable {
 
       cssSeparator(),
 
-      dom.maybe(this._groupData, () => [
-        cssLabel(t('Split Series')),
-        cssRow(
-          select(this._groupDataColId, this._groupDataOptions),
-          testId('group-by-column'),
-        ),
-        cssHintRow(t("Create separate series for each value of the selected column.")),
-      ]),
+      dom.maybe(this._groupData, () =>
+        dom('div', {role: 'group', 'aria-labelledby': 'chart-split-series-label'},
+          cssGroupLabel(t('Split Series'), {id: 'chart-split-series-label'}),
+          cssRow(
+            select(this._groupDataColId, this._groupDataOptions),
+            testId('group-by-column'),
+          ),
+          cssHintRow(t("Create separate series for each value of the selected column.")),
+        )
+      ),
 
       // TODO: user should select x axis before widget reach page
-      cssLabel(dom.text(this._firstFieldLabel), testId('first-field-label')),
-      cssRow(
-        select(
-          this._xAxis, this._columnsOptions,
-          { defaultLabel: t("Pick a column") }
+      dom('div', {role: 'group', 'aria-labelledby': 'chart-first-field-label'},
+        cssGroupLabel(dom.text(this._firstFieldLabel), testId('first-field-label'), {id: 'chart-first-field-label'}),
+        cssRow(
+          select(
+            this._xAxis, this._columnsOptions,
+            { defaultLabel: t("Pick a column") }
+          ),
+          testId('x-axis'),
         ),
-        testId('x-axis'),
+        cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
       ),
-      cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
 
-      cssLabel(t('SERIES')),
-      this._buildYAxis(),
-      cssRow(
-        cssAddYAxis(
-          cssAddIcon('Plus'), t('Add Series'),
-          menu(() => {
-            const hiddenColumns = this._section.hiddenColumns.peek();
-            const filterFunc = this._isCompatibleSeries.bind(this);
-            const nonNumericCount = hiddenColumns.filter((col) => !filterFunc(col)).length;
-            return [
-              ...hiddenColumns
-                .filter((col) => filterFunc(col))
-                .map((col) => menuItem(
-                  () => this._configFieldsHelper.addField(col),
-                  col.label.peek(),
-                )),
-              nonNumericCount ? menuText(
-                `${nonNumericCount} ` + (
-                  nonNumericCount > 1 ?
-                    t(`non-numeric columns are not shown`) :
-                    t(`non-numeric column is not shown`)
-                ),
-                testId('yseries-picker-message'),
-              ) : null,
-            ];
-          }),
-          testId('add-y-axis'),
-        )
+      dom('div', {role: 'group', 'aria-labelledby': 'chart-series-label'},
+        cssGroupLabel(t('SERIES'), {id: 'chart-series-label'}),
+        this._buildYAxis(),
+        cssRow(
+          cssAddYAxis(
+            cssAddIcon('Plus'), t('Add Series'),
+            menu(() => {
+              const hiddenColumns = this._section.hiddenColumns.peek();
+              const filterFunc = this._isCompatibleSeries.bind(this);
+              const nonNumericCount = hiddenColumns.filter((col) => !filterFunc(col)).length;
+              return [
+                ...hiddenColumns
+                  .filter((col) => filterFunc(col))
+                  .map((col) => menuItem(
+                    () => this._configFieldsHelper.addField(col),
+                    col.label.peek(),
+                  )),
+                nonNumericCount ? menuText(
+                  `${nonNumericCount} ` + (
+                    nonNumericCount > 1 ?
+                      t(`non-numeric columns are not shown`) :
+                      t(`non-numeric column is not shown`)
+                  ),
+                  testId('yseries-picker-message'),
+                ) : null,
+              ];
+            }),
+            testId('add-y-axis'),
+          )
+        ),
       ),
 
     ];
@@ -829,7 +836,7 @@ export class ChartConfig extends GrainJSDisposable {
     return cssFieldEntry(
       cssFieldLabel(dom.text(col.label)),
       cssRemoveIcon(
-        t('Remove'),
+        'Remove',
         dom.on('click', () => this._configFieldsHelper.removeField(col)),
         testId('ref-select-remove'),
       ),
@@ -1303,7 +1310,7 @@ const cssAddIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssAddYAxis = styled('div', `
+const cssAddYAxis = styled(unstyledButton, `
   display: flex;
   cursor: pointer;
   color: ${theme.controlFg};

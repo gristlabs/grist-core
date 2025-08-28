@@ -8,6 +8,7 @@ import {ObjObservable} from 'app/client/models/modelUtil';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
 import {cssIcon, cssRow, cssSortFilterColumn} from 'app/client/ui/RightPanelStyles';
 import {labeledLeftSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {textButton} from 'app/client/ui2018/buttons';
 import {theme} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
@@ -161,6 +162,15 @@ export class SortConfig extends Disposable {
     return cssSortRow(
       dom.autoDispose(holder),
       cssSortFilterColumn(
+        dom.attr('aria-label', use => {
+          const ascending = use(isAscending);
+          return [
+            t('{{- columnName }} column', {columnName: column!.label}),
+            ascending
+              ? t('Sort in descending order (current: ascending)')
+              : t('Sort in ascending order (current: descending)')
+          ].join(' - ');
+        }),
         dom.domComputed(isAscending, ascending =>
           cssSortIcon(
             "Sort",
@@ -177,6 +187,7 @@ export class SortConfig extends Disposable {
         testId('column'),
       ),
       cssMenu(
+        {'aria-label': t('Sort options - {{- columnName }} column', {columnName: column!.label})},
         cssBigIconWrapper(
           cssIcon('Dots', dom.cls(cssBgAccent.className, hasSpecs)),
           testId('options-icon'),
@@ -198,7 +209,9 @@ export class SortConfig extends Disposable {
           },
         ), menuOptions),
       ),
-      cssSortIconBtn('Remove',
+      cssSortIconBtn(
+        {'aria-label': t('Remove sort setting - {{- columnName }} column', {columnName: column!.label})},
+        cssIcon('Remove'),
         dom.on('click', () => {
           const specs = sortSpec.peek();
           if (Sort.findCol(specs, colRef)) {
@@ -294,13 +307,14 @@ const cssSortRow = styled('div', `
   width: 100%;
 `);
 
-const cssSortIconBtn = styled(cssIcon, `
+const cssSortIconBtn = styled(unstyledButton, `
   flex: none;
   margin: 0 6px;
   cursor: pointer;
-  background-color: ${theme.controlSecondaryFg};
-
-  &:hover {
+  & .${cssIcon.className} {
+    background-color: ${theme.controlSecondaryFg};
+  }
+  &:hover .${cssIcon.className}{
     background-color: ${theme.controlSecondaryHoverFg};
   }
 `);
@@ -326,7 +340,7 @@ const cssBgAccent = styled(`div`, `
   background: ${theme.accentIcon}
 `);
 
-const cssMenu = styled('div', `
+const cssMenu = styled(unstyledButton, `
   display: inline-flex;
   cursor: pointer;
   border-radius: 3px;

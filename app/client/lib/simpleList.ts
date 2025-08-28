@@ -13,6 +13,7 @@
  * // toggle popup
  * dom('input', dom.on('click', () => ctl.toggle()));
  */
+import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
 import {attachMouseOverOnMove, findAncestorChild} from 'app/client/lib/domUtils';
 import {menuCssClass, menuItem} from 'app/client/ui2018/menus';
 import {Disposable, dom, DomArg, Observable, styled} from 'grainjs';
@@ -51,7 +52,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
             style.marginRight = '0px';
           }
         },
-        {class: menuCssClass + ' grist-floating-menu'},
+        {class: menuCssClass + ' grist-floating-menu ' + kbFocusHighlighterClass},
         cssMenu.cls(''),
         cssMenuExt.cls(''),
         opt.headerDom?.(),
