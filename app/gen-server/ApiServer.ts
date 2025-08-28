@@ -21,6 +21,7 @@ import {BillingOptions, HomeDBManager, Scope} from 'app/gen-server/lib/homedb/Ho
 import {DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
         QueryResult, WorkspaceAccessChanges} from 'app/gen-server/lib/homedb/Interfaces';
 import {Permissions} from 'app/gen-server/lib/Permissions';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {getSessionUser, linkOrgWithEmail} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
@@ -31,6 +32,11 @@ import log from 'app/server/lib/log';
 import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
+
+
+const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section('api').flag('allowBareOrgDelete').readBool({
+  envVar: 'GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE',
+});
 
 // exposed for testing purposes
 export const Deps = {
@@ -191,22 +197,23 @@ export class ApiServer {
       return sendReply(req, res, result);
     }));
 
-    // DELETE /api/orgs/:oid
+    // DELETE /api/orgs/:oid/:name
     // Delete the specified org and all included workspaces and docs.
+    // The :name should match the orgs.domain or orgs.name, or be the string
+    // "force-delete".
+    this._app.delete('/api/orgs/:oid/:name', expressWrap(async (req, res) => {
+      const name = stringParam(req.params.name, 'name');
+      await this._deleteOrg(req, res, name);
+    }));
+
     this._app.delete('/api/orgs/:oid', expressWrap(async (req, res) => {
-      const orgKey = getOrgKey(req);
-      const org = this._dbManager.unwrapQueryResult(
-        await this._dbManager.getOrg(getScope(req), orgKey, undefined,
-                                     { requirePermissions: Permissions.REMOVE })
-      );
-      const doom = await this._gristServer.getDoomTool();
-      try {
-        await doom.deleteOrg(org.id);
-        this._logDeleteSiteEvents(req, org);
-        return sendReply(req, res, {status: 200, data: org.id});
-      } catch (e) {
-        this._logDeleteSiteEvents(req, org, String(e));
-        throw e;
+      if (ALLOW_DEPRECATED_BARE_ORG_DELETE) {
+        await this._deleteOrg(req, res, 'force-delete');
+      } else {
+        throw new ApiError(
+          "This endpoint is no longer supported. Use DELETE /api/orgs/:oid/:name instead.",
+          410
+        );
       }
     }));
 
@@ -608,6 +615,29 @@ export class ApiServer {
       if (data) { this._logDeleteUserEvents(req, data); }
       return sendReply(req, res, result);
     }));
+  }
+
+  private async _deleteOrg(req: Request, res: express.Response, name: string) {
+    const orgKey = getOrgKey(req);
+    const org: Organization = this._dbManager.unwrapQueryResult(
+      await this._dbManager.getOrg(getScope(req), orgKey, undefined,
+                                   { requirePermissions: Permissions.REMOVE })
+    );
+    const okToDelete = ((org.domain && name === org.domain) ||
+        (org.name && name === org.name) ||
+        name === 'force-delete');
+    if (!okToDelete) {
+      throw new ApiError("Name does not match organization", 400);
+    }
+    const doom = await this._gristServer.getDoomTool();
+    try {
+      await doom.deleteOrg(org.id);
+      this._logDeleteSiteEvents(req, org);
+      return sendReply(req, res, {status: 200, data: org.id});
+    } catch (e) {
+      this._logDeleteSiteEvents(req, org, String(e));
+      throw e;
+    }
   }
 
   private async _getFullUser(req: Request, options: {includePrefs?: boolean} = {}): Promise<FullUser> {

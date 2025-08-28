@@ -940,15 +940,7 @@ describe('ApiServer', function() {
     assert.isNotNull(org.updatedAt);
 
     // Upgrade this org to a fancier plan, and check that vanity domain starts working
-    const db = dbManager.connection.manager;
-    const dbOrg = await db.findOne(Organization,
-                                   {where: {name: 'Magic'},
-                                    relations: ['billingAccount', 'billingAccount.product']});
-    if (!dbOrg) { throw new Error('cannot find Magic'); }
-    const product = await db.findOne(Product, {where: {name: 'team'}});
-    if (!product) { throw new Error('cannot find product'); }
-    dbOrg.billingAccount.product = product;
-    await dbOrg.billingAccount.save();
+    await upgradeOrg(dbManager, 'Magic');
     // Check that we now get the vanity domain
     fetchResp = await axios.get(`${homeUrl}/api/orgs/${oid}`, chimpy);
     assert.equal(fetchResp.data.domain, 'magic');
@@ -1013,27 +1005,74 @@ describe('ApiServer', function() {
     assert.match(resp.data.error, /unrecognized property/);
   });
 
-  it('DELETE /api/orgs/{oid} is operational', async function() {
+  it('DELETE /api/orgs/{oid} no longer operates', async function() {
     // Delete the 'Holiday' org.
     const oid = await dbManager.testGetId('Holiday');
     const resp = await axios.delete(`${homeUrl}/api/orgs/${oid}`, chimpy);
-    // Assert that the response is successful.
-    assert.equal(resp.status, 200);
-    // Assert that the org is no longer in the database.
+    // Assert that the response fails.
+    assert.equal(resp.status, 410);
+    // Assert that the org is still in the database.
     const fetchResp = await axios.get(`${homeUrl}/api/orgs/${oid}`, chimpy);
-    assert.equal(fetchResp.status, 404);
+    assert.equal(fetchResp.status, 200);
   });
 
-  it('DELETE /api/orgs/{oid} returns 404 appropriately', async function() {
+  it('DELETE /api/orgs/{oid}/{name} is operational', async function() {
+    // Delete the 'Holiday' org.
+    let oid = await dbManager.testGetId('Holiday');
+    let resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/Holida`, chimpy);
+    // Assert that the response is a failure with wrong name.
+    assert.equal(resp.status, 400);
+    assert.match(resp.data.error, /Name does not match organization/);
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/Holiday`, chimpy);
+    // Assert that the response is successful with right name.
+    assert.equal(resp.status, 200);
+    // Assert that the org is no longer in the database.
+    resp = await axios.get(`${homeUrl}/api/orgs/${oid}`, chimpy);
+    assert.equal(resp.status, 404);
+
+    async function createTestDomain(): Promise<number> {
+      const fetchResp = await axios.post(`${homeUrl}/api/orgs`, {
+        name: 'The Name',
+        domain: 'the-domain',
+      }, chimpy);
+      assert.equal(fetchResp.status, 200);
+      await upgradeOrg(dbManager, 'The Name'); // for vanity domains
+      return fetchResp.data;
+    }
+
+    // Check use of org name
+    oid = await createTestDomain();
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/The Nam`, chimpy);
+    assert.equal(resp.status, 400);
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/The Name`, chimpy);
+    assert.equal(resp.status, 200);
+
+    // Check use of org domain
+    oid = await createTestDomain();
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/the-domai`, chimpy);
+    assert.equal(resp.status, 400);
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/the-domain`, chimpy);
+    assert.equal(resp.status, 200);
+
+    // Check use of force-delete
+    oid = await createTestDomain();
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delet`, chimpy);
+    assert.equal(resp.status, 400);
+    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delete`, chimpy);
+    assert.equal(resp.status, 200);
+
+  });
+
+  it('DELETE /api/orgs/{oid}/{name} returns 404 appropriately', async function() {
     // Attempt to delete an org that doesn't exist.
-    const resp = await axios.delete(`${homeUrl}/api/orgs/9999`, chimpy);
+    const resp = await axios.delete(`${homeUrl}/api/orgs/9999/bing`, chimpy);
     assert.equal(resp.status, 404);
   });
 
-  it('DELETE /api/orgs/{oid} returns 403 appropriately', async function() {
+  it('DELETE /api/orgs/{oid}/{name} returns 403 appropriately', async function() {
     // Attempt to delete an org without REMOVE access.
     const oid = await dbManager.testGetId('Primately');
-    const resp = await axios.delete(`${homeUrl}/api/orgs/${oid}`, chimpy);
+    const resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/Primately`, chimpy);
     assert.equal(resp.status, 403);
   });
 
@@ -2366,7 +2405,7 @@ describe('ApiServer', function() {
     } finally {
       // Remove the 'Grist Templates' org.
       if (oid) {
-        await axios.delete(`${homeUrl}/api/orgs/${oid}`, support);
+        await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delete`, support);
       }
     }
   });
@@ -2411,4 +2450,17 @@ async function getNextId(dbManager: HomeDBManager, table: 'orgs'|'workspaces') {
   const row = await dbManager.connection.query(`select max(id) as id from ${table}`);
   const id = row[0]['id'];
   return id + 1;
+}
+
+async function upgradeOrg(dbManager: HomeDBManager, name: string) {
+  // Upgrade this org to a fancier plan, for vanity domain
+  const db = dbManager.connection.manager;
+  const dbOrg = await db.findOne(Organization,
+                                 {where: {name},
+                                  relations: ['billingAccount', 'billingAccount.product']});
+  if (!dbOrg) { throw new Error(`cannot find ${name}`); }
+  const product = await db.findOne(Product, {where: {name: 'team'}});
+  if (!product) { throw new Error('cannot find product'); }
+  dbOrg.billingAccount.product = product;
+  await dbOrg.billingAccount.save();
 }
