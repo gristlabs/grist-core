@@ -79,8 +79,9 @@ If you want to generate the above schema by yourself, you may run the following 
 ````bash
 # You may adapt the --database argument to fit with the actual file name
 # You may also remove the `--grep-tables` option and all that follows to get the full schema.
-$ schemacrawler --server=sqlite --database=landing.db --info-level=standard \
-  --portable-names --command=schema --output-format=svg \
+# database path needs to be absolute in some schemacrawler implementations
+$ schemacrawler --server=sqlite --database=$(pwd)/landing.db --info-level=standard \
+  --portable=names --command=schema --output-format=svg \
   --output-file=/tmp/graph.svg \
   --grep-tables="products|billing_accounts|limits|billing_account_managers|activations|migrations" \
   --invert-match
@@ -95,7 +96,7 @@ Stores organisations (also called "Team sites") information.
 | id | The primary key |
 | name | The name as displayed in the UI |
 | domain | The part that should be added in the URL |
-| owner | The id of the user who owns the org |
+| owner_id | The id of the user who owns the org |
 | host | ??? |
 
 ### `workspaces` table
@@ -108,7 +109,6 @@ Stores workspaces information.
 | name | The name as displayed in the UI |
 | org_id | The organisation to which the workspace belongs |
 | removed_at | If not null, stores the date when the workspaces has been placed in the trash (it will be hard deleted after 30 days) |
-
 
 ### `docs` table
 
@@ -185,7 +185,7 @@ Stores secret informations related to documents, so the document may not store t
 | value | The value of the secret (despite the table name, its stored unencrypted) |
 | doc_id | The document id |
 
-### `prefs` table
+### `shares` table
 
 Stores special grants for documents for anyone having the key.
 
@@ -193,7 +193,8 @@ Stores special grants for documents for anyone having the key.
 | ------------- | -------------- |
 | id | The primary key |
 | key | A long string secret to identify the share. Suitable for URLs. Unique across the database / installation. |
-| link_id | A string to identify the share. This identifier is common to the home database and the document specified by docId. It need only be unique within that document, and is not a secret. | doc_id | The document to which the share belongs |
+| link_id | A string to identify the share. This identifier is common to the home database and the document specified by docId. It need only be unique within that document, and is not a secret. |
+| doc_id | The document to which the share belongs |
 | options | Any overall qualifiers on the share |
 
 For more information, please refer [to the comments in the code](https://github.com/gristlabs/grist-core/blob/192e2f36ba77ec67069c58035d35205978b9215e/app/gen-server/entity/Share.ts).
@@ -238,6 +239,7 @@ The table which assigns users to groups.
 |--------------- | --------------- |
 | group_id | The id of the group containing the user |
 | user_id   | The id of the user |
+| created_at | datetime where the user was added to a group |
 
 ### `groups`, `group_groups`, `group_users` and inheritances
 
