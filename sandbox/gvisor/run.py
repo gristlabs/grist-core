@@ -158,8 +158,8 @@ exceptions += ["/proc", "/sys"]   # already virtualized
 start = args.start
 if include_bash or start:
   exceptions.append("/bin")
-  preserve("/usr/bin")
 
+preserve("/usr/bin")
 preserve("/usr/local/lib")
 
 # Support user-specific extra directories. This is handy if Python is
@@ -194,7 +194,6 @@ candidates = [
 if not candidates:
   raise Exception('could not find python3')
 best_python_executable = os.path.realpath(candidates[0])
-preserve(best_python_executable)
 
 # Set up any specific shares requested.
 if args.mount:
