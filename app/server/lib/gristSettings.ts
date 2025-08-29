@@ -17,6 +17,8 @@ export function getUserPresenceMaxUsers(): number {
   return appSettings.section('userPresence').flag('maxUsers').readInt({
     envVar: 'GRIST_USER_PRESENCE_MAX_USERS',
     defaultValue: userPresenceMaxUsersDefaultValue,
+    minValue: 0,
+    maxValue: 99,
   }) ?? userPresenceMaxUsersDefaultValue;
 }
 
