@@ -5,7 +5,7 @@ import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {Disposable, Observable} from 'grainjs';
 
-export interface UserPresenceModel {
+export interface UserPresenceModel extends Disposable {
   userProfiles: Observable<VisibleUserProfile[]>;
 
   initialize(): Promise<void>;
