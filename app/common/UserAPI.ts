@@ -762,7 +762,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
   }
 
   public async deleteOrg(orgId: number|string): Promise<void> {
-    await this.request(`${this._url}/api/orgs/${orgId}`, { method: 'DELETE' });
+    await this.request(`${this._url}/api/orgs/${orgId}/force-delete`, { method: 'DELETE' });
   }
 
   public async deleteWorkspace(workspaceId: number): Promise<void> {
