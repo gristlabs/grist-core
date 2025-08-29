@@ -1,6 +1,7 @@
 import {UserAPI} from 'app/common/UserAPI';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 import {assert} from 'chai';
 import {driver} from 'mocha-webdriver';
@@ -16,6 +17,7 @@ const USER_PRESENCE_MAX_USERS = 6;
 
 describe('ActiveUserList', async function() {
   this.timeout('120s');
+  let envSnapshot: EnvironmentSnapshot;
   const extraWindowHandles: string[] = [];
 
   // Needs to be registered before 'setupTestSuite' to ensure windows are closed before its afterAll hook
@@ -26,6 +28,7 @@ describe('ActiveUserList', async function() {
     }
     // Makes sure the correct window is selected for the cleanup scripts in setupTestSuite
     await switchToWindow(mainWindow);
+    envSnapshot.restore();
   });
 
   const cleanup = setupTestSuite();
@@ -36,6 +39,7 @@ describe('ActiveUserList', async function() {
   const windowsByUser: Map<gu.TestUser, Window[]> = new Map();
 
   before(async () => {
+    envSnapshot = new EnvironmentSnapshot();
     process.env.GRIST_ENABLE_USER_PRESENCE = 'true';
     process.env.GRIST_USER_PRESENCE_MAX_USERS = USER_PRESENCE_MAX_USERS.toFixed(0);
     await server.restart();
