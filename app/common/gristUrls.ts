@@ -959,6 +959,9 @@ export interface GristLoadConfig {
   formFraming?: FormFraming;
 
   adminDefinedUrls?: string;
+
+  // Maximum users to display for user presence features (e.g. active user list)
+  userPresenceMaxUsers?: number;
 }
 
 export const Features = StringUnion(

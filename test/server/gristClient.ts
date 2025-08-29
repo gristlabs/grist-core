@@ -157,7 +157,7 @@ export class GristClient {
     const msg = await this.readMessage();
     if (msg.type !== 'clientConnect') { throw new Error('expected clientConnect'); }
     const openDoc = await this.send('openDoc', docId);
-    if (openDoc.error) { throw new Error('error in openDocOnConnect'); }
+    if (openDoc.error) { throw new Error(`error in openDocOnConnect: ${openDoc.error}`, undefined); }
     return openDoc;
   }
 }
