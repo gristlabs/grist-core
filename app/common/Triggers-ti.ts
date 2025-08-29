@@ -15,7 +15,7 @@ export const Webhook = t.iface([], {
 export const WebhookFields = t.iface([], {
   "url": "string",
   "authorization": t.opt("string"),
-  "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"))),
+  "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"), t.lit("remove"))),
   "tableId": "string",
   "watchedColIds": t.opt(t.array("string")),
   "enabled": t.opt("boolean"),
@@ -31,7 +31,7 @@ export const WebhookStatus = t.union(t.lit('idle'), t.lit('sending'), t.lit('ret
 export const WebhookSubscribe = t.iface([], {
   "url": "string",
   "authorization": t.opt("string"),
-  "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"))),
+  "eventTypes": t.array(t.union(t.lit("add"), t.lit("update"), t.lit("remove"))),
   "watchedColIds": t.opt(t.array("string")),
   "enabled": t.opt("boolean"),
   "isReadyColumn": t.opt(t.union("string", "null")),
@@ -68,7 +68,7 @@ export const WebhookUpdate = t.iface([], {
 export const WebhookPatch = t.iface([], {
   "url": t.opt("string"),
   "authorization": t.opt("string"),
-  "eventTypes": t.opt(t.array(t.union(t.lit("add"), t.lit("update")))),
+  "eventTypes": t.opt(t.array(t.union(t.lit("add"), t.lit("update"), t.lit("remove")))),
   "tableId": t.opt("string"),
   "watchedColIds": t.opt(t.array("string")),
   "enabled": t.opt("boolean"),
