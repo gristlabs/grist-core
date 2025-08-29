@@ -95,6 +95,11 @@ const cssRowExpandable = styled(cssRow, `
   max-height: 0;
   overflow: hidden;
   &-expand {
-    max-height: 20px;
+    /*
+     * fit-content doesn't work with transitions on height.
+     * In practice, height shouldn't exceed 32px, even when text wraps to a
+     * second line.
+     */
+    max-height: 32px;
   }
 `);
