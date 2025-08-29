@@ -152,9 +152,9 @@ export async function makeTempFilesystemStoreSpec(
 }
 
 const settings = appSettings.section("attachmentStores");
-const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").readString({
+const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").requireString({
   envVar: "GRIST_EXTERNAL_ATTACHMENTS_MODE",
-  defaultValue: "none",
+  defaultValue: "snapshots",
 });
 
 export function getConfiguredStandardAttachmentStore(): string | undefined {
@@ -173,10 +173,10 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
-      throw new Error("Snapshot provider is not available on this version of Grist");
+      return [];
     }
     if (!(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
-      throw new Error("The currently configured external storage does not support attachments");
+      return [];
     }
     return [{
       label: 'snapshots',
