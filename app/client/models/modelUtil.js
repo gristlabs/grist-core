@@ -24,8 +24,14 @@ function addSaveInterface(observable, saveFunc) {
     return this.saveOnly(this.peek());
   };
   observable.setAndSave = function(value) {
+    const previousValue = this.peek();
     this(value);
-    return this.saveOnly(value);
+    return this.saveOnly(value).catch((e) => {
+      if (this.peek() === value) {
+        this(previousValue);
+      }
+      throw e;
+    });
   };
   return observable;
 }

@@ -118,7 +118,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
   const saveColumnDesc = async () => {
     const newDesc = editedDesc.get()?.trim() ?? '';
     if (newDesc !== field.description.peek()) {
-      await field.description.saveOnly(newDesc);
+      await field.description.setAndSave(newDesc);
     }
   };
 

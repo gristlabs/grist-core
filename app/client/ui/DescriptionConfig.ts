@@ -34,11 +34,13 @@ export function buildDescriptionConfig(
     cssLabel(t("DESCRIPTION")),
     cssRow(
       editor = cssTextArea(fromKo(description),
-        { onInput: false },
+        {
+          onInput: false,
+          save: async (value) => {
+            await description.setAndSave(value);
+          },
+        },
         { rows: '3' },
-        dom.on('blur', async (e, elem) => {
-          await description.saveOnly(elem.value);
-        }),
         testId(`${options.testPrefix}-description`),
         autoGrow(fromKo(description))
       )

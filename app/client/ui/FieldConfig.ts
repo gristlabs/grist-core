@@ -34,7 +34,7 @@ export function buildNameConfig(
   const editedLabel = Observable.create(owner, '');
   const editableColId = Computed.create(owner, editedLabel, (use, edited) =>
     '$' + (edited ? sanitizeIdent(edited) : use(origColumn.colId)));
-  const saveColId = (val: string) => origColumn.colId.saveOnly(val.startsWith('$') ? val.slice(1) : val);
+  const saveColId = (val: string) => origColumn.colId.setAndSave(val.startsWith('$') ? val.slice(1) : val);
 
   const isSummaryTable = Computed.create(owner, use => Boolean(use(use(origColumn.table).summarySourceTable)));
   // We will listen to cursor position and force a blur event on both the id and
@@ -52,7 +52,7 @@ export function buildNameConfig(
 
   const toggleUntieColId = () => {
     if (!origColumn.disableModify.peek() && !disabled.peek()) {
-      untieColId.saveOnly(!untieColId.peek()).catch(reportError);
+      untieColId.setAndSave(!untieColId.peek()).catch(reportError);
     }
   };
 
@@ -62,7 +62,9 @@ export function buildNameConfig(
       dom.cls(cssBlockedCursor.className, origColumn.disableModify),
       cssColLabelBlock(
         cssInput(fromKo(origColumn.label),
-          async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
+          val => origColumn.label.setAndSave(val)
+            .catch(reportError)
+            .finally(() => editedLabel.set('')),
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
           dom.boolAttr('readonly', use => use(origColumn.disableModify) || use(disabled)),
           testId('field-label'),
