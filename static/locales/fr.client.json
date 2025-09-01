@@ -626,7 +626,8 @@
         "Access Details": "Détails d'accès",
         "Tutorial": "Tutoriel",
         "Terms of service": "CGU",
-        "Grist Resources": "Ressources Grist"
+        "Grist Resources": "Ressources Grist",
+        "context menu - {{- workspaceName }}": "menu contextuel - {{- workspaceName }}"
     },
     "Importer": {
         "Update existing records": "Mettre à jour les enregistrements existants",
@@ -725,7 +726,8 @@
         "Delete data and this page.": "Supprimer les données source et la page.",
         "Delete": "Supprimer",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Conserver les données et supprimer la page. La table restera disponible dans la {{rawDataLink}}",
-        "raw data page": "page de données brutes"
+        "raw data page": "page de données brutes",
+        "Document pages": "Pages du document"
     },
     "PermissionsWidget": {
         "Allow All": "Tout autoriser",
@@ -884,7 +886,10 @@
         "Return to viewing as yourself": "Revenir à une vue en propre",
         "Raw Data": "Données source",
         "Settings": "Paramètres",
-        "API Console": "Console de l'API"
+        "API Console": "Console de l'API",
+        "context menu - Access Rules": "menu contextuel - Règles d'Accès",
+        "Delete document tour": "Supprimer la visite de document",
+        "Preview the tutorial": "Prévisualiser le tutoriel"
     },
     "TopBar": {
         "Manage Team": "Gestion de l'équipe",
@@ -1087,7 +1092,7 @@
         "Expand {{maybeDefault}}": "Ouvrir {{maybeDefault}}",
         "Set default: Collapse": "Définir par défaut : Fermer",
         "Set default: Expand": "Définir par défaut : Ouvrir",
-        "context menu - {{- pageName }}": ""
+        "context menu - {{- pageName }}": "menu contextuel - {{- pageName }}"
     },
     "search": {
         "Search in document": "Rechercher dans le document",
@@ -1115,7 +1120,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Utilisateur inconnu",
         "View as Yourself": "Voir en tant que vous-même",
-        "You are viewing this document as": "Vous voyez ce document en tant que"
+        "You are viewing this document as": "Vous voyez ce document en tant que",
+        "You're seeing what this user would see if given access": "Vous voyez ce que cet utilisateur voit si l'accès lui est donné"
     },
     "CellStyle": {
         "Open row styles": "Ouvrir les styles de ligne",
@@ -1145,7 +1151,8 @@
         "Showing last {{nb}} comments": "Montrer les {{nb}} derniers commentaires",
         "Started discussion": "Discussion commencée",
         "Remove thread": "Supprimer le fil",
-        "updated": "mis à jour"
+        "updated": "mis à jour",
+        "Copy link": "Copier le lien"
     },
     "FieldBuilder": {
         "Apply Formula to Data": "Appliquer la formule",
@@ -1199,7 +1206,9 @@
     "ACLUsers": {
         "Example Users": "Utilisateurs tests",
         "Users from table": "Utilisateurs de la table d'appairage",
-        "View As": "Voir en tant que"
+        "View As": "Voir en tant que",
+        "Other users from table": "Autres utilisateurs de la table",
+        "Shared users": "Utilisateurs partagés"
     },
     "ConditionalStyle": {
         "Add conditional style": "Ajouter un style conditionnel",
@@ -1339,7 +1348,8 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Le stockage interne signifie que toutes les PJ sont stockées dans le fichier SQLite du document, tandis que le stockage externe indique que toutes les PJ sont stockées dans le même stockage externe.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Comprenez, modifiez et travaillez vos données et formules avec l'aide du nouvel assistant IA de Grist !",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par un utilisateur de Grist et n'est pas vérifié par Grist Labs. N'utilisez pas ce formulaire pour communiquer vos mots de passe et soyez prudent avec les liens qu'il contient. Signalez les formulaires malveillants à [{{mail}}](mailto:{{mail}}).",
-        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Cela vous permet d'ajouter des PJ manquantes, par exemple lorsque vous importez un document dont les PJ étaient externalisées. Seules les archives de PJ au format .tar téléchargées depuis Grist peuvent être chargées ici."
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Cela vous permet d'ajouter des PJ manquantes, par exemple lorsque vous importez un document dont les PJ étaient externalisées. Seules les archives de PJ au format .tar téléchargées depuis Grist peuvent être chargées ici.",
+        "Set the maximum number of lines for multi-line text.": "Définir le nombre maximum de lignes pour un texte multi-ligne."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1361,7 +1371,9 @@
         "Creator panel (right panel)": "Panneau de création (panneau latéral droit)",
         "Document header": "En-tête du document",
         "Main content": "Contenu principal",
-        "Main navigation and document settings (left panel)": "Navigation principale et paramètres du document (panneau de gauche)"
+        "Main navigation and document settings (left panel)": "Navigation principale et paramètres du document (panneau de gauche)",
+        "Close navigation panel (left panel)": "Fermer le panneau de navigation (panneau de gauche)",
+        "Open navigation panel (left panel)": "Ouvrir le panneau de navigation (panneau de gauche)"
     },
     "Clipboard": {
         "Got it": "J'ai compris",
@@ -1943,7 +1955,8 @@
         "Templates": "Modèles",
         "Tutorial": "Tutoriel",
         "Webinars": "Webinaires",
-        "Learn more": "En savoir plus"
+        "Learn more": "En savoir plus",
+        "Find solutions and explore more resources": "Trouver des solutions et explorer plus de ressources"
     },
     "ReverseReferenceConfig": {
         "Add two-way reference": "Ajouter une référence bi-directionnelle",
@@ -2036,7 +2049,9 @@
         "Document will be moved to Trash.": "Le document sera déplacé vers la corbeille.",
         "Requires edit permissions": "Nécessite des autorisations de modification",
         "Move {{name}} to workspace": "Déplacer {{name}} vers le dossier",
-        "Workspace": "Dossier"
+        "Workspace": "Dossier",
+        "context menu - {{- documentName }}": "menu contextuel - {{- documentName }}",
+        "Documents list": "Liste des documents"
     },
     "RenameDocModal": {
         "Icon": "Icône",
@@ -2157,11 +2172,17 @@
         "Uploading…": "En cours de téléversement…"
     },
     "RowHeightConfig": {
-        "Max height": "",
-        "Max row height": ""
+        "Max height": "Hauteur maximale",
+        "Max row height": "Hauteur de rang maximale",
+        "Expand all rows to this height": "Étendre tous les rangs jusqu'à cette hauteur"
     },
     "TreeViewComponent": {
         "Collapse": "Replier",
         "Expand": "Déplier"
+    },
+    "ActiveUserList": {
+        "active user": "utilisateur actif",
+        "active user list": "liste des utilisateurs actifs",
+        "open full active user list": "ouvrir la liste complète des utilisateurs actifs"
     }
 }
