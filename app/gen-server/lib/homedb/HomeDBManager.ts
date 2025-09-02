@@ -57,19 +57,20 @@ import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {HomeDBCaches} from 'app/gen-server/lib/homedb/Caches';
-import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
+import {GroupsManager, GroupTypes} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
   DocAuthKey,
   DocAuthResult,
   DocumentAccessChanges,
   GetUserOptions,
-  GroupDescriptor,
+  GroupWithMembersDescriptor,
   NonGuestGroup,
   OrgAccessChanges,
   PreviousAndCurrent,
   QueryResult,
   Resource,
+  RoleGroupDescriptor,
   UserProfileChange,
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
@@ -291,7 +292,7 @@ export class HomeDBManager {
   public caches: HomeDBCaches|null;
 
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
-  private _groupsManager = new GroupsManager();
+  private _groupsManager = new GroupsManager(this._usersManager, this.runInTransaction.bind(this));
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -318,15 +319,15 @@ export class HomeDBManager {
     return this._usersManager;
   }
 
-  public get defaultGroups(): GroupDescriptor[] {
+  public get defaultGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultGroups;
   }
 
-  public get defaultBasicGroups(): GroupDescriptor[] {
+  public get defaultBasicGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultBasicGroups;
   }
 
-  public get defaultCommonGroups(): GroupDescriptor[] {
+  public get defaultCommonGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultCommonGroups;
   }
 
@@ -525,6 +526,39 @@ export class HomeDBManager {
     return await this._usersManager.getExistingUsersByLogin(emails, manager);
   }
 
+  public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
+    return this._groupsManager.createGroup(groupDescriptor, optManager);
+  }
+
+  public async overwriteTeamGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteTeamGroup(id, groupDescriptor, optManager);
+  }
+
+  public async overwriteRoleGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteRoleGroup(id, groupDescriptor, optManager);
+  }
+
+  public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
+    return this._groupsManager.deleteGroup(id, expectedType, optManager);
+  }
+
+  public getGroupsWithMembers(manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembers(manager);
+  }
+
+  public getGroupsWithMembersByType(
+    type: GroupTypes, opts?: {aclRule?: boolean}, manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembersByType(type, opts, manager);
+  }
+
+  public getGroupWithMembersById(id: number, opts?: {aclRule: boolean}, manager?: EntityManager): Promise<Group|null> {
+    return this._groupsManager.getGroupWithMembersById(id, opts, manager);
+  }
+
   /**
    * Returns true if the given domain string is available, and false if it is not available.
    * NOTE that the endpoint only checks if the domain string is taken in the database, it does
@@ -664,6 +698,7 @@ export class HomeDBManager {
                                  includeOrgsAndManagers: boolean,
                                  transaction?: EntityManager): Promise<BillingAccount> {
     const org = this.unwrapQueryResult(await this.getOrg(scope, orgKey, transaction));
+
     if (!org.billingAccount.isManager && scope.userId !== this._usersManager.getPreviewerUserId() &&
       // The special permit (used for the support user) allows access to the billing account.
       scope.specialPermit?.org !== orgKey) {
