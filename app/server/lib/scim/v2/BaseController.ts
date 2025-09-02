@@ -1,5 +1,5 @@
-import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { ApiError } from 'app/common/ApiError';
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { LogMethods } from 'app/server/lib/LogMethods';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 
@@ -14,12 +14,24 @@ export class BaseController {
     protected checkAccess: (context: RequestContext) => void,
   ) {}
 
-  protected getIdFromResource(resource: any) {
-    const id = parseInt(resource.id, 10);
+  protected getIdFromResource(resource: SCIMMY.Types.Resource) {
+    const id = parseInt(resource.id!, 10);
     if (Number.isNaN(id)) {
       throw new SCIMMY.Types.Error(400, 'invalidValue', this.invalidIdError);
     }
     return id;
+  }
+
+  /**
+   * Apply the passed filter if it exists, otherwise return directly the passed result.
+   *
+   * This also circumvents the issue that filter.match just returns any[]
+   * (See: https://github.com/scimmyjs/scimmy/pull/87)
+   */
+  protected maybeApplyFilter<T extends SCIMMY.Types.Schema>(
+    prefilteredResults: T[], filter?: SCIMMY.Types.Filter
+  ): T[] {
+    return filter ? filter.match(prefilteredResults) : prefilteredResults;
   }
 
 

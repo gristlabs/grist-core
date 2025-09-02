@@ -1,12 +1,13 @@
 import { normalizeEmail } from "app/common/emails";
 import { UserProfile } from "app/common/LoginSessionAPI";
-import { User } from "app/gen-server/entity/User";
-import { Group } from "app/gen-server/entity/Group";
-import SCIMMY from "scimmy";
-import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
-import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/ScimRoleController";
 import { AclRuleDoc, AclRuleOrg, AclRuleWs } from "app/gen-server/entity/AclRule";
+import { Group } from "app/gen-server/entity/Group";
+import { User } from "app/gen-server/entity/User";
+import { GroupWithMembersDescriptor } from "app/gen-server/lib/homedb/Interfaces";
+import { SCIMMYRoleSchema } from "app/server/lib/scim/v2/roles/SCIMMYRoleSchema";
 import log from 'app/server/lib/log';
+
+import SCIMMY from "scimmy";
 
 const SCIM_API_BASE_PATH = '/api/scim/v2';
 const SCIMMY_USER_TYPE = 'User';
@@ -15,7 +16,7 @@ const SCIMMY_GROUP_TYPE = 'Group';
 /**
  * Converts a user from your database to a SCIMMY user
  */
-export function toSCIMMYUser(user: User) {
+export function toSCIMMYUser(user: User): SCIMMY.Schemas.User {
   if (!user.logins) {
     throw new Error("User must have at least one login");
   }
@@ -41,30 +42,31 @@ export function toSCIMMYUser(user: User) {
   });
 }
 
-export function toUserProfile(scimUser: any, existingUser?: User): UserProfile {
+export function toUserProfile(scimUser: SCIMMY.Schemas.User): UserProfile {
   const emailValue = scimUser.emails?.[0]?.value;
   if (emailValue && normalizeEmail(emailValue) !== normalizeEmail(scimUser.userName)) {
     log.warn(`userName "${scimUser.userName}" differ from passed primary email "${emailValue}".` +
       'That should be OK, but be aware that the userName will be ignored in favor of the email to identify the user.');
   }
   return {
-    name: scimUser.displayName ?? existingUser?.name,
+    name: scimUser.displayName ?? '', // The empty string will be transformed to a named deduced from the
+                                      // email by the HomeDBManager
     picture: scimUser.photos?.[0]?.value,
     locale: scimUser.locale,
-    email: emailValue ?? scimUser.userName ?? existingUser?.loginEmail,
+    email: emailValue ?? scimUser.userName,
   };
 }
 
-function toSCIMMYMembers(group: Group) {
+function toSCIMMYMembers(group: Group): SCIMMY.Schemas.Group["members"] {
   return [
-    ...group.memberUsers.map((member: any) => ({
+    ...group.memberUsers.map((member: User) => ({
       value: String(member.id),
       display: member.name,
       $ref: `${SCIM_API_BASE_PATH}/Users/${member.id}`,
       type: SCIMMY_USER_TYPE,
     })),
     // As of 2025-01-12, we don't support nested groups, so it should always be empty
-    ...group.memberGroups.map((member: any) => ({
+    ...group.memberGroups.map((member: Group) => ({
       value: String(member.id),
       display: member.name,
       $ref: `${SCIM_API_BASE_PATH}/Groups/${member.id}`,
@@ -102,18 +104,20 @@ function parseId(id: string, type: typeof SCIMMY_USER_TYPE | typeof SCIMMY_GROUP
   return parsedId;
 }
 
-function membersDescriptors(members: any[]) {
+function membersDescriptors(
+  members: NonNullable<SCIMMY.Schemas.Group["members"]>
+): Pick<GroupWithMembersDescriptor, "memberUsers" | "memberGroups"> {
   return {
     memberUsers: members
-      .filter((member: any) => member.type === SCIMMY_USER_TYPE)
-      .map((member: any) => parseId(member.value, SCIMMY_USER_TYPE)),
+      .filter((member) => member.type === SCIMMY_USER_TYPE)
+      .map((member) => parseId(member.value, SCIMMY_USER_TYPE)),
     memberGroups: members
-      .filter((member: any) => member.type === SCIMMY_GROUP_TYPE)
-      .map((member: any) => parseId(member.value, SCIMMY_GROUP_TYPE)),
+      .filter((member) => member.type === SCIMMY_GROUP_TYPE)
+      .map((member) => parseId(member.value, SCIMMY_GROUP_TYPE))
   };
 }
 
-export function toGroupDescriptor(scimGroup: any): GroupWithMembersDescriptor {
+export function toGroupDescriptor(scimGroup: SCIMMY.Schemas.Group): GroupWithMembersDescriptor {
   const members = scimGroup.members ?? [];
   return {
     name: scimGroup.displayName,
@@ -122,7 +126,7 @@ export function toGroupDescriptor(scimGroup: any): GroupWithMembersDescriptor {
   };
 }
 
-export function toRoleDescriptor(scimRole: any): GroupWithMembersDescriptor {
+export function toRoleDescriptor(scimRole: SCIMMYRoleSchema): GroupWithMembersDescriptor {
   const members = scimRole.members ?? [];
   return {
     name: scimRole.displayName,

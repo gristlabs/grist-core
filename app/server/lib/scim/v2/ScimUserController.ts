@@ -2,7 +2,11 @@ import { HomeDBManager, Scope } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { BaseController } from 'app/server/lib/scim/v2/BaseController';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import { toSCIMMYUser, toUserProfile } from 'app/server/lib/scim/v2/ScimUtils';
+
 import SCIMMY from 'scimmy';
+
+type UserSchema = SCIMMY.Schemas.User;
+type UserResource = SCIMMY.Resources.User;
 
 class ScimUserController extends BaseController {
   public constructor(
@@ -19,7 +23,7 @@ class ScimUserController extends BaseController {
    * @param resource The SCIMMY user resource performing the operation
    * @param context The request context
    */
-  public async getSingleUser(resource: any, context: RequestContext) {
+  public async getSingleUser(resource: UserResource, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const user = await this.dbManager.getUser(id);
@@ -36,11 +40,10 @@ class ScimUserController extends BaseController {
    * @param resource The SCIMMY user resource performing the operation
    * @param context The request context
    */
-  public async getUsers(resource: any, context: RequestContext) {
-    return this.runAndHandleErrors(context, async () => {
-      const { filter } = resource;
+  public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
+    return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
       const scimmyUsers = (await this.dbManager.getUsers()).map(user => toSCIMMYUser(user));
-      return filter ? filter.match(scimmyUsers) : scimmyUsers;
+      return this.maybeApplyFilter(scimmyUsers, resource.filter);
     });
   }
 
@@ -50,7 +53,7 @@ class ScimUserController extends BaseController {
    * @param data The data to create the user with
    * @param context The request context
    */
-  public async createUser(data: any, context: RequestContext) {
+  public async createUser(data: UserSchema, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       await this._checkEmailCanBeUsed(data.userName);
       const userProfile = toUserProfile(data);
@@ -68,7 +71,7 @@ class ScimUserController extends BaseController {
    * @param data The data to overwrite the user with
    * @param context The request context
    */
-  public async overwriteUser(resource: any, data: any, context: RequestContext) {
+  public async overwriteUser(resource: UserResource, data: UserSchema, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
@@ -86,7 +89,7 @@ class ScimUserController extends BaseController {
    * @param resource The SCIMMY user resource performing the operation
    * @param context The request context
    */
-  public async deleteUser(resource: any, context: RequestContext) {
+  public async deleteUser(resource: UserResource, context: RequestContext) {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
@@ -120,19 +123,23 @@ export function getScimUserConfig(
   const controller = new ScimUserController(dbManager, checkAccess);
 
   return {
-    egress: async (resource: any, context: RequestContext) => {
+    egress: async (
+      resource: UserResource, context: RequestContext
+    ): Promise<UserSchema|UserSchema[]> => {
       if (resource.id) {
         return await controller.getSingleUser(resource, context);
       }
       return await controller.getUsers(resource, context);
     },
-    ingress: async (resource: any, data: any, context: RequestContext) => {
+    ingress: async (
+      resource: UserResource, data: UserSchema, context: RequestContext
+    ): Promise<UserSchema> => {
       if (resource.id) {
         return await controller.overwriteUser(resource, data, context);
       }
       return await controller.createUser(data, context);
     },
-    degress: async (resource: any, context: RequestContext) => {
+    degress: async (resource: UserResource, context: RequestContext): Promise<void> => {
       return await controller.deleteUser(resource, context);
     }
   };

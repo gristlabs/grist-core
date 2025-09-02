@@ -6,6 +6,9 @@ import { toGroupDescriptor, toSCIMMYGroup } from 'app/server/lib/scim/v2/ScimUti
 
 import SCIMMY from 'scimmy';
 
+type GroupSchema = SCIMMY.Schemas.Group;
+type GroupResource = SCIMMY.Resources.Group;
+
 class ScimGroupController extends BaseController {
   public constructor(
     dbManager: HomeDBManager,
@@ -21,7 +24,7 @@ class ScimGroupController extends BaseController {
    * @param resource The SCIMMY group resource performing the operation
    * @param context The request context
    */
-  public async getSingleGroup(resource: any, context: RequestContext) {
+  public async getSingleGroup(resource: GroupResource, context: RequestContext): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const group = await this.dbManager.getGroupWithMembersById(id);
@@ -38,12 +41,11 @@ class ScimGroupController extends BaseController {
    * @param context The request context
    * @returns All groups
    */
-  public async getGroups(resource: any, context: RequestContext) {
+  public async getGroups(resource: GroupResource, context: RequestContext): Promise<GroupSchema[]> {
     return this.runAndHandleErrors(context, async () => {
-      const { filter } = resource;
       const scimmyGroup = (await this.dbManager.getGroupsWithMembersByType(Group.TEAM_TYPE))
         .map(group => toSCIMMYGroup(group));
-      return filter ? filter.match(scimmyGroup) : scimmyGroup;
+      return this.maybeApplyFilter(scimmyGroup, resource.filter);
     });
   }
 
@@ -53,7 +55,7 @@ class ScimGroupController extends BaseController {
    * @param data The data to create the group with
    * @param context The request context
    */
-  public async createGroup(data: any, context: RequestContext) {
+  public async createGroup(data: GroupSchema, context: RequestContext): Promise<GroupSchema>{
     return this.runAndHandleErrors(context, async () => {
       const groupDescriptor = toGroupDescriptor(data);
       const group = await this.dbManager.createGroup(groupDescriptor);
@@ -68,7 +70,9 @@ class ScimGroupController extends BaseController {
    * @param data The data to overwrite the group with
    * @param context The request context
    */
-  public async overwriteGroup(resource: any, data: any, context: RequestContext) {
+  public async overwriteGroup(
+    resource: GroupResource, data: GroupSchema, context: RequestContext
+  ): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const groupDescriptor = toGroupDescriptor(data);
@@ -84,7 +88,7 @@ class ScimGroupController extends BaseController {
    * @param context The request context
    *
    */
-  public async deleteGroup(resource: any, context: RequestContext) {
+  public async deleteGroup(resource: GroupResource, context: RequestContext): Promise<void>{
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       await this.dbManager.deleteGroup(id, Group.TEAM_TYPE);
@@ -98,19 +102,19 @@ export function getScimGroupConfig(
   const controller = new ScimGroupController(dbManager, checkAccess);
 
   return {
-    egress: async (resource: any, context: RequestContext) => {
+    egress: async (resource: GroupResource, context: RequestContext): Promise<GroupSchema|GroupSchema[]> => {
       if (resource.id) {
         return await controller.getSingleGroup(resource, context);
       }
       return await controller.getGroups(resource, context);
     },
-    ingress: async (resource: any, data: any, context: RequestContext) => {
+    ingress: async (resource: GroupResource, data: GroupSchema, context: RequestContext): Promise<GroupSchema> => {
       if (resource.id) {
         return await controller.overwriteGroup(resource, data, context);
       }
       return await controller.createGroup(data, context);
     },
-    degress: async (resource: any, context: RequestContext) => {
+    degress: async (resource: GroupResource, context: RequestContext): Promise<void> => {
       return await controller.deleteGroup(resource, context);
     }
   };

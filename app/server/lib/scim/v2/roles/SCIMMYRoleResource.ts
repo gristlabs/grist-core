@@ -6,7 +6,7 @@ import SCIMMY from 'scimmy';
  * SCIMMY Role Resource. Heavily inspired by SCIMMY Group Resource.
  * https://github.com/scimmyjs/scimmy/blob/8b4333edc566a04cd5390ee4aa3272d021610d77/src/lib/resources/group.js
  */
-export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
+export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> {
   // NB: must be a getter, cannot override this property with readonly attribute
   public static get endpoint() {
     return '/Roles';
@@ -33,19 +33,19 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
   }
 
   /** @implements {SCIMMY.Types.Resource.ingress<typeof SCIMMY.Resources.User, SCIMMY.Schemas.User>} */
-  public static ingress(handler: any) {
+  public static ingress(handler: SCIMMY.Types.Resource.IngressHandler<any, any>) {
       this._ingress = handler;
       return this;
   }
 
   /** @implements {SCIMMY.Types.Resource.egress<typeof SCIMMY.Resources.User, SCIMMY.Schemas.User>} */
-  public static egress(handler: any) {
+  public static egress(handler: SCIMMY.Types.Resource.EgressHandler<any, SCIMMYRoleSchema>) {
     this._egress = handler;
     return this;
   }
 
   /** @implements {SCIMMY.Types.Resource.degress<typeof SCIMMY.Resources.User>} */
-  public static degress(handler: any) {
+  public static degress(handler: SCIMMY.Types.Resource.DegressHandler<any>) {
     this._degress = handler;
     return this;
   }
@@ -53,17 +53,17 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
   private static _basepath: string;
 
   /** @private */
-  private static _ingress = (...args: any[]): Promise<any> => {
+  private static _ingress: SCIMMY.Types.Resource.IngressHandler<SCIMMYRoleResource, SCIMMYRoleSchema> = () => {
     throw new SCIMMY.Types.Error(501, null!, `Method 'ingress' not implemented by resource '${this.name}'`);
   };
 
   /** @private */
-  private static _egress = (...args: any[]): Promise<any> => {
+  private static _egress: SCIMMY.Types.Resource.EgressHandler<SCIMMYRoleResource, SCIMMYRoleSchema> = () => {
     throw new SCIMMY.Types.Error(501, null!, `Method 'egress' not implemented by resource '${this.name}'`);
   };
 
   /** @private */
-  private static _degress = (...args: any[]): Promise<any> => {
+  private static _degress: SCIMMY.Types.Resource.DegressHandler<SCIMMYRoleResource> = () => {
     throw new SCIMMY.Types.Error(501, null!, `Method 'degress' not implemented by resource '${this.name}'`);
   };
 
@@ -128,7 +128,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
      * // Set members attribute for group with ID "1234"
      * await new SCIMMY.Resources.Group("1234").write({members: [{value: "5678"}]});
      */
-  public async write(instance: any, ctx: any) {
+  public async write(instance: SCIMMYRoleSchema, ctx: any) {
     if (instance === undefined) {
       throw new SCIMMY.Types.Error(
         400, "invalidSyntax", `Missing request body payload for ${this.id ? "PUT" : "POST"} operation`
@@ -184,10 +184,12 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource {
       );
     }
 
-    return await new SCIMMY.Messages.PatchOp(message)
-      .apply((await this.read(ctx)) as any, async (instance) => await this.write(instance, ctx))
+    return (await new SCIMMY.Messages.PatchOp(message)
+      .apply((await this.read(ctx)) as SCIMMYRoleSchema, async (instance) => await this.write(instance, ctx))
+      // NOTE: A bit odd, but the type suggest that we should have an instance of Schema,
+      // but the upstream code suggests that it can be undefined
       .then(instance => !instance ? undefined :
-        new SCIMMYRoleSchema(instance, "out", SCIMMYRoleResource.basepath(), this.attributes));
+        new SCIMMYRoleSchema(instance, "out", SCIMMYRoleResource.basepath(), this.attributes)))!;
   }
 
   /**

@@ -1,13 +1,15 @@
-import * as express from 'express';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import SCIMMY from "scimmy";
-import SCIMMYRouters from "scimmy-routers";
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { InstallAdmin } from 'app/server/lib/InstallAdmin';
+import { SCIMMYRoleResource } from 'app/server/lib/scim/v2/roles/SCIMMYRoleResource';
+import { getScimGroupConfig } from 'app/server/lib/scim/v2/ScimGroupController';
+import { getScimRoleConfig } from 'app/server/lib/scim/v2/ScimRoleController';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import { getScimUserConfig } from 'app/server/lib/scim/v2/ScimUserController';
-import { getScimGroupConfig } from 'app/server/lib/scim/v2/ScimGroupController';
-import { getScimRoleConfig, SCIMMYRoleResource } from 'app/server/lib/scim/v2/ScimRoleController';
+
+import * as express from 'express';
+import SCIMMY from "scimmy";
+import SCIMMYRouters from "scimmy-routers";
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
 

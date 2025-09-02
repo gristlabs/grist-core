@@ -14,12 +14,11 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
 
   private static _definition = (function () {
     // Clone the Groups schema definition
-    const attrMembers = SCIMMY.Schemas.Group.definition.attribute('members');
     return new SchemaDefinition(
       "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist (Owner)", [
         new Attribute("string", "displayName", {
           mutable: false, direction: "out"}),
-        attrMembers as SCIMMY.Types.Attribute,
+        SCIMMY.Schemas.Group.definition.attribute('members'),
         new Attribute("string", "docId", {required: false, description: "The docId associated to this role.",
           mutable: false, direction: 'out'}),
         new Attribute("integer", "workspaceId", {required: false, description: "The workspaceId for this role",
@@ -28,6 +27,12 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
           mutable: false, direction: 'out'})
       ]);
   })();
+
+  public displayName: string;
+  public docId: string|undefined;
+  public workspaceId: number|undefined;
+  public orgId: number|undefined;
+  public members: SCIMMY.Schemas.Group["members"];
 
   constructor(resource: object, direction = "both", basepath?: string, filters?: SCIMMY.Types.Filter) {
     super(resource, direction);
