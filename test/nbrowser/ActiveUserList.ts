@@ -72,13 +72,12 @@ describe('ActiveUserList', async function() {
     }, 5000);
   });
 
-  it('shows name on hover', async function() {
+  it('shows name and email on hover', async function() {
     await driver.find('.test-aul-container .test-aul-user-icon').mouseMove();
-    assert.equal(
-      await driver.findWait('.test-tooltip', 1000).getText(),
-      gu.translateUser(User3).name,
-      'name tooltip not opened'
-    );
+    const tooltipText = await driver.findWait('.test-tooltip', 1000).getText();
+    const user = gu.translateUser(User3);
+    assert.include(tooltipText, user.name, 'name not in tooltip');
+    assert.include(tooltipText, user.email, 'email not in tooltip');
   });
 
   it('shows a remaining users icon with many users', async function() {
@@ -93,7 +92,7 @@ describe('ActiveUserList', async function() {
   it('shows a list of all users when button is clicked', async function() {
     await driver.find('.test-aul-all-users-button').click();
     const menuItemTexts = await gu.findOpenMenuAllItems(
-      '.test-aul-user-list-user-name', async (item) => item.getText()
+      '.test-aul-user-name', async (item) => item.getText()
     );
     assert.isFalse(menuItemTexts.length < USER_PRESENCE_MAX_USERS, 'not all users in user list');
     assert.isFalse(menuItemTexts.length > USER_PRESENCE_MAX_USERS, 'max users not enforced');

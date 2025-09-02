@@ -4,10 +4,10 @@ import {hoverTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {menu} from 'app/client/ui2018/menus';
+import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {nativeCompare} from 'app/common/gutil';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {components} from 'app/common/ThemePrefs';
+import {components, tokens} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 
 import {dom, domComputed, DomElementArg, makeTestId, styled} from 'grainjs';
@@ -22,8 +22,6 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
     const users = userProfiles
       .slice()
       .sort(compareUserProfiles)
-      // Need to delete id as it's incompatible with createUserImage's parameters.
-      .map(userProfile => ({...userProfile, id: undefined }))
       // Limits the display to avoid overly long lists on public documents.
       .slice(0, maxUsers);
 
@@ -48,17 +46,17 @@ export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   });
 }
 
-function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
+function createUserIndicator(user: VisibleUserProfile, options = { overlapLeft: false }) {
   return createUserListImage(
     user,
-    hoverTooltip(user.name, { key: "topBarBtnTooltip" }),
+    hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
     options.overlapLeft ? createStyledUserImage.cls("-overlapping") : undefined,
     { 'aria-label': `${t('active user')}: ${user.name}`},
     testId('user-icon')
   );
 }
 
-function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: number) {
+function createRemainingUsersIndicator(users: VisibleUserProfile[], userCount?: number) {
   const count = userCount ?? users.length;
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
@@ -69,7 +67,7 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
     menu(
       () => users.map(user => remainingUsersMenuItem(
         createUserImage(user, 'medium'),
-        dom('div', testId('user-list-user-name'), user.name),
+        dom('div', createUsername(user.name), createEmail(user.email)),
         testId('user-list-user')
       )),
       {
@@ -82,6 +80,29 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
     testId('all-users-button')
   );
 }
+
+const createTooltipContent = (user: VisibleUserProfile) => {
+  return [createUsername(user.name), createEmail(user.email)];
+};
+
+function createUsername(name: string) {
+  return cssUsername(visuallyHidden('Name: '), dom('span', testId('user-name'), name));
+}
+
+function createEmail(email?: string) {
+  if (!email) {
+    return null;
+  }
+  return cssEmail(visuallyHidden('Email: '), dom('span', testId('user-email'), email));
+}
+
+const cssUsername = styled('div', `
+  font-weight: ${tokens.headerControlTextWeight};
+`);
+
+const cssEmail = styled('div', `
+  font-size: ${tokens.smallFontSize};
+`);
 
 // Flex-direction is reversed to give us the correct overlaps without messing with z-indexes.
 const cssActiveUserList = styled('ul', `
