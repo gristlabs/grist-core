@@ -72,13 +72,12 @@ describe('ActiveUserList', async function() {
     }, 5000);
   });
 
-  it('shows name on hover', async function() {
+  it('shows name and email on hover', async function() {
     await driver.find('.test-aul-container .test-aul-user-icon').mouseMove();
-    assert.equal(
-      await driver.findWait('.test-tooltip', 1000).getText(),
-      gu.translateUser(User3).name,
-      'name tooltip not opened'
-    );
+    const tooltipText = await driver.findWait('.test-tooltip', 1000).getText();
+    const user = gu.translateUser(User3);
+    assert.include(tooltipText, user.name, 'name not in tooltip');
+    assert.include(tooltipText, user.email, 'email not in tooltip');
   });
 
   it('shows a remaining users icon with many users', async function() {
