@@ -301,6 +301,10 @@ export class UsersManager {
         user.name = props.name;
         needsSave = true;
       }
+      if (props.disabledAt !== undefined && props.disabledAt !== user.disabledAt) {
+        user.disabledAt = props.disabledAt;
+        needsSave = true;
+      }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {
         user.isFirstTimeUser = props.isFirstTimeUser;
         needsSave = true;
