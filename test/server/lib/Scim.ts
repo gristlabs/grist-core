@@ -776,7 +776,7 @@ describe('Scim', () => {
         });
 
         describe('POST /Groups', function () {
-          it(`should create a new group of type "${Group.TEAM_TYPE}`, async function () {
+          it(`should create a new group of type "${Group.TEAM_TYPE}"`, async function () {
             await withGroupName('test-group', async (groupName) => {
               const res = await axios.post(scimUrl('/Groups'), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
