@@ -8,6 +8,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
+import { Doom } from 'app/gen-server/lib/Doom';
 import { HomeDBManager, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
@@ -95,6 +96,7 @@ export interface GristServer extends StorageCoordinator {
   getInfo(key: string): any;
   getJobs(): GristJobs;
   getBilling(): IBilling;
+  getDoomTool(): Promise<Doom>;
   getLatestVersionAvailable(): LatestVersionAvailable|undefined;
   setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void
   publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void>;
@@ -210,6 +212,7 @@ export function createDummyGristServer(): GristServer {
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error('no job system'); },
     getBilling() { throw new Error('no billing'); },
+    getDoomTool() { throw new Error('no doom tool'); },
     getLatestVersionAvailable() { throw new Error('no version checking'); },
     setLatestVersionAvailable() { /* do nothing */ },
     publishLatestVersionAvailable() { return Promise.resolve(); },
