@@ -812,20 +812,19 @@ export class UsersManager {
     if (userIds.length === 0) {
       return [];
     }
-    return await this._runInTransaction(options.manager, async (manager) => {
-      const queryBuilder = manager.createQueryBuilder()
-        .select('users')
-        .from(User, 'users')
-        .chain(qb => options.withLogins ? qb.leftJoinAndSelect('users.logins', 'logins') : qb)
-        .where('users.id IN (:...userIds)', {userIds});
-      return await queryBuilder.getMany();
-    });
+    const manager = options.manager || new EntityManager(this._connection);
+    const queryBuilder = manager.createQueryBuilder()
+      .select('users')
+      .from(User, 'users')
+      .chain(qb => options.withLogins ? qb.leftJoinAndSelect('users.logins', 'logins') : qb)
+      .where('users.id IN (:...userIds)', {userIds});
+    return await queryBuilder.getMany();
   }
 
   /**
-   * Returns a Promise for an array of User entites for the given userIds.
+   * Returns a Promise for an array of User entities for the given userIds.
    * Throws an error if any of the users are not found.
-   * This is useful when we expect all users to exist, and want to throw an error if they don't.
+   * This is useful when we expect all users to exist, and otherwise throw an error.
    */
   public async getUsersByIdsStrict(userIds: number[], optManager?: EntityManager): Promise<User[]> {
     const users = await this.getUsersByIds(userIds, { manager: optManager });
