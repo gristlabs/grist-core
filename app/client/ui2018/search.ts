@@ -197,12 +197,12 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     dom.onKeyDown({
       Enter: (ev) => ev.shiftKey ? model.findPrev() : model.findNext(),
     }),
+    commandGroup.attach(),
   );
 
   return searchWrapper(
     testId('wrapper'),
     searchWrapper.cls('-expand', model.isOpen),
-    commandGroup.attach(),
     dom.autoDispose(commandGroup),
     dom.onKeyDown({
       // The $ indicates to grainjs we don't want to stop propagation of the event here.
