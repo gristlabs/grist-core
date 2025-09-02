@@ -92,7 +92,7 @@ describe('ActiveUserList', async function() {
   it('shows a list of all users when button is clicked', async function() {
     await driver.find('.test-aul-all-users-button').click();
     const menuItemTexts = await gu.findOpenMenuAllItems(
-      '.test-aul-user-list-user-name', async (item) => item.getText()
+      '.test-aul-user-name', async (item) => item.getText()
     );
     assert.isFalse(menuItemTexts.length < USER_PRESENCE_MAX_USERS, 'not all users in user list');
     assert.isFalse(menuItemTexts.length > USER_PRESENCE_MAX_USERS, 'max users not enforced');

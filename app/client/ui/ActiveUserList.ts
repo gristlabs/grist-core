@@ -67,7 +67,7 @@ function createRemainingUsersIndicator(users: VisibleUserProfile[], userCount?: 
     menu(
       () => users.map(user => remainingUsersMenuItem(
         createUserImage(user, 'medium'),
-        dom('div', testId('user-list-user-name'), user.name),
+        dom('div', createUsername(user.name), createEmail(user.email)),
         testId('user-list-user')
       )),
       {
@@ -82,11 +82,19 @@ function createRemainingUsersIndicator(users: VisibleUserProfile[], userCount?: 
 }
 
 const createTooltipContent = (user: VisibleUserProfile) => {
-  return [
-    cssUsername(visuallyHidden('Name: '), user.name),
-    cssEmail(visuallyHidden('Email: '), user.email)
-  ];
+  return [createUsername(user.name), createEmail(user.email)];
 };
+
+function createUsername(name: string) {
+  return cssUsername(visuallyHidden('Name: '), dom('span', testId('user-name'), name));
+}
+
+function createEmail(email?: string) {
+  if (!email) {
+    return null;
+  }
+  return cssEmail(visuallyHidden('Email: '), dom('span', testId('user-email'), email));
+}
 
 const cssUsername = styled('div', `
   font-weight: ${tokens.headerControlTextWeight};
