@@ -114,9 +114,9 @@ class ScimUserController extends BaseController {
   }
 }
 
-export const getScimUserConfig = (
+export function getScimUserConfig(
   dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
-) => {
+) {
   const controller = new ScimUserController(dbManager, checkAccess);
 
   return {
@@ -136,4 +136,4 @@ export const getScimUserConfig = (
       return await controller.deleteUser(resource, context);
     }
   };
-};
+}

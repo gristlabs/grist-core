@@ -803,7 +803,7 @@ export class UsersManager {
   }
 
   /**
-   * Returns a Promise for an array of User entites for the given userIds.
+   * Returns a Promise for an array of User entities for the given userIds.
    */
   public async getUsersByIds(
     userIds: number[],

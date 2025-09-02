@@ -1,9 +1,9 @@
-import { HomeDBManager } from "app/gen-server/lib/homedb/HomeDBManager";
-import { ApiError } from "app/common/ApiError";
-import { LogMethods } from "app/server/lib/LogMethods";
+import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
+import { ApiError } from 'app/common/ApiError';
+import { LogMethods } from 'app/server/lib/LogMethods';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 
-import SCIMMY from "scimmy";
+import SCIMMY from 'scimmy';
 
 export class BaseController {
   protected logger = new LogMethods(this.constructor.name, () => ({}));

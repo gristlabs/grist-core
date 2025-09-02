@@ -92,9 +92,9 @@ class ScimGroupController extends BaseController {
   }
 }
 
-export const getScimGroupConfig = (
+export function getScimGroupConfig(
   dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
-) => {
+) {
   const controller = new ScimGroupController(dbManager, checkAccess);
 
   return {
@@ -114,4 +114,4 @@ export const getScimGroupConfig = (
       return await controller.deleteGroup(resource, context);
     }
   };
-};
+}

@@ -70,9 +70,9 @@ class ScimRoleController extends BaseController {
   }
 }
 
-export const getScimRoleConfig = (
+export function getScimRoleConfig(
   dbManager: HomeDBManager, checkAccess: (context: RequestContext) => void
-) => {
+) {
   const controller = new ScimRoleController(dbManager, checkAccess);
   return {
     egress: async (resource: any, context: RequestContext) => {
@@ -91,4 +91,4 @@ export const getScimRoleConfig = (
       throw new SCIMMY.Types.Error(501, null!, 'Cannot delete roles');
     }
   };
-};
+}
