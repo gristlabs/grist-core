@@ -13,7 +13,7 @@ import { dom, styled } from "grainjs";
 const t = makeT('WelcomeTour');
 
 export function getOnBoardingMessages(): IOnBoardingMsg[] {
-  const {features} = getGristConfig();
+  const {assistant, features} = getGristConfig();
   return [
     {
       title: t('Editing Data'),
@@ -74,6 +74,19 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       placement: 'bottom',
       cropPadding: true,
     },
+    ...(assistant?.version === 2 ? [{
+      selector: '.tour-assistant',
+      title: t('AI Assistant'),
+      body: () => [
+        dom('p',
+          t(
+            'Understand, modify and work with your data and formulas ' +
+            "with the help of Grist's AI Assistant!",
+          )
+        ),
+      ],
+      placement: 'right' as const,
+    }] : []),
     {
       selector: '.tour-help-center',
       title: t('Flying higher'),

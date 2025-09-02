@@ -129,6 +129,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
   helpSharing: 'https://support.getgrist.com/sharing',
+  helpComments: 'https://support.getgrist.com/sharing/#comments',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
