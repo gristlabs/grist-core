@@ -1040,27 +1040,14 @@ describe('ApiServer', function() {
       return fetchResp.data;
     }
 
-    // Check use of org name
-    oid = await createTestDomain();
-    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/The Nam`, chimpy);
-    assert.equal(resp.status, 400);
-    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/The Name`, chimpy);
-    assert.equal(resp.status, 200);
-
-    // Check use of org domain
-    oid = await createTestDomain();
-    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/the-domai`, chimpy);
-    assert.equal(resp.status, 400);
-    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/the-domain`, chimpy);
-    assert.equal(resp.status, 200);
-
-    // Check use of force-delete
-    oid = await createTestDomain();
-    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delet`, chimpy);
-    assert.equal(resp.status, 400);
-    resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delete`, chimpy);
-    assert.equal(resp.status, 200);
-
+    // Check use of org name, domain, and force-delete
+    for (const name of ["The Name", "the-domain", "force-delete"]) {
+      oid = await createTestDomain();
+      resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/${name.slice(0, -1)}`, chimpy);
+      assert.equal(resp.status, 400);
+      resp = await axios.delete(`${homeUrl}/api/orgs/${oid}/${name}`, chimpy);
+      assert.equal(resp.status, 200);
+    }
   });
 
   it('DELETE /api/orgs/{oid}/{name} returns 404 appropriately', async function() {
