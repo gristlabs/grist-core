@@ -12,6 +12,15 @@ export function getTemplateOrg() {
   return org;
 }
 
+export function getUserPresenceMaxUsers(): number {
+  return appSettings.section('userPresence').flag('maxUsers').requireInt({
+    envVar: 'GRIST_USER_PRESENCE_MAX_USERS',
+    defaultValue: 99,
+    minValue: 0,
+    maxValue: 99,
+  });
+}
+
 export function getOnboardingTutorialDocId() {
   return appSettings.section('tutorials').flag('onboardingTutorialDocId').readString({
     envVar: 'GRIST_ONBOARDING_TUTORIAL_DOC_ID',

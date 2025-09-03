@@ -1,59 +1,62 @@
+import {makeT} from 'app/client/lib/localization';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
 import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
 import {menu} from 'app/client/ui2018/menus';
-import {hoverTooltip} from 'app/client/ui/tooltips';
+import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
-import {FullUser} from 'app/common/LoginSessionAPI';
-import {components} from 'app/common/ThemePrefs';
-import {dom, domComputed, DomElementArg, styled} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
 import {nativeCompare} from 'app/common/gutil';
+import {components, tokens} from 'app/common/ThemePrefs';
+import {getGristConfig} from 'app/common/urlUtils';
+
+import {dom, domComputed, DomElementArg, makeTestId, styled} from 'grainjs';
 
 const t = makeT('ActiveUserList');
+const testId = makeTestId('test-aul-');
 
 export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
   return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
-    // Need to delete id as it's incompatible with createUserImage's parameters.
+    // Clamps max users between 0 and 99 to prevent display issues and errors
+    const maxUsers = Math.min(Math.max(0, getGristConfig().userPresenceMaxUsers ?? 99), 99);
     const users = userProfiles
       .slice()
       .sort(compareUserProfiles)
-      .map(userProfile => ({...userProfile, id: undefined }))
-      // Limits the display to the first 99 users to avoid overly long lists on public documents.
-      .slice(0, 99);
-    const usersToRender = users.slice(0, 3);
-    const remainingUsers = users.slice(3,);
+      // Limits the display to avoid overly long lists on public documents.
+      .slice(0, maxUsers);
 
-    const firstUserImage = usersToRender.length > 0 ? [createUserIndicator(usersToRender[0])] : [];
-    const overlappingUserImages = usersToRender.slice(1).map(user => createUserIndicator(user, { overlapLeft: true }));
-    const finalUserImage = remainingUsers.length === 0
-      ? []
-      : remainingUsers.length == 1
-        ? createUserIndicator(remainingUsers[0])
-        // The dropdown menu should show the full user list, but only show unlisted users in the counter
-        : createRemainingUsersIndicator(users, remainingUsers.length);
-    const userImages = firstUserImage.concat(overlappingUserImages, finalUserImage);
+    const maxUserImages = 4;
+    const renderAllUsersButton = users.length > maxUserImages;
+    const usersToRender = users.slice(0, renderAllUsersButton ? 3 : 4);
+
+    const userImages = usersToRender.map((user, index) => createUserIndicator(user, { overlapLeft: index > 0 }));
+    const allUsersButtons = renderAllUsersButton
+      ? [createRemainingUsersIndicator(users, (users.length - usersToRender.length))]
+      : [];
 
     // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
     userImages.reverse();
 
     return cssActiveUserList(
+      ...allUsersButtons.map(button => dom('li', button)),
       ...userImages.map(image => dom('li', image)),
       { "aria-label": t("active user list") },
+      testId('container')
     );
   });
 }
 
-function createUserIndicator(user: Partial<FullUser>, options = { overlapLeft: false }) {
+function createUserIndicator(user: VisibleUserProfile, options = { overlapLeft: false }) {
   return createUserListImage(
     user,
-    hoverTooltip(user.name, { key: "topBarBtnTooltip" }),
+    hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
     options.overlapLeft ? createStyledUserImage.cls("-overlapping") : undefined,
-    { 'aria-label': `${t('active user')}: ${user.name}`}
+    { 'aria-label': `${t('active user')}: ${user.name}`},
+    testId('user-icon')
   );
 }
 
-function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: number) {
+function createRemainingUsersIndicator(users: VisibleUserProfile[], userCount?: number) {
   const count = userCount ?? users.length;
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
@@ -64,7 +67,8 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
     menu(
       () => users.map(user => remainingUsersMenuItem(
         createUserImage(user, 'medium'),
-        user.name,
+        dom('div', createUsername(user.name), createEmail(user.email)),
+        testId('user-list-user')
       )),
       {
         // Avoids an issue where the menu code will infinitely loop trying to find the
@@ -73,8 +77,32 @@ function createRemainingUsersIndicator(users: Partial<FullUser>[], userCount?: n
       }
     ),
     { 'aria-label': t('open full active user list') },
+    testId('all-users-button')
   );
 }
+
+const createTooltipContent = (user: VisibleUserProfile) => {
+  return [createUsername(user.name), createEmail(user.email)];
+};
+
+function createUsername(name: string) {
+  return cssUsername(visuallyHidden('Name: '), dom('span', testId('user-name'), name));
+}
+
+function createEmail(email?: string) {
+  if (!email) {
+    return null;
+  }
+  return cssEmail(visuallyHidden('Email: '), dom('span', testId('user-email'), email));
+}
+
+const cssUsername = styled('div', `
+  font-weight: ${tokens.headerControlTextWeight};
+`);
+
+const cssEmail = styled('div', `
+  font-size: ${tokens.smallFontSize};
+`);
 
 // Flex-direction is reversed to give us the correct overlaps without messing with z-indexes.
 const cssActiveUserList = styled('ul', `

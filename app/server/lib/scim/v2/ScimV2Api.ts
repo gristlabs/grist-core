@@ -1,11 +1,15 @@
-import * as express from 'express';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import SCIMMY from "scimmy";
-import SCIMMYRouters from "scimmy-routers";
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { InstallAdmin } from 'app/server/lib/InstallAdmin';
+import { SCIMMYRoleResource } from 'app/server/lib/scim/v2/roles/SCIMMYRoleResource';
+import { getScimGroupConfig } from 'app/server/lib/scim/v2/ScimGroupController';
+import { getScimRoleConfig } from 'app/server/lib/scim/v2/ScimRoleController';
 import { RequestContext } from 'app/server/lib/scim/v2/ScimTypes';
 import { getScimUserConfig } from 'app/server/lib/scim/v2/ScimUserController';
+
+import * as express from 'express';
+import SCIMMY from "scimmy";
+import SCIMMYRouters from "scimmy-routers";
 
 const WHITELISTED_PATHS_FOR_NON_ADMINS = [ "/Me", "/Schemas", "/ResourceTypes", "/ServiceProviderConfig" ];
 
@@ -20,6 +24,8 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
   }
 
   SCIMMY.Resources.declare(SCIMMY.Resources.User, getScimUserConfig(dbManager, checkAccess));
+  SCIMMY.Resources.declare(SCIMMY.Resources.Group, getScimGroupConfig(dbManager, checkAccess));
+  SCIMMY.Resources.declare(SCIMMYRoleResource, getScimRoleConfig(dbManager, checkAccess));
 
   const scimmyRouter = new SCIMMYRouters({
     type: 'bearer',
@@ -36,7 +42,8 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
 
       return String(mreq.userId); // SCIMMYRouters requires the userId to be a string.
     },
-    context: async (mreq: RequestWithLogin): Promise<RequestContext> => {
+    context: async (req: express.Request): Promise<RequestContext> => {
+      const mreq = req as RequestWithLogin;
       const isAdmin = await installAdmin.isAdminReq(mreq);
       const isScimUser = Boolean(
         process.env.GRIST_SCIM_EMAIL && mreq.user?.loginEmail === process.env.GRIST_SCIM_EMAIL
@@ -44,7 +51,7 @@ const buildScimRouterv2 = (dbManager: HomeDBManager, installAdmin: InstallAdmin)
       const path = mreq.path;
       return { isAdmin, isScimUser, path };
     }
-  }) as express.Router; // Have to cast it into express.Router. See https://github.com/scimmyjs/scimmy-routers/issues/24
+  });
 
   return v2.use('/', scimmyRouter);
 };

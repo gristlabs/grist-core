@@ -225,11 +225,6 @@ const cssPageItem = styled('div', `
   height: 28px;
   align-items: center;
   flex-grow: 1;
-  &, &:hover, &:focus {
-    text-decoration: none;
-    outline: none;
-    color: inherit;
-  }
 `);
 
 const notClosedTreeViewContainer = `.${treeViewContainer.className}:not(.${treeViewContainer.className}-close)`;

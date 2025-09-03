@@ -8,6 +8,10 @@
 import {styled} from 'grainjs';
 
 export const stretchedLink = styled('a', `
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
   &::after {
     position: absolute;
     inset: 0;

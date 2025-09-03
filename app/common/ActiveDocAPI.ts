@@ -355,6 +355,7 @@ export interface AssistantState {
 export interface VisibleUserProfile {
   id: string; // An identifier that uniquely identifies this profile / the other user's session.
   name: string; // Name associated with the user. May be different from their user name, e.g. due to permissions.
+  email?: string;
   picture?: string | null; // URL of the user's picture with unspecified dimensions.
   isAnonymous: boolean; // True if the user isn't logged into an account.
 }

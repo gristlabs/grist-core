@@ -6,5 +6,8 @@
         "og-description": "Una hoja de cálculo moderna y de código abierto que va más allá de la cuadrícula",
         "Loading...": "Cargando...",
         "og-title": "Grist, la evolución de las hojas de cálculo"
+    },
+    "access": {
+        "docNoAccess": "No tiene acceso a este documento."
     }
 }
