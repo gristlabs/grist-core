@@ -498,8 +498,14 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           }),
           css.resetSelectButton(
             icon('CrossSmall'),
+            dom.attr('aria-label', t('Clear selection for: {{inputLabel}}', {inputLabel: this.field.question})),
             dom.hide((use) => !use(this.value)),
-            dom.on('click', (ev) => { this.value.set(''); ev.stopPropagation(); ev.preventDefault(); })
+            dom.on('click', (ev) => {
+              this.value.set('');
+              this._selectElement.focus();
+              ev.stopPropagation();
+              ev.preventDefault();
+            })
           ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
@@ -860,8 +866,14 @@ class RefRenderer extends BaseFieldRenderer {
           }),
           css.resetSelectButton(
             icon('CrossSmall'),
+            dom.attr('aria-label', t('Clear selection for: {{inputLabel}}', {inputLabel: this.field.question})),
             dom.hide((use) => !use(this.value)),
-            dom.on('click', (ev) => { this.value.set(''); ev.stopPropagation(); ev.preventDefault(); })
+            dom.on('click', (ev) => {
+              this.value.set('');
+              this._selectElement.focus();
+              ev.stopPropagation();
+              ev.preventDefault();
+            })
           ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
