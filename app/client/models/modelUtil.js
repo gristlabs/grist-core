@@ -12,6 +12,8 @@ var koUtil = require('../lib/koUtil');
  * @method save()           Saves the current value of the observable to the server.
  * @method saveOnly(obj)    Saves the given value, without changing the observable's value.
  * @method setAndSave(obj)  Sets a new value for the observable and saves it.
+ * @method setAndSaveOrRevert(obj)  Sets a new value for the observable and saves it, or reverts
+ *    on error.
  * @returns {Observable} Returns the passed-on observable.
  */
 function addSaveInterface(observable, saveFunc) {
@@ -24,9 +26,12 @@ function addSaveInterface(observable, saveFunc) {
     return this.saveOnly(this.peek());
   };
   observable.setAndSave = function(value) {
-    const previousValue = this.peek();
     this(value);
-    return this.saveOnly(value).catch((e) => {
+    return this.saveOnly(value);
+  };
+  observable.setAndSaveOrRevert = function(value) {
+    const previousValue = this.peek();
+    return this.setAndSave(value).catch((e) => {
       if (this.peek() === value) {
         this(previousValue);
       }

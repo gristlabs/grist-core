@@ -37,7 +37,7 @@ export function buildDescriptionConfig(
         {
           onInput: false,
           save: async (value) => {
-            await description.setAndSave(value);
+            await description.setAndSaveOrRevert(value);
           },
         },
         { rows: '3' },

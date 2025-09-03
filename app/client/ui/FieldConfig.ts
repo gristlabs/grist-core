@@ -52,7 +52,7 @@ export function buildNameConfig(
 
   const toggleUntieColId = () => {
     if (!origColumn.disableModify.peek() && !disabled.peek()) {
-      untieColId.setAndSave(!untieColId.peek()).catch(reportError);
+      untieColId.setAndSaveOrRevert(!untieColId.peek()).catch(reportError);
     }
   };
 
@@ -62,7 +62,7 @@ export function buildNameConfig(
       dom.cls(cssBlockedCursor.className, origColumn.disableModify),
       cssColLabelBlock(
         cssInput(fromKo(origColumn.label),
-          val => origColumn.label.setAndSave(val)
+          val => origColumn.label.setAndSaveOrRevert(val)
             .catch(reportError)
             .finally(() => editedLabel.set('')),
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),

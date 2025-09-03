@@ -199,6 +199,7 @@ declare module "app/client/models/modelUtil" {
     saveOnly(value: T): Promise<void>;
     save(): Promise<void>;
     setAndSave(value: T): Promise<void>;
+    setAndSaveOrRevert(value: T): Promise<void>;
   }
 
   type KoSaveableObservable<T> = ko.Observable<T> & SaveInterface<T>;
