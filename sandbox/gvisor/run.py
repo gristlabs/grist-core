@@ -260,7 +260,7 @@ with tempfile.TemporaryDirectory() as root:  # pylint: disable=no-member
   if not args.checkpoint:
     if args.restore:
       command = make_command(root, ["restore", "--image-path=" + args.restore])
-      # Overwrite config.json with that of the checkpoint
+      # Overwrite config.json with the one of the checkpoint
       # Any change to the configuration (such as command-line arguments) would
       # cause gvisor to reject the restore.
       shutil.copy(os.path.join(args.restore, 'config.json'), config_filename)
