@@ -201,16 +201,16 @@ if args.mount:
   preserve(*args.mount)
 
 for directory in os.listdir('/'):
-  directorys_realpath = os.path.realpath("/" + directory)
-  if directorys_realpath not in exceptions and directorys_realpath not in preserved:
+  directory_realpath = os.path.realpath("/" + directory)
+  if directory_realpath not in exceptions and directory_realpath not in preserved:
     tmpfs_mounts.append({
       # This places an empty directory at this destination.
       # Follow any symlinks since otherwise there is an error.
-      "destination": directorys_realpath,
+      "destination": directory_realpath,
       "type": "tmpfs"
     })
   # To avoid duplicates due to usrmerge pattern symlinks
-  exceptions.append(directorys_realpath)
+  exceptions.append(directory_realpath)
 
 settings['mounts'] = sorted(tmpfs_mounts, key=lambda mount: mount["destination"]) + mounts + binds
 
