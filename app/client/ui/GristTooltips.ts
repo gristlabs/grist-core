@@ -43,7 +43,7 @@ const cssNewsPopupLink = styled(basicButtonLink, `
   }
 `);
 
-const cssNewAssistantTitle = styled('div', `
+const cssNewsPopupTitle = styled('div', `
   display: flex;
   align-items: center;
   column-gap: 8px;
@@ -445,27 +445,24 @@ data.")),
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
-  newAssistant: {
+  comments: {
     popupType: 'news',
     audience: 'signed-in-users',
-    title: () => cssNewAssistantTitle(
-      icon('Robot'),
-      t('The new Grist Assistant is here!'),
+    title: () => cssNewsPopupTitle(
+      icon('Chat'),
+      t('Comments are here!'),
     ),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
-        t(
-          "Understand, modify and work with your data and formulas \
-with the help of Grist's new AI Assistant!",
-        )
+        t('You can add comments to cells, reply to comment threads, and @-mention collaborators.'),
       ),
       dom('div',
-        cssNewsPopupLink(t('Learn more'), {
-          href: commonUrls.helpAssistant,
+        cssNewsPopupLink(t('Learn more.'), {
+          href: commonUrls.helpComments,
           target: '_blank',
         }),
       ),
-      ...args
+      ...args,
     ),
     deploymentTypes: ['saas', 'enterprise'],
   },

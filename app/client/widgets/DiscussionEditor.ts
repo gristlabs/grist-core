@@ -1086,7 +1086,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
 
   public buildMenu(): DomContents {
     return cssPanelHeader(
-      dom('span', dom.text(use => `${use(this._length)} comments`), testId('comment-count')),
+      dom('span', dom.text(use => t("{{count}} comments", {count: use(this._length)})), testId('comment-count')),
       cssIconButtonMenu(
         icon('Dots'),
         testId('panel-menu'),

@@ -12,11 +12,12 @@ export interface ICellContextMenu {
   isViewSorted: boolean;
   numRows: number;
   disableAnchorLink?: boolean;
+  onlyAddRowSelected?: boolean;
 }
 
 export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
 
-  const { disableInsert, disableDelete, isViewSorted, numRows } = cellOptions;
+  const { disableInsert, disableDelete, isViewSorted, numRows, onlyAddRowSelected} = cellOptions;
   const { numColumns, disableModify, isReadonly, isFiltered } = colOptions;
 
   // disableModify is true if the column is a summary column or is being transformed.
@@ -56,7 +57,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
         menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
-         isReadonly || numRows === 0 || numColumns === 0
+         isReadonly || numRows === 0 || numColumns === 0 || onlyAddRowSelected
         )))
       ]
     ),

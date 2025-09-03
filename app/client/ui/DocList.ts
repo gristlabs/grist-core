@@ -595,9 +595,6 @@ const cssDocName = styled(stretchedLink, `
   font-size: 14px;
   flex: 0 1 auto;
   padding: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: ${theme.text};
   font-weight: 600;
 

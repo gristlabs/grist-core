@@ -2021,6 +2021,7 @@ GridView.prototype._getCellContextMenuOptions = function() {
     disableAnchorLink: this.viewSection.isVirtual(),
     isViewSorted: this.viewSection.activeSortSpec.peek().length > 0,
     numRows: this.getSelection().rowIds.length,
+    onlyAddRowSelected: this.getSelection().onlyAddRowSelected(),
   };
 };
 

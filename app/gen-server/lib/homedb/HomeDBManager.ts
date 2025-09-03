@@ -57,19 +57,20 @@ import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {HomeDBCaches} from 'app/gen-server/lib/homedb/Caches';
-import {GroupsManager} from 'app/gen-server/lib/homedb/GroupsManager';
+import {GroupsManager, GroupTypes} from 'app/gen-server/lib/homedb/GroupsManager';
 import {
   AvailableUsers,
   DocAuthKey,
   DocAuthResult,
   DocumentAccessChanges,
   GetUserOptions,
-  GroupDescriptor,
+  GroupWithMembersDescriptor,
   NonGuestGroup,
   OrgAccessChanges,
   PreviousAndCurrent,
   QueryResult,
   Resource,
+  RoleGroupDescriptor,
   UserProfileChange,
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
@@ -291,7 +292,7 @@ export class HomeDBManager {
   public caches: HomeDBCaches|null;
 
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
-  private _groupsManager = new GroupsManager();
+  private _groupsManager = new GroupsManager(this._usersManager, this.runInTransaction.bind(this));
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -318,15 +319,15 @@ export class HomeDBManager {
     return this._usersManager;
   }
 
-  public get defaultGroups(): GroupDescriptor[] {
+  public get defaultGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultGroups;
   }
 
-  public get defaultBasicGroups(): GroupDescriptor[] {
+  public get defaultBasicGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultBasicGroups;
   }
 
-  public get defaultCommonGroups(): GroupDescriptor[] {
+  public get defaultCommonGroups(): RoleGroupDescriptor[] {
     return this._groupsManager.defaultCommonGroups;
   }
 
@@ -525,6 +526,39 @@ export class HomeDBManager {
     return await this._usersManager.getExistingUsersByLogin(emails, manager);
   }
 
+  public async createGroup(groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager) {
+    return this._groupsManager.createGroup(groupDescriptor, optManager);
+  }
+
+  public async overwriteTeamGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteTeamGroup(id, groupDescriptor, optManager);
+  }
+
+  public async overwriteRoleGroup(
+    id: number, groupDescriptor: GroupWithMembersDescriptor, optManager?: EntityManager
+  ) {
+    return this._groupsManager.overwriteRoleGroup(id, groupDescriptor, optManager);
+  }
+
+  public async deleteGroup(id: number, expectedType?: GroupTypes, optManager?: EntityManager) {
+    return this._groupsManager.deleteGroup(id, expectedType, optManager);
+  }
+
+  public getGroupsWithMembers(manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembers(manager);
+  }
+
+  public getGroupsWithMembersByType(
+    type: GroupTypes, opts?: {aclRule?: boolean}, manager?: EntityManager): Promise<Group[]> {
+    return this._groupsManager.getGroupsWithMembersByType(type, opts, manager);
+  }
+
+  public getGroupWithMembersById(id: number, opts?: {aclRule: boolean}, manager?: EntityManager): Promise<Group|null> {
+    return this._groupsManager.getGroupWithMembersById(id, opts, manager);
+  }
+
   /**
    * Returns true if the given domain string is available, and false if it is not available.
    * NOTE that the endpoint only checks if the domain string is taken in the database, it does
@@ -576,7 +610,9 @@ export class HomeDBManager {
    * null, the user's personal organization is returned.
    */
   public async getOrg(scope: Scope, orgKey: string|number|null,
-                      transaction?: EntityManager): Promise<QueryResult<Organization>> {
+                      transaction?: EntityManager, options?: {
+                        requirePermissions: Permissions,
+                      }): Promise<QueryResult<Organization>> {
     const {userId} = scope;
     // Anonymous access to the merged org is a special case.  We return an
     // empty organization, not backed by the database, and which can contain
@@ -607,6 +643,9 @@ export class HomeDBManager {
       return { status: 200, data: anonOrg as any };
     }
     let qb = this.org(scope, orgKey, {
+      ...(options?.requirePermissions ? {
+        markPermissions: options.requirePermissions,
+      } : undefined),
       manager: transaction,
       needRealOrg: true
     });
@@ -629,7 +668,9 @@ export class HomeDBManager {
     // ordering (Sqlite does support NULL LAST syntax now, but not on our fork yet).
     qb = qb.addOrderBy('coalesce(prefs.org_id, 0)', 'DESC');
     qb = qb.addOrderBy('coalesce(prefs.user_id, 0)', 'DESC');
-    const result: QueryResult<any> = await this._verifyAclPermissions(qb);
+    const result: QueryResult<any> = await this._verifyAclPermissions(qb, {
+      markedPermissions: options?.requirePermissions !== undefined
+    });
     if (result.status === 200) {
       // Return the only org.
       result.data = result.data[0];
@@ -657,6 +698,7 @@ export class HomeDBManager {
                                  includeOrgsAndManagers: boolean,
                                  transaction?: EntityManager): Promise<BillingAccount> {
     const org = this.unwrapQueryResult(await this.getOrg(scope, orgKey, transaction));
+
     if (!org.billingAccount.isManager && scope.userId !== this._usersManager.getPreviewerUserId() &&
       // The special permit (used for the support user) allows access to the billing account.
       scope.specialPermit?.org !== orgKey) {
@@ -746,11 +788,29 @@ export class HomeDBManager {
   public async getWorkspace(
     scope: Scope,
     wsId: number,
-    transaction?: EntityManager
+    transaction?: EntityManager,
+    options?: {
+      requirePermissions: Permissions,
+    },
   ): Promise<QueryResult<Workspace>> {
     const {userId} = scope;
-    let queryBuilder = this._workspaces(transaction)
-      .where('workspaces.id = :wsId', {wsId})
+    if (scope.specialPermit && scope.specialPermit.workspaceId === wsId) {
+      const effectiveUserId = this._usersManager.getPreviewerUserId();
+      scope = {...scope};
+      scope.userId = effectiveUserId;
+      delete scope.users;
+      options = {
+        ...options,
+        requirePermissions: Permissions.VIEW,
+      };
+    }
+    let queryBuilder = this._workspace(scope, wsId, {
+      manager: transaction,
+      ...(options?.requirePermissions ? {
+        markPermissions: options.requirePermissions,
+        allowSpecialPermit: true,
+      } : undefined),
+    })
       // Nest the docs within the workspace object
       .leftJoinAndSelect('workspaces.docs', 'docs', this._onDoc(scope))
       .leftJoinAndSelect('workspaces.org', 'orgs')
@@ -762,7 +822,10 @@ export class HomeDBManager {
     // Add access information and query limits
     // TODO: allow generic org limit once sample/support workspace is done differently
     queryBuilder = this._applyLimit(queryBuilder, {...scope, org: undefined}, ['workspaces', 'docs'], 'list');
-    const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, { scope });
+    const result: QueryResult<any> = await this._verifyAclPermissions(queryBuilder, {
+      scope,
+      markedPermissions: options?.requirePermissions !== undefined,
+    });
     // Return a single workspace.
     if (result.status === 200) {
       result.data = result.data[0];
@@ -1389,6 +1452,11 @@ export class HomeDBManager {
   // Checks that the user has REMOVE permissions to the given org. If not, throws an
   // error. Otherwise deletes the given org. Returns a query result with status 200
   // on success.
+  //
+  // This method only cleans up the database, and not any documents associated
+  // with the site. So it shouldn't be made available directly to users.
+  // Instead use Doom.deleteOrg which is aware of the world outside the
+  // database.
   public async deleteOrg(
     scope: Scope,
     orgKey: string|number,
@@ -4383,6 +4451,8 @@ export class HomeDBManager {
       rawQueryBuilder?: SelectQueryBuilder<any>,
       emptyAllowed?: boolean,
       scope?: Scope,
+      // If permissions have been marked, check them
+      markedPermissions?: boolean,
     } = {}
   ): Promise<QueryResult<T[]>> {
     if (Deps.usePreparedStatements) {
@@ -4392,6 +4462,14 @@ export class HomeDBManager {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
+    if (options.markedPermissions) {
+      if (!results.raw.every(entry => entry.is_permitted)) {
+        return {
+          status: 403,
+          errMessage: "access denied"
+        };
+      }
+    }
     if (results.entities.length === 0 ||
         (results.entities.length === 1 && results.entities[0].filteredOut)) {
       if (options.emptyAllowed) { return {status: 200, data: []}; }

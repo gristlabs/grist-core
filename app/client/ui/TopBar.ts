@@ -140,7 +140,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
       dom.maybe(pageModel.gristDoc,
-        () => buildShowDiscussionButton(pageModel)),
+        (gristDoc) => buildShowDiscussionButton(gristDoc)),
       dom.update(
         buildNotifyMenuButton(appModel.notifier, appModel),
         cssHideForNarrowScreen.cls(''),
@@ -150,14 +150,17 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
   ];
 }
 
-function buildShowDiscussionButton(pageModel: DocPageModel) {
+function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
+    gristDoc.behavioralPromptsManager.attachPopup('comments', {
+      popupOptions: {
+        placement: 'bottom-end',
+      },
+    }),
     testId('open-discussion'),
     dom.on('click', () => {
-      const gristDoc = pageModel.gristDoc.get();
-      if (!gristDoc) { return; }
       gristDoc.showTool('discussion');
       allCommands.rightPanelOpen.run();
     })

@@ -105,7 +105,7 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
-import {getAssistantStatePermit} from 'app/server/lib/AssistantStatePermit';
+import {getAndRemoveAssistantStatePermit} from 'app/server/lib/AssistantStatePermit';
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
@@ -2248,7 +2248,7 @@ export class ActiveDoc extends EventEmitter {
 
   public async getAssistantState(_docSession: OptDocSession, id: string): Promise<AssistantState|null> {
     const store = this._server.getPermitStore();
-    const permit = await getAssistantStatePermit(store, id, {remove: true});
+    const permit = await getAndRemoveAssistantStatePermit(store, id);
     if (!permit || permit.docId !== this._docName) {
       return null;
     }

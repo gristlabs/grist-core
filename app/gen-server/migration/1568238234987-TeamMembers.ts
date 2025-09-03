@@ -4,6 +4,7 @@ import {AclRuleOrg} from "app/gen-server/entity/AclRule";
 import {Group} from "app/gen-server/entity/Group";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Permissions} from "app/gen-server/lib/Permissions";
+import { getDatabaseType } from "app/server/lib/dbUtils";
 
 export class TeamMembers1568238234987 implements MigrationInterface {
 
@@ -14,12 +15,14 @@ export class TeamMembers1568238234987 implements MigrationInterface {
       .from(Organization, "orgs")
       .getMany();
     for (const org of orgs) {
-      const groupInsert = await queryRunner.manager.createQueryBuilder()
-        .insert()
-        .into(Group)
-        .values([{name: roles.MEMBER}])
-        .execute();
-      const groupId = groupInsert.identifiers[0].id;
+      // Don't use `manager.insert().into()` as the Group Entity contains properties that reference columns
+      // (like `type`) that don't exist yet and `insert()` attempts to set their values as well.
+      const groupInsertRes = await queryRunner.manager
+        .query("INSERT into groups(name) values($1) RETURNING id", [ roles.MEMBER ]);
+      const groupId = getDatabaseType(queryRunner.connection) === 'postgres' ?
+        groupInsertRes[0].id :
+        groupInsertRes;
+
       await queryRunner.manager.createQueryBuilder()
         .insert()
         .into(AclRuleOrg)

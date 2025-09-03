@@ -21,11 +21,21 @@ describe('Comments', function() {
   const notification = '.test-draft-notification';
 
   before(async function() {
-    session = await gu.session().teamSite.login();
+    session = await gu.session().teamSite.login({showTips: true});
     MODKEY = await modKey();
     currentApi = session.createHomeApi();
     ownerApi = currentApi;
     ownerRef = (await currentApi.getSessionActive()).user.ref ?? '';
+  });
+
+  it('should show an announcement popup', async function() {
+    docId = (await session.tempShortDoc(cleanup, 'Hello.grist')).id;
+    await gu.waitToPass(async () => {
+      assert.equal(
+        await driver.find(".test-behavioral-prompt-title").getText(),
+        "Comments are here!"
+      );
+    });
   });
 
   it('should not render markdown on edits', async function() {
@@ -518,8 +528,8 @@ describe('Comments', function() {
 
     await gu.addNewTable('Table2');
     await gu.getCell('A', 1).click();
+    await gu.waitAppFocus();
     await gu.enterCell('1');
-    await gu.waitForServer();
     await gu.getCell('A', 1).click();
 
     await openCommentsWithKey();
@@ -853,7 +863,7 @@ describe('Comments', function() {
     // Show resolved comments
     await panelOptions({resolved: true});
     assert.equal(await commentCount('panel'), 1);
-    assert.equal(await countText(), '1 comments');
+    assert.equal(await countText(), '1 comment');
     assert.isTrue(await isCommentResolved(0, 'panel'));
     // Add another one
     await gu.getCell('B', 2).click();
@@ -913,7 +923,7 @@ describe('Comments', function() {
     await openCommentMenu(1, 'panel');
     await clickMenuItem('Remove');
     assert.equal(await commentCount('panel'), 1);
-    assert.equal(await countText(), '1 comments');
+    assert.equal(await countText(), '1 comment');
     await gu.undo();
     assert.equal(await commentCount('panel'), 2);
     assert.equal(await countText(), '2 comments');
@@ -982,7 +992,7 @@ describe('Comments', function() {
     };
     const onlyB = async () => {
       assert.equal(await commentCount('panel'), 1);
-      assert.equal(await countText(), '1 comments');
+      assert.equal(await countText(), '1 comment');
       assert.isFalse(await isCommentResolved(0, 'panel'));
       assert.equal(await readComment(0, 'panel'), 'B edited');
       assert.equal(await readReply(0, 0, 'panel'), 'Reply to B edited');
@@ -1045,6 +1055,7 @@ describe('Comments', function() {
   it('should navigate between tables and rows', async function() {
     // We have 3 comments on Table1.
     // Add one on Table2
+    await gu.openPage('Table2');
     await gu.getCell('B', 3).click();
     await openCommentsWithKey();
     await waitForPopup('empty');
@@ -1066,6 +1077,15 @@ describe('Comments', function() {
     await clickComment(3, 'panel');
     assert.deepEqual(await gu.getCursorPosition(), {rowNum: 3, col: 1});
     assert.equal(await gu.getActiveSectionTitle(), 'TABLE2');
+  });
+
+  it('should disable Comment option on add-row', async function() {
+    await gu.openPage('Table2');
+    await gu.rightClick(await gu.getCell('B', 2));
+    assert.equal(await gu.findOpenMenuItem('li', /Comment/).matches('.disabled'), false);
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.rightClick(await gu.getCell('B', 4));
+    assert.equal(await gu.findOpenMenuItem('li', /Comment/).matches('.disabled'), true);
   });
 
   it('should offer menu option to copy anchor link', async function() {

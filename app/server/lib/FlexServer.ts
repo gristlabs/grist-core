@@ -5,7 +5,7 @@ import {encodeUrl, getSlugIfNeeded, GristDeploymentType, GristDeploymentTypes,
         GristLoadConfig, IGristUrlState, isOrgInPathOnly, LatestVersionAvailable, parseSubdomain,
         sanitizePathTail} from 'app/common/gristUrls';
 import {getOrgUrlInfo} from 'app/common/gristUrls';
-import {isAffirmative, safeJsonParse} from 'app/common/gutil';
+import {isAffirmative} from 'app/common/gutil';
 import {UserProfile} from 'app/common/LoginSessionAPI';
 import {SandboxInfo} from 'app/common/SandboxInfo';
 import {tbind} from 'app/common/tbind';
@@ -40,6 +40,7 @@ import {forceSessionChange} from 'app/server/lib/BrowserSession';
 import {Comm} from 'app/server/lib/Comm';
 import {ConfigBackendAPI} from 'app/server/lib/ConfigBackendAPI';
 import {IGristCoreConfig} from 'app/server/lib/configCore';
+import {getAndClearSignupStateCookie} from 'app/server/lib/cookieUtils';
 import {create} from 'app/server/lib/create';
 import {createSavedDoc} from 'app/server/lib/createSavedDoc';
 import {addDiscourseConnectEndpoints} from 'app/server/lib/DiscourseConnect';
@@ -87,7 +88,6 @@ import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
-import * as cookie from 'cookie';
 import EventEmitter from 'events';
 import express from 'express';
 import * as fse from 'fs-extra';
@@ -1601,6 +1601,15 @@ export class FlexServer implements GristServer {
     this._disableExternalStorage = true;
   }
 
+  public async getDoomTool() {
+    const dbManager = this.getHomeDBManager();
+    const permitStore = this.getPermitStore();
+    const notifier = this.getNotifier();
+    const loginSystem = await this.resolveLoginSystem();
+    const homeUrl = this.getHomeInternalUrl().replace(/\/$/, '');
+    return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
+  }
+
   public addAccountPage() {
     const middleware = [
       this._redirectToHostMiddleware,
@@ -1611,15 +1620,6 @@ export class FlexServer implements GristServer {
     this.app.get('/account', ...middleware, expressWrap(async (req, resp) => {
       return this._sendAppPage(req, resp, {path: 'app.html', status: 200, config: {}});
     }));
-
-    const createDoom = async () => {
-      const dbManager = this.getHomeDBManager();
-      const permitStore = this.getPermitStore();
-      const notifier = this.getNotifier();
-      const loginSystem = await this.resolveLoginSystem();
-      const homeUrl = this.getHomeInternalUrl().replace(/\/$/, '');
-      return new Doom(dbManager, permitStore, notifier, loginSystem, homeUrl);
-    };
 
     if (isAffirmative(process.env.GRIST_ACCOUNT_CLOSE)) {
       this.app.delete('/api/doom/account', expressWrap(async (req, resp) => {
@@ -1641,7 +1641,7 @@ export class FlexServer implements GristServer {
 
         // Reuse Doom cli tool for account deletion. It won't allow to delete account if it has access
         // to other (not public) team sites.
-        const doom = await createDoom();
+        const doom = await this.getDoomTool();
         const {data} = await doom.deleteUser(userId);
         if (data) { this._logDeleteUserEvents(req as RequestWithLogin, data); }
         return resp.status(200).json(true);
@@ -1675,7 +1675,7 @@ export class FlexServer implements GristServer {
 
         // Reuse Doom cli tool for org deletion. Note, this removes everything as a super user.
         const deletedOrg = structuredClone(org);
-        const doom = await createDoom();
+        const doom = await this.getDoomTool();
         await doom.deleteOrg(org.id);
         this._logDeleteSiteEvents(mreq, deletedOrg);
         return resp.status(200).send();
@@ -2604,14 +2604,11 @@ export class FlexServer implements GristServer {
     req: RequestWithLogin,
     resp: express.Response
   ): Promise<string|null> {
-    const cookies = cookie.parse(req.headers.cookie || '');
+    const state = getAndClearSignupStateCookie(req, resp);
+    if (!state) {
+      return null;
+    }
 
-    resp.clearCookie('gr_signup_state');
-
-    const stateCookie = cookies['gr_signup_state'];
-    if (!stateCookie) { return null; }
-
-    const state = safeJsonParse(stateCookie, {});
     const {srcDocId} = state;
     if (!srcDocId) { return null; }
 
