@@ -464,6 +464,6 @@ data.")),
       ),
       ...args,
     ),
-    deploymentTypes: ['saas', 'enterprise'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
 };
