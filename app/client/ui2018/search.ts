@@ -223,7 +223,14 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       testId('input'),
       inputElem,
       cssOptions(
-        labeledSquareCheckbox(model.multiPage, dom.text(model.allLabel)),
+        labeledSquareCheckbox(
+          model.multiPage,
+          dom.text(model.allLabel),
+          // Prevent focus from being stolen from the input when clicking the checkbox itself
+          dom.on('mousedown', (event) => event.preventDefault()),
+        ),
+        // Keep focus on the input when clicking the checkbox text label
+        dom.onMatch('label', 'mouseup', () => setTimeout(() => inputElem.focus(), 0)),
         testId('option-all-pages'),
       ),
       dom.domComputed((use) => {
@@ -235,6 +242,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
           cssArrowBtn(
             icon('Dropdown'),
             testId('next'),
+            // Prevent focus from being stolen from the input
+            dom.on('mousedown', (event) => event.preventDefault()),
             dom.on('click', () => model.findNext()),
             hoverTooltip(
               [
@@ -247,6 +256,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
           cssArrowBtn(
             icon('DropdownUp'),
             testId('prev'),
+            // Prevent focus from being stolen from the input
+            dom.on('mousedown', (event) => event.preventDefault()),
             dom.on('click', () => model.findPrev()),
             hoverTooltip(
               [
