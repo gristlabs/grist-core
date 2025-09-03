@@ -262,6 +262,7 @@ export interface UserAccessData extends UserAccess {
   orgAccess?: roles.BasicRole|null;
   anonymous?: boolean;    // If set to true, the user is the anonymous user.
   isMember?: boolean;
+  disabledAt?: Date|null; // If not null, the user is disabled
 }
 
 /**

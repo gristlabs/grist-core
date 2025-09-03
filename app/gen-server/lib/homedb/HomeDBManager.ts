@@ -1040,7 +1040,20 @@ export class HomeDBManager {
       }
       qb = this._addIsSupportWorkspace(userId, qb, 'orgs', 'workspaces');
       qb = this._addFeatures(qb);  // add features to determine whether we've gone readonly
-      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb));
+
+      // We need to check if the current user is disabled or not. In
+      // order to avoid another DB round trip, we piggyback with an
+      // unconditional table join here.
+      //
+      // Note that we only run this check here because this method is
+      // used for websocket communication. There's no danger currently
+      // in other HomeDB methods of leaking access to disabled users,
+      // so we keep this unusual join localised here, in order to
+      // minimise the cost of the DB query.
+      qb = qb.leftJoin(User, 'users', 'users.id = :userId', {userId});
+      qb = qb.addSelect('users.disabled_at', 'users_disabled_at');
+
+      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb, {checkDisabledUser: true}));
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
@@ -4442,6 +4455,8 @@ export class HomeDBManager {
       scope?: Scope,
       // If permissions have been marked, check them
       markedPermissions?: boolean,
+      // Requires having `users_disabled_at` in the query result
+      checkDisabledUser?: boolean,
     } = {}
   ): Promise<QueryResult<T[]>> {
     if (Deps.usePreparedStatements) {
@@ -4451,6 +4466,23 @@ export class HomeDBManager {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
+
+    if (options.checkDisabledUser) {
+      if (results.raw.some(entry => entry.users_disabled_at === undefined)) {
+        throw new Error('checkDisabledUser requested but users_disabled_at is undefined');
+      }
+
+      // Disabled users shouldn't be able to even log in, but if they
+      // got this far (for example they have an existing websocket
+      // connexion), they shouldn't be able to have any document
+      // access.
+      if (results.raw.some(entry => entry.users_disabled_at !== null)) {
+        return {
+          status: 403,
+          errMessage: "access denied",
+        };
+      }
+    }
     if (options.markedPermissions) {
       if (!results.raw.every(entry => entry.is_permitted)) {
         return {

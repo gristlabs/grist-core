@@ -465,6 +465,7 @@ describe('UsersManager', function () {
           locale: someUserLocale,
           prefs: prefWithoutOrg.prefs,
           firstLoginAt: null,
+          disabledAt: null,
         });
       });
 
