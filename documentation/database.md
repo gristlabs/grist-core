@@ -207,7 +207,7 @@ Stores special grants for documents for anyone having the key.
 | doc_id | The document to which the share belongs |
 | options | Any overall qualifiers on the share |
 
-For more information, please refer [to the comments in the code](https://github.com/gristlabs/grist-core/blob/192e2f36ba77ec67069c58035d35205978b9215e/app/gen-server/entity/Share.ts).
+For more information, please refer [to the comments in the code](https://github.com/gristlabs/grist-core/blob/f53e2e3d6085443e173dda913fe995361d42b0f8/app/gen-server/entity/Share.ts).
 
 ### `groups` table
 
