@@ -104,7 +104,8 @@
         "Team Site": "Sitio de Equipo",
         "Grist Templates": "Plantillas Grist",
         "Manage Team": "Administrar equipo",
-        "Billing Account": "Cuenta de facturación"
+        "Billing Account": "Cuenta de facturación",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Volver al inicio"
     },
     "CellContextMenu": {
         "Clear cell": "Borrar celda",
@@ -339,7 +340,10 @@
         "[Learn more.]({{learnLink}})": "[Más información.]({{learnLink}})",
         "Upload": "Cargar",
         "Upload missing attachments": "Cargar los archivos adjuntos que faltan",
-        "Uploading...": "Cargando..."
+        "Uploading...": "Cargando...",
+        "Default": "Por defecto",
+        "Default, template, or tutorial": "Por defecto, plantilla o tutorial",
+        "Document type": "Tipo de documento"
     },
     "DuplicateTable": {
         "Copy all data in addition to the table structure.": "Copiar todos los datos además de la estructura de la tabla.",
@@ -538,7 +542,8 @@
         "Workspaces": "Espacios de trabajo",
         "Tutorial": "Tutorial",
         "Terms of service": "Términos del servicio",
-        "Grist Resources": "Recursos de Grist"
+        "Grist Resources": "Recursos de Grist",
+        "context menu - {{- workspaceName }}": "menú contextual - {{- workspaceName }}"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de ayuda"
@@ -579,7 +584,8 @@
         ".zip": ".zip",
         "Download an archive of all the attachments present in this document.": "Descargue un archivo con todos los anexos presentes en este documento.",
         "Download full document and history": "Descargar documento completo e historial",
-        "Download attachments": "Descargar archivos adjuntos"
+        "Download attachments": "Descargar archivos adjuntos",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Los archivos adjuntos son externos y no se incluyen en esta descarga. Si carga el documento en otra instalación de Grist, también tendrá que {{downloadLink}} por separado. "
     },
     "NTextBox": {
         "false": "falso",
@@ -624,7 +630,10 @@
         "The following table will no longer be visible": "La siguiente tabla ya no será visible",
         "The following tables will no longer be visible": "Las siguientes tablas ya no serán visibles",
         "The following tables will no longer be visible_one": "La siguiente tabla ya no será visible",
-        "The following tables will no longer be visible_other": "Las siguientes tablas ya no serán visibles"
+        "The following tables will no longer be visible_other": "Las siguientes tablas ya no serán visibles",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Conservar datos y borrar página. La tabla seguirá disponible en {{rawDataLink}}",
+        "raw data page": "página de datos brutos",
+        "Document pages": "Páginas de documento"
     },
     "RightPanel": {
         "CHART TYPE": "TIPO DE GRÁFICO",
@@ -908,13 +917,15 @@
         "Reload": "Recargar",
         "Sorry, access to this document has been denied. [{{error}}]": "Lo sentimos, el acceso a este documento ha sido denegado. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Puede intentar volver a cargar el documento o usar el modo de recuperación. El modo de recuperación abre el documento para ser totalmente accesible a los propietarios, e inaccesible a otros. También desactiva fórmulas. [{{error}}]",
-        "You do not have edit access to this document": "No tiene acceso de edición a este documento"
+        "You do not have edit access to this document": "No tiene acceso de edición a este documento",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Vuelva a cargar el documento y, si el error persiste, póngase en contacto con los propietarios del documento para intentar recuperar el documento. [{{error}}]"
     },
     "GristDoc": {
         "Added new linked section to view {{viewName}}": "Añadido nueva sección vinculada a la vista {{viewName}}",
         "Import from file": "Importar desde archivo",
         "Saved linked section {{title}} in view {{name}}": "Sección vinculada guardada {{title}} a la vista {{name}}",
-        "go to webhook settings": "ir a la configuración webhook"
+        "go to webhook settings": "ir a la configuración webhook",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Los nuevos cambios se suspenden temporalmente. La cola de webhooks se ha desbordado. Compruebe la configuración de los webhooks, quite los webhooks no válidos y limpie la cola."
     },
     "ACUserManager": {
         "Enter email address": "Introduzca la dirección de correo electrónico",

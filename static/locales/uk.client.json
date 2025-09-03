@@ -1190,7 +1190,8 @@
         "Reply to a comment": "Відповісти на коментар",
         "Only my threads": "Тільки мої теми",
         "Remove thread": "Вилучити нитку",
-        "updated": "оновлено"
+        "updated": "оновлено",
+        "Copy link": "Копіювати посилання"
     },
     "FieldBuilder": {
         "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
@@ -2177,5 +2178,10 @@
     "TreeViewComponent": {
         "Collapse": "Згорнути'",
         "Expand": "Розгорнути"
+    },
+    "ActiveUserList": {
+        "active user": "активний користувач",
+        "active user list": "список активних користувачів",
+        "open full active user list": "відкрити повний список активних користувачів"
     }
 }

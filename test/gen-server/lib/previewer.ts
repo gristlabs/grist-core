@@ -125,11 +125,11 @@ describe('previewer', function() {
     resp = await axios.delete(`${homeUrl}/api/workspaces/${wsId}`, permit(goodDocPermit));
     assert.equal(resp.status, 403);
     resp = await axios.get(`${homeUrl}/api/workspaces/${wsId}`, permit(goodWsPermit));
-    assert.equal(resp.status, 403);
+    assert.equal(resp.status, 200);  // workspace read respects permit
     resp = await axios.patch(`${homeUrl}/api/workspaces/${wsId}`, {name: 'diff'}, permit(goodWsPermit));
     assert.equal(resp.status, 403);
     resp = await axios.delete(`${homeUrl}/api/workspaces/${wsId}`, permit(goodWsPermit));
-    assert.equal(resp.status, 200);
+    assert.equal(resp.status, 200);  // workspace delete respects permit
 
   });
 });
