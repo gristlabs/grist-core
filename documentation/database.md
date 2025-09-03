@@ -185,6 +185,16 @@ Stores secret informations related to documents, so the document may not store t
 | value | The value of the secret (despite the table name, its stored unencrypted) |
 | doc_id | The document id |
 
+### `prefs` table
+
+Stores the user's preferences. It can either be scoped globally or to an organization.
+
+| Column name | Description |
+| ------------- | -------------- |
+| org_id | If set, the preferences are specific to the referenced organization. Otherwise, the user's preferences are global. |
+| user_id | the user for whom preferences applies. |
+| prefs | The serialized JSON of the preferences. If specific to an organization, it's [an UserOrgPrefs object](https://github.com/gristlabs/grist-core/blob/f53e2e3d6085443e173dda913fe995361d42b0f8/app/common/Prefs.ts#L41) or otherwise [an UserPrefs object](https://github.com/gristlabs/grist-core/blob/f53e2e3d6085443e173dda913fe995361d42b0f8/app/common/Prefs.ts#L17). |
+
 ### `shares` table
 
 Stores special grants for documents for anyone having the key.
