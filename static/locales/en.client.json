@@ -1192,8 +1192,7 @@
         "Started discussion": "Started discussion",
         "Write a comment": "Write a comment",
         "Remove thread": "Remove thread",
-        "updated": "updated",
-        "Copy link": "Copy link"
+        "updated": "updated"
     },
     "EditorTooltip": {
         "Convert column to formula": "Convert column to formula"
