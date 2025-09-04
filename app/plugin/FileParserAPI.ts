@@ -28,7 +28,6 @@ export interface ParseOptions {
  */
 export interface ParseOptionSchema {
   name: string;
-  label: string;
   type: string;
   visible: boolean;
 }
