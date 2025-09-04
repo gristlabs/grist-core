@@ -23,29 +23,49 @@ describe('CopyPaste', function() {
     await driver.executeScript(removeDummyTextArea);
   });
 
+  it('should not fail when columns are trimmed', async function() {
+    const session = await gu.session().login();
+    await session.tempNewDoc(cleanup, 'CopyPaste');
+    const docUrl = await driver.getCurrentUrl();
+
+    // Remove all columns except the first one.
+    await gu.sendActions([
+      ['RemoveColumn', 'Table1', 'B'],
+      ['RemoveColumn', 'Table1', 'C'],
+    ]);
+
+    // Now paste selected text to the first cell, it will be trimmed to fit the single column.
+    await clipboard.lockAndPerform(async (cb) => {
+      await copyTestData(cb);
+      await driver.get(docUrl);
+      await gu.waitForDocToLoad();
+      await gu.getCell({col: 'A', rowNum: 1}).click();
+      await gu.waitAppFocus();
+      await cb.paste();
+    });
+
+    // Make sure we have the expected data.
+    await gu.waitForServer();
+    await gu.checkForErrors();
+    assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3, 4], cols: ['A']}), [
+      'a',
+      'c',
+      'd',
+      'f',
+    ]);
+
+    // And we can open the row menu. Before the fix, the logic for pasting was ignoring size overflow, but the
+    // CellSelector was not, what caused an error when opening the row menu.
+
+    await gu.openRowMenu(1);
+    await gu.checkForErrors();
+  });
+
   it('should allow pasting merged cells', async function() {
     // Test that we can paste uneven data, i.e. containing merged cells.
 
-    // Serve a static file with a page containing a table with some merged cells.
-    const serving = await serveStatic(path.join(gu.fixturesRoot, "sites/paste"));
-    await driver.get(`${serving.url}/paste.html`);
-
-    // Select everything in our little page.
-    await driver.executeScript(`
-      let range = document.createRange();
-      range.selectNodeContents(document.querySelector('table'));
-      let sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    `);
-
     await clipboard.lockAndPerform(async (cb) => {
-      try {
-        await cb.copy();
-      } finally {
-        await serving?.shutdown();
-      }
-
+      await copyTestData(cb);
       const session = await gu.session().login();
       await session.tempNewDoc(cleanup, 'CopyPaste');
 
@@ -651,5 +671,23 @@ export function removeDummyTextArea() {
   const textarea = document.getElementById('dummyText');
   if (textarea) {
     window.document.body.removeChild(textarea);
+  }
+}
+
+async function copyTestData(cb: gu.IClipboard) {
+  const serving = await serveStatic(path.join(gu.fixturesRoot, "sites/paste"));
+  try {
+    await driver.get(`${serving.url}/paste.html`);
+    // Select everything in our little page.
+    await driver.executeScript(`
+      let range = document.createRange();
+      range.selectNodeContents(document.querySelector('table'));
+      let sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    `);
+    await cb.copy();
+  } finally {
+    await serving?.shutdown();
   }
 }

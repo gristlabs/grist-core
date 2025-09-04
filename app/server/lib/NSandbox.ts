@@ -151,7 +151,11 @@ export class NSandbox implements ISandbox {
     }
 
     // Handle childProc events early, especially the 'error' event which may lead to node exiting.
-    this.childProc?.on('close', this._onExit.bind(this));
+    // Creating a gvisor checkpoint will cause the sandbox to
+    // exit abruptly, there is no need to report this as an error.
+    if (!process.env.GRIST_CHECKPOINT_MAKE) {
+      this.childProc?.on('close', this._onExit.bind(this));
+    }
     this.childProc?.on('error', this._onError.bind(this));
 
     this._control = sandboxProcess.control();
