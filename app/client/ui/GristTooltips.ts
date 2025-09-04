@@ -252,7 +252,7 @@ Only .tar attachment archives downloaded from Grist can be uploaded here."
       t(
 "This form is created by a Grist user, and is not endorsed by the editor (Grist Labs) \
 nor by any party providing this service. Do not submit passwords through this form, \
-and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
+and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
         mail: getGristConfig().supportEmail
       }
     )),
