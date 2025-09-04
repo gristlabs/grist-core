@@ -10,6 +10,8 @@ import chardet
 import parse_data
 from imports import import_utils
 
+import sys
+csv.field_size_limit(sys.maxsize)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
