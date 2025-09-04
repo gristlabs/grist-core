@@ -607,7 +607,11 @@ GridView.prototype.paste = async function(data, cutCallback) {
   let pasteWidth = pasteData.length;
   // figure out the size of the paste area
   let outputHeight = Math.max(gutil.roundDownToMultiple(this.cellSelector.rowCount(), pasteHeight), pasteHeight);
-  let outputWidth = Math.max(gutil.roundDownToMultiple(this.cellSelector.colCount(), pasteWidth), pasteWidth);
+  let outputWidth = Math.min(
+    Math.max(gutil.roundDownToMultiple(this.cellSelector.colCount(), pasteWidth), pasteWidth),
+    // We will add more rows, but not more columns.
+    this.viewSection.viewFields().peekLength
+  );
   // get the row ids that cover the paste
   let topIndex = this.cellSelector.rowLower();
   let updateRowIndices = _.range(topIndex, topIndex + outputHeight);
