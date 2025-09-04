@@ -250,9 +250,9 @@ Only .tar attachment archives downloaded from Grist can be uploaded here."
   formFraming: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-"This form is created by a Grist user, and is not endorsed by Grist Labs. \
-Do not submit passwords through this form, and be careful with links in \
-it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
+"This form is created by a Grist user, and is not endorsed by the editor (Grist Labs) \
+nor by any party providing this service. Do not submit passwords through this form, \
+and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
         mail: getGristConfig().supportEmail
       }
     )),
