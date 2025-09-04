@@ -541,7 +541,7 @@ export class FieldBuilder extends Disposable {
                 kf.label(
                   dom('div.fieldbuilder_settings_button',
                       dom.testId('FieldBuilder_settings'),
-                      kd.text(() => this.field.useColOptions() ? 'Common' : 'Separate'), ' ▾',
+                      kd.text(() => this.field.useColOptions() ? t('Common') : t('Separate')), ' ▾',
                       menu(() => FieldSettingsMenu(
                         this.field.useColOptions(),
                         this.field.viewSection().isRaw(),
@@ -552,9 +552,9 @@ export class FieldBuilder extends Disposable {
                         },
                       )),
                     ),
-                  'Field in ',
-                  kd.text(() => this.origColumn.viewFields().all().length),
-                  ' views'
+                  t('Field in {{count}} views', {
+                    count: kd.text(() => this.origColumn.viewFields().all().length)
+                  }),
                 )
               )
             )
