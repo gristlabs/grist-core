@@ -2004,7 +2004,7 @@
         "Reassign to new {{sourceTable}} records.": "Reassign to new {{sourceTable}} records.",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Reassign to {{sourceTable}} record {{sourceName}}.",
         "Record already assigned_one": "Record already assigned",
-        "Record already assigned_other": "Record already assigned",
+        "Record already assigned_other": "Records already assigned",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}."
     },
     "AuditLogStreamingConfig": {
@@ -2076,9 +2076,9 @@
         "Reset icon": "Reset icon"
     },
     "RightPanelUtils": {
-        "Columns_one": "Columns",
+        "Columns_one": "Column",
         "Columns_other": "Columns",
-        "Fields_one": "Fields",
+        "Fields_one": "Field",
         "Fields_other": "Fields",
         "Series_one": "Series",
         "Series_other": "Series"
