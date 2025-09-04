@@ -25,6 +25,7 @@ jobs:
           - ':server-1-of-2:'
           - ':server-2-of-2:'
           - ':gen-server:'
+          - ':projects:'
           - ':nbrowser-^[A-D]:'
           - ':nbrowser-^[E-L]:'
           - ':nbrowser-^[M-N]:'
@@ -98,6 +99,10 @@ jobs:
       - name: Run client tests
         if: contains(matrix.tests, ':client:')
         run: yarn run test:client
+
+      - name: Run projects tests
+        if: contains(matrix.tests, ':projects:')
+        run: yarn run test:projects
 
       - name: Run common tests
         if: contains(matrix.tests, ':common:')
