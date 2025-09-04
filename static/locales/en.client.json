@@ -1274,7 +1274,8 @@
         "Welcome to Grist!": "Welcome to Grist!",
         "convert to card view, select data, and more.": "convert to card view, select data, and more.",
         "creator panel": "creator panel",
-        "template library": "template library"
+        "template library": "template library",
+        "AI Assistant": "AI Assistant"
     },
     "LanguageMenu": {
         "Language": "Language"
@@ -1356,7 +1357,9 @@
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Set the maximum number of lines for multi-line text."
+        "Set the maximum number of lines for multi-line text.": "Set the maximum number of lines for multi-line text.",
+        "Comments are here!": "Comments are here!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -2201,7 +2204,9 @@
         "Grist has a small built-in health check often used when running it as a container.": "Grist has a small built-in health check often used when running it as a container.",
         "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.",
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.",
-        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements."
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.",
+        "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
+        "The main page of Grist should be available.": "The main page of Grist should be available."
     },
     "ChoiceListEntry": {
         "+{{count}} more_one": "+{{count}} one",
