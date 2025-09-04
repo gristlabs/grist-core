@@ -485,8 +485,8 @@
         "Using common settings": "Utilisation des paramètres communs",
         "Using separate settings": "Utilisation de paramètres distincts",
         "Use separate settings": "Utiliser des paramètres distincts",
-        "Save as common settings": "Save common settings",
-        "Revert to common settings": "Revert common settings"
+        "Save as common settings": "Sauvegarder comme paramètres communs",
+        "Revert to common settings": "Revenir aux paramètres communs"
     },
     "FilterConfig": {
         "Add Column": "Ajouter une colonne"
@@ -1152,7 +1152,9 @@
         "Started discussion": "Discussion commencée",
         "Remove thread": "Supprimer le fil",
         "updated": "mis à jour",
-        "Copy link": "Copier le lien"
+        "Copy link": "Copier le lien",
+        "{{count}} comments_one": "{{count}} commentaire",
+        "{{count}} comments_other": "{{count}} commentaires"
     },
     "FieldBuilder": {
         "Apply Formula to Data": "Appliquer la formule",
@@ -1762,7 +1764,13 @@
         "Auto-check weekly": "Vérification automatique hebdomadaire",
         "No record of last version check": "Aucune sauvegarde de la dernière vérification de version",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Si vous activez Grist Enterprise, vous pouvez configurer la diffusion en continu des événements d'audit de Grist vers un système externe de gestion des informations et des événements de sécurité (SIEM). Pour en savoir plus : {{contactUsLink}} .",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Les vérifications automatiques sont désactivées. Définissez la variable d'environnement GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING sur « true » pour les activer."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Les vérifications automatiques sont désactivées. Définissez la variable d'environnement GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING sur « true » pour les activer.",
+        "auth error": "erreur d'authentification",
+        "configured": "configuré",
+        "more...": "plus...",
+        "no authentication": "pas d'authentification",
+        "unavailable": "indisponible",
+        "default": "par défaut"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2184,5 +2192,12 @@
         "active user": "utilisateur actif",
         "active user list": "liste des utilisateurs actifs",
         "open full active user list": "ouvrir la liste complète des utilisateurs actifs"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permet grâce à Python de faire tourner de puissantes formules. Nous recommandons de définir la variable GRIST_SANDBOX_FLAVOR à gvisor si votre machine le permet (la plupart le permettent), pour faire tourner les formules dans un bac à sable isolé des autres documents et isolé du réseau.",
+        "Grist has a small built-in health check often used when running it as a container.": "Grist a un bilan de santé intégré souvent utilisé quand il tourne un container.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Les requêtes qui parviennent à Grist devraient avoir la bonne entête Host. C'est essentiel quand GRIST_SERVE_SAME_ORIGIN est mise.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Cette page de boot ne devrait pas être facile à atteindre. Soit rendez la indisponible quand la configuration est terminée (en retirant GRIST_BOOT_KEY) ou donnez une valeur suffisamment longue et cryptographiquement sûre à GRIST_BOOT_KEY.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Les connexions websocket nécessitent HTTP 1.1 et le droit de passer quelques entêtes supplémentaires pour pouvoir fonctionner. Parfois un proxy inverse peut interférer avec ces exigences."
     }
 }
