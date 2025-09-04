@@ -650,7 +650,10 @@
         "Skip": "Skip",
         "Skip Import": "Skip Import",
         "Skip Table on Import": "Skip Table on Import",
-        "Source column": "Source column"
+        "Source column": "Source column",
+        "Import options": "Import options",
+        "Cancel": "Cancel",
+        "Import": "Import"
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center"
@@ -1207,7 +1210,11 @@
         "Revert field settings for {{colId}} to common": "Revert field settings for {{colId}} to common",
         "Save field settings for {{colId}} as common": "Save field settings for {{colId}} as common",
         "Use separate field settings for {{colId}}": "Use separate field settings for {{colId}}",
-        "Changing column type": "Changing column type"
+        "Changing column type": "Changing column type",
+        "Common": "Common",
+        "Separate": "Separate",
+        "Field in {{count}} views_one": "Field in one view",
+        "Field in {{count}} views_other": "Field in {{count}} views"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "It should be impossible to save a plain data value into a formula column",
@@ -2177,7 +2184,8 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Expand all rows to this height",
         "Max height": "Max height",
-        "Max row height": "Max row height"
+        "Max row height": "Max row height",
+        "Change": "Change"
     },
     "TreeViewComponent": {
         "Collapse": "Collapse",
@@ -2194,5 +2202,34 @@
         "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.",
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.",
         "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} one",
+        "+{{count}} more_other": "+{{count}} many",
+        "Edit": "Edit",
+        "No choices configured": "No choices configured",
+        "Reset": "Reset",
+        "Cancel": "Cancel",
+        "Save": "Save"
+    },
+    "FormulaTransform": {
+        "Apply": "Apply",
+        "Cancel": "Cancel",
+        "Preview": "Preview"
+    },
+    "ParseOptions": {
+        "Close": "Close",
+        "Update preview": "Update preview",
+        "Convert quoted fields": "Convert quoted fields",
+        "Escape character": "Escape character",
+        "Field separator": "Field separator",
+        "First row contains headers": "First row contains headers",
+        "Line terminator": "Line terminator",
+        "Number of rows": "Number of rows",
+        "Quote character": "Quote character",
+        "Quotes in fields are doubled": "Quotes in fields are doubled",
+        "Skip leading whitespace": "Skip leading whitespace",
+        "Start with row": "Start with row",
+        "Character encoding. See [the supported codecs]({{link}})": "Character encoding. See [the supported codecs]({{link}})"
     }
 }
