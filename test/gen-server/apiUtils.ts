@@ -43,8 +43,8 @@ export class TestServer {
     await createInitialDb(undefined, seedData ? true : 'migrateOnly');
     const mergedServer = await MergedServer.create(0, servers, {logToConsole: isAffirmative(process.env.DEBUG),
                                                       externalStorage, ...options});
-    await mergedServer.run();
     this.server = mergedServer.flexServer;
+    await mergedServer.run();
     this.serverUrl = this.server.getOwnUrl();
     this.dbManager = this.server.getHomeDBManager();
     this.defaultSession = new TestSession(this.server);

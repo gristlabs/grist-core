@@ -103,11 +103,10 @@ export interface SendGridMemberChangeTemplate extends SendGridBillingTemplate {
 
 export interface SendGridConfig {
   address: {
-    from: {
-      email: string;
-      name: string;
-    }
-  },
+    from: SendGridAddress;
+    docNotificationsFrom: SendGridAddress;
+    docNotificationsReplyTo: SendGridAddress;
+  };
   template: {[templateName in TemplateName]?: string},
   list: {
     singleUserOnboarding?: string;
@@ -139,6 +138,11 @@ export const DocNotificationEvents = StringUnion(
   'comments',
 );
 export type DocNotificationEvent = typeof DocNotificationEvents.type;
+
+export interface DocNotificationTemplateBase {
+  // senderAuthorName may be set when there is a single author, to use in the email's "From" field.
+  senderAuthorName: string|null;
+}
 
 export const TemplateName = StringUnion(
   "billingManagerInvite",
