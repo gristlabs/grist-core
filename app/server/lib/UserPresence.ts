@@ -2,6 +2,7 @@ import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
 import * as roles from 'app/common/roles';
 import {FullUser, getRealAccess} from 'app/common/UserAPI';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {DocClients, isUserPresenceDisabled} from 'app/server/lib/DocClients';
 import {DocSession} from 'app/server/lib/DocSession';
 import {LogMethods} from 'app/server/lib/LogMethods';
@@ -167,7 +168,16 @@ function getVisibleUserProfileFromDocSession(
   };
 }
 
+const GRIST_USER_PRESENCE_ICON_PER_TAB = Boolean(appSettings.section('userPresence').flag('iconPerTab').readBool({
+  envVar: 'GRIST_USER_PRESENCE_ICON_PER_TAB',
+  defaultValue: false,
+}));
+
 function getIdFromDocSession(session: DocSession): string {
+  // Forces every client to have a unique user presence session. Intended to ease frontend testing.
+  if (GRIST_USER_PRESENCE_ICON_PER_TAB) {
+    return session.client.publicClientId;
+  }
   const authSession = session.client.authSession;
   return (authSession.userIsAuthorized && authSession.userId?.toString()) || session.client.publicClientId;
 }
