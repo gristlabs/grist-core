@@ -64,9 +64,7 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
   });
 
   const remainingUsersIndicator = dom.maybe(showRemainingUsersIconObs, () => {
-    return domComputed(() => {
-      return dom('li', createRemainingUsersIndicator(visibleUserProfilesObs, userMetadataObs));
-    });
+    return dom('li', createRemainingUsersIndicator(visibleUserProfilesObs, userMetadataObs));
   });
 
   return cssActiveUserList(
@@ -86,7 +84,9 @@ function createUserIndicator(user: VisibleUserProfile) {
   );
 }
 
-function createRemainingUsersIndicator(usersObs: Observable<VisibleUserProfile[]>, metadataObs: Observable<UsersMetadata>) {
+function createRemainingUsersIndicator(
+  usersObs: Observable<VisibleUserProfile[]>, metadataObs: Observable<UsersMetadata>
+) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
       dom.text(use => `+${use(metadataObs).totalUsers}`),
