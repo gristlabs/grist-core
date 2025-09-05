@@ -49,14 +49,6 @@ export class DocClients extends EventEmitter {
   }
 
   /**
-   * Lists all active doc sessions
-   * @returns {DocSession[]}
-   */
-  public listClients(): DocSession[] {
-    return this._docSessions.slice();
-  }
-
-  /**
    * Adds a client's open file to the list of connected clients.
    */
   public addClient(client: Client, docSessionPrecursor: DocSessionPrecursor): DocSession {
