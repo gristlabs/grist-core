@@ -110,6 +110,7 @@ describe('UserPresence', function() {
       makeJoinerClient: () => getWebsocket(owner),
       expectedProfile: {
         name: Users.owner.name,
+        email: Users.owner.email,
         picture: null,
         isAnonymous: false,
       }
@@ -142,7 +143,8 @@ describe('UserPresence', function() {
       await joiningClient.openDocOnConnect(docId);
 
       const joinMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
-      assert.deepInclude(joinMessage.data.profile, testCase.expectedProfile);
+      const expectedProfile = {...testCase.expectedProfile, id: joinMessage.data.profile.id};
+      assert.deepStrictEqual(joinMessage.data.profile, expectedProfile);
 
       await closeClient(joiningClient);
 

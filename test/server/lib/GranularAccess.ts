@@ -1409,6 +1409,40 @@ describe('GranularAccess', function() {
     await assert.isFulfilled(owner.getDocAPI(docId).removeRows('Data', [1]));
   });
 
+  it('allows an editor to edit conditional formatting with a published form', async function () {
+    await freshDoc();
+
+    // Create a doc with a published form
+    await owner.applyUserActions(docId, [
+      // Add a table
+      ['AddTable', 'Data', [{ id: 'A' }]],
+      ['AddRecord', 'Data', null, { A: 42 }],
+
+      // Add a published form
+      ['AddRecord', '_grist_Shares', null, {
+        linkId: 'x',
+        options: '{"publish": true}'
+      }],
+      ['UpdateRecord', '_grist_Views_section', 1,
+        { shareOptions: '{"publish": true, "form": true}' }],
+      ['UpdateRecord', '_grist_Pages', 1, { shareRef: 1 }],
+    ]);
+
+    await assert.isFulfilled(editor.applyUserActions(docId, [
+      // Add a conditional formatting rule
+      ['AddEmptyRule', 'Data', 0, 1],
+      ['UpdateRecord', '_grist_Tables_column', 1, { 'formula': '$A == 42' }],
+    ]));
+
+    await assert.isFulfilled(editor.applyUserActions(docId, [
+      // Delete the rule
+      ['RemoveColumn', 'Data', "gristHelper_ConditionalRule"],
+      ['RemoveRecord', '_grist_Tables_column', 1],
+    ]));
+
+    await removeShares(docId, owner);
+  });
+
   it('respects row-level access control', async function() {
     await freshDoc();
     // Make a table, and limit non-owner access to some rows.
@@ -3760,7 +3794,6 @@ describe('GranularAccess', function() {
       assert.equal(shares[0].link_id, 'x');
       assert.deepEqual(JSON.parse(shares[0].options),
                        { publish: true });
-      assert.equal(shares[0].id, 1);
       assert.isAtLeast(shares[0].key.length, 12);
 
       // Check that user data is not yet available via the share.

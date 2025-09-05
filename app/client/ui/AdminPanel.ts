@@ -204,7 +204,7 @@ Please log in as an administrator.`)),
         }),
         dom.create(AdminSectionItem, {
           id: 'probe-other',
-          name: 'more...',
+          name: t('more...'),
           description: '',
           value: '',
           expandedContent: this._buildProbeItems({
@@ -285,7 +285,7 @@ Please log in as an administrator.`)),
         const req = this._checks.requestCheckById(use, 'authentication');
         const result = req ? use(req.result) : undefined;
         if (!result) {
-          return cssValueLabel(cssErrorText('unavailable'));
+          return cssValueLabel(cssErrorText(t('unavailable')));
         }
 
         const { status, details } = result;
@@ -293,11 +293,11 @@ Please log in as an administrator.`)),
         const loginSystemId = details?.loginSystemId;
 
         if (!success || !loginSystemId) {
-          return cssValueLabel(cssErrorText('auth error'));
+          return cssValueLabel(cssErrorText(t('auth error')));
         }
 
         if (loginSystemId === 'no-logins') {
-          return cssValueLabel(cssDangerText('no authentication'));
+          return cssValueLabel(cssDangerText(t('no authentication')));
         }
 
         return cssValueLabel(cssHappyText(loginSystemId));
@@ -318,10 +318,10 @@ to multiple people.');
         const result = req ? use(req.result) : undefined;
 
         if (result?.status === 'warning') {
-          return cssValueLabel(cssDangerText('default'));
+          return cssValueLabel(cssDangerText(t('default')));
         }
 
-        return cssValueLabel(cssHappyText('configured'));
+        return cssValueLabel(cssHappyText(t('configured')));
       }
     );
   }

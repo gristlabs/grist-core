@@ -2,21 +2,26 @@
 
 Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database.
 
-* `grist-core` (this repo) has what you need to run a powerful spreadsheet hosting server. A version of `grist-core` has been packaged for cloud providers as [Grist Builder Edition](https://support.getgrist.com/install/grist-builder-edition/).
+* `grist-core` (this repo) has what you need to run a powerful server for hosting spreadsheets.
+
 * [`grist-desktop`](https://github.com/gristlabs/grist-desktop) is a Linux/macOS/Windows desktop app for viewing and editing spreadsheets stored locally.
 * [`grist-static`](https://github.com/gristlabs/grist-static) is a fully in-browser build of Grist for displaying spreadsheets on a website without back-end support.
 
-The `grist-core` repo is the heart of Grist, including the hosted services offered by [Grist Labs](https://getgrist.com), an NYC-based company 🇺🇸 and Grist's main developer. The French government 🇫🇷 organizations [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) and [DINUM (Direction Interministérielle du Numérique)](https://www.numerique.gouv.fr/dinum/) have also made significant contributions to the codebase.
+Grist is developed by [Grist Labs](https://www.linkedin.com/company/grist-labs/), an NYC-based company 🇺🇸🗽. The French government 🇫🇷 organizations [ANCT Données et Territoires](https://donnees.incubateur.anct.gouv.fr/toolbox/grist) and [DINUM (Direction Interministérielle du Numérique)](https://www.numerique.gouv.fr/dinum/) have also made significant contributions to the codebase.
 
 The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open source (Apache License, Version 2.0).
+Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
+and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
 > Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
 
 https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
 
-## Features
+## Features in `grist-core`
 
-Grist is a hybrid database/spreadsheet, meaning that:
+To see exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). The absolute fastest way to try Grist out is to visit [docs.getgrist.com](https://docs.getgrist.com) and play with a spreadsheet there immediately – though if you do, please read the list of [extra extensions](#features-not-in-grist-core) that are not in `grist-core`.
+
+However you try it, you'll quickly see that Grist is a hybrid database/spreadsheet, meaning that:
 
   - Columns work like they do in databases: they are named, and they hold one kind of data.
   - Columns can be filled by formula, spreadsheet-style, with automatic updates when referenced cells change.
@@ -52,6 +57,7 @@ Here are some specific feature highlights of Grist:
   * [Incremental imports](https://support.getgrist.com/imports/#updating-existing-records).
     - Import a CSV of the last three months activity from your bank...
     - ...and import new activity a month later without fuss or duplication.
+  * [Native forms](https://support.getgrist.com/widget-form/). Create forms that feed directly into your spreadsheet without fuss.
   * Integrations.
     - A [REST API](https://support.getgrist.com/api/), [Zapier actions/triggers](https://support.getgrist.com/integrators/#integrations-via-zapier), and support from similar [integrators](https://support.getgrist.com/integrators/).
     - Import/export to Google drive, Excel format, CSV.
@@ -75,14 +81,35 @@ Here are some specific feature highlights of Grist:
 
 If you are curious about where Grist is heading, see [our roadmap](https://github.com/gristlabs/grist-core/projects/1), drop a question in [our forum](https://community.getgrist.com), or browse [our extensive documentation](https://support.getgrist.com).
 
+## Features not in `grist-core`
+
+If you evaluate Grist by using the hosted version at [getgrist.com](https://getgrist.com), be aware that it includes some extensions to Grist that aren't present in `grist-core`. To be sure you're seeing exactly what is present in `grist-core`, you can run the [desktop app](https://github.com/gristlabs/grist-desktop), or use [`docker`](#using-grist). Here is a list of features you may see in Grist Labs' hosting or Enterprise offerings that are not in `grist-core`, in chronological order of creation. If self-hosting, you can get access to a free trial of all of them using the Enterprise toggle on the [Admin Panel](https://support.getgrist.com/admin-panel/).
+
+  * [GristConnect](https://support.getgrist.com/install/grist-connect/) (2022)
+    - Any site that has plugins for letting Discourse use its logins (such as WordPress) can also let Grist use its logins.
+    - GristConnect is a niche feature built for a specific client which you probably don't care about – `OIDC` and `SAML` support *is* part of `grist-core` and covers most authentication use cases.
+  * [Azure back-end for document storage](https://support.getgrist.com/install/cloud-storage/#azure) (2022)
+    - With `grist-core` you can store document versions in anything S3-compatible, which covers a lot of services, but not Azure specifically. The Azure back-end fills that gap.
+    - Unless you are a Microsoft shop you probably don't care about this.
+  * [Audit log streaming](https://support.getgrist.com/install/audit-log-streaming/) (2024)
+    - With `grist-core` a lot of useful information is logged, but not organized specifically with auditing in mind. Audit log streaming supplies that organization, and a UI for setting things up.
+    - Enterprises may care about this.
+  * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
+    - This is a special page for a Grist installation administrator to monitor and edit user access to resources.
+	- It uses a special set of administrative endpoints not present on `grist-core`.
+	- If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
+  * [Grist Assistant](https://support.getgrist.com/assistant/#assistant) (2025)
+    - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards and modifying data.
+    - If you have many users who need help building documents or working with data, you may care about this one.
+  * [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications) (2025)
+    - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
+	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
+	- For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
+  * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
+    - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
+	- People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
+
 ## Using Grist
-
-If you just want a quick demo of Grist:
-
-  * You can try Grist out at the hosted service run by Grist Labs at [docs.getgrist.com](https://docs.getgrist.com) (no registration needed).
-  * Or you can see a fully in-browser build of Grist at [gristlabs.github.io/grist-static](https://gristlabs.github.io/grist-static/).
-  * Or you can download Grist as a desktop app from [github.com/gristlabs/grist-desktop](https://github.com/gristlabs/grist-desktop).
-  * Or you can try running [Grist Builder Edition](https://support.getgrist.com/install/grist-builder-edition/), a self-hosted version tailored for cloud providers.
 
 To get the default version of `grist-core` running on your computer
 with [Docker](https://www.docker.com/get-started), do:
@@ -326,6 +353,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ACTION_HISTORY_MAX_BYTES | Maximum number of rows allowed in ActionHistory before pruning (up to a 1.25 grace factor). Defaults to 1Gb. ⚠️ A too low value may make the "[Work on a copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)" feature [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023) |
 | GRIST_ADAPT_DOMAIN | set to "true" to support multiple base domains (careful, host header should be trustworthy) |
 | GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING | Whether Grist is allowed to automatically check if a newer Grist version is available. Defaults to "true" on the default `grist` and `grist-ee` Docker images. Defaults false in `grist-oss` and everywhere else. |
+| GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE | If set, the deprecated DELETE /api/orgs/:orgId endpoint is available. |
 | GRIST_APP_ROOT | directory containing Grist sandbox and assets (specifically the sandbox and static subdirectories). |
 | GRIST_ATTACHMENT_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
 | GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup |

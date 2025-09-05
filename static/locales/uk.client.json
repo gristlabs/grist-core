@@ -1190,7 +1190,10 @@
         "Reply to a comment": "Відповісти на коментар",
         "Only my threads": "Тільки мої теми",
         "Remove thread": "Вилучити нитку",
-        "updated": "оновлено"
+        "updated": "оновлено",
+        "Copy link": "Копіювати посилання",
+        "{{count}} comments_one": "{{count}} коментар",
+        "{{count}} comments_other": "{{count}} коментарі"
     },
     "FieldBuilder": {
         "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
@@ -1774,7 +1777,13 @@
         "Auto-check weekly": "Автоматична перевірка щотижня",
         "No record of last version check": "Немає запису про останню перевірку версії",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Ви можете налаштувати потокову передачу подій аудиту з Grist до зовнішньої системи керування інформацією та подіями безпеки (SIEM), якщо ввімкнете Grist Enterprise. {{contactUsLink}}, щоб дізнатися більше.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматичні перевірки вимкнено. Щоб увімкнути їх, встановіть для змінної середовища GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значення \"true\"."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматичні перевірки вимкнено. Щоб увімкнути їх, встановіть для змінної середовища GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значення \"true\".",
+        "auth error": "помилка авторизації",
+        "configured": "налаштовано",
+        "default": "за замовчуванням",
+        "more...": "більше...",
+        "no authentication": "без автентифікації",
+        "unavailable": "недоступний"
     },
     "Columns": {
         "Remove Column": "Вилучити стовпець"
@@ -2177,5 +2186,17 @@
     "TreeViewComponent": {
         "Collapse": "Згорнути'",
         "Expand": "Розгорнути"
+    },
+    "ActiveUserList": {
+        "active user": "активний користувач",
+        "active user list": "список активних користувачів",
+        "open full active user list": "відкрити повний список активних користувачів"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist дозволяє створювати дуже потужні формули за допомогою Python. Ми рекомендуємо встановити змінну середовища GRIST_SANDBOX_FLAVOR на gvisor, якщо ваше обладнання це підтримує (а більшість підтримує), щоб запускати формули в кожному документі в ізольованому від інших документів і мережі пісочниці.",
+        "Grist has a small built-in health check often used when running it as a container.": "Grist має невелику вбудовану перевірку справності, яка часто використовується під час запуску його як контейнера.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Запити, що надходять до Grist, повинні мати точний заголовок Host. Це важливо, коли встановлено GRIST_SERVE_SAME_ORIGIN.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Ця сторінка завантаження не повинна бути надто легкодоступною. Або вимкніть її, коли конфігурація влаштована (скинувши GRIST_BOOT_KEY), або зробіть GRIST_BOOT_KEY довгим та криптографічно захищеним.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Для роботи вебсокетних з'єднань потрібен HTTP 1.1 та можливість передавати кілька додаткових заголовків. Іноді зворотний проксі-сервер може перешкоджати цим вимогам."
     }
 }

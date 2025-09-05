@@ -5,7 +5,6 @@
 
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {CommDocEventType, CommDocUserPresenceUpdate, CommMessage} from 'app/common/CommTypes';
-import {parseUrlId} from 'app/common/gristUrls';
 import {arrayRemove} from 'app/common/gutil';
 import * as roles from 'app/common/roles';
 import {getRealAccess} from 'app/common/UserAPI';
@@ -229,14 +228,6 @@ export class DocClients {
       return {};
     }
 
-    // TODO - This prevents an error in tests + any installation where anonymous users can create docs.
-    //        HomeDBManager.getDocAccess can't (as of 2025-08-22) handle ids in the format
-    //        'new~12345', and throws an error.
-    const parsedId = parseUrlId(docId);
-    if (parsedId.trunkId === 'new' || parsedId.forkId) {
-      return {};
-    }
-
     const queryResult = await authCache.getDocAccess(docId);
     const { users, maxInheritedRole } = homeDb.unwrapQueryResult(queryResult);
 
@@ -271,6 +262,7 @@ function getVisibleUserProfileFromDocSession(
   return {
     id: getVisibleUserProfileId(session),
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
+    email: isAnonymous ? undefined : user?.email,
     picture: isAnonymous ? undefined : user?.picture,
     isAnonymous,
   };

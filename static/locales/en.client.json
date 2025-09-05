@@ -650,7 +650,10 @@
         "Skip": "Skip",
         "Skip Import": "Skip Import",
         "Skip Table on Import": "Skip Table on Import",
-        "Source column": "Source column"
+        "Source column": "Source column",
+        "Import options": "Import options",
+        "Cancel": "Cancel",
+        "Import": "Import"
     },
     "LeftPanelCommon": {
         "Help Center": "Help Center"
@@ -1172,8 +1175,11 @@
         "Invalid currency": "Invalid currency"
     },
     "DiscussionEditor": {
+        "{{count}} comments_one": "{{count}} comment",
+        "{{count}} comments_other": "{{count}} comments",
         "Cancel": "Cancel",
         "Comment": "Comment",
+        "Copy link": "Copy link",
         "Edit": "Edit",
         "Marked as resolved": "Marked as resolved",
         "Only current page": "Only current page",
@@ -1189,8 +1195,7 @@
         "Started discussion": "Started discussion",
         "Write a comment": "Write a comment",
         "Remove thread": "Remove thread",
-        "updated": "updated",
-        "Copy link": "Copy link"
+        "updated": "updated"
     },
     "EditorTooltip": {
         "Convert column to formula": "Convert column to formula"
@@ -1205,7 +1210,11 @@
         "Revert field settings for {{colId}} to common": "Revert field settings for {{colId}} to common",
         "Save field settings for {{colId}} as common": "Save field settings for {{colId}} as common",
         "Use separate field settings for {{colId}}": "Use separate field settings for {{colId}}",
-        "Changing column type": "Changing column type"
+        "Changing column type": "Changing column type",
+        "Common": "Common",
+        "Separate": "Separate",
+        "Field in {{count}} views_one": "Field in one view",
+        "Field in {{count}} views_other": "Field in {{count}} views"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "It should be impossible to save a plain data value into a formula column",
@@ -1265,7 +1274,8 @@
         "Welcome to Grist!": "Welcome to Grist!",
         "convert to card view, select data, and more.": "convert to card view, select data, and more.",
         "creator panel": "creator panel",
-        "template library": "template library"
+        "template library": "template library",
+        "AI Assistant": "AI Assistant"
     },
     "LanguageMenu": {
         "Language": "Language"
@@ -1346,8 +1356,10 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Set the maximum number of lines for multi-line text."
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Set the maximum number of lines for multi-line text.",
+        "Comments are here!": "Comments are here!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1728,7 +1740,6 @@
         "Checking for updates...": "Checking for updates...",
         "Error": "Error",
         "Error checking for updates": "Error checking for updates",
-        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.",
         "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future since session IDs have been updated to be inherently cryptographically secure.": "Grist signs user session cookies with a secret key. Please set this key via the environment variable GRIST_SESSION_SECRET. Grist falls back to a hard-coded default when it is not set. We may remove this notice in the future as session IDs generated since v1.1.16 are inherently cryptographically secure.",
         "Grist is up to date": "Grist is up to date",
         "Grist releases are at ": "Grist releases are at ",
@@ -1774,7 +1785,13 @@
         "Auto-check weekly": "Auto-check weekly",
         "No record of last version check": "No record of last version check",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.",
+        "auth error": "auth error",
+        "configured": "configured",
+        "default": "default",
+        "more...": "more...",
+        "no authentication": "no authentication",
+        "unavailable": "unavailable"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -1987,7 +2004,7 @@
         "Reassign to new {{sourceTable}} records.": "Reassign to new {{sourceTable}} records.",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Reassign to {{sourceTable}} record {{sourceName}}.",
         "Record already assigned_one": "Record already assigned",
-        "Record already assigned_other": "Record already assigned",
+        "Record already assigned_other": "Records already assigned",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}."
     },
     "AuditLogStreamingConfig": {
@@ -2059,9 +2076,9 @@
         "Reset icon": "Reset icon"
     },
     "RightPanelUtils": {
-        "Columns_one": "Columns",
+        "Columns_one": "Column",
         "Columns_other": "Columns",
-        "Fields_one": "Fields",
+        "Fields_one": "Field",
         "Fields_other": "Fields",
         "Series_one": "Series",
         "Series_other": "Series"
@@ -2170,7 +2187,8 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Expand all rows to this height",
         "Max height": "Max height",
-        "Max row height": "Max row height"
+        "Max row height": "Max row height",
+        "Change": "Change"
     },
     "TreeViewComponent": {
         "Collapse": "Collapse",
@@ -2180,5 +2198,43 @@
         "active user": "active user",
         "active user list": "active user list",
         "open full active user list": "open full active user list"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.",
+        "Grist has a small built-in health check often used when running it as a container.": "Grist has a small built-in health check often used when running it as a container.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.",
+        "It is good practice not to run Grist as the root user.": "It is good practice not to run Grist as the root user.",
+        "The main page of Grist should be available.": "The main page of Grist should be available."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} one",
+        "+{{count}} more_other": "+{{count}} many",
+        "Edit": "Edit",
+        "No choices configured": "No choices configured",
+        "Reset": "Reset",
+        "Cancel": "Cancel",
+        "Save": "Save"
+    },
+    "FormulaTransform": {
+        "Apply": "Apply",
+        "Cancel": "Cancel",
+        "Preview": "Preview"
+    },
+    "ParseOptions": {
+        "Close": "Close",
+        "Update preview": "Update preview",
+        "Convert quoted fields": "Convert quoted fields",
+        "Escape character": "Escape character",
+        "Field separator": "Field separator",
+        "First row contains headers": "First row contains headers",
+        "Line terminator": "Line terminator",
+        "Number of rows": "Number of rows",
+        "Quote character": "Quote character",
+        "Quotes in fields are doubled": "Quotes in fields are doubled",
+        "Skip leading whitespace": "Skip leading whitespace",
+        "Start with row": "Start with row",
+        "Character encoding. See [the supported codecs]({{link}})": "Character encoding. See [the supported codecs]({{link}})"
     }
 }

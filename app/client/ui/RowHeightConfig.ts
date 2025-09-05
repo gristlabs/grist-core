@@ -24,7 +24,7 @@ export function rowHeightConfigColumn(viewSection: ViewSectionRec): DomContents 
         testId('row-height-label')
       )
     ),
-    textButton('Change', dom.on('click', allCommands.viewTabOpen.run),
+    textButton(t('Change'), dom.on('click', allCommands.viewTabOpen.run),
       testId('row-height-change-link')
     )
   ]);
@@ -95,6 +95,11 @@ const cssRowExpandable = styled(cssRow, `
   max-height: 0;
   overflow: hidden;
   &-expand {
-    max-height: 20px;
+    /*
+     * fit-content doesn't work with transitions on height.
+     * In practice, height shouldn't exceed 32px, even when text wraps to a
+     * second line.
+     */
+    max-height: 32px;
   }
 `);

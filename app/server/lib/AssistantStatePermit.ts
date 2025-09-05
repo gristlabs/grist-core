@@ -5,7 +5,7 @@ import { IPermitStore, Permit } from "app/server/lib/Permit";
  *
  * This is currently used by the `/api/assistant/start` endpoint, which
  * redirects to the signup page if the user is unauthenticated.
- * As part of this redirect, a `gr_signup_state` cookie is set which
+ * As part of this redirect, a signup state cookie is set which
  * includes the ID of a {@link AssistantStatePermit} containing the
  * prompt the user submitted to the `/api/assistant/start` endpoint. This
  * permit is later replaced with one containing the `docId` of a new
@@ -17,8 +17,8 @@ import { IPermitStore, Permit } from "app/server/lib/Permit";
  * Unlike browser cookies, which can only store upwards of ~4 KB of data,
  * permits are able to store significantly larger amounts of data, hence
  * why they are used to store assistant state like LLM prompts.
- * Cookies are still used to track permits across signups (in
- * `gr_signup_state`), but we only store the permit IDs in them.
+ * Cookies are still used to track permits across signups, but we only
+ * store the permit IDs in them.
  */
 export interface AssistantStatePermit extends Permit {
   prompt: string;
@@ -33,18 +33,14 @@ export interface AssistantStatePermit extends Permit {
  * Note: This is a wrapper for {@link IPermitStore.getPermit} that clears
  * the permit from the store and sets the key prefix for you.
  */
-export async function getAssistantStatePermit(
+export async function getAndRemoveAssistantStatePermit(
   store: IPermitStore,
-  id: string,
-  options: { remove?: boolean } = {}
+  id: string
 ): Promise<AssistantStatePermit | null> {
-  const { remove = false } = options;
   const prefix = store.getKeyPrefix();
   const key = prefix + id;
   const permit = (await store.getPermit(key)) as AssistantStatePermit | null;
-  if (remove) {
-    await store.removePermit(key);
-  }
+  await store.removePermit(key);
   return permit;
 }
 
