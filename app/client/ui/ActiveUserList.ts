@@ -10,66 +10,95 @@ import {nativeCompare} from 'app/common/gutil';
 import {components, tokens} from 'app/common/ThemePrefs';
 import {getGristConfig} from 'app/common/urlUtils';
 
-import {dom, domComputed, DomElementArg, makeTestId, styled} from 'grainjs';
+import {
+  Computed,
+  dom,
+  domComputed,
+  DomElementArg, IDisposableOwner,
+  makeTestId,
+  Observable,
+  styled
+} from 'grainjs';
 
 const t = makeT('ActiveUserList');
 const testId = makeTestId('test-aul-');
 
-export function buildActiveUserList(userPresenceModel: UserPresenceModel) {
-  return domComputed(userPresenceModel.userProfiles, (userProfiles) => {
+export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: UserPresenceModel) {
+  const totalUserIconSlots = 4;
+
+  const visibleUserProfilesObs = Computed.create(owner, (use) => {
+    const userProfiles = use(userPresenceModel.userProfiles);
     // Clamps max users between 0 and 99 to prevent display issues and errors
     const maxUsers = Math.min(Math.max(0, getGristConfig().userPresenceMaxUsers ?? 99), 99);
-    const users = userProfiles
+    return userProfiles
       .slice()
       .sort(compareUserProfiles)
       // Limits the display to avoid overly long lists on public documents.
       .slice(0, maxUsers);
-
-    const maxUserImages = 4;
-    const renderAllUsersButton = users.length > maxUserImages;
-    const usersToRender = users.slice(0, renderAllUsersButton ? 3 : 4);
-
-    const userImages = usersToRender.map((user, index) => createUserIndicator(user, { overlapLeft: index > 0 }));
-    const allUsersButtons = renderAllUsersButton
-      ? [createRemainingUsersIndicator(users, (users.length - usersToRender.length))]
-      : [];
-
-    // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
-    userImages.reverse();
-
-    return cssActiveUserList(
-      ...allUsersButtons.map(button => dom('li', button)),
-      ...userImages.map(image => dom('li', image)),
-      { "aria-label": t("active user list") },
-      testId('container')
-    );
   });
+
+  const userMetadataObs = Computed.create(owner, (use) => {
+    const visibleUsers = use(visibleUserProfilesObs);
+    const totalVisibleUserIcons =
+      visibleUsers.length < totalUserIconSlots ? totalUserIconSlots : totalUserIconSlots - 1;
+    return {
+      totalUsers: visibleUsers.length,
+      totalVisibleUserIcons,
+    };
+  });
+
+  const userIconProfilesObs = Computed.create(owner, (use) => {
+    const totalIcons = use(userMetadataObs).totalVisibleUserIcons;
+    const profiles = use(visibleUserProfilesObs).slice(0, totalIcons);
+    // Reverses the order of user images, so that the z-index is automatically correct without explicitly setting it
+    profiles.reverse();
+    return profiles;
+  });
+
+  const showRemainingUsersIconObs = Computed.create(owner, (use) => {
+    return totalUserIconSlots < use(visibleUserProfilesObs).length;
+  });
+
+  const computedUserIcons = dom.forEach(userIconProfilesObs, (user) => {
+    return dom('li', createUserIndicator(user));
+  });
+
+  const remainingUsersIndicator = dom.maybe(showRemainingUsersIconObs, () => {
+    return dom('li', createRemainingUsersIndicator(visibleUserProfilesObs, userMetadataObs));
+  });
+
+  return cssActiveUserList(
+    remainingUsersIndicator,
+    computedUserIcons,
+    { "aria-label": t("active user list") },
+    testId('container')
+  );
 }
 
-function createUserIndicator(user: VisibleUserProfile, options = { overlapLeft: false }) {
+function createUserIndicator(user: VisibleUserProfile) {
   return createUserListImage(
     user,
     hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
-    options.overlapLeft ? createStyledUserImage.cls("-overlapping") : undefined,
     { 'aria-label': `${t('active user')}: ${user.name}`},
     testId('user-icon')
   );
 }
 
-function createRemainingUsersIndicator(users: VisibleUserProfile[], userCount?: number) {
-  const count = userCount ?? users.length;
+function createRemainingUsersIndicator(
+  usersObs: Observable<VisibleUserProfile[]>, metadataObs: Observable<UsersMetadata>
+) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
-      `+${count}`,
+      dom.text(use => `+${use(metadataObs).totalUsers}`),
       cssUserImage.cls("-medium"),
       dom.style("font-size", "12px"),
     ),
     menu(
-      () => users.map(user => remainingUsersMenuItem(
+      () => domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
         createUserImage(user, 'medium'),
         dom('div', createUsername(user.name), createEmail(user.email)),
         testId('user-list-user')
-      )),
+      ))),
       {
         // Avoids an issue where the menu code will infinitely loop trying to find the
         // next selectable option, when using keyboard navigation, due to having none.
@@ -116,6 +145,14 @@ const cssActiveUserList = styled('ul', `
   border: 0 solid;
 
   flex-direction: row-reverse;
+
+  & > * {
+    margin-left: -4px
+  }
+
+  & > :last-child {
+    margin-left: 0px;
+  }
 `);
 
 const userImageBorderCss = `
@@ -125,10 +162,6 @@ const userImageBorderCss = `
 
 const createStyledUserImage = styled(createUserImage, `
   ${userImageBorderCss};
-
-  &-overlapping {
-    margin-left: -4px;
-  }
 `);
 
 const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
@@ -175,4 +208,9 @@ export const remainingUsersMenuItem = styled(`div`, `
 
 function compareUserProfiles(a: VisibleUserProfile, b: VisibleUserProfile) {
   return nativeCompare(a.isAnonymous, b.isAnonymous) || nativeCompare(a.name, b.name);
+}
+
+interface UsersMetadata {
+  totalUsers: number;
+  totalVisibleUserIcons: number;
 }
