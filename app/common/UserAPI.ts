@@ -262,6 +262,7 @@ export interface UserAccessData extends UserAccess {
   orgAccess?: roles.BasicRole|null;
   anonymous?: boolean;    // If set to true, the user is the anonymous user.
   isMember?: boolean;
+  disabledAt?: Date|null;
 }
 
 /**
@@ -435,6 +436,8 @@ export interface UserAPI {
   updateUserName(name: string): Promise<void>;
   updateUserLocale(locale: string|null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
+  disableUser(userId: number): Promise<void>;
+  enableUser(userId: number): Promise<void>
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
   getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo>;
@@ -870,6 +873,18 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/profile/isConsultant`, {
       method: 'POST',
       body: JSON.stringify({userId, isConsultant})
+    });
+  }
+
+  public async disableUser(userId: number): Promise<void> {
+    await this.request(`${this._url}/api/users/${userId}/disable`, {
+      method: 'POST',
+    });
+  }
+
+  public async enableUser(userId: number): Promise<void> {
+    await this.request(`${this._url}/api/users/${userId}/enable`, {
+      method: 'POST',
     });
   }
 

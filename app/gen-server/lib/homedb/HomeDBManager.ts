@@ -1010,6 +1010,16 @@ export class HomeDBManager {
 
       return doc;
     }
+
+    const fullUser = await this._usersManager.getFullUser(userId);
+    if(fullUser?.disabledAt) {
+      // Disabled users shouldn't be able to even log in, but if they
+      // got this far (for example they have an existing websocket
+      // connexion), they shouldn't be able to have any document
+      // access.
+      throw new ApiError('access denied', 403);
+    }
+
     const urlId = trunkId;
     if (forkId || snapshotId) { key = {...key, urlId}; }
     if (urlId === NEW_DOCUMENT_CODE) {

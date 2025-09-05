@@ -500,6 +500,16 @@ export class ApiServer {
       res.sendStatus(200);
     }));
 
+    this._app.post('/api/users/:userId/disable', expressWrap(async (req, res) => {
+      await this._changeUserDisabledDate(req, new Date());
+      res.sendStatus(204);
+    }));
+
+    this._app.post('/api/users/:userId/enable', expressWrap(async (req, res) => {
+      await this._changeUserDisabledDate(req, null);
+      res.sendStatus(204);
+    }));
+
     // GET /api/profile/apikey
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
@@ -682,6 +692,15 @@ export class ApiServer {
       return await op(extendedScope);
     }
     return result;
+  }
+
+  private async _changeUserDisabledDate(req: express.Request, disabledAt: Date | null) {
+    const isAuthorized = await this._gristServer.getInstallAdmin().isAdminReq(req);
+    if (!isAuthorized) {
+      throw new ApiError('Only admin users can disable or re-enable users', 401);
+    }
+    const targetUserId = integerParam(req.params.userId, 'userId');
+    await this._dbManager.updateUser(targetUserId, { disabledAt });
   }
 
   private async _hardDeleteWorkspace(req: Request, wsId: number) {

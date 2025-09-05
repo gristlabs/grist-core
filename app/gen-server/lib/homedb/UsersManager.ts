@@ -202,6 +202,7 @@ export class UsersManager {
       locale: user.options?.locale,
       prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
       firstLoginAt: user.firstLoginAt || null,
+      disabledAt: user.disabledAt,
     };
     if (user.firstLoginAt) {
       result.firstLoginAt = user.firstLoginAt;
@@ -282,6 +283,10 @@ export class UsersManager {
       const previous = structuredClone(user);
       if (props.name && props.name !== user.name) {
         user.name = props.name;
+        needsSave = true;
+      }
+      if (props.disabledAt !== undefined && props.disabledAt !== user.disabledAt) {
+        user.disabledAt = props.disabledAt;
         needsSave = true;
       }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {

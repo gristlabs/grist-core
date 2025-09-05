@@ -32,6 +32,9 @@ export class User extends BaseEntity {
   @Column({name: 'last_connection_at', type: nativeValues.dateTimeType, nullable: true})
   public lastConnectionAt: Date | null;
 
+  @Column({name: 'disabled_at', type: nativeValues.dateTimeType, nullable: true})
+  public disabledAt: Date | null;
+
   @OneToOne(type => Organization, organization => organization.owner)
   public personalOrg: Organization;
 

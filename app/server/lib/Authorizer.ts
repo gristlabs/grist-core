@@ -392,7 +392,11 @@ export async function addRequestUser(
     }
   }
 
-  // If no userId has been found yet, fall back on anonymous.
+  if (mreq.user?.disabledAt) {
+    return res.status(403).send('Forbidden');
+  }
+
+  // If no userId has been found yet fall back on anonymous.
   if (!mreq.userId) {
     setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
   }

@@ -24,12 +24,14 @@ let userCountUpdates: {[orgId: number]: number[]} = {};
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('Kiwi');
 const charon = configForUser('Charon');
+const ham = configForUser('Ham');
 const support = configForUser('Support');
 const nobody = configForUser('Anonymous');
 
 const chimpyEmail = 'chimpy@getgrist.com';
 const kiwiEmail = 'kiwi@getgrist.com';
 const charonEmail = 'charon@getgrist.com';
+const hamEmail = 'ham@getgrist.com';
 
 let chimpyRef = '';
 let kiwiRef = '';
@@ -47,6 +49,8 @@ describe('ApiServer', function() {
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEMPLATE_ORG = 'templates';
+    // Large ham is the admin
+    process.env.GRIST_DEFAULT_EMAIL = hamEmail;
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
     dbManager = server.dbManager;
@@ -201,7 +205,8 @@ describe('ApiServer', function() {
           id: await dbManager.testGetId('Chimpy'),
           ref: await dbManager.testGetRef('Chimpy'),
           name: 'Chimpy',
-          picture: null
+          picture: null,
+          disabledAt: null,
         }
       }
     );
@@ -261,7 +266,8 @@ describe('ApiServer', function() {
           id: await dbManager.testGetId('Chimpy'),
           ref: await dbManager.testGetRef('Chimpy'),
           name: 'Chimpy',
-          picture: null
+          picture: null,
+          disabledAt: null,
         }
       }
     );
@@ -553,6 +559,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -561,6 +568,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         isMember: false,
       }, {
@@ -569,6 +577,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "viewers",
         isMember: true,
       }]
@@ -597,6 +606,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -605,6 +615,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "viewers",
         isMember: true,
       }]
@@ -669,6 +680,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -677,6 +689,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         isMember: false,
       }, {
@@ -685,6 +698,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "viewers",
         isMember: true,
       }]
@@ -720,6 +734,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -728,6 +743,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         isMember: false,
       }, {
@@ -736,6 +752,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "viewers",
         isMember: true,
       }]
@@ -767,6 +784,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -775,6 +793,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "viewers",
         isMember: true,
       }]
@@ -1085,6 +1104,49 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 403);
   });
 
+  it('GET /api/docs/{did} returns 403 for disabled users', async function () {
+    const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
+    const chimpyId = chimpyUser.id;
+    try {
+      const did = await dbManager.testGetId('Jupiter');
+
+      // Chimpy has access at first.
+      let resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Then chimpy misbehaves. So, kiwi tries to ban chimpy...
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Kiwi' }, kiwi);
+      assert.equal(resp.status, 401);
+
+      // ... but it doesn't work!
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Since kiwi doesn't have permission to ban chimpy, large ham steps in with the banHAMmer
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
+      assert.equal(resp.status, 204);
+
+      // Poor chimpy now really is banned
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 403);
+
+      // Chimpy learns their lesson but kiwi can't let them back in
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Kiwi' }, kiwi);
+      assert.equal(resp.status, 401);
+
+      // So ham has to give chimpy a second chance
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
+      assert.equal(resp.status, 204);
+
+      // Welcome back chimpy, we're all friends again
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 200);
+    } finally {
+      chimpyUser.disabledAt = null;
+      await chimpyUser.save();
+    }
+  });
+
   // Unauthorized folks can currently check if a document uuid exists and that's ok,
   // arguably, because uuids don't leak anything sensitive.
   it('GET /api/docs/{did} returns 404 without org access for nonexistent doc', async function() {
@@ -1389,6 +1451,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: 'guests',
         parentAccess: "owners",
         isMember: true,
@@ -1398,6 +1461,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         parentAccess: null,
         isMember: false,
@@ -1408,6 +1472,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: null,
         parentAccess: null,
         isMember: false,
@@ -1427,6 +1492,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -1435,6 +1501,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         isMember: false,
       }, {
@@ -1443,6 +1510,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         isMember: false,
       }]
@@ -1472,6 +1540,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: 'guests',
         parentAccess: "owners",
         isMember: true,
@@ -1482,6 +1551,7 @@ describe('ApiServer', function() {
         ref: charonRef,
         name: "Charon",
         picture: null,
+        disabledAt: null,
         access: null,
         parentAccess: null,
         isMember: false,
@@ -1498,6 +1568,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",
         isMember: true,
       }, {
@@ -1506,6 +1577,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: "guests",
         isMember: false,
       }]
@@ -1886,6 +1958,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: "owners",  // Chimpy's access is explicit since he is the owner who set access.
         parentAccess: "owners",
         isMember: true,
@@ -1895,6 +1968,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: null,
         parentAccess: "editors",
         isMember: true,
@@ -1904,6 +1978,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: null,
         parentAccess: "viewers",
         isMember: true,
@@ -1936,6 +2011,7 @@ describe('ApiServer', function() {
         email: chimpyEmail,
         ref: chimpyRef,
         picture: null,
+        disabledAt: null,
         access: 'owners',
         parentAccess: 'owners',
         isMember: true,
@@ -1945,6 +2021,7 @@ describe('ApiServer', function() {
         email: kiwiEmail,
         ref: kiwiRef,
         picture: null,
+        disabledAt: null,
         access: null,
         parentAccess: 'editors',
         isMember: true,
@@ -1954,6 +2031,7 @@ describe('ApiServer', function() {
         email: charonEmail,
         ref: charonRef,
         picture: null,
+        disabledAt: null,
         access: 'editors',
         parentAccess: 'viewers',
         isMember: true,
@@ -2036,6 +2114,7 @@ describe('ApiServer', function() {
       ref: chimpyRef,
       name: "Chimpy",
       picture: null,
+      disabledAt: null,
       allowGoogleLogin: true,
     });
   });
