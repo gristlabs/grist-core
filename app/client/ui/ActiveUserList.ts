@@ -15,7 +15,6 @@ import {
   dom,
   domComputed,
   DomElementArg, IDisposableOwner,
-  IDomArgs,
   makeTestId,
   Observable,
   styled
@@ -25,7 +24,9 @@ const t = makeT('ActiveUserList');
 const testId = makeTestId('test-aul-');
 
 export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: UserPresenceModel) {
-  const usersObs = Computed.create(owner, (use) => {
+  const totalUserIconSlots = 4;
+
+  const visibleUserProfilesObs = Computed.create(owner, (use) => {
     const userProfiles = use(userPresenceModel.userProfiles);
     // Clamps max users between 0 and 99 to prevent display issues and errors
     const maxUsers = Math.min(Math.max(0, getGristConfig().userPresenceMaxUsers ?? 99), 99);
@@ -36,64 +37,59 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
       .slice(0, maxUsers);
   });
 
-  const totalUserIconSlots = 4;
-  const computedUserIcons: IDomArgs<HTMLUListElement> = [];
-  const showRemainingUsersIconObs = Computed.create(owner, (use) => {
-    return totalUserIconSlots < use(usersObs).length;
+  const userMetadataObs = Computed.create(owner, (use) => {
+    const visibleUsers = use(visibleUserProfilesObs);
+    const totalVisibleUserIcons =
+      visibleUsers.length < totalUserIconSlots ? totalUserIconSlots : totalUserIconSlots - 1;
+    return {
+      totalUsers: visibleUsers.length,
+      totalVisibleUserIcons,
+    };
   });
 
-  for (let i = 0; i < (totalUserIconSlots - 1); i++) {
-    computedUserIcons.push(domComputed(use => {
-      const users = use(usersObs);
-      const user = users[i];
-      if (!user) {
-        return null;
-      }
-      return dom('li', createUserIndicator(user, { overlapLeft: i > 0 }));
-    }));
-  }
+  const userIconProfilesObs = Computed.create(owner, (use) => {
+    const totalIcons = use(userMetadataObs).totalVisibleUserIcons;
+    const profiles = use(visibleUserProfilesObs).slice(0, totalIcons);
+    // Reverses the order of user images, so that the z-index is automatically correct without explicitly setting it
+    profiles.reverse();
+    return profiles;
+  });
 
-  computedUserIcons.push(domComputed(use => {
-    const users = use(usersObs);
-    if (users.length !== totalUserIconSlots) { return null; }
-    const user = users[totalUserIconSlots - 1];
+  const showRemainingUsersIconObs = Computed.create(owner, (use) => {
+    return totalUserIconSlots < use(visibleUserProfilesObs).length;
+  });
+
+  const computedUserIcons = dom.forEach(userIconProfilesObs, (user) => {
     return dom('li', createUserIndicator(user));
-  }));
+  });
 
-  computedUserIcons.push(dom.maybe(showRemainingUsersIconObs, () => {
+  const remainingUsersIndicator = dom.maybe(showRemainingUsersIconObs, () => {
     return domComputed(() => {
-      return dom('li', createRemainingUsersIndicator(
-        usersObs,
-        Computed.create(owner,
-          (use) => use(usersObs).length - (totalUserIconSlots - 1)))
-      );
+      return dom('li', createRemainingUsersIndicator(visibleUserProfilesObs, userMetadataObs));
     });
-  }));
-
-  // Reverses the order of user images, so that the z-index is automatically correct without manual CSS overrides.
-  computedUserIcons.reverse();
+  });
 
   return cssActiveUserList(
-    ...computedUserIcons,
+    remainingUsersIndicator,
+    computedUserIcons,
     { "aria-label": t("active user list") },
     testId('container')
   );
 }
 
-function createUserIndicator(user: VisibleUserProfile, options = { overlapLeft: false }) {
+function createUserIndicator(user: VisibleUserProfile) {
   return createUserListImage(
     user,
     hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
-    options.overlapLeft ? createStyledUserImage.cls("-overlapping") : undefined,
     { 'aria-label': `${t('active user')}: ${user.name}`},
     testId('user-icon')
   );
 }
 
-function createRemainingUsersIndicator(usersObs: Observable<VisibleUserProfile[]>, userCountObs?: Observable<number>) {
+function createRemainingUsersIndicator(usersObs: Observable<VisibleUserProfile[]>, metadataObs: Observable<UsersMetadata>) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
-      domComputed(use => `+${userCountObs ? use(userCountObs) : use(usersObs).length}`),
+      dom.text(use => `+${use(metadataObs).totalUsers}`),
       cssUserImage.cls("-medium"),
       dom.style("font-size", "12px"),
     ),
@@ -149,6 +145,14 @@ const cssActiveUserList = styled('ul', `
   border: 0 solid;
 
   flex-direction: row-reverse;
+
+  & > * {
+    margin-left: -4px
+  }
+
+  & > :last-child {
+    margin-left: 0px;
+  }
 `);
 
 const userImageBorderCss = `
@@ -158,10 +162,6 @@ const userImageBorderCss = `
 
 const createStyledUserImage = styled(createUserImage, `
   ${userImageBorderCss};
-
-  &-overlapping {
-    margin-left: -4px;
-  }
 `);
 
 const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...args: DomElementArg[]) =>
@@ -208,4 +208,9 @@ export const remainingUsersMenuItem = styled(`div`, `
 
 function compareUserProfiles(a: VisibleUserProfile, b: VisibleUserProfile) {
   return nativeCompare(a.isAnonymous, b.isAnonymous) || nativeCompare(a.name, b.name);
+}
+
+interface UsersMetadata {
+  totalUsers: number;
+  totalVisibleUserIcons: number;
 }

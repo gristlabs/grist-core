@@ -103,7 +103,7 @@ describe('ActiveUserList', async function() {
 
   it('keeps the user list open when a new user appears', async function() {
     const getMenuItems = async () =>  await gu.findOpenMenuAllItems(
-        '.test-aul-user-list-user-name', async (item) => item
+        '.test-aul-user-name', async (item) => item
     );
     await driver.switchTo().window(mainWindow.handle);
     const currentMenuItemCount = (await getMenuItems()).length;
@@ -127,7 +127,7 @@ describe('ActiveUserList', async function() {
       await openDocWindowWithUser(docId, User3);
     }
     await driver.switchTo().window(mainWindow.handle);
-    const menuItems = await gu.findOpenMenuAllItems('.test-aul-user-list-user-name', async (item) => item);
+    const menuItems = await gu.findOpenMenuAllItems('.test-aul-user-name', async (item) => item);
     assert.equal(menuItems.length, USER_PRESENCE_MAX_USERS, 'max users not enforced');
   });
 
