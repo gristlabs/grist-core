@@ -34,21 +34,8 @@ export class UserPresence {
 
   private _onNewDocSession(docSession: DocSession) {
     const id = getIdFromDocSession(docSession);
-    this._log.debug(null, `Fetching session for ${id}`);
-    this._log.debug(null, `Fetching session for ${id}`);
-    this._log.debug(null, `Fetching session for ${id}`);
-    this._log.debug(null, `Fetching session for ${id}`);
-    this._log.debug(null, `Fetching session for ${id}`);
-    this._log.debug(null, `Fetching session for ${id}`);
-    this._log.debug(null, `Fetching session for ${id}`);
     const _existingPresenceSession = this._presenceSessionsById.get(id);
     if (!_existingPresenceSession) {
-      this._log.debug(null, `Creating session for ${id}`);
-      this._log.debug(null, `Creating session for ${id}`);
-      this._log.debug(null, `Creating session for ${id}`);
-      this._log.debug(null, `Creating session for ${id}`);
-      this._log.debug(null, `Creating session for ${id}`);
-      this._log.debug(null, `Creating session for ${id}`);
       const newPresenceSession = new UserPresenceSession(docSession);
       this._presenceSessionsById.set(id, newPresenceSession);
       this._broadcastUserPresenceSessionUpdate(newPresenceSession);
