@@ -9,7 +9,7 @@ import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
-import { GroupTypes } from "./GroupsManager";
+import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
 
 export interface QueryResult<T> {
   status: number;
