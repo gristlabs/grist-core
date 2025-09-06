@@ -2,7 +2,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
 import {create} from 'app/server/lib/create';
 import log from 'app/server/lib/log';
-import {ICreateAttachmentStoreOptions} from './ICreate';
+import {ICreateAttachmentStoreOptions} from 'app/server/lib/ICreate';
 import * as fse from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp-promise';
