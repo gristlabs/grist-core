@@ -27,7 +27,7 @@ import {isFullReferencingType, isListType, RecalcWhen} from "app/common/gristTyp
 import {Sort} from 'app/common/SortSpec';
 import {dom, DomElementArg, styled} from 'grainjs';
 import * as weasel from 'popweasel';
-import * as commands from "../components/commands";
+import * as commands from "app/client/components/commands";
 import isEqual = require('lodash/isEqual');
 
 const t = makeT('GridViewMenus');

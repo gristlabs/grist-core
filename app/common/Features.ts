@@ -1,4 +1,4 @@
-import Checkers, {Features as FeaturesTi} from './Features-ti';
+import Checkers, {Features as FeaturesTi} from 'app/common/Features-ti';
 import {CheckerT, createCheckers} from 'ts-interface-checker';
 import defaultsDeep from 'lodash/defaultsDeep';
 

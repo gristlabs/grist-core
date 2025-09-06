@@ -1,8 +1,8 @@
 import {BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyToMany,
   OneToOne, PrimaryGeneratedColumn} from "typeorm";
 
-import {AclRule} from "./AclRule";
-import {User} from "./User";
+import {AclRule} from "app/gen-server/entity/AclRule";
+import {User} from "app/gen-server/entity/User";
 import { ApiError } from "app/common/ApiError";
 
 @Entity({name: 'groups'})

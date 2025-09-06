@@ -1,8 +1,8 @@
 import { dom, styled } from "grainjs";
 import { dropdownWithSearch } from "app/client/ui/searchDropdown";
 import { testId } from "app/client/ui2018/cssVars";
-import { withLocale } from "./helpers/withLocale";
-import { initGristStyles } from "./helpers/gristStyles";
+import { withLocale } from "test/fixtures/projects/helpers/withLocale";
+import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const options = [
   'Foo', 'Bar',

@@ -53,7 +53,7 @@ import {localeFromRequest} from 'app/server/lib/ServerLocale';
 import {fromCallback} from 'app/server/lib/serverUtils';
 import {Sessions} from 'app/server/lib/Sessions';
 import {i18n} from 'i18next';
-import { trustOrigin } from './requestUtils';
+import { trustOrigin } from 'app/server/lib/requestUtils';
 
 export interface CommOptions {
   sessions: Sessions;                   // A collection of all sessions for this instance of Grist

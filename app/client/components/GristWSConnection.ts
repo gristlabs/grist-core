@@ -9,7 +9,7 @@ import {addOrgToPath, docUrl, getGristConfig} from 'app/common/urlUtils';
 import {UserAPI} from 'app/common/UserAPI';
 import {Events as BackboneEvents} from 'backbone';
 import {Disposable} from 'grainjs';
-import {GristClientSocket} from './GristClientSocket';
+import {GristClientSocket} from 'app/client/components/GristClientSocket';
 
 const G = getBrowserGlobals('window');
 const reconnectInterval = [1000, 1000, 2000, 5000, 10000];

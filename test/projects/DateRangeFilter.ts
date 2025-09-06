@@ -1,7 +1,7 @@
 import range from "lodash/range";
 import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 import moment from "moment";
-import { server, setupTestSuite } from "./testUtils";
+import { server, setupTestSuite } from "test/projects/testUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import * as fu from "test/projects/filterUtils";
 

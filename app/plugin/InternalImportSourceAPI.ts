@@ -1,8 +1,8 @@
-import { RenderTarget } from './RenderOptions';
+import { RenderTarget } from 'app/plugin/RenderOptions';
 
-import { ImportSource } from './ImportSourceAPI';
+import { ImportSource } from 'app/plugin/ImportSourceAPI';
 
-export * from  './ImportSourceAPI';
+export * from  'app/plugin/ImportSourceAPI';
 
 /**
  * This internal interface is implemented by grist-plugin-api.ts to support

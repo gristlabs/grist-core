@@ -3,12 +3,12 @@ import {Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
 
 import {Role} from "app/common/roles";
 import {OrganizationProperties, organizationPropertyKeys} from "app/common/UserAPI";
-import {AclRuleOrg} from "./AclRule";
-import {BillingAccount} from "./BillingAccount";
-import {Pref} from "./Pref";
-import {Resource} from "./Resource";
-import {User} from "./User";
-import {Workspace} from "./Workspace";
+import {AclRuleOrg} from "app/gen-server/entity/AclRule";
+import {BillingAccount} from "app/gen-server/entity/BillingAccount";
+import {Pref} from "app/gen-server/entity/Pref";
+import {Resource} from "app/gen-server/entity/Resource";
+import {User} from "app/gen-server/entity/User";
+import {Workspace} from "app/gen-server/entity/Workspace";
 
 // Information about how an organization may be accessed.
 export interface AccessOption {

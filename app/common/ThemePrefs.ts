@@ -1,4 +1,4 @@
-import { CssCustomProp } from './CssCustomProp';
+import { CssCustomProp } from 'app/common/CssCustomProp';
 
 export interface ThemePrefs {
   appearance: ThemeAppearance;

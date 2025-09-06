@@ -1,5 +1,5 @@
 import {BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
-import {Document} from "./Document";
+import {Document} from "app/gen-server/entity/Document";
 
 @Entity({name: 'secrets'})
 export class Secret extends BaseEntity {

@@ -10,7 +10,7 @@ import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
-import { UsersManager } from "./UsersManager";
+import { UsersManager } from "app/gen-server/lib/homedb/UsersManager";
 import { ApiError } from "app/common/ApiError";
 
 export type GroupTypes = typeof Group.ROLE_TYPE | typeof Group.TEAM_TYPE;

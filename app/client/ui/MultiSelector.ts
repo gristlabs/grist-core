@@ -22,7 +22,7 @@
 
 import { computed, MutableObsArray, ObsArray, observable, Observable } from 'grainjs';
 import { Disposable, dom, makeTestId, select, styled } from 'grainjs';
-import { button1 } from './buttons';
+import { button1 } from 'app/client/ui/buttons';
 
 export interface BaseItem {
   value: any;

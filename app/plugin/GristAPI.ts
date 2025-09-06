@@ -35,7 +35,7 @@
  *
  */
 
-import {RenderOptions, RenderTarget} from './RenderOptions';
+import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
 
 // This is the row ID used in the client, but it's helpful to have available in some common code
 // as well, which is why it's declared here. Note that for data actions and stored data,

@@ -33,9 +33,9 @@ import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
 import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import log from 'app/server/lib/log';
-import {ActiveDoc} from './ActiveDoc';
-import {PluginManager} from './PluginManager';
-import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {PluginManager} from 'app/server/lib/PluginManager';
+import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from 'app/server/lib/uploads';
 import isDeepEqual = require('lodash/isEqual')
 import merge = require('lodash/merge');
 import noop = require('lodash/noop');

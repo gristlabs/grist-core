@@ -11,7 +11,7 @@ import ko from 'knockout';
 import {noop} from 'lodash';
 import {IOpenController, setPopupToCreateDom} from 'popweasel';
 import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
-import {initGristStyles} from "./helpers/gristStyles";
+import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
 
 const testId = makeTestId('fixture-');
 const dateFormatter = createFormatter('Date', {dateFormat: 'YYYY-MM-DD'}, {locale: 'en-US'});

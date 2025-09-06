@@ -8,14 +8,14 @@ import {safeJsonParse} from 'app/common/gutil';
 import {schema, SchemaTypes} from 'app/common/schema';
 import fromPairs = require('lodash/fromPairs');
 import groupBy = require('lodash/groupBy');
-import {ActionDispatcher} from './ActionDispatcher';
-import {TableFetchResult} from './ActiveDocAPI';
+import {ActionDispatcher} from 'app/common/ActionDispatcher';
+import {TableFetchResult} from 'app/common/ActiveDocAPI';
 import {
   BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction,
   getColIdsFromDocAction,
   RowRecord, TableDataAction
-} from './DocActions';
-import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from './TableData';
+} from 'app/common/DocActions';
+import {ColTypeMap, MetaRowRecord, MetaTableData, TableData} from 'app/common/TableData';
 
 type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 

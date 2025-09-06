@@ -1,5 +1,5 @@
 import { AppSettings } from 'app/server/lib/AppSettings';
-import { EnvironmentSnapshot } from '../testUtils';
+import { EnvironmentSnapshot } from 'test/server/testUtils';
 
 import { assert } from 'chai';
 

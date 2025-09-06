@@ -1,10 +1,10 @@
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {WorkspaceProperties, workspacePropertyKeys} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
-import {AclRuleWs} from "./AclRule";
-import {Document} from "./Document";
-import {Organization} from "./Organization";
-import {Resource} from "./Resource";
+import {AclRuleWs} from "app/gen-server/entity/AclRule";
+import {Document} from "app/gen-server/entity/Document";
+import {Organization} from "app/gen-server/entity/Organization";
+import {Resource} from "app/gen-server/entity/Resource";
 
 @Entity({name: 'workspaces'})
 export class Workspace extends Resource {

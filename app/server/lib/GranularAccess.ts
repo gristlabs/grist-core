@@ -56,7 +56,7 @@ import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
 import memoize = require('lodash/memoize');
-import { getConfiguredStandardAttachmentStore } from './AttachmentStoreProvider';
+import { getConfiguredStandardAttachmentStore } from 'app/server/lib/AttachmentStoreProvider';
 
 /**
  * A threshold beyond which for this installation it would be

@@ -49,7 +49,7 @@ import {Disposable, emptyNode} from 'app/client/lib/dispose';
 import {Delay} from 'app/client/lib/Delay';
 import dom from 'app/client/lib/dom';
 import koDom from 'app/client/lib/koDom';
-import {ContentBox, Layout, LayoutBox} from './Layout';
+import {ContentBox, Layout, LayoutBox} from 'app/client/components/Layout';
 import * as ko from 'knockout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 

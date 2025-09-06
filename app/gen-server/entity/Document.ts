@@ -5,11 +5,11 @@ import {DocumentOptions, DocumentProperties, documentPropertyKeys, DocumentType,
         NEW_DOCUMENT_CODE} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
-import {AclRuleDoc} from "./AclRule";
-import {Alias} from "./Alias";
-import {Resource} from "./Resource";
-import {Secret} from "./Secret";
-import {Workspace} from "./Workspace";
+import {AclRuleDoc} from "app/gen-server/entity/AclRule";
+import {Alias} from "app/gen-server/entity/Alias";
+import {Resource} from "app/gen-server/entity/Resource";
+import {Secret} from "app/gen-server/entity/Secret";
+import {Workspace} from "app/gen-server/entity/Workspace";
 
 // Acceptable ids for use in document urls.
 const urlIdRegex = /^[-a-z0-9]+$/i;

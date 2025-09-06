@@ -1,7 +1,7 @@
-import * as Types from "./DocApiTypes";
-import { BulkColValues } from './GristData';
-import { OpOptions, TableOperations, UpsertOptions } from './TableOperations';
-import { arrayRepeat } from './gutil';
+import * as Types from "app/plugin/DocApiTypes";
+import { BulkColValues } from 'app/plugin/GristData';
+import { OpOptions, TableOperations, UpsertOptions } from 'app/plugin/TableOperations';
+import { arrayRepeat } from 'app/plugin/gutil';
 import flatMap = require('lodash/flatMap');
 import isEqual = require('lodash/isEqual');
 import pick = require('lodash/pick');

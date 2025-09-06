@@ -1,10 +1,10 @@
 import {BaseEntity, ChildEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne,
         PrimaryGeneratedColumn, RelationId, TableInheritance} from "typeorm";
 
-import {Document} from "./Document";
-import {Group} from "./Group";
-import {Organization} from "./Organization";
-import {Workspace} from "./Workspace";
+import {Document} from "app/gen-server/entity/Document";
+import {Group} from "app/gen-server/entity/Group";
+import {Organization} from "app/gen-server/entity/Organization";
+import {Workspace} from "app/gen-server/entity/Workspace";
 
 @Entity('acl_rules')
 @TableInheritance({ column: { type: "int", name: "type" } })
