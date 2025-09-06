@@ -1,7 +1,7 @@
 import { swatches } from 'app/client/ui2018/ColorPalette';
 import { addToRepl, assert, driver, Key, stackWrapFunc, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 const black = '#000000';
 const white = '#FFFFFF';
