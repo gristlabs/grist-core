@@ -112,6 +112,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     helpScoutBeaconId: process.env.HELP_SCOUT_BEACON_ID_V2,
     maxUploadSizeImport: (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || undefined,
     maxUploadSizeAttachment: (Number(process.env.GRIST_MAX_UPLOAD_ATTACHMENT_MB) * 1024 * 1024) || undefined,
+    maxApiRequestBodySize: (Number(process.env.GRIST_MAX_API_REQUEST_BODY_MB) * 1024 * 1024) || undefined,
     timestampMs: Date.now(),
     enableWidgetRepository: Boolean(process.env.GRIST_WIDGET_LIST_URL) ||
         ((server?.getBundledWidgets().length || 0) > 0),

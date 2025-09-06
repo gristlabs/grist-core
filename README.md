@@ -381,6 +381,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_MAX_PARALLEL_REQUESTS_PER_DOC| max number of concurrent API requests allowed per document (default is 10, set to 0 for unlimited) |
 | GRIST_MAX_UPLOAD_ATTACHMENT_MB | max allowed size for attachments (0 or empty for unlimited). |
 | GRIST_MAX_UPLOAD_IMPORT_MB | max allowed size for imports (except .grist files) (0 or empty for unlimited). |
+| GRIST_MAX_API_REQUEST_BODY_MB | max allowed size for API request bodies in MB (0 or empty for unlimited, defaults to 1). |
 | GRIST_OFFER_ALL_LANGUAGES | if set, all translated langauages are offered to the user (by default, only languages with a special 'good enough' key set are offered to user). |
 | GRIST_ORG_IN_PATH | if true, encode org in path rather than domain |
 | GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all. |

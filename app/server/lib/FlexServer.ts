@@ -1078,7 +1078,8 @@ export class FlexServer implements GristServer {
 
   public addJsonSupport() {
     if (this._check('json')) { return; }
-    this.app.use(express.json({limit: '1mb'}));  // Increase from the default 100kb
+    const limit = process.env.GRIST_MAX_API_REQUEST_BODY_MB ? `${process.env.GRIST_MAX_API_REQUEST_BODY_MB}mb` : '1mb';
+    this.app.use(express.json({limit}));  // Configurable limit, defaulting to 1mb
   }
 
   public addSessions() {
