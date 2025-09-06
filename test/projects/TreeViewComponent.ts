@@ -1,6 +1,6 @@
 import { delay } from 'bluebird';
 import { addToRepl, assert, driver} from 'mocha-webdriver';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 describe('TreeViewComponent', () => {
   setupTestSuite();
