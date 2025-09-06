@@ -1,7 +1,7 @@
 import {buildParseOptionsForm, ParseOptionValues} from 'app/client/components/ParseOptions';
 import {testId} from 'app/client/ui2018/cssVars';
 import {dom, Observable, styled} from "grainjs";
-import {initSchema, initValues} from './helpers/ParseOptionsData';
+import {initSchema, initValues} from 'test/fixtures/projects/helpers/ParseOptionsData';
 import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {
