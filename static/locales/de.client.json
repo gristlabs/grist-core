@@ -1228,7 +1228,9 @@
         "Showing last {{nb}} comments": "Letzte {{nb}} Kommentare anzeigen",
         "Remove thread": "Thema entfernen",
         "updated": "aktualisiert",
-        "Copy link": "Link kopieren"
+        "Copy link": "Link kopieren",
+        "{{count}} comments_one": "{{count}} Kommentar",
+        "{{count}} comments_other": "{{count}} Kommentare"
     },
     "ColumnInfo": {
         "COLUMN DESCRIPTION": "SPALTENBESCHREIBUNG",
@@ -1818,7 +1820,13 @@
         "Auto-check weekly": "Auto-Check wöchentlich",
         "No record of last version check": "Keine Aufzeichnung der letzten Versionsprüfung",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Sie können das Streaming von Audit-Ereignissen von Grist zu einem externen SIEM-System (Security Information and Event Management) einrichten, wenn Sie Grist Enterprise aktivieren. {{contactUsLink}}, um mehr zu erfahren.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatische Prüfungen sind deaktiviert. Setzen Sie die Umgebungsvariable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING auf \"true\", um sie zu aktivieren."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Automatische Prüfungen sind deaktiviert. Setzen Sie die Umgebungsvariable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING auf \"true\", um sie zu aktivieren.",
+        "auth error": "Authentifizierungsfehler",
+        "configured": "konfiguriert",
+        "default": "standard",
+        "more...": "mehr...",
+        "no authentication": "keine Authentifizierung",
+        "unavailable": "nicht verfügbar"
     },
     "Section": {
         "Insert section above": "Abschnitt oben einfügen",
@@ -2246,5 +2254,12 @@
         "active user": "aktiver Nutzer",
         "active user list": "aktive Benutzerliste",
         "open full active user list": "vollständige Liste der aktiven Benutzer öffnen"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist ermöglicht sehr leistungsfähige Formeln, die Python verwenden. Wir empfehlen, die Umgebungsvariable GRIST_SANDBOX_FLAVOR auf gvisor zu setzen, wenn Ihre Hardware dies unterstützt (was bei den meisten der Fall ist), um Formeln in jedem Dokument innerhalb einer Sandbox auszuführen, die von anderen Dokumenten und vom Netzwerk isoliert ist.",
+        "Grist has a small built-in health check often used when running it as a container.": "Grist hat einen kleinen eingebauten Gesundheitscheck, der oft verwendet wird, wenn es als Container läuft.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Anfragen, die bei Grist ankommen, sollten einen genauen Host-Header haben. Dies ist wichtig, wenn GRIST_SERVE_SAME_ORIGIN eingestellt ist.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Diese Boot-Seite sollte nicht zu leicht zugänglich sein. Schalten Sie sie entweder aus, wenn die Konfiguration in Ordnung ist (indem Sie GRIST_BOOT_KEY aufheben), oder machen Sie GRIST_BOOT_KEY lang und kryptografisch sicher.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket-Verbindungen benötigen HTTP 1.1 und die Möglichkeit, ein paar zusätzliche Header zu übergeben, um zu funktionieren. Manchmal kann ein Reverse Proxy diese Anforderungen beeinträchtigen."
     }
 }
