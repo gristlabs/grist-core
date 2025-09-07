@@ -46,6 +46,8 @@ type RemoveObjectsResponse = null | undefined | {
  * will work with MinIO and other S3-compatible storage.
  */
 export class MinIOExternalStorage implements ExternalStorage {
+  private _s3: MinIOClient;
+
   // Specify bucket to use, and optionally the max number of keys to request
   // in any call to listObjectVersions (used for testing)
   constructor(
@@ -68,8 +70,6 @@ export class MinIOExternalStorage implements ExternalStorage {
     }
     this._s3 = _s3 || new minio.Client(this.options) as unknown as MinIOClient;
   }
-
-  private _s3: MinIOClient;
 
   public async exists(key: string, snapshotId?: string) {
     return Boolean(await this.head(key, snapshotId));
