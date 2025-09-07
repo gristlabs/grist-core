@@ -29,33 +29,18 @@ describe("MinIOExternalStorage", function () {
     sandbox.restore();
   });
 
-  // Extend MinIOExternalStorage to allow injecting a mock client for testing
-  class TestMinIOExternalStorage extends MinIOExternalStorage {
-    constructor(
-      bucket: string,
-      options: any,
-      batchSize?: number,
-      mockClient?: any
-    ) {
-      super(bucket, options, batchSize);
-      if (mockClient) {
-        (this as any)._s3 = mockClient;
-      }
-    }
-  }
-
   describe('upload()', function () {
     const filename = "some-filename";
     let filestream: fse.ReadStream;
     let s3: sinon.SinonStubbedInstance<minio.Client>;
-    let extStorage: TestMinIOExternalStorage;
+    let extStorage: MinIOExternalStorage;
 
     beforeEach(function () {
       filestream = new stream.Readable() as any;
       sandbox.stub(fse, "lstat").resolves({} as any);
       sandbox.stub(fse, "createReadStream").withArgs(filename).returns(filestream as any);
       s3 = sandbox.createStubInstance(minio.Client);
-      extStorage = new TestMinIOExternalStorage(
+      extStorage = new MinIOExternalStorage(
         dummyBucket,
         dummyOptions,
         undefined,
@@ -111,7 +96,7 @@ describe("MinIOExternalStorage", function () {
 
       s3.listObjects.returns(fakeStream);
 
-      const extStorage = new TestMinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
       const result = await extStorage.versions(key);
 
       assert.deepEqual(result, []);
@@ -137,7 +122,7 @@ describe("MinIOExternalStorage", function () {
       ]);
 
       s3.listObjects.returns(fakeStream);
-      const extStorage = new TestMinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
       // when
       const result = await extStorage.versions(key);
       // then
@@ -170,7 +155,7 @@ describe("MinIOExternalStorage", function () {
       let {fakeStream} = makeFakeStream(objectsFromS3);
 
       s3.listObjects.returns(fakeStream);
-      const extStorage = new TestMinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
 
       // when
       const result = await extStorage.versions(key);
@@ -208,7 +193,7 @@ describe("MinIOExternalStorage", function () {
         .returns(fakeStream as any)
         .callsFake(() => fakeStream.emit('error', error));
       s3.listObjects.returns(fakeStream);
-      const extStorage = new TestMinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
+      const extStorage = new MinIOExternalStorage(dummyBucket, dummyOptions, 42, s3 as any);
 
       // when
       const result = extStorage.versions(key);
