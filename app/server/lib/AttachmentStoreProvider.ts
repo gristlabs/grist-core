@@ -168,14 +168,21 @@ export function getConfiguredStandardAttachmentStore(): string | undefined {
   }
 }
 
+export class UnsupportedExternalAttachmentsMode extends Error {
+  constructor(storeType: string) {
+    super(`Unsupported external attachments mode on this version of Grist: ${storeType}`);
+  }
+}
+
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
   if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'snapshots') {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
-      return [];
+      throw new UnsupportedExternalAttachmentsMode("snapshots");
     }
     if (!(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
+      log.warn("External attachment store 'snapshots' requested, but no snapshot storage is configured.");
       return [];
     }
     return [{
@@ -190,5 +197,9 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
       spec: await makeTempFilesystemStoreSpec(),
     }];
   }
-  return [];
+  if (!GRIST_EXTERNAL_ATTACHMENTS_MODE) {
+    return [];
+  }
+  // GRIST_EXTERNAL_ATTACHMENTS_MODE has some value that doesn't make sense.
+  throw new UnsupportedExternalAttachmentsMode(GRIST_EXTERNAL_ATTACHMENTS_MODE);
 }
