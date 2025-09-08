@@ -166,7 +166,11 @@ function getIdFromDocSession(session: DocSession): string {
     return session.client.publicClientId;
   }
   const authSession = session.client.authSession;
-  return (authSession.userIsAuthorized && authSession.userId?.toString()) || session.client.publicClientId;
+  return (
+    (authSession.userIsAuthorized && authSession.userId?.toString())
+    || authSession.altSessionId
+    || session.client.clientId
+  );
 }
 
 class UserPresenceSession {
