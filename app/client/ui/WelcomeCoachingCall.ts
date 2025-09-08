@@ -9,7 +9,6 @@ import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, styled} from 'grainjs';
-import {commonUrls} from 'app/common/gristUrls';
 
 const t = makeT('WelcomeCoachingCall');
 
@@ -98,7 +97,7 @@ We can show you the Grist basics, or start working with your data right away to 
             t("You may also check out {{ourWeeklyWebinars}} to learn more about Grist.",
               {
                 ourWeeklyWebinars: cssLink(
-                  {href: commonUrls.webinars, target: '_blank'},
+                  {href: window.gristConfig.commonUrls.webinars, target: '_blank'},
                   t('our weekly webinars')
                 )
               }
@@ -116,7 +115,7 @@ We can show you the Grist basics, or start working with your data right away to 
             logTelemetryEvent('clickedScheduleCoachingCall');
           }),
           {
-            href: commonUrls.freeCoachingCall,
+            href: window.gristConfig.commonUrls.freeCoachingCall,
             target: '_blank',
           },
           testId('popup-primary-button'),

@@ -7,7 +7,6 @@ import {colors} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {saveModal} from 'app/client/ui2018/modals';
-import {commonUrls} from 'app/common/gristUrls';
 import {Computed, Disposable, dom, input, makeTestId, Observable, styled} from 'grainjs';
 
 const t = makeT('DuplicateTable');
@@ -84,7 +83,7 @@ class DuplicateTableModal extends Disposable {
       cssWarning(
         cssWarningIcon('Warning'),
         dom('div', t("Instead of duplicating tables, it's usually better to segment data using linked views. {{link}}",
-          {link: cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')}
+          {link: cssLink({href: window.gristConfig.commonUrls.helpLinkingWidgets, target: '_blank'}, 'Read More.')}
         )),
       ),
       cssField(
