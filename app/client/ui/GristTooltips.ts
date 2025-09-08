@@ -460,7 +460,7 @@ data.")),
       ),
       dom('div',
         cssNewsPopupLink(t('Learn more.'), {
-          href: commonUrls.helpComments,
+          href: window.gristConfig.commonUrls.helpComments,
           target: '_blank',
         }),
       ),

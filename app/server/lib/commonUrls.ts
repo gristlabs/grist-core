@@ -54,6 +54,8 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
+  helpSharing: 'https://support.getgrist.com/sharing',
+  helpComments: 'https://support.getgrist.com/sharing/#comments',
   freeCoachingCall: process.env.FREE_COACHING_CALL_URL || 'https://calendly.com/grist-team/grist-free-coaching-call',
   contactSupport: process.env.GRIST_CONTACT_SUPPORT_URL || 'https://www.getgrist.com/contact',
   termsOfService: process.env.GRIST_TERMS_OF_SERVICE_URL || undefined,
