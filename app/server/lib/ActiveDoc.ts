@@ -1396,6 +1396,9 @@ export class ActiveDoc extends EventEmitter {
     tableId: string,
     includeHidden = false): Promise<RecordWithStringId[]> {
     const metaTables = await this.fetchMetaTables(docSession);
+    if (tableId.startsWith('_grist_')) {
+      throw new Error('getTableCols not available for meta tables');
+    }
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
 
