@@ -266,7 +266,6 @@ export class ActiveDoc extends EventEmitter {
 
   public isFork: boolean;
 
-  private _userPresence: UserPresence;
   protected _actionHistory: ActionHistory;
   protected _sharing: Sharing;
   // This lock is used to avoid reading sandbox state while it is being modified but before
@@ -283,6 +282,7 @@ export class ActiveDoc extends EventEmitter {
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
   private _tableMetadataLoader: TableMetadataLoader;
+  private _userPresence: UserPresence;
   /**
    * If set, changes to this document should not propagate to outside world
    */
