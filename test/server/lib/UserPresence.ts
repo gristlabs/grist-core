@@ -153,6 +153,37 @@ describe('UserPresence', function() {
     })
   );
 
+  it("only shows 1 message for multiple clients with the same user", async function () {
+    const observerClient = await getWebsocket(editor);
+    const otherClients = await Promise.all([
+      getWebsocket(owner),
+      getWebsocket(owner),
+      getWebsocket(owner),
+      getWebsocket(owner),
+    ]);
+
+    await observerClient.openDocOnConnect(docId);
+    await Promise.all(otherClients.map(client => client.openDocOnConnect(docId)));
+
+    const firstMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+    // First message should be the one showing a user is present
+    assert(firstMessage.data.profile != undefined, "connect message not received first");
+
+    await Promise.all(otherClients.map(closeClient));
+
+    const secondMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+    // Second message should be a disconnect - there should only have been 1 present message for all clients.
+    assert(secondMessage.data.profile == null, "received unexpected user presence update");
+
+    // Connect one more client to trigger a connection message.
+    const finalClient = await getWebsocket(owner);
+    await finalClient.openDocOnConnect(docId);
+
+    const finalMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+    // Third message should be the reconnect - i.e. only one disconnection message should have been sent.
+    assert(finalMessage.data.profile != null, "received unexpected user presence disconnect");
+  });
+
   describe("users without the correct permissions can't see other users", async function () {
     before(async () => {
       await owner.updateDocPermissions(docId, {
