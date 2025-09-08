@@ -36,7 +36,7 @@ export async function createSavedDoc(
   );
   const workspaces = dbManager.unwrapQueryResult(workspacesQueryResult);
   const userWorkspaces = workspaces
-    .filter((w) => !w.isSupportWorkspace)
+    .filter((w) => !w.isSupportWorkspace && w.owner?.id === userId)
     .sort((a, b) => localeCompare(a.name, b.name));
   if (userWorkspaces.length === 0) {
     throw new ApiError(
