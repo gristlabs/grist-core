@@ -110,7 +110,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
     const newLabel = editedLabel.get()?.trim() ?? '';
     // Save only when it is not empty and different from the current value.
     if (newLabel && newLabel !== field.displayLabel.peek()) {
-      await field.displayLabel.setAndSave(newLabel);
+      await field.displayLabel.setAndSaveOrRevert(newLabel);
     }
   };
 
@@ -118,7 +118,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
   const saveColumnDesc = async () => {
     const newDesc = editedDesc.get()?.trim() ?? '';
     if (newDesc !== field.description.peek()) {
-      await field.description.saveOnly(newDesc);
+      await field.description.setAndSaveOrRevert(newDesc);
     }
   };
 

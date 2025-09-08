@@ -22,6 +22,19 @@ export const unstyledButton = styled('button', `
   appearance: button;
 `);
 
+export const unstyledLink = styled('a', `
+  ${base}
+  color: inherit;
+  -webkit-text-decoration: inherit;
+  text-decoration: inherit;
+
+  &:hover, &:focus {
+    color: inherit;
+    -webkit-text-decoration: inherit;
+    text-decoration: inherit;
+  }
+`);
+
 export const unstyledUl = styled('ul', `
   ${base}
   list-style: none;

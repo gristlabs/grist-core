@@ -2,7 +2,6 @@ import { allCommands } from 'app/client/components/commands';
 import { makeT } from 'app/client/lib/localization';
 import { menuDivider, menuItemCmd } from 'app/client/ui2018/menus';
 import { IMultiColumnContextMenu } from 'app/client/ui/GridViewMenus';
-import { COMMENTS } from 'app/client/models/features';
 import { dom } from 'grainjs';
 
 const t = makeT('CellContextMenu');
@@ -13,11 +12,12 @@ export interface ICellContextMenu {
   isViewSorted: boolean;
   numRows: number;
   disableAnchorLink?: boolean;
+  onlyAddRowSelected?: boolean;
 }
 
 export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
 
-  const { disableInsert, disableDelete, isViewSorted, numRows } = cellOptions;
+  const { disableInsert, disableDelete, isViewSorted, numRows, onlyAddRowSelected} = cellOptions;
   const { numColumns, disableModify, isReadonly, isFiltered } = colOptions;
 
   // disableModify is true if the column is a summary column or is being transformed.
@@ -57,8 +57,8 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
         menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
-         isReadonly || numRows === 0 || numColumns === 0
-        )), dom.hide(use => !use(COMMENTS()))) //TODO: i18next
+         isReadonly || numRows === 0 || numColumns === 0 || onlyAddRowSelected
+        )))
       ]
     ),
 

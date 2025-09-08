@@ -1,9 +1,11 @@
+import {makeT} from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/errors';
 import { BootProbeIds, BootProbeInfo, BootProbeResult } from 'app/common/BootProbe';
 import { InstallAPI } from 'app/common/InstallAPI';
 import { getGristConfig } from 'app/common/urlUtils';
 import { Disposable, Observable, UseCBOwner } from 'grainjs';
 
+const t = makeT("AdminChecks");
 /**
  * Manage a collection of checks about the status of Grist, for
  * presentation on the admin panel or the boot page.
@@ -121,58 +123,44 @@ export class AdminCheckRunner {
  */
 export const probeDetails: Record<string, ProbeDetails> = {
   'boot-page': {
-    info: `
-This boot page should not be too easy to access. Either turn
-it off when configuration is ok (by unsetting GRIST_BOOT_KEY)
-or make GRIST_BOOT_KEY long and cryptographically secure.
-`,
+    info: t('This boot page should not be too easy to access. Either turn \
+it off when configuration is ok (by unsetting GRIST_BOOT_KEY) \
+or make GRIST_BOOT_KEY long and cryptographically secure.'),
   },
 
   'health-check': {
-    info: `
-Grist has a small built-in health check often used when running
-it as a container.
-`,
+    info: t('Grist has a small built-in health check often used when running \
+it as a container.'),
   },
 
   'host-header': {
-    info: `
-Requests arriving to Grist should have an accurate Host
-header. This is essential when GRIST_SERVE_SAME_ORIGIN
-is set.
-`,
+    info: t('Requests arriving to Grist should have an accurate Host \
+header. This is essential when GRIST_SERVE_SAME_ORIGIN \
+is set.'),
   },
 
   'sandboxing': {
-    info: `
-Grist allows for very powerful formulas, using Python.
-We recommend setting the environment variable
-GRIST_SANDBOX_FLAVOR to gvisor if your hardware
-supports it (most will), to run formulas in each document
-within a sandbox isolated from other documents and isolated
-from the network.
-`
+    info: t('Grist allows for very powerful formulas, using Python. \
+We recommend setting the environment variable \
+GRIST_SANDBOX_FLAVOR to gvisor if your hardware \
+supports it (most will), to run formulas in each document \
+within a sandbox isolated from other documents and isolated \
+from the network.')
   },
 
   'system-user': {
-    info: `
-It is good practice not to run Grist as the root user.
-`,
+    info: t('It is good practice not to run Grist as the root user.'),
   },
 
   'reachable': {
-    info: `
-The main page of Grist should be available.
-`
+    info: t('The main page of Grist should be available.')
   },
 
   'websockets': {
     // TODO: add a link to https://support.getgrist.com/self-managed/#how-do-i-run-grist-on-a-server
-    info: `
-Websocket connections need HTTP 1.1 and the ability to pass a few
-extra headers in order to work. Sometimes a reverse proxy can
-interfere with these requirements.
-`
+    info: t('Websocket connections need HTTP 1.1 and the ability to pass a few \
+extra headers in order to work. Sometimes a reverse proxy can \
+interfere with these requirements.')
   },
 };
 

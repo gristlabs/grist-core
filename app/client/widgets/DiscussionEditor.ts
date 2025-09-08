@@ -233,6 +233,7 @@ export class CommentPopup extends Disposable {
               text: this._newText,
               cell: _props.cell,
               gristDoc: _props.gristDoc,
+              cursorPos: _props.cursorPos,
               access,
               closeClicked: _props.closeClicked,
             });
@@ -391,6 +392,7 @@ class SingleThread extends Disposable implements IDomComponent {
     cell: DiscussionModel,
     access: PermissionData,
     gristDoc: GristDoc,
+    cursorPos: CursorPos,
     closeClicked?: () => void
   }) {
     super();
@@ -600,6 +602,7 @@ class Comment extends Disposable {
       access: PermissionData,
       cell: DiscussionModel,
       gristDoc: GristDoc,
+      cursorPos?: CursorPos,
       parent?: CellRec|null,
       panel?: boolean,
       args?: DomArg<HTMLDivElement>[]
@@ -804,6 +807,15 @@ class Comment extends Disposable {
       && lastComment === comment; // and this is the last comment
     const editVisible = !this._resolved.get();
     return [
+      // Show option for anchor link, except in the side-panel view where we don't have cursorPos.
+      // Without it, we don't know the section, and anchor links can't work without it.
+      (this.props.cursorPos ?
+        menuItem(
+          () => this.props.gristDoc.copyAnchorLink({comments: true, ...this.props.cursorPos}).catch(reportError),
+          t("Copy link")
+        ) :
+        null
+      ),
       !resolveVisible ? null :
         menuItem(
           () => this.props.cell.resolve(comment),
@@ -1074,7 +1086,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
 
   public buildMenu(): DomContents {
     return cssPanelHeader(
-      dom('span', dom.text(use => `${use(this._length)} comments`), testId('comment-count')),
+      dom('span', dom.text(use => t("{{count}} comments", {count: use(this._length)})), testId('comment-count')),
       cssIconButtonMenu(
         icon('Dots'),
         testId('panel-menu'),

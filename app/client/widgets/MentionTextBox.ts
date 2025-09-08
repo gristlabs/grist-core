@@ -405,6 +405,9 @@ const cssMentionAvatar = styled(createUserImage, `
   margin-right: 4px;
 `);
 
+// Note: "white-space: pre-wrap" is better than "white-space: pre-line" in that on Firefox, after
+// inserting a mention, the trailing space that gets inserted automatically is only respected with
+// "pre-wrap". With "pre-line", it's considered collapsible, and gets replaced on next keystroke.
 const cssContentEditable = styled('div', `
   min-height: 5em;
   border-radius: 3px;
@@ -415,7 +418,7 @@ const cssContentEditable = styled('div', `
   outline: none;
   width: 100%;
   overflow: auto;
-  white-space: pre-line;
+  white-space: pre-wrap;
   &-comment, &-reply {
     min-height: 28px;
     height: 28px;

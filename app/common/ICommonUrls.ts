@@ -24,10 +24,12 @@ export interface ICommonUrls {
   helpLinkKeys: string;
   helpFilteringReferenceChoices: string;
   helpSandboxing: string;
+  helpSharing: string;
   helpAPI: string;
   helpSummaryFormulas: string;
   helpAdminControls: string;
   helpFiddleMode: string;
+  helpComments: string;
 
   freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
   contactSupport: string; // Link to contact support on error pages (example: email adress or online form).

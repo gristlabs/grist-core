@@ -55,7 +55,7 @@ export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSw
     value ? dom.cls(`${cssToggleSwitch.className}--checked`, use => !!use(value)) : undefined,
     cssSwitch(
       cssSwitchSlider(testId('toggle-switch-slider')),
-      cssSwitchCircle(),
+      cssSwitchCircle(testId('toggle-switch-circle')),
     ),
     label ? cssLabel(label, ...labelArgs) : null,
     dom.cls(`${cssToggleSwitch.className}--transitions`, options.enableTransitions ?? true),

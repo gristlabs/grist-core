@@ -19,16 +19,13 @@ const FieldBuilder = require('../widgets/FieldBuilder');
 const commands = require('./commands');
 const BackboneEvents = require('backbone').Events;
 const {ClientColumnGetters} = require('app/client/models/ClientColumnGetters');
-const {reportError, reportSuccess} = require('app/client/models/errors');
+const {reportError} = require('app/client/models/errors');
 const {urlState} = require('app/client/models/gristUrlState');
 const {SectionFilter} = require('app/client/models/SectionFilter');
 const {UnionRowSource} = require('app/client/models/UnionRowSource');
-const {copyToClipboard} = require('app/client/lib/clipboardUtils');
-const {setTestState} = require('app/client/lib/testState');
 const {ExtraRows} = require('app/client/models/DataTableModelWithDiff');
 const {createFilterMenu} = require('app/client/ui/ColumnFilterMenu');
 const {closeRegisteredMenu} = require('app/client/ui2018/menus');
-const {COMMENTS} = require('app/client/models/features');
 const {DismissedPopup} = require('app/common/Prefs');
 const {markAsSeen} = require('app/client/models/UserPrefs');
 const {buildConfirmDelete, reportUndo} = require('app/client/components/modals');
@@ -383,8 +380,7 @@ BaseView.prototype.activateEditorAtCursor = function(options) {
 /**
  * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
  */
- BaseView.prototype._openDiscussionAtCursor = function(text) {
-  if (!COMMENTS().get()) { return false; }
+BaseView.prototype._openDiscussionAtCursor = function(text) {
   var builder = this.activeFieldBuilder();
   if (builder.isEditorActive()) {
     return false;
@@ -437,14 +433,7 @@ BaseView.prototype.getAnchorLinkForSection = function(sectionId) {
 BaseView.prototype.copyLink = async function() {
   const sectionId = this.viewSection.getRowId();
   const anchorUrlState = this.getAnchorLinkForSection(sectionId);
-  try {
-    const link = urlState().makeUrl(anchorUrlState);
-    await copyToClipboard(link);
-    setTestState({clipboard: link});
-    reportSuccess('Link copied to clipboard', {key: 'clipboard'});
-  } catch (e) {
-    throw new Error('cannot copy to clipboard');
-  }
+  return this.gristDoc.copyAnchorLink(anchorUrlState.hash);
 };
 
 BaseView.prototype.filterByThisCellValue = function() {

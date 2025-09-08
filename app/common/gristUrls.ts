@@ -97,7 +97,6 @@ export type FormFraming = 'border' | 'minimal';
  *           the original.
  */
 
-
 /**
  * Values representable in a URL. The current state is available as urlState().state observable
  * in client. Updates to this state are expected by functions such as makeUrl() and setLinkUrl().
@@ -140,6 +139,8 @@ export interface IGristUrlState {
     themeAppearance?: ThemeAppearance;
     themeName?: ThemeName;
     details?: boolean; // Used on admin pages to show details tab.
+    assistantPrompt?: string;
+    assistantState?: string;
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
   api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
@@ -533,6 +534,14 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     state.params!.linkParameters = linkParameters;
   }
 
+  if (sp.has('assistantPrompt')) {
+    state.params!.assistantPrompt = sp.get('assistantPrompt')!;
+  }
+
+  if (sp.has('assistantState')) {
+    state.params!.assistantState = sp.get('assistantState')!;
+  }
+
   if (location.hash) {
     const hash = location.hash;
     const hashParts = hash.split('.');
@@ -849,9 +858,6 @@ export interface GristLoadConfig {
   // Loaded namespaces for translations.
   namespaces?: readonly string[];
 
-  // TODO: remove when comments will be released.
-  featureComments?: boolean;
-
   assistant?: AssistantConfig;
 
   permittedCustomWidgets?: IAttachedCustomWidget[];
@@ -891,12 +897,12 @@ export interface GristLoadConfig {
   // Set on /admin pages only, when AdminControls are available and should be enabled in UI.
   adminControls?: boolean;
 
-  // TODO: remove once released (this is only expected to be released in enterprise edition)
-  featureNotifications?: boolean;
-
   formFraming?: FormFraming;
 
   commonUrls: ICommonUrls;
+
+  // Maximum users to display for user presence features (e.g. active user list)
+  userPresenceMaxUsers?: number;
 }
 
 export const Features = StringUnion(

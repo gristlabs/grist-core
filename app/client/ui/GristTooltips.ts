@@ -43,7 +43,7 @@ const cssNewsPopupLink = styled(basicButtonLink, `
   }
 `);
 
-const cssNewAssistantTitle = styled('div', `
+const cssNewsPopupTitle = styled('div', `
   display: flex;
   align-items: center;
   column-gap: 8px;
@@ -250,9 +250,9 @@ Only .tar attachment archives downloaded from Grist can be uploaded here."
   formFraming: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-"This form is created by a Grist user, and is not endorsed by Grist Labs. \
-Do not submit passwords through this form, and be careful with links in \
-it. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
+"This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. \
+or any party providing this service. For your security, do not submit passwords through this form, \
+and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
         mail: getGristConfig().supportEmail
       }
     )),
@@ -447,28 +447,25 @@ data.")),
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
-  newAssistant: {
+  comments: {
     popupType: 'news',
     audience: 'signed-in-users',
-    title: () => cssNewAssistantTitle(
-      icon('Robot'),
-      t('The new Grist Assistant is here!'),
+    title: () => cssNewsPopupTitle(
+      icon('Chat'),
+      t('Comments are here!'),
     ),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div',
-        t(
-          "Understand, modify and work with your data and formulas \
-with the help of Grist's new AI Assistant!",
-        )
+        t('You can add comments to cells, reply to comment threads, and @-mention collaborators.'),
       ),
       dom('div',
-        cssNewsPopupLink(t('Learn more'), {
-          href: window.gristConfig.commonUrls.helpAssistant,
+        cssNewsPopupLink(t('Learn more.'), {
+          href: commonUrls.helpComments,
           target: '_blank',
         }),
       ),
-      ...args
+      ...args,
     ),
-    deploymentTypes: ['saas', 'enterprise'],
+    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
 };

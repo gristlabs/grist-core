@@ -4,9 +4,9 @@ import {loadSearch} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {COMMENTS} from 'app/client/models/features';
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
+import {buildActiveUserList} from 'app/client/ui/ActiveUserList';
 import {buildLanguageMenu} from 'app/client/ui/LanguageMenu';
 import {buildNotifyMenuButton} from 'app/client/ui/NotifyUI';
 import {manageTeamUsersApp} from 'app/client/ui/OpenUserManager';
@@ -114,7 +114,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
       )
     ),
     cssFlexSpace(),
-
+    dom.maybe(pageModel.gristDoc, (gristDoc) => buildActiveUserList(gristDoc.userPresenceModel)),
     // Don't show useless undo/redo buttons for sample docs, to leave more space for "Make copy".
     dom.maybe(pageModel.undoState, (state) => [
       topBarUndoBtn('Undo',
@@ -139,12 +139,8 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     }),
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
-      dom.maybe(use =>
-        (
-          use(pageModel.gristDoc)
-          && use(COMMENTS())
-        ),
-        () => buildShowDiscussionButton(pageModel)),
+      dom.maybe(pageModel.gristDoc,
+        (gristDoc) => buildShowDiscussionButton(gristDoc)),
       dom.update(
         buildNotifyMenuButton(appModel.notifier, appModel),
         cssHideForNarrowScreen.cls(''),
@@ -154,14 +150,17 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
   ];
 }
 
-function buildShowDiscussionButton(pageModel: DocPageModel) {
+function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
+    gristDoc.behavioralPromptsManager.attachPopup('comments', {
+      popupOptions: {
+        placement: 'bottom-end',
+      },
+    }),
     testId('open-discussion'),
     dom.on('click', () => {
-      const gristDoc = pageModel.gristDoc.get();
-      if (!gristDoc) { return; }
       gristDoc.showTool('discussion');
       allCommands.rightPanelOpen.run();
     })

@@ -10,18 +10,21 @@ FROM scratch AS ext
 ## Javascript build stage
 ################################################################################
 
-FROM node:22-bookworm AS builder
+FROM node:22-bookworm AS prod-builder
 
 # Install all node dependencies.
 WORKDIR /grist
 COPY package.json yarn.lock /grist/
+RUN \
+  yarn install --prod --frozen-lockfile --verbose --network-timeout 600000
+
+FROM prod-builder AS builder
+
 # Create node_modules with devDependencies to be able to build the app
 # Add at global level gyp deps to build sqlite3 for prod
 # then create node_modules_prod that will be the node_modules of final image
 RUN \
-  yarn install --frozen-lockfile --verbose --network-timeout 600000 && \
-  yarn global add --verbose --network-timeout 600000 node-gyp node-pre-gyp node-gyp-build node-gyp-build-optional-packages && \
-  yarn install --prod --frozen-lockfile --modules-folder=node_modules_prod --verbose --network-timeout 600000
+  yarn install --frozen-lockfile --verbose --network-timeout 600000
 
 # Install any extra node dependencies (at root level, to avoid having to wrestle
 # with merging them).
@@ -102,7 +105,7 @@ RUN mkdir -p /persist/docs
 
 # Copy node files.
 COPY --from=builder /node_modules /node_modules
-COPY --from=builder /grist/node_modules_prod /grist/node_modules
+COPY --from=prod-builder /grist/node_modules /grist/node_modules
 COPY --from=builder /grist/_build /grist/_build
 COPY --from=builder /grist/static /grist/static-built
 COPY --from=builder /grist/app/cli.sh /grist/cli

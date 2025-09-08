@@ -586,6 +586,7 @@ export const componentsCssMapping = {
   textButtonHoverBg: 'text-button-hover-bg',
   textButtonHoverBorder: 'text-button-hover-border',
   kbFocusHighlight: 'kb-focus-highlight',
+  userListRemainingUsersBg: 'user-list-remaining-users-bg',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -1315,6 +1316,7 @@ export interface BaseThemeTokens {
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
     kbFocusHighlight: Token;
+    userListRemainingUsersBg: Token;
     switchInactiveSlider: Token;
     switchInactivePill: Token;
     switchActiveSlider: Token;

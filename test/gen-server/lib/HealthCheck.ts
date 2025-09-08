@@ -1,3 +1,4 @@
+import { delay } from 'app/common/delay';
 import { assert } from 'chai';
 import fetch from 'node-fetch';
 import { TestServer } from 'test/gen-server/apiUtils';
@@ -106,6 +107,9 @@ describe('HealthCheck', function() {
           assert.isTrue((await fetch(server.server.getOwnUrl() + '/status')).ok);
         } finally {
           await redisForwarder.connect();
+          // Wait a little for various redis-using code to reconnect, to avoid test hangs,
+          // presumably caused by some race conditions when going into cleanup immediately.
+          await delay(400);
         }
         await waitForIt(async () =>
           assert.isTrue((await fetch(server.server.getOwnUrl() + '/status?db=1&redis=1&timeout=100')).ok),

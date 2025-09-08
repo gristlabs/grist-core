@@ -20,6 +20,7 @@ import {
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
+  AssistantState,
   DataSourceTransformed,
   ForkResult,
   FormulaTimingInfo,
@@ -31,7 +32,8 @@ import {
   QueryResult,
   ServerQuery,
   TableFetchResult,
-  TransformRule
+  TransformRule,
+  VisibleUserProfile
 } from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
@@ -103,6 +105,7 @@ import {
   create_tar_archive,
   create_zip_archive, unpackTarArchive
 } from 'app/server/lib/Archive';
+import {getAndRemoveAssistantStatePermit} from 'app/server/lib/AssistantStatePermit';
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
@@ -630,6 +633,10 @@ export class ActiveDoc extends EventEmitter {
       this._inactivityTimer.disable();
     }
     return docSession;
+  }
+
+  public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
+    return this.docClients.listVisibleUserProfiles(docSession);
   }
 
   /**
@@ -2238,6 +2245,16 @@ export class ActiveDoc extends EventEmitter {
       return;
     }
     return await this._pyCall('get_timings');
+  }
+
+  public async getAssistantState(_docSession: OptDocSession, id: string): Promise<AssistantState|null> {
+    const store = this._server.getPermitStore();
+    const permit = await getAndRemoveAssistantStatePermit(store, id);
+    if (!permit || permit.docId !== this._docName) {
+      return null;
+    }
+
+    return pick(permit, "prompt");
   }
 
   public getMemoryUsedMB(): number {

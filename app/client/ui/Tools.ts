@@ -9,11 +9,13 @@ import {
   createHelpTools,
   cssLinkText,
   cssMenuTrigger,
+  cssPageButton,
   cssPageEntry,
   cssPageEntryMain,
   cssPageEntrySmall,
   cssPageIcon,
   cssPageLink,
+  cssPageLinkContainer,
   cssSectionHeader,
   cssSectionHeaderText,
   cssSpacer,
@@ -23,6 +25,8 @@ import {
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
+import {stretchedLink} from 'app/client/ui2018/stretchedLink';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
 import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
@@ -59,19 +63,19 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           // info by opening acl page, so let's silently fail here.
             .catch(noop);
         }
-        return cssPageLink(
+        return cssPageLinkContainer(
           cssPageIcon('EyeShow'),
-          cssLinkText(t("Access Rules")),
-          _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          stretchedLink(
+            cssLinkText(t("Access Rules")),
+            _canViewAccessRules ? urlState().setLinkUrl({docPage: 'acl'}) : null,
+          ),
           cssMenuTrigger(
             icon('Dots'),
             aclUsers.menu({
               placement: 'bottom-start',
               parentSelectorToMark: '.' + cssPageEntry.className
             }),
-
-            // Clicks on the menu trigger shouldn't follow the link that it's contained in.
-            dom.on('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }),
+            {'aria-label': t("context menu - Access Rules")},
             testId('access-rules-trigger'),
             dom.show(use => use(aclUsers.isInitialized) && _canViewAccessRules),
           ),
@@ -89,7 +93,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       )
     ),
     cssPageEntry(
-      cssPageLink(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
+      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     cssPageEntry(
@@ -113,9 +117,15 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       const ex = buildExamples().find(e => e.urlId === doc.urlId);
       if (!ex || !ex.tutorialUrl) { return null; }
       return cssPageEntry(
-        cssPageLink(cssPageIcon('Page'), cssLinkText(t("How-to Tutorial")), testId('tutorial'),
-          {href: ex.tutorialUrl, target: '_blank'},
+        cssPageLinkContainer(
+          cssPageIcon('Page'),
+          dom('a',
+            cssLinkText(t("How-to Tutorial")),
+            testId('tutorial'),
+            {href: ex.tutorialUrl, target: '_blank'},
+          ),
           cssExampleCardOpener(
+            {'aria-label': t("Preview the tutorial")},
             icon('TypeDetails'),
             testId('welcome-opener'),
             automaticHelpTool(
@@ -139,7 +149,8 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           ),
         ),
         !isDocOwner ? null : cssPageEntrySmall(
-          cssPageLink(cssPageIcon('Remove'),
+          cssPageButton(cssPageIcon('Remove'),
+            {'aria-label': t("Delete document tour")},
             dom.on('click', () => confirmModal(t("Delete document tour?"), t("Delete"), () =>
               gristDoc.docData.sendAction(['RemoveTable', 'GristDocTour']))
             ),
@@ -210,7 +221,7 @@ export interface AutomaticHelpToolInfo {
   markAsSeen: () => void;
 }
 
-const cssExampleCardOpener = styled('div', `
+const cssExampleCardOpener = styled(unstyledButton, `
   cursor: pointer;
   margin-right: 4px;
   margin-left: auto;
@@ -222,6 +233,7 @@ const cssExampleCardOpener = styled('div', `
   line-height: 0px;
   --icon-color: ${theme.iconButtonFg};
   background-color: ${theme.iconButtonPrimaryBg};
+  outline-offset: 2px;
   &:hover {
     background-color: ${theme.iconButtonPrimaryHoverBg};
   }

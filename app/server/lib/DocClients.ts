@@ -3,12 +3,28 @@
  * open, and what FD they are using.
  */
 
-import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
+import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
+import {CommDocEventType, CommDocUserPresenceUpdate, CommMessage} from 'app/common/CommTypes';
 import {arrayRemove} from 'app/common/gutil';
+import * as roles from 'app/common/roles';
+import {getRealAccess} from 'app/common/UserAPI';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {appSettings} from 'app/server/lib/AppSettings';
 import {Client} from 'app/server/lib/Client';
-import {DocSession, DocSessionPrecursor, OptDocSession} from 'app/server/lib/DocSession';
+import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
+import {fromPairs} from 'lodash';
+
+const isUserPresenceEnabledByDefault = false;
+export const SETTING_ENABLE_USER_PRESENCE = appSettings.section('userPresence').flag('enable');
+SETTING_ENABLE_USER_PRESENCE.readBool({
+  envVar: 'GRIST_ENABLE_USER_PRESENCE',
+  defaultValue: isUserPresenceEnabledByDefault,
+});
+
+export function isUserPresenceDisabled(): boolean {
+  return !SETTING_ENABLE_USER_PRESENCE.getAsBool();
+}
 
 // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
 export const Deps = {
@@ -38,6 +54,7 @@ export class DocClients {
     this._docSessions.push(docSession);
     this._log.debug(docSession, "now %d clients; new client is %s (fd %s)",
       this._docSessions.length, client.clientId, docSession.fd);
+    this._broadcastUserPresenceSessionUpdate(docSession);
     return docSession;
   }
 
@@ -52,6 +69,8 @@ export class DocClients {
     if (arrayRemove(this._docSessions, docSession)) {
       this._log.debug(docSession, "now %d clients", this._docSessions.length);
     }
+
+    this._broadcastUserPresenceSessionRemoval(docSession);
   }
 
   /**
@@ -62,6 +81,7 @@ export class DocClients {
     const docSessions = this._docSessions.splice(0);
     for (const docSession of docSessions) {
       docSession.client.removeDocSession(docSession.fd);
+      this._broadcastUserPresenceSessionRemoval(docSession);
     }
   }
 
@@ -70,6 +90,16 @@ export class DocClients {
     for (const docSession of this._docSessions) {
       docSession.client.interruptConnection();
     }
+  }
+
+  public async listVisibleUserProfiles(viewingDocSession: DocSession): Promise<VisibleUserProfile[]> {
+    if (isUserPresenceDisabled()) { return []; }
+    const otherDocSessions = this._docSessions.filter(s => s.client.clientId !== viewingDocSession.client.clientId);
+    const docUserRoles = await this._getDocUserRoles();
+    const userProfiles = otherDocSessions.map(
+      s => getVisibleUserProfileFromDocSession(s, viewingDocSession, docUserRoles)
+    );
+    return userProfiles.filter((s?: VisibleUserProfile): s is VisibleUserProfile => s !== undefined);
   }
 
   /**
@@ -81,7 +111,7 @@ export class DocClients {
    * @param {Object} filterMessage: Optional callback to filter message per client.
    */
   public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
-                                   filterMessage?: (docSession: OptDocSession,
+                                   filterMessage?: (docSession: DocSession,
                                                     messageData: any) => Promise<any>): Promise<void> {
     const send = async (target: DocSession) => {
       const msg = await this._prepareMessage(target, type, messageData, filterMessage);
@@ -110,7 +140,7 @@ export class DocClients {
    */
   private async _prepareMessage(
     target: DocSession, type: CommDocEventType, messageData: any,
-    filterMessage?: (docSession: OptDocSession, messageData: any) => Promise<any>
+    filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>
   ): Promise<{type: CommDocEventType, data: unknown}|undefined> {
     try {
       // Make sure user still has view access.
@@ -146,4 +176,98 @@ export class DocClients {
       }
     }
   }
+
+  private _broadcastUserPresenceSessionUpdate(originSession: DocSession) {
+    if (isUserPresenceDisabled()) { return; }
+    // Loading the doc user roles first allows the callback to be quick + synchronous,
+    // avoiding a potentially linear series of async calls.
+    this._getDocUserRoles()
+      .then(docUserRoles => this.broadcastDocMessage(
+        originSession.client,
+        "docUserPresenceUpdate",
+        undefined,
+        async (destSession: DocSession, messageData: any): Promise<CommDocUserPresenceUpdate["data"] | undefined> => {
+          if (originSession === destSession) { return; }
+          const profile = getVisibleUserProfileFromDocSession(originSession, destSession, docUserRoles);
+          if (!profile) { return; }
+          return {
+            id: getVisibleUserProfileId(originSession),
+            profile
+          };
+        }
+      ))
+      .catch(err => {
+        this._log.error(originSession, "failed to broadcast user presence session update: %s", err);
+      });
+  }
+
+  private _broadcastUserPresenceSessionRemoval(originSession: DocSession) {
+    if (isUserPresenceDisabled()) { return; }
+    this.broadcastDocMessage(
+      originSession.client,
+      "docUserPresenceUpdate",
+      undefined,
+      async (destSession: DocSession, messageData: any): Promise<CommDocUserPresenceUpdate["data"] | undefined> => {
+        return {
+          id: getVisibleUserProfileId(originSession),
+          profile: null,
+        };
+      }
+    ).catch(err => {
+      this._log.error(originSession, "failed to broadcast user presence session removal: %s", err);
+    });
+  }
+
+  private async _getDocUserRoles(): Promise<UserIdRoleMap> {
+    const homeDb = this.activeDoc.getHomeDbManager();
+    const authCache = homeDb?.caches;
+    const docId = this.activeDoc.doc?.id;
+
+    // Not enough information - no useful data to be had here.
+    if (!homeDb || !docId || !authCache) {
+      return {};
+    }
+
+    const queryResult = await authCache.getDocAccess(docId);
+    const { users, maxInheritedRole } = homeDb.unwrapQueryResult(queryResult);
+
+    return fromPairs(users.map(user => [user.id, getRealAccess(user, { maxInheritedRole })]));
+  }
+}
+
+interface UserIdRoleMap {
+  [id: string]: roles.Role | null
+}
+
+function getVisibleUserProfileFromDocSession(
+  session: DocSession, viewingSession: DocSession, docUserRoles: UserIdRoleMap,
+): VisibleUserProfile | undefined {
+  // To see other users, you need to be a non-public user (i.e. added to the document), and have
+  // at least editor permissions.
+  if (!viewingSession.client.authSession.userId) {
+    return undefined;
+  }
+
+  const viewerRole = docUserRoles[viewingSession.client.authSession.userId];
+  if (!roles.canEdit(viewerRole)) {
+    return undefined;
+  }
+
+  const user = session.client.authSession.fullUser;
+  const userId = session.client.authSession.userId;
+  const explicitUserRole = userId ? docUserRoles[userId] : null;
+  // Only signed-in users that have explicit document access or are a member of the org / workspace
+  // have visible details by default.
+  const isAnonymous = !explicitUserRole;
+  return {
+    id: getVisibleUserProfileId(session),
+    name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
+    email: isAnonymous ? undefined : user?.email,
+    picture: isAnonymous ? undefined : user?.picture,
+    isAnonymous,
+  };
+}
+
+function getVisibleUserProfileId(session: DocSession): string {
+  return session.client.publicClientId;
 }

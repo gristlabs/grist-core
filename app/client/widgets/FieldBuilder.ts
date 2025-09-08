@@ -15,7 +15,6 @@ import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import {ColumnRec, DocModel, ViewFieldRec} from 'app/client/models/DocModel';
-import {COMMENTS} from 'app/client/models/features';
 import {SaveableObjObservable, setSaveValue} from 'app/client/models/modelUtil';
 import {CombinedStyle, Style} from 'app/client/models/Styles';
 import {FieldSettingsMenu} from 'app/client/ui/FieldMenus';
@@ -29,6 +28,7 @@ import {buildErrorDom} from 'app/client/widgets/ErrorDom';
 import {FieldEditor, saveWithoutEditor} from 'app/client/widgets/FieldEditor';
 import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
 import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
+import {CommentText} from 'app/client/widgets/MentionTextBox';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {IEditorConstructor} from 'app/client/widgets/NewBaseEditor';
 import * as UserType from 'app/client/widgets/UserType';
@@ -52,7 +52,6 @@ import {
 import * as ko from 'knockout';
 import isEqual from 'lodash/isEqual';
 import * as _ from 'underscore';
-import {CommentText} from 'app/client/widgets/MentionTextBox';
 
 const testId = makeTestId('test-fbuilder-');
 const t = makeT('FieldBuilder');
@@ -120,7 +119,6 @@ export class FieldBuilder extends Disposable {
   private readonly _docModel: DocModel;
   private readonly _readonly: Computed<boolean>;
   private readonly _isForm: ko.Computed<boolean>;
-  private readonly _comments: ko.Computed<boolean>;
   private readonly _showRefConfigPopup: ko.Observable<boolean>;
   private readonly _isEditorActive = Observable.create(this, false);
 
@@ -131,7 +129,6 @@ export class FieldBuilder extends Disposable {
     this._docModel = gristDoc.docModel;
     this.origColumn = field.origCol();
     this.options = field.widgetOptionsJson;
-    this._comments = ko.pureComputed(() => toKo(ko, COMMENTS())());
 
     this._readOnlyPureType = ko.pureComputed(() => this.field.column().pureType());
 
@@ -544,7 +541,7 @@ export class FieldBuilder extends Disposable {
                 kf.label(
                   dom('div.fieldbuilder_settings_button',
                       dom.testId('FieldBuilder_settings'),
-                      kd.text(() => this.field.useColOptions() ? 'Common' : 'Separate'), ' ▾',
+                      kd.text(() => this.field.useColOptions() ? t('Common') : t('Separate')), ' ▾',
                       menu(() => FieldSettingsMenu(
                         this.field.useColOptions(),
                         this.field.viewSection().isRaw(),
@@ -555,9 +552,9 @@ export class FieldBuilder extends Disposable {
                         },
                       )),
                     ),
-                  'Field in ',
-                  kd.text(() => this.origColumn.viewFields().all().length),
-                  ' views'
+                  t('Field in {{count}} views', {
+                    count: kd.text(() => this.origColumn.viewFields().all().length)
+                  }),
                 )
               )
             )
@@ -680,7 +677,6 @@ export class FieldBuilder extends Disposable {
 
     const hasComment = koUtil.withKoUtils(ko.computed(() => {
       if (this.isDisposed()) { return false; }   // Work around JS errors during field removal.
-      if (!this._comments()) { return false; }
       const rowId = row.id();
       const discussion = this.field.column().cells().all()
         .find(d =>

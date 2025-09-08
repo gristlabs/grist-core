@@ -803,7 +803,7 @@ export class UsersManager {
   }
 
   /**
-   * Returns a Promise for an array of User entites for the given userIds.
+   * Returns a Promise for an array of User entities for the given userIds.
    */
   public async getUsersByIds(
     userIds: number[],
@@ -819,6 +819,21 @@ export class UsersManager {
       .chain(qb => options.withLogins ? qb.leftJoinAndSelect('users.logins', 'logins') : qb)
       .where('users.id IN (:...userIds)', {userIds});
     return await queryBuilder.getMany();
+  }
+
+  /**
+   * Returns a Promise for an array of User entities for the given userIds.
+   * Throws an error if any of the users are not found.
+   * This is useful when we expect all users to exist, and otherwise throw an error.
+   */
+  public async getUsersByIdsStrict(userIds: number[], optManager?: EntityManager): Promise<User[]> {
+    const users = await this.getUsersByIds(userIds, { manager: optManager });
+    if (users.length !== userIds.length) {
+      const foundUserIds = new Set(users.map(user => user.id));
+      const missingUserIds = userIds.filter(userId => !foundUserIds.has(userId));
+      throw new ApiError('Users not found: ' + missingUserIds.join(', '), 404);
+    }
+    return users;
   }
 
   /**

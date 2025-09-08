@@ -16,7 +16,11 @@ import {SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {isAnonymousUser, isSingleUserMode, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
-import {getOnboardingTutorialDocId, getTemplateOrg} from 'app/server/lib/gristSettings';
+import {
+  getOnboardingTutorialDocId,
+  getTemplateOrg,
+  getUserPresenceMaxUsers
+} from 'app/server/lib/gristSettings';
 import {getSupportedEngineChoices} from 'app/server/lib/serverUtils';
 import {readLoadedLngs, readLoadedNamespaces} from 'app/server/localization';
 
@@ -108,7 +112,6 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     enableCustomCss: isAffirmative(process.env.APP_STATIC_INCLUDE_CUSTOM_CSS),
     supportedLngs: readLoadedLngs(req?.i18n),
     namespaces: readLoadedNamespaces(req?.i18n),
-    featureComments: isAffirmative(process.env.COMMENTS),
     assistant: getAssistantConfig(server),
     permittedCustomWidgets: getPermittedCustomWidgets(server),
     supportEmail: SUPPORT_EMAIL,
@@ -121,9 +124,9 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     canCloseAccount: isAffirmative(process.env.GRIST_ACCOUNT_CLOSE),
     experimentalPlugins: isAffirmative(process.env.GRIST_EXPERIMENTAL_PLUGINS),
     notifierEnabled: server?.hasNotifier(),
-    featureNotifications: isAffirmative(process.env.GRIST_TEST_ENABLE_NOTIFICATIONS),
     formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
     commonUrls,
+    userPresenceMaxUsers: getUserPresenceMaxUsers(),
     ...extra,
   };
 }

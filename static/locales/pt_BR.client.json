@@ -116,7 +116,8 @@
         "Team Site": "Site da Equipe",
         "Grist Templates": "Modelos de Grist",
         "Billing Account": "Conta de faturamento",
-        "Manage Team": "Gerenciar Equipe"
+        "Manage Team": "Gerenciar Equipe",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Voltar para a página inicial"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Este site da equipe está suspenso. Os documentos podem ser lidos, mas não modificados."
@@ -660,7 +661,8 @@
         "Workspaces": "Áreas de Trabalho",
         "Tutorial": "Tutorial",
         "Terms of service": "Termos de serviço",
-        "Grist Resources": "Recursos do Grist"
+        "Grist Resources": "Recursos do Grist",
+        "context menu - {{- workspaceName }}": "menu de contexto - {{- workspaceName }}"
     },
     "Importer": {
         "Merge rows that match these fields:": "Mesclar linhas que correspondem a estes campos:",
@@ -769,7 +771,8 @@
         "The following tables will no longer be visible_one": "A seguinte tabela não será mais visível",
         "The following tables will no longer be visible_other": "As seguintes tabelas não serão mais visíveis",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Mantenha os dados e exclua a página. A tabela permanecerá disponível em {{rawDataLink}}",
-        "raw data page": "página de dados brutos"
+        "raw data page": "página de dados brutos",
+        "Document pages": "Páginas do documento"
     },
     "PermissionsWidget": {
         "Allow All": "Permitir Todos",
@@ -939,7 +942,10 @@
         "Tour of this Document": "Tour desse Documento",
         "Validate Data": "Validar dados",
         "Settings": "Configurações",
-        "API Console": "Consola API"
+        "API Console": "Consola API",
+        "context menu - Access Rules": "Menu de contexto - Regras de acesso",
+        "Delete document tour": "Excluir o tour do documento",
+        "Preview the tutorial": "Visualizar o tutorial"
     },
     "TopBar": {
         "Manage Team": "Gerenciar Equipe",
@@ -1146,7 +1152,13 @@
         "Duplicate Page": "Duplicar a Página",
         "Remove": "Remover",
         "Rename": "Renomear",
-        "You do not have edit access to this document": "Você não tem permissão de edição desse documento"
+        "You do not have edit access to this document": "Você não tem permissão de edição desse documento",
+        "(default)": "(padrão)",
+        "Collapse {{maybeDefault}}": "Recolher {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Expandir {{maybeDefault}}",
+        "Set default: Collapse": "Definir padrão: Recolher",
+        "Set default: Expand": "Definir padrão: Expandir",
+        "context menu - {{- pageName }}": "menu de contexto - {{- pageName }}"
     },
     "search": {
         "Find Next ": "Encontrar Próximo ",
@@ -1161,7 +1173,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Usuário desconhecido",
         "View as Yourself": "Ver como você mesmo",
-        "You are viewing this document as": "Você está visualizando este documento como"
+        "You are viewing this document as": "Você está visualizando este documento como",
+        "You're seeing what this user would see if given access": "Você está vendo o que esse usuário veria se tivesse acesso"
     },
     "FilterBar": {
         "SearchColumns": "Procurar colunas",
@@ -1175,7 +1188,9 @@
     "ACLUsers": {
         "Users from table": "Usuários da tabela",
         "View As": "Ver como",
-        "Example Users": "Usuários de exemplo"
+        "Example Users": "Usuários de exemplo",
+        "Other users from table": "Outros usuários da tabela",
+        "Shared users": "Usuários compartilhados"
     },
     "WelcomeTour": {
         "Use {{helpCenter}} for documentation or questions.": "Use {{helpCenter}} para documentação ou perguntas.",
@@ -1240,7 +1255,10 @@
         "Save": "Salvar",
         "Show resolved comments": "Mostrar comentários resolvidos",
         "Remove thread": "Remover tópico",
-        "updated": "atualizado"
+        "updated": "atualizado",
+        "Copy link": "Copiar link",
+        "{{count}} comments_one": "{{count}} comentário",
+        "{{count}} comments_other": "{{count}} comentários"
     },
     "FieldBuilder": {
         "CELL FORMAT": "FORMATO DA CÉLULA",
@@ -1394,7 +1412,8 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Armazenamento interno significa que todos os anexos são armazenados no arquivo SQLite do documento, enquanto o armazenamento externo indica que todos os anexos são armazenados no mesmo armazenamento externo.",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Isso permite adicionar anexos que estão faltando no armazenamento externo, por exemplo, em um documento importado. Somente arquivos de anexos .tar baixados do Grist podem ser carregados aqui.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Entenda, modifique e trabalhe com seus dados e fórmulas com a ajuda do novo Assistente de IA do Grist!",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Este formulário foi criado por um usuário do Grist e não é endossado pelo Grist Labs. Não envie senhas por meio desse formulário e tenha cuidado com os links nele contidos. Denuncie formulários maliciosos para [{{mail}}](mailto:{{mail}})."
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Este formulário foi criado por um usuário do Grist e não é endossado pelo Grist Labs. Não envie senhas por meio desse formulário e tenha cuidado com os links nele contidos. Denuncie formulários maliciosos para [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Defina o número máximo de linhas para texto com várias linhas."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -1405,7 +1424,9 @@
         "Creator panel (right panel)": "Painel do criador (painel direito)",
         "Document header": "Cabeçalho do documento",
         "Main content": "Conteúdo principal",
-        "Main navigation and document settings (left panel)": "Navegação principal e configurações do documento (painel esquerdo)"
+        "Main navigation and document settings (left panel)": "Navegação principal e configurações do documento (painel esquerdo)",
+        "Close navigation panel (left panel)": "Fechar o painel de navegação (painel esquerdo)",
+        "Open navigation panel (left panel)": "Abrir o painel de navegação (painel esquerdo)"
     },
     "ColumnTitle": {
         "Cancel": "Cancelar",
@@ -1805,7 +1826,13 @@
         "Auto-check weekly": "Verificação automática semanal",
         "No record of last version check": "Nenhum registro da última verificação de versão",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Você pode configurar a transmissão de eventos de auditoria do Grist para um sistema externo de gerenciamento de eventos e informações de segurança (SIEM) se ativar o Grist Enterprise. {{contactUsLink}} para saber mais.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "As verificações automáticas estão desativadas. Defina a variável de ambiente GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING como \"true\" para ativá-las."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "As verificações automáticas estão desativadas. Defina a variável de ambiente GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING como \"true\" para ativá-las.",
+        "auth error": "erro de autenticação",
+        "configured": "configurado",
+        "default": "padrão",
+        "more...": "mais...",
+        "no authentication": "sem autenticação",
+        "unavailable": "indisponível"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -1861,7 +1888,8 @@
         "Reset": "Redefinir",
         "Search": "Pesquisar",
         "Select...": "Selecionar...",
-        "Submit": "Enviar"
+        "Submit": "Enviar",
+        "Submitting…": "Enviando…"
     },
     "widgetTypesMap": {
         "Calendar": "Calendário",
@@ -1999,7 +2027,9 @@
         "Find solutions and explore more resources {{helpCenterLink}}": "Encontre soluções e explore mais recursos {{helpCenterLink}}",
         "Finish our basics tutorial": "Termine nosso tutorial básico",
         "Start a new document": "Inicie um novo documento",
-        "Templates": "Modelos"
+        "Templates": "Modelos",
+        "Find solutions and explore more resources": "Encontre soluções e explore mais recursos",
+        "Learn more": "Saiba mais"
     },
     "ReverseReferenceConfig": {
         "Add two-way reference": "Adicionar referência bidirecional",
@@ -2089,7 +2119,9 @@
         "Sort by name": "Ordenar por Nome",
         "Unpin": "Liberar",
         "Manage users": "Gerenciar Usuarios",
-        "Move": "Mover"
+        "Move": "Mover",
+        "context menu - {{- documentName }}": "menu de contexto - {{- documentName }}",
+        "Documents list": "Lista de documentos"
     },
     "RenameDocModal": {
         "Choose icon": "Escolha o ícone",
@@ -2194,5 +2226,40 @@
     "duplicateWidget": {
         "Duplicate widget": "Duplicar widget",
         "Duplicate widgets": "Widgets duplicados"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Carregando, aguarde…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Adicionar",
+        "Delete": "Excluir",
+        "Download": "Baixar",
+        "Drop files here to attach": "Solte os arquivos aqui para anexá-los",
+        "Drop files here to attach.": "Solte arquivos aqui para anexar.",
+        "No attachments": "Sem anexos",
+        "Preview not available.": "Pré-visualização não disponível.",
+        "{{index}} of {{total}}": "{{index}} de {{total}}",
+        "Uploading…": "Carregando…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Expandir todas as linhas para essa altura",
+        "Max height": "Altura máxima",
+        "Max row height": "Altura máxima da linha"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Recolher",
+        "Expand": "Expandir"
+    },
+    "ActiveUserList": {
+        "active user": "usuário ativo",
+        "active user list": "lista de usuários ativos",
+        "open full active user list": "abrir a lista completa de usuários ativos"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permite fórmulas muito poderosas, usando Python. Recomendamos definir a variável de ambiente GRIST_SANDBOX_FLAVOR para gvisor se o seu hardware o suporta (a maioria suportará), para executar fórmulas em cada documento dentro de uma caixa de areia isolada de outros documentos e isolada da rede.",
+        "Grist has a small built-in health check often used when running it as a container.": "O Grist tem uma pequena verificação de integridade embutida, geralmente usada ao executá-lo como um recipiente.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "As solicitações que chegam ao Grist devem ter um cabeçalho Host preciso. Isso é essencial quando GRIST_SERVE_SAME_ORIGIN está definido.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Essa página de inicialização não deve ser muito fácil de acessar. Desative-a quando a configuração estiver correta (desmarcando GRIST_BOOT_KEY) ou torne GRIST_BOOT_KEY longa e criptograficamente segura.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "As conexões Websocket precisam do HTTP 1.1 e da capacidade de passar alguns cabeçalhos extras para funcionar. Às vezes, um proxy reverso pode interferir nesses requisitos."
     }
 }

@@ -8,6 +8,7 @@ import { Organization } from 'app/gen-server/entity/Organization';
 import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { ActivationsManager } from 'app/gen-server/lib/ActivationsManager';
+import { Doom } from 'app/gen-server/lib/Doom';
 import { HomeDBManager, UserChange } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
@@ -96,6 +97,7 @@ export interface GristServer extends StorageCoordinator {
   getInfo(key: string): any;
   getJobs(): GristJobs;
   getBilling(): IBilling;
+  getDoomTool(): Promise<Doom>;
   getLatestVersionAvailable(): LatestVersionAvailable|undefined;
   setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void
   publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void>;
@@ -105,6 +107,11 @@ export interface GristServer extends StorageCoordinator {
   onUserChange(callback: (change: UserChange) => Promise<void>): void;
   onStreamingDestinationsChange(callback: (orgId?: number) => Promise<void>): void;
   setReady(value: boolean): void;
+  getSigninUrl(req: express.Request, options: {
+    signUp?: boolean;
+    nextUrl?: URL;
+    params?: Record<string, string | undefined>;
+  }): Promise<string>;
 }
 
 export interface GristLoginSystem {
@@ -208,6 +215,7 @@ export function createDummyGristServer(): GristServer {
     getInfo(key: string) { return undefined; },
     getJobs(): GristJobs { throw new Error('no job system'); },
     getBilling() { throw new Error('no billing'); },
+    getDoomTool() { throw new Error('no doom tool'); },
     getLatestVersionAvailable() { throw new Error('no version checking'); },
     setLatestVersionAvailable() { /* do nothing */ },
     publishLatestVersionAvailable() { return Promise.resolve(); },
@@ -218,6 +226,7 @@ export function createDummyGristServer(): GristServer {
     onStreamingDestinationsChange() { /* do nothing */ },
     hardDeleteDoc() { return Promise.resolve(); },
     setReady() { /* do nothing */ },
+    getSigninUrl() { return Promise.resolve(''); },
   };
 }
 

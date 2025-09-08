@@ -341,6 +341,25 @@ export interface TimingStatus {
   timing?: FormulaTimingInfo[];
 }
 
+/**
+ * Assistant state associated with the document.
+ */
+export interface AssistantState {
+  prompt: string;
+}
+
+/**
+ * Details of a user that has the current document open.
+ * The exact details shared depend on the user requesting it.
+ */
+export interface VisibleUserProfile {
+  id: string; // An identifier that uniquely identifies this profile / the other user's session.
+  name: string; // Name associated with the user. May be different from their user name, e.g. due to permissions.
+  email?: string;
+  picture?: string | null; // URL of the user's picture with unspecified dimensions.
+  isAnonymous: boolean; // True if the user isn't logged into an account.
+}
+
 export interface ActiveDocAPI {
   /**
    * Closes a document, and unsubscribes from its userAction events.
@@ -511,4 +530,15 @@ export interface ActiveDocAPI {
    * Stops collecting timing information and returns the collected data.
    */
   stopTiming(): Promise<TimingInfo[]>;
+
+  /**
+   * Get assistant state associated with the document.
+   */
+  getAssistantState(id: string): Promise<AssistantState|null>;
+
+  /**
+   * Lists users that currently have the doc open.
+   * This list varies based on the requesting user's permissions.
+   */
+  listActiveUserProfiles(): Promise<VisibleUserProfile[]>
 }

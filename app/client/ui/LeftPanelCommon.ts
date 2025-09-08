@@ -173,7 +173,13 @@ const cssPageAction = `
 
 export const cssPageLink = styled('a', cssPageAction);
 
-export const cssPageLinkContainer = styled('div', cssPageAction);
+export const cssPageLinkContainer = styled('div', `
+  ${cssPageAction}
+
+  .${cssPageEntry.className}-disabled & :is(a, button) {
+    cursor: default;
+  }
+`);
 
 export const cssPageButton = styled(unstyledButton, cssPageAction);
 
@@ -184,16 +190,6 @@ export const cssLinkText = styled('span', `
   .${cssTools.className}-collapsed & {
     display: none;
   }
-`);
-
-export const cssLinkTextAccent = styled(cssLinkText, `
-  color: ${theme.accentText};
-  font-size: 8px;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-top: -4px;
-  margin-left: 4px;
-  vertical-align: super;
 `);
 
 export const cssPageIcon = styled(icon, `
@@ -231,7 +227,7 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
   flex: none;
   border-radius: 3px;
   --icon-color: ${theme.controlFg};
-  & > .${cssPageLink.className} {
+  & > .${cssPageLink.className}, & > .${cssPageButton.className} {
     padding: 0 8px 0 16px;
   }
   &:hover {

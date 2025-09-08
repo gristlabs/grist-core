@@ -11,6 +11,7 @@ import {
 import { AssistantProvider } from "app/common/Assistant";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { OptDocSession } from "app/server/lib/DocSession";
+import * as express from "express";
 
 /**
  * An assistant can help a user do things with their document by interfacing
@@ -42,6 +43,8 @@ export interface AssistantV2 {
     doc: AssistanceDoc,
     request: AssistanceRequestV2
   ): Promise<AssistanceResponseV2>;
+  addEndpoints?(app: express.Express): void;
+  onFirstVisit?(req: express.Request, res: Express.Response): Promise<void>;
 }
 
 export interface AssistantV1Options {

@@ -88,7 +88,7 @@ function isAddOrUpdateRecordAction([actionName]: UserAction): boolean {
 const STRUCTURAL_TABLES = new Set(['_grist_Tables', '_grist_Tables_column', '_grist_Views',
                                    '_grist_Views_section', '_grist_Views_section_field',
                                    '_grist_ACLResources', '_grist_ACLRules',
-                                   '_grist_Shares']);
+                                   '_grist_Shares', '_grist_Pages']);
 
 // Actions that won't be allowed (yet) for a user with nuanced access to a document.
 // A few may be innocuous, but that hasn't been figured out yet.
@@ -1156,7 +1156,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     for (const tableId of STRUCTURAL_TABLES) {
-      censor.apply(tables[tableId]);
+      censor.filter(tables[tableId]);
     }
     if (await this.needAttachmentControl(docSession)) {
       // Attachments? No attachments here (whistles innocently).
@@ -2423,7 +2423,7 @@ export class GranularAccess implements GranularAccessForBundle {
                                       ruler.ruleCollection,
                                       step.metaAfter,
                                       await this.hasAccessRulesPermission(cursor.docSession));
-    if (censor.apply(act)) {
+    if (censor.filter(act)) {
       results.push(act);
     }
 
@@ -2562,6 +2562,28 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!colIds.some(colId => ac.has(colId))) { return empty; }
     if (!await this.needAttachmentControl(docSession)) { return empty; }
     return gatherAttachmentIds(attachmentColumns, action);
+  }
+
+  private async _filterSchemaActionsForNotifications(
+    docSession: OptDocSession,
+    docActions: DocAction[]
+  ): Promise<DocAction[]> {
+    try {
+      await this._assertSchemaAccess(docSession);
+      return docActions;
+    } catch (e: unknown) {
+      if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
+        return docActions.filter((a) => {
+          const tableId = getTableId(a);
+          return (
+            !isSchemaAction(a) &&
+            (!tableId.startsWith('_grist_') || tableId === '_grist_Cells')
+          );
+        });
+      }
+
+      throw e;
+    }
   }
 
   private async _getRuler(cursor: ActionCursor) {
@@ -2746,7 +2768,8 @@ export class GranularAccess implements GranularAccessForBundle {
       return relevant;
     }
     const userDocSession = new PseudoDocSession(userData, this._docId, docSession.org);
-    const filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    let filtered = await this.filterOutgoingDocActions(userDocSession, relevant);
+    filtered = await this._filterSchemaActionsForNotifications(userDocSession, filtered);
     return filtered;
   }
 }
@@ -3172,21 +3195,17 @@ export class CensorshipInfo {
     }
   }
 
-  public apply(a: DataAction) {
-    const tableId = getTableId(a);
-    if (!STRUCTURAL_TABLES.has(tableId)) { return true; }
-    return this.filter(a);
-  }
-
   public filter(a: DataAction) {
     const tableId = getTableId(a);
-    if (!(tableId in this.censored)) {
+    if (['_grist_ACLResources', '_grist_ACLRules', '_grist_Shares'].includes(tableId)) {
       if (!this._canViewACLs && a[0] === 'TableData') {
         a[2] = [];
         a[3] = {};
       }
       return this._canViewACLs;
     }
+    if (!(tableId in this.censored)) { return true; }
+
     const rec = new RecordEditor(a, undefined, true);
     const method = getCensorMethod(getTableId(a));
     const censoredRows = (this.censored as any)[tableId] as Set<number>;
@@ -3214,12 +3233,6 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
         .set('formula', '').set('type', 'Any').set('parentId', 0);
     case '_grist_Views_section_field':
       return rec => rec.set('widgetOptions', '').set('filter', '').set('parentId', 0);
-    case '_grist_ACLResources':
-      return rec => rec;
-    case '_grist_ACLRules':
-      return rec => rec;
-    case '_grist_Shares':
-      return rec => rec;
     case '_grist_Cells':
         return rec => rec.set('content', [GristObjCode.Censored]).set('userRef', '');
     default:
