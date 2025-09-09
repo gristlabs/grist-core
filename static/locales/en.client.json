@@ -2209,8 +2209,8 @@
         "The main page of Grist should be available.": "The main page of Grist should be available."
     },
     "ChoiceListEntry": {
-        "+{{count}} more_one": "+{{count}} one",
-        "+{{count}} more_other": "+{{count}} many",
+        "+{{count}} more_one": "+{{count}} more",
+        "+{{count}} more_other": "+{{count}} more",
         "Edit": "Edit",
         "No choices configured": "No choices configured",
         "Reset": "Reset",
