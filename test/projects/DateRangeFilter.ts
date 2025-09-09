@@ -294,24 +294,31 @@ describe('DateRangeFilter', function() {
 
   it('should show relative dates options when value changes', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await fu.pickDateInCurrentMonth('18');
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
+    await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
   });
 
   it('should show relative dates when selected bound changes', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await driver.sendKeys(Key.TAB);
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
   });
 
   it('should toggle relative dates on click', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
     await fu.findBound('min').click();
     await gu.waitForMenuToClose();
@@ -325,6 +332,7 @@ describe('DateRangeFilter', function() {
     await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await driver.sendKeys(Key.ENTER); // Enter to reopen
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
     assert.equal(await fu.getSelected(), 'min');
   });
@@ -399,6 +407,8 @@ describe('DateRangeFilter', function() {
       // click Today
       await driver.findContent('.test-filter-menu-presets-links button', 'Today').click();
 
+      await gu.findOpenMenu();
+
       // check min bounds shows 'today'
       assert.equal(await fu.getBoundText('min'), 'Today');
 
@@ -407,6 +417,7 @@ describe('DateRangeFilter', function() {
 
       // click Last week
       await driver.findContent('.test-filter-menu-presets-links button', 'More').click();
+      await gu.findOpenMenu();
       await driver.findContent('.grist-floating-menu li', 'Last Week').click();
 
       // check min bounds shows '1st day of last week'

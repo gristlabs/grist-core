@@ -102,7 +102,7 @@ jobs:
 
       - name: Run projects tests
         if: contains(matrix.tests, ':projects:')
-        run: yarn run test:projects
+        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:projects
 
       - name: Run common tests
         if: contains(matrix.tests, ':common:')
