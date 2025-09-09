@@ -1016,6 +1016,10 @@ export class RightPanel extends Disposable {
         ),
         dom.show(redirection),
       ),
+      cssHintRow(
+        t("You may use {{ID}} placeholder for the ID of the added record."),
+        dom.show(redirection)
+      ),
     ];
   }
 
@@ -1202,6 +1206,11 @@ const cssRow = styled("div", `
   & .${cssCheckboxLabel.className} {
     flex-shrink: revert;  /* allow checkbox labels to wrap in right-panel rows */
   }
+`);
+
+const cssHintRow = styled('div', `
+  margin: -4px 16px 8px 16px;
+  color: ${theme.lightText};
 `);
 
 const cssButtonRow = styled(cssRow, `
