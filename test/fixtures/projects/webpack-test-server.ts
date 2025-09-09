@@ -44,8 +44,19 @@ export class WebpackServer implements IMochaServer {
 
     this._server = spawn('node',
       ['node_modules/.bin/webpack-dev-server', '--config', configPath, '--no-open'], {
-        stdio: ['inherit', 'pipe', 'inherit'],
+        stdio: ['inherit', 'pipe', 'pipe'],
       });
+    // Print all output from child process
+    if (this._server.stdout) {
+      this._server.stdout.on('data', (data) => {
+        process.stdout.write(`[webpack-test-server:stdout] ${data}`);
+      });
+    }
+    if (this._server.stderr) {
+      this._server.stderr.on('data', (data) => {
+        process.stderr.write(`[webpack-test-server:stderr] ${data}`);
+      });
+    }
     this._exitPromise = exitPromise(this._server);
 
     // Wait for a build status to show up on stdout, to know when webpack is finished.
