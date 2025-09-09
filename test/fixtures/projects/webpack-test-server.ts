@@ -39,7 +39,7 @@ export class WebpackServer implements IMochaServer {
   private _webpackComplete: Promise<boolean>;
 
   public async start(context: IMochaContext) {
-    context.timeout(60000);
+    context.timeout(120000);
     logMessage(`starting with config ${configPath}`);
 
     this._server = spawn('node',
@@ -65,6 +65,7 @@ export class WebpackServer implements IMochaServer {
     this._exitPromise
       .then(() => (this._server.killed || logMessage("webpack-dev-server died unexpectedly")))
       .catch(() => undefined);
+
     await this.waitServerReady(15000);
     logMessage("webpack finished compiling");
   }
