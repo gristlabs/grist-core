@@ -85,7 +85,7 @@ jobs:
         run: yarn run build
 
       - name: Install Google Chrome and chromedriver
-        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')
+        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:') || contains(matrix.tests, ':projects:')
         run: buildtools/install_chrome_for_tests.sh -y
 
       - name: Run smoke test
@@ -102,7 +102,14 @@ jobs:
 
       - name: Run projects tests
         if: contains(matrix.tests, ':projects:')
-        run: MOCHA_WEBDRIVER_HEADLESS=1 yarn run test:projects
+        run: |
+          mkdir -p $MOCHA_WEBDRIVER_LOGDIR
+          yarn run test:projects
+        env:
+          MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          TESTDIR: ${{ runner.temp }}/test-logs
+          MOCHA_WEBDRIVER_HEADLESS: 1
+          MOCHA_WEBDRIVER_SKIP_CLEANUP: 1
 
       - name: Run common tests
         if: contains(matrix.tests, ':common:')
