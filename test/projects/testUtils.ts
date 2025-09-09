@@ -14,12 +14,9 @@ export {server};
 // to record logs and screenshots after failed tests (if MOCHA_WEBDRIVER_LOGDIR var is set).
 export function setupTestSuite() {
   useServer(server);
-  before(async function() {
-    this.timeout(25000);
-    await server.waitServerReady(20000);
-  });
   enableDebugCapture();
   addToRepl('Key', Key, 'key values such as Key.ENTER');
+
   // After every suite, clear sessionStorage and localStorage to avoid affecting other tests.
   after(clearCurrentWindowStorage);
 }
