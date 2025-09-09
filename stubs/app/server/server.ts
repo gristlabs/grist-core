@@ -37,7 +37,7 @@ setDefaultEnv('GRIST_WIDGET_LIST_URL', commonUrls.gristLabsWidgetRepository);
 import {updateDb} from 'app/server/lib/dbUtils';
 import {MergedServer, parseServerTypes} from 'app/server/MergedServer';
 import * as fse from 'fs-extra';
-import {runPrometheusExporter} from './prometheus-exporter';
+import {runPrometheusExporter} from 'app/server/prometheus-exporter';
 
 const G = {
   port: parseInt(process.env.PORT!, 10) || 8484,

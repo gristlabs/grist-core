@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
 import { waitToPass } from 'test/nbrowser/gristUtils';
 import * as gu from 'test/nbrowser/gristUtils';

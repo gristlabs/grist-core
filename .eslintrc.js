@@ -110,6 +110,11 @@ module.exports = {
       'no-inner-declarations': 'off',
       'max-len': ['warn', {code: 120, ignoreUrls: true}],
       'sort-imports': ['warn', {ignoreDeclarationSort: true, ignoreCase: true, allowSeparatedGroups: true}],
+      'no-restricted-imports': ["error",
+        {"patterns": [
+          {"group": ["./", "../"], "message": "Relative imports are not allowed"}
+          ]}
+      ],
       'no-trailing-spaces': 'warn',
       'no-unused-expressions': ["error", {allowShortCircuit: true, allowTernary: true}],
 

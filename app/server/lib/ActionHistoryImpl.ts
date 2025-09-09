@@ -10,9 +10,9 @@ import * as crypto from 'crypto';
 import keyBy = require('lodash/keyBy');
 import mapValues = require('lodash/mapValues');
 import {ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
-        asMinimalActionGroup} from './ActionHistory';
-import {ISQLiteDB, ResultRow} from './SQLiteDB';
-import { appSettings } from './AppSettings';
+        asMinimalActionGroup} from 'app/server/lib/ActionHistory';
+import {ISQLiteDB, ResultRow} from 'app/server/lib/SQLiteDB';
+import { appSettings } from 'app/server/lib/AppSettings';
 
 const section = appSettings.section('history').section('action');
 

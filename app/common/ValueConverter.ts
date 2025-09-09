@@ -10,7 +10,7 @@ import {
   ValueParser
 } from 'app/common/ValueParser';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
-import { TableDataActionSet } from "./DocActions";
+import { TableDataActionSet } from "app/common/DocActions";
 
 
 /**

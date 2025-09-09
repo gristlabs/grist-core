@@ -44,7 +44,7 @@ import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
 import { checkers } from 'app/plugin/TypeCheckers';
 import { dom as grainjsDom, Observable } from 'grainjs';
 import { IMsgCustom, IMsgRpcCall, IRpcLogger, MsgType, Rpc } from 'grain-rpc';
-import { Disposable } from './dispose';
+import { Disposable } from 'app/client/lib/dispose';
 import isEqual from 'lodash/isEqual';
 const G = getBrowserGlobals('document', 'window');
 

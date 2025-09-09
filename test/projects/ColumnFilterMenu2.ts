@@ -1,6 +1,6 @@
 import { assert, driver, Key } from 'mocha-webdriver';
 import { selectAllKey } from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 async function parseFilterState() {
   const json = await driver.find('.fixture-json').getText();
