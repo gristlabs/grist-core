@@ -288,12 +288,14 @@ describe('DateRangeFilter', function() {
     await fu.findBound('max').click();
     assert.equal(await fu.isOptionsVisible(), true);
     await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
   });
 
   it('should show relative dates options when value changes', async function() {
     await fu.findBound('min').click();
     await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await fu.pickDateInCurrentMonth('18');
     assert.equal(await fu.isOptionsVisible(), true);
@@ -302,6 +304,7 @@ describe('DateRangeFilter', function() {
   it('should show relative dates when selected bound changes', async function() {
     await fu.findBound('min').click();
     await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await driver.sendKeys(Key.TAB);
     assert.equal(await fu.isOptionsVisible(), true);
@@ -311,12 +314,15 @@ describe('DateRangeFilter', function() {
     await fu.findBound('min').click();
     assert.equal(await fu.isOptionsVisible(), true);
     await fu.findBound('min').click();
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
   });
 
   it('should show relative dates options when pressing Enter while the options are closed', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE); // Escape to close
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await driver.sendKeys(Key.ENTER); // Enter to reopen
     assert.equal(await fu.isOptionsVisible(), true);
@@ -331,6 +337,7 @@ describe('DateRangeFilter', function() {
 
   it('should have working keyboard navigation after picking date from calendar', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     assert.deepEqual(await fu.getSelectedOption(), []);
     await fu.pickDateInCurrentMonth('18');
     assert.deepEqual(await fu.getSelectedOption(), ['2022-09-18']);

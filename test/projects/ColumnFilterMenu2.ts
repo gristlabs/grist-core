@@ -173,6 +173,7 @@ describe('ColumnFilterMenu2', function() {
         await driver.sendKeys('A');
 
         // click 'Apple'
+        await driver.findWait('.test-filter-menu-list label', 100);
         await driver.findContent('.test-filter-menu-list label', /Apple/).click();
 
         // check Apple is not included
@@ -193,6 +194,7 @@ describe('ColumnFilterMenu2', function() {
         // enter 'A'
         await driver.sendKeys('A');
 
+        await driver.findWait('.test-filter-menu-summary label', 100);
         // check 'Other Non-Matching' is checked
         assert.equal(
           await driver.findContent('.test-filter-menu-summary label', /Other Non-Matching/).find('input').isSelected(),

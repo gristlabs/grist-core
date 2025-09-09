@@ -4190,6 +4190,20 @@ export async function getViewportDimensions(): Promise<WindowDimensions> {
   });
 }
 
+export async function waitForSelection(selector: string) {
+  await waitToPass(async () => {
+    assert.isTrue(await driver.find(selector).hasFocus());
+    const allSelected = await driver.executeScript(() => {
+      const innerSelector = arguments[0];
+      const el = document.querySelector(innerSelector) as HTMLInputElement;
+      const sel = { start: el.selectionStart, end: el.selectionEnd };
+      const textLen = el.value.length;
+      return sel.start === 0 && sel.end === textLen;
+    }, selector);
+    assert.isTrue(allSelected, 'Expected all text to be selected in the hex input');
+  });
+}
+
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);
