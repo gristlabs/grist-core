@@ -70,8 +70,8 @@ describe('UserManager', () => {
     await driver.find('.test-um-member-new input').sendKeys('bob@bob.tail', Key.ENTER);
     await driver.find('.test-um-member-new input').sendKeys('alice@a.com', Key.ENTER);
     await driver.find('.test-um-member-new input').sendKeys('eve@a.com', Key.ENTER);
-    
-    await driver.findContent('.test-um-member', /eve@a\.com/).find('.test-um-member-role').doClick();    
+
+    await driver.findContent('.test-um-member', /eve@a\.com/).find('.test-um-member-role').doClick();
     await driver.findContentWait('.test-um-role-option', /Editor/, 100).doClick();
     await driver.findContent('.test-um-member', /bob@bob\.tail/).find('.test-um-member-role').doClick();
     await driver.findContentWait('.test-um-role-option', /Editor/, 100).doClick();
