@@ -141,7 +141,7 @@ class DropdownWithSearch<T> extends Disposable {
 
   private _buildItem(item: OptionItem<T>) {
     return item instanceof TruncatedListItem ?
-        [this._buildTruncatedMsgItem(item)] :
+        [this._buildTruncatedMsgItem(item), testId('truncated-message')] :
         [buildHighlightedDom(item.label, this._highlightFunc, cssMatchText), testId('searchable-list-item')];
   }
 
@@ -149,8 +149,7 @@ class DropdownWithSearch<T> extends Disposable {
     return cssTruncatedMessageItem(
       item.label,
       // Prevents click to close menu
-      dom.on('click', ev => ev.stopPropagation()),
-      testId('truncated-message')
+      dom.on('click', ev => ev.stopPropagation())
     );
   }
 

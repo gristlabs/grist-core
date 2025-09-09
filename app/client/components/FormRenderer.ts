@@ -505,7 +505,8 @@ class ChoiceRenderer extends BaseFieldRenderer  {
               this._selectElement.focus();
               ev.stopPropagation();
               ev.preventDefault();
-            })
+            }),
+            testId('search-select-clear-btn')
           ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
@@ -873,7 +874,8 @@ class RefRenderer extends BaseFieldRenderer {
               this._selectElement.focus();
               ev.stopPropagation();
               ev.preventDefault();
-            })
+            }),
+            testId('search-select-clear-btn')
           ),
           css.searchSelectIcon('Collapse'),
           testId('search-select'),
