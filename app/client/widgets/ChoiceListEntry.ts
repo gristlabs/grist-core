@@ -1,3 +1,4 @@
+import {makeT} from 'app/client/lib/localization';
 import {IToken, TokenField} from 'app/client/lib/TokenField';
 import {cssBlockedCursor} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
@@ -8,8 +9,11 @@ import {icon} from 'app/client/ui2018/icons';
 import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
 import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled} from 'grainjs';
 import {createCheckers, iface, ITypeSuite, opt, union} from 'ts-interface-checker';
+
 import isEqual = require('lodash/isEqual');
 import uniqBy = require('lodash/uniqBy');
+
+const t = makeT('ChoiceListEntry');
 
 class RenameMap implements Record<string, string> {
   constructor(tokens: ChoiceItem[]) {
@@ -133,7 +137,7 @@ export class ChoiceListEntry extends Disposable {
             // Save tokens as JSON for parts of the UI that support deserializing it properly (e.g. ChoiceListEntry).
             clipboard.setData('application/json', JSON.stringify(tokens));
             // Save token labels as newline-separated text, for general use (e.g. pasting into cells).
-            clipboard.setData('text/plain', tokens.map(t => t.label).join('\n'));
+            clipboard.setData('text/plain', tokens.map(tok => tok.label).join('\n'));
           },
           openAutocompleteOnFocus: false,
           trimLabels: true,
@@ -182,11 +186,11 @@ export class ChoiceListEntry extends Disposable {
             testId('choice-list-entry')
           ),
           this._editorSaveButtons = cssButtonRow(
-            primaryButton('Save',
+            primaryButton(t('Save'),
               dom.on('click', () => this._save() ),
               testId('choice-list-entry-save')
             ),
-            basicButton('Cancel',
+            basicButton(t('Cancel'),
               dom.on('click', () => this._cancel()),
               testId('choice-list-entry-cancel')
             )
@@ -212,7 +216,7 @@ export class ChoiceListEntry extends Disposable {
           dom.maybe(use => !use(this._mixed), () => [
             cssListBoxInactive(
               dom.cls(cssBlockedCursor.className, this._disabled),
-              dom.maybe(noChoices, () => row('No choices configured')),
+              dom.maybe(noChoices, () => row(t('No choices configured'))),
               dom.domComputed(this._choiceOptionsByName, (choiceOptions) =>
                 dom.forEach(someValues, val => {
                   return row(
@@ -238,7 +242,7 @@ export class ChoiceListEntry extends Disposable {
                 row(
                   dom('span',
                     testId('choice-list-entry-label'),
-                    dom.text((use) => `+${use(this._values).length - (maxRows - 1)} more`)
+                    dom.text((use) => t('+{{count}} more', {count: use(this._values).length - (maxRows - 1)}))
                   )
                 )
               ),
@@ -250,7 +254,7 @@ export class ChoiceListEntry extends Disposable {
           dom.maybe(use => !use(this._disabled), () => [
             cssButtonRow(
               primaryButton(
-                dom.text(use => use(this._mixed) ? 'Reset' : 'Edit'),
+                dom.text(use => use(this._mixed) ? t('Reset') : t('Edit')),
                 dom.on('click', () => this._startEditing()),
                 testId('choice-list-entry-edit')
               ),
@@ -277,18 +281,18 @@ export class ChoiceListEntry extends Disposable {
       tokens.push(new ChoiceItem(tokenInputVal, null));
     }
 
-    const newTokens = uniqBy(tokens, t => t.label);
-    const newValues = newTokens.map(t => t.label);
+    const newTokens = uniqBy(tokens, tok => tok.label);
+    const newValues = newTokens.map(tok => tok.label);
     const newOptions: ChoiceOptionsByName = new Map();
     const keys: Array<keyof IChoiceOptions> = [
       'fillColor', 'textColor', 'fontBold', 'fontItalic', 'fontStrikethrough', 'fontUnderline'
     ];
-    for (const t of newTokens) {
-      if (t.options) {
+    for (const tok of newTokens) {
+      if (tok.options) {
         const options: IChoiceOptions = {};
-        keys.filter(k => t.options![k] !== undefined)
-            .forEach(k => options[k] = t.options![k] as any);
-        newOptions.set(t.label, options);
+        keys.filter(k => tok.options![k] !== undefined)
+            .forEach(k => options[k] = tok.options![k] as any);
+        newOptions.set(tok.label, options);
       }
     }
 
@@ -450,8 +454,8 @@ function clipboardToChoices(clipboard: DataTransfer): ChoiceItem[] {
   const maybeTokens = clipboard.getData('application/json');
   if (maybeTokens && isJSON(maybeTokens)) {
     const tokens: ChoiceItem[] = JSON.parse(maybeTokens);
-    if (Array.isArray(tokens) && tokens.every((t): t is ChoiceItem => ChoiceItemChecker.test(t))) {
-      tokens.forEach(t => t.previousLabel = null);
+    if (Array.isArray(tokens) && tokens.every((tok): tok is ChoiceItem => ChoiceItemChecker.test(tok))) {
+      tokens.forEach(tok => tok.previousLabel = null);
       return tokens;
     }
   }

@@ -385,7 +385,7 @@ export class Importer extends DisposableWithEvents {
               private _importSourceElem: ImportSourceElement|null,
               private _createPreview: CreatePreviewFunc) {
     super();
-    const label = _importSourceElem?.importSource.label || "Import from file";
+    const label = _importSourceElem?.importSource.label || t("Import from file");
     this._screen = PluginScreen.create(this, label);
 
     this.onDispose(() => {
@@ -698,7 +698,7 @@ export class Importer extends DisposableWithEvents {
   }
 
   private _buildModalTitle(rightElement?: DomContents) {
-    const title =  this._importSourceElem ? this._importSourceElem.importSource.label : 'Import from file';
+    const title =  this._importSourceElem ? this._importSourceElem.importSource.label : t('Import from file');
     return cssModalHeader(cssModalTitle(title), rightElement);
   }
 
@@ -787,7 +787,7 @@ export class Importer extends DisposableWithEvents {
   private _renderMain(upload: UploadResult) {
     const schema = this._parseOptions.get().SCHEMA;
     const header = this._buildModalTitle();
-    const options = schema ? cssActionLink(cssLinkIcon('Settings'), 'Import options',
+    const options = schema ? cssActionLink(cssLinkIcon('Settings'), t('Import options'),
       testId('options-link'),
       dom.on('click', () => this._renderParseOptions(schema, upload))
     ) : null;
@@ -926,10 +926,10 @@ export class Importer extends DisposableWithEvents {
         cssConfigPanel(
           cssConfigPanel.cls('-right', showRightPanel),
           cssConfigLeft(
-            cssTitle('Destination table', testId('target-top')),
+            cssTitle(t('Destination table'), testId('target-top')),
             cssDestinationWrapper(cssDestination(
               cssPageIcon('Plus'),
-              dom('span', 'New Table'),
+              dom('span', t('New Table')),
               selectIfDestIs(NEW_TABLE),
               onClickChangeDestTo(NEW_TABLE),
               testId('target'),
@@ -1104,7 +1104,7 @@ export class Importer extends DisposableWithEvents {
     });
 
     const buttons = cssImportButtons(cssImportButtonsLine(
-      bigPrimaryButton('Import',
+      bigPrimaryButton(t('Import'),
         dom.on('click', () => this._maybeFinishImport(upload)),
         dom.boolAttr('disabled', use => {
           return use(this._previewViewSection) === null ||
@@ -1112,7 +1112,7 @@ export class Importer extends DisposableWithEvents {
         }),
         baseTestId('modal-confirm'),
       ),
-      bigBasicButton('Cancel',
+      bigBasicButton(t('Cancel'),
         dom.on('click', () => this._cancelImport()),
         baseTestId('modal-cancel'),
       ),

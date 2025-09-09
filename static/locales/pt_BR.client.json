@@ -1256,7 +1256,9 @@
         "Show resolved comments": "Mostrar comentários resolvidos",
         "Remove thread": "Remover tópico",
         "updated": "atualizado",
-        "Copy link": "Copiar link"
+        "Copy link": "Copiar link",
+        "{{count}} comments_one": "{{count}} comentário",
+        "{{count}} comments_other": "{{count}} comentários"
     },
     "FieldBuilder": {
         "CELL FORMAT": "FORMATO DA CÉLULA",
@@ -1824,7 +1826,13 @@
         "Auto-check weekly": "Verificação automática semanal",
         "No record of last version check": "Nenhum registro da última verificação de versão",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Você pode configurar a transmissão de eventos de auditoria do Grist para um sistema externo de gerenciamento de eventos e informações de segurança (SIEM) se ativar o Grist Enterprise. {{contactUsLink}} para saber mais.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "As verificações automáticas estão desativadas. Defina a variável de ambiente GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING como \"true\" para ativá-las."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "As verificações automáticas estão desativadas. Defina a variável de ambiente GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING como \"true\" para ativá-las.",
+        "auth error": "erro de autenticação",
+        "configured": "configurado",
+        "default": "padrão",
+        "more...": "mais...",
+        "no authentication": "sem autenticação",
+        "unavailable": "indisponível"
     },
     "Field": {
         "No choices configured": "Nenhuma opção configurada",
@@ -2246,5 +2254,12 @@
         "active user": "usuário ativo",
         "active user list": "lista de usuários ativos",
         "open full active user list": "abrir a lista completa de usuários ativos"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist permite fórmulas muito poderosas, usando Python. Recomendamos definir a variável de ambiente GRIST_SANDBOX_FLAVOR para gvisor se o seu hardware o suporta (a maioria suportará), para executar fórmulas em cada documento dentro de uma caixa de areia isolada de outros documentos e isolada da rede.",
+        "Grist has a small built-in health check often used when running it as a container.": "O Grist tem uma pequena verificação de integridade embutida, geralmente usada ao executá-lo como um recipiente.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "As solicitações que chegam ao Grist devem ter um cabeçalho Host preciso. Isso é essencial quando GRIST_SERVE_SAME_ORIGIN está definido.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Essa página de inicialização não deve ser muito fácil de acessar. Desative-a quando a configuração estiver correta (desmarcando GRIST_BOOT_KEY) ou torne GRIST_BOOT_KEY longa e criptograficamente segura.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "As conexões Websocket precisam do HTTP 1.1 e da capacidade de passar alguns cabeçalhos extras para funcionar. Às vezes, um proxy reverso pode interferir nesses requisitos."
     }
 }

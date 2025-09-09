@@ -105,7 +105,7 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
 	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
 	- For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
-  * Document Change and Comment Notifications (2025)
+  * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
 	- People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 

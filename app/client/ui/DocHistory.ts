@@ -8,7 +8,7 @@ import {buildConfigContainer} from 'app/client/ui/RightPanelUtils';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
-import {menu, menuAnnotate, menuItemLink} from 'app/client/ui2018/menus';
+import {menu, menuItemLink} from 'app/client/ui2018/menus';
 import {buildUrlId, parseUrlId} from 'app/common/gristUrls';
 import {StringUnion} from 'app/common/StringUnion';
 import {DocSnapshot} from 'app/common/UserAPI';
@@ -111,10 +111,8 @@ export class DocHistory extends Disposable implements IDomComponent {
             cssMenuDots(icon('Dots'),
               menu(() => [
                   menuItemLink(setLink(snapshot), t("Open Snapshot")),
-                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to Current"),
-                    menuAnnotate(t("Beta"))),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to Previous"),
-                    menuAnnotate(t("Beta"))),
+                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to Current")),
+                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to Previous")),
                 ],
                 {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
               ),

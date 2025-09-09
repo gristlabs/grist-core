@@ -378,7 +378,10 @@
         "Tour of this Document": "Тур по этому документу",
         "Validate Data": "Проверка данных",
         "Settings": "Настройки",
-        "API Console": "API-консоль"
+        "API Console": "API-консоль",
+        "context menu - Access Rules": "контекстное меню - Правила доступа",
+        "Delete document tour": "Удалить тур по документу",
+        "Preview the tutorial": "Предварительный просмотр учебника"
     },
     "TypeTransformation": {
         "Cancel": "Отмена",
@@ -550,7 +553,9 @@
         "Upload": "Загрузить",
         "Upload missing attachments": "Загрузите недостающие вложения",
         "Uploading...": "Загрузка...",
-        "Document type": "Тип документа"
+        "Document type": "Тип документа",
+        "Default": "По умолчанию",
+        "Default, template, or tutorial": "По умолчанию, шаблон или учебник"
     },
     "DocPageModel": {
         "Add Widget to Page": "Добавить виджет на страницу",
@@ -658,7 +663,8 @@
         "Workspace will be moved to Trash.": "Рабочее пространство будет перемещено в корзину.",
         "Tutorial": "Обучение",
         "Terms of service": "Условия использования",
-        "Grist Resources": "Ресурсы Grist"
+        "Grist Resources": "Ресурсы Grist",
+        "context menu - {{- workspaceName }}": "контекстное меню - {{- workspaceName }}"
     },
     "GridViewMenus": {
         "Add to sort": "Добавить в сортировку",
@@ -876,7 +882,9 @@
         "Delete data and this page.": "Удалить данные и эту страницу.",
         "The following tables will no longer be visible_other": "Следующие таблицы больше не будут видны",
         "The following tables will no longer be visible_one": "Следующая таблица больше не будет видна",
-        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Сохраните данные и удалите страницу. Таблица останется доступной в {{rawDataLink}}"
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Сохраните данные и удалите страницу. Таблица останется доступной в {{rawDataLink}}",
+        "raw data page": "страница с необработанными данными",
+        "Document pages": "Страницы документа"
     },
     "RecordLayoutEditor": {
         "Save Layout": "Сохранить макет",
@@ -930,7 +938,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Неизвестный пользователь",
         "You are viewing this document as": "Вы просматриваете этот документ от имени",
-        "View as Yourself": "Смотреть от Своего имени"
+        "View as Yourself": "Смотреть от Своего имени",
+        "You're seeing what this user would see if given access": "Вы видите то, что увидел бы этот пользователь, если бы ему был предоставлен доступ"
     },
     "ViewConfigTab": {
         "Advanced settings": "Расширенные настройки",
@@ -1043,7 +1052,11 @@
         "Started discussion": "Начатое обсуждение",
         "Write a comment": "Написать комментарий",
         "Reply to a comment": "Ответить на комментарий",
-        "updated": "обновлено"
+        "updated": "обновлено",
+        "{{count}} comments_one": "{{count}} комментарий",
+        "{{count}} comments_other": "{{count}} комментариев",
+        "Copy link": "Скопировать ссылку",
+        "Remove thread": "Удалить тему"
     },
     "NumericTextBox": {
         "Number Format": "Числовой формат",
@@ -1187,12 +1200,19 @@
         "Duplicate Page": "Дублировать страницу",
         "Remove": "Удалить",
         "Rename": "Переименовать",
-        "You do not have edit access to this document": "У вас нет доступа к редактированию этого документа"
+        "You do not have edit access to this document": "У вас нет доступа к редактированию этого документа",
+        "(default)": "(по умолчанию)",
+        "Collapse {{maybeDefault}}": "Свернуть {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Развернуть {{maybeDefault}}",
+        "Set default: Collapse": "Установить по умолчанию: Свернуть",
+        "Set default: Expand": "Установить по умолчанию: Развернуть",
+        "context menu - {{- pageName }}": "контекстное меню - {{- pageName }}"
     },
     "ACLUsers": {
         "Example Users": "Пользователи для примера",
         "View As": "Посмотреть как",
-        "Users from table": "Пользователи из таблицы"
+        "Users from table": "Пользователи из таблицы",
+        "Other users from table": "Другие пользователи из таблицы"
     },
     "ChoiceTextBox": {
         "CHOICES": "ВАРИАНТЫ"

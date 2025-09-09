@@ -52,7 +52,7 @@ export function buildNameConfig(
 
   const toggleUntieColId = () => {
     if (!origColumn.disableModify.peek() && !disabled.peek()) {
-      untieColId.saveOnly(!untieColId.peek()).catch(reportError);
+      untieColId.setAndSaveOrRevert(!untieColId.peek()).catch(reportError);
     }
   };
 
@@ -62,7 +62,9 @@ export function buildNameConfig(
       dom.cls(cssBlockedCursor.className, origColumn.disableModify),
       cssColLabelBlock(
         cssInput(fromKo(origColumn.label),
-          async val => { await origColumn.label.saveOnly(val); editedLabel.set(''); },
+          val => origColumn.label.setAndSaveOrRevert(val)
+            .catch(reportError)
+            .finally(() => editedLabel.set('')),
           dom.on('input', (ev, elem) => { if (!untieColId.peek()) { editedLabel.set(elem.value); } }),
           dom.boolAttr('readonly', use => use(origColumn.disableModify) || use(disabled)),
           testId('field-label'),

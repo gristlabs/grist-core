@@ -24,7 +24,7 @@ export function rowHeightConfigColumn(viewSection: ViewSectionRec): DomContents 
         testId('row-height-label')
       )
     ),
-    textButton('Change', dom.on('click', allCommands.viewTabOpen.run),
+    textButton(t('Change'), dom.on('click', allCommands.viewTabOpen.run),
       testId('row-height-change-link')
     )
   ]);

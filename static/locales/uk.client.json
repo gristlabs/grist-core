@@ -787,7 +787,10 @@
         "Skip Table on Import": "Пропустити таблицю при імпорті",
         "Import from file": "Імпорт з файлу",
         "{{count}} unmatched field in import_other": "{{count}} невідповідних полів при імпорті",
-        "Source column": "Вихідний стовпець"
+        "Source column": "Вихідний стовпець",
+        "Import options": "Параметри імпорту",
+        "Cancel": "Скасувати",
+        "Import": "Імпорт"
     },
     "LeftPanelCommon": {
         "Help Center": "Центр допомоги"
@@ -1191,7 +1194,9 @@
         "Only my threads": "Тільки мої теми",
         "Remove thread": "Вилучити нитку",
         "updated": "оновлено",
-        "Copy link": "Копіювати посилання"
+        "Copy link": "Копіювати посилання",
+        "{{count}} comments_one": "{{count}} коментар",
+        "{{count}} comments_other": "{{count}} коментарі"
     },
     "FieldBuilder": {
         "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
@@ -1203,7 +1208,11 @@
         "Apply Formula to Data": "Застосувати формулу до даних",
         "Revert field settings for {{colId}} to common": "Змінити налаштування поля для {{colId}} на загальні",
         "Save field settings for {{colId}} as common": "Зберегти налаштування поля для {{colId}} як загальні",
-        "Changing column type": "Зміна типу стовпця"
+        "Changing column type": "Зміна типу стовпця",
+        "Common": "Звичайний'",
+        "Separate": "Окремі",
+        "Field in {{count}} views_one": "Поле в одному вигляді",
+        "Field in {{count}} views_other": "Поле в {{count}} переглядах"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Неможливо зберегти відредаговану клітинку",
@@ -1263,7 +1272,8 @@
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Встановити параметри форматування, формули або типи стовпців, наприклад - дати, варіанти або вкладені файли. ",
         "Use the Share button ({{share}}) to share the document or export data.": "Використовуйте кнопку \"Поділитись\" ({{share}}), щоб поділитись документом або експортувати дані.",
         "Use {{helpCenter}} for documentation or questions.": "Знайдіть технічну документацію чи відповіді на запитання у {{helpCenter}}.",
-        "convert to card view, select data, and more.": "перетворити в представлення картки, вибрати дані, та інші можливості."
+        "convert to card view, select data, and more.": "перетворити в представлення картки, вибрати дані, та інші можливості.",
+        "AI Assistant": "Помічник зі штучним інтелектом"
     },
     "EditorTooltip": {
         "Convert column to formula": "Перетворити стовпець у формулу"
@@ -1348,7 +1358,10 @@
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Це дозволяє додавати вкладення, яких немає на зовнішньому сховищі, наприклад, в імпортованому документі. Сюди можна завантажувати лише архіви вкладень .tar, завантажені з Grist.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Розумійте, змінюйте та працюйте зі своїми даними й формулами за допомогою нового ШІ-помічника Grist!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Цю форму створив користувач Grist і не схвалює Grist Labs. Не надсилайте паролі через цю форму та будьте обережні з посиланнями в ній. Повідомляйте про шкідливі форми на адресу [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Встановіть максимальну кількість рядків для багаторядкового тексту."
+        "Set the maximum number of lines for multi-line text.": "Встановіть максимальну кількість рядків для багаторядкового тексту.",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ця форма створена користувачем Grist і не схвалена компанією Grist Labs, Inc. або будь-якою іншою стороною, що надає цю послугу. Для вашої безпеки не надсилайте паролі через цю форму та будьте обережні, натискаючи на вбудовані посилання. Про зловмисні форми повідомляйте за адресою [{{mail}}](mailto:{{mail}}).",
+        "Comments are here!": "Коментарі тут!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Ви можете додавати коментарі до комірок, відповідати на ланцюжки коментарів та згадувати співавторів за допомогою @."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИС"
@@ -1775,7 +1788,13 @@
         "Auto-check weekly": "Автоматична перевірка щотижня",
         "No record of last version check": "Немає запису про останню перевірку версії",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Ви можете налаштувати потокову передачу подій аудиту з Grist до зовнішньої системи керування інформацією та подіями безпеки (SIEM), якщо ввімкнете Grist Enterprise. {{contactUsLink}}, щоб дізнатися більше.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматичні перевірки вимкнено. Щоб увімкнути їх, встановіть для змінної середовища GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значення \"true\"."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматичні перевірки вимкнено. Щоб увімкнути їх, встановіть для змінної середовища GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значення \"true\".",
+        "auth error": "помилка авторизації",
+        "configured": "налаштовано",
+        "default": "за замовчуванням",
+        "more...": "більше...",
+        "no authentication": "без автентифікації",
+        "unavailable": "недоступний"
     },
     "Columns": {
         "Remove Column": "Вилучити стовпець"
@@ -1990,7 +2009,7 @@
         "Reassign to new {{sourceTable}} records.": "Перепризначити новим записам {{sourceTable}}.",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Перепризначити запису {{sourceTable}} для запису {{sourceName}}.",
         "Record already assigned_one": "Запис уже призначено",
-        "Record already assigned_other": "Запис уже призначено",
+        "Record already assigned_other": "Записи вже призначені",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "Запис {{targetTable}} {{targetName}} вже призначено запису {{sourceTable}} {{oldSourceName}}."
     },
     "AuditLogStreamingConfig": {
@@ -2062,9 +2081,9 @@
         "Reset icon": "Значок скидання"
     },
     "RightPanelUtils": {
-        "Columns_one": "Колонки",
+        "Columns_one": "Стовпець",
         "Columns_other": "Колонки",
-        "Fields_one": "Поля",
+        "Fields_one": "Поле",
         "Fields_other": "Поля",
         "Series_one": "Серія",
         "Series_other": "Серія"
@@ -2173,7 +2192,8 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Розгорнути всі рядки до цієї висоти",
         "Max height": "Максимальна висота",
-        "Max row height": "Максимальна висота рядка"
+        "Max row height": "Максимальна висота рядка",
+        "Change": "Зміна"
     },
     "TreeViewComponent": {
         "Collapse": "Згорнути'",
@@ -2183,5 +2203,43 @@
         "active user": "активний користувач",
         "active user list": "список активних користувачів",
         "open full active user list": "відкрити повний список активних користувачів"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Grist дозволяє створювати дуже потужні формули за допомогою Python. Ми рекомендуємо встановити змінну середовища GRIST_SANDBOX_FLAVOR на gvisor, якщо ваше обладнання це підтримує (а більшість підтримує), щоб запускати формули в кожному документі в ізольованому від інших документів і мережі пісочниці.",
+        "Grist has a small built-in health check often used when running it as a container.": "Grist має невелику вбудовану перевірку справності, яка часто використовується під час запуску його як контейнера.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Запити, що надходять до Grist, повинні мати точний заголовок Host. Це важливо, коли встановлено GRIST_SERVE_SAME_ORIGIN.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Ця сторінка завантаження не повинна бути надто легкодоступною. Або вимкніть її, коли конфігурація влаштована (скинувши GRIST_BOOT_KEY), або зробіть GRIST_BOOT_KEY довгим та криптографічно захищеним.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Для роботи вебсокетних з'єднань потрібен HTTP 1.1 та можливість передавати кілька додаткових заголовків. Іноді зворотний проксі-сервер може перешкоджати цим вимогам.",
+        "It is good practice not to run Grist as the root user.": "Не рекомендується запускати Grist від імені користувача root.",
+        "The main page of Grist should be available.": "Головна сторінка Grist має бути доступна."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} один",
+        "+{{count}} more_other": "+{{count}} багато",
+        "Edit": "Редагувати",
+        "No choices configured": "Немає налаштованих варіантів",
+        "Reset": "Скинути",
+        "Cancel": "Скасувати",
+        "Save": "Зберегти"
+    },
+    "FormulaTransform": {
+        "Apply": "Застосувати",
+        "Cancel": "Скасувати",
+        "Preview": "Попередній перегляд"
+    },
+    "ParseOptions": {
+        "Close": "Закрити",
+        "Update preview": "Попередній перегляд оновлення",
+        "Convert quoted fields": "Конвертувати поля в лапках",
+        "Escape character": "Символ Escape",
+        "Field separator": "Роздільник полів",
+        "First row contains headers": "Перший рядок містить заголовки",
+        "Line terminator": "Термінатор лінії",
+        "Number of rows": "Кількість рядків",
+        "Quote character": "Цитата персонажа",
+        "Quotes in fields are doubled": "Лапки в полях подвоюються",
+        "Skip leading whitespace": "Пропустити початкові пробіли",
+        "Start with row": "Почати з рядка",
+        "Character encoding. See [the supported codecs]({{link}})": "Кодування символів. Див. [підтримувані кодеки]({{link}})"
     }
 }

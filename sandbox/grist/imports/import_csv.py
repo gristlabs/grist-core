@@ -17,68 +17,57 @@ log.setLevel(logging.INFO)
 SCHEMA = [
           {
             'name': 'lineterminator',
-            'label': 'Line terminator',
             'type': 'string',
             'visible': True,
           },
           {
             'name': 'include_col_names_as_headers',
-            'label': 'First row contains headers',
             'type': 'boolean',
             'visible': True,
           },
           {
             'name': 'delimiter',
-            'label': 'Field separator',
             'type': 'string',
             'visible': True,
           },
           {
             'name': 'skipinitialspace',
-            'label': 'Skip leading whitespace',
             'type': 'boolean',
             'visible': True,
           },
           {
             'name': 'quotechar',
-            'label': 'Quote character',
             'type': 'string',
             'visible': True,
           },
           {
             'name': 'doublequote',
-            'label': 'Quotes in fields are doubled',
             'type': 'boolean',
             'visible': True,
           },
 
           {
             'name': 'quoting',
-            'label': 'Convert quoted fields',
             'type': 'number',
             'visible': False,       # Not supported by messytables
           },
           {
             'name': 'escapechar',
-            'label': 'Escape character',
             'type': 'string',
             'visible': False,       # Not supported by messytables
           },
           {
             'name': 'start_with_row',
-            'label': 'Start with row',
             'type': 'number',
             'visible': False,       # Not yet implemented
           },
           {
             'name': 'NUM_ROWS',
-            'label': 'Number of rows',
             'type': 'number',
             'visible': False,
           },
           {
             'name': 'encoding',
-            'label': 'Character encoding. See https://tinyurl.com/py3codecs',
             'type': 'string',
             'visible': True,
           }

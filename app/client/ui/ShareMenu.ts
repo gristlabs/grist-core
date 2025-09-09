@@ -19,7 +19,6 @@ import {mediaXSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {
   menu,
-  menuAnnotate,
   menuDivider,
   menuIcon,
   menuItem,
@@ -232,7 +231,6 @@ function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOrigi
       testId('replace-original'),
     ),
     isTutorialFork ? null : menuItemLink(compareHref, {target: '_blank'}, t("Compare to {{termToUse}}", {termToUse}),
-      menuAnnotate('Beta'),
       dom.on('click', () => { pageModel.clearUnsavedChanges(); }),
       testId('compare-original'),
     ),

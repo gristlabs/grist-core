@@ -20,7 +20,6 @@ export const ParseOptions = t.iface([], {
 
 export const ParseOptionSchema = t.iface([], {
   "name": "string",
-  "label": "string",
   "type": "string",
   "visible": "boolean",
 });
