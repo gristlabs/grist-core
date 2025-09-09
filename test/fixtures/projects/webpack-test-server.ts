@@ -21,6 +21,7 @@ import {exitPromise} from 'app/server/lib/serverUtils';
 import {ChildProcess, spawn} from 'child_process';
 import {driver, IMochaContext, IMochaServer} from 'mocha-webdriver';
 import fetch from 'node-fetch';
+import stripAnsi from "strip-ansi";
 import * as path from 'path';
 
 const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, 'webpack.config.js');
@@ -39,35 +40,30 @@ export class WebpackServer implements IMochaServer {
   private _webpackComplete: Promise<boolean>;
 
   public async start(context: IMochaContext) {
-    context.timeout(120000);
+    context.timeout(60000);
     logMessage(`starting with config ${configPath}`);
 
     this._server = spawn('node',
       ['node_modules/.bin/webpack-dev-server', '--config', configPath, '--no-open'], {
-        stdio: ['inherit', 'pipe', 'pipe'],
+        stdio: ['inherit', 'pipe', 'inherit'],
       });
-    // Print all output from child process
-    if (this._server.stdout) {
-      this._server.stdout.on('data', (data) => {
-        process.stdout.write(`[webpack-test-server:stdout] ${data}`);
-      });
-    }
-    if (this._server.stderr) {
-      this._server.stderr.on('data', (data) => {
-        process.stderr.write(`[webpack-test-server:stderr] ${data}`);
-      });
-    }
     this._exitPromise = exitPromise(this._server);
 
     // Wait for a build status to show up on stdout, to know when webpack is finished.
     this._webpackComplete = new Promise((resolve, reject) => {
-      this._server.stdout!.on('data', (data) => {
-        // Note that data might not in general arrive at line boundaries, but in this case, it works.
-        const text = data.toString('utf8');
-        if (/compiled with.*errors/i.test(text)) { reject(new Error('Webpack failed')); }
-        if (/compiled successfully/i.test(text)) { resolve(true); }
+      let buffer = "";
+      this._server.stdout!.on("data", (data) => {
+        buffer += data.toString("utf8");
+        const clean = stripAnsi(buffer);
+        if (/compiled.*with.*errors/i.test(clean)) {
+          reject(new Error("Webpack failed"));
+        }
+        if (/compiled.*successfully/i.test(clean)) {
+          resolve(true);
+        }
       });
     });
+
 
     const config = require(configPath);
     const port = config.devServer.port;
@@ -76,7 +72,6 @@ export class WebpackServer implements IMochaServer {
     this._exitPromise
       .then(() => (this._server.killed || logMessage("webpack-dev-server died unexpectedly")))
       .catch(() => undefined);
-
     await this.waitServerReady(15000);
     logMessage("webpack finished compiling");
   }

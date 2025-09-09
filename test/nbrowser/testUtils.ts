@@ -21,7 +21,6 @@ import {addToRepl, assert, Capability, driver, enableDebugCapture, ITimeouts,
 import * as gu from 'test/nbrowser/gristUtils';
 import {server} from 'test/nbrowser/testServer';
 import {setupCleanup} from 'test/server/testCleanup';
-import tmp from 'tmp';
 
 // Exports the server object with useful methods such as getHost(), waitServerReady(),
 // simulateLogin(), etc.
@@ -31,9 +30,6 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
   if (process.env.TEST_CHROME_BINARY_PATH) {
     chromeOpts.setChromeBinaryPath(process.env.TEST_CHROME_BINARY_PATH);
   }
-
-  const userDataDir = tmp.dirSync().name;
-  chromeOpts.addArguments(`--user-data-dir=${userDataDir}`);
 
   // Set "kiosk" printing that saves to PDF without offering any dialogs. This applies to regular
   // (non-headless) Chrome. On headless Chrome, no dialog or output occurs regardless.
