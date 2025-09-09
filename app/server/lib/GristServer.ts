@@ -52,7 +52,6 @@ export interface StorageCoordinator {
  */
 export interface GristServer extends StorageCoordinator {
   readonly create: ICreate;
-  readonly testPending: boolean;
   settings?: IGristCoreConfig;
   getHost(): string;
   getHomeUrl(req: express.Request, relPath?: string): string;
@@ -169,7 +168,6 @@ export interface DocTemplate {
 export function createDummyGristServer(): GristServer {
   return {
     create,
-    testPending: false,
     settings: loadGristCoreConfig(),
     getHost() { return 'localhost:4242'; },
     getHomeUrl() { return 'http://localhost:4242'; },

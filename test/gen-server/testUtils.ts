@@ -4,6 +4,7 @@ import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {GristServer} from 'app/server/lib/GristServer';
+import {EmitNotifier} from 'app/server/lib/INotifier';
 import {AxiosRequestConfig} from 'axios';
 import {delay} from 'bluebird';
 
@@ -84,7 +85,7 @@ export function getGristConfig(page: string): Partial<GristLoadConfig> {
 export async function waitForAllNotifications(gristServer: GristServer, maxWait: number = 1000) {
   const start = Date.now();
   while (Date.now() - start < maxWait) {
-    if (!gristServer.testPending) { return; }
+    if ((gristServer.getNotifier() as EmitNotifier).testPendingNotifications() === 0) { return; }
     await delay(1);
   }
   throw new Error('waitForAllNotifications timed out');
