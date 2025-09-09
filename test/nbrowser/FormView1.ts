@@ -381,7 +381,7 @@ describe('FormView1', function() {
         await driver.find('.test-form-search-select').click();
         await gu.waitToPass(async () =>
           assert.deepEqual(
-            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz']
           ),
           500);
         await gu.sendKeys('Baz', Key.ENTER);
@@ -628,7 +628,7 @@ describe('FormView1', function() {
         );
         await driver.find('.test-form-search-select').click();
         assert.deepEqual(
-          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz']
         );
         await gu.sendKeys('Baz', Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), '3');
