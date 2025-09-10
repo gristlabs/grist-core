@@ -41,6 +41,7 @@ describe('ApiSession', function() {
       email: "chimpy@getgrist.com",
       name: "Chimpy",
       picture: null,
+      disabledAt: null,
     });
     assert.deepEqual(omit(resp.data.org, ['billingAccount', 'createdAt', 'updatedAt']), {
       id: await server.dbManager.testGetId("NASA"),
@@ -104,6 +105,7 @@ describe('ApiSession', function() {
       email: "kiwi@getgrist.com",
       name: "Kiwi",
       picture: null,
+      disabledAt: null,
     });
     assert.equal(resp.data.org, null);
     assert.deepEqual(resp.data.orgError, {
@@ -123,6 +125,7 @@ describe('ApiSession', function() {
       email: "kiwi@getgrist.com",
       name: "Kiwi",
       picture: null,
+      disabledAt: null,
     });
     assert.equal(resp.data.org, null);
     assert.deepEqual(resp.data.orgError, {
