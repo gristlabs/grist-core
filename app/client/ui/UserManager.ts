@@ -18,6 +18,7 @@ import pick = require('lodash/pick');
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
+import {markdown} from 'app/client/lib/markdown';
 import {setTestState} from 'app/client/lib/testState';
 import {buildMultiUserManagerModal} from 'app/client/lib/MultiUserManager';
 import {ACUserItem, buildACMemberEmail} from 'app/client/lib/ACUserManager';
@@ -28,7 +29,7 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
         Resource} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
-import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
+import {getResourceParent} from 'app/client/models/UserManagerModel';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {createUserImage} from 'app/client/ui/UserImage';
@@ -43,8 +44,11 @@ import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
         IModalControl, modal} from 'app/client/ui2018/modals';
+import {ResourceType} from 'app/common/ResourceTypes';
 
 const t = makeT('UserManager');
+
+type ACCEPTED_WARNINGS = "self-removal" | "public-sharing";
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
@@ -81,7 +85,7 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
 export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOptions) {
   const modelObs: Observable<UserManagerModel|null|"slow"> = observable(null);
 
-  async function onConfirm(ctl: IModalControl) {
+  async function onConfirm(ctl: IModalControl, acceptedWarnings = new Set<ACCEPTED_WARNINGS>()) {
     const model = modelObs.get();
     if (!model || model === "slow") {
       ctl.close();
@@ -105,11 +109,12 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
         reportError(err);
       }
     };
-    if (model.isSelfRemoved.get()) {
-      const resourceType = resourceName(model.resourceType);
+    const resourceType = resourceName(model.resourceType);
+    if (model.isSelfRemoved.get() && !acceptedWarnings.has("self-removal")) {
       confirmModal(
         t(`You are about to remove your own access to this {{resourceType}}`, { resourceType }),
-        t('Remove my access'), tryToSaveChanges,
+        t('Remove my access'),
+        () => onConfirm(ctl, new Set([...acceptedWarnings, "self-removal"])),
         {
           explanation: (
             t(`Once you have removed your own access, \
@@ -118,9 +123,25 @@ from someone else with sufficient access to the {{resourceType}}.`, { resourceTy
           ),
         }
       );
-    } else {
-      tryToSaveChanges().catch(reportError);
+      return;
     }
+    if (model.goingToSharePublicly() && !acceptedWarnings.has("public-sharing")) {
+      confirmModal(
+        t(`Verify your sensitive data before sharing publicly`),
+        t('Share it publicly'),
+        () => onConfirm(ctl, new Set([...acceptedWarnings, "public-sharing"])),
+        {
+          explanation: (
+            markdown(t(`Your {{resourceType}} will be accessible to anyone \
+with the link, including those who have found your document through a search engine. \
+\n\nCarefully check that your {{resourceType}} does not contain sensitive data.`,
+              { resourceType }))),
+        }
+      );
+      return;
+
+    }
+    tryToSaveChanges().catch(reportError);
   }
 
   // Get the model and assign it to the observable. Report errors to the app.
