@@ -61,11 +61,11 @@ import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
-import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
+import {buildAssistantPopup} from 'app/client/widgets/AssistantPopup';
 import {CommentMonitor, DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {AssistantState, ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
+import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
 import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -322,15 +322,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _disableAutoStartingTours: boolean = false;
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
-
-  /**
-   * This holds a single AssistantPopup and empties itself whenever it's
-   * dispose.
-   *
-   * The holder is maintained by GristDoc, so that we are guaranteed at most
-   * one instance of AssistantPopup at any time.
-   */
-  private _assistantPopupHolder = Holder.create<AssistantPopup>(this);
+  private _assistantPopup = buildAssistantPopup(this);
 
   constructor(
     public readonly app: App,
@@ -647,7 +639,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
-      activateAssistant: this._activateAssistant.bind(this),
+      activateAssistant: () => this._assistantPopup?.open(),
     }, this, true));
 
     this.userPresenceModel.initialize().catch(reportError);
@@ -772,7 +764,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
       if (this.isDisposed() || !assistantState) { return; }
 
-      this._activateAssistant({state: assistantState});
+      this._assistantPopup?.setState(assistantState);
+      this._assistantPopup?.open();
     }));
   }
 
@@ -2041,16 +2034,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
         }]
       });
     });
-  }
-
-  private _activateAssistant(options: {state?: AssistantState} = {}) {
-    if (!this._assistantPopupHolder.isEmpty()) {
-      // If an AssistantPopup is already open, don't dispose and reopen it, which
-      // would cause its state to be reset.
-      return;
-    }
-
-    AssistantPopup.create(this._assistantPopupHolder, this, options);
   }
 }
 

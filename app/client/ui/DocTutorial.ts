@@ -108,6 +108,7 @@ export class DocTutorial extends Disposable {
       minimizable: true,
       stopClickPropagationOnMove: true,
       args: this._buildPopupArgs(),
+      testId,
     });
     popup.showPopup();
   }
@@ -203,7 +204,6 @@ export class DocTutorial extends Disposable {
   private _buildPopupArgs() {
     return [
       dom.cls('doc-tutorial-popup'),
-      testId('popup'),
       // Pre-fetch images from all slides and store them in a hidden div.
       dom.maybe(this._slides, slides =>
         dom('div',
