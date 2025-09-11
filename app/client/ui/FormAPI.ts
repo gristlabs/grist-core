@@ -137,7 +137,6 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
 
   public async createRecord(options: CreateRecordOptions): Promise<number> {
     const {tableId, colValues} = options;
-
     const response = await this.requestJson(
       this._docOrShareUrl(`/tables/${tableId}/records`, options),
       {
@@ -145,7 +144,7 @@ export class FormAPIImpl extends BaseAPI implements FormAPI {
         body: JSON.stringify({ records: [{ fields: colValues }] }),
       }
     );
-    return response?.records?.[0]?.id
+    return response?.records?.[0]?.id;
   }
 
   public async createAttachments(options: CreateAttachmentOptions): Promise<number[]> {
