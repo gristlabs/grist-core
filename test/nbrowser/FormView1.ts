@@ -762,12 +762,12 @@ describe('FormView1', function() {
 
     it('redirects to valid URLs on submission with id substitution', async function() {
       const url = await createFormWith('Text', {
-        redirectUrl: "https://example.com",
+        redirectUrl: externalSite.getUrl().href
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
         await driver.findWait('input[type="submit"]', 2000).click();
-        await gu.waitForUrl(/example\.com/);
+        await gu.waitForUrl(/localtest\.datagrist\.com/);
       });
       await removeForm();
     });
