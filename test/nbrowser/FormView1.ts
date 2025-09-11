@@ -860,7 +860,7 @@ describe('FormView1', function() {
 
     it('redirects to valid URLs on submission with id substitution', async function() {
       const url = await createFormWith('Text', {
-        redirectUrl: "https://example.com?id=##",
+        redirectUrl: "https://example.com?id=__ID__",
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
