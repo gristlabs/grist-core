@@ -760,6 +760,18 @@ describe('FormView1', function() {
       await removeForm();
     });
 
+    it('redirects to valid URLs on submission with id substitution', async function() {
+      const url = await createFormWith('Text', {
+        redirectUrl: "https://example.com",
+      });
+      await gu.onNewTab(async () => {
+        await driver.get(url);
+        await driver.findWait('input[type="submit"]', 2000).click();
+        await gu.waitForUrl(/example\.com/);
+      });
+      await removeForm();
+    });
+
     it('does not redirect to invalid URLs on submission', async function() {
       const url = await createFormWith('Text', {
         redirectUrl: "javascript:alert()",
