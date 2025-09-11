@@ -864,7 +864,7 @@ describe('FormView1', function() {
       });
       await gu.onNewTab(async () => {
         await driver.get(url);
-        await driver.findWait('input[type="submit"]', 2000).click();
+        await driver.findWait('button[type="submit"]', 2000).click();
         await gu.waitForUrl(/localtest\.datagrist\.com.*\?id=\d+/);
       });
       await removeForm();
