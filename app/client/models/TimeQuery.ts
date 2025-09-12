@@ -18,7 +18,7 @@ export class ClientTimeData implements ITimeData {
     const data = table?.getTableDataAction(rowIds, colIds);
     if (!data) { return []; }
     const records = (data[2]).map((rowId, i) => {
-      let rec: Record<string, any> = {id: rowId};
+      const rec: Record<string, any> = {id: rowId};
       for (const [colId, values] of Object.entries(data[3])) {
         rec[colId] = values[i];
       }

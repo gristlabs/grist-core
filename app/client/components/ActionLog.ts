@@ -343,7 +343,7 @@ export class ActionLogPart {
   public constructor(
     private _showForTable: (tableName: string, ag?: ActionGroupWithState) => boolean,
     private _selectCell: (rowId: number, colId: string, tableId: string, actionNum: number) => Promise<void>,
-    private _getContext: (actionNum: number, base: ActionSummary) => Promise<ActionContext> 
+    private _getContext: (actionNum: number, base: ActionSummary) => Promise<ActionContext>
   ) {
   }
 
@@ -400,7 +400,7 @@ export class ActionLogPart {
                   }));
               }));
         }),
-        dom('span.action_comment', txt))
+        dom('span.action_comment', txt));
     });
     return dom('div',
                editDom);
@@ -522,7 +522,8 @@ export function traceCell(cell: {rowId: number, colId: string, tableId: string},
                           sum: ActionSummary,
                           actionNum: number,
                           igristNotify: (txt: string) => void) {
-  let {tableId, colId, rowId} = cell;
+  let {tableId, colId} = cell;
+  const {rowId} = cell;
   // Check if this table was renamed / removed.
   const tableRename: LabelDelta|undefined = sum.tableRenames.find(r => r[0] === tableId);
   if (tableRename) {

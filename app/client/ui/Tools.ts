@@ -105,7 +105,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           testId('proposals'),
           urlState().setLinkUrl({docPage: 'proposals'})
         )
-      )
+      );
     }),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),

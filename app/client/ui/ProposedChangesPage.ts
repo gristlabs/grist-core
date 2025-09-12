@@ -11,14 +11,15 @@ import { parseUrlId } from 'app/common/gristUrls';
 import { DocStateComparison } from 'app/common/UserAPI';
 import { Disposable, dom, obsArray, Observable, styled} from 'grainjs';
 import { cloneDeep } from 'lodash';
-import { ActionLogPart, computeContext, traceCell } from '../components/ActionLog';
-import { testId } from '../lib/dom';
-import { basicButton, bigPrimaryButton, primaryButton } from '../ui2018/buttons';
+
+import { ActionLogPart, computeContext, traceCell } from 'app/client/components/ActionLog';
+import { testId } from 'app/client/lib/dom';
+import { basicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
 
 import * as ko from 'knockout';
-import { replaceTrunkWithFork } from './MakeCopyMenu';
+import { replaceTrunkWithFork } from 'app/client/ui/MakeCopyMenu';
 
-import { buildOriginalUrlId } from './ShareMenu';
+import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
 
 const t = makeT('ProposedChangesPage');
 
@@ -38,7 +39,7 @@ class OfferInfo extends Disposable {
 export class ProposedChangesPage extends Disposable {
   public readonly isInitalized = Observable.create(this, false);
   public readonly isTrunk = Observable.create(this, false);
-  private comparison?: DocStateComparison;
+  private _comparison?: DocStateComparison;
   private _offers = this.autoDispose(obsArray<OfferInfo>());
   private _context = ko.observable({});
 
@@ -55,24 +56,13 @@ export class ProposedChangesPage extends Disposable {
     if (urlId && parts.trunkId && parts.forkId) {
       const comparisonUrlId = parts.trunkId;
       this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(comparisonUrlId, { detail: true }).then(v => {
-        this.comparison = v;
+        this._comparison = v;
         this.isTrunk.set(false);
         this.isInitalized.set(true);
         console.log("!!!!!!!!", {v});
       }).catch(e => console.error(e));
     } else if (urlId) {
-      /*
-      this.gristDoc.appModel.api.getDocAPI(urlId).getOffers().then(v => {
-        for (const x of v.result as OfferInfoCore[]) {
-          this._offers.push(new OfferInfo(x));
-        }
-        this.isTrunk.set(true);
-        this.isInitalized.set(true);
-        console.log("????!!!!!!!!", {v});
-        });
-        
-        }
-      */
+      // ...
     }
   }
 
@@ -84,7 +74,7 @@ export class ProposedChangesPage extends Disposable {
       cssDataRow(
         dom.maybe((use) => use(this.isInitalized), () => {
           console.log("MAYBE!!!");
-          const details = this.comparison?.details;
+          const details = this._comparison?.details;
           if (details) {
             const part = new ActionLogPart(
               () => true,
