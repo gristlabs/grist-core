@@ -35,6 +35,11 @@ import {
 } from "express";
 import pick from "lodash/pick";
 
+function getApiRequestBodyLimit(): string {
+  const limitMB = Number(process.env.GRIST_MAX_API_REQUEST_BODY_MB);
+  return limitMB > 0 ? `${limitMB}mb` : '1mb';  // Default to 1mb if not set or invalid
+}
+
 export interface AttachOptions {
   app: Application;
   gristServer: GristServer;
@@ -136,7 +141,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.patch(
     "/api/install/prefs",
-    json({ limit: "1mb" }),
+    json({ limit: getApiRequestBodyLimit() }),
     expressWrap(async (req, res) => {
       const props = { prefs: req.body };
       const activation = await gristServer.getActivations().current();
@@ -188,7 +193,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.put(
     "/api/install/configs/:key",
-    json({ limit: "1mb", strict: false }),
+    json({ limit: getApiRequestBodyLimit(), strict: false }),
     hasValidConfig,
     expressWrap(async (req, res) => {
       const key = stringParam(req.params.key, "key") as ConfigKey;
@@ -235,7 +240,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.put(
     "/api/orgs/:oid/configs/:key",
-    json({ limit: "1mb", strict: false }),
+    json({ limit: getApiRequestBodyLimit(), strict: false }),
     hasValidConfig,
     expressWrap(async (req, res) => {
       const key = stringParam(req.params.key, "key") as ConfigKey;
