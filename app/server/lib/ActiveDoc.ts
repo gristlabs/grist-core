@@ -151,19 +151,19 @@ import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
 
-import {ActionHistory} from './ActionHistory';
-import {ActionHistoryImpl} from './ActionHistoryImpl';
-import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
-import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileManager';
-import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
-import {DocClients} from './DocClients';
-import {DocPluginManager} from './DocPluginManager';
-import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from './DocSession';
-import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
-import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
-import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
-import {OnDemandActions} from './OnDemandActions';
-import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import {ActionHistory} from 'app/server/lib/ActionHistory';
+import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
+import {ActiveDocImport, FileImportOptions} from 'app/server/lib/ActiveDocImport';
+import {AttachmentFileManager, MismatchedFileHashError} from 'app/server/lib/AttachmentFileManager';
+import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {DocClients} from 'app/server/lib/DocClients';
+import {DocPluginManager} from 'app/server/lib/DocPluginManager';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from 'app/server/lib/DocStorage';
+import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/ExpandedQuery';
+import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
+import {OnDemandActions} from 'app/server/lib/OnDemandActions';
+import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -1396,6 +1396,9 @@ export class ActiveDoc extends EventEmitter {
     tableId: string,
     includeHidden = false): Promise<RecordWithStringId[]> {
     const metaTables = await this.fetchMetaTables(docSession);
+    if (tableId.startsWith('_grist_')) {
+      throw new Error('getTableCols not available for meta tables');
+    }
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
 

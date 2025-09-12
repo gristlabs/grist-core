@@ -1,5 +1,5 @@
 import {assert, driver} from 'mocha-webdriver';
-import {server, setupTestSuite} from './testUtils';
+import {server, setupTestSuite} from 'test/projects/testUtils';
 
 describe('errorPages', function() {
   this.timeout(60000);      // Set a longer default timeout.

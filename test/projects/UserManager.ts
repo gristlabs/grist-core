@@ -1,5 +1,5 @@
 import {assert, driver, Key, WebElement} from 'mocha-webdriver';
-import {server, setupTestSuite} from './testUtils';
+import {server, setupTestSuite} from 'test/projects/testUtils';
 
 describe('UserManager', () => {
   setupTestSuite();

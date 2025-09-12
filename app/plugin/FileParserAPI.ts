@@ -2,7 +2,7 @@
  * API definitions for FileParser plugins.
  */
 
-import {GristTables} from './GristTable';
+import {GristTables} from 'app/plugin/GristTable';
 
 export interface EditOptionsAPI {
   getParseOptions(parseOptions?: ParseOptions): Promise<ParseOptions>;
@@ -28,7 +28,6 @@ export interface ParseOptions {
  */
 export interface ParseOptionSchema {
   name: string;
-  label: string;
   type: string;
   visible: boolean;
 }

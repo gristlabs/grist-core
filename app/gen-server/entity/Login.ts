@@ -1,6 +1,6 @@
 import {BaseEntity, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
 
-import {User} from "./User";
+import {User} from "app/gen-server/entity/User";
 
 @Entity({name: 'logins'})
 export class Login extends BaseEntity {

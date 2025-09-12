@@ -4,10 +4,10 @@ import {makeId} from 'app/server/lib/idUtils';
 import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
         PrimaryGeneratedColumn} from "typeorm";
 
-import {Group} from "./Group";
-import {Login} from "./Login";
-import {Organization} from "./Organization";
-import {Pref} from './Pref';
+import {Group} from "app/gen-server/entity/Group";
+import {Login} from "app/gen-server/entity/Login";
+import {Organization} from "app/gen-server/entity/Organization";
+import {Pref} from 'app/gen-server/entity/Pref';
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {

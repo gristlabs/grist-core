@@ -1,14 +1,18 @@
+import {makeT} from 'app/client/lib/localization';
+import {markdown} from 'app/client/lib/markdown';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {testId, theme} from 'app/client/ui2018/cssVars';
-import {makeLinks} from 'app/client/ui2018/links';
 import {cssModalButtons} from 'app/client/ui2018/modals';
 import {ParseOptionSchema} from 'app/plugin/FileParserAPI';
+
 import {Computed, dom, DomContents, IDisposableOwner, input, Observable, styled} from 'grainjs';
 import fromPairs = require('lodash/fromPairs');
 import invert = require('lodash/invert');
 
 export type ParseOptionValueType = boolean|string|number;
+
+const t = makeT('ParseOptions');
 
 export interface ParseOptionValues {
   [name: string]: ParseOptionValueType;
@@ -58,10 +62,24 @@ export function buildParseOptionsForm(
     return fromPairs(items.map((item) => [item.name, optionsMap.get(item.name)!.get()]));
   }
 
+  const labelsByName: {[key: string]: string} = {
+    lineterminator: t('Line terminator'),
+    include_col_names_as_headers: t('First row contains headers'),
+    delimiter: t('Field separator'),
+    skipinitialspace: t('Skip leading whitespace'),
+    quotechar: t('Quote character'),
+    doublequote: t('Quotes in fields are doubled'),
+    quoting: t('Convert quoted fields'),
+    escapechar: t('Escape character'),
+    start_with_row: t('Start with row'),
+    NUM_ROWS: t('Number of rows'),
+    encoding: t('Character encoding. See [the supported codecs]({{link}})', {link: 'https://tinyurl.com/py3codecs'})
+  };
+
   return [
     cssParseOptionForm(
       items.map((item) => cssParseOption(
-        cssParseOptionName(makeLinks(item.label)),
+        cssParseOptionName(markdown(labelsByName[item.name])),
         optionToInput(owner, item.type, optionsMap.get(item.name)!),
         testId('parseopts-opt'),
       )),
@@ -69,8 +87,8 @@ export function buildParseOptionsForm(
     cssModalButtons(
       dom.domComputed((use) => items.every((item) => use(optionsMap.get(item.name)!) === values[item.name]),
         (unchanged) => (unchanged ?
-          bigBasicButton('Close', dom.on('click', doCancel), testId('parseopts-back')) :
-          bigPrimaryButton('Update preview', dom.on('click', () => doUpdate(collectParseOptions())),
+          bigBasicButton(t('Close'), dom.on('click', doCancel), testId('parseopts-back')) :
+          bigPrimaryButton(t('Update preview'), dom.on('click', () => doUpdate(collectParseOptions())),
             testId('parseopts-update'))
         )
       )

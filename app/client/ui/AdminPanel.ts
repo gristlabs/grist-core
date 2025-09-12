@@ -363,7 +363,10 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
     const checkForLatestVersion = Observable.create(owner, true);
     const allowAutomaticVersionChecking = Observable.create(owner, config.automaticVersionCheckingAllowed);
     this._installAPI.getInstallPrefs()
-      .then((prefs) => checkForLatestVersion.set(prefs.checkForLatestVersion ?? true))
+      .then((prefs) => {
+        if (this.isDisposed() || checkForLatestVersion.isDisposed()) { return; }
+        checkForLatestVersion.set(prefs.checkForLatestVersion ?? true);
+      })
       .catch(reportError);
 
     // Observable state of the updates check.

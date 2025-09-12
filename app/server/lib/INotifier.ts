@@ -7,7 +7,7 @@ import { User } from 'app/gen-server/entity/User';
 import { Workspace } from 'app/gen-server/entity/Workspace';
 import { UserChange, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { SendGridConfig, SendGridMailWithTemplateId, TwoFactorEvent } from 'app/gen-server/lib/NotifierTypes';
-import { DocNotificationEvent } from 'app/gen-server/lib/NotifierTypes';
+import { DocNotificationEvent, DocNotificationTemplateBase } from 'app/gen-server/lib/NotifierTypes';
 
 /**
  *
@@ -48,7 +48,9 @@ export interface INotifier {
    * Deliver notification of a doc change or comment. Other code is responsible for preparing the
    * payload; this method only needs to deliver it.
    */
-  docNotification(event: DocNotificationEvent, userId: number, templateData: object): Promise<void>;
+  docNotification(
+    event: DocNotificationEvent, userId: number, templateData: DocNotificationTemplateBase
+  ): Promise<void>;
 
   /**
    * This is a bit confusing. It isn't a notification, but

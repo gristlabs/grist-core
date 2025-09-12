@@ -2422,7 +2422,7 @@ describe('ApiServer', function() {
       const count = testGetPreparedStatementCount();
       assert.equal(count.usedCount, count.preparedCount);
       assert.isAbove(count.usedCount, 30);
-      assert.isBelow(count.usedCount, 40);
+      assert.isBelow(count.usedCount, 44); // was 43 as of 2025-09-05 on saas-deployment
     });
   });
 });

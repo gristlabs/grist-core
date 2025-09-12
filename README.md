@@ -105,7 +105,7 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
 	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
 	- For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
-  * Document Change and Comment Notifications (2025)
+  * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
 	- People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 
@@ -261,6 +261,23 @@ environment variable.
 These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
 very welcome here!
+
+If you wish to include Grist Labs enterprise extensions in your build,
+the steps are as follows. Note that this will add non-OSS code to your
+build. It will also place a directory called `node_modules` one level
+up, at the same level as the Grist repo. If that is a problem for you,
+just move everything into a subdirectory first.
+
+    yarn install
+    ./buildtools/checkout-ext-directory.sh grist-ee
+    yarn install --cwd ext --modules-folder ../../node_modules/
+    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn build
+    yarn run install:python
+    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn start
+    # Grist will be available at http://localhost:8484/
+
+The enterprise code will by default not be used. You need to explicitly enable
+it in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-grist-enterprise).
 
 ## Logins
 

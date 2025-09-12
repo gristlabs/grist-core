@@ -8,11 +8,11 @@ import {v4 as uuidv4} from 'uuid';
  * FormView will look for any exported BoxModel derived class in format `type` + `Model`, and use It
  * to render and manage the element.
  */
-export * from "./Paragraph";
-export * from "./Section";
-export * from './Field';
-export * from './Columns';
-export * from './Submit';
+export * from "app/client/components/Forms/Paragraph";
+export * from "app/client/components/Forms/Section";
+export * from 'app/client/components/Forms/Field';
+export * from 'app/client/components/Forms/Columns';
+export * from 'app/client/components/Forms/Submit';
 
 export function defaultElement(type: FormLayoutNodeType): FormLayoutNode {
   switch(type) {

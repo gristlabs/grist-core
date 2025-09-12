@@ -2,7 +2,7 @@
  * API definitions for ImportSource plugins.
  */
 
-import { GristTable } from './GristTable';
+import { GristTable } from 'app/plugin/GristTable';
 
 export interface ImportSourceAPI {
   /**
