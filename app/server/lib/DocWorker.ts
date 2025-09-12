@@ -15,7 +15,6 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import {getDocId, integerParam, optIntegerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import {OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import contentDisposition from 'content-disposition';
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as mimeTypes from 'mime-types';
@@ -56,7 +55,7 @@ export class DocWorker {
 
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
-      const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), {type: contentDispType});
+      const contentDispHeader = `${contentDispType}; filename*=UTF-8''${stringParam(req.query.name, 'name'), {type: contentDispType}}`;
       const data = await activeDoc.getAttachmentData(docSession, attRecord, {cell, maybeNew});
       res.status(200)
         .type(ext)
