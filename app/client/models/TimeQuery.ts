@@ -1,0 +1,29 @@
+import { ITimeData, ResultRow } from 'app/common/TimeQuery';
+// import { ISQLiteDB, quoteIdent, ResultRow } from 'app/server/lib/SQLiteDB';
+import {DocData} from 'app/client/models/DocData';
+
+export class ClientTimeData implements ITimeData {
+  public constructor(public db: DocData) {
+  }
+
+  public async getColIds(tableId: string): Promise<string[]> {
+    const table = this.db.getTable(tableId);
+    return table?.getColIds() || [];
+  }
+
+  public async fetch(tableId: string, colIds: string[], rowIds?: number[]): Promise<ResultRow[]> {
+    if (rowIds) { throw new Error('not yet'); }
+    await this.db.fetchTable(tableId);
+    const table = this.db.getTable(tableId);
+    const data = table?.getTableDataAction(rowIds, colIds);
+    if (!data) { return []; }
+    const records = (data[2]).map((rowId, i) => {
+      const rec: Record<string, any> = {id: rowId};
+      for (const [colId, values] of Object.entries(data[3])) {
+        rec[colId] = values[i];
+      }
+      return rec;
+    });
+    return records;
+  }
+}

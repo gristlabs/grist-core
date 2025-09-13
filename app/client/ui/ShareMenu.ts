@@ -34,7 +34,7 @@ import {cssMenuItem, MenuCreateFunc} from 'popweasel';
 
 const t = makeT('ShareMenu');
 
-function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
+export function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
   return isSnapshot ? buildUrlId({...parts, snapshotId: undefined}) : parts.trunkId;
 }

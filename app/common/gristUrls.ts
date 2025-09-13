@@ -22,7 +22,10 @@ import * as t from "ts-interface-checker";
 
 const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
-export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
+export const SpecialDocPage = StringUnion(
+  'code', 'acl', 'data', 'GristDocTour',
+  'proposals', 'settings', 'webhook', 'timing',
+);
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
 

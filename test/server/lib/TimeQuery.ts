@@ -1,7 +1,8 @@
 import {summarizeAction} from 'app/common/ActionSummarizer';
 import {ActionSummary} from 'app/common/ActionSummary';
+import {TimeCursor, TimeLayout, TimeQuery} from 'app/common/TimeQuery';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {TimeCursor, TimeLayout, TimeQuery} from 'app/server/lib/TimeQuery';
+import {SQLiteTimeData} from 'app/server/lib/TimeQuery';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {assert} from 'test/server/testUtils';
@@ -23,7 +24,7 @@ describe("TimeQuery", function() {
   it ('can view state of table in past', async function() {
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     const db = doc.docStorage;
-    const cursor = new TimeCursor(db);
+    const cursor = new TimeCursor(new SQLiteTimeData(db));
 
     // We'll be interested in viewing the state of table "Fish", column "age".
     const fish = new TimeQuery(cursor, 'Fish', ['age']);
@@ -65,7 +66,7 @@ describe("TimeQuery", function() {
   it ('can track column order and user-facing table name', async function() {
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     const db = doc.docStorage;
-    const cursor = new TimeCursor(db);
+    const cursor = new TimeCursor(new SQLiteTimeData(db));
     const layout = new TimeLayout(cursor);
     const session = docTools.createFakeSession();
 
