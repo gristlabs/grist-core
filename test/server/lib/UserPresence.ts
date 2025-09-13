@@ -153,6 +153,56 @@ describe('UserPresence', function() {
     })
   );
 
+  describe("multiple user connections should only show once on the client", async function () {
+    const testCombinations = [
+      {
+        name: "editor and owner",
+        makeObserverClient: () => getWebsocket(editor),
+        makeJoinerClient: () => getWebsocket(owner),
+      },
+      {
+        name: "editor and a logged-in public user",
+        makeObserverClient: () => getWebsocket(editor),
+        makeJoinerClient: () => openTrackedClientForUser(Users.loggedInPublic.email),
+      },
+      // Testing with logged out users won't work here, as these clients don't have a consistent
+      // session id to track.
+    ];
+
+    testCombinations.forEach((testCase) => {
+      it(`only shows 1 message for multiple clients: ${testCase.name}`, async function () {
+        const observerClient = await testCase.makeObserverClient();
+        const otherClients = await Promise.all([
+          testCase.makeJoinerClient(),
+          testCase.makeJoinerClient(),
+          testCase.makeJoinerClient(),
+          testCase.makeJoinerClient(),
+        ]);
+
+        await observerClient.openDocOnConnect(docId);
+        await Promise.all(otherClients.map(client => client.openDocOnConnect(docId)));
+
+        const firstMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+        // First message should be the one showing a user is present
+        assert(firstMessage.data.profile != undefined, "connect message not received first");
+
+        await Promise.all(otherClients.map(closeClient));
+
+        const secondMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+        // Second message should be a disconnect - there should only have been 1 present message for all clients.
+        assert(secondMessage.data.profile == null, "received unexpected user presence update");
+
+        // Connect one more client to trigger a connection message.
+        const finalClient = await testCase.makeJoinerClient();
+        await finalClient.openDocOnConnect(docId);
+
+        const finalMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+        // Third message should be the reconnect - i.e. only one disconnection message should have been sent.
+        assert(finalMessage.data.profile != null, "received unexpected user presence disconnect");
+      });
+    });
+  });
+
   describe("users without the correct permissions can't see other users", async function () {
     before(async () => {
       await owner.updateDocPermissions(docId, {
