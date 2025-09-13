@@ -343,7 +343,7 @@ export class ActionLogPart {
   public constructor(
     private _showForTable: (tableName: string, ag?: ActionGroupWithState) => boolean,
     private _selectCell: (rowId: number, colId: string, tableId: string, actionNum: number) => Promise<void>,
-    private _getContext: (actionNum: number, base: ActionSummary) => Promise<ActionContext>
+    private _getContext: (actionNum: number, base: ActionSummary) => Promise<ActionContext|undefined>
   ) {
   }
 
@@ -514,7 +514,9 @@ export class ActionLogPart {
     context = context || {};
     const sum = ag.actionSummary;
     const result = await this._getContext(ag.actionNum || 0, sum);
-    ag.context({...context, [tableId]: result[tableId]});
+    if (result) {
+      ag.context({...context, [tableId]: result[tableId]});
+    }
   }
 }
 
