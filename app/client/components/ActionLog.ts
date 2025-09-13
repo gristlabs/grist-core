@@ -290,7 +290,9 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     for (let i = index; i >= 0; i--) {
       const action = this._displayStack.at(i)!;
       const sum = action.actionSummary;
-      const cell = traceCell({rowId, colId, tableId}, sum, action.actionNum, gristNotify);
+      const cell = traceCell({rowId, colId, tableId}, sum, action.actionNum, (msg) => {
+        gristNotify(msg);
+      });
       if (cell) {
         tableId = cell.tableId;
         colId = cell.colId;
@@ -332,7 +334,6 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       for (let i = index; i >= 0; i--) {
         const action = this._displayStack.at(i)!;
         cursor.append(cloneDeep(action.actionSummary));
-        console.log({i, sum: action.actionSummary});
       }
     });
   }
@@ -370,7 +371,6 @@ export class ActionLogPart {
                 cssBasicButton(
                   context[table] ? ' <' : ' >',
                   dom.on('click', async () => {
-                    //setTimeout(1000, async function meep()
                     if (context[table]) {
                       await this._resetContext(ag, table, context);
                     } else {
@@ -541,7 +541,9 @@ export function traceCell(cell: {rowId: number, colId: string, tableId: string},
     tableId = newName;
   }
   const td = sum.tableDeltas[tableId];
-  if (!td) { return null; }
+  if (!td) {
+    return {tableId, rowId, colId};
+  }
 
   // Check is this row was removed - if so there's no reason to go on.
   if (td.removeRows.indexOf(rowId) >= 0) {
