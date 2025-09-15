@@ -682,7 +682,10 @@
         "Skip Import": "Pular importação",
         "Source column": "Coluna de origem",
         "Import from file": "Importar de arquivo",
-        "Skip Table on Import": "Pular tabela na importação"
+        "Skip Table on Import": "Pular tabela na importação",
+        "Import options": "Opções de importação",
+        "Cancel": "Cancelar",
+        "Import": "Importação"
     },
     "LeftPanelCommon": {
         "Help Center": "Centro de Ajuda"
@@ -1216,7 +1219,8 @@
         "Toggle the {{creatorPanel}} to format columns, ": "Alternar o {{creatorPanel}} para formatar colunas, ",
         "Use {{addNew}} to add widgets, pages, or import more data. ": "Use {{addNew}} para adicionar widgets, páginas ou importar mais dados. ",
         "creator panel": "painel do criador",
-        "Use the Share button ({{share}}) to share the document or export data.": "Use o botão Compartilhar ({{share}}) para compartilhar o documento ou exportar dados."
+        "Use the Share button ({{share}}) to share the document or export data.": "Use o botão Compartilhar ({{share}}) para compartilhar o documento ou exportar dados.",
+        "AI Assistant": "Assistente de IA"
     },
     "ColumnInfo": {
         "COLUMN LABEL": "RÓTULO DA COLUNA",
@@ -1270,7 +1274,11 @@
         "Revert field settings for {{colId}} to common": "Reverter configurações de campo da {{colId}} para comum",
         "Mixed types": "Tipos mistos",
         "Use separate field settings for {{colId}}": "Use configurações de campo separadas para {{colId}}",
-        "Changing column type": "Alterando o tipo de coluna"
+        "Changing column type": "Alterando o tipo de coluna",
+        "Common": "Comum",
+        "Separate": "Separado",
+        "Field in {{count}} views_one": "Campo em uma vista",
+        "Field in {{count}} views_other": "Campo em {{count}} vistas"
     },
     "FormulaEditor": {
         "Column or field is required": "Coluna ou campo é obrigatório",
@@ -1413,7 +1421,10 @@
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Isso permite adicionar anexos que estão faltando no armazenamento externo, por exemplo, em um documento importado. Somente arquivos de anexos .tar baixados do Grist podem ser carregados aqui.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Entenda, modifique e trabalhe com seus dados e fórmulas com a ajuda do novo Assistente de IA do Grist!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Este formulário foi criado por um usuário do Grist e não é endossado pelo Grist Labs. Não envie senhas por meio desse formulário e tenha cuidado com os links nele contidos. Denuncie formulários maliciosos para [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Defina o número máximo de linhas para texto com várias linhas."
+        "Set the maximum number of lines for multi-line text.": "Defina o número máximo de linhas para texto com várias linhas.",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Este formulário foi criado por um usuário do Grist e não é endossado pelo Grist Labs, Inc. ou por qualquer parte que forneça esse serviço. Para sua segurança, não envie senhas por meio deste formulário e tenha cuidado ao clicar em links incorporados. Denuncie formulários maliciosos para [{{mail}}](mailto:{{mail}}).",
+        "Comments are here!": "Os comentários estão aqui!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Você pode adicionar comentários às células, responder a tópicos de comentários e @mencionar colaboradores."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "DESCRIÇÃO"
@@ -2061,7 +2072,7 @@
         "Record already assigned_one": "Registro já atribuído",
         "Reassign to new {{sourceTable}} records.": "Reatribuir a novos registros {{sourceTable}}.",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Reatribuir para o registro {{sourceTable}} {{sourceName}} .",
-        "Record already assigned_other": "Registro já atribuído",
+        "Record already assigned_other": "Registros já atribuídos",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} O registro {{targetName}} já está atribuído ao registro {{sourceTable}} {{oldSourceName}} ."
     },
     "AuditLogStreamingConfig": {
@@ -2133,9 +2144,9 @@
         "Name": "Nome"
     },
     "RightPanelUtils": {
-        "Columns_one": "Colunas",
+        "Columns_one": "Coluna",
         "Columns_other": "Colunas",
-        "Fields_one": "Campos",
+        "Fields_one": "Campo",
         "Fields_other": "Campos",
         "Series_one": "Séries",
         "Series_other": "Séries"
@@ -2244,7 +2255,8 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Expandir todas as linhas para essa altura",
         "Max height": "Altura máxima",
-        "Max row height": "Altura máxima da linha"
+        "Max row height": "Altura máxima da linha",
+        "Change": "Mudança"
     },
     "TreeViewComponent": {
         "Collapse": "Recolher",
@@ -2260,6 +2272,37 @@
         "Grist has a small built-in health check often used when running it as a container.": "O Grist tem uma pequena verificação de integridade embutida, geralmente usada ao executá-lo como um recipiente.",
         "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "As solicitações que chegam ao Grist devem ter um cabeçalho Host preciso. Isso é essencial quando GRIST_SERVE_SAME_ORIGIN está definido.",
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Essa página de inicialização não deve ser muito fácil de acessar. Desative-a quando a configuração estiver correta (desmarcando GRIST_BOOT_KEY) ou torne GRIST_BOOT_KEY longa e criptograficamente segura.",
-        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "As conexões Websocket precisam do HTTP 1.1 e da capacidade de passar alguns cabeçalhos extras para funcionar. Às vezes, um proxy reverso pode interferir nesses requisitos."
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "As conexões Websocket precisam do HTTP 1.1 e da capacidade de passar alguns cabeçalhos extras para funcionar. Às vezes, um proxy reverso pode interferir nesses requisitos.",
+        "It is good practice not to run Grist as the root user.": "É uma boa prática não executar o Grist como usuário root.",
+        "The main page of Grist should be available.": "A página principal do Grist deve estar disponível."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} mais",
+        "+{{count}} more_other": "+{{count}} mais",
+        "Edit": "Editar",
+        "No choices configured": "Nenhuma opção configurada",
+        "Reset": "Restabelecer",
+        "Cancel": "Cancelar",
+        "Save": "Guardar"
+    },
+    "FormulaTransform": {
+        "Apply": "Aplicar",
+        "Cancel": "Cancelar",
+        "Preview": "Prévisualizar"
+    },
+    "ParseOptions": {
+        "Close": "Fechar",
+        "Update preview": "Atualizar a prévisualização",
+        "Convert quoted fields": "Converta campos citados",
+        "Escape character": "Caractere de escape",
+        "Field separator": "Separador de campo",
+        "First row contains headers": "A primeira linha contém cabeçalhos",
+        "Line terminator": "Terminador de linha",
+        "Number of rows": "Número de linhas",
+        "Quote character": "Caracterer de citação",
+        "Quotes in fields are doubled": "As citações em campos são duplicadas",
+        "Skip leading whitespace": "Ignorar espaços em branco à esquerda",
+        "Start with row": "Comece com a linha",
+        "Character encoding. See [the supported codecs]({{link}})": "Codificação de caracteres. Consulte [os codecs compatíveis]({{link}})"
     }
 }
