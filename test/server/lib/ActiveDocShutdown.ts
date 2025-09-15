@@ -14,6 +14,7 @@ import {DocSession, DocSessionPrecursor, makeExceptionalDocSession} from 'app/se
 import {createDocTools, createUpload} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
+import {AuthSession} from 'app/server/lib/AuthSession';
 
 // This makes just enough of a Client to use with ActiveDoc.addClient() and ActiveDoc.closeDoc().
 function _makeFakeClient(): Client {
@@ -24,7 +25,14 @@ function _makeFakeClient(): Client {
   const getLogMeta = sinon.spy();
   const sendMessage = sinon.spy();
   const sendMessageOrInterrupt = sinon.spy();
-  return {addDocSession, removeDocSession, getLogMeta, sendMessage, sendMessageOrInterrupt} as unknown as Client;
+  return {
+    addDocSession,
+    removeDocSession,
+    getLogMeta,
+    sendMessage,
+    sendMessageOrInterrupt,
+    authSession: AuthSession.unauthenticated()
+  } as unknown as Client;
 }
 
 describe('ActiveDocShutdown', function() {

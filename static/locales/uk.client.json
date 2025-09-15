@@ -2214,8 +2214,8 @@
         "The main page of Grist should be available.": "Головна сторінка Grist має бути доступна."
     },
     "ChoiceListEntry": {
-        "+{{count}} more_one": "+{{count}} один",
-        "+{{count}} more_other": "+{{count}} багато",
+        "+{{count}} more_one": "+{{count}} більше",
+        "+{{count}} more_other": "+{{count}} більше",
         "Edit": "Редагувати",
         "No choices configured": "Немає налаштованих варіантів",
         "Reset": "Скинути",
