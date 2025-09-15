@@ -682,7 +682,10 @@
         "Skip": "überspringen",
         "Skip Import": "Import überspringen",
         "Skip Table on Import": "Tabelle beim Import überspringen",
-        "Source column": "Quellenspalte"
+        "Source column": "Quellenspalte",
+        "Import options": "Importeinstellungen",
+        "Cancel": "Abbrechen",
+        "Import": "Importieren"
     },
     "LeftPanelCommon": {
         "Help Center": "Hilfe-Center"
@@ -1268,7 +1271,11 @@
         "DATA FROM TABLE": "DATEN AUS TABELLE",
         "Save field settings for {{colId}} as common": "Feldeinstellungen für {{colId}} als Algemein speichern",
         "Use separate field settings for {{colId}}": "Verwenden Sie separate Feldeinstellungen für {{colId}}",
-        "Changing column type": "Ändern des Spaltentyps"
+        "Changing column type": "Ändern des Spaltentyps",
+        "Common": "Allgemein",
+        "Separate": "Getrennt",
+        "Field in {{count}} views_one": "Feld in einer Ansicht",
+        "Field in {{count}} views_other": "Feld in {{count}} Ansichten"
     },
     "EditorTooltip": {
         "Convert column to formula": "Spalte in Formel umwandeln"
@@ -1316,7 +1323,8 @@
         "Use {{helpCenter}} for documentation or questions.": "Verwenden Sie {{helpCenter}} für Dokumentation oder Fragen.",
         "convert to card view, select data, and more.": "in die Kartenansicht konvertieren, Daten auswählen und vieles mehr.",
         "creator panel": "Ersteller-Panel",
-        "template library": "Vorlagenbibliothek"
+        "template library": "Vorlagenbibliothek",
+        "AI Assistant": "KI-Assistent"
     },
     "NumericTextBox": {
         "Currency": "Währung",
@@ -1413,7 +1421,10 @@
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Damit können Sie Anhänge hinzufügen, die im externen Speicher fehlen, z.B. in einem importierten Dokument. Nur .tar-Anhangsarchive, die von Grist heruntergeladen wurden, können hier hochgeladen werden.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Verstehen, verändern und bearbeiten Sie Ihre Daten und Formeln mit Hilfe des neuen KI-Assistenten von Grist!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Dieses Formular wurde von einem Grist-Benutzer erstellt und wird nicht von Grist Labs gebilligt. Übermitteln Sie keine Passwörter über dieses Formular, und seien Sie vorsichtig mit den darin enthaltenen Links. Melden Sie bösartige Formulare an [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Legen Sie die maximale Anzahl von Zeilen für mehrzeiligen Text fest."
+        "Set the maximum number of lines for multi-line text.": "Legen Sie die maximale Anzahl von Zeilen für mehrzeiligen Text fest.",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Dieses Formular wurde von einem Grist-Benutzer erstellt und wird nicht von Grist Labs, Inc. oder einer anderen Partei, die diesen Service anbietet, unterstützt. Geben Sie zu Ihrer Sicherheit keine Passwörter über dieses Formular ein, und seien Sie vorsichtig, wenn Sie auf eingebettete Links klicken. Melden Sie bösartige Formulare an [{{mail}}](mailto:{{mail}}).",
+        "Comments are here!": "Die Kommentare sind da!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Sie können Kommentare zu Zellen hinzufügen, auf Kommentar-Threads antworten und @-Mitarbeiter erwähnen."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "BESCHREIBUNG"
@@ -2060,7 +2071,7 @@
         "Reassign": "Neu zuordnen",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Zuweisen auf {{sourceTable}}-Datensatz {{sourceName}}.",
         "Record already assigned_one": "Datensatz bereits zugeordnet",
-        "Record already assigned_other": "Datensatz bereits zugeordnet",
+        "Record already assigned_other": "Bereits zugeordnete Datensätze",
         "Reassign to new {{sourceTable}} records.": "Neuzuordnung zu neuen {{sourceTable}} Datensätzen.",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "{{targetTable}} Der Datensatz {{targetName}} ist bereits dem Datensatz {{sourceTable}} {{oldSourceName}} zugeordnet."
     },
@@ -2133,9 +2144,9 @@
         "Choose color": "Farbe wählen"
     },
     "RightPanelUtils": {
-        "Columns_one": "Spalten",
+        "Columns_one": "Spalte",
         "Columns_other": "Spalten",
-        "Fields_one": "Felder",
+        "Fields_one": "Feld",
         "Series_other": "Serien",
         "Series_one": "Serien",
         "Fields_other": "Felder"
@@ -2244,7 +2255,8 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Alle Zeilen auf diese Höhe ausdehnen",
         "Max height": "Maximale Höhe",
-        "Max row height": "Maximale Zeilenhöhe"
+        "Max row height": "Maximale Zeilenhöhe",
+        "Change": "Veränderung"
     },
     "TreeViewComponent": {
         "Collapse": "Zusammenklappen",
@@ -2260,6 +2272,37 @@
         "Grist has a small built-in health check often used when running it as a container.": "Grist hat einen kleinen eingebauten Gesundheitscheck, der oft verwendet wird, wenn es als Container läuft.",
         "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Anfragen, die bei Grist ankommen, sollten einen genauen Host-Header haben. Dies ist wichtig, wenn GRIST_SERVE_SAME_ORIGIN eingestellt ist.",
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Diese Boot-Seite sollte nicht zu leicht zugänglich sein. Schalten Sie sie entweder aus, wenn die Konfiguration in Ordnung ist (indem Sie GRIST_BOOT_KEY aufheben), oder machen Sie GRIST_BOOT_KEY lang und kryptografisch sicher.",
-        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket-Verbindungen benötigen HTTP 1.1 und die Möglichkeit, ein paar zusätzliche Header zu übergeben, um zu funktionieren. Manchmal kann ein Reverse Proxy diese Anforderungen beeinträchtigen."
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Websocket-Verbindungen benötigen HTTP 1.1 und die Möglichkeit, ein paar zusätzliche Header zu übergeben, um zu funktionieren. Manchmal kann ein Reverse Proxy diese Anforderungen beeinträchtigen.",
+        "It is good practice not to run Grist as the root user.": "Es ist eine gute Praxis, Grist nicht als Root-Benutzer auszuführen.",
+        "The main page of Grist should be available.": "Die Hauptseite von Grist sollte verfügbar sein."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} mehr",
+        "+{{count}} more_other": "+{{count}} mehr",
+        "Edit": "Bearbeiten",
+        "No choices configured": "Keine Auswahlmöglichkeiten konfiguriert",
+        "Reset": "Zurücksetzen",
+        "Cancel": "Abbrechen",
+        "Save": "Speichern"
+    },
+    "FormulaTransform": {
+        "Apply": "Anwenden",
+        "Cancel": "Abbrechen",
+        "Preview": "Vorschau"
+    },
+    "ParseOptions": {
+        "Close": "Schließen",
+        "Update preview": "Vorschau aktualisieren",
+        "Convert quoted fields": "Zitate konvertieren",
+        "Escape character": "Escape-Zeichen",
+        "Field separator": "Feldtrenner",
+        "First row contains headers": "Erste Zeile enthält Überschriften",
+        "Line terminator": "Zeilenterminator",
+        "Number of rows": "Anzahl der Zeilen",
+        "Quote character": "Zitat Charakter",
+        "Quotes in fields are doubled": "Anführungszeichen in Feldern werden verdoppelt",
+        "Skip leading whitespace": "Führende Whitespace-Zeichen überspringen",
+        "Start with row": "Beginn mit Zeile",
+        "Character encoding. See [the supported codecs]({{link}})": "Zeichenkodierung. Siehe [die unterstützten Codecs]({{link}})"
     }
 }
