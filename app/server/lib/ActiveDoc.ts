@@ -65,7 +65,7 @@ import {
 import {normalizeEmail} from 'app/common/emails';
 import {Features, Product} from 'app/common/Features';
 import {isHiddenCol} from 'app/common/gristTypes';
-import {commonUrls, parseUrlId} from 'app/common/gristUrls';
+import {parseUrlId} from 'app/common/gristUrls';
 import {byteString, countIf, retryOnce, safeJsonParse, timeoutReached} from 'app/common/gutil';
 import {InactivityTimer} from 'app/common/InactivityTimer';
 import {Interval} from 'app/common/Interval';
@@ -115,6 +115,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
+import {commonUrls} from 'app/server/lib/commonUrls';
 import {getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';

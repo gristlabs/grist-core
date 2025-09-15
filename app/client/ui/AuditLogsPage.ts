@@ -15,7 +15,7 @@ import { cssBreadcrumbs, separator } from "app/client/ui2018/breadcrumbs";
 import { textButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
 import { cssLink } from "app/client/ui2018/links";
-import { commonUrls, getPageTitleSuffix } from "app/common/gristUrls";
+import { getPageTitleSuffix } from "app/common/gristUrls";
 import { getGristConfig } from "app/common/urlUtils";
 import {
   Computed,
@@ -115,7 +115,7 @@ SIEM (security information and event management) system if you \
 enable Grist Enterprise. {{contactUsLink}} to learn more.",
         {
           contactUsLink: cssLink(
-            { href: commonUrls.contact, target: "_blank" },
+            { href: window.gristConfig.commonUrls.contact, target: "_blank" },
             t("Contact us")
           ),
         }

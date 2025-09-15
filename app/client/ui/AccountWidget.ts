@@ -16,7 +16,7 @@ import {
   menuItemLink,
   menuSubHeader,
 } from 'app/client/ui2018/menus';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Disposable, dom, DomElementArg, styled} from 'grainjs';
@@ -126,7 +126,7 @@ export class AccountWidget extends Disposable {
         menuItemLink({href: getLoginOrSignupUrl()}, t("Sign in")),
         menuDivider(),
         documentSettingsItem,
-        menuItemLink({href: commonUrls.plans}, t("Pricing")),
+        menuItemLink({href: window.gristConfig.commonUrls.plans}, t("Pricing")),
         mobileModeToggle,
       ];
     }
@@ -249,7 +249,7 @@ export class AccountWidget extends Disposable {
     const isEnabled = (deploymentType === 'core') && isFeatureEnabled("supportGrist");
     if (isEnabled) {
       return menuItemLink(t('Support Grist'), ' 💛',
-        {href: commonUrls.githubSponsorGristLabs, target: '_blank'},
+        {href: window.gristConfig.commonUrls.githubSponsorGristLabs, target: '_blank'},
         testId('usermenu-support-grist'),
       );
     }

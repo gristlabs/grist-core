@@ -23,7 +23,7 @@ import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
 import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
-import {AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable} from 'app/common/gristUrls';
+import {AdminPanelPage, getPageTitleSuffix, LatestVersionAvailable} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl} from 'app/common/InstallAPI';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
@@ -274,7 +274,7 @@ Please log in as an administrator.`)),
       dom(
         'div',
         {style: 'margin-top: 8px'},
-        cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.'))
+        cssLink({href: window.gristConfig.commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.'))
       ),
     ];
   }
@@ -678,7 +678,7 @@ system if you enable Grist Enterprise. {{contactUsLink}} to \
 learn more.",
           {
             contactUsLink: cssLink(
-              { href: commonUrls.contact, target: "_blank" },
+              { href: window.gristConfig.commonUrls.contact, target: "_blank" },
               t("Contact us")
             ),
           }
