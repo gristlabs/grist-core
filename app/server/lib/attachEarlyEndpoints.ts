@@ -35,11 +35,6 @@ import {
 } from "express";
 import pick from "lodash/pick";
 
-function getApiRequestBodyLimit(): string {
-  const limitMB = Number(process.env.GRIST_MAX_API_REQUEST_BODY_MB);
-  return limitMB > 0 ? `${limitMB}mb` : '1mb';  // Default to 1mb if not set or invalid
-}
-
 export interface AttachOptions {
   app: Application;
   gristServer: GristServer;
@@ -73,7 +68,9 @@ export function attachEarlyEndpoints(options: AttachOptions) {
       return gristServer.sendAppPage(req, res, {
         path: "app.html",
         status: 200,
-        config: {adminControls: gristServer.create.areAdminControlsAvailable()},
+        config: {
+          adminControls: gristServer.create.areAdminControlsAvailable(),
+        },
       });
     })
   );
@@ -94,7 +91,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (req, res) => {
       const mreq = req as RequestWithLogin;
       const meta = {
-        host: mreq.get('host'),
+        host: mreq.get("host"),
         path: mreq.path,
         email: mreq.user?.loginEmail,
       };
@@ -105,7 +102,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
         // can restart us.
         log.rawDebug(`Restart[${mreq.method}] finishing:`, meta);
         if (process.send && process.env.GRIST_RUNNING_UNDER_SUPERVISOR) {
-          log.rawDebug(`Restart[${mreq.method}] requesting supervisor to restart home server:`, meta);
+          log.rawDebug(
+            `Restart[${mreq.method}] requesting supervisor to restart home server:`,
+            meta
+          );
           process.send({ action: "restart" });
         }
       });
@@ -129,8 +129,8 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     expressWrap(async (_req, res) => {
       const activation = await gristServer.getActivations().current();
       const telemetryPrefs = await getTelemetryPrefs(
-          gristServer.getHomeDBManager(),
-          activation
+        gristServer.getHomeDBManager(),
+        activation
       );
       return sendOkReply(null, res, {
         telemetry: telemetryPrefs,
@@ -141,7 +141,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.patch(
     "/api/install/prefs",
-    json({ limit: getApiRequestBodyLimit() }),
+    json({ limit: gristServer.getApiRequestBodyLimit() }),
     expressWrap(async (req, res) => {
       const props = { prefs: req.body };
       const activation = await gristServer.getActivations().current();
@@ -165,7 +165,10 @@ export function attachEarlyEndpoints(options: AttachOptions) {
     "/api/install/updates",
     expressWrap(async (_req, res) => {
       try {
-        const updateData = await updateGristServerLatestVersion(gristServer, true);
+        const updateData = await updateGristServerLatestVersion(
+          gristServer,
+          true
+        );
         res.json(updateData);
       } catch (error) {
         res.status(error.status);
@@ -193,7 +196,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.put(
     "/api/install/configs/:key",
-    json({ limit: getApiRequestBodyLimit(), strict: false }),
+    json({ limit: gristServer.getApiRequestBodyLimit(), strict: false }),
     hasValidConfig,
     expressWrap(async (req, res) => {
       const key = stringParam(req.params.key, "key") as ConfigKey;
@@ -240,7 +243,7 @@ export function attachEarlyEndpoints(options: AttachOptions) {
 
   app.put(
     "/api/orgs/:oid/configs/:key",
-    json({ limit: getApiRequestBodyLimit(), strict: false }),
+    json({ limit: gristServer.getApiRequestBodyLimit(), strict: false }),
     hasValidConfig,
     expressWrap(async (req, res) => {
       const key = stringParam(req.params.key, "key") as ConfigKey;
