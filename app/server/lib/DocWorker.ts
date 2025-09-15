@@ -55,7 +55,7 @@ export class DocWorker {
 
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
-      const contentDispHeader = `${contentDispType}; filename*=UTF-8''${stringParam(req.query.name, 'name'), {type: contentDispType}}`;
+      const contentDispHeader = `${contentDispType}; filename*=UTF-8''${encodeURIComponent(stringParam(req.query.name, 'name')), {type: contentDispType}}`;
       const data = await activeDoc.getAttachmentData(docSession, attRecord, {cell, maybeNew});
       res.status(200)
         .type(ext)
