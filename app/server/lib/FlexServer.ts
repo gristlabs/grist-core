@@ -455,8 +455,9 @@ export class FlexServer implements GristServer {
   }
 
   public getNotifier(): INotifier {
-    // Check that our internal notifier implementation is in place.
-    if (!this.hasNotifier()) { throw new Error('no notifier available'); }
+    // We only warn if we are in a server that doesn't configure notifiers (i.e. not a home
+    // server). But actually having a working notifier isn't required.
+    if (!this._has('notifier')) { throw new Error('no notifier available'); }
     // Expose a wrapper around it that emits actions.
     return this._emitNotifier;
   }
