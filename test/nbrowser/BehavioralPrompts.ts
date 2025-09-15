@@ -60,6 +60,7 @@ describe('BehavioralPrompts', function() {
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-field').click();
     await driver.find('.test-fbuilder-type-select').click();
+    await gu.findOpenMenu();
     await assertPromptTitle('Reference Columns');
   });
 
@@ -70,6 +71,7 @@ describe('BehavioralPrompts', function() {
 
   it('should be shown again the next time the menu is opened', async function() {
     await driver.find('.test-fbuilder-type-select').click();
+    await gu.findOpenMenu();
     await assertPromptTitle('Reference Columns');
   });
 
@@ -80,6 +82,7 @@ describe('BehavioralPrompts', function() {
     // Refresh the page and make sure the prompt isn't shown again.
     await session.loadDoc(`/doc/${docId}`);
     await driver.find('.test-fbuilder-type-select').click();
+    await gu.findOpenMenu();
     await assertPromptTitle(null);
     await gu.sendKeys(Key.ESCAPE);
   });
@@ -252,8 +255,41 @@ describe('BehavioralPrompts', function() {
       await gu.toggleSidePanel('right', 'open');
       await driver.find('.test-right-tab-field').click();
       await driver.find('.test-fbuilder-type-select').click();
+      await gu.findOpenMenu();
       await assertPromptTitle(null);
     });
+  });
+
+  it('remembers that tips are dismissed after a reload', async function() {
+    session = await gu.session().user('user1').login({showTips: true});
+    await gu.dismissCoachingCall();
+    docId = await session.tempNewDoc(cleanup, 'BehavioralPrompts');
+
+    // Try to add a new page, which should show a tip.
+    await driver.findWait('.test-dp-add-new', 2000).doClick();
+    await driver.findWait('.test-dp-add-new-page', 2000).doClick();
+    await assertPromptTitle('Selecting Data');
+
+    // Dismiss this tip.
+    await driver.findWait('.test-behavioral-prompt-dont-show-tips', 1000).click();
+    await gu.dismissBehavioralPrompts();
+    await gu.waitForServer();
+    await gu.sendKeys(Key.ESCAPE); // close the add page menu
+
+    // Reload the top model and check that the tip is not shown again.
+    await driver.executeScript(`gristApp.topAppModel.appObs.get().version = 1;`); // it wil be undefined when reloaded
+    assert.equal(await driver.executeScript('return gristApp.topAppModel.appObs.get().version'), '1');
+    await driver.executeScript(`gristApp.topAppModel.reload()`);
+    await gu.waitToPass(async () => {
+      assert.isTrue(await driver.executeScript(`return gristApp.topAppModel.appObs.get().version === undefined`));
+    });
+
+    // Now try to add a new page again; the tip should not be shown.
+    await driver.findWait('.test-dp-add-new', 2000).doClick();
+    await driver.findWait('.test-dp-add-new-page', 2000).doClick();
+    // Wait a bit to be sure the tip doesn't appear.
+    await driver.sleep(200);
+    await assertPromptTitle(null);
   });
 });
 

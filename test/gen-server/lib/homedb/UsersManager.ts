@@ -13,7 +13,7 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
-import { EmitNotifier } from 'app/server/lib/FlexServer';
+import { EmitNotifier } from 'app/server/lib/INotifier';
 import { MergedServer } from 'app/server/MergedServer';
 import { createTestDir, EnvironmentSnapshot } from 'test/server/testUtils';
 import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
