@@ -864,6 +864,9 @@ export interface GristLoadConfig {
   // Max upload allowed for attachments, in bytes; 0 or omitted for unlimited.
   maxUploadSizeAttachment?: number;
 
+  // Max allowed size for API request bodies, in bytes; 0 or omitted for unlimited.
+  maxApiRequestBodySize?: number;
+
   // Pre-fetched call to getDoc for the doc being loaded.
   getDoc?: {[id: string]: Document};
 
