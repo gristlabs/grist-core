@@ -448,7 +448,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
 | GRIST_FALSY_VALUES | optional. Comma-separated list of extra words that should be considered as falsy by the data engine beyond english defaults. Ex: "non,nein,no" |
-| GRIST_ENABLE_USER_PRESENCE | optional, disabled by default. If set to 'false', disables all user presence features. |
+| GRIST_ENABLE_USER_PRESENCE | optional, enabled by default. If set to 'false', disables all user presence features. |
 #### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose

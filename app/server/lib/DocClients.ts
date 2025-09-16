@@ -12,11 +12,10 @@ import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
 import EventEmitter from 'events';
 
-const isUserPresenceEnabledByDefault = false;
 export const SETTING_ENABLE_USER_PRESENCE = appSettings.section('userPresence').flag('enable');
 SETTING_ENABLE_USER_PRESENCE.readBool({
   envVar: 'GRIST_ENABLE_USER_PRESENCE',
-  defaultValue: isUserPresenceEnabledByDefault,
+  defaultValue: true,
 });
 
 export function isUserPresenceDisabled(): boolean {
