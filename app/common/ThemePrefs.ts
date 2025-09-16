@@ -809,7 +809,8 @@ export interface SpecificThemeTokens {
   primaryTranslucent: Token;
 
   /**
-   * secondary, less visually pronounced text
+   * secondary color, used on elements like less visually pronounced
+   * text and non-primary or disabled controls
    */
   secondary: Token;
 
