@@ -2,7 +2,7 @@ import {makeT} from 'app/client/lib/localization';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
-import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
+import {cssHideForNarrowScreen} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
@@ -79,6 +79,7 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
   });
 
   return cssActiveUserList(
+    cssHideForNarrowScreen.cls(''),
     remainingUsersIndicator,
     computedUserIcons,
     { "aria-label": t("active user list") },
@@ -197,15 +198,18 @@ const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...arg
     user,
     'medium',
     cssUserImage.cls('-reduced'),
-    dom.hide(isXSmallScreenObs()),
     ...args
   );
 
 const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
-  background-color: ${components.userListRemainingUsersBg};
+  background-color: ${tokens.secondary};
   ${userImageBorderCss};
   --icon-color: ${tokens.white};
+
+  &:hover {
+    background-color: ${tokens.secondaryMuted};
+  }
 `);
 
 const cssRemainingUsersButton = styled('button', `
@@ -226,8 +230,8 @@ export const remainingUsersMenuItem = styled(`div`, `
   justify-content: flex-start;
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   align-items: center;
-  color: ${theme.menuItemFg};
-  --icon-color: ${theme.accentIcon};
+  color: ${components.menuItemFg};
+  --icon-color: ${components.accentIcon};
   text-transform: none;
 
   & > :first-child {

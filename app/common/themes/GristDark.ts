@@ -9,7 +9,6 @@ export const GristDark: ThemeTokens = {
 
   body: "#efefef",
   emphasis: tokens.white,
-  secondary: '#a4a4b1',
   veryLight: "#efefef",
 
   bg: '#32323f',
@@ -26,6 +25,9 @@ export const GristDark: ThemeTokens = {
   primaryDim: '#157a54',
   primaryEmphasis: '#13d78d',
   primaryTranslucent: 'rgba(23, 179, 120, 0.5)',
+
+  secondary: '#a4a4b1',
+  secondaryMuted: '#bebebe',
 
   controlBorderRadius: '4px',
 
