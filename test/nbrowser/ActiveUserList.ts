@@ -4,7 +4,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
 
 import {assert} from 'chai';
-import {driver} from 'mocha-webdriver';
+import {driver, Key} from 'mocha-webdriver';
 
 interface Window {
   user: gu.TestUser,
@@ -83,14 +83,32 @@ describe('ActiveUserList', async function() {
     assert.include(tooltipText, user.email, 'email not in tooltip');
   });
 
-  it('shows a remaining users icon with 5 extra users', async function() {
+  it('does not show a remaining users icon at 4 users', async function() {
+    const desiredUsers = 4;
+    const windowsToOpen = desiredUsers - extraWindows.length;
+    for (let i = 0; i < windowsToOpen; i++) {
+      await openDocWindowWithUser(docId, User3);
+    }
+    await switchToWindow(mainWindow);
+    await gu.waitToPass(async () => {
+      const userIcons = await driver.findAll('.test-aul-container .test-aul-user-icon');
+      assert.equal(userIcons.length, 4);
+      assert.isFalse(await driver.find('.test-aul-all-users-button').isPresent());
+    }, 5000);
+  });
+
+  it('shows a remaining users icon at 5 users', async function() {
     const desiredUsers = 5;
     const windowsToOpen = desiredUsers - extraWindows.length;
     for (let i = 0; i < windowsToOpen; i++) {
       await openDocWindowWithUser(docId, User3);
     }
     await switchToWindow(mainWindow);
-    await driver.findWait('.test-aul-all-users-button', 2000);
+    await gu.waitToPass(async () => {
+      const userIcons = await driver.findAll('.test-aul-container .test-aul-user-icon');
+      assert.equal(userIcons.length, 3);
+      assert.equal(await driver.find('.test-aul-all-users-button').getText(), '+2');
+    }, 5000);
   });
 
   it('shows a list of all users when button is clicked', async function() {
@@ -101,9 +119,16 @@ describe('ActiveUserList', async function() {
     assert.equal(menuItemTexts.length, 5, 'wrong number of users in user list');
     // There should be several copies of Kiwi here, but I don't think counting them improves anything
     assert.includeMembers(menuItemTexts, [gu.translateUser(User2).name, gu.translateUser(User3).name]);
+
+    let iconVisibility = await driver.findAll('.test-aul-container .test-aul-user-icon', (el) => el.isDisplayed());
+    assert.isTrue(iconVisibility.every(visible => visible === false));
+    await gu.sendKeys(Key.ESCAPE);
+    iconVisibility = await driver.findAll('.test-aul-container .test-aul-user-icon', (el) => el.isDisplayed());
+    assert.isTrue(iconVisibility.every(visible => visible === true));
   });
 
   it('keeps the user list open when a new user appears', async function() {
+    await driver.find('.test-aul-all-users-button').click();
     const getMenuItems = async () =>  await gu.findOpenMenuAllItems(
         '.test-aul-user-name', async (item) => item
     );
