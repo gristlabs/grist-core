@@ -1,7 +1,6 @@
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI} from 'app/common/UserAPI';
 import {GristClient, openClient} from 'test/server/gristClient';
 import {TestServer} from 'test/gen-server/apiUtils';
-import {isUserPresenceDisabled, SETTING_ENABLE_USER_PRESENCE} from 'app/server/lib/DocClients';
 import {assert} from 'chai';
 import * as sinon from 'sinon';
 
@@ -39,7 +38,6 @@ describe('UserPresence', function() {
   let wsId: number;
   const sandbox = sinon.createSandbox();
   let clients: GristClient[] = [];
-  let oldUserPresenceSetting: boolean;
 
   async function openTrackedClient(...args: Parameters<typeof openClient>) {
     const client = await openClient(...args);
@@ -65,9 +63,6 @@ describe('UserPresence', function() {
   }
 
   before(async function () {
-    oldUserPresenceSetting = isUserPresenceDisabled();
-    SETTING_ENABLE_USER_PRESENCE.set(true);
-
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
@@ -93,7 +88,6 @@ describe('UserPresence', function() {
     const api = await home.createHomeApi('chimpy', 'docs');
     await api.deleteOrg(TEST_ORG);
     await home.stop();
-    SETTING_ENABLE_USER_PRESENCE.set(oldUserPresenceSetting);
   });
 
   afterEach(async function () {
