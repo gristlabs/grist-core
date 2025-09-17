@@ -12,21 +12,18 @@ import {DocSession, DocSessionPrecursor} from 'app/server/lib/DocSession';
 import {LogMethods} from "app/server/lib/LogMethods";
 import EventEmitter from 'events';
 
-const isUserPresenceEnabledByDefault = false;
-export const SETTING_ENABLE_USER_PRESENCE = appSettings.section('userPresence').flag('enable');
-SETTING_ENABLE_USER_PRESENCE.readBool({
-  envVar: 'GRIST_ENABLE_USER_PRESENCE',
-  defaultValue: isUserPresenceEnabledByDefault,
-});
+export const Deps = {
+  // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
+  BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
+  ENABLE_USER_PRESENCE: appSettings.section('userPresence').flag('enable').readBool({
+    envVar: 'GRIST_ENABLE_USER_PRESENCE',
+    defaultValue: true,
+  }),
+};
 
 export function isUserPresenceDisabled(): boolean {
-  return !SETTING_ENABLE_USER_PRESENCE.getAsBool();
+  return !Deps.ENABLE_USER_PRESENCE;
 }
-
-// Allow tests to impose a serial order for broadcasts if they need that for repeatability.
-export const Deps = {
-  BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
-};
 
 export type ClientAddedEventListener = (session: DocSession) => void;
 export type ClientRemovedEventListener = (session: DocSession) => void;

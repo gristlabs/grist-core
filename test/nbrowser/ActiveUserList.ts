@@ -40,7 +40,6 @@ describe('ActiveUserList', async function() {
 
   before(async () => {
     envSnapshot = new EnvironmentSnapshot();
-    process.env.GRIST_ENABLE_USER_PRESENCE = 'true';
     process.env.GRIST_USER_PRESENCE_MAX_USERS = USER_PRESENCE_MAX_USERS.toFixed(0);
     // Allows the same user to have many user presence sessions - needed to make enough icons show.
     process.env.GRIST_USER_PRESENCE_ICON_PER_TAB = 'true';
