@@ -14,6 +14,7 @@ import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppMo
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
+import {openAccessibilityModal} from 'app/client/ui/OpenAccessibilityModal';
 import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
 import {attachTheme} from 'app/client/ui2018/theme';
@@ -26,7 +27,6 @@ import {dom} from 'grainjs';
 import * as ko from 'knockout';
 import {makeT} from 'app/client/lib/localization';
 import { onClickOutside } from 'app/client/lib/domUtils';
-import { openAccessibilityModal } from './OpenAccessibilityModal';
 
 const t = makeT('App');
 

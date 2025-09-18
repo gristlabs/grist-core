@@ -1,9 +1,10 @@
 import {dom, makeTestId, Observable, styled} from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
-import {isFeatureEnabled} from 'app/common/gristUrls';
+import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {urlState} from 'app/client/models/gristUrlState';
 import {tokens} from 'app/common/ThemePrefs';
 import {allCommands} from 'app/client/components/commands';
+import {inlineMarkdown, markdown} from 'app/client/lib/markdown';
 import {AppModel} from 'app/client/models/AppModel';
 import {cssModalBody,
   cssModalButtons,
@@ -14,8 +15,7 @@ import {cssModalBody,
   modal
 } from 'app/client/ui2018/modals';
 import {bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
-import {cssLink} from 'app/client/ui2018/links';
-import {markdown} from 'app/client/lib/markdown';
+import {cssLink, nestedLinkStyles} from 'app/client/ui2018/links';
 
 const t = makeT('OpenAccessibilityModal');
 
@@ -115,20 +115,23 @@ const keyboardSection = () => {
   return cssSection(
     cssModalSubheading(t("Keyboard navigation"), {role: "heading", "aria-level": 2}),
     dom('p', t("On a document page, keyboard navigation is first locked on the current widget.")),
-    dom('p', t("Focus other parts of the user interface using the following shortcuts:")),
+    dom('p', t("Focus on other parts of the user interface using the following shortcuts:")),
     dom('ul',
-      cssShortcutRow(t("{{nextRegionShortcut}} Focus the next region", {nextRegionShortcut})),
-      cssShortcutRow(t("{{prevRegionShortcut}} Focus the previous region", {prevRegionShortcut})),
+      cssShortcutRow(t("{{nextRegionShortcut}} Focus on the next region", {nextRegionShortcut})),
+      cssShortcutRow(t("{{prevRegionShortcut}} Focus on the previous region", {prevRegionShortcut})),
       cssShortcutRow(t("{{creatorPanelShortcut}} Focus to and from the creator panel", {creatorPanelShortcut})),
     ),
     dom('p', t("\"Regions\" are what we call the different parts of the user interface:")),
     dom('ul',
-      dom('li', t("the left panel, where the main navigation is,")),
-      dom('li', t("the top panel, being the document header,")),
-      dom('li', t("on document pages, each widget is a region that can be focused on its own,")),
-      dom('li', t("on non-document pages, the main content area is a region,")),
-      dom('li', t("and the right panel, which is the creator panel. It is only available \
-        through its own shortcut and is not included in the next and previous region cycle.")),
+      dom('li', t("The left panel, home of the main navigation.")),
+      dom('li', t("The top panel, or the document header.")),
+      dom('li', inlineMarkdown(t(
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.",
+        {supportPageUrl: commonUrls.helpWidgets}
+      ))),
+      dom('li', t("On non-document pages, the main content area is a region.")),
+      dom('li', t("Finally, the right panel – or the creator panel – is only available \
+through its own shortcut and is not included in the next and previous region cycle.")),
     ),
     cssModalSubheading(t("Other important keyboard shortcuts"), {role: "heading", "aria-level": 2}),
     dom('ul',
@@ -147,6 +150,7 @@ const cssSection = styled('div', `
   &:last-child {
     margin-bottom: 0;
   }
+  ${nestedLinkStyles}
 `);
 
 const cssKey = styled('span', `
