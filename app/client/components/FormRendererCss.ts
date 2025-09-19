@@ -3,6 +3,7 @@ import {icon} from 'app/client/ui2018/icons';
 import {numericSpinner} from 'app/client/widgets/NumericSpinner';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {styled} from 'grainjs';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 
 export const label = styled('div', `
   &-required::after {
@@ -358,8 +359,15 @@ export const searchSelect = styled('div', `
   }
 `);
 
+export const currentSelectValue = styled('div', 'flex: 1');
+
 export const searchSelectIcon = styled(icon, `
   flex-shrink: 0;
+`);
+
+export const resetSelectButton = styled(unstyledButton, `
+  flex-shrink: 0;
+  cursor: pointer;
 `);
 
 export const attachmentInput = styled('input', `

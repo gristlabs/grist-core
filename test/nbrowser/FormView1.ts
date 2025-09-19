@@ -381,7 +381,7 @@ describe('FormView1', function() {
         await driver.find('.test-form-search-select').click();
         await gu.waitToPass(async () =>
           assert.deepEqual(
-            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+            await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz']
           ),
           500);
         await gu.sendKeys('Baz', Key.ENTER);
@@ -389,6 +389,14 @@ describe('FormView1', function() {
         await driver.find('.test-form-reset').click();
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('select[name="D"]').value(), '');
+        await driver.find('.test-form-search-select').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
+        await driver.findWait('.test-form-search-select-clear-btn', 2000).click();
+        assert.equal(
+          await driver.find('.test-form-search-select').getText(),
+          'Select...',
+          'The "Clear" button should have cleared the selection'
+        );
         await driver.find('.test-form-search-select').click();
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
@@ -628,13 +636,21 @@ describe('FormView1', function() {
         );
         await driver.find('.test-form-search-select').click();
         assert.deepEqual(
-          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Select...', 'Foo', 'Bar', 'Baz']
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz']
         );
         await gu.sendKeys('Baz', Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), '3');
         await driver.find('.test-form-reset').click();
         await driver.find('.test-modal-confirm').click();
         assert.equal(await driver.find('select[name="D"]').value(), '');
+        await driver.find('.test-form-search-select').click();
+        await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
+        await driver.findWait('.test-form-search-select-clear-btn', 2000).click();
+        assert.equal(
+          await driver.find('.test-form-search-select').getText(),
+          'Select...',
+          'The "Clear" button should have cleared the selection'
+        );
         await driver.find('.test-form-search-select').click();
         await driver.findContentWait('.test-sd-searchable-list-item', 'Bar', 2000).click();
         // Check keyboard shortcuts work.
@@ -653,6 +669,55 @@ describe('FormView1', function() {
         ['BulkRemoveRecord', 'Table1', [1, 2, 3, 4]],
       ]);
 
+      await removeForm();
+    });
+
+    it('can search in a Ref field selection box', async function() {
+      const formUrl = await createFormWith('Reference');
+      // Add some options.
+      await gu.openColumnPanel();
+      await gu.setRefShowColumn('A');
+      const alpha = Array.from({length: 26}, (_, i) => String.fromCharCode('a'.charCodeAt(0) + i));
+      // Add records with values 'aa', 'ab', ..., 'zz' for the column A
+      const twoLettersCombination = alpha.flatMap((firstLetter) =>
+        alpha.map((secondLetter) => firstLetter + secondLetter)
+      );
+      await gu.sendActions(
+        twoLettersCombination.map(twoLetters => ['AddRecord', 'Table1', null, {A: twoLetters}])
+      );
+      // We are in a new window.
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('select[name="D"]', 2000);
+        await driver.findWait('label[for="D"]', 2000);
+        await driver.find('.test-form-search-select').click();
+        assert.deepEqual(
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()),
+          twoLettersCombination.slice(0, 100),
+          'should show only the 100 first elements'
+        );
+        assert.deepEqual(
+          await driver.findAll('.test-sd-searchable-list-item', e => e.getText()),
+          twoLettersCombination.slice(0, 100),
+          'should show only the 100 first elements'
+        );
+        assert.match(
+          await driver.find('.test-sd-truncated-message').getText(),
+          new RegExp(`Showing 100 of ${twoLettersCombination.length}`, 'i'),
+          'should show only the 100 first elements'
+        );
+        await driver.find('.test-sd-search').click();
+        await driver.find('.test-sd-search input').sendKeys('zz');
+        assert.deepEqual(
+          (await driver.findAll('.test-sd-searchable-list-item', e => e.getText())).slice(0, 3),
+          ['zz', 'za', 'zb'],
+          'should order the results given the search criteria'
+        );
+      });
+      // Remove all records.
+      await gu.sendActions([
+        ['BulkRemoveRecord', 'Table1', twoLettersCombination.map((_, i) => i+1)]
+      ]);
       await removeForm();
     });
 
