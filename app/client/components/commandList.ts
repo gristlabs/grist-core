@@ -73,6 +73,7 @@ export type CommandName =
   | 'editLabel'
   | 'editLayout'
   | 'historyPrevious'
+  | 'toggleCheckbox'
   | 'historyNext'
   | 'makeFormula'
   | 'unmakeFormula'
@@ -282,11 +283,6 @@ export const groups: CommendGroupDef[] = [{
       desc: 'Activate assistant',
     },
     {
-      name: 'viewAsCard',
-      keys: ['Space'],
-      desc: 'Show the record card widget of the selected record',
-    },
-    {
       name: 'showPopup',
       keys:[],
       desc: 'showing a behavioral popup'
@@ -394,6 +390,10 @@ export const groups: CommendGroupDef[] = [{
       keys: ['Mod+Alt+o'],
       desc: 'Toggle creator panel keyboard focus',
       alwaysOn: true,
+    }, {
+      name: 'viewAsCard',
+      keys: ['Space'],
+      desc: 'Show the record card widget of the selected record',
     }
   ],
 }, {
@@ -456,6 +456,11 @@ export const groups: CommendGroupDef[] = [{
       name: 'fieldEditSave',
       keys: ['Enter'],
       desc: 'Finish editing a cell, saving the value'
+    }, {
+      // This only gets its own command so it can be listed as separate keyboard shortcut.
+      name: 'toggleCheckbox',
+      keys: ['Enter'],
+      desc: 'Toggle the currently selected checkbox or switch cell'
     }, {
       name: 'detachEditor',
       keys: [],
@@ -550,7 +555,7 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'openDiscussion',
       keys: ['Mod+Alt+M'],
-      desc: 'Comment',
+      desc: 'Open comment thread',
     }
   ],
 }, {
@@ -565,9 +570,13 @@ export const groups: CommendGroupDef[] = [{
       keys: ['Mod+Enter'],
       desc: 'Insert a new record, after the currently selected one in an unsorted table',
     }, {
+      name: 'duplicateRows',
+      keys: ['Mod+Shift+d'],
+      desc: 'Duplicate the currently selected record(s)',
+    }, {
       name: 'deleteRecords',
-      keys: ['Mod+Del', 'Mod+Backspace'],
-      desc: 'Delete the currently selected record'
+      keys: ['Mod+Backspace', 'Mod+Del'],
+      desc: 'Delete the currently selected record(s)'
     }, {
       name: 'insertFieldBefore',
       keys: ['Alt+Shift+='],
@@ -579,7 +588,7 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'makeHeadersFromRow',
       keys: ['Mod+Shift+H'],
-      desc: 'Use currently selected line as table headers'
+      desc: 'Use the currently selected row as table headers'
     }, {
       name: 'renameField',
       keys: ['Ctrl+m'],
@@ -587,11 +596,11 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'hideFields',
       keys: ['Alt+Shift+-'],
-      desc: 'Hide currently selected columns'
+      desc: 'Hide the currently selected columns'
     }, {
       name: 'hideCardFields',
       keys: [],
-      desc: 'Hide currently selected fields'
+      desc: 'Hide the currently selected fields'
     }, {
       name: 'toggleFreeze',
       keys: [],
@@ -632,10 +641,6 @@ export const groups: CommendGroupDef[] = [{
       name: 'deleteCollapsedSection',
       keys: [],
       desc: 'Delete collapsed viewsection'
-    }, {
-      name: 'duplicateRows',
-      keys: ['Mod+Shift+d'],
-      desc: 'Duplicate selected rows'
     }, {
       name: 'showColumns',
       keys: [],
