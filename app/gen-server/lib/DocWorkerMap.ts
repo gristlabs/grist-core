@@ -428,7 +428,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       const docAndChecksum = await this._getDocAndChecksum(docId);
       docStatus = docAndChecksum.doc;
       if (docStatus) {
-        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned since locking to ${docStatus.docWorker}`);
+        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned while acquiring lock ${docStatus.docWorker}`);
         return docStatus;
       }
 
