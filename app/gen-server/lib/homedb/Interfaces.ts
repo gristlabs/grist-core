@@ -31,6 +31,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
+  disabledAt?: Date|null;
   options?: Partial<UserOptions>;
 }
 

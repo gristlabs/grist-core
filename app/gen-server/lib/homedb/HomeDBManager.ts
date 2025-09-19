@@ -995,6 +995,7 @@ export class HomeDBManager {
 
       return doc;
     }
+
     const urlId = trunkId;
     if (forkId || snapshotId) { key = {...key, urlId}; }
     if (urlId === NEW_DOCUMENT_CODE) {
@@ -1036,7 +1037,9 @@ export class HomeDBManager {
       }
       qb = this._addIsSupportWorkspace(userId, qb, 'orgs', 'workspaces');
       qb = this._addFeatures(qb);  // add features to determine whether we've gone readonly
-      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb));
+      qb = qb.leftJoin(User, 'users', 'users.id = :userId', {userId});
+      qb = qb.addSelect('users.disabled_at', 'users_disabled_at');
+      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb, {checkDisabledUser: true}));
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
@@ -4438,6 +4441,7 @@ export class HomeDBManager {
       scope?: Scope,
       // If permissions have been marked, check them
       markedPermissions?: boolean,
+      checkDisabledUser?: boolean,
     } = {}
   ): Promise<QueryResult<T[]>> {
     if (Deps.usePreparedStatements) {
@@ -4447,6 +4451,24 @@ export class HomeDBManager {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
+
+
+    if (options.checkDisabledUser) {
+      // Disabled users shouldn't be able to even log in, but if they
+      // got this far (for example they have an existing websocket
+      // connexion), they shouldn't be able to have any document
+      // access.
+      const hasDisabled = results.raw.some(
+        entry => 'users_disabled_at' in entry && entry.users_disabled_at !== null
+      );
+
+      if (hasDisabled) {
+        return {
+          status: 403,
+          errMessage: "access denied",
+        };
+      }
+    }
     if (options.markedPermissions) {
       if (!results.raw.every(entry => entry.is_permitted)) {
         return {

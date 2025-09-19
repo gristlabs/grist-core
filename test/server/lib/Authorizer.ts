@@ -291,6 +291,34 @@ describe('Authorizer', function() {
     assert.equal(parts.forkUserId, undefined);
   });
 
+  it("prevents disabled users from logging in", async function () {
+    const docId = docs.Bananas.id;
+
+    // At first, Chimpy can get the bananas
+    let resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
+    assert.equal(resp.status, 200, 'bananas first acquired');
+
+    const sadChimpy = await dbManager.getUserByLogin('chimpy@getgrist.com');
+    try {
+      // But, oh no! Chimpy has been getting too greedy with the bananas,
+      // so down comes the banhammer!
+      sadChimpy.disabledAt = new Date();
+      await sadChimpy.save();
+
+      // No more bananas!
+      resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
+      assert.equal(resp.status, 403, 'bananas denied!');
+    } finally {
+      // It's okay, chimpy, you learned your lesson
+      sadChimpy.disabledAt = null;
+      await sadChimpy.save();
+    }
+
+    // You can have your bananas back
+    resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
+    assert.equal(resp.status, 200, 'bananas granted again');
+  });
+
   it("can set user via GRIST_PROXY_AUTH_HEADER", async function() {
     // User can access a doc by setting header.
     const docUrl = `${serverUrl}/o/pr/api/docs/sampledocid_6`;

@@ -57,6 +57,8 @@ import {GroupUsersCreatedAt1749454162428
 import {GroupTypes1753088213255
         as GroupTypes} from 'app/gen-server/migration/1753088213255-GroupTypes';
 import { withSqliteForeignKeyConstraintDisabled } from "app/server/lib/dbUtils";
+import {UserDisabledAt1754077317821
+ as UserDisabledAt } from 'app/gen-server/migration/1754077317821-UserDisabledAt';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -67,7 +69,7 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     DocumentUsage, Activations, UserConnectId, UserUUID, UserUniqueRefUUID,
                     Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
                     UserLastConnection, ActivationEnabled, Configs, LoginsEmailsIndex, GracePeriod,
-                    UserCreatedAt, DocPref, GroupUsersCreatedAt, GroupTypes];
+                    UserCreatedAt, DocPref, GroupUsersCreatedAt, GroupTypes, UserDisabledAt];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {
