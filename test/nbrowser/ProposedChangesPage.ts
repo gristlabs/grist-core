@@ -18,7 +18,7 @@ describe('ProposedChangesPage', function() {
     await driver.find('.test-work-on-copy').click();
     await gu.waitForServer();
     await gu.getCell('A', 1).click();
-    await gu.waitAppFocus();    
+    await gu.waitAppFocus();
     await gu.enterCell('test2');
     await driver.find('.test-tools-proposals').click();
     await driver.findContentWait('.test-main-content', /Proposed Changes/, 2000);
@@ -44,7 +44,7 @@ describe('ProposedChangesPage', function() {
       '→ 1\ntest1test2\nTEST1TEST2'
     );
     await driver.find('[data-test-id=replace]').click();
-    let confirmButton = driver.findWait('.test-modal-confirm', 3000);
+    const confirmButton = driver.findWait('.test-modal-confirm', 3000);
     assert.equal(await confirmButton.getText(), 'Update');
     await confirmButton.click();
 
