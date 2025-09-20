@@ -909,6 +909,11 @@ export function isValidHex(val: unknown): val is string {
 export async function timeoutReached(
   msec: number, promise: Promise<unknown>, options: {rethrow: boolean} = {rethrow: false}
 ): Promise<boolean> {
+  // For test purposes, support negative timeout, by failing
+  // immediately.
+  if (msec < 0) {
+    return true;
+  }
   const timedOut = {};
   // Be careful to clean up the timer after ourselves, so it doesn't remain in the event loop.
   let timer: NodeJS.Timer;

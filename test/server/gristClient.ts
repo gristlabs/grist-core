@@ -98,6 +98,10 @@ export class GristClient {
     }
   }
 
+  public isOpen() {
+    return this.ws.isOpen();
+  }
+
   public async readMessage(): Promise<GristMessage> {
     const result = await this.read();
     if (!result.type) {
