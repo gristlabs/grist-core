@@ -2398,11 +2398,6 @@ bootstrap-datepicker@1.9.0:
   dependencies:
     jquery ">=1.7.1 <4.0.0"
 
-bootstrap@5.3.3:
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-5.3.3.tgz#de35e1a765c897ac940021900fcbb831602bac38"
-  integrity sha512-8HLCdWgyoMguSO9o+aH+iuZ+aht+mzW0u3HIMzVu7Srrpv7EBBxTnrFlSCskwdY1+EOFQSm7uMJhNQHkdPcmjg==
-
 bowser@2.7.0:
   version "2.7.0"
   resolved "https://registry.npmjs.org/bowser/-/bowser-2.7.0.tgz"
