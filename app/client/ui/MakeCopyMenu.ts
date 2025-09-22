@@ -327,9 +327,9 @@ class SaveCopyModal extends Disposable {
 
 type DownloadOption = 'full' | 'nohistory' | 'template';
 
-export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
+export function downloadDocModal(doc: Document, appModel: AppModel) {
   return modal((ctl, owner) => {
-    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
+    const docApi = appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
 
     const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);
