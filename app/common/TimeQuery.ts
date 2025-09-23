@@ -10,7 +10,7 @@ import toPairs = require('lodash/toPairs');
 /**
  * We can combine an ActionSummary with the current state of the database
  * to answer questions about the state of the database in the past.  This
- * is particularly useful for grist metadata tables, which are needed to
+ * is particularly useful for Grist metadata tables, which are needed to
  * interpret the content of user tables fully.
  *   - TimeCursor is a simple container for the db and an ActionSummary
  *   - TimeQuery offers a db-like interface for a given table and set of columns
@@ -59,7 +59,7 @@ export class TimeCursor {
 }
 
 /** internal class for storing a ResultRow dictionary, keyed by rowId */
-class ResultRows {
+interface ResultRows {
   [rowId: number]: ResultRow;
 }
 

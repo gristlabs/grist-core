@@ -1,6 +1,5 @@
 import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {ResultRow} from 'app/common/TimeQuery';
-// import cloneDeep = require('lodash/cloneDeep');
 import toPairs = require('lodash/toPairs');
 
 /**
@@ -129,7 +128,7 @@ export function createEmptyTableDelta(): TableDelta {
  * Distill a summary further, into tabular form, for ease of rendering.
  *
  * If context is supplied, in the form of row data for tables, then
- * it the difference information is overlaid on it.
+ * the difference information is overlaid on it.
  */
 export function asTabularDiffs(summary: ActionSummary,
                                context?: Record<string, ResultRow[]>): TabularDiffs {
@@ -143,22 +142,21 @@ export function asTabularDiffs(summary: ActionSummary,
     // need order to be row-dominant for visualization purposes.
     const perRow: {[row: number]: {[name: string]: any}} = {};
     const activeCols = new Set<string>();
-    const activeColOrder: Array<string> = [];
     // First add any background context we have been handed.
     for (const row of singleTableContext || []) {
+      if (!(typeof row.id === 'number')) {
+        // Should not happen.
+        throw new Error(`asTabularDiffs saw a non-numeric id: ${row.id}`);
+      }
       perRow[row.id] = row;
       for (const col of Object.keys(row)) {
         if (!activeCols.has(col)) {
           activeCols.add(col);
-          activeColOrder.push(col);
         }
       }
     }
     // Now iterate through the differences provided, and overlay them.
     for (const [col, perCol] of toPairs(td.columnDeltas)) {
-      if (!activeCols.has(col)) {
-        activeColOrder.push(col);
-      }
       activeCols.add(col);
       for (const row of Object.keys(perCol)) {
         if (!perRow[row as any]) { perRow[row as any] = {}; }
@@ -166,7 +164,7 @@ export function asTabularDiffs(summary: ActionSummary,
       }
     }
     // TODO: recover row numbers (as opposed to rowIds)
-    const activeColsWithoutManualSort = [...activeColOrder].filter(c => c !== 'manualSort');
+    const activeColsWithoutManualSort = [...activeCols].filter(c => c !== 'manualSort');
     tableChanges.header = activeColsWithoutManualSort;
     const addedRows = new Set(td.addRows);
     const removedRows = new Set(td.removeRows);

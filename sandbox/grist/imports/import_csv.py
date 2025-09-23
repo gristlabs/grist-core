@@ -11,6 +11,9 @@ import parse_data
 from imports import import_utils
 
 import sys
+# Remove rather small default limit on individual csv fields.
+# While hand-written CSV files are unlikely to have large fields,
+# there can be large fields when CSV is used for interoperability.
 csv.field_size_limit(sys.maxsize)
 
 log = logging.getLogger(__name__)

@@ -43,7 +43,7 @@ describe('ProposedChangesPage', function() {
       await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
       '→ 1\ntest1test2\nTEST1TEST2'
     );
-    await driver.find('[data-test-id=replace]').click();
+    await driver.find('.test-replace').click();
     const confirmButton = driver.findWait('.test-modal-confirm', 3000);
     assert.equal(await confirmButton.getText(), 'Update');
     await confirmButton.click();

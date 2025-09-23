@@ -123,7 +123,9 @@ describe("TimeQuery", function() {
     const cursor = new TimeCursor(new SQLiteTimeData(db));
     const session = docTools.createFakeSession();
 
-    // Create a table with three columns.
+    // Create a table with three columns. In this test, we will rename
+    // the table and a column and make sure the renames don't affect
+    // querying information prior to those changes.
     await doc.applyUserActions(session, [
       ["AddTable", "Fish", [{id: "age"}, {id: "species"}, {id: "color"}]],
       ["AddRecord", "Fish", null, {age: "11", species: "flounder", color: "blue"}],

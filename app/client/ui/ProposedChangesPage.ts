@@ -1,12 +1,11 @@
-import { ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
+import { ActionContext, ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
 import { GristDoc } from 'app/client/components/GristDoc';
-import { testId } from 'app/client/lib/dom';
 import { makeT } from 'app/client/lib/localization';
 import { docListHeader } from 'app/client/ui/DocMenuCss';
 import { replaceTrunkWithFork } from 'app/client/ui/MakeCopyMenu';
 import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
 import { bigPrimaryButton } from 'app/client/ui2018/buttons';
-import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
+import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
 import { ActionSummary } from 'app/common/ActionSummary';
 import { parseUrlId } from 'app/common/gristUrls';
 import { DocStateComparison, DocStateComparisonDetails } from 'app/common/UserAPI';
@@ -29,9 +28,17 @@ const t = makeT('ProposedChangesPage');
  * a "Replace Original" button.
  */
 export class ProposedChangesPage extends Disposable {
-  public readonly isInitalized = Observable.create(this, false);
+  // This page shows information pulled from an API call, which
+  // takes a little time to fetch. This flag tracks whether
+  // everything needed has been fetched.
+  public readonly isInitialized = Observable.create(this, false);
+
+  // This will hold a comparison between this document and another version.
   private _comparison?: DocStateComparison;
-  private _context = ko.observable({});
+
+  // This holds any extra context known about the comparison. Computed on
+  // request. It is managed by ActionLogPart.
+  private _context: ko.Observable<ActionContext> = ko.observable({});
 
   constructor(public gristDoc: GristDoc) {
     super();
@@ -51,8 +58,9 @@ export class ProposedChangesPage extends Disposable {
       this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
         comparisonUrlId, { detail: true }
       ).then(comparison => {
+        if (this.isDisposed()) { return; }
         this._comparison = comparison;
-        this.isInitalized.set(true);
+        this.isInitialized.set(true);
       }).catch(reportError);
     } else if (urlId) {
       // TODO: bring in handling for trunk view. The idea is that it
@@ -67,7 +75,7 @@ export class ProposedChangesPage extends Disposable {
     return cssContainer(
       cssHeader(t('Proposed Changes'), betaTag('Beta')),
       cssDataRow(
-        dom.maybe((use) => use(this.isInitalized), () => {
+        dom.maybe(this.isInitialized, () => {
           const details = this._comparison?.details;
           if (details) {
             return this._renderComparisonDetails(details);
@@ -76,7 +84,7 @@ export class ProposedChangesPage extends Disposable {
       cssControlRow(
         bigPrimaryButton(
           t("Replace Original"),
-          dom.on('click', async () => {
+          dom.on('click', () => {
             const docModel = this.gristDoc.docPageModel;
             const doc = docModel.currentDoc.get();
             if (doc) {

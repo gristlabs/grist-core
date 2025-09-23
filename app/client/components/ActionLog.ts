@@ -16,11 +16,9 @@ import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
         LabelDelta} from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
-import { ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
-import {dom, DomContents, fromKo, IDomComponent, makeTestId, styled} from 'grainjs';
+import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
+import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
 import * as ko from 'knockout';
-
-const testId = makeTestId('ActionLog_');
 
 /**
  *
@@ -205,7 +203,6 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         dom('div',
           labeledSquareCheckbox(fromKo(this.showAllTables),
             t('All tables'),
-            testId('allTables'),
           ),
         ),
         dom('div.action_log_load',
@@ -640,9 +637,9 @@ export async function computeContext(gristDoc: GristDoc, base: ActionSummary, in
 }
 
 const cssBasicButton = styled(basicButton, `
-padding: 0;
-margin-left: 5px;
-border: none;
+  padding: 0;
+  margin-left: 5px;
+  border: none;
 `);
 
 function reportDeletedObject(obj: DeletedObject, actionNum: number) {
