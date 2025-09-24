@@ -896,6 +896,16 @@ export class DocWorkerApi {
       })
     );
 
+    // Delete records
+    this._app.delete('/api/docs/:docId/tables/:tableId/records', canEdit,
+      withDoc(async (activeDoc, req, res) => {
+        const rowIds = req.body;
+        const op = await getTableOperations(req, activeDoc);
+        await op.destroy(rowIds);
+        res.json(null);
+      })
+    );
+
     // Update columns given in records format
     this._app.patch('/api/docs/:docId/tables/:tableId/columns', canEdit, validate(ColumnsPatch),
       withDoc(async (activeDoc, req, res) => {
