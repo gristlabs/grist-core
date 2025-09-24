@@ -379,7 +379,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       // For GristDocTour, find the view with that name.
       // Otherwise find the view with the given row ID, because letting a non-existent row ID pass through here is bad.
       // If no such view exists, return the default view.
-      const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
+      const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage!);
       return viewId || use(defaultViewId);
     });
     this._activeContent = Computed.create(this, use => use(this.activeViewId));
