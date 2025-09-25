@@ -1788,7 +1788,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     // we must read the current layout from the view layout because it can override the one in
     // `section.layoutSpec` (in particular it provides a default layout when missing from the
     // latter).
-    const layoutSpec = this.viewLayout!.layoutSpec();
+    const layoutSpec = this.viewLayout!.getFullLayoutSpec();
 
     const sectionTitle = section.title();
     const sectionId = section.id();

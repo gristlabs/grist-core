@@ -273,6 +273,15 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     }
   }
 
+  /**
+   * Returns the full layout spec, including collapsed sections.
+   */
+  public getFullLayoutSpec() {
+    const specs = this.layout.getLayoutSpec();
+    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map((leaf)=> ({leaf}));
+    return specs;
+  }
+
   public saveLayoutSpec(specs?: BoxSpec) {
     this._savePending.set(false);
     // Cancel the automatic delay.
@@ -280,10 +289,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     if (!this.layout) { return Promise.resolve(); }
     // Only save layout changes when the document isn't read-only.
     if (!this.gristDoc.isReadonly.get()) {
-      if (!specs) {
-        specs = this.layout.getLayoutSpec();
-        specs.collapsed = this.viewModel.activeCollapsedSections.peek().map((leaf)=> ({leaf}));
-      }
+      specs ??= this.getFullLayoutSpec();
       return this.viewModel.layoutSpecObj.setAndSave(specs).catch(reportError);
     }
     this._onResize();
