@@ -3138,6 +3138,30 @@ describe('GranularAccess', function() {
     });
   }
 
+  it('respects BROADCAST_TIMEOUT_MS', async function() {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
+                             {id: 'B', type: 'Numeric'}]]
+    ]);
+
+    // Set timeout negative, so broadcasts fail reliably, and see
+    // that connections close.
+    const timeoutStub = sandbox.stub(DocClientsDeps, 'BROADCAST_TIMEOUT_MS').value(-1);
+    try {
+      cliEditor.flush();
+      cliOwner.flush();
+      assert.equal(cliEditor.isOpen(), true);
+      assert.equal(cliOwner.isOpen(), true);
+      await owner.getDocAPI(docId).addRows('Data1', {A: [300, 150], B: [1, 1]});
+      await delay(100);
+      assert.equal(cliEditor.isOpen(), false);
+      assert.equal(cliOwner.isOpen(), false);
+    } finally {
+      timeoutStub.restore();
+    }
+  });
+
   describe('filterColValues', async function() {
     // A method for checking if a cell contains 'x'.
     function xRemove(val: any) { return val === 'x'; }
@@ -4209,7 +4233,7 @@ describe('GranularAccess', function() {
 });
 
 async function closeClient(cli: GristClient) {
-  if (cli.ws.isOpen()) {
+  if (cli.isOpen()) {
     await cli.send("closeDoc", 0);
   }
   await cli.close();
