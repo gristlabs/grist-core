@@ -51,6 +51,7 @@ import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
 import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
+import {ProposedChangesPage} from 'app/client/ui/ProposedChangesPage';
 import {TimingPage} from 'app/client/ui/TimingPage';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
@@ -803,6 +804,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           content === 'code' ? dom.create(CodeEditorPanel, this) :
           content === 'acl' ? dom.create(AccessRules, this) :
           content === 'data' ? dom.create(RawDataPage, this) :
+          content === 'proposals' ? dom.create(ProposedChangesPage, this) :
           content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'webhook' ? dom.create(WebhookPage, this) :
           content === 'timing' ? dom.create(TimingPage, this) :

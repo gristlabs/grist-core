@@ -2,23 +2,23 @@
  * ActionLog manages the list of actions from server and displays them in the side bar.
  */
 
+import {GristDoc} from 'app/client/components/GristDoc';
 import * as dispose from 'app/client/lib/dispose';
-import dom from 'app/client/lib/dom';
-import {timeFormat} from 'app/common/timeFormat';
-import * as ko from 'knockout';
-
 import koArray from 'app/client/lib/koArray';
 import {KoArray} from 'app/client/lib/koArray';
 import * as koDom from 'app/client/lib/koDom';
-
-import {GristDoc} from 'app/client/components/GristDoc';
+import {makeT} from 'app/client/lib/localization';
+import {ClientTimeData} from 'app/client/models/TimeQuery';
+import {basicButton} from 'app/client/ui2018/buttons';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
         LabelDelta} from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
-import {DomContents, fromKo, IDomComponent} from 'grainjs';
-import {makeT} from 'app/client/lib/localization';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {timeFormat} from 'app/common/timeFormat';
+import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
+import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
+import * as ko from 'knockout';
 
 /**
  *
@@ -35,7 +35,10 @@ export interface ActionGroupWithState extends ActionGroup {
   state?: ko.Observable<string>;  // is action undone/buried
   tableFilters?: {[tableId: string]: ko.Observable<string>};  // current names of tables
   affectedTableIds?: Array<ko.Observable<string>>; // names of tables affecting this ActionGroup
+  context?: ko.Observable<ActionContext>;  // extra cell information, computed on demand
 }
+
+export type ActionContext = Record<string, ResultRow[]>;
 
 const gristNotify = (window as any).gristNotify;
 
@@ -49,11 +52,11 @@ const state = {
 const t = makeT('ActionLog');
 
 export class ActionLog extends dispose.Disposable implements IDomComponent {
+  public displayStack: KoArray<ActionGroupWithState>;
+  public selectedTableId: ko.Computed<string>;
+  public showAllTables: ko.Observable<boolean>;      // should all tables be visible?
 
-  private _displayStack: KoArray<ActionGroupWithState>;
   private _gristDoc: GristDoc|null;
-  private _selectedTableId: ko.Computed<string>;
-  private _showAllTables: ko.Observable<boolean>;      // should all tables be visible?
 
   private _pending: ActionGroupWithState[] = [];  // cache for actions that arrive while loading log
   private _loaded: boolean = false;               // flag set once log is loaded
@@ -67,18 +70,18 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    */
   public create(options: {gristDoc: GristDoc|null}) {
     // By default, just show actions for the currently viewed table.
-    this._showAllTables = ko.observable(false);
+    this.showAllTables = ko.observable(false);
     // We load the ActionLog lazily now, when it is first viewed.
     this._loading = ko.observable(false);
 
     this._gristDoc = options.gristDoc;
 
-    // TODO: _displayStack grows without bound within a single session.
+    // TODO: displayStack grows without bound within a single session.
     // Stack of actions as they should be displayed to the user.
-    this._displayStack = koArray<ActionGroupWithState>();
+    this.displayStack = koArray<ActionGroupWithState>();
 
     // Computed for the tableId of the table currently being viewed.
-    this._selectedTableId = this.autoDispose(ko.computed(() => {
+    this.selectedTableId = this.autoDispose(ko.computed(() => {
       if (!this._gristDoc || this._gristDoc.viewModel.isDisposed()) { return ""; }
       const section = this._gristDoc.viewModel.activeSection();
       if (!section || section.isDisposed()) { return ""; }
@@ -101,8 +104,9 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       return;
     }
 
-    this._setupFilters(ag, this._displayStack.at(0) || undefined);
-    const otherAg = ag.otherId ? this._displayStack.all().find(a => a.actionNum === ag.otherId) : null;
+    ag.context = ko.observable({});
+    this._setupFilters(ag, this.displayStack.at(0) || undefined);
+    const otherAg = ag.otherId ? this.displayStack.all().find(a => a.actionNum === ag.otherId) : null;
 
     if (otherAg) {
       // Undo/redo action.
@@ -115,8 +119,8 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         // Bury all undos immediately preceding this action since they can no longer
         // be redone. This is triggered by normal actions and undo/redo actions whose
         // targets are not recent (not in the stack).
-        for (let i = 0; i < this._displayStack.peekLength; i++) {
-          const prevAction = this._displayStack.at(i)!;
+        for (let i = 0; i < this.displayStack.peekLength; i++) {
+          const prevAction = this.displayStack.at(i)!;
           if (!prevAction.state) { continue; }
           const prevState = prevAction.state();
           if (prevAction.fromSelf && prevState === state.DEFAULT) {
@@ -130,7 +134,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       }
       if (!ag.otherId) {
         ag.state = ko.observable(state.DEFAULT);
-        this._displayStack.unshift(ag);
+        this.displayStack.unshift(ag);
       }
     }
   }
@@ -142,36 +146,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * @param {ActionGroupWithState} ag - the full action information we have
    */
   public renderTabularDiffs(sum: ActionSummary, txt: string, ag?: ActionGroupWithState): HTMLElement {
-    const act = asTabularDiffs(sum);
-    const editDom = dom('div',
-      this._renderTableSchemaChanges(sum, ag),
-      this._renderColumnSchemaChanges(sum, ag),
-      Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
-        if (tdiff.cells.length === 0) { return dom('div'); }
-        return dom('table.action_log_table',
-          koDom.show(() => this._showForTable(table, ag)),
-          dom('caption',
-            this._renderTableName(table)),
-          dom('tr',
-            dom('th'),
-            tdiff.header.map(diff => {
-              return dom('th', this._renderCell(diff));
-            })),
-            tdiff.cells.map(row => {
-            return dom('tr',
-              dom('td', this._renderCell(row[0])),
-                row[2].map((diff, idx: number) => {
-                return dom('td',
-                           this._renderCell(diff),
-                           dom.on('click', () => {
-                             return this._selectCell(row[1], act[table].header[idx], table,
-                                              ag ? ag.actionNum : 0);
-                           }));
-              }));
-            }));
-      }),
-      dom('span.action_comment', txt));
-    return editDom;
+    const part = new ActionLogPartInList(
+      this._gristDoc,
+      ag,
+      this
+    );
+    return part.renderTabularDiffs(sum, txt, ag?.context);
   }
 
   /**
@@ -213,17 +193,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    */
   private _hasSelectedTable(ag: ActionGroupWithState): boolean {
     if (!this._gristDoc) { return true; }
-    return ag.affectedTableIds!.some(tableId => tableId() === this._selectedTableId());
-  }
-
-  /**
-   * Return a koDom.show clause that activates when the named table is not
-   * filtered out.
-   */
-  private _showForTable(tableName: string, ag?: ActionGroupWithState): boolean {
-    if (!ag) { return true; }
-    const obs = ag.tableFilters![tableName];
-    return this._showAllTables() || !obs || obs() === this._selectedTableId();
+    return ag.affectedTableIds!.some(tableId => tableId() === this.selectedTableId());
   }
 
   private _buildLogDom() {
@@ -231,15 +201,14 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     return dom('div.action_log',
         {tabIndex: '-1'},
         dom('div',
-          labeledSquareCheckbox(fromKo(this._showAllTables),
+          labeledSquareCheckbox(fromKo(this.showAllTables),
             t('All tables'),
-            dom.testId('ActionLog_allTables'),
           ),
         ),
         dom('div.action_log_load',
           koDom.show(() => this._loading()),
           'Loading...'),
-        koDom.foreach(this._displayStack, (ag: ActionGroupWithState) => {
+        koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
         const timestamp = ag.time ? timeFormat("D T", new Date(ag.time)) : "";
         let desc: DomContents = ag.desc || "";
         if (ag.actionSummary) {
@@ -247,7 +216,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         }
         return dom('div.action_log_item',
           koDom.cssClass(ag.state),
-          koDom.show(() => this._showAllTables() || this._hasSelectedTable(ag)),
+          koDom.show(() => this.showAllTables() || this._hasSelectedTable(ag)),
           dom('div.action_info',
             dom('span.action_info_action_num', `#${ag.actionNum}`),
             ag.user ? dom('span.action_info_user',
@@ -281,7 +250,98 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     }
     this._pending.length = 0;
   }
+}
 
+
+/**
+ * Factor out the display of a single action group, since that
+ * is useful elsewhere in the UI now. This is an abstract class,
+ * we will connect it with ActionLog in ActionLogPartInList.
+ */
+export abstract class ActionLogPart {
+  public constructor(
+    _gristDoc: GristDoc|null,
+  ) {}
+
+  /**
+   * This is used in the ActionLog to selectively show entries in the
+   * log that are relevant to a particular table. This could simply
+   * return true if everything should be shown.
+   */
+  public abstract showForTable(tableName: string): boolean;
+
+  /**
+   * When the user clicks on the specified cell within this entry,
+   * this should bring the user to that cell elsewhere in the UI,
+   * so they can see its full current context.
+   */
+  public abstract selectCell(rowId: number, colId: string, tableId: string): Promise<void>;
+
+  /**
+   * Should return completions for the rows mentioned in this entry.
+   */
+  public abstract getContext(): Promise<ActionContext|undefined>;
+
+  /**
+   * Render a description of an action prepared on the server.
+   * @param {TabularDiffs} act - a collection of table changes
+   * @param {string} txt - a textual description of the action
+   * @param {Observable} context - extra information about the action
+   */
+  public renderTabularDiffs(sum: ActionSummary, txt?: string, contextObs?: ko.Observable<ActionContext>): HTMLElement {
+    const editDom = koDom.scope(contextObs, (context: ActionContext) => {
+      const act = asTabularDiffs(sum, context);
+      return dom(
+        'div',
+        this._renderTableSchemaChanges(sum),
+        this._renderColumnSchemaChanges(sum),
+        Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
+          if (tdiff.cells.length === 0) { return dom('div'); }
+          return dom(
+            'table.action_log_table',
+            koDom.show(() => this.showForTable(table)),
+            dom('caption',
+                this._renderTableName(table),
+                // Add a little button to show or hide extra context.
+                // This is a baby step, there's a lot more that could
+                // and should be done here.
+                contextObs ? cssBasicButton(
+                  context[table] ? ' <' : ' >',
+                  dom.on('click', async () => {
+                    if (context[table]) {
+                      await this._resetContext(contextObs, table, context);
+                    } else {
+                      await this._setContext(contextObs, table, context);
+                    }
+                  })) : null,
+                dom.style('text-align', 'left'),
+               ),
+            dom(
+              'tr',
+              dom('th'),
+              tdiff.header.map(diff => {
+                return dom('th', this._renderCell(diff));
+              })),
+            tdiff.cells.map(
+              row => {
+                return dom(
+                  'tr',
+                  dom('td', this._renderCell(row.type)),
+                  row.cellDeltas.map((diff, idx: number) => {
+                    return dom('td',
+                               this._renderCell(diff),
+                               dom.on('click', () => {
+                                 return this.selectCell(row.rowId, act[table].header[idx], table);
+                               }));
+                  }));
+              }));
+        }),
+        txt ? dom('span.action_comment', txt) : null,
+      );
+    });
+    return dom('div',
+               editDom);
+  }
   /**
    * Prepare dom element(s) for a cell that has been created, destroyed,
    * or modified.
@@ -297,6 +357,9 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     }
     // strings are shown as themselves
     if (typeof(cell) === 'string') {
+      return cell;
+    }
+    if (!Array.isArray(cell)) {
       return cell;
     }
     // by elimination, we have a TabularDiff.CellDelta with before and after values.
@@ -345,12 +408,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * for a rename of name1 to name2.
    * @return a filtered dom element.
    */
-  private _renderSchemaChange(scope: string, pair: LabelDelta, ag?: ActionGroupWithState) {
+  private _renderSchemaChange(scope: string, pair: LabelDelta) {
     const [pre, post] = pair;
     // ignore addition/removal of manualSort column
     if ((pre || post) === 'manualSort') { return dom('div'); }
     return dom('div.action_log_rename',
-      koDom.show(() => this._showForTable(post || defunctTableName(pre!), ag)),
+      koDom.show(() => this.showForTable(post || defunctTableName(pre!))),
       (!post ? ["Remove ", scope, dom("span.action_log_rename_pre", pre)] :
        (!pre ? ["Add ", scope, dom("span.action_log_rename_post", post)] :
         ["Rename ", scope, dom("span.action_log_rename_pre", pre),
@@ -360,99 +423,246 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   /**
    * Show any table additions/removals/renames.
    */
-  private _renderTableSchemaChanges(sum: ActionSummary, ag?: ActionGroupWithState) {
+  private _renderTableSchemaChanges(sum: ActionSummary) {
     return dom('div',
-               sum.tableRenames.map(pair => this._renderSchemaChange("", pair, ag)));
+               sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
   }
 
   /**
    * Show any column additions/removals/renames.
    */
-  private _renderColumnSchemaChanges(sum: ActionSummary, ag?: ActionGroupWithState) {
+  private _renderColumnSchemaChanges(sum: ActionSummary) {
     return dom('div',
                Object.keys(sum.tableDeltas).filter(key => !key.startsWith('-')).map(key =>
                  dom('div',
-                     koDom.show(() => this._showForTable(key, ag)),
+                     koDom.show(() => this.showForTable(key)),
                      sum.tableDeltas[key].columnRenames.map(pair =>
                         this._renderSchemaChange(key + ".", pair)))));
   }
 
-  /**
-   * Move cursor to show a given cell of a given table. Uses primary view of table.
-   */
-  private async _selectCell(rowId: number, colId: string, tableId: string, actionNum: number) {
+  private async _resetContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
+    delete context[tableId];
+    contextObs(context);
+  }
+
+  private async _setContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
+    const result = await this.getContext();
+    if (result) {
+      contextObs({...context, [tableId]: result[tableId]});
+    }
+  }
+}
+
+/**
+ * Connect ActionLogPart back to ActionLog. The only non-trivial
+ * work is relating cells within it to current state, via the
+ * action stack.
+ */
+class ActionLogPartInList extends ActionLogPart {
+  public constructor(
+    private _gristDoc: GristDoc|null,
+    private _actionGroup: ActionGroupWithState|undefined,
+    private _actionLog: ActionLog,
+  ) {
+    super(_gristDoc);
+  }
+
+  public showForTable(tableName: string): boolean {
+    return this._showForTable(tableName, this._actionGroup);
+  }
+
+  public async selectCell(rowId: number, colId: string, tableId: string): Promise<void> {
     if (!this._gristDoc) { return; }
+    if (!this._actionGroup) { return; }
+    const actionNum = this._actionGroup.actionNum;
 
     // Find action in the stack.
-    const index = this._displayStack.peek().findIndex(a => a.actionNum === actionNum);
+    const index = this._actionLog.displayStack.peek().findIndex(a => a.actionNum === actionNum);
     if (index < 0) { throw new Error(`Cannot find action ${actionNum} in the action log.`); }
 
     // Found the action. Now trace forward to find current tableId, colId, rowId.
     for (let i = index; i >= 0; i--) {
-      const action = this._displayStack.at(i)!;
+      const action = this._actionLog.displayStack.at(i)!;
       const sum = action.actionSummary;
-
-      // Check if this table was renamed / removed.
-      const tableRename: LabelDelta|undefined = sum.tableRenames.find(r => r[0] === tableId);
-      if (tableRename) {
-        const newName = tableRename[1];
-        if (!newName) {
-          // TODO - find a better way to send informative notifications.
-          gristNotify(t(
-            "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
-            {tableId:tableId, actionNum: action.actionNum}
-          ));
-          return;
-        }
-        tableId = newName;
-      }
-      const td = sum.tableDeltas[tableId];
-      if (!td) { continue; }
-
-      // Check is this row was removed - if so there's no reason to go on.
-      if (td.removeRows.indexOf(rowId) >= 0) {
-          // TODO - find a better way to send informative notifications.
-        gristNotify(t("This row was subsequently removed in action {{action.actionNum}}", {actionNum}));
-        return;
-      }
-
-      // Check if this column was renamed / added.
-      const columnRename: LabelDelta|undefined = td.columnRenames.find(r => r[0] === colId);
-      if (columnRename) {
-        const newName = columnRename[1];
-        if (!newName) {
-          // TODO - find a better way to send informative notifications.
-          gristNotify(t(
-            "Column {{colId}} was subsequently removed in action #{{action.actionNum}}",
-            {colId, actionNum: action.actionNum}
-          ));
-          return;
-        }
-        colId = newName;
+      const cell = traceCell({rowId, colId, tableId}, sum, (deletedObj: DeletedObject) => {
+        reportDeletedObject(deletedObj, action.actionNum);
+      });
+      if (cell) {
+        tableId = cell.tableId;
+        colId = cell.colId;
+        rowId = cell.rowId;
       }
     }
-
-    // Find the table model of interest.
-    const tableModel = this._gristDoc.getTableModel(tableId);
-    if (!tableModel) { return; }
-
-    // Get its "primary" view.
-    const viewRow = tableModel.tableMetaRow.primaryView();
-    const viewId = viewRow.getRowId();
-
-    // Switch to that view.
-    await this._gristDoc.openDocPage(viewId);
-
-    // Now let's pick a reasonable section in that view.
-    const viewSection = viewRow.viewSections().peek().find((s: any) => s.table().tableId() === tableId);
-    if (!viewSection) { return; }
-    const sectionId = viewSection.getRowId();
-
-    // Within that section, find the column of interest if possible.
-    const fieldIndex = viewSection.viewFields().peek().findIndex((f: any) => f.colId.peek() === colId);
-
-    // Finally, move cursor position to the section, column (if we found it), and row.
-    this._gristDoc.moveToCursorPos({rowId, sectionId, fieldIndex}).catch(() => { /* do nothing */ });
+    await showCell(this._gristDoc, {tableId, colId, rowId});
   }
 
+  public async getContext(): Promise<ActionContext|undefined> {
+    if (!this._gristDoc) { return; }
+    if (!this._actionGroup) { return; }
+    const base = this._actionGroup.actionSummary;
+    const actionNum = this._actionGroup.actionNum;
+    return await computeContext(this._gristDoc, base, (cursor) => {
+      // Find action in the stack.
+      const index = this._actionLog.displayStack.peek().findIndex(a => a.actionNum === actionNum);
+      if (index < 0) { throw new Error(`Cannot find action ${actionNum} in the action log.`); }
+      // Found the action. Now find mapping to current doc, just
+      // after this action.
+      for (let i = index - 1; i >= 0; i--) {
+        const action = this._actionLog.displayStack.at(i)!;
+        cursor.append(action.actionSummary);
+      }
+    });
+  }
+
+  /**
+   * Return a koDom.show clause that activates when the named table is not
+   * filtered out.
+   */
+  private _showForTable(tableName: string, ag?: ActionGroupWithState): boolean {
+    if (!ag) { return true; }
+    const obs = ag.tableFilters![tableName];
+    return this._actionLog.showAllTables() || !obs || obs() === this._actionLog.selectedTableId();
+  }
+}
+
+/**
+ * Trace a cell through a change. The row, column, or table may be
+ * deleted, in which case reportDeletion is called and null is returned.
+ * Column and table renames are tracked, with updated names returned.
+ */
+export function traceCell(cell: {rowId: number, colId: string, tableId: string},
+                          summary: ActionSummary,
+                          reportDeletion: (deletedObj: DeletedObject) => void) {
+  let {tableId, colId} = cell;
+  const {rowId} = cell;
+  // Check if this table was renamed / removed.
+  const tableRename: LabelDelta|undefined = summary.tableRenames.find(r => r[0] === tableId);
+  if (tableRename) {
+    const newName = tableRename[1];
+    if (!newName) {
+      reportDeletion({tableId});
+      return null;
+    }
+    tableId = newName;
+  }
+  const td = summary.tableDeltas[tableId];
+  if (!td) {
+    return {tableId, rowId, colId};
+  }
+
+  // Check is this row was removed - if so there's no reason to go on.
+  if (td.removeRows.indexOf(rowId) >= 0) {
+    reportDeletion({thisRow: true});
+    return null;
+  }
+
+  // Check if this column was renamed / added.
+  const columnRename: LabelDelta|undefined = td.columnRenames.find(r => r[0] === colId);
+  if (columnRename) {
+    const newName = columnRename[1];
+    if (!newName) {
+      reportDeletion({colId});
+      return null;
+    }
+    colId = newName;
+  }
+  return {tableId, rowId, colId};
+}
+
+/**
+ * Show a cell in the UI. That is pretty ambiguous! The same
+ * rowId/colId/tableId cell might be shown in many places.  The logic
+ * here is ancient, written before the Raw Data page existed for
+ * example, but for simple cases where the cell appears just once on a
+ * user-created page, it works okay. A lot that could be done here.
+ */
+export async function showCell(gristDoc: GristDoc, cell: {
+  tableId: string,
+  colId: string,
+  rowId: number,
+}) {
+  const {tableId, colId, rowId} = cell;
+
+  // Find the table model of interest.
+  const tableModel = gristDoc.getTableModel(tableId);
+  if (!tableModel) { return; }
+
+  // Get its "primary" view.
+  const viewRow = tableModel.tableMetaRow.primaryView();
+  const viewId = viewRow.getRowId();
+
+  // Switch to that view.
+  await gristDoc.openDocPage(viewId);
+
+  // Now let's pick a reasonable section in that view.
+  const viewSection = viewRow.viewSections().peek().find((s: any) => s.table().tableId() === tableId);
+  if (!viewSection) { return; }
+  const sectionId = viewSection.getRowId();
+
+  // Within that section, find the column of interest if possible.
+  const fieldIndex = viewSection.viewFields().peek().findIndex((f: any) => f.colId.peek() === colId);
+
+  // Finally, move cursor position to the section, column (if we found it), and row.
+  gristDoc.moveToCursorPos({rowId, sectionId, fieldIndex}).catch(() => { /* do nothing */ });
+}
+
+/**
+ * Look up the information in other cells on the same row as changed
+ * cells. This is useful to help the user understand what row it is.
+ * This is not robust code, or much tested, and should be seen as a
+ * placeholder for some systematic work.
+ */
+export async function computeContext(gristDoc: GristDoc, base: ActionSummary, init?: (cursor: TimeCursor) => void) {
+  if (!gristDoc) { return; }
+
+  const data = new ClientTimeData(gristDoc.docData);
+  const cursor = new TimeCursor(data);
+
+  init?.(cursor);
+
+  async function getTable(tableId: string, rowIds: number[]) {
+    const query = new TimeQuery(cursor, tableId, '*', rowIds);
+    await query.update();
+    return query.all();
+  }
+
+  const result: ActionContext = {};
+  for (const [tableId, tableDelta] of Object.entries(base.tableDeltas)) {
+    const rowIds = new Set([...tableDelta.addRows,
+                            ...tableDelta.updateRows]);
+    const rows = await getTable(tableId, [...rowIds]);
+    result[tableId] = rows;
+  }
+  return result;
+}
+
+const cssBasicButton = styled(basicButton, `
+  padding: 0;
+  margin-left: 5px;
+  border: none;
+`);
+
+function reportDeletedObject(obj: DeletedObject, actionNum: number) {
+  // This is written to avoid code changes that require retranslating these messages.
+  if (obj.tableId) {
+    gristNotify(t(
+      "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
+      {tableId: obj.tableId, actionNum}
+    ));
+  }
+  if (obj.colId) {
+      gristNotify(t(
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}",
+        {colId: obj.colId, actionNum}
+      ));
+  }
+  if (obj.thisRow) {
+    gristNotify(t("This row was subsequently removed in action {{actionNum}}", {actionNum}));
+  }
+}
+
+interface DeletedObject {
+  thisRow?: boolean;
+  colId?: string;
+  tableId?: string;
 }

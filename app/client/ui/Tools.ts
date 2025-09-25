@@ -96,6 +96,17 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
+    dom.maybe(docPageModel.isFork, () => {
+      return cssPageEntry(
+        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'proposals'),
+        cssPageLink(
+          cssPageIcon('EyeShow'),
+          cssLinkText(t("Proposed Changes")),
+          testId('proposals'),
+          urlState().setLinkUrl({docPage: 'proposals'})
+        )
+      );
+    }),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
