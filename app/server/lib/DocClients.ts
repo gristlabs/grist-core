@@ -125,7 +125,7 @@ export class DocClients extends EventEmitter {
         // If client isn't responsive in a reasonable length of time, then don't
         // keep waiting for it. BUT then the client state could get weird if it
         // was just temporarily slow and future messages get through. So just
-        // declare bankrupcy on this connection and let the client try to
+        // declare bankruptcy on this connection and let the client try to
         // reconnect and get back in a good state if it can.
         if (isUnresponsive) {
           target.client.interruptConnection();
