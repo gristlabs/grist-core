@@ -169,7 +169,7 @@ export async function createTmpDir(): Promise<string> {
   const tmpRootDir = path.resolve(process.env.TESTDIR || tmpdir());
   await fse.mkdirs(tmpRootDir);
   return (await tmp.dir({
-    dir: tmpRootDir,
+    tmpdir: tmpRootDir,
     prefix: 'grist_test_',
     unsafeCleanup: true,
     keep: noCleanup,
