@@ -92,7 +92,9 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Column {{colId}} was subsequently removed in action #{{action.actionNum}}",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Table {{tableId}} was subsequently removed in action #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "This row was subsequently removed in action {{action.actionNum}}",
-        "All tables": "All tables"
+        "All tables": "All tables",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Column {{colId}} was subsequently removed in action #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}"
     },
     "AddNewButton": {
         "Add New": "Add New"
@@ -895,7 +897,8 @@
         "API Console": "API Console",
         "context menu - Access Rules": "context menu - Access Rules",
         "Delete document tour": "Delete document tour",
-        "Preview the tutorial": "Preview the tutorial"
+        "Preview the tutorial": "Preview the tutorial",
+        "Proposed Changes": "Proposed Changes"
     },
     "TopBar": {
         "Manage Team": "Manage Team",
@@ -2236,5 +2239,10 @@
         "Skip leading whitespace": "Skip leading whitespace",
         "Start with row": "Start with row",
         "Character encoding. See [the supported codecs]({{link}})": "Character encoding. See [the supported codecs]({{link}})"
+    },
+    "ProposedChangesPage": {
+        "Proposed Changes": "Proposed Changes",
+        "Replace Original": "Replace Original",
+        "This is a list of changes relative to the original document.": "This is a list of changes relative to the original document."
     }
 }
