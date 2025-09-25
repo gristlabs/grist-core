@@ -15,7 +15,7 @@ and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-
 
 > Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
 
-https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
+https://github.com/user-attachments/assets/07392eac-096a-407a-ac50-2b976da0d9b5
 
 ## Features in `grist-core`
 
