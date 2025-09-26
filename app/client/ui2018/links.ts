@@ -32,14 +32,14 @@ export const cssLink = styled('a', `
  * This helps us apply link styles when we can't directly use `cssLink`,
  * for example when styling generated markdown.
  */
-export const nestedLinkStyles = `
+export const cssNestedLinks = styled('div', `
   & a {
     ${linkStyles}
   }
   & a:hover, & a:focus {
     ${linkHoverStyles}
   }
-`;
+`);
 
 export function gristLink(href: BindableValue<string>, ...args: IDomArgs<HTMLElement>) {
   return dom("a",

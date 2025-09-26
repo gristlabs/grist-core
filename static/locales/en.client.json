@@ -2248,7 +2248,7 @@
         "High contrast theme": "High contrast theme",
         "Keyboard navigation": "Keyboard navigation",
         "On a document page, keyboard navigation is first locked on the current widget.": "On a document page, keyboard navigation is first locked on the current widget.",
-        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "On document pages, each [widget]({{helpWidgets}}) is a region that can receive focus.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.",
         "On non-document pages, the main content area is a region.": "On non-document pages, the main content area is a region.",
         "Other important keyboard shortcuts": "Other important keyboard shortcuts",
         "The left panel, home of the main navigation.": "The left panel, home of the main navigation.",

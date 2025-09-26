@@ -15,7 +15,7 @@ import {cssModalBody,
   modal
 } from 'app/client/ui2018/modals';
 import {bigPrimaryButton, cssButton} from 'app/client/ui2018/buttons';
-import {cssLink, nestedLinkStyles} from 'app/client/ui2018/links';
+import {cssLink, cssNestedLinks} from 'app/client/ui2018/links';
 
 const t = makeT('OpenAccessibilityModal');
 
@@ -145,12 +145,11 @@ const getCssKeys = (keys: string[]) => {
   return keys.map((k, i) => i === keys.length - 1 ? cssKey(k) : [cssKey(k), t(" or ")]);
 };
 
-const cssSection = styled('div', `
+const cssSection = styled(cssNestedLinks, `
   margin-bottom: 32px;
   &:last-child {
     margin-bottom: 0;
   }
-  ${nestedLinkStyles}
 `);
 
 const cssKey = styled('span', `
@@ -162,11 +161,12 @@ const cssKey = styled('span', `
   border-bottom: 3px solid ${tokens.decoration};
   padding: 0.2em 0.4em;
   border-radius: 0.2em;
+  line-height: 1.3;
 `);
 
 const cssShortcutRow = styled('li', `
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
 
