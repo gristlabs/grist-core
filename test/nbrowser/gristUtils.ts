@@ -1104,6 +1104,13 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 }
 
 /**
+ * trigger the keyboard shortcut to keyboard-focus in/out the creator panel
+ */
+export async function toggleCreatorPanelFocus() {
+  await sendKeys(Key.chord(await modKey(), Key.ALT, 'o'));
+}
+
+/**
  * Wait for the focus to be on the first element matching given selector.
  */
 export async function waitForFocus(selector: string, yesNo: boolean = true, waitMs: number = 1000): Promise<void> {
