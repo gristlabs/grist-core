@@ -205,7 +205,6 @@ jobs:
           MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
           TESTDIR: ${{ runner.temp }}/test-logs
           MOCHA_WEBDRIVER_HEADLESS: 1
-          MOCHA_WEBDRIVER_SKIP_CLEANUP: 1
 
       - name: Prepare for saving artifact
         if: failure()
