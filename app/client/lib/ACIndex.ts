@@ -48,16 +48,16 @@ export const highlightNone: HighlightFunc = (text) => [text];
  * highlighting the matched portion of each item.
  */
 export interface ACResults<Item extends ACItem> {
-  // Matching items in order from best match to worst.
+  /** Matching items in order from best match to worst. */
   items: Item[];
 
-  // Additional items to show (e.g. the "Add New" item, for Choice and Reference fields).
+  /** Additional items to show (e.g. the "Add New" item, for Choice and Reference fields). */
   extraItems: Item[];
 
-  // May be used to highlight matches using buildHighlightedDom().
+  /** May be used to highlight matches using buildHighlightedDom(). */
   highlightFunc: HighlightFunc;
 
-  // index of a good match (normally 0), or -1 if no great match
+  /** index of a good match (normally 0), or -1 if no great match */
   selectIndex: number;
 }
 
@@ -93,6 +93,10 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   private _maxResults = this._options.maxResults ?? 50;
   private _keepOrder = this._options.keepOrder ?? false;
   private _showEmptyItems = this._options.showEmptyItems ?? false;
+
+  public get totalItems() {
+    return this._allItems.length;
+  }
 
   // Creates an index for the given list of items.
   constructor(items: Item[], private _options: ACIndexOptions = {}) {
