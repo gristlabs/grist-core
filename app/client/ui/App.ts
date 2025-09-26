@@ -1,5 +1,5 @@
 import {ClientScope} from 'app/client/components/ClientScope';
-import * as Clipboard from 'app/client/components/Clipboard';
+import {Clipboard} from 'app/client/components/Clipboard';
 import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
 import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
 import {Comm} from 'app/client/components/Comm';
@@ -84,7 +84,7 @@ export class AppImpl extends DisposableWithEvents implements App {
     KeyboardFocusHighlighter.create(this);
 
     if (isDesktop()) {
-      this.autoDispose(Clipboard.create(this));
+      Clipboard.create(this, this);
     } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
       // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
@@ -137,7 +137,6 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.onDispose(() => { dom.domDispose(helpDiv); helpDiv.remove(); });
 
     this.autoDispose(commands.createGroup({
-      help() { G.window.open('help', '_blank').focus(); },
       shortcuts() { isHelpPaneVisible(true); },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },

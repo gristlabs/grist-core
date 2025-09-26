@@ -1,6 +1,5 @@
 export type CommandName =
   | 'shortcuts'
-  | 'help'
   | 'undo'
   | 'redo'
   | 'accept'
@@ -155,10 +154,6 @@ export const groups: CommendGroupDef[] = [{
       name: 'shortcuts',
       keys: ['F1', 'Mod+/'],
       desc: 'Display shortcuts pane'
-    }, {
-      name: 'help',
-      keys: [],
-      desc: 'Display Grist documentation'
     }, {
       name: 'undo',
       keys: ['Mod+z'],

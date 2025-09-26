@@ -825,7 +825,7 @@ const cssPrimarySmallLinkSettings = styled(cssPrimarySmallLink, `
 
 // Check which engines can be selected in the UI, if any.
 export function getSupportedEngineChoices(): EngineCode[] {
-  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
+  const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   return gristConfig.supportEngines || [];
 }
 
