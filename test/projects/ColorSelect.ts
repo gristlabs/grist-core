@@ -358,6 +358,8 @@ describe("ColorSelect", function() {
       // click the hex value
       await driver.findWait('.test-text-hex', 100).click();
 
+      await gu.waitForSelection('.test-text-hex');
+
       // start typing '#'
       await driver.sendKeys('#');
 
@@ -376,6 +378,8 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
+      await gu.waitForSelection('.test-text-hex');
+
 
       // type in #FF00FF and press enter
       await driver.sendKeys(pink, Key.ENTER);
@@ -398,6 +402,9 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
+
+      // Wait for focus
+      await gu.waitForSelection('.test-text-hex');
 
       // type in #0000FF
       await driver.sendKeys(red);
@@ -432,6 +439,7 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
+      await gu.waitForSelection('.test-text-hex');
 
       // start typing '#FF'
       await driver.sendKeys('#FF');
@@ -439,7 +447,7 @@ describe("ColorSelect", function() {
       // check the hex value changed
       assert.equal(await driver.find('.test-text-hex').value(), '#FF');
 
-      // click button to update. We cannot send ctrl+U here, becauses it does cause picker to close
+      // click button to update. We cannot send ctrl+U here, because it does cause picker to close
       // here.
       await driver.executeScript('triggerUpdate()');
 

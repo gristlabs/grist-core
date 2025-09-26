@@ -21,6 +21,7 @@ import {exitPromise} from 'app/server/lib/serverUtils';
 import {ChildProcess, spawn} from 'child_process';
 import {driver, IMochaContext, IMochaServer} from 'mocha-webdriver';
 import fetch from 'node-fetch';
+import stripAnsi from "strip-ansi";
 import * as path from 'path';
 
 const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, 'webpack.config.js');
@@ -50,13 +51,19 @@ export class WebpackServer implements IMochaServer {
 
     // Wait for a build status to show up on stdout, to know when webpack is finished.
     this._webpackComplete = new Promise((resolve, reject) => {
-      this._server.stdout!.on('data', (data) => {
-        // Note that data might not in general arrive at line boundaries, but in this case, it works.
-        const text = data.toString('utf8');
-        if (/compiled with.*errors/i.test(text)) { reject(new Error('Webpack failed')); }
-        if (/compiled successfully/i.test(text)) { resolve(true); }
+      let buffer = "";
+      this._server.stdout!.on("data", (data) => {
+        buffer += data.toString("utf8");
+        const clean = stripAnsi(buffer);
+        if (/compiled.*with.*errors/i.test(clean)) {
+          reject(new Error("Webpack failed"));
+        }
+        if (/compiled.*successfully/i.test(clean)) {
+          resolve(true);
+        }
       });
     });
+
 
     const config = require(configPath);
     const port = config.devServer.port;

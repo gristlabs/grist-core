@@ -10,15 +10,17 @@ describe('modals', function() {
   });
 
   async function checkClosed() {
+    await driver.sleep(50);  // Give time for the closing animation to finish.
     assert.equal(await driver.find('.test-modal-dialog').isPresent(), false);
   }
+
   async function checkOpen() {
-    assert.equal(await driver.find('.test-modal-dialog').isDisplayed(), true);
+    assert.equal(await driver.findWait('.test-modal-dialog', 100).isPresent(), true);
   }
 
   it('should close on click-away, OK, Cancel, Escape, Enter', async function() {
     // Modal is initially reported as "Cancelled" and isn't present.
-    assert.match(await driver.find('.testui-confirm-modal-text').getText(), /Cancelled/);
+    assert.match(await driver.findWait('.testui-confirm-modal-text', 100).getText(), /Cancelled/);
     await checkClosed();
 
     // Click on Cancel closes.
