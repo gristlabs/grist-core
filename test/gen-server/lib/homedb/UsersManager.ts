@@ -255,7 +255,7 @@ describe('UsersManager', function () {
         picture: `https://mypic.com/${localPart}.png`,
         extra: {
           extrafield: 'randomvalue'
-        }
+        },
       };
     }
 
@@ -446,7 +446,7 @@ describe('UsersManager', function () {
           prefs: [
             prefWithOrg,
             prefWithoutOrg
-          ]
+          ],
         });
       }
 
@@ -465,6 +465,7 @@ describe('UsersManager', function () {
           locale: someUserLocale,
           prefs: prefWithoutOrg.prefs,
           firstLoginAt: null,
+          disabledAt: null,
         });
       });
 
