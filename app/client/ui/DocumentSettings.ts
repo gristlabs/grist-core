@@ -29,7 +29,7 @@ import {confirmModal, cssModalButtons, cssModalTitle, cssSpinner, modal} from 'a
 import {buildCurrencyPicker} from 'app/client/widgets/CurrencyPicker';
 import {buildTZAutocomplete} from 'app/client/widgets/TZAutocomplete';
 import {EngineCode} from 'app/common/DocumentSettings';
-import {commonUrls, GristLoadConfig, PREFERRED_STORAGE_ANCHOR} from 'app/common/gristUrls';
+import {GristLoadConfig, PREFERRED_STORAGE_ANCHOR} from 'app/common/gristUrls';
 import {not, propertyCompare} from 'app/common/gutil';
 import {getCurrency, locales} from 'app/common/Locales';
 import {isOwner, isOwnerOrEditor} from 'app/common/roles';
@@ -176,7 +176,9 @@ document is first opened, or when a document responds to changes.'
           expandedContent: dom('div',
             cssWrap(
               t('Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}', {
-                apiURL: cssLink({href: commonUrls.helpAPI, target: '_blank'}, t('API documentation.')),
+                apiURL: cssLink(
+                  {href: window.gristConfig.commonUrls.helpAPI, target: '_blank'}, t('API documentation.')
+                ),
                 docId: dom('code', 'docId')
               })
             ),
@@ -573,7 +575,9 @@ No data will be lost, except possibly currently pending actions.'
             description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
 Anyone may edit, which will create a new unsaved copy.',
               {
-                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode'))
+                fiddleModeDocUrl: cssLink(
+                  {href: window.gristConfig.commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')
+                )
               }
             ),
             itemTestId: testId('doctype-modal-option-template'),
@@ -680,13 +684,13 @@ function displayCurrentType(
 
 const learnMore = () => t(
   '[Learn more.]({{learnLink}})',
-  {learnLink: commonUrls.attachmentStorage}
+  {learnLink: window.gristConfig.commonUrls.attachmentStorage}
 );
 
 function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someExternal = () => t(
     '**Some existing attachments are still [external]({{externalLink}})**.',
-    {externalLink: commonUrls.attachmentStorage}
+    {externalLink: window.gristConfig.commonUrls.attachmentStorage}
   );
 
   const startToInternal = () => t(
@@ -713,7 +717,7 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
 function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HTMLSpanElement>) {
   const someInternal = () => t(
     '**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).',
-    {internalLink: commonUrls.attachmentStorage}
+    {internalLink: window.gristConfig.commonUrls.attachmentStorage}
   );
 
   const startToExternal = () => t(

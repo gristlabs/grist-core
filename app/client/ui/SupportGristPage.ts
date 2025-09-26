@@ -16,7 +16,6 @@ import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
-import {commonUrls} from 'app/common/gristUrls';
 import {TelemetryPrefsWithSources} from 'app/common/InstallAPI';
 import {Computed, Disposable, dom, makeTestId} from 'grainjs';
 
@@ -142,7 +141,7 @@ It also shows to others that there is a determined community behind this product
       )),
       cssSponsorButton(
         cssButtonIconAndText(icon('Heart'), cssButtonText(t('Manage Sponsorship'))),
-        {href: commonUrls.githubSponsorGristLabs, target: '_blank'},
+        {href: window.gristConfig.commonUrls.githubSponsorGristLabs, target: '_blank'},
       ),
       testId('sponsorship-section'),
     );
@@ -150,27 +149,27 @@ It also shows to others that there is a determined community behind this product
 
   public buildSponsorshipSmallButton() {
     return basicButtonLink('💛 ', t('Sponsor'),
-      {href: commonUrls.githubSponsorGristLabs, target: '_blank'});
+      {href: window.gristConfig.commonUrls.githubSponsorGristLabs, target: '_blank'});
   }
 }
 
 function telemetryHelpCenterLink() {
   return cssLink(
     t('Help Center'),
-    {href: commonUrls.helpTelemetryLimited, target: '_blank'},
+    {href: window.gristConfig.commonUrls.helpTelemetryLimited, target: '_blank'},
   );
 }
 
 function sponsorGristLink() {
   return cssLink(
     t('GitHub Sponsors page'),
-    {href: commonUrls.githubSponsorGristLabs, target: '_blank'},
+    {href: window.gristConfig.commonUrls.githubSponsorGristLabs, target: '_blank'},
   );
 }
 
 function gristCoreLink() {
   return cssLink(
     t('GitHub'),
-    {href: commonUrls.githubGristCore, target: '_blank'},
+    {href: window.gristConfig.commonUrls.githubGristCore, target: '_blank'},
   );
 }

@@ -6,7 +6,7 @@ import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
-import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
+import {GristDeploymentType} from 'app/common/gristUrls';
 import {BehavioralPrompt} from 'app/common/Prefs';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, DomElementArg, styled} from 'grainjs';
@@ -91,14 +91,14 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
       t('Useful for storing the timestamp or author of a new record, data cleaning, and more.')
     ),
     dom('div',
-      cssLink({href: commonUrls.helpTriggerFormulas, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpTriggerFormulas, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
   selectBy: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div', t('Link your new widget to an existing widget on this page.')),
     dom('div',
-      cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -107,7 +107,7 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
       t('Try out changes in a copy, then decide whether to replace the original with your edits.')
     ),
     dom('div',
-      cssLink({href: commonUrls.helpTryingOutChanges, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpTryingOutChanges, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -117,14 +117,14 @@ export const GristTooltips: Record<Tooltip, TooltipContentFunc> = {
 see or edit which parts of your document.')
     ),
     dom('div',
-      cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
   addRowConditionalStyle: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div', t('Apply conditional formatting to rows based on formulas.')),
     dom('div',
-      cssLink({href: commonUrls.helpConditionalFormatting, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpConditionalFormatting, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -132,14 +132,14 @@ see or edit which parts of your document.')
     dom('div', t('Apply conditional formatting to cells in this column when formula conditions are met.')),
     dom('div', t('Click on “Open row styles” to apply conditional formatting to rows.')),
     dom('div',
-      cssLink({href: commonUrls.helpConditionalFormatting, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpConditionalFormatting, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
   uuid: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div', t('A UUID is a randomly-generated string that is useful for unique identifiers and link keys.')),
     dom('div',
-      cssLink({href: commonUrls.helpLinkKeys, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpLinkKeys, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -147,14 +147,14 @@ see or edit which parts of your document.')
     dom('div', t('Lookups return data from related tables.')),
     dom('div', t('Use reference columns to relate data in different tables.')),
     dom('div',
-      cssLink({href: commonUrls.helpColRefs, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpColRefs, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
   formulaColumn: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div', t('Formulas support many Excel functions and full Python syntax.')),
     dom('div',
-      cssLink({href: commonUrls.formulas, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.formulas, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -179,7 +179,7 @@ see or edit which parts of your document.')
       example: dom.create(buildHighlightedCode, 'choice.Role == "Manager"', {}, {style: 'margin-top: 8px;'}),
     })),
     dom('div',
-      cssLink({href: commonUrls.helpFilteringReferenceChoices, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpFilteringReferenceChoices, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -188,7 +188,7 @@ see or edit which parts of your document.')
       t('Community widgets are created and maintained by Grist community members.')
     ),
     dom('div',
-      cssLink({href: commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.')),
+      cssLink({href: window.gristConfig.commonUrls.helpCustomWidgets, target: '_blank'}, t('Learn more.')),
     ),
     ...args,
   ),
@@ -228,14 +228,14 @@ external storage."
       "\n\n" +
       t(
       "[Learn more.]({{link}})", {
-        link: commonUrls.attachmentStorage
+        link: window.gristConfig.commonUrls.attachmentStorage
       }
     )),
     ...args,
   ),
   adminControls: (...args: DomElementArg[]) => cssTooltipContent(
     dom('div', t('Manage users and resources in a Grist installation.')),
-    dom('div', cssLink({href: commonUrls.helpAdminControls, target: "_blank"}, t('Learn more.'))),
+    dom('div', cssLink({href: window.gristConfig.commonUrls.helpAdminControls, target: "_blank"}, t('Learn more.'))),
     ...args,
   ),
   uploadAttachments: (...args: DomElementArg[]) => cssTooltipContent(
@@ -272,7 +272,7 @@ export const ErrorTooltips: Record<ErrorTooltip, TooltipContentFunc> = {
       dom(
         "div",
         cssLink(
-          {href: commonUrls.helpSummaryFormulas, target: "_blank"},
+          {href: window.gristConfig.commonUrls.helpSummaryFormulas, target: "_blank"},
           t("Learn more.")
         )
       ),
@@ -306,7 +306,7 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       })),
       dom('div', t('They allow for one record to point (or refer) to another.')),
       dom('div',
-        cssLink({href: commonUrls.helpColRefs, target: '_blank'}, t('Learn more.')),
+        cssLink({href: window.gristConfig.commonUrls.helpColRefs, target: '_blank'}, t('Learn more.')),
       ),
       ...args,
     ),
@@ -322,7 +322,9 @@ record in that table, but you may select which column from that record to show.'
           entire: cssItalicizedText(t('entire'))
         })),
       dom('div',
-        cssLink({href: commonUrls.helpUnderstandingReferenceColumns, target: '_blank'}, t('Learn more.')),
+        cssLink(
+          {href: window.gristConfig.commonUrls.helpUnderstandingReferenceColumns, target: '_blank'}, t('Learn more.')
+        ),
       ),
       ...args,
     ),
@@ -334,7 +336,7 @@ record in that table, but you may select which column from that record to show.'
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('The Raw Data page lists all data tables in your document, \
 including summary tables and tables not included in page layouts.')),
-      dom('div', cssLink({href: commonUrls.helpRawData, target: '_blank'}, t('Learn more.'))),
+      dom('div', cssLink({href: window.gristConfig.commonUrls.helpRawData, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
@@ -345,7 +347,7 @@ including summary tables and tables not included in page layouts.')),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Access rules give you the power to create nuanced rules \
 to determine who can see or edit which parts of your document.')),
-      dom('div', cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
+      dom('div', cssLink({href: window.gristConfig.commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
@@ -356,7 +358,7 @@ to determine who can see or edit which parts of your document.')),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Pinned filters are displayed as buttons above the widget.')),
       dom('div', t('Unpin to hide the the button while keeping the filter.')),
-      dom('div', cssLink({href: commonUrls.helpFilterButtons, target: '_blank'}, t('Learn more.'))),
+      dom('div', cssLink({href: window.gristConfig.commonUrls.helpFilterButtons, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
@@ -387,7 +389,7 @@ to determine who can see or edit which parts of your document.')),
     content: (...args: DomElementArg[]) => cssTooltipContent(
       dom('div', t('Link your new widget to an existing widget on this page.')),
       dom('div', t('This is the secret to Grist\'s dynamic and productive layouts.')),
-      dom('div', cssLink({href: commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.'))),
+      dom('div', cssLink({href: window.gristConfig.commonUrls.helpLinkingWidgets, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
@@ -440,7 +442,7 @@ to determine who can see or edit which parts of your document.')),
 Note each column's type.")),
       dom('div', t("Can't find the right columns? Click 'Change Widget' to select the table with events \
 data.")),
-      dom('div', cssLink({href: commonUrls.helpCalendarWidget, target: '_blank'}, t('Learn more.'))),
+      dom('div', cssLink({href: window.gristConfig.commonUrls.helpCalendarWidget, target: '_blank'}, t('Learn more.'))),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
@@ -458,7 +460,7 @@ data.")),
       ),
       dom('div',
         cssNewsPopupLink(t('Learn more.'), {
-          href: commonUrls.helpComments,
+          href: window.gristConfig.commonUrls.helpComments,
           target: '_blank',
         }),
       ),

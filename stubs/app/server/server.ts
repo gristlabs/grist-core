@@ -4,7 +4,7 @@
  * By default, starts up on port 8484.
  */
 
-import {commonUrls} from 'app/common/gristUrls';
+import {commonUrls} from 'app/server/lib/commonUrls';
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 

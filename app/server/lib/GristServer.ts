@@ -13,6 +13,7 @@ import { HomeDBManager, UserChange } from 'app/gen-server/lib/homedb/HomeDBManag
 import { IAccessTokens } from 'app/server/lib/AccessTokens';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { Comm } from 'app/server/lib/Comm';
+import { commonUrls } from 'app/server/lib/commonUrls';
 import { create } from 'app/server/lib/create';
 import { DocManager } from 'app/server/lib/DocManager';
 import { Hosts } from 'app/server/lib/extractOrg';
@@ -177,7 +178,9 @@ export function createDummyGristServer(): GristServer {
     getOwnUrl() { return 'http://localhost:4242'; },
     getPermitStore() { throw new Error('no permit store'); },
     getExternalPermitStore() { throw new Error('no external permit store'); },
-    getGristConfig() { return { homeUrl: '', timestampMs: 0, serveSameOrigin: true, checkForLatestVersion: false }; },
+    getGristConfig() { return {
+      homeUrl: '', timestampMs: 0, serveSameOrigin: true, checkForLatestVersion: false, commonUrls
+    }; },
     getOrgUrl() { return Promise.resolve(''); },
     getResourceUrl() { return Promise.resolve(''); },
     getSessions() { throw new Error('no sessions'); },

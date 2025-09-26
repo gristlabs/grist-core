@@ -7,7 +7,7 @@ import {basicButtonLink, bigPrimaryButton, primaryButtonLink} from 'app/client/u
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {unstyledButton, unstyledH2} from 'app/client/ui2018/unstyled';
-import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
+import {isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Computed, dom, IDisposableOwner, makeTestId, styled, subscribeElem} from 'grainjs';
 
@@ -106,7 +106,7 @@ export function buildHomeIntroCards(
       unstyledH2(t('Learn more')),
       cssWebinarsButton(
         t('Webinars'),
-        {href: commonUrls.webinars, target: '_blank'},
+        {href: window.gristConfig.commonUrls.webinars, target: '_blank'},
         testId('webinars'),
       )
     ),
@@ -116,7 +116,7 @@ export function buildHomeIntroCards(
       unstyledH2(t('Find solutions and explore more resources')),
       cssHelpCenterButton(
         t('Help center'),
-        {href: commonUrls.help, target: '_blank'},
+        {href: window.gristConfig.commonUrls.help, target: '_blank'},
         testId('help-center'),
       ),
     ),
