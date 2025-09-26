@@ -656,7 +656,8 @@
         "Import": "Import"
     },
     "LeftPanelCommon": {
-        "Help Center": "Help Center"
+        "Help Center": "Help Center",
+        "Accessibility": "Accessibility"
     },
     "MakeCopyMenu": {
         "As Template": "As Template",
@@ -2236,5 +2237,31 @@
         "Skip leading whitespace": "Skip leading whitespace",
         "Start with row": "Start with row",
         "Character encoding. See [the supported codecs]({{link}})": "Character encoding. See [the supported codecs]({{link}})"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " or ",
+        "\"Regions\" are what we call the different parts of the user interface:": "\"Regions\" are what we call the different parts of the user interface:",
+        "Accessibility": "Accessibility",
+        "Close": "Close",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Focus on other parts of the user interface using the following shortcuts:",
+        "High contrast theme": "High contrast theme",
+        "Keyboard navigation": "Keyboard navigation",
+        "On a document page, keyboard navigation is first locked on the current widget.": "On a document page, keyboard navigation is first locked on the current widget.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.",
+        "On non-document pages, the main content area is a region.": "On non-document pages, the main content area is a region.",
+        "Other important keyboard shortcuts": "Other important keyboard shortcuts",
+        "The left panel, home of the main navigation.": "The left panel, home of the main navigation.",
+        "The top panel, or the document header.": "The top panel, or the document header.",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "To see other available themes, go to your {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Use the high contrast theme (light appearance)",
+        "You are currently **not using** the high contrast theme.": "You are currently **not using** the high contrast theme.",
+        "You are currently using the high contrast theme.": "You are currently using the high contrast theme.",
+        "profile settings": "profile settings",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Show the accessibility options (this modal)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Focus to and from the creator panel",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focus on the next region",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focus on the previous region",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Show the complete list of keyboard shortcuts"
     }
 }

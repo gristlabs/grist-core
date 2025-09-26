@@ -1,4 +1,5 @@
 export type CommandName =
+  | 'accessibility'
   | 'shortcuts'
   | 'help'
   | 'undo'
@@ -151,6 +152,11 @@ export interface CommendGroupDef {
 export const groups: CommendGroupDef[] = [{
   group: 'General',
   commands: [
+    {
+      name: 'accessibility',
+      keys: ['F4'],
+      desc: 'Show accessibility options'
+    },
     {
       name: 'shortcuts',
       keys: ['F1', 'Mod+/'],
