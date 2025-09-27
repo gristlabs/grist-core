@@ -86,7 +86,7 @@ export class GristWSSettingsBrowser implements GristWSSettings {
   }
   public getUserSelector(): string {
     // TODO: find/create a more official way to get the user.
-    return (window as any).gristDocPageModel?.appModel.currentUser?.email || '';
+    return window.gristDocPageModel?.appModel.currentUser?.email || '';
   }
   public updateClientId(assignmentId: string|null, id: string) {
     this._sessionStorage.setItem(`clientId_${assignmentId}`, id);

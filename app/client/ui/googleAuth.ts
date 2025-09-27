@@ -35,7 +35,7 @@ export function getGoogleCodeForSending(owner: Disposable) {
 }
 
 export function getGoogleCodeForReading(owner: Disposable) {
-  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
+  const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   // Default scope allows as to manage files we created.
   return getGoogleAuthCode(owner, gristConfig.googleDriveScope || APP_SCOPE);
 }
@@ -44,7 +44,7 @@ export function getGoogleCodeForReading(owner: Disposable) {
  * Checks if default scope for Google Drive integration will allow to access all personal files
  */
 export function canReadPrivateFiles() {
-  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
+  const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   return gristConfig.googleDriveScope === READ_SCOPE;
 }
 

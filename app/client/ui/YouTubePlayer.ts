@@ -70,14 +70,14 @@ export class YouTubePlayer extends Disposable {
 
     this._domArgs = domArgs;
 
-    if (!G.window.YT) {
+    if (!(G.window as any).YT) {
       const tag = document.createElement('script');
 
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
 
-      G.window.onYouTubeIframeAPIReady = () => this._handleYouTubeIframeAPIReady();
+      (G.window as any).onYouTubeIframeAPIReady = () => this._handleYouTubeIframeAPIReady();
     } else {
       setTimeout(() => this._handleYouTubeIframeAPIReady(), 0);
     }
@@ -121,7 +121,7 @@ export class YouTubePlayer extends Disposable {
 
   private _handleYouTubeIframeAPIReady() {
     const {onPlayerReady, onPlayerStateChange, playerVars, ...otherOptions} = this._options;
-    this._player = new G.window.YT.Player(this._playerId, {
+    this._player = new (G.window as any).YT.Player(this._playerId, {
       videoId: this._videoId,
       playerVars,
       events: {

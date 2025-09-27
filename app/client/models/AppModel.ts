@@ -555,8 +555,8 @@ export function getFallbackHomeUrl(): string {
  * Get the official home URL sent to us from the back end.
  */
 export function getConfiguredHomeUrl(): string {
-  const gristConfig: any = (window as any).gristConfig;
-  return (gristConfig && gristConfig.homeUrl) || getFallbackHomeUrl();
+  const gristConfig: GristLoadConfig|undefined = window.gristConfig;
+  return gristConfig?.homeUrl || getFallbackHomeUrl();
 }
 
 /**
@@ -565,7 +565,7 @@ export function getConfiguredHomeUrl(): string {
  */
 export function getPreferredHomeUrl(): string|undefined {
   const gristUrl = urlState().state.get();
-  const gristConfig: GristLoadConfig = (window as any).gristConfig;
+  const gristConfig: GristLoadConfig|undefined = window.gristConfig;
   if (gristUrl.adminPanel || gristConfig?.serveSameOrigin) {
     // On the admin panel, we should not trust configuration much,
     // since we want the user to be able to access it to diagnose

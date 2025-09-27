@@ -49,7 +49,7 @@ export function makePasteText(tableData: TableData, selection: CopySelection, in
  */
 export function getDocIdHash(): string|undefined {
   // We might not have global gristDocPageModel (e.g. for virtual tables).
-  const docId: string|undefined = (window as any).gristDocPageModel?.currentDocId.get();
+  const docId: string|undefined = window.gristDocPageModel?.currentDocId.get();
   return docId && simpleStringHash(docId);
 }
 
@@ -110,7 +110,7 @@ export interface RichPasteObject {
  * @return {Array<Array<RichPasteObj>>} - 2-d array of objects containing details of copied cells.
  */
 export function parsePasteHtml(data: string): RichPasteObject[][] {
-  const parser = new G.DOMParser() as DOMParser;
+  const parser: DOMParser = new G.DOMParser();
   const doc = parser.parseFromString(data, 'text/html');
   const table = doc.querySelector('table')!;
   const docIdHash = table.getAttribute('data-grist-doc-id-hash');

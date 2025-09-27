@@ -343,8 +343,8 @@ class InMemoryGristDoc extends Disposable {
 
   constructor(public docModel: DocModel, viewId: any) {
     super();
-    if ((window as any).gristApp) {
-      this.app = (window as any).gristApp;
+    if (window.gristApp) {
+      this.app = window.gristApp as App;
     } else {
       this.app = this.autoDispose(new DisposableWithEvents()) as any;
     }

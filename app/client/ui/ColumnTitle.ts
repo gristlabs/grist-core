@@ -1,4 +1,4 @@
-import * as Clipboard from 'app/client/components/Clipboard';
+import {Clipboard} from 'app/client/components/Clipboard';
 import * as commands from 'app/client/components/commands';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';

@@ -407,6 +407,6 @@ export function getResourceParent(resource: ResourceType): ResourceType|null {
 
 // Check whether anon should be supported in the UI
 export function shouldSupportAnon(): boolean {
-  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
+  const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   return gristConfig.supportAnon || false;
 }

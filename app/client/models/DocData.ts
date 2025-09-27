@@ -15,7 +15,7 @@ import * as bluebird from 'bluebird';
 import {Emitter} from 'grainjs';
 import defaults = require('lodash/defaults');
 
-const gristNotify = (window as any).gristNotify;
+const gristNotify = window.gristNotify!;
 
 export class DocData extends BaseDocData {
   public readonly sendActionsEmitter = new Emitter();

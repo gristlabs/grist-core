@@ -136,7 +136,7 @@ function pagePanelsDoc(owner: IDisposableOwner, appModel: AppModel, appObj: App)
   const pageModel = DocPageModelImpl.create(owner, appObj, appModel);
   // To simplify manual inspection in the common case, keep the most recently created
   // DocPageModel available as a global variable.
-  (window as any).gristDocPageModel = pageModel;
+  window.gristDocPageModel = pageModel;
   appObj.pageModel = pageModel;
 
   const leftPanelOpen = createSessionObs<boolean>(owner, "leftPanelOpen", true, isBoolean);
