@@ -836,6 +836,9 @@ export interface GristLoadConfig {
   // When errPage is a generic "other-error", this is the message to show.
   errMessage?: string;
 
+  // When errPage is a generic page, not an error, this is additional details to show.
+  errDetails?: Record<string, string>;
+
   // When an error page is shown in response to a request for an URL, this is the URL that was
   // originally requested — this may not be the URL we're responding to, because of an
   // intermediate redirect in case of e.g. an OIDC sign-in.

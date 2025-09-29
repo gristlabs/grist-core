@@ -67,6 +67,10 @@ export class User extends BaseEntity {
   @Column({name: 'created_at', default: () => 'CURRENT_TIMESTAMP'})
   public createdAt: Date;
 
+  // A random public key that can be used to manage document preferences without authentication.
+  @Column({name: 'unsubscribe_key', type: String, nullable: true})
+  public unsubscribeKey: string|null;
+
   @BeforeInsert()
   public async beforeInsert() {
     if (!this.ref) {

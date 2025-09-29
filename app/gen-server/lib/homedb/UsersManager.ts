@@ -28,6 +28,7 @@ import { Pref } from 'app/gen-server/entity/Pref';
 
 import flatten from 'lodash/flatten';
 import { EntityManager, IsNull, Not } from 'typeorm';
+import crypto from 'crypto';
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -179,6 +180,22 @@ export class UsersManager {
     const user = await User.findOne({where: {id: userId}, relations: ["logins"]});
     if (!user) { throw new ApiError("unable to find user", 400); }
     return this.makeFullUser(user);
+  }
+
+  /**
+   * Gets a user and ensures that they have an unsubscribe key.
+   */
+  public async getUserAndEnsureUnsubscribeKey(userId: number): Promise<User> {
+    return await this._runInTransaction(undefined, async manager => {
+      const relations = ["logins"];
+      const user = await manager.findOne(User, {where: {id: userId}, relations});
+      if (!user) { throw new ApiError("unable to find user", 400); }
+      if (!user.unsubscribeKey) {
+        user.unsubscribeKey = crypto.randomBytes(32).toString('base64url');
+        await manager.save(user);
+      }
+      return user;
+    });
   }
 
   /**

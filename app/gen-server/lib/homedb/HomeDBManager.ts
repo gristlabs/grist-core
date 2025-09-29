@@ -449,6 +449,10 @@ export class HomeDBManager {
     return this._usersManager.getFullUser(userId);
   }
 
+  public async getUserAndEnsureUnsubscribeKey(userId: number) {
+    return this._usersManager.getUserAndEnsureUnsubscribeKey(userId);
+  }
+
   /**
    * @see UsersManager.prototype.makeFullUser
    */
