@@ -608,7 +608,7 @@ export class FlexServer implements GristServer {
       const overallOk = ok && this._healthy;
 
       if ((this._healthCheckCounter % 100) === 0 || !overallOk) {
-        log.rawDebug(`Healthcheck[${req.method}] result:`, {
+        log.rawDebug(`Healthcheck result`, {
           host: req.get('host'),
           path: req.path,
           query: req.query,
