@@ -19,30 +19,30 @@
 // tslint:disable:no-console
 
 import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
-         WidgetColumnMap } from './CustomSectionAPI';
+         WidgetColumnMap } from 'app/plugin/CustomSectionAPI';
 import {
   AccessTokenOptions, AccessTokenResult, FetchSelectedOptions, GristAPI, GristDocAPI,
   GristView, RPC_GRISTAPI_INTERFACE
-} from './GristAPI';
-import { RowRecord } from './GristData';
-import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from './InternalImportSourceAPI';
-import { decodeObject, mapValues } from './objtypes';
-import { RenderOptions, RenderTarget } from './RenderOptions';
-import { TableOperations } from './TableOperations';
-import { TableOperationsImpl } from './TableOperationsImpl';
-import { checkers } from './TypeCheckers';
-import { WidgetAPI } from './WidgetAPI';
+} from 'app/plugin/GristAPI';
+import { RowRecord } from 'app/plugin/GristData';
+import { ImportSource, ImportSourceAPI, InternalImportSourceAPI } from 'app/plugin/InternalImportSourceAPI';
+import { decodeObject, mapValues } from 'app/plugin/objtypes';
+import { RenderOptions, RenderTarget } from 'app/plugin/RenderOptions';
+import { TableOperations } from 'app/plugin/TableOperations';
+import { TableOperationsImpl } from 'app/plugin/TableOperationsImpl';
+import { checkers } from 'app/plugin/TypeCheckers';
+import { WidgetAPI } from 'app/plugin/WidgetAPI';
 
-export * from './TypeCheckers';
-export * from './FileParserAPI';
-export * from './GristAPI';
-export * from './GristData';
-export * from './GristTable';
-export * from './ImportSourceAPI';
-export * from './StorageAPI';
-export * from './RenderOptions';
-export * from './WidgetAPI';
-export * from './CustomSectionAPI';
+export * from 'app/plugin/TypeCheckers';
+export * from 'app/plugin/FileParserAPI';
+export * from 'app/plugin/GristAPI';
+export * from 'app/plugin/GristData';
+export * from 'app/plugin/GristTable';
+export * from 'app/plugin/ImportSourceAPI';
+export * from 'app/plugin/StorageAPI';
+export * from 'app/plugin/RenderOptions';
+export * from 'app/plugin/WidgetAPI';
+export * from 'app/plugin/CustomSectionAPI';
 
 import {IRpcLogger, Rpc} from 'grain-rpc';
 import isEqual from 'lodash/isEqual';

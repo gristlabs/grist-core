@@ -15,7 +15,7 @@ and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-
 
 > Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
 
-https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
+https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
 ## Features in `grist-core`
 
@@ -262,6 +262,23 @@ These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
 very welcome here!
 
+If you wish to include Grist Labs enterprise extensions in your build,
+the steps are as follows. Note that this will add non-OSS code to your
+build. It will also place a directory called `node_modules` one level
+up, at the same level as the Grist repo. If that is a problem for you,
+just move everything into a subdirectory first.
+
+    yarn install
+    ./buildtools/checkout-ext-directory.sh grist-ee
+    yarn install --cwd ext --modules-folder ../../node_modules/
+    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn build
+    yarn run install:python
+    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn start
+    # Grist will be available at http://localhost:8484/
+
+The enterprise code will by default not be used. You need to explicitly enable
+it in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-grist-enterprise).
+
 ## Logins
 
 Like git, Grist has features to track document revision history. So for full operation,
@@ -358,6 +375,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ATTACHMENT_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
 | GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup |
 | GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY |
+| GRIST_BROADCAST_TIMEOUT_MS | Set the maximum time a web client has to accept a broadcast message about a document before being disconnected (default: 1 minute). |
 | GRIST_DATA_DIR | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume. |
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
@@ -431,7 +449,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
 | GRIST_FALSY_VALUES | optional. Comma-separated list of extra words that should be considered as falsy by the data engine beyond english defaults. Ex: "non,nein,no" |
-| GRIST_ENABLE_USER_PRESENCE | optional, disabled by default. If set to 'false', disables all user presence features. |
+| GRIST_ENABLE_USER_PRESENCE | optional, enabled by default. If set to 'false', disables all user presence features. |
 #### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose

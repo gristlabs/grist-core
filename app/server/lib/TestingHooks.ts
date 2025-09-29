@@ -11,10 +11,10 @@ import {IMessage, Rpc} from 'grain-rpc';
 import {EventEmitter} from 'events';
 import {Request} from 'express';
 import * as t from 'ts-interface-checker';
-import {FlexServer} from './FlexServer';
-import {ClientJsonMemoryLimits, ITestingHooks} from './ITestingHooks';
-import ITestingHooksTI from './ITestingHooks-ti';
-import {connect, fromCallback} from './serverUtils';
+import {FlexServer} from 'app/server/lib/FlexServer';
+import {ClientJsonMemoryLimits, ITestingHooks} from 'app/server/lib/ITestingHooks';
+import ITestingHooksTI from 'app/server/lib/ITestingHooks-ti';
+import {connect, fromCallback} from 'app/server/lib/serverUtils';
 import {WidgetRepositoryImpl} from 'app/server/lib/WidgetRepository';
 
 const tiCheckers = t.createCheckers(ITestingHooksTI, {UserProfile: t.name("object")});

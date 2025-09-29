@@ -1,4 +1,5 @@
 import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
+import {ResultRow} from 'app/common/TimeQuery';
 import toPairs = require('lodash/toPairs');
 
 /**
@@ -125,28 +126,44 @@ export function createEmptyTableDelta(): TableDelta {
 
 /**
  * Distill a summary further, into tabular form, for ease of rendering.
+ *
+ * If context is supplied, in the form of row data for tables, then
+ * the difference information is overlaid on it.
  */
-export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
+export function asTabularDiffs(summary: ActionSummary,
+                               context?: Record<string, ResultRow[]>): TabularDiffs {
   const allChanges: TabularDiffs = {};
   for (const [tableId, td] of toPairs(summary.tableDeltas)) {
+    const singleTableContext = context?.[tableId];
     const tableChanges: TabularDiff = allChanges[tableId] = {
       header: [],
       cells: [],
     };
-    // swap order to row-dominant for visualization purposes
+    // need order to be row-dominant for visualization purposes.
     const perRow: {[row: number]: {[name: string]: any}} = {};
     const activeCols = new Set<string>();
-    // iterate through the column-dominant representation grist prefers internally
+    // First add any background context we have been handed.
+    for (const row of singleTableContext || []) {
+      if (!(typeof row.id === 'number')) {
+        // Should not happen.
+        throw new Error(`asTabularDiffs saw a non-numeric id: ${row.id}`);
+      }
+      perRow[row.id] = row;
+      for (const col of Object.keys(row)) {
+        if (!activeCols.has(col)) {
+          activeCols.add(col);
+        }
+      }
+    }
+    // Now iterate through the differences provided, and overlay them.
     for (const [col, perCol] of toPairs(td.columnDeltas)) {
       activeCols.add(col);
-      // iterate through the rows for that column, writing out the row-dominant
-      // results we want for visualization.
       for (const row of Object.keys(perCol)) {
         if (!perRow[row as any]) { perRow[row as any] = {}; }
         perRow[row as any][col] = perCol[row as any];
       }
     }
-    // TODO: recover order of columns; recover row numbers (as opposed to rowIds)
+    // TODO: recover row numbers (as opposed to rowIds)
     const activeColsWithoutManualSort = [...activeCols].filter(c => c !== 'manualSort');
     tableChanges.header = activeColsWithoutManualSort;
     const addedRows = new Set(td.addRows);
@@ -168,8 +185,11 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
         // We signal this visually with a "..." row.  The order of where this should
         // go isn't well defined at this point (there's a row number TODO above).
         if (rowId > droppedRows[0]) {
-          tableChanges.cells.push(['...', droppedRows[0],
-                                   activeColsWithoutManualSort.map(x => [null, null] as [null, null])]);
+          tableChanges.cells.push({
+            type: '...',
+            rowId: droppedRows[0],
+            cellDeltas: activeColsWithoutManualSort.map(x => [null, null] as [null, null])
+          });
           while (rowId > droppedRows[0]) {
             droppedRows.shift();
           }
@@ -185,9 +205,15 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
         versions.push(['+', (diff) => [null, diff[1]]]);
       } else {
         let code: string = '...';
-        if (updatedRows.has(rowId)) { code = '→'; }
-        if (addedRows.has(rowId))   { code = '+';  }
-        if (removedRows.has(rowId)) { code = '-';  }
+        if (updatedRows.has(rowId)) {
+          code = '→';
+        }
+        if (addedRows.has(rowId)) {
+          code = '+';
+        }
+        if (removedRows.has(rowId)) {
+          code = '-';
+        }
         versions.push([code, (diff) => diff]);
       }
       for (const [code, transform] of versions) {
@@ -201,7 +227,11 @@ export function asTabularDiffs(summary: ActionSummary): TabularDiffs {
             acc.push(transform(diff));
           }
         });
-        tableChanges.cells.push([code, rowId, acc]);
+        tableChanges.cells.push({
+          type: code,
+          rowId,
+          cellDeltas: acc
+        });
       }
     }
   }

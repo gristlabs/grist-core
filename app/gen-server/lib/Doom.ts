@@ -18,7 +18,7 @@ import fetch from 'node-fetch';
  */
 export class Doom {
   constructor(private _dbManager: HomeDBManager, private _permitStore: IPermitStore,
-              private _notifier: INotifier, private _loginSystem: GristLoginSystem,
+              private _notifier: Pick<INotifier, "deleteUser">, private _loginSystem: GristLoginSystem,
               private _homeApiUrl: string) {
   }
 

@@ -23,8 +23,8 @@ import fetch, {Response as FetchResponse} from 'node-fetch';
 import stream from 'node:stream';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import {IDocWorkerMap} from './DocWorkerMap';
-import {getDocWorkerInfoOrSelfPrefix} from './DocWorkerUtils';
+import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle

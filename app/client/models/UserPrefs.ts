@@ -21,16 +21,26 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
   function getPrefsObs(appModel: AppModel): Observable<PrefsType> {
     if (appModel.currentValidUser && appModel.currentOrg) {
       let prefs: PrefsType | undefined;
+      let saveBack: (newPrefs: PrefsType) => void = () => {};
       if (prefsTypeName === 'userPrefs') {
         prefs = appModel.currentValidUser.prefs;
+        saveBack = (newPrefs) => appModel.currentValidUser && (appModel.currentValidUser.prefs = newPrefs);
       } else {
         prefs = appModel.currentOrg?.[prefsTypeName];
+        saveBack = (newPrefs) => appModel.currentOrg && (appModel.currentOrg[prefsTypeName] = newPrefs);
       }
       const prefsObs = Observable.create<PrefsType>(null, prefs ?? {});
       return Computed.create(null, (use) => use(prefsObs))
         .onWrite(newPrefs => {
+          const previousPrefs = prefsObs.get();
           prefsObs.set(newPrefs);
-          return appModel.api.updateOrg('current', {[prefsTypeName]: newPrefs});
+          saveBack(newPrefs);
+          appModel.api.updateOrg('current', {[prefsTypeName]: newPrefs})
+            .catch(err => {
+              prefsObs.set(previousPrefs);
+              saveBack(previousPrefs);
+              throw err;
+            });
         });
     } else {
       const userId = appModel.currentUser?.id || 0;

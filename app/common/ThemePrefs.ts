@@ -1,4 +1,4 @@
-import { CssCustomProp } from './CssCustomProp';
+import { CssCustomProp } from 'app/common/CssCustomProp';
 
 export interface ThemePrefs {
   appearance: ThemeAppearance;
@@ -65,7 +65,6 @@ type Token = string | CssCustomProp;
 export const tokensCssMapping = {
   body: 'body',
   emphasis: 'emphasis',
-  secondary: 'secondary',
   veryLight: 'very-light',
 
   bg: 'bg-default', // names don't match here to prevent conflicting with internal --grist-theme-bg var
@@ -82,6 +81,9 @@ export const tokensCssMapping = {
   primaryDim: 'primary-dim',
   primaryEmphasis: 'primary-emphasis',
   primaryTranslucent: 'primary-translucent',
+
+  secondary: 'secondary',
+  secondaryMuted: 'secondary-muted',
 
   white: 'white',
   black: 'black',
@@ -586,7 +588,6 @@ export const componentsCssMapping = {
   textButtonHoverBg: 'text-button-hover-bg',
   textButtonHoverBorder: 'text-button-hover-border',
   kbFocusHighlight: 'kb-focus-highlight',
-  userListRemainingUsersBg: 'user-list-remaining-users-bg',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -743,11 +744,6 @@ export interface SpecificThemeTokens {
   emphasis: Token;
 
   /**
-   * secondary, less visually pronounced text
-   */
-  secondary: Token;
-
-  /**
    * text that is always light, whatever the current appearance (light or dark theme)
    */
   veryLight: Token;
@@ -811,6 +807,17 @@ export interface SpecificThemeTokens {
    * primary color with around 50% opacity
    */
   primaryTranslucent: Token;
+
+  /**
+   * secondary color, used on elements like less visually pronounced
+   * text and non-primary or disabled controls
+   */
+  secondary: Token;
+
+  /**
+   * alternative secondary color, mostly used on hover effects
+   */
+  secondaryMuted: Token;
 
   controlBorderRadius: Token;
 
@@ -1316,7 +1323,6 @@ export interface BaseThemeTokens {
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
     kbFocusHighlight: Token;
-    userListRemainingUsersBg: Token;
     switchInactiveSlider: Token;
     switchInactivePill: Token;
     switchActiveSlider: Token;

@@ -16,7 +16,7 @@ import {createNullAuditLogger, IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {EmptyBilling, IBilling} from 'app/server/lib/IBilling';
 import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
+import {INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
@@ -66,7 +66,7 @@ export interface ICreate {
   ): Promise<IDocStorageManager>;
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
-  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier;
+  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
   Assistant(gristConfig: GristServer): IAssistant|undefined;
@@ -129,8 +129,8 @@ export class BaseCreate implements ICreate {
   public Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling {
     return new EmptyBilling();
   }
-  public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier {
-    return EmptyNotifier;
+  public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined {
+    return undefined;
   }
   public ExternalStorage(...[purpose, extraPrefix]: Parameters<ExternalStorageCreator>): ExternalStorage|undefined {
     for (const s of this._storage) {

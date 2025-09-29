@@ -56,7 +56,7 @@ import cloneDeep = require('lodash/cloneDeep');
 import fromPairs = require('lodash/fromPairs');
 import get = require('lodash/get');
 import memoize = require('lodash/memoize');
-import { getConfiguredStandardAttachmentStore } from './AttachmentStoreProvider';
+import { getConfiguredStandardAttachmentStore } from 'app/server/lib/AttachmentStoreProvider';
 
 /**
  * A threshold beyond which for this installation it would be
@@ -365,14 +365,10 @@ export class GranularAccess implements GranularAccessForBundle {
     // If aclAsUserId/aclAsUser is set, then override user for acl purposes.
     if (linkParameters.aclAsUserId || linkParameters.aclAsUser) {
       if (access !== 'owners') { throw new ErrorWithCode('ACL_DENY', 'only an owner can override user'); }
-      if (attrs.override) {
-        // Used cached properties.
-        access = attrs.override.access;
-        fullUser = attrs.override.user;
-      } else {
-        attrs.override = await this._getViewAsUser(linkParameters);
-        fullUser = attrs.override.user;
-      }
+      // Use cached overrides, or cache them on first use.
+      const override = attrs.override || (attrs.override = await this._getViewAsUser(linkParameters));
+      access = override.access;
+      fullUser = override.user;
     } else {
       fullUser = docSession.fullUser;
     }

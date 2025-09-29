@@ -51,7 +51,7 @@
 
 import { theme } from 'app/client/ui2018/cssVars';
 import { dom, DomElementArg, styled } from 'grainjs';
-import { IconName } from './IconList';
+import { IconName } from 'app/client/ui2018/IconList';
 
 /**
  * Defaults for all icons.

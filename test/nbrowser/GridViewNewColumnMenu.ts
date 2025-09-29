@@ -1,7 +1,7 @@
 import {driver, Key} from "mocha-webdriver";
 import {assert} from "chai";
-import * as gu from "./gristUtils";
-import {setupTestSuite} from "./testUtils";
+import * as gu from "test/nbrowser/gristUtils";
+import {setupTestSuite} from "test/nbrowser/testUtils";
 import {UserAPIImpl} from 'app/common/UserAPI';
 
 describe('GridViewNewColumnMenu', function () {

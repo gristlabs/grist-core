@@ -103,11 +103,13 @@ describe("ExportsAccessRules", function() {
     const tableIdToSection = new Map(viewSections.map(vs =>
       [tableRefToTableId.get(vs.fields.tableRef as number), vs.id]));
 
-    async function getCSV(user: UserAPIImpl, tableId: string): Promise<string> {
-      const url = user.getDocAPI(docId).getDownloadCsvUrl({
+    async function getCSV(user: UserAPIImpl, tableId: string, options?: {viewAs: string}): Promise<string> {
+      const params = {
         viewSection: tableIdToSection.get(tableId) as number,
         tableId,
-      });
+        ...(options ? {aclAsUser_: options.viewAs} : {})
+      };
+      const url = user.getDocAPI(docId).getDownloadCsvUrl(params);
       // BaseAPI.request method is private, but so handy here, that we'll use it anyway.
       const resp = await (user as any).request(url, {timeout: 1000});
       return (await resp.text()).trim();
@@ -134,9 +136,19 @@ describe("ExportsAccessRules", function() {
       'show2,maybe2'
     );
 
+    // Test also that "View As" simulation respects access rules.
+    assert.deepEqual(await getCSV(owner, 'Partial', {viewAs: 'charon@getgrist.com'}),
+      'ColPartialShow,ColPartialMaybe\n' +
+      'show1,CENSORED\n' +
+      'show2,maybe2'
+    );
+
     // The table ToSummarize is visible only to owner.
     assert.deepEqual(await getCSV(owner, 'ToSummarize'), 'SCol1,SCol2\na,100\na,200');
     await assert.isRejected(getCSV(editor, 'ToSummarize'),
+      /Request.*failed with status 404.*Cannot find or access table/);
+
+    await assert.isRejected(getCSV(owner, 'ToSummarize', {viewAs: 'charon@getgrist.com'}),
       /Request.*failed with status 404.*Cannot find or access table/);
 
     // It's summary table is visible only to both owner and editor.

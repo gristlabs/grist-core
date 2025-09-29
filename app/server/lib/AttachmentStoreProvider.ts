@@ -2,7 +2,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {FilesystemAttachmentStore, IAttachmentStore} from 'app/server/lib/AttachmentStore';
 import {create} from 'app/server/lib/create';
 import log from 'app/server/lib/log';
-import {ICreateAttachmentStoreOptions} from './ICreate';
+import {ICreateAttachmentStoreOptions} from 'app/server/lib/ICreate';
 import * as fse from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp-promise';
@@ -152,9 +152,9 @@ export async function makeTempFilesystemStoreSpec(
 }
 
 const settings = appSettings.section("attachmentStores");
-const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").readString({
+const GRIST_EXTERNAL_ATTACHMENTS_MODE = settings.flag("mode").requireString({
   envVar: "GRIST_EXTERNAL_ATTACHMENTS_MODE",
-  defaultValue: "none",
+  defaultValue: "snapshots",
 });
 
 export function getConfiguredStandardAttachmentStore(): string | undefined {
@@ -168,15 +168,22 @@ export function getConfiguredStandardAttachmentStore(): string | undefined {
   }
 }
 
+export class UnsupportedExternalAttachmentsMode extends Error {
+  constructor(storeType: string) {
+    super(`Unsupported external attachments mode on this version of Grist: ${storeType}`);
+  }
+}
+
 export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachmentStoreConfig[]> {
   if (GRIST_EXTERNAL_ATTACHMENTS_MODE === 'snapshots') {
     const snapshotProvider = create.getAttachmentStoreOptions().snapshots;
     // This shouldn't happen - it could only happen if a version of Grist removes the snapshot provider from ICreate.
     if (snapshotProvider === undefined) {
-      throw new Error("Snapshot provider is not available on this version of Grist");
+      throw new UnsupportedExternalAttachmentsMode("snapshots");
     }
     if (!(await isAttachmentStoreOptionAvailable(snapshotProvider))) {
-      throw new Error("The currently configured external storage does not support attachments");
+      log.warn("External attachment store 'snapshots' requested, but no snapshot storage is configured.");
+      return [];
     }
     return [{
       label: 'snapshots',
@@ -190,5 +197,9 @@ export async function getConfiguredAttachmentStoreConfigs(): Promise<IAttachment
       spec: await makeTempFilesystemStoreSpec(),
     }];
   }
-  return [];
+  if (!GRIST_EXTERNAL_ATTACHMENTS_MODE) {
+    return [];
+  }
+  // GRIST_EXTERNAL_ATTACHMENTS_MODE has some value that doesn't make sense.
+  throw new UnsupportedExternalAttachmentsMode(GRIST_EXTERNAL_ATTACHMENTS_MODE);
 }

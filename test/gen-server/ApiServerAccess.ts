@@ -8,14 +8,13 @@ import {HomeDBManager, Deps as HomeDBManagerDeps, UserChange} from 'app/gen-serv
 import {SendGridConfig, SendGridMailWithTemplateId} from 'app/gen-server/lib/NotifierTypes';
 import {create} from 'app/server/lib/create';
 import axios, {AxiosResponse} from 'axios';
-import {delay} from 'bluebird';
 import * as chai from 'chai';
 import fromPairs = require('lodash/fromPairs');
 import pick = require('lodash/pick');
 import moment from 'moment';
 import * as sinon from 'sinon';
 import {TestServer} from 'test/gen-server/apiUtils';
-import {configForUser} from 'test/gen-server/testUtils';
+import {configForUser, waitForAllNotifications} from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import * as roles from 'app/common/roles';
 
@@ -94,17 +93,11 @@ describe('ApiServerAccess', function() {
   });
 
   async function getLastMail(maxWait: number = 1000) {
-    const start = Date.now();
-    while (Date.now() - start < maxWait) {
-      if (!server.server.testPending) {
-        const result = {payload: lastMail, description: lastMailDesc};
-        lastMailDesc = null;
-        lastMail = null;
-        return result;
-      }
-      await delay(1);
-    }
-    throw new Error('getMessages timed out');
+    await waitForAllNotifications(server.server, maxWait);
+    const result = {payload: lastMail, description: lastMailDesc};
+    lastMailDesc = null;
+    lastMail = null;
+    return result;
   }
 
   async function assertLastMail(maxWait: number = 1000) {

@@ -1,6 +1,6 @@
 import { assert, driver, Key, Origin } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 function waitEqual(func: () => Promise<boolean>, expected: boolean, waitMs: number) {
   return gu.waitToPass(async () => assert.equal(await func(), expected), waitMs);

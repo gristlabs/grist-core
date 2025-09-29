@@ -19,7 +19,7 @@ import {ActivationsManager} from 'app/gen-server/lib/ActivationsManager';
 import {DocApiForwarder} from 'app/gen-server/lib/DocApiForwarder';
 import {getDocWorkerMap} from 'app/gen-server/lib/DocWorkerMap';
 import {Doom} from 'app/gen-server/lib/Doom';
-import {HomeDBManager, NotifierEvents, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {Housekeeper} from 'app/gen-server/lib/Housekeeper';
 import {Usage} from 'app/gen-server/lib/Usage';
 import {AccessTokens, IAccessTokens} from 'app/server/lib/AccessTokens';
@@ -62,7 +62,7 @@ import {IAuditLogger} from 'app/server/lib/IAuditLogger';
 import {IBilling} from 'app/server/lib/IBilling';
 import {IDocNotificationManager} from 'app/server/lib/IDocNotificationManager';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
-import {EmptyNotifier, INotifier, TestSendGridExtensions} from 'app/server/lib/INotifier';
+import {EmitNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log, {logAsJson} from 'app/server/lib/log';
 import {IPermitStore} from 'app/server/lib/Permit';
@@ -88,7 +88,6 @@ import {addUploadRoute} from 'app/server/lib/uploads';
 import {buildWidgetRepository, getWidgetsInPlugins, IWidgetRepository} from 'app/server/lib/WidgetRepository';
 import {setupLocale} from 'app/server/localization';
 import axios from 'axios';
-import EventEmitter from 'events';
 import express from 'express';
 import * as fse from 'fs-extra';
 import * as http from 'http';
@@ -174,7 +173,6 @@ export class FlexServer implements GristServer {
   private _docWorkerMap: IDocWorkerMap;
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _widgetRepository: IWidgetRepository;
-  private _notifier: INotifier;
   private _docNotificationManager: IDocNotificationManager|undefined|false = false;
   private _pubSubManager: IPubSubManager = createPubSubManager(process.env.REDIS_URL);
   private _assistant?: IAssistant;
@@ -211,8 +209,7 @@ export class FlexServer implements GristServer {
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
   private _jobs?: GristJobs;
-  private _emitNotifier = new EmitNotifier();
-  private _testPendingNotifications: number = 0;
+  private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
 
   constructor(public port: number, public name: string = 'flexServer',
@@ -454,12 +451,13 @@ export class FlexServer implements GristServer {
   }
 
   public hasNotifier(): boolean {
-    return Boolean(this._notifier) && this._notifier !== EmptyNotifier;
+    return !this._emitNotifier.isEmpty();
   }
 
   public getNotifier(): INotifier {
-    // Check that our internal notifier implementation is in place.
-    if (!this._notifier) { throw new Error('no notifier available'); }
+    // We only warn if we are in a server that doesn't configure notifiers (i.e. not a home
+    // server). But actually having a working notifier isn't required.
+    if (!this._has('notifier')) { throw new Error('no notifier available'); }
     // Expose a wrapper around it that emits actions.
     return this._emitNotifier;
   }
@@ -1947,21 +1945,10 @@ export class FlexServer implements GristServer {
     // and all that is needed is a refactor to pass that info along.  But there is also the
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
-    this._notifier = this.create.Notifier(this._dbManager, this);
-    for (const method of NotifierEvents.values) {
-      this._emitNotifier.on(method, async (...args) => {
-        this._testPendingNotifications++;
-        try {
-          await (this._notifier[method] as any)(...args);
-        } catch (e) {
-          // Catch error since as an event handler we can't return one.
-          log.error("Notifier failed:", e);
-        } finally {
-          this._testPendingNotifications--;
-        }
-      });
+    const primaryNotifier = this.create.Notifier(this._dbManager, this);
+    if (primaryNotifier) {
+      this._emitNotifier.setPrimaryNotifier(primaryNotifier);
     }
-    this._emitNotifier.sendGridExtensions = this._notifier.testSendGridExtensions?.();
 
     // For doc notifications, if we are a home server, initialize endpoints and job handling.
     this.getDocNotificationManager()?.initHomeServer(this.app);
@@ -1973,11 +1960,6 @@ export class FlexServer implements GristServer {
     if (this._assistant?.version === 2) {
       this._assistant?.addEndpoints?.(this.app);
     }
-  }
-
-  // for test purposes, check if any notifications are in progress
-  public get testPending(): boolean {
-    return this._testPendingNotifications > 0;
   }
 
   public getGristConfig(): GristLoadConfig {
@@ -2781,53 +2763,3 @@ const serveAnyOrigin: serveStatic.ServeStaticOptions = {
     res.setHeader("Access-Control-Allow-Origin", "*");
   }
 };
-
-/**
- *
- * Handle events that should result in notifications to users via
- * transactional emails (or future generalizations). Currently
- * handled by simply emitting them and hooking them up to a
- * sendgrid-based implementation (see FlexServer.addNotifier).
- * Some of the events are also distributed internally via
- * FlexServer.onUserChange and FlexServer.onStreamingDestinationsChange.
- * This might be a good point to replace some of this activity with
- * a job queue and queue workers. In particular, processing of
- * FlexServer.onUserChange could do with moving to a queue since
- * it may require communication with external billing software and
- * should be robust to delays and failures there. More generally,
- * if notications are subject to delays and failures and we wish to
- * be robust, a job queue would be a good idea for all of this.
- *
- * Although the interface this class implements is async, it is
- * best if the implementation remains fast and reliable. Any delays
- * here will impact API calls. Calls to place something in Redis
- * may be acceptable.
- */
-export class EmitNotifier extends EventEmitter implements INotifier {
-  public sendGridExtensions?: TestSendGridExtensions;
-
-  public addUser = this._wrapEvent('addUser');
-  public addBillingManager = this._wrapEvent('addBillingManager');
-  public firstLogin = this._wrapEvent('firstLogin');
-  public teamCreator = this._wrapEvent('teamCreator');
-  public userChange = this._wrapEvent('userChange');
-  public trialPeriodEndingSoon = this._wrapEvent('trialPeriodEndingSoon');
-  public trialingSubscription = this._wrapEvent('trialingSubscription');
-  public scheduledCall = this._wrapEvent('scheduledCall');
-  public streamingDestinationsChange = this._wrapEvent('streamingDestinationsChange');
-  public twoFactorStatusChanged = this._wrapEvent('twoFactorStatusChanged');
-  public docNotification = this._wrapEvent('docNotification');
-
-  // Pass on deleteUser in the same way
-  public deleteUser = this._wrapEvent('deleteUser');
-
-  public testSendGridExtensions() {
-    return this.sendGridExtensions;
-  }
-
-  private _wrapEvent<Name extends keyof INotifier>(eventName: Name): INotifier[Name] {
-    return (async (...args: any[]) => {
-      this.emit(eventName, ...args);
-    }) as INotifier[Name];
-  }
-}

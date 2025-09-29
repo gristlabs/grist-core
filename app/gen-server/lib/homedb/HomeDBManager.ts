@@ -18,7 +18,6 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {StringUnion} from 'app/common/StringUnion';
 import {
   ANONYMOUS_USER_EMAIL,
   DocumentProperties,
@@ -91,7 +90,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {StorageCoordinator} from 'app/server/lib/GristServer';
 import {makeId} from 'app/server/lib/idUtils';
-import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
+import {EmitNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {IPubSubManager} from 'app/server/lib/PubSubManager';
@@ -120,20 +119,6 @@ import {v4 as uuidv4} from 'uuid';
 applyPatch();
 
 export { SUPPORT_EMAIL };
-export const NotifierEvents = StringUnion(
-  'addUser',
-  'userChange',
-  'firstLogin',
-  'addBillingManager',
-  'teamCreator',
-  'trialPeriodEndingSoon',
-  'trialingSubscription',
-  'scheduledCall',
-  'twoFactorStatusChanged',
-  'docNotification',
-);
-
-export type NotifierEvent = typeof NotifierEvents.type;
 
 export const Deps = {
   defaultMaxNewUserInvitesPerOrg: {
@@ -309,7 +294,7 @@ export class HomeDBManager {
 
   public constructor(
     public storageCoordinator?: StorageCoordinator,
-    private _notifier: INotifier = EmptyNotifier,
+    private _notifier: INotifier = new EmitNotifier(),
     pubSubManager?: IPubSubManager,
   ) {
     this.caches = pubSubManager ? new HomeDBCaches(this, pubSubManager) : null;
