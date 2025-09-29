@@ -557,11 +557,6 @@ export class FlexServer implements GristServer {
     // If docWorkerRegistered=1 query parameter is included, status will include the status of the
     // doc worker registration in Redis.
     this.app.get('/status(/hooks)?', async (req, res) => {
-      log.rawDebug(`Healthcheck[${req.method}]:`, {
-        host: req.get('host'),
-        path: req.path,
-        query: req.query,
-      });
       const checks = new Map<string, Promise<boolean>|boolean>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
 
@@ -612,20 +607,24 @@ export class FlexServer implements GristServer {
 
       const overallOk = ok && this._healthy;
 
-      if (overallOk) {
-        this._healthCheckCounter++;
-        res.status(200).send(`Grist ${this.name} is alive${extra}.`);
-      } else {
-        this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
+      if ((this._healthCheckCounter % 100) === 0 || !overallOk) {
         log.rawDebug(`Healthcheck[${req.method}] result:`, {
           host: req.get('host'),
           path: req.path,
           query: req.query,
           ok,
           statuses,
-          overallOk
+          healthy: this._healthy,
+          overallOk,
+          previousSuccessfulChecks: this._healthCheckCounter
         });
+      }
 
+      if (overallOk) {
+        this._healthCheckCounter++;
+        res.status(200).send(`Grist ${this.name} is alive${extra}.`);
+      } else {
+        this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
     });
