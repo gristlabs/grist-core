@@ -612,20 +612,20 @@ export class FlexServer implements GristServer {
 
       const overallOk = ok && this._healthy;
 
-      log.rawDebug(`Healthcheck[${req.method}] result:`, {
-        host: req.get('host'),
-        path: req.path,
-        query: req.query,
-        ok,
-        statuses,
-        overallOk
-      });
-
       if (overallOk) {
         this._healthCheckCounter++;
         res.status(200).send(`Grist ${this.name} is alive${extra}.`);
       } else {
         this._healthCheckCounter = 0;  // reset counter if we ever go internally unhealthy.
+        log.rawDebug(`Healthcheck[${req.method}] result:`, {
+          host: req.get('host'),
+          path: req.path,
+          query: req.query,
+          ok,
+          statuses,
+          overallOk
+        });
+
         res.status(500).send(`Grist ${this.name} is unhealthy${extra}.`);
       }
     });
