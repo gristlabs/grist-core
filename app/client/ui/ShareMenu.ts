@@ -278,7 +278,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
  * The part of the menu with "Download" and "Export as..." items.
  */
 function menuExports(doc: Document, pageModel: DocPageModel) {
-  const isElectron = (window as any).isRunningUnderElectron;
+  const isElectron = window.isRunningUnderElectron;
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 

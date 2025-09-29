@@ -40,7 +40,7 @@ export interface ActionGroupWithState extends ActionGroup {
 
 export type ActionContext = Record<string, ResultRow[]>;
 
-const gristNotify = (window as any).gristNotify;
+const gristNotify = window.gristNotify!;
 
 // Action display state enum.
 const state = {

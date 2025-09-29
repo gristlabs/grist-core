@@ -19,6 +19,7 @@ const testId = makeTestId('test-layoutTray-');
 
 const G = getBrowserGlobals('document', 'window', '$');
 
+type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 
 /**
  * Adds a tray for minimizing and restoring sections. It is built as a plugin for the ViewLayout component.
@@ -776,7 +777,7 @@ class MiniFloater extends Disposable {
     );
   }
 
-  public onMove(ev: MouseEvent) {
+  public onMove(ev: JQMouseEvent) {
     if (this.content.get()) {
       this.rootElement.style.left = `${ev.clientX}px`;
       this.rootElement.style.top = `${ev.clientY}px`;
@@ -1058,7 +1059,7 @@ function useDragging() {
     let floater: MiniFloater|null = null;
     let downX: number|null = null;
     let downY: number|null = null;
-    const listener = (ev: MouseEvent) => {
+    const listener = (ev: JQMouseEvent) => {
       switch (ev.type) {
         case 'mousedown':
           // Only handle left button.
@@ -1128,8 +1129,8 @@ function useDragging() {
           return false;
       }
     };
-    const mouseMoveListener = (ev: MouseEvent) => listener(ev);
-    const mouseUpListener = (ev: MouseEvent) => listener(ev);
+    const mouseMoveListener = (ev: JQMouseEvent) => listener(ev);
+    const mouseUpListener = (ev: JQMouseEvent) => listener(ev);
     dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', (e) => listener(e)));
     dom.onDisposeElem(el, () => (floater?.dispose(), floater = null));
   };
