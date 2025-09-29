@@ -16,9 +16,11 @@
 import {beaconOpenMessage} from 'app/client/lib/helpScout';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel} from 'app/client/models/AppModel';
+import {allCommands} from 'app/client/components/commands';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {colorIcon, icon} from 'app/client/ui2018/icons';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
+import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
 import {commonUrls, isFeatureEnabled} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
 import {dom, DomContents, Observable, styled} from 'grainjs';
@@ -53,6 +55,29 @@ export function createHelpTools(appModel: AppModel): DomContents {
   );
 }
 
+export function createAccessibilityTools(): DomContents {
+  // The accessibility is sometimes not available, make sure to not render the button in that case
+  // (e.g. when rendering error pages)
+  if (!allCommands.accessibility) {
+    return [];
+  }
+  return cssPageEntry(
+    cssPageButton(
+      cssPageIcon('Accessibility'),
+      // always have an accessible label in case we hide the text (collapsed panel)
+      visuallyHidden(t("Accessibility")),
+      // hide the visible text from screen readers to prevent duplicate labels with the visually hidden one
+      cssLinkText(t("Accessibility"), {"aria-hidden": "true"}),
+      cssKeyboardShortcut(
+        'F4',
+        testId('accessibility-shortcut-keys'),
+      ),
+      dom.on('click', () => allCommands.accessibility.run()),
+      testId('accessibility-shortcut'),
+    ),
+  );
+}
+
 /**
  * Creates a basic left panel, used in error and billing pages. It only contains the help tools.
  * You can provide optional content to include above the help tools.
@@ -65,6 +90,7 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
         cssTools.cls('-collapsed', (use) => !use(panelOpen)),
         cssSpacer(),
         createHelpTools(appModel),
+        createAccessibilityTools(),
       )
     )
   );
@@ -200,6 +226,26 @@ export const cssPageIcon = styled(icon, `
   }
 `);
 
+export const cssKeyboardShortcut = styled('span', `
+  margin-left: auto;
+  margin-right: 16px;
+  color: ${theme.lightText};
+  text-transform: uppercase;
+
+  .${cssPageButton.className}:hover &,
+  .${cssPageButton.className}:focus & {
+    color: inherit;
+  }
+  .${cssTools.className}-collapsed & {
+    position: absolute;
+    line-height: 1;
+    top: 3px;
+    right: 3px;
+    margin: 0;
+    font-size: 0.8em;
+  }
+`);
+
 export const cssPageColorIcon = styled(colorIcon, `
   flex: none;
   margin-right: var(--page-icon-margin, 8px);
@@ -227,8 +273,9 @@ export const cssPageEntrySmall = styled(cssPageEntry, `
   flex: none;
   border-radius: 3px;
   --icon-color: ${theme.controlFg};
+  --page-icon-margin: 0;
   & > .${cssPageLink.className}, & > .${cssPageButton.className} {
-    padding: 0 8px 0 16px;
+    padding: 0 16px 0 16px;
   }
   &:hover {
     --icon-color: ${theme.controlHoverFg};

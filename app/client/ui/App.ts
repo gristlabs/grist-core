@@ -14,6 +14,7 @@ import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppMo
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
+import {openAccessibilityModal} from 'app/client/ui/OpenAccessibilityModal';
 import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
 import {attachTheme} from 'app/client/ui2018/theme';
@@ -139,6 +140,7 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.autoDispose(commands.createGroup({
       help() { G.window.open('help', '_blank').focus(); },
       shortcuts() { isHelpPaneVisible(true); },
+      accessibility() { openAccessibilityModal(this.topAppModel.appObs); },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));

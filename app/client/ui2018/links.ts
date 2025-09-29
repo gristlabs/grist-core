@@ -9,14 +9,35 @@ import {BindableValue, dom, DomArg, IDomArgs, styled} from 'grainjs';
  * Styling for a simple <A HREF> link.
  */
 
-export const cssLink = styled('a', `
+const linkStyles = `
   color: ${theme.link};
   --icon-color: ${theme.link};
   text-decoration: none;
+`;
+
+const linkHoverStyles = `
+  color: ${theme.linkHover};
+  --icon-color: ${theme.linkHover};
+  text-decoration: underline;
+`;
+
+export const cssLink = styled('a', `
+  ${linkStyles}
   &:hover, &:focus {
-    color: ${theme.linkHover};
-    --icon-color: ${theme.linkHover};
-    text-decoration: underline;
+    ${linkHoverStyles}
+  }
+`);
+
+/**
+ * This helps us apply link styles when we can't directly use `cssLink`,
+ * for example when styling generated markdown.
+ */
+export const cssNestedLinks = styled('div', `
+  & a {
+    ${linkStyles}
+  }
+  & a:hover, & a:focus {
+    ${linkHoverStyles}
   }
 `);
 

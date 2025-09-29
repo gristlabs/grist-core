@@ -4,7 +4,7 @@
  */
 
 import {CommDocEventType, CommMessage} from 'app/common/CommTypes';
-import {arrayRemove} from 'app/common/gutil';
+import {arrayRemove, timeoutReached} from 'app/common/gutil';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {Client} from 'app/server/lib/Client';
@@ -15,6 +15,10 @@ import EventEmitter from 'events';
 export const Deps = {
   // Allow tests to impose a serial order for broadcasts if they need that for repeatability.
   BROADCAST_ORDER: 'parallel' as 'parallel' | 'series',
+  BROADCAST_TIMEOUT_MS: appSettings.section('client').flag('broadcastTimeoutMs').requireInt({
+    envVar: 'GRIST_BROADCAST_TIMEOUT_MS',
+    defaultValue: 60_000,
+  }),
   ENABLE_USER_PRESENCE: appSettings.section('userPresence').flag('enable').readBool({
     envVar: 'GRIST_ENABLE_USER_PRESENCE',
     defaultValue: true,
@@ -114,7 +118,18 @@ export class DocClients extends EventEmitter {
       const msg = await this._prepareMessage(target, type, messageData, filterMessage);
       if (msg) {
         const fromSelf = (target.client === client);
-        await target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage);
+        const isUnresponsive = await timeoutReached(
+          Deps.BROADCAST_TIMEOUT_MS,
+          target.client.sendMessageOrInterrupt({...msg, docFD: target.fd, fromSelf} as CommMessage)
+        );
+        // If client isn't responsive in a reasonable length of time, then don't
+        // keep waiting for it. BUT then the client state could get weird if it
+        // was just temporarily slow and future messages get through. So just
+        // declare bankruptcy on this connection and let the client try to
+        // reconnect and get back in a good state if it can.
+        if (isUnresponsive) {
+          target.client.interruptConnection();
+        }
       }
     };
 

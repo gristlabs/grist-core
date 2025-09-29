@@ -134,7 +134,7 @@
         "Zebra Stripes": "Смужки зебри"
     },
     "FilterConfig": {
-        "Add Column": "Додати стовпеця"
+        "Add Column": "Додати стовпець"
     },
     "FilterBar": {
         "SearchColumns": "Стовпці пошуку",
@@ -430,7 +430,7 @@
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
         "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. ",
-        "Add Table-wide Rule": "Додати загальностолове правило"
+        "Add Table-wide Rule": "Додати правило таблиці"
     },
     "AccountPage": {
         "API": "API",
@@ -766,7 +766,7 @@
         "Workspaces": "Робочій простір",
         "Tutorial": "Туторіал",
         "Terms of service": "Умови надання послуг",
-        "Grist Resources": "Ресурси зерна",
+        "Grist Resources": "Ресурси Grist",
         "context menu - {{- workspaceName }}": "контекстне меню - {{- workspaceName }}"
     },
     "Importer": {
@@ -1088,7 +1088,7 @@
         "Dismiss": "Відхилити",
         "Don't ask again.": "Не питай більше.",
         "Don't show again.": "Більше не показуй.",
-        "Don't show tips": "Не показувати чайові",
+        "Don't show tips": "Не показувати підказки",
         "Undo to restore": "Скасувати для відновлення",
         "Got it": "Зрозуміло",
         "Don't show again": "Більше не показувати",
@@ -1241,7 +1241,7 @@
         "Spinner": "Спіннер",
         "Text": "Текст",
         "max": "макс.",
-        "min": "хв"
+        "min": "мін."
     },
     "Reference": {
         "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
@@ -1416,7 +1416,7 @@
         "Status": "Статус",
         "URL": "URL-адреса",
         "Webhook Id": "Ідентифікатор вебхука",
-        "Table": "Стіл",
+        "Table": "Таблиця",
         "Filter for changes in these columns (semicolon-separated ids)": "Фільтрувати зміни в цих стовпцях (ідентифікатори, розділені крапкою з комою)",
         "Header Authorization": "Авторизація заголовка",
         "Webhooks Unavailable In Unsaved Document Copies": "Вебхуки недоступні в незбережених копіях документів"

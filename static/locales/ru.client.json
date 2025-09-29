@@ -99,7 +99,8 @@
         "Team Site": "Сайт группы",
         "Grist Templates": "Шаблоны Grist",
         "Billing Account": "Платежный аккаунт",
-        "Manage Team": "Управление командой"
+        "Manage Team": "Управление командой",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Возврат домой"
     },
     "ApiKey": {
         "Remove API Key": "Удалить ключ API",
@@ -770,7 +771,10 @@
         "Skip": "Пропустить",
         "Skip Table on Import": "Пропустить Таблицу при импорте",
         "Source column": "Столбец Источника",
-        "Skip Import": "Пропустить импорт"
+        "Skip Import": "Пропустить импорт",
+        "Import options": "Параметры импорта",
+        "Cancel": "Отмена",
+        "Import": "Импорт"
     },
     "LeftPanelCommon": {
         "Help Center": "Справочный центр"
@@ -1093,7 +1097,8 @@
         "Start with {{equal}} to enter a formula.": "Начните с {{equal}} чтобы ввести формулу.",
         "Use the Share button ({{share}}) to share the document or export data.": "Используйте кнопку \"Поделиться\" ({{share}}) чтобы поделиться документом или экспортировать данные.",
         "Use {{addNew}} to add widgets, pages, or import more data. ": "Используйте {{addNew}} для добавления виджетов, страниц или импорта дополнительных данных. ",
-        "Use {{helpCenter}} for documentation or questions.": "Используйте {{helpCenter}} для получения документации или вопросов."
+        "Use {{helpCenter}} for documentation or questions.": "Используйте {{helpCenter}} для получения документации или вопросов.",
+        "AI Assistant": "AI Ассистент"
     },
     "ViewSectionMenu": {
         "(empty)": "(пустой)",
@@ -1212,7 +1217,8 @@
         "Example Users": "Пользователи для примера",
         "View As": "Посмотреть как",
         "Users from table": "Пользователи из таблицы",
-        "Other users from table": "Другие пользователи из таблицы"
+        "Other users from table": "Другие пользователи из таблицы",
+        "Shared users": "Коллективные пользователи"
     },
     "ChoiceTextBox": {
         "CHOICES": "ВАРИАНТЫ"
@@ -1340,14 +1346,23 @@
         "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Внутреннее хранилище означает, что все вложения хранятся в файле документа SQLite, в то время как внешнее хранилище означает, что все вложения хранятся в одном и том же внешнем хранилище.",
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Это позволяет добавлять вложения, отсутствующие во внешнем хранилище, например, в импортированном документе. Здесь можно загрузить только архивы вложений .tar, загруженные из Grist.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Разбирайтесь в своих данных и формулах, изменяйте их и работайте с ними с помощью нового AI Ассистента Grist!",
-        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Эта форма создана пользователем Grist и не одобрена Grist Labs. Не отправляйте пароли через эту форму и будьте осторожны со ссылками в ней. Сообщите о вредоносных формах в [{{mail}}](mailto:{{mail}})."
+        "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Эта форма создана пользователем Grist и не одобрена Grist Labs. Не отправляйте пароли через эту форму и будьте осторожны со ссылками в ней. Сообщите о вредоносных формах в [{{mail}}](mailto:{{mail}}).",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Эта форма создана пользователем Grist и не подтверждена компанией Grist Labs, Inc. или любой стороной, предоставляющей эту услугу. В целях вашей безопасности не вводите пароли через эту форму и будьте осторожны при переходе по встроенным ссылкам. Сообщить о вредоносной форме по [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Установите максимальное количество строк для многострочного текста.",
+        "Comments are here!": "Комментарии здесь!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Вы можете добавлять комментарии к ячейкам, отвечать на темы комментариев и создать @-упоминание сотрудникам."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИСАНИЕ"
     },
     "PagePanels": {
         "Close Creator Panel": "Закрыть Панель Создателя",
-        "Open Creator Panel": "Открыть Панель Создателя"
+        "Open Creator Panel": "Открыть Панель Создателя",
+        "Document header": "Заголовок документа",
+        "Main content": "Основной контент",
+        "Main navigation and document settings (left panel)": "Основные настройки навигации и документа (левая панель)",
+        "Close navigation panel (left panel)": "Закрыть панель навигации (левая панель)",
+        "Open navigation panel (left panel)": "Открыть панель навигации (левая панель)"
     },
     "ColumnTitle": {
         "COLUMN ID: ": "ID СТОЛБЦА: ",
@@ -1483,7 +1498,8 @@
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Отсутствие доступа по умолчанию позволяет предоставлять доступ к отдельным документам или рабочим областям, а не ко всему групповому сайту.",
         "Once you have removed your own access, you will not be able to get it back without assistance from someone else with sufficient access to the {{resourceType}}.": "После того как вы удалили свой собственный доступ, вы не сможете получить его обратно без помощи кого-то еще с достаточным доступом к {{resourceType}}.",
         "You are about to remove your own access to this {{resourceType}}": "Вы собираетесь лишить себя доступа к {{resourceType}}",
-        "Inherit access: ": "Наследование доступа: "
+        "Inherit access: ": "Наследование доступа: ",
+        "Access overview": "Обзор прав доступа"
     },
     "SupportGristNudge": {
         "Close": "Закрыть",
@@ -1741,7 +1757,8 @@
         "Auto-check weekly": "Еженедельная автоматическая проверка",
         "No record of last version check": "Нет записей о последней проверке версии",
         "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Вы можете настроить потоковую передачу событий аудита из Grist во внешнюю систему управления информацией о безопасности и событиями (SIEM), если вы включили Grist Enterprise. {{contactUsLink}} чтобы узнать больше.",
-        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматические проверки отключены. Чтобы включить их, установите environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значение \"true\"."
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Автоматические проверки отключены. Чтобы включить их, установите environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING значение \"true\".",
+        "auth error": "ошибка авторизации"
     },
     "CreateTeamModal": {
         "Billing is not supported in grist-core": "Выставление счетов в grist-core не поддерживается",
