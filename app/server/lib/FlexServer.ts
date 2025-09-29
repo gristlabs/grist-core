@@ -601,15 +601,27 @@ export class FlexServer implements GristServer {
       }
       let extra = '';
       let ok = true;
+      let statuses: string[] = [];
       // If we had any extra check, collect their status to report them.
       if (checks.size > 0) {
         const results = await Promise.all(checks.values());
         ok = ok && results.every(r => r === true);
-        const notes = Array.from(checks.keys(), (key, i) => `${key} ${results[i] ? 'ok' : 'not ok'}`);
-        extra = ` (${notes.join(", ")})`;
+        statuses = Array.from(checks.keys(), (key, i) => `${key} ${results[i] ? 'ok' : 'not ok'}`);
+        extra = ` (${statuses.join(", ")})`;
       }
 
-      if (this._healthy && ok) {
+      const overallOk = ok && this._healthy;
+
+      log.rawDebug(`Healthcheck[${req.method}] result:`, {
+        host: req.get('host'),
+        path: req.path,
+        query: req.query,
+        ok,
+        statuses,
+        overallOk
+      });
+
+      if (overallOk) {
         this._healthCheckCounter++;
         res.status(200).send(`Grist ${this.name} is alive${extra}.`);
       } else {
