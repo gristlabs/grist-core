@@ -30,6 +30,7 @@ jobs:
           - ':nbrowser-^[M-N]:'
           - ':nbrowser-^[O-R]:'
           - ':nbrowser-^[^A-R]:'
+          - ':projects:'
         include:
           - tests: ':lint:python:client:common:smoke:'
             node-version: 22.x
@@ -84,7 +85,7 @@ jobs:
         run: yarn run build
 
       - name: Install Google Chrome and chromedriver
-        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')
+        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:') || contains(matrix.tests, ':projects:')
         run: buildtools/install_chrome_for_tests.sh -y
 
       - name: Run smoke test
@@ -194,6 +195,16 @@ jobs:
           GVISOR_FLAGS: "-unprivileged -ignore-cgroups"
           GVISOR_EXTRA_DIRS: /opt
           TESTDIR: ${{ runner.temp }}/test-logs
+
+      - name: Run projects tests
+        if: contains(matrix.tests, ':projects:')
+        run: |
+          mkdir -p $MOCHA_WEBDRIVER_LOGDIR
+          yarn run test:projects
+        env:
+          MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          TESTDIR: ${{ runner.temp }}/test-logs
+          MOCHA_WEBDRIVER_HEADLESS: 1
 
       - name: Prepare for saving artifact
         if: failure()
