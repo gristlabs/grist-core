@@ -184,7 +184,12 @@ export class RegionFocusSwitcher extends Disposable {
    */
   public addListener(listener: (regionId: Panel, prevRegionId: Panel) => void) {
     return this._state.addListener((state, prev) => {
-      listener(this.getRegionId(state.region), this.getRegionId(prev.region));
+      const currentRegionId = this.getRegionId(state.region);
+      const prevRegionId = this.getRegionId(prev.region);
+      if (currentRegionId === prevRegionId) {
+        return;
+      }
+      listener(currentRegionId, prevRegionId);
     });
   }
 

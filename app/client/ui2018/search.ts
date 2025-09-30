@@ -13,7 +13,7 @@ import { unstyledButton } from 'app/client/ui2018/unstyled';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
 import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
-import { dom, input, Listener, styled } from 'grainjs';
+import { dom, input, styled } from 'grainjs';
 import { noTestId, TestId } from 'grainjs';
 import debounce = require('lodash/debounce');
 
@@ -138,9 +138,38 @@ const cssShortcut = styled('span', `
   color: ${theme.lightText};
 `);
 
+const wrapperClass = 'grist-doc-search-bar';
+
 export function searchBar(model: SearchModel, testId: TestId = noTestId, regionFocusSwitcher?: RegionFocusSwitcher) {
-  let outsideActionsListener: Listener | undefined;
   let regionIdOnOpen: Panel | undefined;
+
+  // when the search model triggers a page change to show the current match, the RFS region changes back to "main",
+  // while we want to stay focused on the searchbar if its open: deal with that here.
+  let focusedSearchElement: HTMLElement | undefined;
+  model.onPageChange(() => {
+    if (model.isOpen.get()) {
+      regionFocusSwitcher?.focusRegion('top');
+      if (focusedSearchElement) {
+        focusedSearchElement.focus();
+      } else {
+        inputElem.focus();
+      }
+    }
+  });
+
+  let hasOutsideClicksListener = false;
+  const onOutsideClicks = (event: MouseEvent) => {
+    if (event.target instanceof HTMLElement && !event.target.closest(`.${wrapperClass}`)) {
+      toggleMenu(false);
+    }
+  };
+
+  const cleanupOutsideClicksListener = () => {
+    if (hasOutsideClicksListener) {
+      document.body.removeEventListener('click', onOutsideClicks);
+      hasOutsideClicksListener = false;
+    }
+  };
 
   const toggleMenu = debounce((_value?: boolean) => {
     model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
@@ -151,14 +180,10 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       regionFocusSwitcher?.focusRegion('top');
       inputElem.focus();
       inputElem.select();
-      // Note: the RFS current region correctly updates when user interacts in the page, for example
-      // if user clicks on a document widget, the RFS region id gets updated to 'main'.
-      // We can rely on that to close the searchbar accordingly, instead of manually registering click listeners.
-      outsideActionsListener = outsideActionsListener ?? regionFocusSwitcher?.addListener((regionId) => {
-        if (regionId !== 'top') {
-          toggleMenu(false);
-        }
-      });
+      if (!hasOutsideClicksListener) {
+        document.body.addEventListener('click', onOutsideClicks);
+        hasOutsideClicksListener = true;
+      }
     // when we close the searchbar: focus back where we were and cleanup
     } else {
       if (regionIdOnOpen === 'main') {
@@ -167,8 +192,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
         buttonElem.focus();
       }
       regionIdOnOpen = undefined;
-      outsideActionsListener?.dispose();
-      outsideActionsListener = undefined;
+      focusedSearchElement = undefined;
+      cleanupOutsideClicksListener();
     }
   }, 100);
 
@@ -194,6 +219,9 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       placeholder: t("Search in document"),
       'aria-label': t("Search in document"),
     },
+    dom.on('focus', () => {
+      focusedSearchElement = inputElem;
+    }),
     dom.onKeyDown({
       Enter: (ev) => ev.shiftKey ? model.findPrev() : model.findNext(),
     }),
@@ -203,6 +231,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
   return searchWrapper(
     testId('wrapper'),
     searchWrapper.cls('-expand', model.isOpen),
+    dom.cls(wrapperClass),
     dom.autoDispose(commandGroup),
     dom.onKeyDown({
       // The $ indicates to grainjs we don't want to stop propagation of the event here.
@@ -216,7 +245,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
     }),
     dom.onDispose(() => {
       toggleMenu.cancel(); // Make sure we don't attempt to call delayed callback after disposal.
-      outsideActionsListener?.dispose();
+      cleanupOutsideClicksListener();
     }),
     buttonElem,
     expandedSearch(
@@ -244,6 +273,9 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
             testId('next'),
             // Prevent focus from being stolen from the input
             dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('focus', (event) => {
+              focusedSearchElement = event.target as HTMLElement;
+            }),
             dom.on('click', () => model.findNext()),
             hoverTooltip(
               [
@@ -258,6 +290,9 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
             testId('prev'),
             // Prevent focus from being stolen from the input
             dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('focus', (event) => {
+              focusedSearchElement = event.target as HTMLElement;
+            }),
             dom.on('click', () => model.findPrev()),
             hoverTooltip(
               [
