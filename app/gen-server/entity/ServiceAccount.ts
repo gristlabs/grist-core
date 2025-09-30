@@ -30,14 +30,14 @@ export class ServiceAccount extends BaseEntity {
   @Column({type: String, nullable: false, default: ''})
   public description: string;
 
-  @Column({type: Date, nullable: false, name: 'end_of_life'})
-  public endOfLife: Date;
+  @Column({type: Date, nullable: false, name: 'expires_at'})
+  public expiresAt: Date;
 
   @BeforeUpdate()
   @BeforeInsert()
-  public checkEndOfLife() {
-    if (Number.isNaN(this.endOfLife.getTime())) {
-      throw new ApiError("Invalid endOfLife", 400);
+  public checkexpiresAt() {
+    if (Number.isNaN(this.expiresAt.getTime())) {
+      throw new ApiError("Invalid expiresAt", 400);
     }
   }
 }
