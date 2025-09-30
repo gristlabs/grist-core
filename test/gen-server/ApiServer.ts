@@ -194,7 +194,7 @@ describe('ApiServer', function() {
     // personal orgs should have an owner and no domain
     // createdAt and updatedAt are omitted since exact times cannot be predicted.
     assert.deepEqual(
-      omit(resp.data[0], 'createdAt', 'updatedAt', 'owner.createdAt', 'owner.deletedAt'),
+      omit(resp.data[0], 'createdAt', 'updatedAt', 'owner.createdAt', 'owner.removedAt'),
       {
         id: await dbManager.testGetId('Chimpyland'),
         name: 'Chimpyland',
@@ -256,7 +256,7 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 200);
     // billingAccount is omitted since it isn't focus of this test.
     assert.deepEqual(
-      omit(resp.data, 'createdAt', 'updatedAt', 'billingAccount', 'owner.createdAt', 'owner.deletedAt'),
+      omit(resp.data, 'createdAt', 'updatedAt', 'billingAccount', 'owner.createdAt', 'owner.removedAt'),
       {
         id: oid,
         name: 'Chimpyland',
@@ -2244,13 +2244,13 @@ describe('ApiServer', function() {
 
   describe('Service Accounts', function() {
     afterEach(async ()=>{
-      await dbManager.deleteAllServiceAccounts();
+      await dbManager.testDeleteAllServiceAccounts();
     });
 
     const SERVICE_ACCOUNT_BODY = {
       label: "A small service for the chimpy",
       description: "A big service for robotkind",
-      endOfLife:"2042-07-21",
+      expiresAt:"2042-07-21",
     };
 
     async function createServiceAccount(body = SERVICE_ACCOUNT_BODY) {
@@ -2289,9 +2289,8 @@ describe('ApiServer', function() {
           login: data.login,
           key: data.key,
           label: SERVICE_ACCOUNT_BODY.label,
-          msg: "Please save your api key. It's the only time you will see it.",
           description: SERVICE_ACCOUNT_BODY.description,
-          endOfLife: new Date(SERVICE_ACCOUNT_BODY.endOfLife).toISOString(),
+          expiresAt: new Date(SERVICE_ACCOUNT_BODY.expiresAt).toISOString(),
           hasValidKey: true,
         };
         assert.deepEqual(data, expectedData);
@@ -2302,9 +2301,9 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 401);
       });
 
-      it('returns 400 when wrong endOfLife is given', async function() {
+      it('returns 400 when wrong expiresAt is given', async function() {
         const body = {
-          endOfLife: 'tutu',
+          expiresAt: 'tutu',
         };
         let resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
         assert.equal(resp.status, 400);
@@ -2321,7 +2320,7 @@ describe('ApiServer', function() {
         const body2 = {
           label: "More service",
           description: "More robots",
-          endOfLife:"2042-07-22",
+          expiresAt:"2042-07-22",
         };
         await createServiceAccount(body);
         await createServiceAccount(body2);
@@ -2349,7 +2348,7 @@ describe('ApiServer', function() {
         const {login: serviceLogin} = await createServiceAccount();
         const expectedBody = {
           ...SERVICE_ACCOUNT_BODY,
-          endOfLife: `${SERVICE_ACCOUNT_BODY.endOfLife}T00:00:00.000Z`,
+          expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
           hasValidKey: true
         };
         const resp = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
@@ -2372,14 +2371,14 @@ describe('ApiServer', function() {
           ...SERVICE_ACCOUNT_BODY,
           login: serviceLogin,
           description: newDescription,
-          endOfLife: `${SERVICE_ACCOUNT_BODY.endOfLife}T00:00:00.000Z`,
+          expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
           hasValidKey: true
         };
         const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
         assert.equal(resp2.status, 200);
         const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
         assert.isObject(resp3.data);
-        assert.hasAllKeys(resp3.data, ["login", "label", "description", "endOfLife", "hasValidKey"]);
+        assert.hasAllKeys(resp3.data, ["login", "label", "description", "expiresAt", "hasValidKey"]);
         assert.deepEqual(resp3.data, expectedBody);
       });
 
@@ -2392,10 +2391,10 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 400);
       });
 
-      it('returns 400 on invalid endOfLife', async function() {
+      it('returns 400 on invalid expiresAt', async function() {
         const {login: serviceLogin} = await createServiceAccount();
         const patch = {
-          endOfLife: "something"
+          expiresAt: "something"
         };
         const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
         assert.equal(resp.status, 400);
@@ -2425,7 +2424,7 @@ describe('ApiServer', function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
-          endOfLife:"2042-10-10",
+          expiresAt:"2042-10-10",
         };
         const {login: serviceLogin} = await createServiceAccount(body);
         const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
@@ -2438,7 +2437,7 @@ describe('ApiServer', function() {
         const serviceUser = await dbManager.getExistingUserByLogin(serviceLogin);
         assert.isNotEmpty(serviceUser);
         assert.isNull(serviceUser?.apiKey);
-        assert.isNotNull(serviceUser?.deletedAt);
+        assert.isNotNull(serviceUser?.removedAt);
       });
 
       checkCommonErrors((saId, user) =>
@@ -2451,7 +2450,7 @@ describe('ApiServer', function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
-          endOfLife:"2042-10-10",
+          expiresAt:"2042-10-10",
         };
         const {login: serviceLogin, key: apikey1} = await createServiceAccount(body);
 
@@ -2472,13 +2471,13 @@ describe('ApiServer', function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
-          endOfLife:"2042-10-10",
+          expiresAt:"2042-10-10",
         };
         const {login: serviceLogin} = await createServiceAccount(body);
         const expectedBody = {
           ...body,
           login: serviceLogin,
-          endOfLife: `${body.endOfLife}T00:00:00.000Z`,
+          expiresAt: `${body.expiresAt}T00:00:00.000Z`,
           hasValidKey: false
         };
 
@@ -2561,11 +2560,11 @@ describe('ApiServer', function() {
       });
 
       // outdated service account can't do api calls
-      it('with outdated endOfLife should fail to access resource it is added to', async function() {
+      it('with outdated expiresAt should fail to access resource it is added to', async function() {
         const body = {
           label: "A small service for the chimpy",
           description: "A big service for robotkind",
-          endOfLife: new Date(0).toISOString(),
+          expiresAt: new Date(0).toISOString(),
         };
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
         const key = resp.data.key;

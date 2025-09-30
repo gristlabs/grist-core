@@ -919,7 +919,7 @@ export class UsersManager {
     }
   }
 
-  public async getApiKey(userId: number){
+  public async getApiKey(userId: number) {
     const user = await User.findOne({where: {id: userId}});
     if (user) {
       // The null value is of no interest to the user, let's show empty string instead.

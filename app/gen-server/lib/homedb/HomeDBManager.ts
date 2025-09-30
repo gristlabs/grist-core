@@ -3424,21 +3424,23 @@ export class HomeDBManager implements HomeDBAuth {
   // This method is implemented for test purpose only
   // Using it outside of tests context will lead to partial db
   // destruction
-  public async deleteAllServiceAccounts() {
-    return this._serviceAccountsManager.deleteAllServiceAccounts();
+  public async testDeleteAllServiceAccounts() {
+    return this._serviceAccountsManager.testDeleteAllServiceAccounts();
   }
 
   public async createServiceAccount(
     ownerId: number,
-    label?: string,
-    description?: string,
-    endOfLife?: Date
+    options?: {
+      label?: string,
+      description?: string,
+      expiresAt?: Date
+    }
   ) {
-    return this._serviceAccountsManager.createServiceAccount(ownerId, label, description, endOfLife);
+    return this._serviceAccountsManager.createServiceAccount(ownerId, options);
   }
 
   public async getAllServiceAccounts(ownerId: number) {
-    return this._serviceAccountsManager.readAllServiceAccounts(ownerId);
+    return this._serviceAccountsManager.getAllServiceAccounts(ownerId);
   }
 
   public async getServiceAccount(serviceLogin: string) {
@@ -3463,8 +3465,8 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, options);
   }
 
-  public async isAliveServiceAccount(serviceLogin: string) {
-    return this._serviceAccountsManager.isAliveServiceAccount(serviceLogin);
+  public async isServiceAccountAlive(serviceLogin: string) {
+    return this._serviceAccountsManager.isServiceAccountAlive(serviceLogin);
   }
 
   public async getApiKey(userId: number) {

@@ -1,10 +1,11 @@
 import { EntityManager } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+
 import { ApiError } from 'app/common/ApiError';
+import { normalizeEmail } from 'app/common/emails';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
-import { normalizeEmail } from 'app/common/emails';
 
 export class ServiceAccountsManager {
 
@@ -20,7 +21,7 @@ export class ServiceAccountsManager {
   // This method is implemented for test purpose only
   // Using it outside of tests context will lead to partial db
   // destruction
-  public async deleteAllServiceAccounts(optManager?: EntityManager) {
+  public async testDeleteAllServiceAccounts(optManager?: EntityManager) {
     const manager = optManager || new EntityManager(this._connection);
     const queryBuilder = manager.createQueryBuilder()
       .delete()
@@ -30,9 +31,11 @@ export class ServiceAccountsManager {
 
   public async createServiceAccount(
     ownerId: number,
-    label?: string,
-    description?: string,
-    endOfLife?: Date,
+    options?: {
+      label?: string,
+      description?: string,
+      expiresAt?: Date,
+    }
   ) {
     return await this._connection.transaction(async manager => {
       const uuid = uuidv4();
@@ -48,9 +51,9 @@ export class ServiceAccountsManager {
       const newServiceAccount = ServiceAccount.create({
         ownerId,
         serviceUserId: serviceUser.id,
-        label,
-        description,
-        endOfLife
+        label: options?.label,
+        description: options?.description,
+        expiresAt: options?.expiresAt
       });
       await manager.save(newServiceAccount);
       return (await this.getServiceAccount(login, manager))!;
@@ -72,7 +75,7 @@ export class ServiceAccountsManager {
     });
   }
 
-  public async readAllServiceAccounts(
+  public async getAllServiceAccounts(
     ownerId: number,
     transaction?: EntityManager
   ) {
@@ -119,7 +122,7 @@ export class ServiceAccountsManager {
       // We perform a soft delete
       // as we don't want a service user's apiKey to still work
       serviceUser.apiKey = null;
-      serviceUser.deletedAt = new Date();
+      serviceUser.removedAt = new Date();
       await manager.save(serviceUser);
       await manager.remove(serviceAccount);
       return serviceAccount;
@@ -160,15 +163,15 @@ export class ServiceAccountsManager {
     });
   }
 
-  public async isAliveServiceAccount(serviceAccountLogin: string) {
+  public async isServiceAccountAlive(serviceAccountLogin: string) {
     return await this._connection.transaction(async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       if (serviceAccount === null) {
         throw new ApiError(`This Service Account does not exist`, 404);
       }
-      const endOfLife = new Date(serviceAccount.endOfLife);
+      const expiresAt = new Date(serviceAccount.expiresAt);
       const currentDate = new Date();
-      return endOfLife > currentDate;
+      return expiresAt > currentDate;
     });
   }
 }

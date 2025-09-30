@@ -542,7 +542,7 @@ export class ApiServer {
         const userId = getUserId(req);
         const apiKey = await this._dbManager.getApiKey(userId);
         res.status(200).send(apiKey);
-      } catch (e){
+      } catch (e) {
         throw new ApiError(e, 400);
       }
     }));
@@ -646,19 +646,22 @@ export class ApiServer {
       // POST /service-accounts/
       // Creates a new service account attached to the user making the api call.
       this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
-        const msg = "Please save your api key. It's the only time you will see it.";
         const ownerId = getAuthorizedUserId(req);
-        const {label, description, endOfLife} = req.body as SATypes.PostServiceAccount;
+        const {label, description, expiresAt: expiresAt} = req.body as SATypes.PostServiceAccount;
+        const options = {
+          label,
+          description,
+          expiresAt: new Date(expiresAt)
+        };
         const serviceAccount = await this._dbManager.createServiceAccount(
-          ownerId, label, description, new Date(endOfLife)
+          ownerId, options
         );
         const resp = {
           login: serviceAccount.serviceUser.loginEmail,
           key: serviceAccount.serviceUser.apiKey,
-          msg,
           label: serviceAccount.label,
           description: serviceAccount.description,
-          endOfLife: serviceAccount.endOfLife,
+          expiresAt: serviceAccount.expiresAt,
           hasValidKey: true
         };
 
@@ -690,7 +693,7 @@ export class ApiServer {
           login: serviceAccountLogin,
           label: serviceAccount.label,
           description: serviceAccount.description,
-          endOfLife: serviceAccount.endOfLife,
+          expiresAt: serviceAccount.expiresAt,
           hasValidKey
         };
         return sendOkReply(req, res, resp);
@@ -705,7 +708,7 @@ export class ApiServer {
           const payload = req.body as SATypes.PatchServiceAccount;
           const updateProps = {
             ...payload,
-            endOfLife: payload.endOfLife !== undefined ? new Date(payload.endOfLife) : undefined,
+            expiresAt: payload.expiresAt !== undefined ? new Date(payload.expiresAt) : undefined,
           };
 
           const resp = await this._dbManager.updateServiceAccount(
@@ -724,7 +727,7 @@ export class ApiServer {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
         const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, {expectedOwnerId: userId});
-        if (resp == null){
+        if (resp === null) {
           throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
         }
         return sendOkReply(req, res, resp);
@@ -733,7 +736,6 @@ export class ApiServer {
       // POST /service-accounts/:said/key/regenerate
       // Regenerate and return the apikey of a given Service Account
       this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
-        const msg = "Please save your api key. It's the only time you will see it.";
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
         const serviceAccount = await this._dbManager.regenerateServiceAccountApiKey(
@@ -745,10 +747,9 @@ export class ApiServer {
         const resp = {
           login: serviceAccountLogin,
           key: serviceAccount.serviceUser.apiKey,
-          msg,
           label: serviceAccount.label,
           description: serviceAccount.description,
-          endOfLife: serviceAccount.endOfLife,
+          expiresAt: serviceAccount.expiresAt,
           hasValidKey: true
         };
         return sendOkReply(req, res, resp);
