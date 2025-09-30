@@ -4,6 +4,7 @@
  */
 import { allCommands, createGroup } from 'app/client/components/commands';
 import { Panel, RegionFocusSwitcher } from 'app/client/components/RegionFocusSwitcher';
+import { modKeyProp } from 'app/client/lib/browserInfo';
 import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
@@ -223,7 +224,18 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       focusedSearchElement = inputElem;
     }),
     dom.onKeyDown({
-      Enter: (ev) => ev.shiftKey ? model.findPrev() : model.findNext(),
+      Enter: async (ev) => {
+        // If the user is pressing the mod key, act like we trigger the "closeSearchBar" command described in
+        // commandList.
+        // We don't actually register this as the closeSearchBar command,
+        // as it's a bit troublesome to want to both have findNext and findPrev be active all the time,
+        // while at the same time have closeSearchBar be active only when model.isOpen
+        if (ev[modKeyProp()] && !ev.shiftKey) {
+          toggleMenu(false);
+          return;
+        }
+        return ev.shiftKey ? model.findPrev() : model.findNext();
+      },
     }),
     commandGroup.attach(),
   );
