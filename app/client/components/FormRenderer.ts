@@ -420,7 +420,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           choices.reverse();
         }
       }
-      this._choices = choices.slice();
+      this._choices = choices;
     }
 
     this.value = Observable.create<string>(this, '');
@@ -498,7 +498,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           }),
           css.resetSelectButton(
             icon('CrossSmall'),
-            dom.attr('aria-label', t('Clear selection for: {{inputLabel}}', {inputLabel: this.field.question})),
+            dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', {inputLabel: this.field.question})),
             dom.hide((use) => !use(this.value)),
             dom.on('click', (ev) => {
               this.value.set('');
@@ -776,7 +776,7 @@ class RefRenderer extends BaseFieldRenderer {
         choices.reverse();
       }
     }
-    this._choices = choices.slice();
+    this._choices = choices;
 
     this.value = Observable.create<string>(this, '');
 
@@ -867,7 +867,7 @@ class RefRenderer extends BaseFieldRenderer {
           }),
           css.resetSelectButton(
             icon('CrossSmall'),
-            dom.attr('aria-label', t('Clear selection for: {{inputLabel}}', {inputLabel: this.field.question})),
+            dom.attr('aria-label', t('Clear selection for: {{-inputLabel}}', {inputLabel: this.field.question})),
             dom.hide((use) => !use(this.value)),
             dom.on('click', (ev) => {
               this.value.set('');

@@ -156,14 +156,14 @@ class DropdownWithSearch<T> extends Disposable {
   private _update() {
     const acResults = this._acIndex.search(this._inputElem?.value || '');
     this._highlightFunc = acResults.highlightFunc;
-    const items = acResults.items.slice();
+    let items = acResults.items;
     if (items.length < this._acIndex.totalItems) {
-      items.push(new TruncatedListItem(
+      items = items.concat(new TruncatedListItem(
         t('Showing {{displayedCount}} of {{totalCount}} items. Search for more.', {
           displayedCount: items.length,
           totalCount: this._acIndex.totalItems
         })
-      ));
+      ) as OptionItem<T>);
     }
     this._items.set(items);
     this._simpleList.setSelected(acResults.selectIndex);
