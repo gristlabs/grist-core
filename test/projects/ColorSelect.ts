@@ -358,7 +358,7 @@ describe("ColorSelect", function() {
       // click the hex value
       await driver.findWait('.test-text-hex', 100).click();
 
-      await gu.waitForSelection('.test-text-hex');
+      await waitForSelection('.test-text-hex');
 
       // start typing '#'
       await driver.sendKeys('#');
@@ -378,7 +378,7 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
-      await gu.waitForSelection('.test-text-hex');
+      await waitForSelection('.test-text-hex');
 
 
       // type in #FF00FF and press enter
@@ -404,7 +404,7 @@ describe("ColorSelect", function() {
       await driver.find('.test-text-hex').click();
 
       // Wait for focus
-      await gu.waitForSelection('.test-text-hex');
+      await waitForSelection('.test-text-hex');
 
       // type in #0000FF
       await driver.sendKeys(red);
@@ -439,7 +439,7 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
-      await gu.waitForSelection('.test-text-hex');
+      await waitForSelection('.test-text-hex');
 
       // start typing '#FF'
       await driver.sendKeys('#FF');
@@ -495,4 +495,22 @@ async function clickUnderline() {
 }
 async function clickStrikethrough() {
   await driver.find('.test-font-option-FontStrikethrough').click();
+}
+
+/**
+ * Waits until all text in the given input element is selected and the element has focus.
+ * @param inputSelector Selector for the input element to check selection on.
+ */
+async function waitForSelection(inputSelector: string) {
+  await gu.waitToPass(async () => {
+    assert.isTrue(await driver.find(inputSelector).hasFocus());
+    const allSelected = await driver.executeScript(() => {
+      const innerSelector = arguments[0];
+      const el = document.querySelector(innerSelector) as HTMLInputElement;
+      const sel = { start: el.selectionStart, end: el.selectionEnd };
+      const textLen = el.value.length;
+      return sel.start === 0 && sel.end === textLen;
+    }, inputSelector);
+    assert.isTrue(allSelected, 'Expected all text to be selected in the text input');
+  });
 }

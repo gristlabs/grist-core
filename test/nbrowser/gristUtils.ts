@@ -4190,24 +4190,6 @@ export async function getViewportDimensions(): Promise<WindowDimensions> {
   });
 }
 
-/**
- * Waits until all text in the given input element is selected and the element has focus.
- * @param inputSelector Selector for the input element to check selection on.
- */
-export async function waitForSelection(inputSelector: string) {
-  await waitToPass(async () => {
-    assert.isTrue(await driver.find(inputSelector).hasFocus());
-    const allSelected = await driver.executeScript(() => {
-      const innerSelector = arguments[0];
-      const el = document.querySelector(innerSelector) as HTMLInputElement;
-      const sel = { start: el.selectionStart, end: el.selectionEnd };
-      const textLen = el.value.length;
-      return sel.start === 0 && sel.end === textLen;
-    }, inputSelector);
-    assert.isTrue(allSelected, 'Expected all text to be selected in the text input');
-  });
-}
-
 } // end of namespace gristUtils
 
 stackWrapOwnMethods(gristUtils);
