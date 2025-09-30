@@ -1073,7 +1073,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async removeRows(tableId: string, removals: number[]): Promise<number[]> {
-    return this.requestJson(`${this._url}/tables/${tableId}/data/delete`, {
+    return this.requestJson(`${this._url}/tables/${tableId}/records/delete`, {
       body: JSON.stringify(removals),
       method: 'POST'
     });
