@@ -474,6 +474,14 @@ describe('DocMenu', function() {
     assert.isEmpty(await getPinnedDocNames());
   });
 
+  it('should allow downloading docs', async function() {
+    await openDocMenu(/Doc13/);
+    await driver.findContent('.test-dm-tb-share-option', /Download document/).doClick();
+    await driver.findWait('.test-option-full', 2000).isDisplayed();
+    assert.match(await driver.find('.test-download-button-link').getAttribute('href'), /\/mock\/download\/url/);
+    await driver.sendKeys(Key.ESCAPE);
+  });
+
   it('should allow moving docs', async function() {
     await openDocMenu(/Doc13/);
     await driver.find('.test-dm-move-doc').doClick();
