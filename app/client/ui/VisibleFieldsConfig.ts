@@ -263,6 +263,7 @@ export class VisibleFieldsConfig extends Disposable {
               'Dropdown',
               dom.style('transform', (use) => use(this._collapseHiddenFields) ? 'rotate(-90deg)' : ''),
             ),
+            dom.boolAttr('disabled', this._disabled),
             dom.on('click', () => this._collapseHiddenFields.set(!this._collapseHiddenFields.get())),
             testId('collapse-hidden'),
             // TODO: show `hidden column` only when some fields are hidden
@@ -393,10 +394,12 @@ export class VisibleFieldsConfig extends Disposable {
         icon('EyeShow'),
         dom.on('click', () => this.addField(column)),
         testId('hide'),
+        dom.boolAttr('disabled', this._disabled),
         dom.attr('aria-label', (use) => t("Show {{label}}", {label: use(column.label)}))
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
+        dom.boolAttr('disabled', this._disabled),
         dom.attr('aria-label', (use) => t("Show {{label}} (batch mode)", {label: use(column.label)})),
         dom.on('change', (ev, el) => {
           el.checked ? selection.add(id) : selection.delete(id);
@@ -417,10 +420,12 @@ export class VisibleFieldsConfig extends Disposable {
         icon('EyeHide'),
         dom.on('click', () => this.removeField(field)),
         testId('hide'),
+        dom.boolAttr('disabled', this._disabled),
         dom.attr('aria-label', (use) => t("Hide {{label}}", {label: use(field.label)}))
       ),
       buildCheckbox(
         dom.prop('checked', selection.has(id)),
+        dom.boolAttr('disabled', this._disabled),
         dom.attr('aria-label', (use) => t("Hide {{label}} (batch mode)", {label: use(field.label)})),
         dom.on('change', (ev, el) => {
           el.checked ? selection.add(id) : selection.delete(id);
