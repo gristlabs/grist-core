@@ -71,6 +71,7 @@ import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
+import {DocStateComparison} from 'app/common/DocState';
 import {isList, isListType, isRefListType} from 'app/common/gristTypes';
 import {HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
@@ -79,7 +80,7 @@ import type {UserOrgPrefs} from 'app/common/Prefs';
 import {StringUnion} from 'app/common/StringUnion';
 import {TableData} from 'app/common/TableData';
 import {getGristConfig} from 'app/common/urlUtils';
-import {AttachmentTransferStatus, DocAPI, DocStateComparison, ExtendedUser} from 'app/common/UserAPI';
+import {AttachmentTransferStatus, DocAPI, ExtendedUser} from 'app/common/UserAPI';
 import {AttachedCustomWidgets, IAttachedCustomWidget, IWidgetType, WidgetType} from 'app/common/widgetTypes';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {

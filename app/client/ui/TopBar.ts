@@ -109,6 +109,15 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
           isTemplate: pageModel.isTemplate,
           isAnonymous,
+          isProposable: Computed.create(
+            owner, gristDoc.docPageModel.currentDoc,
+            (_use, currentDoc) => Boolean(currentDoc?.options?.proposedChanges?.acceptProposals)
+          ),
+          isReadonly: pageModel.isReadonly,
+          proposeChanges: async () => {
+            const {urlId} = await gristDoc.docComm.fork();
+            await urlState().pushUrl({doc: urlId});
+          },
         }),
         dom.hide(use => use(isSearchOpen) && use(isNarrowScreenObs())),
       )

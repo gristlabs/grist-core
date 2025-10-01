@@ -128,7 +128,11 @@ export class UrlState<IUrlState extends object> extends Disposable {
    */
   public setLinkUrl(
     urlState: IUrlState|UpdateFunc<IUrlState>,
-    options?: {replace?: boolean, avoidReload?: boolean}
+    options?: {
+      replace?: boolean,
+      avoidReload?: boolean,
+      extraStep?: () => void;
+    }
   ): DomElementMethod[] {
     return [
       dom.attr('href', (use) => this.makeUrl(urlState, use)),
@@ -136,6 +140,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
         // Only override plain-vanilla clicks.
         if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
         ev.preventDefault();
+        options?.extraStep?.();
         return this.pushUrl(urlState, options);
       }),
     ];

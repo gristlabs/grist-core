@@ -78,6 +78,18 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       // Copy" primary and keep it as an action button on top. Otherwise, show a tag without a
       // default action; click opens the menu where the user can choose.
       if (!roles.canEdit(doc.trunkAccess || null)) {
+        if (doc.options?.proposedChanges?.acceptProposals) {
+          return shareButton(t("Propose Changes"), () => [
+            menuManageUsers(doc, pageModel),
+            menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+            menuOriginal(doc, pageModel),
+            menuExports(doc, pageModel),
+          ], {buttonAction: async () => {
+            await urlState().pushUrl({
+              docPage: 'proposals'
+            });
+          }});
+        }
         return shareButton(t("Save Copy"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),

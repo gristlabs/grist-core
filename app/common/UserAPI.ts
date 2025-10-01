@@ -1,4 +1,3 @@
-import {ActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, ForkResult, FormulaTimingInfo,
         PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
 import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
@@ -9,6 +8,7 @@ import {ICustomWidget} from 'app/common/CustomWidget';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
         TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
+import {DocStateComparison} from 'app/common/DocState';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, Product} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
@@ -150,6 +150,7 @@ export interface DocumentOptions {
   appearance?: DocumentAppearance|null;
   // Whether search engines should index this document. Defaults to `false`.
   allowIndex?: boolean;
+  proposedChanges?: ProposedChanges|null;
 }
 
 export interface TutorialMetadata {
@@ -175,6 +176,11 @@ export interface DocumentProperties extends CommonProperties {
   options: DocumentOptions|null;
 }
 
+export interface ProposedChanges {
+  mayHaveProposals?: boolean;
+  acceptProposals?: boolean;
+}
+
 export const documentPropertyKeys = [
   ...commonPropertyKeys,
   'isPinned',
@@ -197,6 +203,26 @@ export interface Fork {
   trunkId: string;
   updatedAt: string;  // ISO date string
   options: DocumentOptions|null;
+}
+
+export interface ProposalComparison {
+  comparison?: DocStateComparison;
+}
+
+export interface ProposalStatus {
+  status?: 'applied' | 'retracted' | 'dismissed';
+}
+
+export interface Proposal {
+  shortId: number;
+  comparison: ProposalComparison;
+  status: ProposalStatus;
+  createdAt: string;  // ISO date string
+  updatedAt: string;  // ISO date string
+  appliedAt: string|null;  // ISO date string
+  srcDoc: Document & {
+    creator: FullUser
+  }
 }
 
 // Non-core options for a user.
@@ -336,53 +362,6 @@ export interface DocSnapshot {
  */
 export interface DocSnapshots {
   snapshots: DocSnapshot[];  // snapshots, freshest first.
-}
-
-/**
- * Information about a single document state.
- */
-export interface DocState {
-  n: number;  // a sequential identifier
-  h: string;  // a hash identifier
-}
-
-/**
- * A list of document states.  Most recent is first.
- */
-export interface DocStates {
-  states: DocState[];
-}
-
-/**
- * A comparison between two documents, called "left" and "right".
- * The comparison is based on the action histories in the documents.
- * If those histories have been truncated, the comparison may report
- * two documents as being unrelated even if they do in fact have some
- * shared history.
- */
-export interface DocStateComparison {
-  left: DocState;         // left / local document
-  right: DocState;        // right / remote document
-  parent: DocState|null;  // most recent common ancestor of left and right
-  // summary of the relationship between the two documents.
-  //        same: documents have the same most recent state
-  //        left: the left document has actions not yet in the right
-  //       right: the right document has actions not yet in the left
-  //        both: both documents have changes (possible divergence)
-  //   unrelated: no common history found
-  summary: 'same' | 'left' | 'right' | 'both' | 'unrelated';
-  // optionally, details of what changed may be included.
-  details?: DocStateComparisonDetails;
-}
-
-/**
- * Detailed comparison between document versions.  For now, this
- * is provided as a pair of ActionSummary objects, relative to
- * the most recent common ancestor.
- */
-export interface DocStateComparisonDetails {
-  leftChanges: ActionSummary;
-  rightChanges: ActionSummary;
 }
 
 export interface CopyDocOptions {
@@ -615,6 +594,13 @@ export interface DocAPI {
    * If there is one store available it means that external storage is configured and can be used by this document.
    */
   getAttachmentStores(): Promise<{stores: AttachmentStoreDesc[]}>;
+
+  makeProposal(options?: {
+    retracted?: boolean,
+  }): Promise<void>;
+  getProposals(options?: {
+    outgoing?: boolean
+  }): Promise<Proposal[]>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1319,6 +1305,24 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       method: 'POST',
       body: JSON.stringify({type}),
     });
+  }
+
+  public async makeProposal(options?: {
+    retracted?: boolean,
+  }) {
+    await this.requestJson(`${this._url}/propose`, {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
+  }
+
+  public async getProposals(options?: {
+    outgoing?: boolean,
+  }) {
+    const result = await this.requestJson(`${this._url}/proposals?outgoing=${Boolean(options?.outgoing)}`, {
+      method: 'GET',
+    });
+    return result;
   }
 
   private _getRecords(tableId: string, endpoint: 'data' | 'records', options?: GetRowsParams): Promise<any> {
