@@ -117,8 +117,8 @@ describe('AccessTokens', function() {
     result = await fetch(home.serverUrl + `/api/docs/${docId}/tables/Table1/records?auth=${token}`);
     assert.equal(result.status, 200);
 
-    // Token is not used outside of /api/docs/${docId}
-    // Anonymous access generates valid responses
+    // When the token is used to query other resources than documents, it should be ignored
+    // and the initiator of the request should be considered as anonymous
     result = await fetch(home.serverUrl + `/api/profile/user?auth=${token}`);
     assert.equal(result.status, 200);
     const payload = await result.json();
