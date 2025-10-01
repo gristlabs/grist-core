@@ -49,34 +49,24 @@ export interface IDropdownWithSearchOptions<T> {
   matchTriggerElemWidth?: boolean;
 }
 
-export interface OptionItemParams<T> {
-  /** Item label. Normalized and used by ACIndex for indexing and searching. */
-  label: string;
-  /** Item value. */
-  value: T;
-  /** Defaults to false. */
-  disabled?: boolean;
-  /**
-   * If true, marks this item as the "placeholder" item.
-   *
-   * The placeholder item is excluded from indexing, so it's label doesn't
-   * match search inputs. However, it's still shown when the search input is
-   * empty.
-   *
-   * Defaults to false.
-   */
-  placeholder?: boolean;
-}
-
 export class OptionItem<T> implements ACItem, IOptionFull<T> {
   public label = this._params.label;
   public value = this._params.value;
   public disabled = this._params.disabled;
-  public placeholder = this._params.placeholder;
-  public cleanText = this.placeholder ? '' : normalizeText(this.label);
+  public cleanText = normalizeText(this.label);
 
-  constructor(private _params: OptionItemParams<T>) {
+  constructor(private _params: IOptionFull<T>) {
 
+  }
+}
+
+class TruncatedListItem<T> extends OptionItem<T> {
+  constructor(label: string) {
+    super({
+      label,
+      value: '' as unknown as T,
+      disabled: true
+    });
   }
 }
 
@@ -150,18 +140,32 @@ class DropdownWithSearch<T> extends Disposable {
   }
 
   private _buildItem(item: OptionItem<T>) {
-    return [
-      item.placeholder
-        ? cssPlaceholderItem(item.label)
-        : buildHighlightedDom(item.label, this._highlightFunc, cssMatchText),
-      testId('searchable-list-item'),
-    ];
+    return item instanceof TruncatedListItem ?
+        [this._buildTruncatedMsgItem(item), testId('truncated-message')] :
+        [buildHighlightedDom(item.label, this._highlightFunc, cssMatchText), testId('searchable-list-item')];
+  }
+
+  private _buildTruncatedMsgItem(item: TruncatedListItem<T>) {
+    return cssTruncatedMessageItem(
+      item.label,
+      // Prevents click to close menu
+      dom.on('click', ev => ev.stopPropagation())
+    );
   }
 
   private _update() {
     const acResults = this._acIndex.search(this._inputElem?.value || '');
     this._highlightFunc = acResults.highlightFunc;
-    this._items.set(acResults.items);
+    let items = acResults.items;
+    if (items.length < this._acIndex.totalItems) {
+      items = items.concat(new TruncatedListItem(
+        t('Showing {{displayedCount}} of {{totalCount}} items. Search for more.', {
+          displayedCount: items.length,
+          totalCount: this._acIndex.totalItems
+        })
+      ) as OptionItem<T>);
+    }
+    this._items.set(items);
     this._simpleList.setSelected(acResults.selectIndex);
   }
 
@@ -214,10 +218,6 @@ const cssMenuDivider = styled(menuDivider, `
   flex-shrink: 0;
   margin: 0;
 `);
-const cssPlaceholderItem = styled('div', `
+const cssTruncatedMessageItem = styled('div', `
   color: ${theme.inputPlaceholderFg};
-
-  .${cssMenuItem.className}-sel > & {
-    color: ${theme.menuItemSelectedFg};
-  }
 `);
