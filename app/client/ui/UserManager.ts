@@ -83,11 +83,11 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
  * the UserManager menu with save and cancel buttons.
  */
 export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOptions) {
-  const modelObs: Observable<UserManagerModel|null|"slow"> = observable(null);
+  const modelObs: Observable<UserManagerModel|null|'slow'> = observable(null);
 
   async function onConfirm(ctl: IModalControl, acceptedWarnings = new Set<ACCEPTED_WARNINGS>()) {
     const model = modelObs.get();
-    if (!model || model === "slow") {
+    if (!model || model === 'slow') {
       ctl.close();
       return;
     }
@@ -110,31 +110,31 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
       }
     };
     const resourceType = resourceName(model.resourceType);
-    if (model.isSelfRemoved.get() && !acceptedWarnings.has("self-removal")) {
+    if (model.isSelfRemoved.get() && !acceptedWarnings.has('self-removal')) {
       confirmModal(
-        t(`You are about to remove your own access to this {{resourceType}}`, { resourceType }),
+        t('You are about to remove your own access to this {{resourceType}}', { resourceType }),
         t('Remove my access'),
-        () => onConfirm(ctl, new Set([...acceptedWarnings, "self-removal"])),
+        () => onConfirm(ctl, new Set([...acceptedWarnings, 'self-removal'])),
         {
           explanation: (
-            t(`Once you have removed your own access, \
+            t('Once you have removed your own access, \
 you will not be able to get it back without assistance \
-from someone else with sufficient access to the {{resourceType}}.`, { resourceType })
+from someone else with sufficient access to the {{resourceType}}.', { resourceType })
           ),
         }
       );
       return;
     }
-    if (model.goingToSharePublicly() && !acceptedWarnings.has("public-sharing")) {
+    if (model.goingToSharePublicly() && !acceptedWarnings.has('public-sharing')) {
       confirmModal(
-        t(`Verify your sensitive data before sharing publicly`),
+        t('Verify your sensitive data before sharing publicly'),
         t('Share it publicly'),
-        () => onConfirm(ctl, new Set([...acceptedWarnings, "public-sharing"])),
+        () => onConfirm(ctl, new Set([...acceptedWarnings, 'public-sharing'])),
         {
           explanation: (
-            markdown(t(`Your {{resourceType}} will be accessible to anyone \
+            markdown(t('Your {{resourceType}} will be accessible to anyone \
 with the link, including those who have found your document through a search engine. \
-\n\nCarefully check that your {{resourceType}} does not contain sensitive data.`,
+\n\nCarefully check that your {{resourceType}} does not contain sensitive data.',
               { resourceType }))),
         }
       );
