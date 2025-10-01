@@ -6,8 +6,8 @@ from asttokens.util import fstring_positions_work
 import codebuilder
 import test_engine
 
-def make_body(formula, default=None):
-  return codebuilder.make_formula_body(formula, default).get_text()
+def make_body(formula, default=None, indent=''):
+  return codebuilder.make_formula_body(formula, default, indent=indent).get_text()
 
 class TestCodeBuilder(test_engine.EngineTestCase):
   def test_make_formula_body(self):
@@ -55,15 +55,26 @@ class TestCodeBuilder(test_engine.EngineTestCase):
     self.assertEqual(make_body('"""test1\ntest2\ntest3"""'), 'return """test1\ntest2\ntest3"""')
     self.assertEqual(make_body('"""test1\\ntest2\\ntest3"""'), 'return """test1\\ntest2\\ntest3"""')
 
+    self.assertEqual(make_body('("""test1\ntest2\ntest3""")', indent='  '),
+        '  return ("""test1\ntest2\ntest3""")')
+    self.assertEqual(make_body('"""test1\ntest2\ntest3"""', indent='    '),
+        '    return """test1\ntest2\ntest3"""')
+    self.assertEqual(make_body('"""test1\\ntest2\\ntest3"""', indent='  '),
+        '  return """test1\\ntest2\\ntest3"""')
+
     # Same, with single quotes.
     self.assertEqual(make_body("'test'"), "return 'test'")
     self.assertEqual(make_body("('''test1\ntest2\ntest3''')"), "return ('''test1\ntest2\ntest3''')")
     self.assertEqual(make_body("'''test1\ntest2\ntest3'''"), "return '''test1\ntest2\ntest3'''")
     self.assertEqual(make_body("'''test1\\ntest2\\ntest3'''"), "return '''test1\\ntest2\\ntest3'''")
+    self.assertEqual(make_body("'''test1\\ntest2\\ntest3'''", indent='  '),
+        "  return '''test1\\ntest2\\ntest3'''")
 
     # And with mixing quotes
     self.assertEqual(make_body("'''test1\"\"\" +\\\n  \"\"\"test2'''"),
                      "return '''test1\"\"\" +\\\n  \"\"\"test2'''")
+    self.assertEqual(make_body("'''test1\"\"\" +\\\n  \"\"\"test2'''", indent='  '),
+                     "  return '''test1\"\"\" +\\\n  \"\"\"test2'''")
     self.assertEqual(make_body("'''test1''' +\\\n  \"\"\"test2\"\"\""),
                      "return '''test1''' +\\\n  \"\"\"test2\"\"\"")
     self.assertEqual(make_body("'''test1\"\"\"\n\"\"\"test2'''"),

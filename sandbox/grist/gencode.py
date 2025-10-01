@@ -16,7 +16,6 @@ The schema for grist data is:
   }
 """
 import logging
-import re
 import types
 from collections import OrderedDict
 
@@ -29,14 +28,6 @@ from usertypes import get_type_default
 log = logging.getLogger(__name__)
 
 indent_str = "  "
-
-# Matches newlines that are followed by a non-empty line.
-indent_line_re = re.compile(r'^(?=.*\S)', re.M)
-
-def indent(body, levels=1):
-  """Indents all lines in body (which should be a textbuilder.Builder), except empty ones."""
-  patches = textbuilder.make_regexp_patches(body.get_text(), indent_line_re, indent_str * levels)
-  return textbuilder.Replacer(body, patches)
 
 #----------------------------------------------------------------------
 
@@ -60,7 +51,7 @@ def get_grist_type(col_type, reverse_col_id=None):
   return "grist.%s(%s)" % (typename, ", ".join(args))
 
 
-class GenCode(object):
+class GenCode:
   """
   GenCode generates the Python code for a Grist document, including converting formulas to Python
   functions and producing a Python specification of all the tables with data and formula fields.
@@ -78,13 +69,13 @@ class GenCode(object):
     self._user_builder = None
     self._usercode = None
 
-  def _make_formula_field(self, col_info, table_id, name=None, include_type=True,
-      additional_params=()):
+  def _make_formula_field(self, col_info, table_id, *, name=None, include_type=True,
+      additional_params=(), indent=''):
     """Returns the code for a formula field."""
     # If the caller didn't specify a special name, use the colId
     name = name or col_info.colId
 
-    decl = "def %s(%s):\n" % (
+    decl = indent + "def %s(%s):\n" % (
       name,
       ', '.join(['rec', 'table'] + list(additional_params))
     )
@@ -97,35 +88,38 @@ class GenCode(object):
       # If we have a table_id like `Table._Summary`, then we don't want to actually associate
       # this field with any real table/column.
       assoc_value = None if table_id.endswith("._Summary") else (table_id, col_info.colId)
-      body = codebuilder.make_formula_body(col_info.formula, default, assoc_value)
+      body = codebuilder.make_formula_body(col_info.formula, default, assoc_value,
+          indent=indent_str + indent)
     self._new_formula_cache[key] = body
 
     decorator = ''
     if include_type and col_info.type != 'Any':
-      decorator = '@grist.formulaType(%s)\n' % get_grist_type(col_info.type, col_info.reverseColId)
-    return textbuilder.Combiner(['\n' + decorator + decl, indent(body), '\n'])
+      decorator = (indent +
+          '@grist.formulaType(%s)\n' % get_grist_type(col_info.type, col_info.reverseColId))
+    return textbuilder.Combiner(['\n' + decorator + decl, body, '\n'])
 
 
-  def _make_data_field(self, col_info, table_id):
+  def _make_data_field(self, col_info, table_id, indent=''):
     """Returns the code for a data field."""
     parts = []
     if col_info.formula:
       parts.append(self._make_formula_field(col_info, table_id,
                                             name=table.get_default_func_name(col_info.colId),
                                             include_type=False,
-                                            additional_params=['value', 'user']))
-    parts.append("%s = %s\n" % (col_info.colId,
+                                            additional_params=['value', 'user'],
+                                            indent=indent))
+    parts.append(indent + "%s = %s\n" % (col_info.colId,
       get_grist_type(col_info.type, col_info.reverseColId)))
     return textbuilder.Combiner(parts)
 
 
-  def _make_field(self, col_info, table_id):
+  def _make_field(self, col_info, table_id, indent=''):
     """Returns the code for a field."""
     assert not col_info.colId.startswith("_")
     if col_info.isFormula:
-      return self._make_formula_field(col_info, table_id)
+      return self._make_formula_field(col_info, table_id, indent=indent)
     else:
-      return self._make_data_field(col_info, table_id)
+      return self._make_data_field(col_info, table_id, indent=indent)
 
 
   def _make_table_model(self, table_info, summary_tables, filter_for_user=False):
@@ -142,23 +136,26 @@ class GenCode(object):
       columns = [c for c in columns if is_visible_column(c.colId)]
     parts = ["@grist.UserTable\nclass %s:\n" % table_id]
     if source_table_id:
-      parts.append(indent(textbuilder.Text("_summarySourceTable = %r\n" % source_table_id)))
+      parts.append(indent_str + "_summarySourceTable = %r\n" % source_table_id)
 
     for col_info in columns:
-      parts.append(indent(self._make_field(col_info, table_id)))
+      parts.append(self._make_field(col_info, table_id, indent=indent_str))
 
     if summary_tables:
       # Include summary formulas, for the user's information.
       formulas = OrderedDict((c.colId, c) for s in summary_tables
                              for c in s.columns.values() if c.isFormula)
-      parts.append(indent(textbuilder.Text("\nclass _Summary:\n")))
+      parts.append("\n" + indent_str + "class _Summary:\n")
       for col_info in formulas.values():
         # Associate this field with the fake table `table_id + "._Summary"`.
         # We don't know which summary table each formula belongs to, there might be several,
         # and we don't care here because this is just for display in the code view.
         # The real formula will be associated with the real summary table elsewhere.
         # Previously this field was accidentally associated with the source table, causing bugs.
-        parts.append(indent(self._make_field(col_info, table_id + "._Summary"), levels=2))
+        parts.append(self._make_field(col_info, table_id + "._Summary", indent=indent_str * 2))
+
+    if len(parts) == 1:
+      parts.append(indent_str + "pass")
 
     return textbuilder.Combiner(parts)
 
