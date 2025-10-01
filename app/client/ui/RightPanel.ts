@@ -42,6 +42,7 @@ import {rowHeightConfigTable} from 'app/client/ui/RowHeightConfig';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
 import {VisibleFieldsConfig} from 'app/client/ui/VisibleFieldsConfig';
 import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widgetTypesMap";
+import {ariaTabs} from 'app/client/ui2018/ariaTabs';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
@@ -49,6 +50,7 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
@@ -96,9 +98,11 @@ export class RightPanel extends Disposable {
 
   // Which of the two standard top tabs (page widget or field) is selected, or was last selected.
   private _topTab = createSessionObs(this, "rightTopTab", "pageWidget", TopTab.guard);
+  private _topTabComponents: ReturnType<typeof ariaTabs>;
 
   // Which subtab is open for configuring page widget.
   private _subTab = createSessionObs(this, "rightPageSubTab", "widget", PageSubTab.guard);
+  private _subTabComponents: ReturnType<typeof ariaTabs>;
 
   // Which type of page widget is active, e.g. "record" or "chart". This affects the names and
   // icons in the top tab.
@@ -147,6 +151,9 @@ export class RightPanel extends Disposable {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('submission'));
       }
     }));
+
+    this._topTabComponents = ariaTabs('rightTopbar', this._topTab);
+    this._subTabComponents = ariaTabs('rightSubbar', this._subTab);
   }
 
   private _openFieldTab() {
@@ -211,14 +218,21 @@ export class RightPanel extends Disposable {
       const widgetInfo = getWidgetTypes(type);
       const fieldInfo = getFieldType(type);
       return [
-        cssTopBarItem(cssTopBarIcon(widgetInfo.icon), widgetInfo.getLabel(),
-          cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'pageWidget'),
-          dom.on('click', () => this._topTab.set("pageWidget")),
-          testId('right-tab-pagewidget')),
-        cssTopBarItem(cssTopBarIcon(fieldInfo.icon), fieldInfo.label,
-          cssTopBarItem.cls('-selected', (use) => use(this._topTab) === 'field'),
-          dom.on('click', () => this._topTab.set("field")),
-          testId('right-tab-field')),
+        cssTopBarTabList(
+          this._topTabComponents.tabList(),
+          cssTopBarItem(
+            this._topTabComponents.tab('pageWidget'),
+            cssTopBarIcon(widgetInfo.icon),
+            widgetInfo.getLabel(),
+            testId('right-tab-pagewidget')
+          ),
+          cssTopBarItem(
+            this._topTabComponents.tab('field'),
+            cssTopBarIcon(fieldInfo.icon),
+            fieldInfo.label,
+            testId('right-tab-field')
+          )
+        )
       ];
     });
   }
@@ -230,27 +244,32 @@ export class RightPanel extends Disposable {
       if (tool) { return tabContentToDom(tool.content); }
       const isForm = use(this._isForm);
 
-      const topTab = use(this._topTab);
-      if (topTab === 'field') {
-        if (isForm) {
-          return dom.create(this._buildQuestionContent.bind(this));
-        } else {
-          return dom.create(this._buildFieldContent.bind(this));
-        }
-      } else if (topTab === 'pageWidget') {
-        if (isForm) {
-          return [
-            dom.create(this._buildPageFormHeader.bind(this)),
-            dom.create(this._buildPageWidgetContent.bind(this)),
-          ];
-        } else if (use(this._hasActiveWidget)) {
-          return [
-            dom.create(this._buildPageWidgetHeader.bind(this)),
-            dom.create(this._buildPageWidgetContent.bind(this)),
-          ];
-        }
-      }
-      return null;
+      return [
+        cssTabPanel(
+          this._topTabComponents.tabPanel('pageWidget',
+            isForm
+              ? [
+                dom.create(this._buildPageFormHeader.bind(this)),
+                dom.create(() => this._buildPageWidgetContent(isForm)),
+              ]
+              : use(this._hasActiveWidget)
+                ? [
+                  dom.create(this._buildPageWidgetHeader.bind(this)),
+                  dom.create(() => this._buildPageWidgetContent(isForm)),
+                ]
+                : null
+          ),
+          testId('right-tabpanel-pagewidget')
+        ),
+        cssTabPanel(
+          this._topTabComponents.tabPanel('field',
+            isForm
+              ? dom.create(this._buildQuestionContent.bind(this))
+              : dom.create(this._buildFieldContent.bind(this))
+          ),
+          testId('right-tabpanel-field')
+        )
+      ];
     });
   }
 
@@ -363,45 +382,57 @@ export class RightPanel extends Disposable {
     });
   }
 
-  private _buildPageWidgetContent() {
-    const content = (activeSection: ViewSectionRec, type: typeof PageSubTab.type) => {
-      switch(type){
-        case 'widget': return dom.create(this._buildPageWidgetConfig.bind(this), activeSection);
-        case 'sortAndFilter': return [
-          dom.create(this._buildPageSortFilterConfig.bind(this)),
-          cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
-        ];
-        case 'data': return dom.create(this._buildPageDataConfig.bind(this), activeSection);
-        case 'submission': return dom.create(this._buildPageSubmissionConfig.bind(this), activeSection);
-        default: return null;
-      }
+  private _buildPageWidgetContent(isForm: boolean) {
+    const content = (activeSection: ViewSectionRec) => {
+      return [
+        dom('div',
+          this._subTabComponents.tabPanel('widget',
+            dom.create(this._buildPageWidgetConfig.bind(this), activeSection)
+          ),
+          testId('right-subtabpanel-widget')
+        ),
+        isForm
+          ? dom('div',
+            this._subTabComponents.tabPanel('submission',
+              dom.create(this._buildPageSubmissionConfig.bind(this), activeSection)
+            ),
+            testId('right-subtabpanel-submission')
+          )
+          : dom('div',
+            this._subTabComponents.tabPanel('sortAndFilter',
+              dom.create(this._buildPageSortFilterConfig.bind(this)),
+            ),
+            cssConfigContainer.cls('-disabled', activeSection.isRecordCard),
+            testId('right-subtabpanel-sortAndFilter')
+          ),
+        dom('div',
+          this._subTabComponents.tabPanel('data',
+            dom.create(this._buildPageDataConfig.bind(this), activeSection)
+          ),
+          testId('right-subtabpanel-data')
+        ),
+      ];
     };
-    return dom.domComputed(this._subTab, (subTab) => (
-      dom.maybe(this._validSection, (activeSection) => (
-        buildConfigContainer(
-          content(activeSection, subTab)
-        )
-      ))
-    ));
+    return dom.maybe(this._validSection, (activeSection) =>
+      buildConfigContainer(content(activeSection))
+    );
   }
 
   private _buildPageFormHeader(_owner: MultiHolder) {
     return [
       cssSubTabContainer(
+        this._subTabComponents.tabList(),
         cssSubTab(t("Configuration"),
-          cssSubTab.cls('-selected', (use) => use(this._subTab) === 'widget'),
-          dom.on('click', () => this._subTab.set("widget")),
+          this._subTabComponents.tab('widget'),
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
           dom.attr('data-text', t("Configuration")),
           testId('config-widget')),
         cssSubTab(t("Submission"),
-          cssSubTab.cls('-selected', (use) => use(this._subTab) === 'submission'),
-          dom.on('click', () => this._subTab.set("submission")),
+          this._subTabComponents.tab('submission'),
           dom.attr('data-text', t("Submission")),
           testId('config-submission')),
         cssSubTab(t("Data"),
-          cssSubTab.cls('-selected', (use) => use(this._subTab) === 'data'),
-          dom.on('click', () => this._subTab.set("data")),
+          this._subTabComponents.tab('data'),
           dom.attr('data-text', t("Data")),
           testId('config-data')),
       ),
@@ -411,20 +442,18 @@ export class RightPanel extends Disposable {
   private _buildPageWidgetHeader(_owner: MultiHolder) {
     return [
       cssSubTabContainer(
+        this._subTabComponents.tabList(),
         cssSubTab(t("Widget"),
-          cssSubTab.cls('-selected', (use) => use(this._subTab) === 'widget'),
-          dom.on('click', () => this._subTab.set("widget")),
+          this._subTabComponents.tab('widget'),
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
           dom.attr('data-text', t("Widget")),
           testId('config-widget')),
         cssSubTab(t("Sort & Filter"),
-          cssSubTab.cls('-selected', (use) => use(this._subTab) === 'sortAndFilter'),
-          dom.on('click', () => this._subTab.set("sortAndFilter")),
+          this._subTabComponents.tab('sortAndFilter'),
           dom.attr('data-text', t("Sort & Filter")),
           testId('config-sortAndFilter')),
         cssSubTab(t("Data"),
-          cssSubTab.cls('-selected', (use) => use(this._subTab) === 'data'),
-          dom.on('click', () => this._subTab.set("data")),
+          this._subTabComponents.tab('data'),
           dom.attr('data-text', t("Data")),
           testId('config-data')),
       ),
@@ -1174,7 +1203,12 @@ const cssIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-const cssTopBarItem = styled('div', `
+const cssTopBarTabList = styled('div', `
+  display: flex;
+  width: 100%;
+`);
+
+const cssTopBarItem = styled(unstyledButton, `
   flex: 1 1 0px;
   height: 100%;
   background-color: ${theme.rightPanelTabBg};
@@ -1187,13 +1221,15 @@ const cssTopBarItem = styled('div', `
   display: flex;
   align-items: center;
   cursor: default;
+  outline-offset: -6px;
   &:first-child {
     border-left: 0;
   }
   &:last-child {
     border-right: 0;
   }
-  &-selected {
+  /* the -selected class is used when the topbar item is not a tab */
+  &-selected, &[aria-selected="true"] {
     background-color: ${theme.rightPanelTabSelectedBg};
     font-weight: ${vars.headerControlTextWeight};
     color: ${theme.rightPanelTabSelectedFg};
@@ -1202,7 +1238,7 @@ const cssTopBarItem = styled('div', `
     border-left-color: ${theme.rightPanelTabBorder};
     border-right-color: ${theme.rightPanelTabBorder};
   }
-  &:not(&-selected):hover {
+  &:not(&-selected, &[aria-selected="true"]):hover {
     background-color: ${theme.rightPanelTabHoverBg};
     border-left-color: ${theme.rightPanelTabHoverBg};
     border-right-color: ${theme.rightPanelTabHoverBg};
@@ -1251,24 +1287,26 @@ const cssSubTabContainer = styled('div', `
   border-bottom: 1px solid ${components.pagePanelsBorder};
 `);
 
-const cssSubTab = styled('div', `
+const cssSubTab = styled(unstyledButton, `
   color: ${components.rightPanelSubtabFg};
   flex: auto;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  align-items: center;
   text-align: center;
   padding-bottom: 8px;
   cursor: default;
   border-bottom: 2px solid transparent;
+  outline-offset: -3px;
 
-  &-selected {
+  &[aria-selected="true"] {
     font-weight: 600;
     color: ${components.rightPanelSubtabSelectedFg};
     border-bottom-color: ${components.rightPanelSubtabSelectedUnderline};
   }
-  &:not(&-selected):hover {
+  &:not(&[aria-selected="true"]):hover {
     color: ${components.rightPanelSubtabHoverFg};
   }
   &:hover {
@@ -1285,6 +1323,12 @@ const cssSubTab = styled('div', `
     height: 0;
     overflow: hidden;
   }
+`);
+
+const cssTabPanel = styled('div', `
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 `);
 
 const cssTabContents = styled('div', `
