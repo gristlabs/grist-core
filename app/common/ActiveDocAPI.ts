@@ -1,8 +1,9 @@
 import {ActionGroup} from 'app/common/ActionGroup';
 import {BulkAddRecord, CellValue, TableDataAction, UserAction} from 'app/common/DocActions';
+import {DocStateComparison} from 'app/common/DocState';
 import {PredicateFormulaProperties} from 'app/common/PredicateFormula';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
-import {DocStateComparison, PermissionData, UserAccessData} from 'app/common/UserAPI';
+import {PermissionData, Proposal, UserAccessData} from 'app/common/UserAPI';
 import {ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, UIRowId} from 'app/plugin/GristAPI';
 import {IMessage} from 'grain-rpc';
@@ -540,5 +541,24 @@ export interface ActiveDocAPI {
    * Lists users that currently have the doc open.
    * This list varies based on the requesting user's permissions.
    */
-  listActiveUserProfiles(): Promise<VisibleUserProfile[]>
+  listActiveUserProfiles(): Promise<VisibleUserProfile[]>;
+
+  applyProposal(proposalId: number, option?: {
+    dismiss?: boolean,
+  }): Promise<ApplyProposalResult>;
+}
+
+export interface ApplyProposalResult {
+  proposal: Proposal;
+  log: PatchLog;
+}
+
+export interface PatchLog {
+  changes: PatchItem[];
+  applied: boolean;
+}
+
+export interface PatchItem {
+  msg: string;
+  fail?: boolean;
 }

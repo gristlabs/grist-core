@@ -80,6 +80,8 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/timing/start', withDoc);
     app.use('/api/docs/:docId/timing/stop', withDoc);
     app.use('/api/docs/:docId/forms/:vsId', withDoc);
+    app.use('/api/docs/:docId/propose', withDoc);
+    app.use('/api/docs/:docId/proposals', withDoc);
 
     app.use('/api/docs/:docId/copy', withoutDoc);
     app.use('^/api/docs$', withoutDoc);
