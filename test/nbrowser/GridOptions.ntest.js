@@ -19,9 +19,9 @@ describe("GridOptions.ntest", function() {
 
   /* Test that styles on the given section match the specified flags
    * sec: index into secNames
-   * hor/vert/zebra: boolean flags
+   * hor/vert/icon/zebra: boolean flags
    */
-  async function assertHVZ(sec, hor, vert, zebra) {
+  async function assertHVCZ(sec, hor, vert, icon, zebra) {
     let testClasses =
         ['record-hlines', 'record-vlines', 'record-zebra'];
     let flags = [hor, vert, zebra];
@@ -33,6 +33,11 @@ describe("GridOptions.ntest", function() {
       if(flags[i])  { assert.include(rowClasses, cls);}
       else          { assert.notInclude(rowClasses, cls); }
     });
+    // Check for the presence of 'record-icon' class on the div.field-icon element
+    const fieldIcon = await row.find('.field-icon');
+    const iconClasses = await fieldIcon.classList();
+    if (icon) { assert.include(iconClasses, 'record-icon'); }
+    else { assert.notInclude(iconClasses, 'record-icon'); }
   }
 
 
@@ -84,10 +89,11 @@ describe("GridOptions.ntest", function() {
     // get handles on elements
     let h = ".test-h-grid-button input";
     let v = ".test-v-grid-button input";
+    let c = ".test-formula-icon-button input";
     let z = ".test-zebra-stripe-button input";
 
     // should start with v+h gridlines, no zebra
-    await assertHVZ(0, true, true, false);
+    await assertHVCZ(0, true, true, true, false);
 
     // change values on all the sections
     await switchTo(0);
@@ -96,24 +102,26 @@ describe("GridOptions.ntest", function() {
     await switchTo(1);
     await $(h).click();
     await $(v).click();
+    await $(c).click();
 
     await switchTo(2);
     await $(h).click(); // turn off
+    await $(c).click(); // turn off
     await $(z).click(); // turn on
     await gu.waitForServer();
 
-    await assertHVZ(0, true, true, true);     // all on
-    await assertHVZ(1, false, false, false);  // all off
-    await assertHVZ(2, false, true, true);    // -h +v +z
+    await assertHVCZ(0, true, true, true, true);     // all on
+    await assertHVCZ(1, false, false, false, false);  // all off
+    await assertHVCZ(2, false, true, false, true);    // -h +v -c +z
 
     // ensure that values persist after reload
     await driver.navigate().refresh();
     //await $.injectIntoPage();
     await gu.waitForDocToLoad();
     await gu.hideBanners();
-    await assertHVZ(0, true, true, true);     // all on
-    await assertHVZ(1, false, false, false);  // all off
-    await assertHVZ(2, false, true, true);    // -h +v +z
+    await assertHVCZ(0, true, true, true, true);     // all on
+    await assertHVCZ(1, false, false, false, false);  // all off
+    await assertHVCZ(2, false, true, false, true);    // -h +v -c +z
   });
 
 

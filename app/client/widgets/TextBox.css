@@ -3,15 +3,19 @@
 }
 
 @media not print {
-  .formula_field, .formula_field_edit {
+  .formula_field:has(.record-icon),
+  .formula_field_edit:has(> .record-icon),
+  .g_record_detail_value.formula_field:has(> .field-icon) {
     padding-left: 18px;
   }
   .formula_field_edit {
     color: #D0D0D0;
   }
 
-  .formula_field .field-icon,
-  .formula_field_edit::before,
+  .formula_field .record-icon,
+  .g_record_detail_value.formula_field .field-icon,
+  .formula_field_edit:has(> .record-icon)::before,
+  .formula_editor.formula_field_edit::before,
   .formula_field_sidepane::before {
     /* based on standard icon styles */
     content: "";
@@ -30,9 +34,11 @@
     cursor: pointer;
   }
 
+  .g_record_detail_value.formula_field .field-icon,
   .formula_field .field-icon, .formula_field_edit::before {
     background-color: var(--grist-theme-formula-icon, #D0D0D0);
   }
+  .transform_field.formula_field > .field-icon,
   .formula_field_edit:not(.readonly)::before {
     background-color: var(--grist-color-cursor);
   }

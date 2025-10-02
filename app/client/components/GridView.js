@@ -1167,6 +1167,7 @@ GridView.prototype.buildDom = function() {
   let vHorizontalGridlines = v.optionsObj.prop('horizontalGridlines');
   let vVerticalGridlines   = v.optionsObj.prop('verticalGridlines');
   let vZebraStripes        = v.optionsObj.prop('zebraStripes');
+  let vFormulaIcon        = v.optionsObj.prop('formulaIcon');
 
   var renameCommands = {
     nextField: function() {
@@ -1580,8 +1581,12 @@ GridView.prototype.buildDom = function() {
             //a cell in that row becomes larger
             kd.style('borderRightWidth', v.borderWidthPx),
             kd.toggleClass('selected', isSelected),
-            // Optional icon. Currently only use to show formula icon.
-            dom('div.field-icon'),
+            // The field-icon is presently only used for "=" in formula fields.
+            // The record-icon class isolates the "=" being applied to the formula fields.
+            // Allowing additional field icons to be added as field-icon class if desired.
+            dom('div.field-icon',
+              kd.toggleClass('record-icon', vFormulaIcon), // Also grabbed from v.optionsObj at start of GridView buildDom
+            ),
             fieldBuilder.buildDomWithCursor(row, isCellActive, isCellSelected),
             dom('div.selection'),
           );
