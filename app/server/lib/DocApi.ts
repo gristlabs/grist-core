@@ -1602,19 +1602,7 @@ export class DocWorkerApi {
     }));
 
     this._app.post('/api/docs/:docId/copy', canView, expressWrap(async (req, res) => {
-      const userId = getUserId(req);
-
-      const parameters: {[key: string]: any} = req.body;
-
-      const docId = await this._copyDocToWorkspace(req, {
-        userId,
-        sourceDocumentId: stringParam(req.params.docId, 'docId'),
-        workspaceId: integerParam(parameters.workspaceId, 'workspaceId'),
-        documentName: stringParam(parameters.documentName, 'documentName'),
-        asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
-      });
-
-      return res.status(200).json(docId);
+      throw new Error('who uses this');
     }));
 
     /**
