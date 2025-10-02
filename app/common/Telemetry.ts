@@ -175,6 +175,10 @@ export const TelemetryContracts: TelemetryContracts = {
         description: 'The formula suggested by the AI Assistant, if present.',
         dataType: 'string',
       },
+      developerPromptVersion: {
+        description: 'The developer prompt version. May be either `"default"` or `"new-document"`.',
+        dataType: 'string',
+      },
     },
   },
   assistantSave: {
