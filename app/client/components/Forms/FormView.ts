@@ -1,6 +1,5 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import {Cursor} from 'app/client/components/Cursor';
 import {cleanFormLayoutSpec, FormLayoutNode, FormLayoutNodeType} from 'app/client/components/FormRenderer';
 import * as components from 'app/client/components/Forms/elements';
 import {NewBox} from 'app/client/components/Forms/Menu';
@@ -8,19 +7,16 @@ import {BoxModel, LayoutModel, parseBox, Place} from 'app/client/components/Form
 import * as style from 'app/client/components/Forms/styles';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';
-import {Disposable} from 'app/client/lib/dispose';
 import {AsyncComputed, makeTestId, stopEvent} from 'app/client/lib/domUtils';
 import {makeT} from 'app/client/lib/localization';
 import {localStorageBoolObs} from 'app/client/lib/localStorageObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {ShareRec} from 'app/client/models/entities/ShareRec';
 import {InsertColOptions} from 'app/client/models/entities/ViewSectionRec';
 import {reportError} from 'app/client/models/errors';
 import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {jsonObservable, SaveableObjObservable} from 'app/client/models/modelUtil';
-import {SortedRowSet} from 'app/client/models/rowset';
 import {hoverTooltip, showTransientTooltip} from 'app/client/ui/tooltips';
 import {cssButton} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
@@ -30,10 +26,8 @@ import {confirmModal} from 'app/client/ui2018/modals';
 import {INITIAL_FIELDS_COUNT} from 'app/common/Forms';
 import {isOwner} from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
-import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, Holder, IDomArgs, MultiHolder, Observable} from 'grainjs';
 import * as ko from 'knockout';
-import defaults from 'lodash/defaults';
 import isEqual from 'lodash/isEqual';
 import {defaultMenuOptions, IOpenController, setPopupToCreateDom} from 'popweasel';
 import {v4 as uuidv4} from 'uuid';
@@ -42,17 +36,11 @@ const t = makeT('FormView');
 
 const testId = makeTestId('test-forms-');
 
-export class FormView extends Disposable {
-  public viewPane: HTMLElement;
-  public gristDoc: GristDoc;
-  public viewSection: ViewSectionRec;
+export class FormView extends BaseView {
   public selectedBox: Computed<BoxModel | null>;
   public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
   public disableDeleteSection: Computed<boolean>;
 
-  protected sortedRows: SortedRowSet;
-  protected tableModel: DataTableModel;
-  protected cursor: Cursor;
   protected menuHolder: Holder<any>;
   protected bundle: (clb: () => Promise<void>) => Promise<void>;
 
@@ -72,8 +60,8 @@ export class FormView extends Disposable {
   private _openingForm: Observable<boolean>;
   private _formEditorBodyElement: HTMLElement;
 
-  public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    BaseView.call(this as any, gristDoc, viewSectionModel, {'addNewRow': false});
+  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
+    super(gristDoc, viewSectionModel, {'addNewRow': false});
     this.menuHolder = Holder.create(this);
 
     // We will store selected box here.
@@ -423,7 +411,8 @@ export class FormView extends Disposable {
     this._openingForm = Observable.create(this, false);
 
     // Last line, build the dom.
-    this.viewPane = this.autoDispose(this.buildDom());
+    this.viewPane = this.buildDom();
+    this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
   }
 
   public insertColumn(colId?: string | null, options?: InsertColOptions) {
@@ -973,10 +962,6 @@ export function buildDefaultFormLayout(fields: ViewFieldRec[]): FormLayoutNode {
     ],
   };
 }
-
-// Getting an ES6 class to work with old-style multiple base classes takes a little hacking. Credits: ./ChartView.ts
-defaults(FormView.prototype, BaseView.prototype);
-Object.assign(FormView.prototype, BackboneEvents);
 
 // Default values when form is reset.
 const FORM_TITLE = t("# **Form Title**");

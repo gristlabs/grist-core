@@ -4,10 +4,10 @@ import {ChartView} from 'app/client/components/ChartView';
 import * as commands from 'app/client/components/commands';
 import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
-import * as DetailView from 'app/client/components/DetailView';
+import DetailView from 'app/client/components/DetailView';
 import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 import {FormView} from 'app/client/components/Forms/FormView';
-import * as GridView from 'app/client/components/GridView';
+import GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {Layout} from 'app/client/components/Layout';
 import {LayoutEditor} from 'app/client/components/LayoutEditor';
@@ -80,7 +80,7 @@ export class ViewSectionHelper extends Disposable {
       const Cons = getInstanceConstructor(use(vs.parentKey));
       this._instance.clear();
       if (table.getRowId()) {
-        this._instance.autoDispose(Cons.create(gristDoc, vs));
+        this._instance.autoDispose(Cons.create(null, gristDoc, vs));
       }
       vs.viewInstance(this._instance.get());
     }));

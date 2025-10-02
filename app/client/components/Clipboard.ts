@@ -29,6 +29,7 @@ import * as tableUtil from 'app/client/lib/tableUtil';
 import type {App} from 'app/client/ui/App';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {confirmModal} from 'app/client/ui2018/modals';
+import type {DocAction} from 'app/common/DocActions';
 import type {TableData} from 'app/common/TableData';
 import {tsvDecode} from 'app/common/tsvFormat';
 import {Disposable, dom, styled} from 'grainjs';
@@ -43,9 +44,12 @@ export interface PasteObj {
   tableId: string;
   data: TableData;
   selection: CopySelection;
-  cutCallback?: () => unknown;
+  cutCallback?: CutCallback;
 }
 
+export type PasteData = string[][] | tableUtil.RichPasteObject[][];
+
+export type CutCallback = () => DocAction|null;
 
 export class Clipboard extends Disposable {
   public static commands = {
@@ -272,8 +276,6 @@ const FOCUS_TARGET_TAGS = new Set([
   'SELECT',
   'IFRAME',
 ]);
-
-type PasteData = string[][] | tableUtil.RichPasteObject[][];
 
 /**
  * Returns data formatted as a 2D array of strings, suitable for pasting within Grist.

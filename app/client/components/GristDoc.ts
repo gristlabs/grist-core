@@ -164,6 +164,7 @@ export interface GristDoc extends DisposableWithEvents {
   docData: DocData;
   docInfo: DocInfoRec;
   docPluginManager: DocPluginManager;
+  querySetManager: QuerySetManager;
   rightPanelTool: Observable<IExtraTool | null>;
   isReadonly: Observable<boolean>;
   isReadonlyKo: IKnockoutObservable<boolean>;
@@ -573,13 +574,13 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     // Importer takes a function for creating previews.
     const createPreview = (vs: ViewSectionRec) => {
-      const preview = GridView.create(this, vs, true);
+      const preview = GridView.create(this, this, vs, true);
       // We need to set the instance to the newly created section. This is important, as
       // GristDoc is responsible for changing the cursor position not the cursor itself. Final
       // cursor position is determined by finding active (or visible) section and passing this
       // command (setCursor) to its instance.
       vs.viewInstance(preview);
-      preview.autoDisposeCallback(() => vs.viewInstance(null));
+      preview.onDispose(() => vs.viewInstance(null));
       return preview;
     };
 

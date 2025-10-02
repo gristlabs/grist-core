@@ -4,7 +4,6 @@ import * as commands from 'app/client/components/commands';
 import {ContentBox} from 'app/client/components/Layout';
 import type {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {detachNode} from 'app/client/lib/dom';
 import {Signal} from 'app/client/lib/Signal';
 import {urlState} from 'app/client/models/gristUrlState';
 import {TransitionWatcher} from 'app/client/ui/transitions';
@@ -1017,8 +1016,10 @@ function syncHover(obs: Signal) {
  */
 function detachedNode(node: Observable<HTMLElement|null>) {
   return [
+    // When disposing DOM, grainjs goes over children first, then the parent. This dummy node will
+    // gets its disposer called, which will detach node before the disposer gets to it.
+    cssHidden(dom.onDispose(() => node.get()?.remove())),
     dom.maybe(node, n => n),
-    dom.onDispose(() => node.get() && detachNode(node.get()))
   ];
 }
 

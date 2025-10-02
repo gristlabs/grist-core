@@ -3,14 +3,11 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
         uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
-import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
-import DataTableModel from 'app/client/models/DataTableModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
-import {SortedRowSet} from 'app/client/models/rowset';
 import {ChartOptions, ViewSectionOptions} from 'app/client/models/entities/ViewSectionRec';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
@@ -26,13 +23,11 @@ import {nativeCompare, unwrap} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
-import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
         IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
 import * as ko from 'knockout';
 import clamp = require('lodash/clamp');
 import debounce = require('lodash/debounce');
-import defaults = require('lodash/defaults');
 import defaultsDeep = require('lodash/defaultsDeep');
 import isNumber = require('lodash/isNumber');
 import merge = require('lodash/merge');
@@ -161,15 +156,7 @@ const LIST_TYPES = ['ChoiceList', 'RefList'];
 /**
  * ChartView component displays created charts.
  */
-export class ChartView extends Disposable {
-  public viewPane: Element;
-
-  // These elements are defined in BaseView, from which we inherit with some hackery.
-  protected viewSection: ViewSectionRec;
-  protected sortedRows: SortedRowSet;
-  protected tableModel: DataTableModel;
-  protected gristDoc: GristDoc;
-
+export class ChartView extends BaseView {
   private _chartType: ko.Observable<string>;
   private _options: ObjObservable<ViewSectionOptions>;
   private _chartDom: HTMLElement;
@@ -181,15 +168,14 @@ export class ChartView extends Disposable {
   // peek section's sort spec
   private get _sortSpec() { return this.viewSection.activeSortSpec.peek(); }
 
-  public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    BaseView.call(this as any, gristDoc, viewSectionModel);
-
-    this._chartDom = this.autoDispose(this.buildDom());
-
-    this._resize = this.autoDispose(Delay.untilAnimationFrame(this._resizeChart, this));
+  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
+    super(gristDoc, viewSectionModel);
 
     // Note that .viewPane is used by ViewLayout to insert the actual DOM into the document.
-    this.viewPane = this._chartDom;
+    this._chartDom = this.viewPane = this.buildDom();
+    this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
+
+    this._resize = this.autoDispose(Delay.untilAnimationFrame(this._resizeChart, this));
 
     this._chartType = this.viewSection.chartTypeDef;
     this._options = this.viewSection.optionsObj;
@@ -224,20 +210,18 @@ export class ChartView extends Disposable {
     Plotly.relayout(this._chartDom, {}).catch(reportError);
   }
 
-  protected onTableLoaded() {
-    (BaseView.prototype as any).onTableLoaded.call(this);
-    this._update();
+  public onResize() {
+    this._resize();
   }
 
-  protected onResize() {
-    this._resize();
+  protected onTableLoaded() {
+    super.onTableLoaded();
+    this._update();
   }
 
   protected buildDom() {
     return dom('div.chart_container', testId('container'));
   }
-
-  private listenTo(...args: any[]): void { /* replaced by Backbone */ }
 
   private async _updateView() {
     if (this.isDisposed()) { return; }
@@ -462,10 +446,6 @@ function extractErrorBars(series: Series[], options: ChartOptions): Map<Series, 
   }
   return result;
 }
-
-// Getting an ES6 class to work with old-style multiple base classes takes a little hacking.
-defaults(ChartView.prototype, BaseView.prototype);
-Object.assign(ChartView.prototype, BackboneEvents);
 
 /**
  * The grainjs component for side-pane configuration options for a Chart section.

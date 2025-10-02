@@ -1,7 +1,5 @@
 declare module "app/client/components/AceEditor";
 declare module "app/client/components/CodeEditorPanel";
-declare module "app/client/components/DetailView";
-declare module "app/client/components/GridView";
 declare module "app/client/lib/Mousetrap";
 declare module "app/client/lib/dom";
 declare module "app/client/lib/koDom";
@@ -9,120 +7,31 @@ declare module "app/client/lib/koForm";
 
 // tslint:disable:max-classes-per-file
 
-declare module "app/client/components/Base" {
-  import {GristDoc} from 'app/client/components/GristDoc';
-
-  namespace Base { }
-  class Base {
-    public static setBaseFor(ctor: any): void;
-    constructor(gristDoc: GristDoc);
-  }
-  export = Base;
-}
-
-declare module "app/client/components/BaseView" {
-
-  import {Cursor} from 'app/client/components/Cursor';
-  import {GristDoc} from 'app/client/components/GristDoc';
-  import {IGristUrlState} from 'app/common/gristUrls';
-  import {SelectionSummary} from 'app/client/components/SelectionSummary';
+declare module "app/client/components/RecordLayout" {
   import {Disposable} from 'app/client/lib/dispose';
-  import BaseRowModel from "app/client/models/BaseRowModel";
-  import {DataRowModel} from 'app/client/models/DataRowModel';
-  import {LazyArrayModel} from "app/client/models/DataTableModel";
-  import DataTableModel from "app/client/models/DataTableModel";
-  import {ViewFieldRec, ViewSectionRec} from "app/client/models/DocModel";
-  import {FilterInfo} from 'app/client/models/entities/ViewSectionRec';
-  import {SortedRowSet} from 'app/client/models/rowset';
-  import {IColumnFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
-  import {FieldBuilder} from "app/client/widgets/FieldBuilder";
-  import {CursorPos} from 'app/plugin/GristAPI';
-  import {DomArg} from 'grainjs';
-  import {IOpenController} from 'popweasel';
 
-  interface Options {
-    init?: string;
-    state?: any;
+  namespace RecordLayout {
+    interface NewField {
+      isNewField: true;
+      colRef: number;
+      label: string;
+      value: string;
+    }
   }
 
-  namespace BaseView {}
-  class BaseView extends Disposable {
-    public viewSection: ViewSectionRec;
-    public viewPane: any;
-    public viewData: LazyArrayModel<BaseRowModel>;
-    public gristDoc: GristDoc;
-    public cursor: Cursor;
-    public sortedRows: SortedRowSet;
-    public rowSource: RowSource;
-    public activeFieldBuilder: ko.Computed<FieldBuilder>;
-    public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
-    public disableEditing: ko.Computed<boolean>;
-    public isTruncated: ko.Observable<boolean>;
-    public tableModel: DataTableModel;
-    public selectionSummary?: SelectionSummary;
-    public currentEditingColumnIndex: ko.Observable<number>;
-    public enableAddRow: ko.Computed<boolean>;
-
-    constructor(gristDoc: GristDoc, viewSectionModel: any, options?: {addNewRow?: boolean, isPreview?: boolean});
-    public setCursorPos(cursorPos: CursorPos): void;
-    public createFilterMenu(ctl: IOpenController, filterInfo: FilterInfo,
-      options?: IColumnFilterMenuOptions): HTMLElement;
-    public buildTitleControls(): DomArg;
-    public getLoadingDonePromise(): Promise<void>;
-    public activateEditorAtCursor(options?: Options): void;
-    public onResize(): void;
-    public onRowResize(rowModels: BaseRowModel[]): void;
-    public prepareToPrint(onOff: boolean): void;
-    public moveEditRowToCursor(): DataRowModel;
-    public scrollToCursor(sync: boolean): Promise<void>;
-    public getAnchorLinkForSection(sectionId: number): IGristUrlState;
-    public viewSelectedRecordAsCard(): void;
-    public isRecordCardDisabled(): boolean;
-    public insertRow(): Promise<number>;
-    public onNewRecordRequest?(): void;
-  }
-  export = BaseView;
-}
-
-declare module "app/client/components/DetailView" {
-  class DetailView extends BaseView {
+  class RecordLayout extends Disposable {
     public static create(...args: any[]): any;
 
-    public recordLayout: any;
+    public isEditingLayout: ko.Observable<boolean>;
+    public editIndex: ko.Observable<number>;
+    public layoutEditor: ko.Observable<unknown|null>;
+
+    public getContainingRow(elem: Element, optContainer?: Element): DataRowModel;
+    public getContainingField(elem: Element, optContainer?: Element): ViewFieldRec;
+    public editLayout(rowIndex: number): void;
+    public buildLayoutDom(row: DataRowModel|undefined, optCreateEditor?: boolean): HTMLElement;
   }
-
-  namespace DetailView {}
-
-  export = DetailView;
-}
-
-declare module 'app/client/components/GridView' {
-  import BaseView from 'app/client/components/BaseView';
-  import {GristDoc} from 'app/client/components/GristDoc';
-  import {ColInfo, NewColInfo} from 'app/client/models/entities/ViewSectionRec';
-
-  interface InsertColOptions {
-    colInfo?: ColInfo;
-    index?: number;
-    skipPopup?: boolean;
-    onPopupClose?: () => void;
-  }
-
-  namespace GridView {}
-
-  class GridView extends BaseView {
-    public static create(...args: any[]): any;
-
-    public gristDoc: GristDoc;
-
-    constructor(gristDoc: GristDoc, viewSectionModel: any, isPreview?: boolean);
-    public insertColumn(
-      colId?: string|null,
-      options?: InsertColOptions,
-    ): Promise<NewColInfo>;
-    public showColumn(colRef: number, index?: number): Promise<void>;
-  }
-  export = GridView;
+  export = RecordLayout;
 }
 
 declare module "app/client/components/ViewConfigTab" {
@@ -297,7 +206,6 @@ declare module "app/client/models/MetaTableModel" {
 
 declare module "app/client/models/DataTableModel" {
   import {KoArray} from "app/client/lib/koArray";
-  import BaseRowModel from "app/client/models/BaseRowModel";
   import {DocModel, TableRec} from "app/client/models/DocModel";
   import {TableQuerySets} from 'app/client/models/QuerySet';
   import {SortedRowSet} from "app/client/models/rowset";
@@ -311,6 +219,7 @@ declare module "app/client/models/DataTableModel" {
       getRowIndex(rowId: UIRowId): number;
       getRowIndexWithSub(rowId: UIRowId): number;
       getRowModel(rowId: UIRowId): T|undefined;
+      setFloatingRowModel(rowModel: T, index: number|null): void;
     }
   }
 
@@ -319,9 +228,9 @@ declare module "app/client/models/DataTableModel" {
     public tableQuerySets: TableQuerySets;
 
     constructor(docModel: DocModel, tableData: TableData, tableMetaRow: TableRec);
-    public createLazyRowsModel(sortedRowSet: SortedRowSet, optRowModelClass: any):
-      DataTableModel.LazyArrayModel<BaseRowModel>;
-    public createFloatingRowModel(optRowModelClass?: any): BaseRowModel;
+    public createLazyRowsModel(sortedRowSet: SortedRowSet, optRowModelClass?: any):
+      DataTableModel.LazyArrayModel<DataRowModel>;
+    public createFloatingRowModel(optRowModelClass?: any): DataRowModel;
   }
   export = DataTableModel;
 }

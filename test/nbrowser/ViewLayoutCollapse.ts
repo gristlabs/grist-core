@@ -39,7 +39,7 @@ describe("ViewLayoutCollapse", function() {
     await driver.findContent('.test-right-panel button', /Change Widget/).click();
 
     // Click the summary icon next to the table name.
-    await driver.findContent('.test-wselect-table', /Table1/).find('.test-wselect-pivot').doClick();
+    await driver.findContentWait('.test-wselect-table', /Table1/, 50).find('.test-wselect-pivot').doClick();
 
     // But don't select any column, just click save.
     await driver.find('.test-wselect-addBtn').click();
@@ -250,14 +250,16 @@ describe("ViewLayoutCollapse", function() {
     await gu.sendKeys(Key.ESCAPE);
 
     // Make sure we see 30 records in Table2.
-    const count = await driver.executeScript(`
-      const section = Array.from(document.querySelectorAll('.test-widget-title-text'))
-                           .find(e => e.textContent === 'TABLE2')
-                           .closest('.viewsection_content');
-      return Array.from(section.querySelectorAll('.gridview_data_row_num')).length;
-    `);
+    await gu.waitToPass(async () => {
+      const count = await driver.executeScript(`
+        const section = Array.from(document.querySelectorAll('.test-widget-title-text'))
+                             .find(e => e.textContent === 'TABLE2')
+                             .closest('.viewsection_content');
+        return Array.from(section.querySelectorAll('.gridview_data_row_num')).length;
+      `);
 
-    assert.equal(count, 30 + 1);
+      assert.equal(count, 30 + 1);
+    }, 100);
 
     await revert();
   });
