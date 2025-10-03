@@ -248,10 +248,19 @@ export class RegionFocusSwitcher extends Disposable {
     const targetsMain = targetRegionId === 'main';
 
     // When not targeting the main panel, we don't always want to focus the given region _on click_.
+    //
     // We only do it if clicking an empty area in the panel, or a focusable element like an input.
-    // Otherwise, we assume clicks are on elements like buttons or links,
-    // and we don't want to lose focus of the main section in that case.
-    // For example I don't want to focus out current table if I just click the "undo" button in the header.
+    // Because we kind of expect these behaviors usually on the web: I click on
+    // an empty space, and I can start using Tab to navigate around the area I clicked ;
+    // I click inside an input, and I can use Tab to navigate to the following ones.
+    //
+    // Otherwise, we assume[*] clicks are on elements like buttons or links,
+    // and we don't want to lose focus of current section in this case.
+    // For example I don't want to focus out current table if just click the "undo" button in the header.
+    //
+    // [*]: for now, we "assume" because lots of interactive elements in Grist are divs with click handlers.
+    // So we can't reliably consider that clicking on a div is clicking on a "empty area".
+    // Ideally (WIP) we'd have a more reliable way to detect "buttons" and this code could be simplified.
     const isFocusableElement = isMouseFocusableElement(event.target) || closestRegion === event.target;
 
     if (targetsMain || !isFocusableElement) {
