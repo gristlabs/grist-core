@@ -88,7 +88,9 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "La table {{tableId}} a été ensuite supprimée dans l'action #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{action.actionNum}}",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{action.actionNum}}",
-        "All tables": "Toutes les tables"
+        "All tables": "Toutes les tables",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{actionNum}}"
     },
     "AddNewButton": {
         "Add New": "Nouveau"
@@ -653,7 +655,8 @@
         "Import": "Importer"
     },
     "LeftPanelCommon": {
-        "Help Center": "Centre d'aide"
+        "Help Center": "Centre d'aide",
+        "Accessibility": "Accessibilité"
     },
     "MakeCopyMenu": {
         "Replacing the original requires editing rights on the original document.": "Le remplacement de l'original nécessite des droits d'édition sur le document d'origine.",
@@ -892,7 +895,8 @@
         "API Console": "Console de l'API",
         "context menu - Access Rules": "menu contextuel - Règles d'Accès",
         "Delete document tour": "Supprimer la visite de document",
-        "Preview the tutorial": "Prévisualiser le tutoriel"
+        "Preview the tutorial": "Prévisualiser le tutoriel",
+        "Proposed Changes": "Suggestions de modifications"
     },
     "TopBar": {
         "Manage Team": "Gestion de l'équipe",
@@ -2242,5 +2246,34 @@
         "Start with row": "Démarrer avec un rang",
         "Character encoding. See [the supported codecs]({{link}})": "Encodage de caractère. Voir [les encodages supportés]({{link}})",
         "Convert quoted fields": "Convertir les champs entre guillemets"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " ou ",
+        "\"Regions\" are what we call the different parts of the user interface:": "Les \"régions\" sont les différentes zones de l'interface :",
+        "Accessibility": "Accessibilité",
+        "Close": "Fermer",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "enfin, le panneau latéral droit – ou panneau de création – est atteignable au clavier uniquement via son propre raccourci, et n'est pas inclus dans le cycle de régions suivantes et précédentes.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Focalisez d'autres parties de l'interface avec ces raccourcis clavier :",
+        "High contrast theme": "Thème contraste élevé",
+        "Keyboard navigation": "Navigation au clavier",
+        "On a document page, keyboard navigation is first locked on the current widget.": "Dans un document, la navigation au clavier est d'abord bloquée dans la vue active.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "dans un document, chaque [vue]({{supportPageUrl}}) est une région qui peut être focalisée,",
+        "On non-document pages, the main content area is a region.": "sur les autres pages, la zone affichant le contenu principal est une région,",
+        "Other important keyboard shortcuts": "Autres raccourcis clavier importants",
+        "The left panel, home of the main navigation.": "le panneau latéral gauche, qui contient la navigation principale,",
+        "The top panel, or the document header.": "le panneau supérieur, qui est l'entête du document,",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "Pour voir les autres thèmes disponibles, consultez vos {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Utiliser le thème contraste élevé (apparence claire)",
+        "You are currently **not using** the high contrast theme.": "Actuellement, vous **n'utilisez pas** le thème contraste élevé.",
+        "You are currently using the high contrast theme.": "Actuellement, vous utilisez le thème contraste élevé.",
+        "profile settings": "paramètres de compte",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Afficher les paramètres d'accessibilité (cette boîte de dialogue)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Basculer la focalisation clavier depuis et vers le panneau de création",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Focaliser la région suivante",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Focaliser la région précédente",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers"
+    },
+    "ProposedChangesPage": {
+        "Proposed Changes": "Suggestions de modifications"
     }
 }
