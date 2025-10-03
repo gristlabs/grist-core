@@ -417,7 +417,25 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
   }
 
   public getDocAPI(): DocAPI {
-    throw new Error('doc api not implemented');
+    // Return a mock implementation of DocAPI, just adding
+    // methods as needed.
+    const api: Partial<DocAPI> = {
+      async getAttachmentTransferStatus() {
+        return {
+          status: {
+            pendingTransferCount: 0,
+            isRunning: false,
+            failures: 0,
+            successes: 0,
+          },
+          locationSummary: 'internal',
+        };
+      },
+      getDownloadUrl() {
+        return '/mock/download/url';
+      },
+    };
+    return api as DocAPI;
   }
 
   public fetchApiKey(): Promise<string> {

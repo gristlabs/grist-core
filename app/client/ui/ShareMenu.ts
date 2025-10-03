@@ -304,7 +304,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
-        menuItem(() => downloadDocModal(doc, pageModel),
+        menuItem(() => downloadDocModal(doc, pageModel.appModel),
         menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
     ),
     menuItem(
