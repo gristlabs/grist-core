@@ -36,7 +36,7 @@ import {GridOptions} from 'app/client/ui/GridOptions';
 import {textarea} from 'app/client/ui/inputs';
 import {attachPageWidgetPicker, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {PredefinedCustomSectionConfig} from "app/client/ui/PredefinedCustomSectionConfig";
-import {cssConfigContainer, cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {cssConfigContainer, cssGroupLabel, cssLabel, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {buildConfigContainer, getFieldType} from 'app/client/ui/RightPanelUtils';
 import {rowHeightConfigTable} from 'app/client/ui/RowHeightConfig';
 import {linkId, NoLink, selectBy} from 'app/client/ui/selectBy';
@@ -50,7 +50,7 @@ import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
 import {select} from 'app/client/ui2018/menus';
-import {unstyledButton} from 'app/client/ui2018/unstyled';
+import {unstyledButton, unstyledUl} from 'app/client/ui2018/unstyled';
 import {FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {components} from 'app/common/ThemePrefs';
 import {isFullReferencingType} from "app/common/gristTypes";
@@ -494,6 +494,7 @@ export class RightPanel extends Disposable {
       this._disableIfReadonly(),
       dom.maybe(use => !use(activeSection.isRecordCard), () => [
         cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
+          {for: "right-widget-title-input"},
           dom.style('margin-bottom', '14px'),
         ),
         cssRow(cssTextInput(
@@ -504,6 +505,7 @@ export class RightPanel extends Disposable {
             const isSummaryTable = use(use(activeSection.table).summarySourceTable) !== 0;
             return isRawTable && isSummaryTable;
           }),
+          {id: "right-widget-title-input"},
           testId('right-widget-title')
         )),
 
@@ -521,7 +523,7 @@ export class RightPanel extends Disposable {
       ),
 
       dom.maybe((use) => ['detail', 'single'].includes(use(this._pageWidgetType)!), () => [
-        cssLabel(t("Theme")),
+        cssGroupLabel(t("Theme")),
         dom('div',
           vct._buildThemeDom(),
           vct._buildLayoutDom())
@@ -534,20 +536,22 @@ export class RightPanel extends Disposable {
 
       domComputed((use) => {
         if (use(this._pageWidgetType) !== 'record') { return null; }
-        return [
+        return dom('div', {role: 'group', 'aria-labelledby': 'row-style-label'},
           cssSeparator(),
-          cssLabel(t("ROW STYLE")),
+          cssGroupLabel(t("ROW STYLE"), {id: 'row-style-label'}),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
             dom.create(ViewPane.ConditionalStyle, t("Row Style"), activeSection, this._gristDoc)
           ))
-        ];
+        );
       }),
 
-      dom.maybe((use) => use(this._pageWidgetType) === 'chart', () => [
-        cssLabel(t("CHART TYPE")),
-        vct._buildChartConfigDom(),
-      ]),
+      dom.maybe((use) => use(this._pageWidgetType) === 'chart', () =>
+        dom('div', {role: 'group', 'aria-label': t('Chart options')},
+          cssGroupLabel(t("CHART TYPE")),
+          vct._buildChartConfigDom(),
+        )
+      ),
 
       dom.maybe((use) => use(this._pageWidgetType) === 'custom', () => {
         const parts = vct._buildCustomTypeItems() as any[];
@@ -831,38 +835,40 @@ export class RightPanel extends Disposable {
     });
     return [
       this._disableIfReadonly(),
-      cssLabel(t("DATA TABLE")),
-      cssRow(
-        cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
-        cssContent(dom.text((use) => use(use(table).primaryTableId)),
-                   testId('pwc-table'))
-      ),
-      dom(
-        'div',
-        cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"))),
-        cssRow(domComputed(groupedBy, (cols) => cssList(cols.map((c) => (
-          cssListItem(dom.text(c.label),
-                      testId('pwc-groupedBy-col'))
-        ))))),
+      dom('div', {role: 'group', 'aria-labelledby': 'data-table-label'},
+        cssGroupLabel(t("DATA TABLE"), {id: 'data-table-label'}),
+        cssRow(
+          cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
+          cssContent(dom.text((use) => use(use(table).primaryTableId)),
+                    testId('pwc-table'))
+        ),
+        dom(
+          'div',
+          cssRow(cssIcon('Pivot'), cssDataLabel(t("GROUPED BY"), {id: 'data-grouped-by-label'})),
+          cssRow(domComputed(groupedBy, (cols) => cssList(
+            cols.map((c) => cssListItem(dom.text(c.label), testId('pwc-groupedBy-col'))),
+            {'aria-labelledby': 'data-grouped-by-label'}
+          ))),
 
-        testId('pwc-groupedBy'),
-        // hide if not a summary table
-        dom.hide((use) => !use(use(table).summarySourceTable)),
-      ),
+          testId('pwc-groupedBy'),
+          // hide if not a summary table
+          dom.hide((use) => !use(use(table).summarySourceTable)),
+        ),
 
-      dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
-        cssButtonRow(primaryButton(t("Edit Data Selection"), this._createPageWidgetPicker(),
-          testId('pwc-editDataSelection')),
-          dom.maybe(
-            use => Boolean(use(use(activeSection.table).summarySourceTable)),
-            () => basicButton(
-              t("Detach"),
-              dom.on('click', () => this._gristDoc.docData.sendAction(
-                ["DetachSummaryViewSection", activeSection.getRowId()])),
-              testId('detach-button'),
-            )),
-          cssRow.cls('-top-space'),
-      )),
+        dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
+          cssButtonRow(primaryButton(t("Edit Data Selection"), this._createPageWidgetPicker(),
+            testId('pwc-editDataSelection')),
+            dom.maybe(
+              use => Boolean(use(use(activeSection.table).summarySourceTable)),
+              () => basicButton(
+                t("Detach"),
+                dom.on('click', () => this._gristDoc.docData.sendAction(
+                  ["DetachSummaryViewSection", activeSection.getRowId()])),
+                testId('detach-button'),
+              )),
+            cssRow.cls('-top-space'),
+        )),
+      ),
 
       // TODO: "Advanced settings" is for "on-demand" marking of tables. This is now a deprecated feature. UIRowId
       // is only shown for tables that are marked as "on-demand""
@@ -891,10 +897,11 @@ export class RightPanel extends Disposable {
         // TODO: sections should be listed following the order of appearance in the view layout (ie:
         // left/right - top/bottom);
         return selectorFor.length ? [
-          cssLabel(t("SELECTOR FOR"), testId('selector-for')),
-          cssRow(cssList(selectorFor.map((sec) => [
-            this._buildSectionItem(sec)
-          ]))),
+          cssGroupLabel(t("SELECTOR FOR"), {id: 'data-selector-for-label'}, testId('selector-for')),
+          cssRow(cssList(
+            {'aria-labelledby': 'data-selector-for-label'},
+            selectorFor.map((sec) => this._buildSectionItem(sec)),
+          )),
         ] : null;
       }),
 
@@ -1353,8 +1360,7 @@ const cssContent = styled('div', `
   min-width: 1em;
 `);
 
-const cssList = styled('div', `
-  list-style: none;
+const cssList = styled(unstyledUl, `
   width: 100%;
 `);
 

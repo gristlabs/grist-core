@@ -209,6 +209,7 @@ const cssSearch = styled('input', `
   padding: 0px;
   border: none;
   outline: none;
+  outline-offset: 3px;
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};

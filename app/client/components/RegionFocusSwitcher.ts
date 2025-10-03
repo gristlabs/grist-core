@@ -9,6 +9,7 @@ import * as commands from 'app/client/components/commands';
 import {App} from 'app/client/ui/App';
 import {GristDoc} from 'app/client/components/GristDoc';
 import BaseView from 'app/client/components/BaseView';
+import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
 import {components} from 'app/common/ThemePrefs';
 
 const t = makeT('RegionFocusSwitcher');
@@ -140,7 +141,7 @@ export class RegionFocusSwitcher extends Disposable {
           : 'region'),
       dom.attr('aria-label', ariaLabel),
       dom.attr(ATTRS.regionId, id),
-      dom.cls('kb-focus-highlighter-group', use => {
+      dom.cls(kbFocusHighlighterClass, use => {
         // highlight focused elements everywhere except in the grist doc views
         return id !== 'main'
           ? true

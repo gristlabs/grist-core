@@ -31,7 +31,7 @@ export function buildDescriptionConfig(
   );
 
   return [
-    cssLabel(t("DESCRIPTION")),
+    cssLabel(t("DESCRIPTION"), {for: `${options.testPrefix}-description-input`}),
     cssRow(
       editor = cssTextArea(fromKo(description),
         {
@@ -40,7 +40,7 @@ export function buildDescriptionConfig(
             await description.setAndSaveOrRevert(value);
           },
         },
-        { rows: '3' },
+        { rows: '3', id: `${options.testPrefix}-description-input` },
         testId(`${options.testPrefix}-description`),
         autoGrow(fromKo(description))
       )
