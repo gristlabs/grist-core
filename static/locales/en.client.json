@@ -221,7 +221,12 @@
         "Other Values": "Other Values",
         "Others": "Others",
         "Search": "Search",
-        "Search values": "Search values"
+        "Search values": "Search values",
+        "Clear search": "Clear search",
+        "Pin filter": "Pin filter",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Sort alphabetically (current: sorted by number of occurrences)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Sort by number of occurrences (current: sorted alphabetically)",
+        "Unpin filter": "Unpin filter"
     },
     "CustomSectionConfig": {
         " (optional)": " (optional)",
@@ -249,7 +254,8 @@
         "Last updated:": "Last updated:",
         "Missing description and author information.": "Missing description and author information.",
         "Reject": "Reject",
-        "Widget": "Widget"
+        "Widget": "Widget",
+        "Change custom widget": "Change custom widget"
     },
     "DataTables": {
         "Click to copy": "Click to copy",
@@ -495,7 +501,11 @@
         "Using separate settings": "Using separate settings"
     },
     "FilterConfig": {
-        "Add Column": "Add Column"
+        "Add Column": "Add Column",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Pin filter - {{- columnName}} column (current: unpinned)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Unpin filter - {{- columnName}} column (current: pinned)",
+        "remove filter - {{- columnName}} column": "remove filter - {{- columnName}} column",
+        "{{- columnName }} column filters": "{{- columnName }} column filters"
     },
     "FilterBar": {
         "SearchColumns": "Search columns",
@@ -812,7 +822,8 @@
         "No field selected": "No field selected",
         "Select a field in the form widget to configure.": "Select a field in the form widget to configure.",
         "Submit": "Submit",
-        "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded."
+        "Thank you! Your response has been recorded.": "Thank you! Your response has been recorded.",
+        "Chart options": "Chart options"
     },
     "RowContextMenu": {
         "Copy anchor link": "Copy anchor link",
@@ -869,7 +880,12 @@
         "Natural sort": "Natural sort",
         "Update Data": "Update Data",
         "Use choice position": "Use choice position",
-        "Search Columns": "Search columns"
+        "Search Columns": "Search columns",
+        "Remove sort setting - {{- columnName }} column": "Remove sort setting - {{- columnName }} column",
+        "Sort in ascending order (current: descending)": "Sort in ascending order (current: descending)",
+        "Sort in descending order (current: ascending)": "Sort in descending order (current: ascending)",
+        "Sort options - {{- columnName }} column": "Sort options - {{- columnName }} column",
+        "{{- columnName }} column": "{{- columnName }} column"
     },
     "SortFilterConfig": {
         "Filter": "FILTER",
@@ -993,7 +1009,9 @@
         "Visible {{label}}": "Visible {{label}}",
         "Hide {{label}}": "Hide {{label}}",
         "Hidden {{label}}": "Hidden {{label}}",
-        "Show {{label}}": "Show {{label}}"
+        "Show {{label}}": "Show {{label}}",
+        "Hide {{label}} (batch mode)": "Hide {{label}} (batch mode)",
+        "Show {{label}} (batch mode)": "Show {{label}} (batch mode)"
     },
     "WelcomeQuestions": {
         "Education": "Education",
@@ -1057,7 +1075,20 @@
         "Form not found": "Form not found",
         "Powered by": "Powered by",
         "Failed to log in.{{separator}}Please try again or contact support.": "Failed to log in.{{separator}}Please try again or contact support.",
-        "Sign-in failed{{suffix}}": "Sign-in failed{{suffix}}"
+        "Sign-in failed{{suffix}}": "Sign-in failed{{suffix}}",
+        "Manage settings": "Manage settings",
+        "Need Help?": "Need Help?",
+        "There was an error": "There was an error",
+        "Unsubscribed{{suffix}}": "Unsubscribed{{suffix}}",
+        "We could not unsubscribe you": "We could not unsubscribe you",
+        "You are unsubscribed": "You are unsubscribed",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "You can still unsubscribe from this document by updating your preferences in the document settings",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.",
+        "changes": "changes",
+        "comments": "comments",
+        "this document": "this document",
+        "your email": "your email"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Workspaces are available on team plans. ",
@@ -1115,7 +1146,8 @@
         "Find Previous ": "Find Previous ",
         "No results": "No results",
         "Search in document": "Search in document",
-        "Search": "Search"
+        "Search": "Search",
+        "Close search bar": "Close search bar"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Sending file to Google Drive"
@@ -1527,7 +1559,8 @@
         "Search all tables": "Search all tables"
     },
     "searchDropdown": {
-        "Search": "Search"
+        "Search": "Search",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Showing {{displayedCount}} of {{totalCount}} items. Search for more."
     },
     "SupportGristNudge": {
         "Close": "Close",
@@ -1706,7 +1739,11 @@
         "Mapped": "Mapped",
         "Select All": "Select All",
         "Unmap fields": "Unmap fields",
-        "Unmapped": "Unmapped"
+        "Unmapped": "Unmapped",
+        "Hide {{label}}": "Hide {{label}}",
+        "Hide {{label}} (batch mode)": "Hide {{label}} (batch mode)",
+        "Unmap {{label}}": "Unmap {{label}}",
+        "Unmap {{label}} (batch mode)": "Unmap {{label}} (batch mode)"
     },
     "Section": {
         "Insert section above": "Insert section above",
@@ -1838,7 +1875,8 @@
         "Search": "Search",
         "Select...": "Select...",
         "Submit": "Submit",
-        "Submitting…": "Submitting…"
+        "Submitting…": "Submitting…",
+        "Clear selection for: {{-inputLabel}}": "Clear selection for: {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Calendar",
@@ -2068,7 +2106,8 @@
         "Unpin": "Unpin",
         "Workspace": "Workspace",
         "context menu - {{- documentName }}": "context menu - {{- documentName }}",
-        "Documents list": "Documents list"
+        "Documents list": "Documents list",
+        "Download document...": "Download document..."
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
