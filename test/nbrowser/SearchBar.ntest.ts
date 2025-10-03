@@ -85,6 +85,8 @@ describe('SearchBar.ntest', function() {
 
     // Cmd-F should open the search box with old search term still available.
     await gu.sendKeys([$.MOD, 'f']);
+    // Wait a tiny bit for the search bar to open to prevent sometimes hitting Enter too early
+    await driver.sleep(200);
     assert.equal(await searchBox.val(), "quetz");
 
     // Hitting Enter should resume search.

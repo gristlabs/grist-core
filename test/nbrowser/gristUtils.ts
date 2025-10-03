@@ -1645,7 +1645,19 @@ export async function search(what: string) {
 
 export async function toggleSearchAll() {
   await closeTooltip();
-  await driver.find('.test-tb-search-option-all-pages').click();
+  const searchAllSelector = '.test-tb-search-option-all-pages';
+  if (!await driver.find(searchAllSelector).isDisplayed()) {
+    await openSearch();
+  }
+  await driver.find(searchAllSelector).click();
+}
+
+export async function openSearch() {
+  await waitToPass(async () => {
+    await searchIsClosed();
+    await driver.find('.test-tb-search-icon').doClick();
+    await waitToPass(searchIsOpened, 500);
+  }, 1500);
 }
 
 export async function closeSearch() {

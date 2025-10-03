@@ -9,6 +9,7 @@ export type CommandName =
   | 'find'
   | 'findNext'
   | 'findPrev'
+  | 'closeSearchBar'
   | 'historyBack'
   | 'historyForward'
   | 'reloadPlugins'
@@ -193,6 +194,11 @@ export const groups: CommendGroupDef[] = [{
       name: 'findPrev',
       keys: ['Mod+Shift+G'],
       desc: 'Find previous occurrence',
+    }, {
+      name: 'closeSearchBar',
+      keys: ['Mod+Enter'],
+      desc: 'When in the search bar, close it and focus the current match',
+      alwaysOn: true,
     }, {
       // Without this, when focus in on Clipboard, this shortcut would only move the cursor.
       name: 'historyBack',

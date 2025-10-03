@@ -201,16 +201,24 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },
       sortFilterMenuOpen: (sectionId?: number) => { this._openSortFilterMenu(sectionId); },
       expandSection: () => { this._expandSection(); },
+    };
+    // Register the cancel command only when necessary to prevent collapsing with other common "escape" usages.
+    // See commit message for detailed description of why it's important to deal with that this way, instead of simply
+    // testing whether this.maximized.get() is null in a cancel command registered through the commandGroup object.
+    const whenMaximizedCommandGroup = {
       cancel: () => {
-        if (this.maximized.get()) {
-          this.maximized.set(null);
-        }
+        this.maximized.set(null);
       }
     };
     this.autoDispose(commands.createGroup(
       commandGroup,
       this,
       ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in')
+    ));
+    this.autoDispose(commands.createGroup(
+      whenMaximizedCommandGroup,
+      this,
+      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in' && this.layout.maximizedLeaf() !== null)
     ));
 
     this.maximized = fromKo(this.layout.maximizedLeaf) as any;
