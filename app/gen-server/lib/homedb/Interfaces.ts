@@ -104,6 +104,7 @@ export interface DocAuthResult {
   access: roles.Role|null;    // The access level for the requesting user. Null on error.
   removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
                               // to removed documents for some purposes. Null on error.
+  disabled: boolean|null;     // Like removed, but users do not have access to it. Null on error.
   error?: ApiError;
   cachedDoc?: Document;       // For cases where stale info is ok.
 }

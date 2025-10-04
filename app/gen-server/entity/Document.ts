@@ -61,6 +61,9 @@ export class Document extends Resource {
   @Column({name: 'removed_at', type: nativeValues.dateTimeType, nullable: true})
   public removedAt: Date|null;
 
+  @Column({name: 'disabled_at', type: nativeValues.dateTimeType, nullable: true})
+  public disabledAt: Date|null;
+
   @Column({name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true})
   public gracePeriodStart: Date|null;
 
