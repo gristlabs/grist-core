@@ -118,7 +118,12 @@
         "Natural sort": "Природне сортування",
         "Update Data": "Оновити дані",
         "Use choice position": "Використовувати позицію вибору",
-        "Search Columns": "Стовпці пошуку"
+        "Search Columns": "Стовпці пошуку",
+        "Remove sort setting - {{- columnName }} column": "Вилучити налаштування сортування – стовпець {{- columnName }}",
+        "Sort in ascending order (current: descending)": "Сортувати за зростанням (поточний: спадання)",
+        "Sort in descending order (current: ascending)": "Сортувати за спаданням (поточний: за зростанням)",
+        "Sort options - {{- columnName }} column": "Параметри сортування – стовпець {{- columnName }}",
+        "{{- columnName }} column": "{{- columnName }} Стовпець"
     },
     "SortFilterConfig": {
         "Save": "Зберегти",
@@ -134,7 +139,11 @@
         "Zebra Stripes": "Смужки зебри"
     },
     "FilterConfig": {
-        "Add Column": "Додати стовпець"
+        "Add Column": "Додати стовпець",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Фільтр закріплення – стовпець {{- columnName}} (поточний: відкріплений)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Відкріпити фільтр – стовпець {{- columnName}} (поточний: закріплений)",
+        "remove filter - {{- columnName}} column": "вилучити фільтр – стовпець {{- columnName}}",
+        "{{- columnName }} column filters": "{{- columnName }} фільтри стовпців"
     },
     "FilterBar": {
         "SearchColumns": "Стовпці пошуку",
@@ -276,7 +285,9 @@
         "Show {{label}}": "Показати {{label}}",
         "Visible {{label}}": "Видимі {{label}}",
         "Hide {{label}}": "Приховати {{label}}",
-        "Hidden {{label}}": "Приховані {{label}}"
+        "Hidden {{label}}": "Приховані {{label}}",
+        "Hide {{label}} (batch mode)": "Приховати {{label}} (пакетний режим)",
+        "Show {{label}} (batch mode)": "Показати {{label}} (пакетний режим)"
     },
     "TriggerFormulas": {
         "Apply to new records": "Застосувати до нових записів",
@@ -357,7 +368,12 @@
         "Other Values": "Інші значення",
         "Others": "Інші",
         "Search values": "Пошук значень",
-        "No matching values": "Немає співпадаючих значень"
+        "No matching values": "Немає співпадаючих значень",
+        "Clear search": "Очистити пошук",
+        "Pin filter": "Фільтр Pin",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Сортувати за алфавітом (поточне: відсортовано за кількістю входжень)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Сортувати за кількістю входжень (поточне: відсортовано в алфавітному порядку)",
+        "Unpin filter": "Відкріпити фільтр"
     },
     "CustomSectionConfig": {
         "Pick a {{columnType}} column": "Виберіть {{columnType}} стовпець",
@@ -385,7 +401,8 @@
         "Last updated:": "Востаннє оновлено:",
         "Missing description and author information.": "Відсутній опис та інформація про автора.",
         "Reject": "Відхилити'",
-        "Widget": "Віджет"
+        "Widget": "Віджет",
+        "Change custom widget": "Змінити власний віджет"
     },
     "ACUserManager": {
         "Invite new member": "Запросити нового користувача",
@@ -898,7 +915,8 @@
         "No field selected": "Поле не вибрано",
         "Select a field in the form widget to configure.": "Виберіть поле у віджеті форми для налаштування.",
         "Submit": "Надіслати",
-        "Thank you! Your response has been recorded.": "Дякуємо! Вашу відповідь записано."
+        "Thank you! Your response has been recorded.": "Дякуємо! Вашу відповідь записано.",
+        "Chart options": "Параметри діаграми"
     },
     "RowContextMenu": {
         "Copy anchor link": "Скопіювати якірне посилання",
@@ -1058,7 +1076,20 @@
         "Form not found": "Форму не знайдено",
         "Powered by": "Працює на",
         "Failed to log in.{{separator}}Please try again or contact support.": "Не вдалося ввійти.{{separator}}Будь ласка, спробуйте ще раз або зверніться до служби підтримки.",
-        "Sign-in failed{{suffix}}": "Не вдалося ввійти{{suffix}}"
+        "Sign-in failed{{suffix}}": "Не вдалося ввійти{{suffix}}",
+        "Manage settings": "Керування налаштуваннями",
+        "Need Help?": "Потрібна допомога?",
+        "There was an error": "Сталася помилка",
+        "Unsubscribed{{suffix}}": "Скасовано підписку{{suffix}}",
+        "We could not unsubscribe you": "Нам не вдалося скасувати вашу підписку",
+        "You are unsubscribed": "Ви скасували підписку",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Ви все ще можете відмовитися від підписки на цей документ, оновивши свої налаштування в налаштуваннях документа",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Ви більше не отримуватимете сповіщення електронною поштою про {{changes}} у {{docName}} на адресу {{email}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Ви більше не отримуватимете сповіщення електронною поштою про {{comments}} у {{docName}} на адресу {{email}}.",
+        "changes": "зміни",
+        "comments": "коментарі",
+        "this document": "цей документ",
+        "your email": "ваша електронна адреса"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Робочі простори доступні в командних тарифах. ",
@@ -1116,7 +1147,8 @@
         "Find Previous ": "Знайти попереднє ",
         "Search in document": "Пошук у документі",
         "No results": "Немає результатів",
-        "Search": "Пошук"
+        "Search": "Пошук",
+        "Close search bar": "Закрити рядок пошуку"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Надсилання файлу на Google Диск"
@@ -1529,7 +1561,8 @@
         "Search all tables": "Пошук у всіх таблицях"
     },
     "searchDropdown": {
-        "Search": "Пошук"
+        "Search": "Пошук",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Показано {{displayedCount}} з {{totalCount}} елементів. Шукайте більше."
     },
     "SupportGristNudge": {
         "Close": "Закрити",
@@ -1708,7 +1741,11 @@
         "Mapped": "Нанесено на карту",
         "Select All": "Вибрати все",
         "Unmap fields": "Скасувати зіставлення полів",
-        "Unmapped": "Не нанесено на карту"
+        "Unmapped": "Не нанесено на карту",
+        "Hide {{label}}": "Приховати {{label}}",
+        "Hide {{label}} (batch mode)": "Приховати {{label}} (пакетний режим)",
+        "Unmap {{label}}": "Зняти з карти {{label}}",
+        "Unmap {{label}} (batch mode)": "Розв'язати зіставлення {{label}} (пакетний режим)"
     },
     "Section": {
         "Insert section above": "Вставити розділ вище",
@@ -1841,7 +1878,8 @@
         "Search": "Пошук",
         "Select...": "Виберіть...",
         "Submit": "Надіслати",
-        "Submitting…": "Надсилання…"
+        "Submitting…": "Надсилання…",
+        "Clear selection for: {{-inputLabel}}": "Очистити вибір для: {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Календар",
@@ -2073,7 +2111,8 @@
         "Unpin": "Відкріпити",
         "Workspace": "Робочий простір",
         "context menu - {{- documentName }}": "контекстне меню - {{- documentName }}",
-        "Documents list": "Список документів"
+        "Documents list": "Список документів",
+        "Download document...": "Завантажити документ..."
     },
     "RenameDocModal": {
         "Choose color": "Виберіть колір",
