@@ -19,8 +19,13 @@ describe('Housekeeper', function() {
   const sandbox = sinon.createSandbox();
   let home: TestServer;
   let keeper: Housekeeper;
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
+    // Ham (as in, dramatic actor) is the admin
+    process.env.GRIST_DEFAULT_EMAIL = 'ham@getgrist.com';
+
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs');
@@ -32,6 +37,7 @@ describe('Housekeeper', function() {
   after(async function() {
     await home.stop();
     sandbox.restore();
+    oldEnv.restore();
   });
 
   async function getDoc(docId: string) {
@@ -47,6 +53,12 @@ describe('Housekeeper', function() {
 
   function daysAgo(days: number): Date {
     return moment().subtract(days, 'days').toDate();
+  }
+
+  async function ageDisabledDoc(docId: string, days: number) {
+    const dbDoc = await getDoc(docId);
+    dbDoc.disabledAt = daysAgo(days);
+    await dbDoc.save();
   }
 
   async function ageDoc(docId: string, days: number) {
@@ -70,12 +82,14 @@ describe('Housekeeper', function() {
   it('can delete old soft-deleted docs and workspaces', async function() {
     // Make four docs in one workspace, two in another.
     const api = await home.createHomeApi('chimpy', org);
+    const admin = await home.createHomeApi('ham', 'docs', true);
     const ws1 = await api.newWorkspace({name: 'ws1'}, 'current');
     const ws2 = await api.newWorkspace({name: 'ws2'}, 'current');
     const doc11 = await api.newDoc({name: 'doc11'}, ws1);
     const doc12 = await api.newDoc({name: 'doc12'}, ws1);
     const doc13 = await api.newDoc({name: 'doc13'}, ws1);
     const doc14 = await api.newDoc({name: 'doc14'}, ws1);
+    const doc15 = await api.newDoc({name: 'doc15'}, ws1);
     const doc21 = await api.newDoc({name: 'doc21'}, ws2);
     const doc22 = await api.newDoc({name: 'doc22'}, ws2);
 
@@ -83,6 +97,7 @@ describe('Housekeeper', function() {
     await api.softDeleteDoc(doc11);
     await api.softDeleteDoc(doc12);
     await api.softDeleteDoc(doc13);
+    await admin.disableDoc(doc15);
     await api.softDeleteWorkspace(ws2);
 
     // Check that nothing is deleted by housekeeper.
@@ -91,6 +106,7 @@ describe('Housekeeper', function() {
     await assert.isFulfilled(getDoc(doc12));
     await assert.isFulfilled(getDoc(doc13));
     await assert.isFulfilled(getDoc(doc14));
+    await assert.isFulfilled(getDoc(doc15));
     await assert.isFulfilled(getDoc(doc21));
     await assert.isFulfilled(getDoc(doc22));
     await assert.isFulfilled(getWorkspace(ws1));
@@ -98,14 +114,17 @@ describe('Housekeeper', function() {
 
     // Age a doc and workspace somewhat, but not enough to trigger hard-deletion.
     await ageDoc(doc11, 10);
+    await ageDisabledDoc(doc15, 10);
     await ageWorkspace(ws2, 20);
     await keeper.deleteTrash();
     await assert.isFulfilled(getDoc(doc11));
+    await assert.isFulfilled(getDoc(doc15));
     await assert.isFulfilled(getWorkspace(ws2));
 
-    // Prematurely age two of the soft-deleted docs, and the soft-deleted workspace.
+    // Prematurely age three of the soft-deleted docs, and the soft-deleted workspace.
     await ageDoc(doc11, 40);
     await ageDoc(doc12, 40);
+    await ageDoc(doc15, 40);
     await ageWorkspace(ws2, 40);
 
     // Make sure that exactly those docs are deleted by housekeeper.
@@ -114,6 +133,7 @@ describe('Housekeeper', function() {
     await assert.isRejected(getDoc(doc12));
     await assert.isFulfilled(getDoc(doc13));
     await assert.isFulfilled(getDoc(doc14));
+    await assert.isRejected(getDoc(doc15));
     await assert.isRejected(getDoc(doc21));
     await assert.isRejected(getDoc(doc22));
     await assert.isFulfilled(getWorkspace(ws1));
