@@ -357,11 +357,15 @@ export class DocModel extends Disposable {
     // To keep _metaTables private member listed after public ones, initialize it on first use.
     if (!this._metaTables) { this._metaTables = []; }
     this._metaTables.push(model);
+    console.log(`FBISH - Instantiating table ${tableId} - ${model.rowModels.length} rows`);
     return this.autoDispose(model);
   }
 
   private _onAddTable(tableMetaRow: TableRec) {
+    console.log(tableMetaRow);
     let tid = tableMetaRow.tableId();
+    console.log(`TID: ${tid}`);
+    console.log(this.docData.getTable(tid));
     const dtm = new DataTableModel(this, this.docData.getTable(tid)!, tableMetaRow);
     this.dataTables[tid] = dtm;
     this.dataTablesByRef.set(tableMetaRow.getRowId(), dtm);

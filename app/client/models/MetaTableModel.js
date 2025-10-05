@@ -25,7 +25,25 @@ function MetaTableModel(docModel, tableData, fields, rowConstructor) {
   this._rowConstructor = rowConstructor;
 
   // Start out with empty list of row models. It's populated in loadData().
-  this.rowModels = [];
+  const self = this;
+  this.rowModels = new Proxy([], {
+    get(target, prop, receiver) {
+      const value = Reflect.get(...arguments);
+      console.log(`P:${prop}, V:${value}`);
+      if (value === null) {
+        const rowId = prop;
+        ko.ignoreDependencies(() => {
+          target[rowId] = MetaRowModel.create(self, self._fields, self._rowConstructor, rowId);
+
+          // Whenever a rowModel is created, increment its version number.
+          let inc = self._rowModelVersions[rowId] || (self._rowModelVersions[rowId] = ko.observable(0));
+          inc(inc.peek() + 1);
+        });
+      }
+
+      return Reflect.get(...arguments);
+    }
+  });
 
   // It is possible for a new rowModel to be deleted and replaced with a new one for the same
   // rowId. To allow a computed() to depend on the row version, we keep a permanent observable
@@ -45,6 +63,11 @@ function MetaTableModel(docModel, tableData, fields, rowConstructor) {
 dispose.makeDisposable(MetaTableModel);
 _.extend(MetaTableModel.prototype, TableModel.prototype);
 
+// Try using WeakRef + garbage collector as a cache? Allow GC to collect rows that aren't used
+// any more.
+// Doesn't need to fix the problem - but can give an idea if hotloading meta table rows
+// will drastically improve the situation or not.
+// Need to check data loading considerations.
 /**
  * This is called from DocModel as soon as all the MetaTableModel objects have been created.
  */
@@ -57,6 +80,8 @@ MetaTableModel.prototype.loadData = function() {
   this.getAllRows().forEach(function(rowId) {
     this._createRowModel(rowId);
   }, this);
+
+  console.log(`FBISH - ${this.tableData.tableId} - Creating new row models - total ${this.rowModels.length}`);
 };
 
 /**
@@ -89,7 +114,8 @@ MetaTableModel.prototype.getRowModel = function(rowId, optDependOnVersion) {
  * Returns the RowModel to use for invalid rows.
  */
 MetaTableModel.prototype.getEmptyRowModel = function() {
-  return this._createRowModel(0);
+  this._createRowModel(0);
+  return this.rowModels[0];
 };
 
 /**
@@ -101,13 +127,8 @@ MetaTableModel.prototype._createRowModel = function(rowId) {
     // When creating a new row, we create new MetaRowModels which use observables. If
     // _createRowModel is called from within the evaluation of a computed(), we do NOT want that
     // computed to subscribe to observables used by individual MetaRowModels.
-    ko.ignoreDependencies(() => {
-      this.rowModels[rowId] = MetaRowModel.create(this, this._fields, this._rowConstructor, rowId);
+    this.rowModels[rowId] = null;
 
-      // Whenever a rowModel is created, increment its version number.
-      let inc = this._rowModelVersions[rowId] || (this._rowModelVersions[rowId] = ko.observable(0));
-      inc(inc.peek() + 1);
-    });
   }
   return this.rowModels[rowId];
 };
@@ -241,9 +262,13 @@ MetaTableModel.prototype._createRowModelArray = function(rowIdArray) {
  * Creates and returns a RowModel with its own `_index` observable.
  */
 MetaTableModel.prototype._createRowModelItem = function(rowId, index) {
-  var rowModel = this._createRowModel(rowId);
+  this._createRowModel(rowId);
+  console.log("Fetching");
+  var rowModel = this.rowModels[rowId];
   assert.ok(rowModel, "MetaTableModel._createRowModelItem called for invalid rowId " + rowId);
   var ret = Object.create(rowModel);    // New object, with rowModel as its prototype.
+  console.log(`New model - ${this.tableData.tableId}, ${rowId}: ${rowModel}`)
+  console.log(`New: ${ret.tableId?.()}`)
   ret._index = ko.observable(index);    // New _index observable overrides the existing one.
   return ret;
 };
