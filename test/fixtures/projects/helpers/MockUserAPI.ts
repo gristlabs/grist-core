@@ -329,6 +329,14 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     throw new Error('not implemented');
   }
 
+  public async disableDoc(docId: string): Promise<void> {
+    return this.deleteDoc(docId);
+  }
+
+  public async enableDoc(docId: string): Promise<void> {
+    throw new Error('not implemented');
+  }
+
   public async updateOrgPermissions(orgId: number, delta: PermissionDelta): Promise<void> {
     // TODO: Implement as mock
   }
