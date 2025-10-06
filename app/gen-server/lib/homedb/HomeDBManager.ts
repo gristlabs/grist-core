@@ -1982,6 +1982,14 @@ export class HomeDBManager {
     return this._setDocumentRemovedAt(scope, null);
   }
 
+  public disableDocument(scope: DocScope): Promise<QueryResult<Document>> {
+    return this._setDocumentDisabledAt(scope, new Date());
+  }
+
+  public async enableDocument(scope: DocScope): Promise<QueryResult<Document>> {
+    return this._setDocumentDisabledAt(scope, null);
+  }
+
   // Fetches and provides a callback with the billingAccount so it may be updated within
   // a transaction. The billingAccount is saved after any changes applied in the callback.
   // Will throw an error if the user does not have access to the org's billingAccount.
@@ -5121,22 +5129,32 @@ export class HomeDBManager {
 
   // Set Document.removedAt to null (undeletion) or to a datetime (soft deletion)
   private _setDocumentRemovedAt(scope: DocScope, removedAt: Date|null) {
+    return this._setDocumentDeletionProperty(scope, 'removedAt', removedAt);
+  }
+
+  private _setDocumentDisabledAt(scope: DocScope, removedAt: Date|null) {
+    return this._setDocumentDeletionProperty(scope, 'disabledAt', removedAt);
+  }
+
+  private _setDocumentDeletionProperty(scope: DocScope, property: 'removedAt'|'disabledAt', value: Date|null) {
     return this._connection.transaction(async manager => {
       let docQuery = this._doc({...scope, showAll: true}, {
         manager,
         markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,
         allowSpecialPermit: true
       });
-      if (!removedAt) {
+      if (!value) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
       }
-      const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery));
-      if (!removedAt) {
+      // For `disabledAt`, the API endpoint already checks for admin access
+      const skipPermissionCheck = property === 'disabledAt';
+      const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery, {skipPermissionCheck}));
+      if (!value) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
-      doc.removedAt = removedAt;
+      doc[property] = value;
       await manager.createQueryBuilder()
-        .update(Document).set({removedAt}).where({id: doc.id})
+        .update(Document).set({[property]: value}).where({id: doc.id})
         .execute();
 
       // Update guests of the workspace and org after soft-deleting/undeleting this doc.
