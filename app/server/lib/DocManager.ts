@@ -310,7 +310,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
   /**
    * Interrupt all clients, forcing them to reconnect.  Handy when a document has changed
-   * status in some major way that affects access rights, such as being deleted.
+   * status in some major way that affects access rights, such as being deleted or disabled.
    */
   public async interruptDocClients(docName: string) {
     const docPromise = this._activeDocs.get(docName);

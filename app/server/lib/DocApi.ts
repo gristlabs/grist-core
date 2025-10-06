@@ -218,6 +218,9 @@ export class DocWorkerApi {
       next();
     });
 
+    // Some endpoints require the admin
+    const requireInstallAdmin = this._grist.getInstallAdmin().getMiddlewareRequireAdmin();
+
     // check document exists (not soft deleted) and user can view it
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));
     // check document exists (not soft deleted) and user can edit it
@@ -1177,6 +1180,18 @@ export class DocWorkerApi {
           this._logRemoveDocumentEvents(req, data);
         }
       }
+    }));
+
+    // POST /api/docs/:docId/disable
+    // Disables doc (removes all non-admin access except listing or deleting the doc)
+    this._app.post('/api/docs/:docId/disable', requireInstallAdmin, expressWrap(async (req, res) => {
+      await this._toggleDisabledStatus(req, res, 'disable');
+    }));
+
+    // POST /api/docs/:did/enable
+    // Enables the specified doc if it was previously disabled
+    this._app.post('/api/docs/:did/enable', requireInstallAdmin, expressWrap(async (req, res) => {
+      await this._toggleDisabledStatus(req, res, 'enable');
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
@@ -2249,6 +2264,34 @@ export class DocWorkerApi {
     return result;
   }
 
+  /**
+   * This method should only be called from the docs/:docId/disable
+   * and docs/:docId/enable endpoints, which use middleware to check
+   * for admin access. We therefore assume admin access in the body of
+   * this function.
+   */
+  private async _toggleDisabledStatus(req: Request, res: Response, action: 'enable'|'disable'){
+    const mreq = req as RequestWithLogin;
+    const docId = req.params.docId || req.params.did;
+
+    // We have admin access, so grant a special permit to this doc
+    mreq.specialPermit = { ...mreq.specialPermit, docId };
+
+    const scope = getDocScope(req);
+    const result = await this._dbManager.toggleDisableDocument(action, scope);
+
+    await sendOkReply(req, res);
+    await this._dbManager.flushSingleDocAuthCache(scope, docId);
+
+    if (action === 'disable') {
+      await this._docManager.interruptDocClients(docId);
+    }
+
+    if (result.data) {
+      this._logDisableToggleDocumentEvents(action, mreq, result.data);
+    }
+  }
+
   private async _runSql(
     activeDoc: ActiveDoc,
     req: RequestWithLogin,
@@ -2319,6 +2362,21 @@ export class DocWorkerApi {
         docIdDigest: id,
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,
+      },
+    });
+  }
+
+  private _logDisableToggleDocumentEvents(action: 'enable'|'disable', req: RequestWithLogin, document: Document) {
+    this._grist.getAuditLogger().logEvent(req, {
+      action: `document.${action}`,
+      context: {
+        site: _.pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details:  {
+        document: {
+          ..._.pick(document, "id", "name"),
+          workspace: _.pick(document.workspace, "id", "name"),
+        },
       },
     });
   }
