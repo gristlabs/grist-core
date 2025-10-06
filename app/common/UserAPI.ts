@@ -408,6 +408,8 @@ export interface UserAPI {
   deleteDoc(docId: string): Promise<void>;      // delete doc permanently
   softDeleteDoc(docId: string): Promise<void>;  // soft-delete doc
   undeleteDoc(docId: string): Promise<void>;    // recover soft-deleted doc
+  disableDoc(docId: string): Promise<void>;     // (admin-only) remove all access to doc except deletion
+  enableDoc(docId: string): Promise<void>;      // (admin-only) recover disabled doc
   updateOrgPermissions(orgId: number|string, delta: PermissionDelta): Promise<void>;
   updateWorkspacePermissions(workspaceId: number, delta: PermissionDelta): Promise<void>;
   updateDocPermissions(docId: string, delta: PermissionDelta): Promise<void>;
@@ -786,6 +788,14 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async undeleteDoc(docId: string): Promise<void> {
     await this.request(`${this._url}/api/docs/${docId}/unremove`, { method: 'POST' });
+  }
+
+  public async disableDoc(docId: string): Promise<void> {
+    await this.request(`${this._url}/api/docs/${docId}/disable`, { method: 'POST' });
+  }
+
+  public async enableDoc(docId: string): Promise<void> {
+    await this.request(`${this._url}/api/docs/${docId}/enable`, { method: 'POST' });
   }
 
   public async updateOrgPermissions(orgId: number|string, delta: PermissionDelta): Promise<void> {
