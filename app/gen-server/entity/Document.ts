@@ -104,6 +104,12 @@ export class Document extends Resource {
     return super.checkProperties(props, documentPropertyKeys);
   }
 
+  // Note that `removedAt` and `disabledAt` are currently set by
+  // HomeDBManager because their modification requires checks and
+  // modifications on other entities such as user limits or guests of
+  // associated workspace or org.
+  //
+  // These two properties are ignored by this method.
   public updateFromProperties(props: Partial<DocumentProperties>) {
     super.updateFromProperties(props);
     if (props.isPinned !== undefined) { this.isPinned = props.isPinned; }
