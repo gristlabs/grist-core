@@ -3,11 +3,14 @@
  * Takes a `SearchModel` that controls the search behavior.
  */
 import { allCommands, createGroup } from 'app/client/components/commands';
+import { Panel, RegionFocusSwitcher } from 'app/client/components/RegionFocusSwitcher';
+import { modKeyProp } from 'app/client/lib/browserInfo';
 import { makeT } from 'app/client/lib/localization';
 import { reportError } from 'app/client/models/AppModel';
 import { SearchModel } from 'app/client/models/SearchModel';
 import { hoverTooltip } from 'app/client/ui/tooltips';
 import { cssHoverCircle, cssTopBarBtn } from 'app/client/ui/TopBarCss';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
 import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
@@ -49,7 +52,7 @@ const searchWrapper = styled('div', `
 `);
 
 const expandedSearch = styled('div', `
-  display: flex;
+  display: none;
   flex-grow: 0;
   align-items: center;
   width: 0;
@@ -57,6 +60,7 @@ const expandedSearch = styled('div', `
   align-self: stretch;
   transition: width ${EXPAND_TIME}s, opacity ${EXPAND_TIME / 2}s ${EXPAND_TIME / 2}s;
   .${searchWrapper.className}-expand > & {
+    display: flex;
     width: auto;
     flex-grow: 1;
     opacity: 1;
@@ -83,7 +87,7 @@ const searchInput = styled(input, `
   }
 `);
 
-const cssArrowBtn = styled('div', `
+const cssArrowBtn = styled(unstyledButton, `
   font-size: 14px;
   padding: 3px;
   cursor: pointer;
@@ -103,11 +107,14 @@ const cssArrowBtn = styled('div', `
   }
 `);
 
+const cssCloseBtnContainer = styled(unstyledButton, `
+  margin-left: 4px;
+  flex-shrink: 0;
+`);
+
 const cssCloseBtn = styled(icon, `
   cursor: pointer;
   background-color: ${theme.controlFg};
-  margin-left: 4px;
-  flex-shrink: 0;
 `);
 
 const cssLabel = styled('span', `
@@ -132,60 +139,141 @@ const cssShortcut = styled('span', `
   color: ${theme.lightText};
 `);
 
-export function searchBar(model: SearchModel, testId: TestId = noTestId) {
-  let keepExpanded = false;
+const wrapperClass = 'grist-doc-search-bar';
 
-  const focusAndSelect = () => { inputElem.focus(); inputElem.select(); };
+export function searchBar(model: SearchModel, testId: TestId = noTestId, regionFocusSwitcher?: RegionFocusSwitcher) {
+  let regionIdOnOpen: Panel | undefined;
+
+  // when the search model triggers a page change to show the current match, the RFS region changes back to "main",
+  // while we want to stay focused on the searchbar if its open: deal with that here.
+  let focusedSearchElement: HTMLElement | undefined;
+  model.onPageChange(() => {
+    if (model.isOpen.get()) {
+      regionFocusSwitcher?.focusRegion('top');
+      if (focusedSearchElement) {
+        focusedSearchElement.focus();
+      } else {
+        inputElem.focus();
+      }
+    }
+  });
+
+  let hasOutsideClicksListener = false;
+  const onOutsideClicks = (event: MouseEvent) => {
+    if (event.target instanceof HTMLElement && !event.target.closest(`.${wrapperClass}`)) {
+      toggleMenu(false);
+    }
+  };
+
+  const cleanupOutsideClicksListener = () => {
+    if (hasOutsideClicksListener) {
+      document.body.removeEventListener('click', onOutsideClicks);
+      hasOutsideClicksListener = false;
+    }
+  };
+
+  const toggleMenu = debounce((_value?: boolean) => {
+    model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
+
+    // when we open the searchbar: focus the input, and make sure outside clicks will close the searchbar
+    if (model.isOpen.get()) {
+      regionIdOnOpen = regionFocusSwitcher?.getRegionId();
+      regionFocusSwitcher?.focusRegion('top');
+      inputElem.focus();
+      inputElem.select();
+      if (!hasOutsideClicksListener) {
+        document.body.addEventListener('click', onOutsideClicks);
+        hasOutsideClicksListener = true;
+      }
+    // when we close the searchbar: focus back where we were and cleanup
+    } else {
+      if (regionIdOnOpen === 'main') {
+        regionFocusSwitcher?.focusRegion('main');
+      } else {
+        buttonElem.focus();
+      }
+      regionIdOnOpen = undefined;
+      focusedSearchElement = undefined;
+      cleanupOutsideClicksListener();
+    }
+  }, 100);
+
+  const buttonElem = cssHoverCircle(
+    dom.on('click', () => toggleMenu(true)),
+    cssTopBarBtn('Search',
+      testId('icon'),
+      hoverTooltip(t('Search'), {key: 'topBarBtnTooltip'}),
+    )
+  );
 
   const commandGroup = createGroup({
-    find: focusAndSelect,
+    find: () => toggleMenu(true),
     // On Mac, Firefox has a default behaviour witch causes to close the search bar on Cmd+g and
     // Cmd+shirt+G. Returning false is a Mousetrap convenience which prevents that.
     findNext: () => { model.findNext().catch(reportError); return false; },
     findPrev: () => { model.findPrev().catch(reportError); return false; },
   }, null, true);
 
-  const toggleMenu = debounce((_value?: boolean) => {
-    model.isOpen.set(_value === undefined ? !model.isOpen.get() : _value);
-  }, 100);
   const inputElem: HTMLInputElement = searchInput(model.value, {onInput: true},
-    {type: 'text', placeholder: t("Search in document")},
-    dom.on('blur', () => (
-      keepExpanded ?
-        setTimeout(() => inputElem.focus(), 0) :
-        toggleMenu(false)
-    )),
-    dom.onKeyDown({
-      Enter: (ev) => ev.shiftKey ? model.findPrev() : model.findNext(),
-      Escape: () => { keepExpanded = false; toggleMenu(false); },
-      // Catch both Tab and Shift+Tab to prevent focus entering unrelated editable label.
-      Tab: () => toggleMenu(false),
+    {
+      type: 'text',
+      placeholder: t("Search in document"),
+      'aria-label': t("Search in document"),
+    },
+    dom.on('focus', () => {
+      focusedSearchElement = inputElem;
     }),
-    dom.on('focus', () => toggleMenu(true)),
+    dom.onKeyDown({
+      Enter: async (ev) => {
+        // If the user is pressing the mod key, act like we trigger the "closeSearchBar" command described in
+        // commandList.
+        // We don't actually register this as the closeSearchBar command,
+        // as it's a bit troublesome to want to both have findNext and findPrev be active all the time,
+        // while at the same time have closeSearchBar be active only when model.isOpen
+        if (ev[modKeyProp()] && !ev.shiftKey) {
+          toggleMenu(false);
+          return;
+        }
+        return ev.shiftKey ? model.findPrev() : model.findNext();
+      },
+    }),
     commandGroup.attach(),
   );
-
-  // Releases focus when closing the search bar, otherwise users could keep typing in without
-  // noticing.
-  const lis = model.isOpen.addListener(val => val || inputElem.blur());
 
   return searchWrapper(
     testId('wrapper'),
     searchWrapper.cls('-expand', model.isOpen),
+    dom.cls(wrapperClass),
     dom.autoDispose(commandGroup),
-    dom.autoDispose(lis),
-    // Make sure we don't attempt to call delayed callback after disposal.
-    dom.onDispose(() => toggleMenu.cancel()),
-    cssHoverCircle(
-      cssTopBarBtn('Search',
-        testId('icon'),
-        dom.on('click', focusAndSelect),
-        hoverTooltip(t('Search'), {key: 'topBarBtnTooltip'}),
-      )
-    ),
+    dom.onKeyDown({
+      // The $ indicates to grainjs we don't want to stop propagation of the event here.
+      // This handles the case where we are kb-focused on the search icon and press Esc:
+      // we want the RegionFocusSwitcher to trigger its Escape handler correctly.
+      Escape$: () => {
+        if (model.isOpen.get()) {
+          toggleMenu(false);
+        }
+      },
+    }),
+    dom.onDispose(() => {
+      toggleMenu.cancel(); // Make sure we don't attempt to call delayed callback after disposal.
+      cleanupOutsideClicksListener();
+    }),
+    buttonElem,
     expandedSearch(
       testId('input'),
       inputElem,
+      cssOptions(
+        labeledSquareCheckbox(
+          model.multiPage,
+          dom.text(model.allLabel),
+          // Prevent focus from being stolen from the input when clicking the checkbox itself
+          dom.on('mousedown', (event) => event.preventDefault()),
+        ),
+        // Keep focus on the input when clicking the checkbox text label
+        dom.onMatch('label', 'mouseup', () => setTimeout(() => inputElem.focus(), 0)),
+        testId('option-all-pages'),
+      ),
       dom.domComputed((use) => {
         const noMatch = use(model.noMatch);
         const isEmpty = use(model.isEmpty);
@@ -197,6 +285,9 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             testId('next'),
             // Prevent focus from being stolen from the input
             dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('focus', (event) => {
+              focusedSearchElement = event.target as HTMLElement;
+            }),
             dom.on('click', () => model.findNext()),
             hoverTooltip(
               [
@@ -211,25 +302,25 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId) {
             testId('prev'),
             // Prevent focus from being stolen from the input
             dom.on('mousedown', (event) => event.preventDefault()),
+            dom.on('focus', (event) => {
+              focusedSearchElement = event.target as HTMLElement;
+            }),
             dom.on('click', () => model.findPrev()),
             hoverTooltip(
               [
                 t("Find Previous "),
-                cssShortcut(allCommands.findPrev.getKeysDesc()),
+                cssShortcut(`(${['Shift + Enter', allCommands.findPrev.humanKeys].join(', ')})`),
               ],
               {key: 'searchArrowBtnTooltip'}
             ),
           )
         ];
       }),
-      cssCloseBtn('CrossSmall',
+      cssCloseBtnContainer(
         testId('close'),
-        dom.on('click', () => toggleMenu(false))),
-      cssOptions(
-        labeledSquareCheckbox(model.multiPage, dom.text(model.allLabel)),
-        dom.on('mouseenter', () => keepExpanded = true),
-        dom.on('mouseleave', () => keepExpanded = false),
-        testId('option-all-pages'),
+        {'aria-label': t("Close search bar")},
+        dom.on('click', () => toggleMenu(false)),
+        cssCloseBtn('CrossSmall'),
       ),
     )
   );

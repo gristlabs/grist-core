@@ -50,7 +50,7 @@ export function findBound(minMax: 'min'|'max') {
 }
 
 export async function setBound(minMax: 'min'|'max', value: string|{relative: string}|null) {
-  return gu.setRangeFilterBound(minMax, value);
+  await gu.setRangeFilterBound(minMax, value);
 }
 
 export async function getBoundText(minMax: 'min'|'max') {

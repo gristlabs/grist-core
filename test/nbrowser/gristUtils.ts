@@ -1104,6 +1104,13 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 }
 
 /**
+ * trigger the keyboard shortcut to keyboard-focus in/out the creator panel
+ */
+export async function toggleCreatorPanelFocus() {
+  await sendKeys(Key.chord(await modKey(), Key.ALT, 'o'));
+}
+
+/**
  * Wait for the focus to be on the first element matching given selector.
  */
 export async function waitForFocus(selector: string, yesNo: boolean = true, waitMs: number = 1000): Promise<void> {
@@ -1638,7 +1645,19 @@ export async function search(what: string) {
 
 export async function toggleSearchAll() {
   await closeTooltip();
-  await driver.find('.test-tb-search-option-all-pages').click();
+  const searchAllSelector = '.test-tb-search-option-all-pages';
+  if (!await driver.find(searchAllSelector).isDisplayed()) {
+    await openSearch();
+  }
+  await driver.find(searchAllSelector).click();
+}
+
+export async function openSearch() {
+  await waitToPass(async () => {
+    await searchIsClosed();
+    await driver.find('.test-tb-search-icon').doClick();
+    await waitToPass(searchIsOpened, 500);
+  }, 1500);
 }
 
 export async function closeSearch() {
@@ -3229,7 +3248,7 @@ const filterController = {
     return this;
   },
   async labels() {
-    return await driver.findAll('.test-filter-menu-list label', el => el.getText());
+    return await driver.findAll('.test-filter-menu-list .test-filter-menu-value', el => el.getText());
   },
   async allShown() {
     await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
@@ -3334,8 +3353,8 @@ export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
   const items = await driver.findAll('.test-filter-menu-list > *');
   return await Promise.all(items.map(async item => {
     const checked = (await item.find('input').getAttribute('checked')) === null ? false : true;
-    const value = await item.find('label').getText();
-    const count = parseInt(await item.find('label + div').getText(), 10);
+    const value = await item.find('.test-filter-menu-value').getText();
+    const count = parseInt(await item.find('.test-filter-menu-count').getText(), 10);
     return {checked, value, count};
   }));
 }

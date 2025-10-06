@@ -291,10 +291,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
 export function linkSelect<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
                               options: weasel.ISelectUserOptions = {}) {
   const _btn = cssSelectBtnLink(testId('select-open'));
-  const elem = select(obs, optionArray, {buttonCssClass: _btn.className, ...options});
-  // It feels strange to have focus stay on this link; remove tabIndex that makes it focusable.
-  elem.removeAttribute('tabIndex');
-  return elem;
+  return select(obs, optionArray, {buttonCssClass: _btn.className, ...options});
 }
 
 export interface IMultiSelectUserOptions {

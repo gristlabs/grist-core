@@ -3,7 +3,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('RightPanel', function() {
-  this.timeout(20000);
+  this.timeout(60000);
   const cleanup = setupTestSuite();
 
   afterEach(() => gu.checkForErrors());
@@ -359,5 +359,73 @@ describe('RightPanel', function() {
     await gu.checkForErrors();
   });
 
+  it('should allow keyboard navigation through main tabs', async function() {
+    await gu.toggleCreatorPanelFocus();
+
+    // Here, focus should be on the creator panel wrapping dom element.
+    // After pressing tab once, focus should be on the first tab, and only its tabcontent should be visible
+    await gu.sendKeys(Key.TAB);
+    assert.isTrue(await gu.hasFocus('.test-right-tab-pagewidget'));
+    await driver.find('.test-right-tabpanel-pagewidget[aria-hidden="false"]');
+    await driver.find('.test-right-tabpanel-field[aria-hidden="true"]');
+
+    // pressing an arrow key should change current tab
+    await gu.sendKeys(Key.ARROW_RIGHT);
+    assert.isTrue(await gu.hasFocus('.test-right-tab-field'));
+    await driver.find('.test-right-tabpanel-pagewidget[aria-hidden="true"]');
+    await driver.find('.test-right-tabpanel-field[aria-hidden="false"]');
+
+    // test remaining arrow keys: left, then left again to test if looping works
+    await gu.sendKeys(Key.ARROW_LEFT);
+    assert.isTrue(await gu.hasFocus('.test-right-tab-pagewidget'));
+    await driver.find('.test-right-tabpanel-pagewidget[aria-hidden="false"]');
+    await driver.find('.test-right-tabpanel-field[aria-hidden="true"]');
+
+    await gu.sendKeys(Key.ARROW_LEFT);
+    assert.isTrue(await gu.hasFocus('.test-right-tab-field'));
+    await driver.find('.test-right-tabpanel-pagewidget[aria-hidden="true"]');
+    await driver.find('.test-right-tabpanel-field[aria-hidden="false"]');
+
+    // go back on the widget tab
+    await gu.sendKeys(Key.ARROW_LEFT);
+  });
+
+  it('should allow keyboard navigation through subtabs', async function() {
+    // pressing Tab now should focus the things after the main tabs: the subtabs
+    await gu.sendKeys(Key.TAB);
+
+    assert.isTrue(await gu.hasFocus('.test-config-widget'));
+    await driver.find('.test-right-subtabpanel-widget[aria-hidden="false"]');
+    await driver.find('.test-right-subtabpanel-sortAndFilter[aria-hidden="true"]');
+    await driver.find('.test-right-subtabpanel-data[aria-hidden="true"]');
+
+    // arrow key should behave like the main tabs previously tested
+    await gu.sendKeys(Key.ARROW_RIGHT);
+    assert.isTrue(await gu.hasFocus('.test-config-sortAndFilter'));
+    await driver.find('.test-right-subtabpanel-widget[aria-hidden="true"]');
+    await driver.find('.test-right-subtabpanel-sortAndFilter[aria-hidden="false"]');
+    await driver.find('.test-right-subtabpanel-data[aria-hidden="true"]');
+
+    // pressing Tab should focus the next thing after subtabs
+    await gu.sendKeys(Key.TAB);
+    assert.isTrue(await gu.hasFocus('.test-sort-config-add'));
+
+    // click on the first cell on the grid: make sure keyboard nav is reset
+    await gu.getCell({col: 0, rowNum: 1}).click();
+    await gu.sendKeys(Key.TAB);
+    await gu.waitAppFocus();
+  });
+
+  it('should not disable tabbing in active widget when clicking on tabs', async function() {
+    // the keyboard-handling code is a bit tricky; we might end up creating buttons that wrongfully
+    // stay as document.activeElement after clicking on them. Verify that doesn't happen with the tabs or subtabs.
+    await driver.find('.test-config-widget').click();
+    await gu.sendKeys(Key.TAB);
+    await gu.waitAppFocus();
+
+    await driver.find('.test-right-tab-field').click();
+    await gu.sendKeys(Key.TAB);
+    await gu.waitAppFocus();
+  });
 
 });
