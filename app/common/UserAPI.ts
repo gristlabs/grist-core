@@ -46,10 +46,11 @@ export const NEW_DOCUMENT_CODE = 'new';
 // Properties shared by org, workspace, and doc resources.
 export interface CommonProperties {
   name: string;
-  createdAt: string;  // ISO date string
-  updatedAt: string;  // ISO date string
-  removedAt?: string; // ISO date string - only can appear on docs and workspaces currently
-  public?: boolean;   // If set, resource is available to the public
+  createdAt: string;   // ISO date string
+  updatedAt: string;   // ISO date string
+  removedAt?: string;  // ISO date string - only can appear on docs and workspaces currently
+  disabledAt?: string; // ISO date string - only can appear on docs currently
+  public?: boolean;    // If set, resource is available to the public
 }
 export const commonPropertyKeys = ['createdAt', 'name', 'updatedAt'];
 
