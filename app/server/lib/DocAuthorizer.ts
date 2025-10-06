@@ -73,6 +73,7 @@ export class DummyAuthorizer implements DocAuthorizer {
       access: this.role,
       docId: this.docId,
       removed: false,
+      disabled: false,
     };
   }
 }
