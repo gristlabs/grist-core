@@ -17,6 +17,7 @@ import * as ko from 'knockout';
 export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, RuleOwner {
   viewSection: ko.Computed<ViewSectionRec>;
   widthDef: modelUtil.KoSaveableObservable<number>;
+  docModel: DocModel;
 
   widthPx: ko.Computed<string>;
   column: ko.Computed<ColumnRec>;
@@ -118,222 +119,300 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   saveDisplayFormula(formula: string): Promise<void>|undefined;
 }
 
-export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void {
-  this.viewSection = refRecord(docModel.viewSections, this.parentId);
-  this.widthDef = modelUtil.fieldWithDefault(this.width, () => this.viewSection().defaultWidth());
+function lazy(gen: any) {
+  let value: any = undefined;
 
-  this.widthPx = this.autoDispose(ko.pureComputed(() => this.widthDef() + 'px'));
-  this.column = this.autoDispose(refRecord(docModel.columns, this.colRef));
-  this.origCol = this.autoDispose(ko.pureComputed(() => this.column().origCol()));
-  this.pureType = this.autoDispose(ko.pureComputed(() => this.column().pureType()));
-  this.colId = this.autoDispose(ko.pureComputed(() => this.column().colId()));
-  this.label = this.autoDispose(ko.pureComputed(() => this.column().label()));
-  this.origLabel = this.autoDispose(ko.pureComputed(() => this.origCol().label()));
-  this.description = this.autoDispose(modelUtil.savingComputed({
-    read: () => this.column().description(),
-    write: (setter, val) => setter(this.column().description, val)
-  }));
+  return {
+    get() {
+      if (value === undefined) {
+        console.log("Instantiating lazy property")
+        value = gen.call(this);
+      }
+      return value;
+    }
+  };
+}
+
+const testProto = {};
+Object.defineProperties(testProto, {
+  viewSection: lazy(function(this: ViewFieldRec) {
+    return refRecord(this.docModel.viewSections, this.parentId);
+  }),
+  widthDef: lazy(function(this: ViewFieldRec) {
+    return modelUtil.fieldWithDefault(this.width, () => this.viewSection().defaultWidth());
+  }),
+  widthPx: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.widthDef() + 'px'));
+  }),
+  column: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(refRecord(this.docModel.columns, this.colRef));
+  }),
+  origCol: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.column().origCol()));
+  }),
+  pureType: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.column().pureType()));
+  }),
+  colId: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.column().colId()));
+  }),
+  label: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.column().label()));
+  }),
+  origLabel: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.origCol().label()));
+  }),
+  description: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(modelUtil.savingComputed({
+      read: () => this.column().description(),
+      write: (setter, val) => setter(this.column().description, val)
+    }));
+  }),
   // displayLabel displays label by default but switches to the more helpful colId whenever a
   // formula field in the view is being edited.
-  this.displayLabel = modelUtil.savingComputed({
-    read: () => docModel.editingFormula() ? '$' + this.origCol().colId() : this.origCol().label(),
-    write: (setter, val) => setter(this.column().label, val)
-  });
-
+  displayLabel: lazy(function(this: ViewFieldRec) {
+    return modelUtil.savingComputed({
+      read: () => this.docModel.editingFormula() ? '$' + this.origCol().colId() : this.origCol().label(),
+      write: (setter, val) => setter(this.column().label, val)
+    });
+  }),
   // The field knows when we are editing a formula, so that all rows can reflect that.
-  const _editingFormula = ko.observable(false);
-  this.editingFormula = this.autoDispose(ko.pureComputed({
-    read: () => _editingFormula(),
-    write: val => {
-      // Whenever any view field changes its editingFormula status, let the docModel know.
-      docModel.editingFormula(val);
-      _editingFormula(val);
-    }
-  }));
-
-  // CSS class to add to formula cells, incl. to show that we are editing this field's formula.
-  this.formulaCssClass = this.autoDispose(ko.pureComputed<string|null>(() => {
-    const col = this.column();
-
-    // If the current column is transforming, assign the CSS class "transform_field"
-    if (col.isTransforming()) {
-      if ( col.origCol().isFormula() && col.origCol().formula() !== "") {
-        return "transform_field formula_field";
+  editingFormula: lazy(function(this: ViewFieldRec) {
+    const _editingFormula = ko.observable(false);
+    return this.autoDispose(ko.pureComputed({
+      read: () => _editingFormula(),
+      write: val => {
+        // Whenever any view field changes its editingFormula status, let the this.docModel know.
+        this.docModel.editingFormula(val);
+        _editingFormula(val);
       }
-      return "transform_field";
-    }
-    // If the column is not transforming but a formula is being edited
-    else if (this.editingFormula()) {
-      return "formula_field_edit";
-    }
-    // If a formula exists and it is not empty
-    else if (col.isFormula() && col.formula() !== "") {
-      return "formula_field";
-    }
-    // If none of the above conditions are met, assign null
-    else {
-      return null;
-    }
-  }));
+    }));
+  }),
+  // CSS class to add to formula cells, incl. to show that we are editing this field's formula.
+  formulaCssClass: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed<string|null>(() => {
+      const col = this.column();
 
+      // If the current column is transforming, assign the CSS class "transform_field"
+      if (col.isTransforming()) {
+        if ( col.origCol().isFormula() && col.origCol().formula() !== "") {
+          return "transform_field formula_field";
+        }
+        return "transform_field";
+      }
+      // If the column is not transforming but a formula is being edited
+      else if (this.editingFormula()) {
+        return "formula_field_edit";
+      }
+      // If a formula exists and it is not empty
+      else if (col.isFormula() && col.formula() !== "") {
+        return "formula_field";
+      }
+      // If none of the above conditions are met, assign null
+      else {
+        return null;
+      }
+    }));
+  }),
   // The fields's display column
-  this._displayColModel = refRecord(docModel.columns, this.displayCol);
+  _displayColModel: lazy(function(this: ViewFieldRec) {
+    return refRecord(this.docModel.columns, this.displayCol);
+  }),
+  // Whether this field uses column's widgetOptions (true) or its own (false).
+  // During transform, use the transform column's options (which should be initialized to match
+  // field or column when the transform starts TODO).
+  useColOptions: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => !this.widgetOptions() || this.column().isTransforming()));
+  }),
+  // Helper that returns the RowModel for either this field or its column, depending on
+  // useColOptions. Field and Column have a few identical fields:
+  //    .widgetOptions()        // JSON string of options
+  //    .saveDisplayFormula()   // Method to save the display formula
+  //    .displayCol()           // Reference to an optional associated display column.
+  _fieldOrColumn: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.useColOptions() ? this.column() : this));
+  }),
+  // Display col ref to use for the field, defaulting to the plain column itthis.
+  displayColRef: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this._fieldOrColumn().displayCol() || this.colRef()));
+  }),
+  visibleColRef: lazy(function(this: ViewFieldRec) {
+    return modelUtil.addSaveInterface(this.autoDispose(ko.pureComputed({
+        read: () => this._fieldOrColumn().visibleCol(),
+        write: (colRef) => this._fieldOrColumn().visibleCol(colRef),
+      })),
+      colRef => this.docModel.docData.bundleActions(null, async () => {
+        const col = this.docModel.columns.getRowModel(colRef);
+        await Promise.all([
+          this._fieldOrColumn().visibleCol.saveOnly(colRef),
+          this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : '')
+        ]);
+      }, {nestInActiveBundle: this.column.peek().isTransforming.peek()})
+    );
+  }),
+  // The display column to use for the field, or the column itthis when no displayCol is set.
+  displayColModel: lazy(function(this: ViewFieldRec) {
+    return refRecord(this.docModel.columns, this.displayColRef);
+  }),
+  visibleColModel: lazy(function(this: ViewFieldRec) {
+    return refRecord(this.docModel.columns, this.visibleColRef);
+  }),
+  // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
+  // associated with this field. If no visible column available, return formatting for the field itthis.
+  visibleColFormatter: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(
+      ko.pureComputed(() => formatterForRec(this, this.column(), this.docModel, 'vcol'))
+    );
+  }),
+  formatter: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(
+      ko.pureComputed(() => formatterForRec(this, this.column(), this.docModel, 'full'))
+    );
+  }),
+  // The widgetOptions to read and write: either the column's or the field's own.
+  _widgetOptionsStr: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(modelUtil.savingComputed({
+      read: () => this._fieldOrColumn().widgetOptions(),
+      write: (setter, val) => setter(this._fieldOrColumn().widgetOptions, val)
+    }));
+  }),
+  documentSettings: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.docModel.docInfoRow.documentSettingsJson()));
+  }),
+  style: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed({
+      read: () => ({
+        textColor: this.textColor(),
+        fillColor: this.fillColor(),
+        fontBold: this.fontBold(),
+        fontUnderline: this.fontUnderline(),
+        fontItalic: this.fontItalic(),
+        fontStrikethrough: this.fontStrikethrough(),
+      }) as Style,
+      write: (style: Style) => {
+        this.widgetOptionsJson.update(style);
+      },
+    }));
+  }),
+  headerStyle: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed({
+      read: () => ({
+        headerTextColor: this.headerTextColor(),
+        headerFillColor: this.headerFillColor(),
+        headerFontBold: this.headerFontBold(),
+        headerFontUnderline: this.headerFontUnderline(),
+        headerFontItalic: this.headerFontItalic(),
+        headerFontStrikethrough: this.headerFontStrikethrough(),
+      }) as HeaderStyle,
+      write: (headerStyle: HeaderStyle) => {
+        this.widgetOptionsJson.update(headerStyle);
+      },
+    }));
+  }),
+  tableId: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.column().table().tableId()));
+  }),
+  rulesList: lazy(function(this: ViewFieldRec) {
+    return modelUtil.savingComputed({
+      read: () => this._fieldOrColumn().rules(),
+      write: (setter, val) => setter(this._fieldOrColumn().rules, val)
+    });
+  }),
+  rulesCols: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(
+      refListRecords(this.docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules()))
+    );
+  }),
+  rulesColsIds: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.rulesCols().map(c => c.colId())));
+  }),
+  rulesStyles: lazy(function(this: ViewFieldRec) {
+    return modelUtil.fieldWithDefault(
+      this.widgetOptionsJson.prop("rulesOptions") as modelUtil.KoSaveableObservable<Style[]>,
+      []);
+  }),
+  hasRules: lazy(function(this: ViewFieldRec) {
+    return this.autoDispose(ko.pureComputed(() => this.rulesCols().length > 0));
+  }),
+  // Externalize widgetOptions configuration, to support changing those options
+  // for multiple fields at once.
+  config: lazy(function (this: ViewFieldRec) {
+    return new ViewFieldConfig(this, this.docModel);
+  }),
+});
+
+export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void {
+  const myself = this;
+  this.docModel = docModel;
+
+  Object.setPrototypeOf(testProto, Object.getPrototypeOf(this));
+  Object.setPrototypeOf(this, testProto);
+
 
   // Helper which adds/removes/updates this field's displayCol to match the formula.
-  this.saveDisplayFormula = function(formula) {
+  myself.saveDisplayFormula = function(formula) {
     if (formula !== (this._displayColModel().formula() || '')) {
       return docModel.docData.sendAction(["SetDisplayFormula", this.column().table().tableId(),
         this.getRowId(), null, formula]);
     }
   };
 
-  // Whether this field uses column's widgetOptions (true) or its own (false).
-  // During transform, use the transform column's options (which should be initialized to match
-  // field or column when the transform starts TODO).
-  this.useColOptions = this.autoDispose(ko.pureComputed(() => !this.widgetOptions() || this.column().isTransforming()));
-
-  // Helper that returns the RowModel for either this field or its column, depending on
-  // useColOptions. Field and Column have a few identical fields:
-  //    .widgetOptions()        // JSON string of options
-  //    .saveDisplayFormula()   // Method to save the display formula
-  //    .displayCol()           // Reference to an optional associated display column.
-  this._fieldOrColumn = this.autoDispose(ko.pureComputed(() => this.useColOptions() ? this.column() : this));
-
-  // Display col ref to use for the field, defaulting to the plain column itself.
-  this.displayColRef = this.autoDispose(ko.pureComputed(() => this._fieldOrColumn().displayCol() || this.colRef()));
-
-  this.visibleColRef = modelUtil.addSaveInterface(this.autoDispose(ko.pureComputed({
-      read: () => this._fieldOrColumn().visibleCol(),
-      write: (colRef) => this._fieldOrColumn().visibleCol(colRef),
-    })),
-    colRef => docModel.docData.bundleActions(null, async () => {
-      const col = docModel.columns.getRowModel(colRef);
-      await Promise.all([
-        this._fieldOrColumn().visibleCol.saveOnly(colRef),
-        this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : '')
-      ]);
-    }, {nestInActiveBundle: this.column.peek().isTransforming.peek()})
-  );
-
-  // The display column to use for the field, or the column itself when no displayCol is set.
-  this.displayColModel = refRecord(docModel.columns, this.displayColRef);
-  this.visibleColModel = refRecord(docModel.columns, this.visibleColRef);
-
-  // Helper for Reference/ReferenceList columns, which returns a formatter according to the visibleCol
-  // associated with this field. If no visible column available, return formatting for the field itself.
-  this.visibleColFormatter = this.autoDispose(
-    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'vcol'))
-  );
-
-  this.formatter = this.autoDispose(
-    ko.pureComputed(() => formatterForRec(this, this.column(), docModel, 'full'))
-  );
-
-  this.createValueParser = function() {
+  myself.createValueParser = function() {
     const fieldRef = this.useColOptions.peek() ? undefined : this.id.peek();
     const parser = createParser(docModel.docData, this.colRef.peek(), fieldRef);
     return parser.cleanParse.bind(parser);
   };
 
-  // The widgetOptions to read and write: either the column's or the field's own.
-  this._widgetOptionsStr = this.autoDispose(modelUtil.savingComputed({
-    read: () => this._fieldOrColumn().widgetOptions(),
-    write: (setter, val) => setter(this._fieldOrColumn().widgetOptions, val)
-  }));
 
   // Observable for the object with the current options, either for the field or for the column,
   // which takes into account the default options for this column's type.
-  this.widgetOptionsJson = this.autoDispose(modelUtil.jsonObservable(this._widgetOptionsStr,
-    (opts: any) => UserType.mergeOptions(opts || {}, this.column().pureType())));
+  myself.widgetOptionsJson = myself.autoDispose(modelUtil.jsonObservable(myself._widgetOptionsStr,
+    (opts: any) => UserType.mergeOptions(opts || {}, myself.column().pureType())));
 
   // When user has yet to specify a desired wrapping state, we use different defaults for
   // GridView (no wrap) and DetailView (wrap).
-  this.wrap = this.autoDispose(modelUtil.fieldWithDefault(
-    this.widgetOptionsJson.prop('wrap'),
-    () => this.viewSection().parentKey() !== 'record'
+  myself.wrap = myself.autoDispose(modelUtil.fieldWithDefault(
+    myself.widgetOptionsJson.prop('wrap'),
+    () => myself.viewSection().parentKey() !== 'record'
   ));
-  this.widget = this.widgetOptionsJson.prop('widget');
-  this.textColor = this.widgetOptionsJson.prop('textColor');
-  this.fillColor = this.widgetOptionsJson.prop('fillColor');
-  this.fontBold = this.widgetOptionsJson.prop('fontBold');
-  this.fontUnderline = this.widgetOptionsJson.prop('fontUnderline');
-  this.fontItalic = this.widgetOptionsJson.prop('fontItalic');
-  this.fontStrikethrough = this.widgetOptionsJson.prop('fontStrikethrough');
-  this.headerTextColor = this.widgetOptionsJson.prop('headerTextColor');
-  this.headerFillColor = this.widgetOptionsJson.prop('headerFillColor');
-  this.headerFontBold = this.widgetOptionsJson.prop('headerFontBold');
-  this.headerFontUnderline = this.widgetOptionsJson.prop('headerFontUnderline');
-  this.headerFontItalic = this.widgetOptionsJson.prop('headerFontItalic');
-  this.headerFontStrikethrough = this.widgetOptionsJson.prop('headerFontStrikethrough');
-  this.question = this.widgetOptionsJson.prop('question');
+  myself.widget = myself.widgetOptionsJson.prop('widget');
+  myself.textColor = myself.widgetOptionsJson.prop('textColor');
+  myself.fillColor = myself.widgetOptionsJson.prop('fillColor');
+  myself.fontBold = myself.widgetOptionsJson.prop('fontBold');
+  myself.fontUnderline = myself.widgetOptionsJson.prop('fontUnderline');
+  myself.fontItalic = myself.widgetOptionsJson.prop('fontItalic');
+  myself.fontStrikethrough = myself.widgetOptionsJson.prop('fontStrikethrough');
+  myself.headerTextColor = myself.widgetOptionsJson.prop('headerTextColor');
+  myself.headerFillColor = myself.widgetOptionsJson.prop('headerFillColor');
+  myself.headerFontBold = myself.widgetOptionsJson.prop('headerFontBold');
+  myself.headerFontUnderline = myself.widgetOptionsJson.prop('headerFontUnderline');
+  myself.headerFontItalic = myself.widgetOptionsJson.prop('headerFontItalic');
+  myself.headerFontStrikethrough = myself.widgetOptionsJson.prop('headerFontStrikethrough');
+  myself.question = myself.widgetOptionsJson.prop('question');
 
-  this.documentSettings = this.autoDispose(ko.pureComputed(() => docModel.docInfoRow.documentSettingsJson()));
-  this.style = this.autoDispose(ko.pureComputed({
-    read: () => ({
-      textColor: this.textColor(),
-      fillColor: this.fillColor(),
-      fontBold: this.fontBold(),
-      fontUnderline: this.fontUnderline(),
-      fontItalic: this.fontItalic(),
-      fontStrikethrough: this.fontStrikethrough(),
-    }) as Style,
-    write: (style: Style) => {
-      this.widgetOptionsJson.update(style);
-    },
-  }));
-  this.headerStyle = this.autoDispose(ko.pureComputed({
-    read: () => ({
-      headerTextColor: this.headerTextColor(),
-      headerFillColor: this.headerFillColor(),
-      headerFontBold: this.headerFontBold(),
-      headerFontUnderline: this.headerFontUnderline(),
-      headerFontItalic: this.headerFontItalic(),
-      headerFontStrikethrough: this.headerFontStrikethrough(),
-    }) as HeaderStyle,
-    write: (headerStyle: HeaderStyle) => {
-      this.widgetOptionsJson.update(headerStyle);
-    },
-  }));
-
-  this.tableId = this.autoDispose(ko.pureComputed(() => this.column().table().tableId()));
-  this.rulesList = modelUtil.savingComputed({
-    read: () => this._fieldOrColumn().rules(),
-    write: (setter, val) => setter(this._fieldOrColumn().rules, val)
-  });
-  this.rulesCols = this.autoDispose(
-    refListRecords(docModel.columns, ko.pureComputed(() => this._fieldOrColumn().rules()))
-  );
-  this.rulesColsIds = this.autoDispose(ko.pureComputed(() => this.rulesCols().map(c => c.colId())));
-  this.rulesStyles = modelUtil.fieldWithDefault(
-    this.widgetOptionsJson.prop("rulesOptions") as modelUtil.KoSaveableObservable<Style[]>,
-    []);
-  this.hasRules = this.autoDispose(ko.pureComputed(() => this.rulesCols().length > 0));
 
   // Helper method to add an empty rule (either initial or additional one).
   // Style options are added to widget options directly and can be briefly out of sync,
   // which is taken into account during rendering.
-  this.addEmptyRule = async () => {
-    const useCol = this.useColOptions.peek();
+  myself.addEmptyRule = async () => {
+    const useCol = myself.useColOptions.peek();
     const action = [
       'AddEmptyRule',
-      this.column.peek().table.peek().tableId.peek(),
-      useCol ? 0 : this.id.peek(), // field_ref
-      useCol ? this.column.peek().id.peek() : 0, // col_ref
+      myself.column.peek().table.peek().tableId.peek(),
+      useCol ? 0 : myself.id.peek(), // field_ref
+      useCol ? myself.column.peek().id.peek() : 0, // col_ref
     ];
-    await docModel.docData.sendAction(action, `Update rules for ${this.colId.peek()}`);
+    await docModel.docData.sendAction(action, `Update rules for ${myself.colId.peek()}`);
   };
 
-  this.removeRule = (index: number) => removeRule(docModel, this, index);
-  // Externalize widgetOptions configuration, to support changing those options
-  // for multiple fields at once.
-  this.config = new ViewFieldConfig(this, docModel);
+  myself.removeRule = (index: number) => removeRule(docModel, myself, index);
 
-  this.disableModify = this.autoDispose(ko.pureComputed(() => this.column().disableModify()));
-  this.disableEditData = this.autoDispose(ko.pureComputed(() => this.column().disableEditData()));
+  myself.disableModify = myself.autoDispose(ko.pureComputed(() => myself.column().disableModify()));
+  myself.disableEditData = myself.autoDispose(ko.pureComputed(() => myself.column().disableEditData()));
 
-  this.dropdownCondition = this.widgetOptionsJson.prop('dropdownCondition');
-  this.dropdownConditionCompiled = Computed.create(this, use => {
-    const dropdownCondition = use(this.dropdownCondition);
+  myself.dropdownCondition = myself.widgetOptionsJson.prop('dropdownCondition');
+  myself.dropdownConditionCompiled = Computed.create(myself, use => {
+    const dropdownCondition = use(myself.dropdownCondition);
     if (!dropdownCondition?.parsed) { return null; }
 
     try {
