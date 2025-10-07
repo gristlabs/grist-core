@@ -5,7 +5,7 @@ import {Request} from 'express';
 import pick from 'lodash/pick';
 import * as t from "ts-interface-checker";
 
-import {ApiError, ServiceAccountApiError} from 'app/common/ApiError';
+import {ApiError} from 'app/common/ApiError';
 import {isAffirmative} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
@@ -656,7 +656,7 @@ export class ApiServer {
         const serviceAccount = await this._dbManager.createServiceAccount(
           ownerId, options
         );
-        const resp = {
+        const resp: SATypes.ServiceAccountApiResponse = {
           login: serviceAccount.serviceUser.loginEmail,
           key: serviceAccount.serviceUser.apiKey,
           label: serviceAccount.label,
@@ -683,19 +683,19 @@ export class ApiServer {
         const serviceAccountLogin = req.params.said;
         const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin);
         if (!serviceAccount) {
-          throw new ServiceAccountApiError(`No such service account ${serviceAccountLogin}`, 404);
+          throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
         }
         if (serviceAccount.ownerId !== userId) {
-          throw new ServiceAccountApiError(`Unauthorized access to service account ${serviceAccountLogin}`, 403);
+          throw new ApiError(`Unauthorized access to service account ${serviceAccountLogin}`, 403);
         }
         const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
-        const resp = {
+        const resp: Partial<SATypes.ServiceAccountApiResponse> = {
           login: serviceAccountLogin,
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt,
           hasValidKey
-        };
+      };
         return sendOkReply(req, res, resp);
       }));
 
@@ -715,7 +715,7 @@ export class ApiServer {
             serviceAccountLogin, updateProps, { expectedOwnerId: userId }
           );
           if (!resp) {
-            throw new ServiceAccountApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+            throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
           }
           return sendOkReply(req, res, resp);
         })
@@ -728,7 +728,7 @@ export class ApiServer {
         const serviceAccountLogin = req.params.said;
         const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, {expectedOwnerId: userId});
         if (resp === null) {
-          throw new ServiceAccountApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+          throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
         }
         return sendOkReply(req, res, resp);
       }));
@@ -742,12 +742,12 @@ export class ApiServer {
           serviceAccountLogin, {expectedOwnerId: userId}
         );
         if (serviceAccount === null) {
-          throw new ServiceAccountApiError(
+          throw new ApiError(
             `Can't regenerate api key of non existing service account ${serviceAccountLogin}`,
             404
           );
         }
-        const resp = {
+        const resp: SATypes.ServiceAccountApiResponse = {
           login: serviceAccountLogin,
           key: serviceAccount.serviceUser.apiKey,
           label: serviceAccount.label,
@@ -767,7 +767,7 @@ export class ApiServer {
           serviceAccountLogin, {expectedOwnerId: userId}
         );
         if (serviceAccount == null) {
-          throw new ServiceAccountApiError(
+          throw new ApiError(
             `Can't revoke api key of non existing service account ${serviceAccountLogin}`,
             404
           );
