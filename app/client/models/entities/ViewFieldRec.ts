@@ -125,7 +125,7 @@ function lazy(gen: any) {
   return {
     get() {
       if (value === undefined) {
-        console.log("Instantiating lazy property")
+        console.log("Instantiating lazy property");
         value = gen.call(this);
       }
       return value;
