@@ -2,6 +2,7 @@ import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {isColorDark} from 'app/common/gutil';
+import {components} from 'app/common/ThemePrefs';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
 import debounce = require('lodash/debounce');
 
@@ -206,23 +207,28 @@ const cssSelectorBtn = styled('div', `
   }
 
   /* Styles when container includes cssButtonSelect.cls('-light') */
+  .${cssButtonSelect.className}-light {
+    gap: 4px;
+  }
+
+  .${cssButtonSelect.className}-light > &:hover:not(&-selected) {
+    background: ${components.buttonGroupLightBg};
+  }
+
   .${cssButtonSelect.className}-light > & {
-    border: none;
+    border: 1px solid transparent;
     border-radius: ${vars.controlBorderRadius};
     margin-left: 0px;
-    padding: 8px;
+    padding: 5px;
+    min-width: 28px;
     color: ${theme.buttonGroupLightFg};
     --icon-color: ${theme.buttonGroupLightFg};
   }
   .${cssButtonSelect.className}-light > &-selected {
-    border: none;
+    border-color: ${theme.buttonGroupLightSelectedFg};
     color: ${theme.buttonGroupLightSelectedFg};
     --icon-color: ${theme.buttonGroupLightSelectedFg};
-    background-color: initial;
-  }
-  .${cssButtonSelect.className}-light > &:hover {
-    border: none;
-    background-color: ${theme.hover};
+    background-color: ${components.buttonGroupLightSelectedBg};
   }
 `);
 
