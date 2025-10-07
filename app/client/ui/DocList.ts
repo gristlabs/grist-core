@@ -8,6 +8,7 @@ import { workspaceName } from "app/client/models/WorkspaceInfo";
 import { contextMenu } from "app/client/ui/contextMenu";
 import { buildDocIcon, stripIconFromName } from "app/client/ui/DocIcon";
 import { STICKY_HEADER_HEIGHT_PX } from "app/client/ui/DocMenuCss";
+import { downloadDocModal } from "app/client/ui/MakeCopyMenu";
 import { showRenameDocModal } from "app/client/ui/RenameDocModal";
 import { shadowScroll } from "app/client/ui/shadowScroll";
 import { makeShareDocUrl } from "app/client/ui/ShareMenu";
@@ -23,7 +24,7 @@ import { icon as cssIcon } from "app/client/ui2018/icons";
 import { unstyledButton, unstyledH2, unstyledUl } from "app/client/ui2018/unstyled";
 import { stretchedLink } from "app/client/ui2018/stretchedLink";
 import { visuallyHidden } from "app/client/ui2018/visuallyHidden";
-import { menu, menuItem, select } from "app/client/ui2018/menus";
+import { menu, menuIcon, menuItem, select } from "app/client/ui2018/menus";
 import { confirmModal, saveModal } from "app/client/ui2018/modals";
 import { HomePageTab } from "app/common/gristUrls";
 import { SortPref } from "app/common/Prefs";
@@ -248,6 +249,7 @@ export class DocList extends Disposable {
 export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
   const org = home.app.currentOrg;
   const orgAccess: roles.Role | null = org ? org.access : null;
+  const isElectron = (window as any).isRunningUnderElectron;
 
   function deleteDoc() {
     confirmModal(
@@ -311,6 +313,16 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       roles.canEditAccess(doc.access) ? t("Manage users") : t("Access details"),
       testId("doc-access")
     ),
+    // The electron method for "downloading" documents only works
+    // with a websocket currently, so downloads are only easy
+    // to support when the document is open.
+    // TODO: support showItemInFolder with electron in a better way.
+    (isElectron ? null :
+        menuItem(
+          () => downloadDocModal(doc, home.app),
+          menuIcon('Download'), t("Download document..."),
+          testId('tb-share-option'))
+        ),
   ];
 }
 

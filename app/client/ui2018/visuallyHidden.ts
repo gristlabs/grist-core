@@ -22,6 +22,14 @@ const commonStyles = `
 `;
 
 /**
+ * Base styles to help build custom "visually hidden" elements.
+ */
+export const visuallyHiddenStyles = `
+  position: absolute !important;
+  ${commonStyles};
+`;
+
+/**
  * Visually hides an element.
  *
  * You should use this with div, span, p, headings. Certainly not much else.

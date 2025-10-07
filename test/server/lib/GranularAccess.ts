@@ -115,6 +115,7 @@ describe('GranularAccess', function() {
 
   before(async function() {
     home = new TestServer(this);
+    process.env.GRIST_DEFAULT_EMAIL = 'ham@getgrist.com';
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
     await api.newOrg({name: 'testy', domain: 'testy'});
@@ -1441,6 +1442,75 @@ describe('GranularAccess', function() {
     ]));
 
     await removeShares(docId, owner);
+  });
+
+  it('rejects disabled users over websockets', async function() {
+    await freshDoc();
+
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Data', [{id: 'A'}]],
+      ['AddRecord', 'Data', null, {A: 42}],
+    ]);
+
+    // Owner and editor can read table.
+    assert.equal((await cliOwner.send("fetchTable", 0, 'Data')).data.tableData[3].A, 42);
+    assert.equal((await cliEditor.send("fetchTable", 0, 'Data')).data.tableData[3].A, 42);
+
+    // ham (as in dramatic actor) is the admin
+    const admin = await home.createHomeApi('ham', 'docs', true);
+
+    // Admin bans the editor
+    const editorProfile = await editor.getUserProfile();
+    await admin.disableUser(editorProfile.id);
+    home.dbManager.flushDocAuthCache();
+
+    function assertResponseDenied(resp: any){
+      assert.equal(resp.errorCode, 'AUTH_NO_VIEW');
+      assert.equal(resp.error, 'No view access');
+    }
+
+    // Editor should not be able to read or write anymore
+    assertResponseDenied(await cliEditor.send(
+      'fetchTable', 0, 'Data'
+    ));
+    assertResponseDenied(await cliEditor.send(
+      'applyUserActions', 0, [['UpdateRecord', 'Data', 1, {A: 68}]]
+    ));
+    assertResponseDenied(await cliEditor.send(
+      'applyUserActions', 0, [['AddRecord', 'Data', null, {A: 999}]]
+    ));
+    assertResponseDenied(await cliEditor.send(
+      'applyUserActions', 0, [['RemoveRecord', 'Data', 1]]
+    ));
+
+    // Not even openDoc should work
+    assertResponseDenied(await cliEditor.send('openDoc', docId));
+
+    // Admin restores the editor
+    await admin.enableUser(editorProfile.id);
+    home.dbManager.flushDocAuthCache();
+
+    function assertResponsePasses(resp: any) {
+      assert.isDefined(resp.data);
+      assert.isUndefined(resp.error);
+      assert.isUndefined(resp.errorCode);
+    }
+
+    // Editor can now do everything again.
+    assertResponsePasses(await cliEditor.send(
+      'fetchTable', 0, 'Data'));
+    assertResponsePasses(await cliEditor.send(
+      'applyUserActions', 0, [['UpdateRecord', 'Data', 1, {A: 68}]]
+    ));
+    assertResponsePasses(await cliEditor.send(
+      'applyUserActions', 0, [['AddRecord', 'Data', null, {A: 999}]]
+    ));
+    assertResponsePasses(await cliEditor.send(
+      'applyUserActions', 0, [['RemoveRecord', 'Data', 1]]
+    ));
+
+    // Including calling openDoc
+    assertResponsePasses(await cliEditor.send('openDoc', docId));
   });
 
   it('respects row-level access control', async function() {
@@ -3138,6 +3208,30 @@ describe('GranularAccess', function() {
     });
   }
 
+  it('respects BROADCAST_TIMEOUT_MS', async function() {
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
+                             {id: 'B', type: 'Numeric'}]]
+    ]);
+
+    // Set timeout negative, so broadcasts fail reliably, and see
+    // that connections close.
+    const timeoutStub = sandbox.stub(DocClientsDeps, 'BROADCAST_TIMEOUT_MS').value(-1);
+    try {
+      cliEditor.flush();
+      cliOwner.flush();
+      assert.equal(cliEditor.isOpen(), true);
+      assert.equal(cliOwner.isOpen(), true);
+      await owner.getDocAPI(docId).addRows('Data1', {A: [300, 150], B: [1, 1]});
+      await delay(100);
+      assert.equal(cliEditor.isOpen(), false);
+      assert.equal(cliOwner.isOpen(), false);
+    } finally {
+      timeoutStub.restore();
+    }
+  });
+
   describe('filterColValues', async function() {
     // A method for checking if a cell contains 'x'.
     function xRemove(val: any) { return val === 'x'; }
@@ -3316,13 +3410,13 @@ describe('GranularAccess', function() {
     assert.deepEqual(perm.users, [
       { id: await getId('Chimpy'), email: 'chimpy@getgrist.com', name: 'Chimpy',
         ref: await getRef('chimpy@getgrist.com'),
-        picture: null, access: 'owners', isMember: true },
+        picture: null, access: 'owners', isMember: true, disabledAt: null },
       { id: await getId('Kiwi'), email: 'kiwi@getgrist.com', name: 'Kiwi',
         ref: await getRef('kiwi@getgrist.com'),
-        picture: null, access: 'owners', isMember: false },
+        picture: null, access: 'owners', isMember: false, disabledAt: null },
       { id: await getId('Charon'), email: 'charon@getgrist.com', name: 'Charon',
         ref: await getRef('charon@getgrist.com'),
-        picture: null, access: 'editors', isMember: false },
+        picture: null, access: 'editors', isMember: false, disabledAt: null },
     ]);
     assert.deepEqual(perm.attributeTableUsers, []);
     assert.deepEqual(perm.exampleUsers[0],
@@ -3362,13 +3456,13 @@ describe('GranularAccess', function() {
     assert.deepEqual(perm.users, [
       { id: await getId('Chimpy'), email: 'chimpy@getgrist.com', name: 'Chimpy',
         ref: await getRef('chimpy@getgrist.com'),
-        picture: null, access: 'owners', isMember: true },
+        picture: null, access: 'owners', isMember: true, disabledAt: null },
       { id: await getId('Kiwi'), email: 'kiwi@getgrist.com', name: 'Kiwi',
         ref: await getRef('kiwi@getgrist.com'),
-        picture: null, access: 'owners', isMember: false },
+        picture: null, access: 'owners', isMember: false, disabledAt: null },
       { id: await getId('Charon'), email: 'charon@getgrist.com', name: 'Charon',
         ref: await getRef('charon@getgrist.com'),
-        picture: null, access: 'editors', isMember: false },
+        picture: null, access: 'editors', isMember: false, disabledAt: null },
     ]);
     assert.deepEqual(perm.attributeTableUsers, [
       { id: 0, email: 'fast@speed.com', name: 'fast', access: 'editors' },
@@ -4209,7 +4303,7 @@ describe('GranularAccess', function() {
 });
 
 async function closeClient(cli: GristClient) {
-  if (cli.ws.isOpen()) {
+  if (cli.isOpen()) {
     await cli.send("closeDoc", 0);
   }
   await cli.close();

@@ -19,6 +19,39 @@ describe("ViewLayoutCollapse", function() {
     await session.tempNewDoc(cleanup);
   });
 
+  it('preserves collapsed state when summary widget is changed', async function() {
+    // When there was a collapsed section, and one of the widget in the main area was changed, the
+    // collapsed section try was destroyed (putting all sections in the main area).
+    const revert = await gu.begin();
+
+    // Add new widget with new table to the page.
+    await gu.addNewSection('Table', 'New Table');
+
+    // Collapse it.
+    await collapseByMenu('Table2');
+    assert.deepEqual(await mainSectionTitles(), ['TABLE1']);
+    assert.deepEqual(await collapsedSectionTitles(), ['TABLE2']);
+
+    // Now click the change widget button on in the creator panel.
+    await gu.openWidgetPanel('widget');
+
+    // Try to change the widget type.
+    await driver.findContent('.test-right-panel button', /Change Widget/).click();
+
+    // Click the summary icon next to the table name.
+    await driver.findContentWait('.test-wselect-table', /Table1/, 50).find('.test-wselect-pivot').doClick();
+
+    // But don't select any column, just click save.
+    await driver.find('.test-wselect-addBtn').click();
+    await gu.waitForServer();
+
+    // Now check how many sections we have in the main area.
+    assert.deepEqual(await mainSectionTitles(), ['TABLE1 [Totals]']);
+    assert.deepEqual(await collapsedSectionTitles(), ['TABLE2']);
+
+    await revert();
+  });
+
   it('fix:copies collapsed sections properly', async function() {
     // When one of 2 widget was collapsed, the resulting widget can become a root section. Then,
     // when a page was duplicated, the layout was duplicated incorrectly (with wrong collapsed
@@ -217,14 +250,16 @@ describe("ViewLayoutCollapse", function() {
     await gu.sendKeys(Key.ESCAPE);
 
     // Make sure we see 30 records in Table2.
-    const count = await driver.executeScript(`
-      const section = Array.from(document.querySelectorAll('.test-widget-title-text'))
-                           .find(e => e.textContent === 'TABLE2')
-                           .closest('.viewsection_content');
-      return Array.from(section.querySelectorAll('.gridview_data_row_num')).length;
-    `);
+    await gu.waitToPass(async () => {
+      const count = await driver.executeScript(`
+        const section = Array.from(document.querySelectorAll('.test-widget-title-text'))
+                             .find(e => e.textContent === 'TABLE2')
+                             .closest('.viewsection_content');
+        return Array.from(section.querySelectorAll('.gridview_data_row_num')).length;
+      `);
 
-    assert.equal(count, 30 + 1);
+      assert.equal(count, 30 + 1);
+    }, 100);
 
     await revert();
   });
@@ -1083,7 +1118,9 @@ async function waitForSave() {
 
 async function visibleTables() {
   await driver.findWait('.test-dp-add-new', 2000).doClick();
+  await gu.findOpenMenu();
   await driver.find('.test-dp-add-new-page').doClick();
+  await driver.findWait('.test-wselect-heading', 100);
   const titles = await driver.findAll('.test-wselect-table', e => e.getText());
   await gu.sendKeys(Key.ESCAPE);
   return titles.map(x => x.trim()).filter(Boolean).filter(x => x !== 'New Table');

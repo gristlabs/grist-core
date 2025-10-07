@@ -4,7 +4,6 @@ import * as commands from 'app/client/components/commands';
 import {ContentBox} from 'app/client/components/Layout';
 import type {ViewLayout} from 'app/client/components/ViewLayout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {detachNode} from 'app/client/lib/dom';
 import {Signal} from 'app/client/lib/Signal';
 import {urlState} from 'app/client/models/gristUrlState';
 import {TransitionWatcher} from 'app/client/ui/transitions';
@@ -19,6 +18,7 @@ const testId = makeTestId('test-layoutTray-');
 
 const G = getBrowserGlobals('document', 'window', '$');
 
+type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 
 /**
  * Adds a tray for minimizing and restoring sections. It is built as a plugin for the ViewLayout component.
@@ -776,7 +776,7 @@ class MiniFloater extends Disposable {
     );
   }
 
-  public onMove(ev: MouseEvent) {
+  public onMove(ev: JQMouseEvent) {
     if (this.content.get()) {
       this.rootElement.style.left = `${ev.clientX}px`;
       this.rootElement.style.top = `${ev.clientY}px`;
@@ -1016,8 +1016,10 @@ function syncHover(obs: Signal) {
  */
 function detachedNode(node: Observable<HTMLElement|null>) {
   return [
+    // When disposing DOM, grainjs goes over children first, then the parent. This dummy node will
+    // gets its disposer called, which will detach node before the disposer gets to it.
+    cssHidden(dom.onDispose(() => node.get()?.remove())),
     dom.maybe(node, n => n),
-    dom.onDispose(() => node.get() && detachNode(node.get()))
   ];
 }
 
@@ -1058,7 +1060,7 @@ function useDragging() {
     let floater: MiniFloater|null = null;
     let downX: number|null = null;
     let downY: number|null = null;
-    const listener = (ev: MouseEvent) => {
+    const listener = (ev: JQMouseEvent) => {
       switch (ev.type) {
         case 'mousedown':
           // Only handle left button.
@@ -1128,8 +1130,8 @@ function useDragging() {
           return false;
       }
     };
-    const mouseMoveListener = (ev: MouseEvent) => listener(ev);
-    const mouseUpListener = (ev: MouseEvent) => listener(ev);
+    const mouseMoveListener = (ev: JQMouseEvent) => listener(ev);
+    const mouseUpListener = (ev: JQMouseEvent) => listener(ev);
     dom.autoDisposeElem(el, dom.onElem(G.window, 'mousedown', (e) => listener(e)));
     dom.onDisposeElem(el, () => (floater?.dispose(), floater = null));
   };

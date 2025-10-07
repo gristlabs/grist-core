@@ -126,6 +126,8 @@ export class ApiServer {
   }
 
   private _addEndpoints(): void {
+    const requireInstallAdmin = this._gristServer.getInstallAdmin().getMiddlewareRequireAdmin();
+
     // GET /api/orgs
     // Get all organizations user may have some access to.
     this._app.get('/api/orgs', expressWrap(async (req, res) => {
@@ -500,6 +502,16 @@ export class ApiServer {
       res.sendStatus(200);
     }));
 
+    this._app.post('/api/users/:userId/disable', requireInstallAdmin, expressWrap(async (req, res) => {
+      await this._changeUserDisabledDate(req, new Date());
+      await sendOkReply(req, res);
+    }));
+
+    this._app.post('/api/users/:userId/enable', requireInstallAdmin, expressWrap(async (req, res) => {
+      await this._changeUserDisabledDate(req, null);
+      await sendOkReply(req, res);
+    }));
+
     // GET /api/profile/apikey
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
@@ -682,6 +694,16 @@ export class ApiServer {
       return await op(extendedScope);
     }
     return result;
+  }
+
+  private async _changeUserDisabledDate(req: express.Request, disabledAt: Date | null) {
+    const mreq = req as RequestWithLogin;
+    const userId = mreq.userId;
+    const targetUserId = integerParam(req.params.userId, 'userId');
+    if (targetUserId === userId) {
+      throw new ApiError('you cannot disable yourself', 400);
+    }
+    await this._dbManager.updateUser(targetUserId, { disabledAt });
   }
 
   private async _hardDeleteWorkspace(req: Request, wsId: number) {

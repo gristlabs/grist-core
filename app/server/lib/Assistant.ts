@@ -55,9 +55,17 @@ export function getAssistantV2Options(): AssistantV2Options {
       envVar: "ASSISTANT_MAX_TOOL_CALLS",
       minValue: 0,
     });
+  const structuredOutput = appSettings
+    .section("assistant")
+    .flag("structuredOutput")
+    .readBool({
+      envVar: "ASSISTANT_STRUCTURED_OUTPUT",
+      defaultValue: false,
+    });
   return {
     ...getAssistantV1Options(),
     maxToolCalls,
+    structuredOutput,
   };
 }
 

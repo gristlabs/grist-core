@@ -5,7 +5,7 @@ import {SaveableObjObservable} from 'app/client/models/modelUtil';
 import {cssNumericSpinner, cssRow} from 'app/client/ui/RightPanelStyles';
 import {infoTooltip} from 'app/client/ui/tooltips';
 import {textButton} from 'app/client/ui2018/buttons';
-import {squareCheckbox} from 'app/client/ui2018/checkbox';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {testId} from 'app/client/ui2018/cssVars';
 import {Computed, dom, DomContents, DomElementArg, IDisposableOwner, styled, subscribeElem} from 'grainjs';
 
@@ -46,21 +46,25 @@ export function rowHeightConfigTable(
 
   return [
     cssRow(
-      cssRowHeightText(t('Max height'), infoTooltip('rowHeight')),
+      cssRowHeightLabel(t('Max height'), infoTooltip('rowHeight'), {for: 'row-height-max-input'}),
       cssNumericSpinner(rowHeightObs,
         {
           minValue: 0,
           maxValue: 100,
           save: setRowHeight,
-          inputArgs: [{placeholder: 'auto'}, dom.style('width', '5em')],
+          inputArgs: [{placeholder: 'auto', id: 'row-height-max-input'}, dom.style('width', '5em')],
         },
         testId('row-height-max'),
       ),
     ),
     cssRowExpandable(
       cssRowExpandable.cls('-expand', (use) => Boolean(use(rowHeightObs))),
-      cssCheckbox(uniformRows, testId('row-height-expand')),
-      t('Expand all rows to this height'),
+      labeledSquareCheckbox(
+        uniformRows,
+        t('Expand all rows to this height'),
+        testId('row-height-expand'),
+        dom.boolAttr('disabled', (use) => !use(rowHeightObs)),
+      ),
     ),
   ];
 }
@@ -79,16 +83,15 @@ export function applyRowHeightLimit(section: ViewSectionRec): DomElementArg {
   ];
 }
 
-const cssRowHeightText = styled('span', `
+const cssRowHeightTextBase = `
   flex: 1 0 auto;
   display: inline-flex;
   gap: 8px;
   margin-right: 16px;
-`);
+`;
+const cssRowHeightText = styled('span', cssRowHeightTextBase);
 
-const cssCheckbox = styled(squareCheckbox, `
-  margin-right: 8px;
-`);
+const cssRowHeightLabel = styled('label', cssRowHeightTextBase);
 
 const cssRowExpandable = styled(cssRow, `
   transition: max-height 0.2s;
@@ -101,5 +104,6 @@ const cssRowExpandable = styled(cssRow, `
      * second line.
      */
     max-height: 32px;
+    overflow: visible;
   }
 `);

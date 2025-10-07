@@ -1,8 +1,11 @@
 import {assert, driver, Key, WebElement} from 'mocha-webdriver';
 import {server, setupTestSuite} from 'test/projects/testUtils';
+import * as gu from 'test/nbrowser/gristUtils';
+
 
 describe('UserManager', () => {
   setupTestSuite();
+  gu.bigScreen();
 
   before(async function() {
     this.timeout(60000);      // Set a longer default timeout.
@@ -34,12 +37,14 @@ describe('UserManager', () => {
   }
 
   it('should render all emails and roles initially', async function() {
-    assert.deepEqual(await getRenderedMembers(), [
-      ["foo@example.com", "Owner"],
-      ["bar@example.com", "Editor"],
-      ["team@example.com", "Viewer"],
-      ["guest@example.com", "Viewer"],
-    ]);
+    await gu.waitToPass(async () => {
+      assert.deepEqual(await getRenderedMembers(), [
+        ["foo@example.com", "Owner"],
+        ["bar@example.com", "Editor"],
+        ["team@example.com", "Viewer"],
+        ["guest@example.com", "Viewer"],
+      ]);
+    }, 5000);
     assert.deepEqual(JSON.parse(await driver.find('.test-result').getText()), {});
   });
 
@@ -65,10 +70,11 @@ describe('UserManager', () => {
     await driver.find('.test-um-member-new input').sendKeys('bob@bob.tail', Key.ENTER);
     await driver.find('.test-um-member-new input').sendKeys('alice@a.com', Key.ENTER);
     await driver.find('.test-um-member-new input').sendKeys('eve@a.com', Key.ENTER);
+
     await driver.findContent('.test-um-member', /eve@a\.com/).find('.test-um-member-role').doClick();
-    await driver.findContent('.test-um-role-option', /Editor/).doClick();
+    await driver.findContentWait('.test-um-role-option', /Editor/, 100).doClick();
     await driver.findContent('.test-um-member', /bob@bob\.tail/).find('.test-um-member-role').doClick();
-    await driver.findContent('.test-um-role-option', /Editor/).doClick();
+    await driver.findContentWait('.test-um-role-option', /Editor/, 100).doClick();
 
     assert.deepEqual(await getRenderedMembers(), [
       ["foo@example.com", "Owner"],
@@ -130,9 +136,9 @@ describe('UserManager', () => {
     await driver.find('.test-um-member-new input').sendKeys('alice@bobtail.com', Key.ENTER);
     await driver.findContent('.test-um-member', /foo@example\.com/).find('.test-um-member-delete').doClick();
     await driver.findContent('.test-um-member', /bar@example\.com/).find('.test-um-member-role').doClick();
-    await driver.findContent('.test-um-role-option', /Owner/).doClick();
+    await driver.findContentWait('.test-um-role-option', /Owner/, 100).doClick();
     await driver.findContent('.test-um-member', /alice@bobtail\.com/).find('.test-um-member-role').doClick();
-    await driver.findContent('.test-um-role-option', /Owner/).doClick();
+    await driver.findContentWait('.test-um-role-option', /Owner/, 100).doClick();
 
     assert.deepEqual(await getRenderedMembers(), [
       ["foo@example.com", null],

@@ -455,8 +455,9 @@ export class FlexServer implements GristServer {
   }
 
   public getNotifier(): INotifier {
-    // Check that our internal notifier implementation is in place.
-    if (!this.hasNotifier()) { throw new Error('no notifier available'); }
+    // We only warn if we are in a server that doesn't configure notifiers (i.e. not a home
+    // server). But actually having a working notifier isn't required.
+    if (!this._has('notifier')) { throw new Error('no notifier available'); }
     // Expose a wrapper around it that emits actions.
     return this._emitNotifier;
   }
@@ -556,11 +557,6 @@ export class FlexServer implements GristServer {
     // If docWorkerRegistered=1 query parameter is included, status will include the status of the
     // doc worker registration in Redis.
     this.app.get('/status(/hooks)?', async (req, res) => {
-      log.rawDebug(`Healthcheck[${req.method}]:`, {
-        host: req.get('host'),
-        path: req.path,
-        query: req.query,
-      });
       const checks = new Map<string, Promise<boolean>|boolean>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
 
@@ -600,15 +596,31 @@ export class FlexServer implements GristServer {
       }
       let extra = '';
       let ok = true;
+      let statuses: string[] = [];
       // If we had any extra check, collect their status to report them.
       if (checks.size > 0) {
         const results = await Promise.all(checks.values());
         ok = ok && results.every(r => r === true);
-        const notes = Array.from(checks.keys(), (key, i) => `${key} ${results[i] ? 'ok' : 'not ok'}`);
-        extra = ` (${notes.join(", ")})`;
+        statuses = Array.from(checks.keys(), (key, i) => `${key} ${results[i] ? 'ok' : 'not ok'}`);
+        extra = ` (${statuses.join(", ")})`;
       }
 
-      if (this._healthy && ok) {
+      const overallOk = ok && this._healthy;
+
+      if ((this._healthCheckCounter % 100) === 0 || !overallOk) {
+        log.rawDebug(`Healthcheck result`, {
+          host: req.get('host'),
+          path: req.path,
+          query: req.query,
+          ok,
+          statuses,
+          healthy: this._healthy,
+          overallOk,
+          previousSuccessfulChecks: this._healthCheckCounter
+        });
+      }
+
+      if (overallOk) {
         this._healthCheckCounter++;
         res.status(200).send(`Grist ${this.name} is alive${extra}.`);
       } else {

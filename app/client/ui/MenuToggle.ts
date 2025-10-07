@@ -1,12 +1,12 @@
 import { theme } from "app/client/ui2018/cssVars";
 import { icon } from "app/client/ui2018/icons";
-import { dom, DomArg, IDisposableOwner, styled } from "grainjs";
+import { dom, DomElementArg, IDisposableOwner, styled } from "grainjs";
 
 /**
  * Creates a toggle button - little square button with a dropdown icon inside, used
  * by a context menu for a row inside a grid, a card inside a cardlist and column name.
  */
-export function menuToggle(obs: IDisposableOwner, ...args: DomArg[]) {
+export function menuToggle(obs: IDisposableOwner|null, ...args: DomElementArg[]) {
   const contextMenu = cssMenuToggle(
     icon('Dropdown', dom.cls('menu_toggle_icon')),
     ...args

@@ -6,7 +6,7 @@ void(driver);
 void(Key);
 
 async function getValues() {
-  return driver.findAll('.test-filter-menu-list label', e => e.getText());
+  return driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText());
 }
 
 describe('ColumnFilterMenu3', function() {
@@ -172,7 +172,7 @@ describe('ColumnFilterMenu3', function() {
 
     async function assertEmptyRowCount(count: number) {
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-list label', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
         ['']
       );
       assert.deepEqual(

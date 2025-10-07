@@ -51,6 +51,7 @@ import {DocSettingsPage} from 'app/client/ui/DocumentSettings';
 import {isTourActive, isTourActiveObs} from "app/client/ui/OnBoardingPopups";
 import {DefaultPageWidget, IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
 import {linkFromId, NoLink, selectBy} from 'app/client/ui/selectBy';
+import {ProposedChangesPage} from 'app/client/ui/ProposedChangesPage';
 import {TimingPage} from 'app/client/ui/TimingPage';
 import {WebhookPage} from 'app/client/ui/WebhookPage';
 import {startWelcomeTour} from 'app/client/ui/WelcomeTour';
@@ -60,11 +61,11 @@ import {isNarrowScreen, mediaSmall, mediaXSmall, testId, theme} from 'app/client
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
 import {invokePrompt} from 'app/client/ui2018/modals';
-import {AssistantPopup} from 'app/client/widgets/AssistantPopup';
+import {buildAssistantPopup} from 'app/client/widgets/AssistantPopup';
 import {CommentMonitor, DiscussionPanel} from 'app/client/widgets/DiscussionEditor';
 import {FieldEditor} from "app/client/widgets/FieldEditor";
 import {MinimalActionGroup} from 'app/common/ActionGroup';
-import {AssistantState, ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
+import {ClientQuery, FilterColValues} from "app/common/ActiveDocAPI";
 import {CommDocChatter, CommDocUsage, CommDocUserAction} from 'app/common/CommTypes';
 import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
@@ -163,6 +164,7 @@ export interface GristDoc extends DisposableWithEvents {
   docData: DocData;
   docInfo: DocInfoRec;
   docPluginManager: DocPluginManager;
+  querySetManager: QuerySetManager;
   rightPanelTool: Observable<IExtraTool | null>;
   isReadonly: Observable<boolean>;
   isReadonlyKo: IKnockoutObservable<boolean>;
@@ -321,15 +323,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   private _disableAutoStartingTours: boolean = false;
   private _isShowingPopupSection = false;
   private _prevSectionId: number | null = null;
-
-  /**
-   * This holds a single AssistantPopup and empties itself whenever it's
-   * dispose.
-   *
-   * The holder is maintained by GristDoc, so that we are guaranteed at most
-   * one instance of AssistantPopup at any time.
-   */
-  private _assistantPopupHolder = Holder.create<AssistantPopup>(this);
+  private _assistantPopup = buildAssistantPopup(this);
 
   constructor(
     public readonly app: App,
@@ -379,7 +373,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       // For GristDocTour, find the view with that name.
       // Otherwise find the view with the given row ID, because letting a non-existent row ID pass through here is bad.
       // If no such view exists, return the default view.
-      const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage);
+      const viewId = this.docModel.views.tableData.findRow(docPage === 'GristDocTour' ? 'name' : 'id', docPage!);
       return viewId || use(defaultViewId);
     });
     this._activeContent = Computed.create(this, use => use(this.activeViewId));
@@ -580,13 +574,13 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     // Importer takes a function for creating previews.
     const createPreview = (vs: ViewSectionRec) => {
-      const preview = GridView.create(this, vs, true);
+      const preview = GridView.create(this, this, vs, true);
       // We need to set the instance to the newly created section. This is important, as
       // GristDoc is responsible for changing the cursor position not the cursor itself. Final
       // cursor position is determined by finding active (or visible) section and passing this
       // command (setCursor) to its instance.
       vs.viewInstance(preview);
-      preview.autoDisposeCallback(() => vs.viewInstance(null));
+      preview.onDispose(() => vs.viewInstance(null));
       return preview;
     };
 
@@ -646,7 +640,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       setCursor: this.onSetCursorPos.bind(this),
       createForm: this._onCreateForm.bind(this),
       pushUndoAction: this._undoStack.pushAction.bind(this._undoStack),
-      activateAssistant: this._activateAssistant.bind(this),
+      activateAssistant: () => this._assistantPopup?.open(),
     }, this, true));
 
     this.userPresenceModel.initialize().catch(reportError);
@@ -771,7 +765,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       const assistantState = await this.docComm.getAssistantState(params.assistantState);
       if (this.isDisposed() || !assistantState) { return; }
 
-      this._activateAssistant({state: assistantState});
+      this._assistantPopup?.setState(assistantState);
+      this._assistantPopup?.open();
     }));
   }
 
@@ -803,6 +798,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           content === 'code' ? dom.create(CodeEditorPanel, this) :
           content === 'acl' ? dom.create(AccessRules, this) :
           content === 'data' ? dom.create(RawDataPage, this) :
+          content === 'proposals' ? dom.create(ProposedChangesPage, this) :
           content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'webhook' ? dom.create(WebhookPage, this) :
           content === 'timing' ? dom.create(TimingPage, this) :
@@ -1788,7 +1784,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     // we must read the current layout from the view layout because it can override the one in
     // `section.layoutSpec` (in particular it provides a default layout when missing from the
     // latter).
-    const layoutSpec = this.viewLayout!.layoutSpec();
+    const layoutSpec = this.viewLayout!.getFullLayoutSpec();
 
     const sectionTitle = section.title();
     const sectionId = section.id();
@@ -2039,16 +2035,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
         }]
       });
     });
-  }
-
-  private _activateAssistant(options: {state?: AssistantState} = {}) {
-    if (!this._assistantPopupHolder.isEmpty()) {
-      // If an AssistantPopup is already open, don't dispose and reopen it, which
-      // would cause its state to be reset.
-      return;
-    }
-
-    AssistantPopup.create(this._assistantPopupHolder, this, options);
   }
 }
 

@@ -249,9 +249,9 @@ describe('BehavioralPrompts', function() {
     });
 
     it('should not be shown', async function() {
-      // The forms announcement is normally shown here.
+      // The comments announcement is normally shown here.
       await assertPromptTitle(null);
-      await driver.find('.test-floating-popup-minimize-maximize').click();
+      await driver.find('.test-doc-tutorial-popup-minimize-maximize').click();
       await gu.toggleSidePanel('right', 'open');
       await driver.find('.test-right-tab-field').click();
       await driver.find('.test-fbuilder-type-select').click();

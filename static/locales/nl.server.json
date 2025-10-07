@@ -6,5 +6,8 @@
     },
     "oidc": {
         "emailNotVerifiedError": "Verifieer uw e-mailadres bij de identiteitsprovider en log opnieuw in."
+    },
+    "access": {
+        "docNoAccess": "U heeft geen toegang tot dit document."
     }
 }

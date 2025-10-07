@@ -262,6 +262,7 @@ export interface UserAccessData extends UserAccess {
   orgAccess?: roles.BasicRole|null;
   anonymous?: boolean;    // If set to true, the user is the anonymous user.
   isMember?: boolean;
+  disabledAt?: Date|null; // If not null, the user is disabled
 }
 
 /**
@@ -435,6 +436,8 @@ export interface UserAPI {
   updateUserName(name: string): Promise<void>;
   updateUserLocale(locale: string|null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
+  disableUser(userId: number): Promise<void>;
+  enableUser(userId: number): Promise<void>;
   updateIsConsultant(userId: number, isConsultant: boolean): Promise<void>;
   getWorker(key: string): Promise<string>;
   getWorkerFull(key: string): Promise<PublicDocWorkerUrlInfo>;
@@ -873,6 +876,18 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
+  public async disableUser(userId: number): Promise<void> {
+    await this.request(`${this._url}/api/users/${userId}/disable`, {
+      method: 'POST',
+    });
+  }
+
+  public async enableUser(userId: number): Promise<void> {
+    await this.request(`${this._url}/api/users/${userId}/enable`, {
+      method: 'POST',
+    });
+  }
+
   public async getWorker(key: string): Promise<string> {
     const full = await this.getWorkerFull(key);
     return getPublicDocWorkerUrl(this._homeUrl, full);
@@ -1073,7 +1088,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   }
 
   public async removeRows(tableId: string, removals: number[]): Promise<number[]> {
-    return this.requestJson(`${this._url}/tables/${tableId}/data/delete`, {
+    return this.requestJson(`${this._url}/tables/${tableId}/records/delete`, {
       body: JSON.stringify(removals),
       method: 'POST'
     });

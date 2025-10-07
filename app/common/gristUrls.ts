@@ -22,7 +22,10 @@ import * as t from "ts-interface-checker";
 
 const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
-export const SpecialDocPage = StringUnion('code', 'acl', 'data', 'GristDocTour', 'settings', 'webhook', 'timing');
+export const SpecialDocPage = StringUnion(
+  'code', 'acl', 'data', 'GristDocTour',
+  'proposals', 'settings', 'webhook', 'timing',
+);
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
 
@@ -115,6 +118,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpUnderstandingReferenceColumns: "https://support.getgrist.com/col-refs/#understanding-reference-columns",
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
+  helpWidgets: "https://support.getgrist.com/page-widgets/#widgets",
   helpCustomWidgets: "https://support.getgrist.com/widget-custom",
   helpInstallAuditLogs: "https://support.getgrist.com/install/audit-logs",
   helpTeamAuditLogs: "https://support.getgrist.com/teams/audit-logs",
@@ -831,6 +835,9 @@ export interface GristLoadConfig {
 
   // When errPage is a generic "other-error", this is the message to show.
   errMessage?: string;
+
+  // When errPage is a generic page, not an error, this is additional details to show.
+  errDetails?: Record<string, string>;
 
   // When an error page is shown in response to a request for an URL, this is the URL that was
   // originally requested — this may not be the URL we're responding to, because of an

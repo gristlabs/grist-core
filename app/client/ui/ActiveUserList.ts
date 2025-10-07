@@ -2,7 +2,8 @@ import {makeT} from 'app/client/lib/localization';
 import {UserPresenceModel} from 'app/client/models/UserPresenceModel';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {createUserImage, cssUserImage} from 'app/client/ui/UserImage';
-import {isXSmallScreenObs, theme} from 'app/client/ui2018/cssVars';
+import {cssHideForNarrowScreen} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {menu} from 'app/client/ui2018/menus';
 import {visuallyHidden} from 'app/client/ui2018/visuallyHidden';
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
@@ -39,11 +40,13 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
 
   const userMetadataObs = Computed.create(owner, (use) => {
     const visibleUsers = use(visibleUserProfilesObs);
+    const totalUsers = visibleUsers.length;
     const totalVisibleUserIcons =
-      visibleUsers.length < totalUserIconSlots ? totalUserIconSlots : totalUserIconSlots - 1;
+      totalUsers <= totalUserIconSlots ? totalUserIconSlots : totalUserIconSlots - 1;
+    const totalHiddenUserIcons = totalUsers - totalVisibleUserIcons;
     return {
-      totalUsers: visibleUsers.length,
       totalVisibleUserIcons,
+      totalHiddenUserIcons,
     };
   });
 
@@ -59,15 +62,24 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
     return totalUserIconSlots < use(visibleUserProfilesObs).length;
   });
 
+  const isRemainingUsersMenuOpen = Observable.create(owner, false);
+
   const computedUserIcons = dom.forEach(userIconProfilesObs, (user) => {
-    return dom('li', createUserIndicator(user));
+    return dom('li', createUserIndicator(user, isRemainingUsersMenuOpen));
   });
 
   const remainingUsersIndicator = dom.maybe(showRemainingUsersIconObs, () => {
-    return dom('li', createRemainingUsersIndicator(visibleUserProfilesObs, userMetadataObs));
+    return dom('li',
+      createRemainingUsersIndicator(
+        visibleUserProfilesObs,
+        userMetadataObs,
+        isRemainingUsersMenuOpen
+      )
+    );
   });
 
   return cssActiveUserList(
+    cssHideForNarrowScreen.cls(''),
     remainingUsersIndicator,
     computedUserIcons,
     { "aria-label": t("active user list") },
@@ -75,9 +87,13 @@ export function buildActiveUserList(owner: IDisposableOwner, userPresenceModel: 
   );
 }
 
-function createUserIndicator(user: VisibleUserProfile) {
+function createUserIndicator(
+  user: VisibleUserProfile,
+  isRemainingUsersMenuOpen: Observable<boolean>
+) {
   return createUserListImage(
     user,
+    dom.hide(isRemainingUsersMenuOpen),
     hoverTooltip(createTooltipContent(user), { key: "topBarBtnTooltip" }),
     { 'aria-label': `${t('active user')}: ${user.name}`},
     testId('user-icon')
@@ -85,20 +101,33 @@ function createUserIndicator(user: VisibleUserProfile) {
 }
 
 function createRemainingUsersIndicator(
-  usersObs: Observable<VisibleUserProfile[]>, metadataObs: Observable<UsersMetadata>
+  usersObs: Observable<VisibleUserProfile[]>,
+  metadataObs: Observable<UsersMetadata>,
+  isRemainingUsersMenuOpen: Observable<boolean>
 ) {
   return cssRemainingUsersButton(
     cssRemainingUsersImage(
-      dom.text(use => `+${use(metadataObs).totalUsers}`),
+      dom.domComputed(use => {
+        if (use(isRemainingUsersMenuOpen)) {
+          return icon('CrossBig');
+        } else {
+          return `+${use(metadataObs).totalHiddenUserIcons}`;
+        }
+      }),
       cssUserImage.cls("-medium"),
       dom.style("font-size", "12px"),
     ),
     menu(
-      () => domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
-        createUserImage(user, 'medium'),
-        dom('div', createUsername(user.name), createEmail(user.email)),
-        testId('user-list-user')
-      ))),
+      (ctl) => {
+        isRemainingUsersMenuOpen.set(true);
+        ctl.onDispose(() => isRemainingUsersMenuOpen.set(false));
+
+        return domComputed(usersObs, users => users.map(user => remainingUsersMenuItem(
+          createUserImage(user, 'medium'),
+          dom('div', createUsername(user.name), createEmail(user.email)),
+          testId('user-list-user')
+        )));
+      },
       {
         // Avoids an issue where the menu code will infinitely loop trying to find the
         // next selectable option, when using keyboard navigation, due to having none.
@@ -169,14 +198,18 @@ const createUserListImage = (user: Parameters<typeof createUserImage>[0], ...arg
     user,
     'medium',
     cssUserImage.cls('-reduced'),
-    dom.hide(isXSmallScreenObs()),
     ...args
   );
 
 const cssRemainingUsersImage = styled(cssUserImage, `
   margin-left: -4px;
-  background-color: ${components.userListRemainingUsersBg};
+  background-color: ${tokens.secondary};
   ${userImageBorderCss};
+  --icon-color: ${tokens.white};
+
+  &:hover {
+    background-color: ${tokens.secondaryMuted};
+  }
 `);
 
 const cssRemainingUsersButton = styled('button', `
@@ -197,8 +230,8 @@ export const remainingUsersMenuItem = styled(`div`, `
   justify-content: flex-start;
   padding: var(--weaseljs-menu-item-padding, 8px 24px);
   align-items: center;
-  color: ${theme.menuItemFg};
-  --icon-color: ${theme.accentIcon};
+  color: ${components.menuItemFg};
+  --icon-color: ${components.accentIcon};
   text-transform: none;
 
   & > :first-child {
@@ -211,6 +244,6 @@ function compareUserProfiles(a: VisibleUserProfile, b: VisibleUserProfile) {
 }
 
 interface UsersMetadata {
-  totalUsers: number;
   totalVisibleUserIcons: number;
+  totalHiddenUserIcons: number;
 }

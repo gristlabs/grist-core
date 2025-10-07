@@ -34,7 +34,7 @@ import {cssMenuItem, MenuCreateFunc} from 'popweasel';
 
 const t = makeT('ShareMenu');
 
-function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
+export function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
   return isSnapshot ? buildUrlId({...parts, snapshotId: undefined}) : parts.trunkId;
 }
@@ -278,7 +278,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
  * The part of the menu with "Download" and "Export as..." items.
  */
 function menuExports(doc: Document, pageModel: DocPageModel) {
-  const isElectron = (window as any).isRunningUnderElectron;
+  const isElectron = window.isRunningUnderElectron;
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
@@ -304,7 +304,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
-        menuItem(() => downloadDocModal(doc, pageModel),
+        menuItem(() => downloadDocModal(doc, pageModel.appModel),
         menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
     ),
     menuItem(

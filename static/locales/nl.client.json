@@ -7,7 +7,8 @@
     "AccessRules": {
         "Add Column Rule": "Kolomregel toevoegen",
         "Add Table Rules": "Tabelregels toevoegen",
-        "Add User Attributes": "Voeg gebruikerskenmerken toe"
+        "Add User Attributes": "Voeg gebruikerskenmerken toe",
+        "Add Default Rule": "Standaardregel Toevoegen"
     },
     "RightPanelUtils": {
         "Series_one": "Serie",

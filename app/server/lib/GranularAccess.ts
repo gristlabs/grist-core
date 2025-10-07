@@ -30,6 +30,7 @@ import { ErrorWithCode } from 'app/common/ErrorWithCode';
 import { InfoEditor } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
+import { isMetadataTable } from 'app/common/isHiddenTable';
 import { compilePredicateFormula, PredicateFormulaInput } from 'app/common/PredicateFormula';
 import { SingleCell } from 'app/common/TableData';
 import { EmptyRecordView, InfoView, RecordView } from 'app/common/RecordView';
@@ -40,6 +41,7 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GristObjCode } from 'app/plugin/GristData';
 import { appSettings } from 'app/server/lib/AppSettings';
 import { applyAndCheckActionsForCells, CellData, isCellDataAction } from 'app/server/lib/CellDataAccess';
+import { describeDocActions, DocActionsDescription } from 'app/server/lib/describeDocActions';
 import { DocAuthorizer, DummyAuthorizer } from 'app/server/lib/DocAuthorizer';
 import { DocClients } from 'app/server/lib/DocClients';
 import { OptDocSession } from 'app/server/lib/DocSession';
@@ -213,7 +215,7 @@ export interface GranularAccessForBundle {
   // Null means that there are no changes to tables. Empty list means that there are some changes
   // but no user tables to list. We still deliver notification for empty list, it is just empty
   // informing that something has changed.
-  getDirectTablesInBundle(userData: UserAccessData): Promise<string[]|null>;
+  getDirectTablesInBundle(userData: UserAccessData): Promise<DocActionsDescription|null>;
   hasCommentsInBundle(): boolean;
   getCommentsInBundle(userToFilterFor?: UserAccessData): Promise<DocComment[]>;
 }
@@ -615,8 +617,7 @@ export class GranularAccess implements GranularAccessForBundle {
        * and will be important later.
        */
       if (shares.getRowIds().length > 0 &&
-          docActions.some(
-            action => getTableId(action).startsWith('_grist'))) {
+          docActions.some(action => isMetadataTable(getTableId(action)))) {
         // TODO: could actually compare new rules with old rules and
         // see if they've changed. Or could exclude some tables that
         // could easily change without an impact on share rules,
@@ -750,23 +751,26 @@ export class GranularAccess implements GranularAccessForBundle {
    * actions visible to the given user, and only direct actions (e.g. not tables updated by
    * formulas). This is used for notifications.
    */
-  public async getDirectTablesInBundle(userData: UserAccessData): Promise<string[]|null> {
+  public async getDirectTablesInBundle(userData: UserAccessData): Promise<DocActionsDescription|null> {
     try {
       const filtered = await this._getOutgoingDocActionsForNotifications(userData);
-      if (filtered.length === 0) { return null; }
-      const tableIds = new Set<string>();
-      for (const action of filtered) {
-        const t = getTableId(action);
-        if (!t.startsWith('_grist')) {
-          tableIds.add(t);
-        }
-      }
-      return [...tableIds];
+      return describeDocActions(filtered, this._docData);
     } catch (err) {
       if (err.code === 'NEED_RELOAD') {
         // If something changes that affects access and tells each client to reload, then consider
         // it a change visible to all users, even though we can't tell which tables are affected.
-        return [];
+        const result: DocActionsDescription = {userTableNames: [], categories: []};
+        // The error message normally mentions the reason for the reload, so get category from that.
+        if (err.message.includes('user attributes')) {
+          result.categories.push('user attributes');
+        } else if (err.message.includes('access rules')) {
+          result.categories.push('access rules');
+        } else if (err.message.includes('share')) {
+          result.categories.push('forms');
+        } else {
+          result.categories.push('metadata');   // catch-all
+        }
+        return result;
       }
       throw err;
     }
@@ -950,7 +954,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // affect a row id used later in the bundle.  Perhaps prefiltering
     // should be restricted to bundles of updates only for that reason.
     for (const action of docActions) {
-      if (!isDataAction(action) || getTableId(action).startsWith('_grist')) {
+      if (!isDataAction(action) || isMetadataTable(getTableId(action))) {
         return actions;
       }
     }
@@ -1402,7 +1406,7 @@ export class GranularAccess implements GranularAccessForBundle {
       return this._checkSimpleDataActions(docSession, a[1] as UserAction[]);
     } else if (isDataAction(a)) {
       const tableId = getTableId(a);
-      if (tableId.startsWith('_grist_')) {
+      if (isMetadataTable(tableId)) {
         return false;
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
@@ -1470,7 +1474,7 @@ export class GranularAccess implements GranularAccessForBundle {
       if (!isAddOrUpdateRecordAction(a)) { return; }
       const actionName = String(a[0]);
       const tableId = validTableIdString(a[1]);
-      if (tableId.startsWith('_grist_')) {
+      if (isMetadataTable(tableId)) {
         throw new Error(`${actionName} cannot yet be used on metadata tables`);
       }
       const tableAccess = await this.getTableAccess(docSession, tableId);
@@ -1488,7 +1492,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Fail if being combined with anything that isn't a simple data action.
     await applyToActionsRecursively(actions, async (a) => {
       const name = String(a[0]);
-      if (!names.includes(name) && !(isDataAction(a) && !getTableId(a).startsWith('_grist_'))) {
+      if (!names.includes(name) && !(isDataAction(a) && !isMetadataTable(getTableId(a)))) {
         throw new Error(`Can only combine ${names.join(' and ')} with simple data changes`);
       }
     });
@@ -1534,7 +1538,7 @@ export class GranularAccess implements GranularAccessForBundle {
     // Check for read and schema edit access, and that we're not duplicating metadata tables.
     await applyToActionsRecursively(actions, async (a) => {
       const tableId = validTableIdString(a[1]);
-      if (tableId.startsWith('_grist_')) {
+      if (isMetadataTable(tableId)) {
         throw new Error('DuplicateTable cannot be used on metadata tables');
       }
       if (await this.hasFullAccess(docSession)) { return; }
@@ -1600,7 +1604,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const shares = this._docData.getMetaTable('_grist_Shares');
     if (shares.getRowIds().length > 0 &&
-        docActions.some(action => getTableId(action).startsWith('_grist'))) {
+        docActions.some(action => isMetadataTable(getTableId(action)))) {
       await this.update();
       return;
     }
@@ -2237,7 +2241,7 @@ export class GranularAccess implements GranularAccessForBundle {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, undo, applied} = this._activeBundle;
 
-    const needMeta = docActions.some(a => isSchemaAction(a) || getTableId(a).startsWith('_grist_'));
+    const needMeta = docActions.some(a => isSchemaAction(a) || isMetadataTable(getTableId(a)));
     if (!needMeta) {
       // Sometimes, the intermediate states are trivial.
       // TODO: look into whether it would be worth caching attachment columns.
@@ -2373,7 +2377,7 @@ export class GranularAccess implements GranularAccessForBundle {
     const tableId = getTableId(action);
 
     let results: DocAction[] = [];
-    if (tableId.startsWith('_grist')) {
+    if (isMetadataTable(tableId)) {
       // Granular access rules don't apply to metadata directly, instead there
       // is a process of censorship (see later in this method).
       results = [action];
@@ -2560,6 +2564,11 @@ export class GranularAccess implements GranularAccessForBundle {
     return gatherAttachmentIds(attachmentColumns, action);
   }
 
+  /**
+   * Suppress notifications of schema/metadata changes to users who have no permission to change
+   * schema. This is the current compromise to reduce unwanted notifications; it assumes that
+   * non-creators use the document as a data app and care about data changes.
+   */
   private async _filterSchemaActionsForNotifications(
     docSession: OptDocSession,
     docActions: DocAction[]
@@ -2573,7 +2582,7 @@ export class GranularAccess implements GranularAccessForBundle {
           const tableId = getTableId(a);
           return (
             !isSchemaAction(a) &&
-            (!tableId.startsWith('_grist_') || tableId === '_grist_Cells')
+            (!isMetadataTable(tableId) || tableId === '_grist_Cells')
           );
         });
       }
@@ -2618,7 +2627,7 @@ export class GranularAccess implements GranularAccessForBundle {
       return dummyAccessCheck;
     }
     const tableId = getTableId(a);
-    if (tableId.startsWith('_grist') && tableId !== '_grist_Cells') {
+    if (isMetadataTable(tableId) && tableId !== '_grist_Cells') {
       if (tableId === '_grist_Attachments') {
         // If the back end is adding/removing an attachment, all
         // necessary authentication has happened, and we can go ahead

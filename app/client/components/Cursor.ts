@@ -6,7 +6,7 @@
 
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import BaseRowModel from 'app/client/models/BaseRowModel';
+import {DataRowModel} from 'app/client/models/DataRowModel';
 import {LazyArrayModel} from 'app/client/models/DataTableModel';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {Disposable} from 'grainjs';
@@ -66,7 +66,7 @@ export class Cursor extends Disposable {
     moveToLastField(this: Cursor) { this.fieldIndex(Infinity); },
   };
 
-  public viewData: LazyArrayModel<BaseRowModel>;
+  public viewData: LazyArrayModel<DataRowModel>;
   // observable with current cursor position
   public currentPosition: ko.Computed<CursorPos>;
 

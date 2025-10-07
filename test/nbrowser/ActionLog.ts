@@ -131,7 +131,7 @@ describe('ActionLog', function() {
 
   it("should show clickable tabular diffs", async function() {
     const item0 = await getActionLogItem(0);
-    assert.equal(await item0.find('table caption').getText(), 'Table1');
+    assert.equal(await item0.find('table caption').getText(), 'Table1 >');
     assert.equal(await item0.find('table th:nth-child(2)').getText(), 'A');
     assert.equal(await item0.find('table td:nth-child(2)').getText(), 'f');
     assert.equal(await gu.getActiveCell().getText(), 'a');
@@ -151,7 +151,7 @@ describe('ActionLog', function() {
     // actions though -- e.g. the action below still mentions 'A' for column name -- and it's
     // unclear if it should.)
     const item2 = await getActionLogItem(2);
-    assert.equal(await item2.find('table caption').getText(), 'Table1');
+    assert.equal(await item2.find('table caption').getText(), 'Table1 >');
     assert.equal(await item2.find('table td:nth-child(2)').getText(), 'f');
     await gu.getCell({rowNum: 1, col: 0}).click();
     assert.notEqual(await gu.getActiveCell().getText(), 'f');
@@ -185,7 +185,7 @@ describe('ActionLog', function() {
 
     assert.lengthOf(await getActionLogItems(), 2);
 
-    assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table1');
+    assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table1 >');
     assert.equal(await getActionLogItem(1).find('.action_log_rename').getText(), 'Add Table1');
     await gu.renameTable('Table1', 'Table1Renamed');
     assert.equal(await getActionLogItem(0).find('.action_log_rename').getText(),
@@ -195,9 +195,9 @@ describe('ActionLog', function() {
     assert.equal(await getActionLogItem(0).find('.action_log_rename').getText(),
       'Rename Table1Renamed.A to ARenamed');
     await gu.getPageItem('Table2').click();
-    assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table2');
+    assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table2 >');
     await gu.getPageItem('Table3').click();
-    assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table3');
+    assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table3 >');
 
       // Now show all tables and make sure the result is a longer (visible) log.
     const filteredCount = (await getActionLogItems()).length;

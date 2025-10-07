@@ -114,7 +114,7 @@ export const textButton = styled(cssButton, `
   padding: 0px;
   text-align: left;
   background-color: inherit !important;
-  &:disabled {
+  &:disabled, &[aria-disabled="true"] {
     color: ${theme.controlPrimaryBg};
     opacity: 0.4;
   }
