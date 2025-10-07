@@ -30,7 +30,6 @@ import { Pref } from 'app/gen-server/entity/Pref';
 
 import flatten from 'lodash/flatten';
 import { EntityManager, IsNull, Not } from 'typeorm';
-import crypto from 'crypto';
 
 function apiKeyGenerator(): string {
   return crypto.randomBytes(20).toString('hex');

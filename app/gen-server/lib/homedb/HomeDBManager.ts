@@ -18,7 +18,6 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {StringUnion} from 'app/common/StringUnion';
 import {UserTypes} from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
