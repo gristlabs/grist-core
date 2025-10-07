@@ -212,7 +212,6 @@ export class DocModel extends Disposable {
     // Create an observable array of RowModels for all the data tables. We'll trigger
     // onAddTable/onRemoveTable in response to this array's splice events below.
     const allTableMetaRows = this.autoDispose(this.tables.createAllRowsModel('id'));
-
     // For a new table, we get AddTable action followed by metadata actions to add a table record
     // (which triggers this subscribeForEach) and to add all the column records. So we have to keep
     // in mind that metadata for columns isn't available yet.

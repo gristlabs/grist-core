@@ -19,6 +19,7 @@ var gutil = require('app/common/gutil');
  * It exposes all rows, as well as groups of rows, as observable collections.
  */
 function MetaTableModel(docModel, tableData, fields, rowConstructor) {
+  console.log(`TableData: ${tableData?.tableId} - ${tableData}`);
   TableModel.call(this, docModel, tableData);
 
   this._fields = fields;
@@ -29,7 +30,7 @@ function MetaTableModel(docModel, tableData, fields, rowConstructor) {
   this.rowModels = new Proxy([], {
     get(target, prop, receiver) {
       const value = Reflect.get(...arguments);
-      console.log(`P:${prop}, V:${value}`);
+      //console.log(`P:${prop}, V:${value}`);
       if (value === null) {
         const rowId = prop;
         ko.ignoreDependencies(() => {
@@ -263,12 +264,12 @@ MetaTableModel.prototype._createRowModelArray = function(rowIdArray) {
  */
 MetaTableModel.prototype._createRowModelItem = function(rowId, index) {
   this._createRowModel(rowId);
-  console.log("Fetching");
+  //console.log("Fetching");
   var rowModel = this.rowModels[rowId];
   assert.ok(rowModel, "MetaTableModel._createRowModelItem called for invalid rowId " + rowId);
   var ret = Object.create(rowModel);    // New object, with rowModel as its prototype.
-  console.log(`New model - ${this.tableData.tableId}, ${rowId}: ${rowModel}`)
-  console.log(`New: ${ret.tableId?.()}`)
+  //console.log(`New model - ${this.tableData.tableId}, ${rowId}: ${rowModel}`)
+  //console.log(`New: ${ret.tableId?.()}`)
   ret._index = ko.observable(index);    // New _index observable overrides the existing one.
   return ret;
 };

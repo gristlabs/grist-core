@@ -39,6 +39,7 @@ _.extend(MetaRowModel.prototype, BaseRowModel.prototype);
 MetaRowModel.prototype._assignColumn = function(colName) {
   if (this.hasOwnProperty(colName)) {
     this[colName].assign(this._table.tableData.getValue(this._rowId, colName));
+    console.log(`${colName} - ${this._table.tableData.getValue(this._rowId, colName)}`);
   }
 };
 
