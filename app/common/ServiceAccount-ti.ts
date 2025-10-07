@@ -7,13 +7,13 @@ import * as t from "ts-interface-checker";
 export const ServiceAccountAllOptional = t.iface([], {
   "label": t.union("string", "undefined"),
   "description": t.union("string", "undefined"),
-  "endOfLife": t.union("string", "undefined"),
+  "expiresAt": t.union("string", "undefined"),
 });
 
 export const PatchServiceAccount = t.name("ServiceAccountAllOptional");
 
 export const PostServiceAccount = t.iface(["ServiceAccountAllOptional"], {
-  "endOfLife": "string",
+  "expiresAt": "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {
