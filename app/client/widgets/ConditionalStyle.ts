@@ -291,7 +291,7 @@ const cssRemoveButton = styled(cssIcon, `
 
 const cssLineLabel = styled(cssLabel, `
   margin-top: 0px;
-  margin-bottom: 0px;
+  margin-bottom: 4px;
 `);
 
 const cssRuleList = styled('div', `

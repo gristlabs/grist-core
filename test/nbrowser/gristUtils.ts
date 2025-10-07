@@ -499,13 +499,16 @@ export async function getCardCount(): Promise<number> {
  * Return the .column-name element for the specified column, which may be specified by full name
  * or index, and may include a section (or will use the active section by default).
  */
-export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementPromise {
+export function getColumnHeader(colOrColOptions: string|IColHeader, opts = {waitMs: 0}): WebElementPromise {
   const colOptions = typeof colOrColOptions === 'string' ? {col: colOrColOptions} : colOrColOptions;
   const {col, section} = colOptions;
   const sectionElem = section ? getSection(section) : driver.findWait('.active_section', 4000);
   return new WebElementPromise(driver, typeof col === 'number' ?
     sectionElem.find(`.column_name:nth-child(${col + 1})`) :
-    sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col)).findClosest('.column_name'));
+    (opts?.waitMs ?
+      sectionElem.findContentWait('.column_name .test-column-title-text', exactMatch(col), opts.waitMs) :
+      sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col))
+    ).findClosest('.column_name'));
 }
 
 export function getSelectedColumn() {

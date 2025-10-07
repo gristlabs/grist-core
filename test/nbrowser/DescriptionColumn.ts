@@ -13,6 +13,77 @@ describe('DescriptionColumn', function() {
     await session.tempNewDoc(cleanup);
   });
 
+  it('should allow editing description in creator panel', async function() {
+    const revert = await gu.begin();
+    await gu.openColumnPanel('A');
+
+    async function checkState(expect: 'link'|'preview'|'editor') {
+      // Note: exactly one of the "expect" comparisons below will be true; the others false.
+      assert.equal(await getDescriptionAddLink().isPresent(), expect === 'link', 'expected link');
+      assert.equal(await getDescriptionPreview().isPresent(), expect === 'preview', 'expected preview');
+      assert.equal(await getDescriptionInput().isPresent(), expect === 'editor', 'expected editor');
+    }
+
+    // Initially, only the "Set description" link is present.
+    await checkState('link');
+
+    // We can click it to start typing a description.
+    await getDescriptionAddLink().click();
+    await checkState('editor');
+    assert.equal(await getDescriptionInput().hasFocus(), true);
+    await gu.sendKeys("hello");
+
+    // Escape goes back to initial state.
+    await gu.sendKeys(Key.ESCAPE);
+    await checkState('link');
+
+    // Try again, but now save.
+    await getDescriptionAddLink().click();
+    await checkState('editor');
+    assert.equal(await getDescriptionInput().hasFocus(), true);
+    await gu.sendKeys("hello world", Key.ENTER);
+    await gu.waitForServer();
+
+    // Now should have only the preview.
+    await checkState('preview');
+    assert.equal(await getDescriptionPreview().getText(), "hello world");
+
+    // We can click it just like we could click the link, to edit.
+    await getDescriptionPreview().click();
+    await checkState('editor');
+    assert.equal(await getDescriptionInput().hasFocus(), true);
+    await gu.sendKeys("goodbye");
+
+    // Escape goes back to previous state.
+    await gu.sendKeys(Key.ESCAPE);
+    await checkState('preview');
+    assert.equal(await getDescriptionPreview().getText(), "hello world");
+
+    // Edit from preview again, but now save.
+    await getDescriptionPreview().click();
+    await checkState('editor');
+    assert.equal(await getDescriptionInput().hasFocus(), true);
+    await gu.sendKeys("goodbye world", Key.ENTER);
+    await gu.waitForServer();
+
+    // Should've gotten saved.
+    await checkState('preview');
+    assert.equal(await getDescriptionPreview().getText(), "goodbye world");
+
+    // Finally test deleting the description.
+    await getDescriptionPreview().click();
+    await checkState('editor');
+    assert.equal(await getDescriptionInput().hasFocus(), true);
+    assert.equal(await getDescriptionInput().value(), "goodbye world");
+    await gu.sendKeys(Key.DELETE, Key.ENTER);
+    await gu.waitForServer();
+
+    // We are back to only showing a link.
+    await checkState('link');
+
+    await revert();
+  });
+
   it('should allow to edit description on summary table', async () => {
     const revert = await gu.begin();
     await gu.toggleSidePanel('left', 'close');
@@ -24,20 +95,23 @@ describe('DescriptionColumn', function() {
 
     // Set description on A column and count column.
     await gu.openColumnPanel('A');
+    await getDescriptionAddLink().click();
     await getDescriptionInput().sendKeys('testA');
     await gu.openColumnPanel('count');
     await gu.waitForServer();
     await gu.checkForErrors();
+    await getDescriptionAddLink().click();
     await getDescriptionInput().sendKeys('testCount');
     await gu.openColumnPanel('A');
     await gu.waitForServer();
     await gu.checkForErrors();
+    assert.equal(await getDescriptionPreview().getText(), 'testA');
 
     await gu.reloadDoc();
     await gu.openColumnPanel('A');
-    assert.equal(await getDescriptionInput().getAttribute('value'), 'testA');
+    assert.equal(await getDescriptionPreview().getText(), 'testA');
     await gu.openColumnPanel('count');
-    assert.equal(await getDescriptionInput().getAttribute('value'), 'testCount');
+    assert.equal(await getDescriptionPreview().getText(), 'testCount');
     await gu.undo(2);
 
     // Now add description through the modal.
@@ -261,7 +335,7 @@ describe('DescriptionColumn', function() {
     await pressSave();
 
     // Make sure column is renamed.
-    let header = await gu.getColumnHeader({col: 'ColumnA'});
+    let header = await gu.getColumnHeader({col: 'ColumnA'}, {waitMs: 100});
 
     // Make sure it has a tooltip.
     assert.isTrue(await header.find(".test-column-info-tooltip").isDisplayed());
@@ -294,7 +368,7 @@ describe('DescriptionColumn', function() {
     await save();
     await gu.waitForServer();
     // Make sure it is renamed.
-    await gu.getColumnHeader({col: 'ColumnB'});
+    await gu.getColumnHeader({col: 'ColumnB'}, {waitMs: 100});
 
     // Change description by clicking save.
     await doubleClickHeader('ColumnB');
@@ -424,7 +498,7 @@ describe('DescriptionColumn', function() {
     await gu.waitForServer();
 
     // Make sure it is renamed.
-    await gu.getColumnHeader({col: 'ColumnB'});
+    await gu.getColumnHeader({col: 'ColumnB'}, {waitMs: 100});
     // Make sure we are now at column C.
     await popupIsAt('C');
 
@@ -447,14 +521,17 @@ describe('DescriptionColumn', function() {
     await waitForFocus('label');
     // Go to column C and from the label.
     await gu.sendKeys(Key.TAB);
+    await driver.sleep(10);
     // Make sure we are now at column C.
     await popupIsAt('ColumnC');
     // Just quick test that shift tab will work.
     await gu.sendKeys(Key.SHIFT, Key.TAB, Key.NULL);
+    await driver.sleep(10);
     // Make sure we are now at column B.
     await popupIsAt('ColumnB');
     // Go to column C and test if the description was saved.
     await gu.sendKeys(Key.TAB);
+    await driver.sleep(10);
     // Make sure we are now at column C.
     await popupIsAt('ColumnC');
     // And it has proper description.
@@ -497,10 +574,13 @@ describe('DescriptionColumn', function() {
 
     // Column description editable in right panel
     await gu.getCell({ rowNum: 1, col: 'B' }).click();
+    assert.equal(await getDescriptionPreview().getText(), 'This is the column description It is in two lines');
+    await getDescriptionPreview().click();
     assert.equal(await getDescriptionInput().value(), 'This is the column description\nIt is in two lines');
 
     await gu.getCell({ rowNum: 1, col: 'A' }).click();
-    assert.equal(await getDescriptionInput().value(), '');
+    assert.equal(await getDescriptionPreview().isPresent(), false);
+    assert.equal(await getDescriptionAddLink().isDisplayed(), true);
 
     // Remove the description
     await api.applyUserActions(docId, [
@@ -510,7 +590,8 @@ describe('DescriptionColumn', function() {
     ]);
 
     await gu.getCell({ rowNum: 1, col: 'B' }).click();
-    assert.equal(await getDescriptionInput().value(), '');
+    assert.equal(await getDescriptionPreview().isPresent(), false);
+    assert.equal(await getDescriptionAddLink().isDisplayed(), true);
     await gu.toggleSidePanel('left', 'open');
   });
 
@@ -543,7 +624,7 @@ describe('DescriptionColumn', function() {
 });
 
 async function clickTooltip(col: string) {
-  await gu.getColumnHeader({col}).find(".test-column-info-tooltip").click();
+  await gu.getColumnHeader({col}, {waitMs: 100}).find(".test-column-info-tooltip").click();
 }
 
 async function addDescriptionIsVisible(visible = true) {
@@ -570,6 +651,9 @@ async function addColumnDescription(api: UserAPIImpl, docId: string, columnName:
   ]);
 }
 
+const getDescriptionAddLink = () => driver.find('.test-right-panel .test-description-add');
+const getDescriptionPreview = () => driver.find('.test-right-panel .test-description-preview');
+
 function getDescriptionInput() {
   return driver.find('.test-right-panel .test-column-description');
 }
@@ -584,7 +668,7 @@ function getLabel() {
 
 async function popupVisible() {
   try {
-    return await driver.find(".test-column-title-popup").isDisplayed();
+    return await driver.findWait(".test-column-title-popup", 50).isDisplayed();
   } catch {
     return false;
   }
