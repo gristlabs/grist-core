@@ -63,9 +63,6 @@ export class User extends BaseEntity {
   @Column({name: 'connect_id', type: String, nullable: true})
   public connectId: string | null;
 
-  @OneToMany(() => ServiceAccount, sa => sa.owner)
-  public serviceAccountsOwner: ServiceAccount[];
-
   @OneToOne(() => ServiceAccount, sa => sa.serviceUser)
   public serviceAccount: ServiceAccount;
   /**
