@@ -10,7 +10,18 @@ interface ServiceAccountAllOptional {
   expiresAt: string|undefined; // ISO date string
 }
 
+interface ServiceAccountResponse {
+  login: string|undefined;
+  key: string|null;
+  label: string;
+  description: string;
+  expiresAt: Date;
+  hasValidKey: boolean;
+}
+
 export type PatchServiceAccount = ServiceAccountAllOptional;
+
+export type ServiceAccountApiResponse = ServiceAccountResponse;
 
 export interface PostServiceAccount extends ServiceAccountAllOptional {
   // expiresAt required for creation

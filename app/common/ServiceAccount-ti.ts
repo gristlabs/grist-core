@@ -10,7 +10,18 @@ export const ServiceAccountAllOptional = t.iface([], {
   "expiresAt": t.union("string", "undefined"),
 });
 
+export const ServiceAccountResponse = t.iface([], {
+  "login": t.union("string", "undefined"),
+  "key": t.union("string", "null"),
+  "label": "string",
+  "description": "string",
+  "expiresAt": "Date",
+  "hasValidKey": "boolean",
+});
+
 export const PatchServiceAccount = t.name("ServiceAccountAllOptional");
+
+export const ServiceAccountApiResponse = t.name("ServiceAccountResponse");
 
 export const PostServiceAccount = t.iface(["ServiceAccountAllOptional"], {
   "expiresAt": "string",
@@ -18,7 +29,9 @@ export const PostServiceAccount = t.iface(["ServiceAccountAllOptional"], {
 
 const exportedTypeSuite: t.ITypeSuite = {
   ServiceAccountAllOptional,
+  ServiceAccountResponse,
   PatchServiceAccount,
+  ServiceAccountApiResponse,
   PostServiceAccount,
 };
 export default exportedTypeSuite;
