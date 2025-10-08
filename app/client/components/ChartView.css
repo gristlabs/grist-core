@@ -17,3 +17,10 @@
     stroke-opacity: 1 !important;
   }
 }
+
+/* Make the pie chart slice texts a bit more pronounced,
+ to help people differentiate them from the slice backgrounds. */
+.chart_container .plotly .pielayer text.slicetext {
+  font-weight: 700 !important;
+  font-size: 14px !important;
+}
