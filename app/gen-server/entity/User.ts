@@ -1,4 +1,4 @@
-import {UserOptions} from 'app/common/UserAPI';
+import {UserOptions, UserProfile} from 'app/common/UserAPI';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {makeId} from 'app/server/lib/idUtils';
 import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
@@ -89,5 +89,23 @@ export class User extends BaseEntity {
     const login = this.logins && this.logins[0];
     if (!login) { return undefined; }
     return login.email;
+  }
+
+  /**
+   * As above, but using the display email.
+   */
+  public get displayEmail(): string|undefined {
+    const login = this.logins && this.logins[0];
+    if (!login) { return undefined; }
+    return login.displayEmail;
+  }
+
+  public toUserProfile(): UserProfile {
+    return {
+      name: this.name,
+      email: this.displayEmail || '',
+      loginEmail: this.loginEmail || '',
+      picture: this.picture,
+    };
   }
 }

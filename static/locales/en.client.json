@@ -1823,6 +1823,8 @@
         "New, Enterprise": "New, Enterprise",
         "Off": "Off",
         "{{firstDestinationName}} + {{- remainingDestinationsCount}} more": "{{firstDestinationName}} + {{- remainingDestinationsCount}} more",
+        "{{count}} admin accounts_one": "{{count}} admin account",
+        "{{count}} admin accounts_other": "{{count}} admin accounts",
         "On": "On",
         "Grist Instance": "Grist Instance",
         "Auto-check weekly": "Auto-check weekly",

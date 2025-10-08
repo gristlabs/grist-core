@@ -15,6 +15,12 @@ export interface UserProfile {
   extra?: Record<string, any>; // extra fields from the user profile, e.g. from OIDC.
 }
 
+// For describing install admin users and why they are install admins
+export interface InstallAdminInfo {
+  user: UserProfile|null;
+  reason: string
+}
+
 /**
  * Tries to compare two user profiles to see if they represent the same user.
  * Note: if you have access to FullUser objects, comparing ids is more reliable.
