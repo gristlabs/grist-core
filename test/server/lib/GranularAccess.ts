@@ -43,6 +43,7 @@ describe('GranularAccess', function() {
   let cliOwner: GristClient;
   let cliEditor: GristClient;
   let docManager: DocManager;
+  let oldEnv: testUtils.EnvironmentSnapshot;
   const docTools = createDocTools();
   const sandbox = sinon.createSandbox();
 
@@ -114,6 +115,7 @@ describe('GranularAccess', function() {
   }
 
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
     home = new TestServer(this);
     process.env.GRIST_DEFAULT_EMAIL = 'ham@getgrist.com';
     await home.start(['home', 'docs']);
@@ -136,6 +138,7 @@ describe('GranularAccess', function() {
     await api.deleteOrg('testy');
     await home.stop();
     await globalUploadSet.cleanupAll();
+    oldEnv.restore();
   });
 
   afterEach(async function() {
