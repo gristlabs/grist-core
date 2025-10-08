@@ -400,7 +400,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         if (!_workerId) { throw new Error('no doc worker available'); }
         const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
-        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${docWorker}`);
+        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${docWorker.id}`);
         return {
           docMD5: null,
           docWorker,
@@ -415,7 +415,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     // without locking.
     let docStatus = await this.getDocWorker(docId);
     if (docStatus) {
-      log.info(`DocWorkerMap.assignDocWorker ${docId} already assigned to ${docStatus.docWorker}`);
+      log.info(`DocWorkerMap.assignDocWorker ${docId} already assigned to ${docStatus.docWorker.id}`);
       return docStatus;
     }
 
@@ -428,7 +428,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       const docAndChecksum = await this._getDocAndChecksum(docId);
       docStatus = docAndChecksum.doc;
       if (docStatus) {
-        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned while acquiring lock ${docStatus.docWorker}`);
+        log.info(`DocWorkerMap.assignDocWorker ${docId} assigned while acquiring lock ${docStatus.docWorker.id}`);
         return docStatus;
       }
 
@@ -473,7 +473,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         .setex(`doc-${docId}-checksum`, CHECKSUM_TTL_MSEC / 1000.0, checksum || 'null')
         .execAsync();
       if (!result) { throw new Error('failed to store new assignment'); }
-      log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${newDocStatus.docWorker}`);
+      log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${newDocStatus.docWorker.id}`);
       return newDocStatus;
     } finally {
       await lock.unlock();
