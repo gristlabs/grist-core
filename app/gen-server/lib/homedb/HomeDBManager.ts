@@ -4299,25 +4299,31 @@ export class HomeDBManager {
     return qb;
   }
 
+  // private _withAccessUnoptimized(qb: SelectQueryBuilder<any>, users: AvailableUsers,
+  //                     table: 'orgs'|'workspaces'|'docs',
+  //                     accessStyle: AccessStyle = 'open',
+  //                     variableNamePrefix?: string) {
+  //   return qb
+  //     .addSelect(this._markIsPermitted(table, users, accessStyle, null, variableNamePrefix), `${table}_permissions`);
+  // }
+
   private _withAccess(
     qb: SelectQueryBuilder<any>,
     users: AvailableUsers,
     resources: Array<'orgs'|'workspaces'|'docs'>,
     accessStyle: AccessStyle = 'open',
     variableNamePrefix?: string) {
-    let newQb = qb;
-    newQb.addCommonTableExpression(
-      this._markIsPermittedOptimized(newQb.connection.manager, users, accessStyle, null, 'limit'),
-      "permissions"
-    );
+    console.log("WITH ACCESS");
+    const cte = this._isPermittedQuery(qb.connection.manager, users, accessStyle, null, 'limit');
+    qb.addCommonTableExpression(cte, "permissions");
     for (const res of resources) {
-      const aclIdColumn = res.slice(0, -1) + "_id";
-      const permTable = `${res}_permissions`;
-      newQb = newQb
-        .addSelect(`"${permTable}"."permissions" as "${res}_permissions"`)
-        .leftJoin("permissions", permTable, `"${permTable}"."${aclIdColumn}" = "${res}"."id"`);
+      if (UsersManager.isSingleUser(users)) {
+        qb = this._selectAclPermissionForResource(qb, res);
+      } else {
+        qb = this._selectUsersProfiles(qb, cte, res, `${res}_permissions`);
+      }
     }
-    return newQb;
+    return qb;
   }
 
   /**
@@ -4644,13 +4650,15 @@ export class HomeDBManager {
    * @param userId: id of user accessing the resource
    * @param permissions: permission to test for - if null, we return the permissions
    */
-  private _markIsPermittedOptimized(
+  private _isPermittedQuery(
     manager: EntityManager,
     users: AvailableUsers,
     accessStyle: AccessStyle,
     permissions: Permissions|null = Permissions.VIEW,
     variableNamePrefix?: string,
   ): SelectQueryBuilder<any> {
+    // FIXME:: if permissions
+
     let cte = manager.createQueryBuilder();
     const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
     const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
@@ -4714,6 +4722,70 @@ export class HomeDBManager {
     }
     return cte;
   }
+
+  private _selectAclPermissionForResource(qb: SelectQueryBuilder<any>, res: 'orgs' | 'workspaces' | 'docs') {
+    const aclIdColumn = res.slice(0, -1) + "_id";
+    const permTable = `${res}_permissions`;
+    return qb
+      .addSelect(`"${permTable}"."permissions" as "${res}_permissions"`)
+      .leftJoin("permissions", permTable, `"${permTable}"."${aclIdColumn}" = "${res}"."id"`);
+  }
+
+  private _selectUsersProfiles(
+    qb: SelectQueryBuilder<any>, cte: SelectQueryBuilder<any>, res: 'orgs' | 'workspaces' | 'docs', selectName: string
+  ) {
+    const aclIdColumn = res.slice(0, -1) + "_id";
+    console.trace('usersProfile');
+    cte.addSelect('profiles.id')
+      .addSelect('profiles.display_email')
+      .addSelect('profiles.name')
+      // anything we select without aggregating, we must also group by (postgres is fussy
+      // about this)
+      .addGroupBy('profiles.id')
+      .addGroupBy('profiles.display_email')
+      .addGroupBy('profiles.name');
+
+    qb = qb
+      .leftJoin('permissions', 'permissions', `"permissions"."${aclIdColumn}" = "${res}"."id"`);
+    qb = qb
+      .addSelect(
+        (q) => q.subQuery()
+          .from("permissions", "options")
+          .select(
+            this._aggJsonObject({
+              id: 'options.id',
+              email: 'options.display_email',
+              perms: 'options.permissions',
+              name: 'options.name'
+            })
+          )
+          .where(`options.${aclIdColumn} = permissions.${aclIdColumn}`)
+        ,
+        selectName
+      );
+    // printQuery(qb);
+    return qb;
+  }
+
+  // private _markIsPermittedOptimized(
+  //   manager: EntityManager,
+  //   res: 'orgs'|'workspaces'|'docs',
+  //   users: AvailableUsers,
+  //   accessStyle: AccessStyle,
+  //   permissions: Permissions|null = Permissions.VIEW,
+  //   variableNamePrefix?: string,
+  // ): (qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any> {
+  //   return (qb: SelectQueryBuilder<any>) => {
+  //     const cte = this._isPermittedQuery(manager, users, accessStyle, permissions, variableNamePrefix);
+  //     if (UsersManager.isSingleUser(users)) {
+  //       qb.addCommonTableExpression(cte, "permissions");
+  //       return this._selectAclPermissionForResource(qb, res);
+  //     } else {
+  //       qb.addCommonTableExpression(cte, "options");
+  //       return this._selectUsersProfiles(qb, cte, "options");
+  //     }
+  //   };
+  // }
 
 
   /**
