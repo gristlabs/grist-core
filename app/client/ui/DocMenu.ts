@@ -268,8 +268,8 @@ function buildPrefs(viewSettings: ViewSettings, ...args: DomArg<HTMLElement>[]) 
 
     // The View selector.
     buttonSelect<ViewPref>(viewSettings.currentView, [
-        {value: 'icons', icon: 'TypeTable'},
-        {value: 'list', icon: 'TypeCardList'},
+        {value: 'icons', icon: 'TypeTable', tooltip: t("Grid view")},
+        {value: 'list', icon: 'TypeCardList', tooltip: t("List view")},
       ],
       cssButtonSelect.cls("-light"),
       testId('view-mode')
