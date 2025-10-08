@@ -4299,6 +4299,27 @@ export class HomeDBManager {
     return qb;
   }
 
+  private _withAccessOptimized(
+    qb: SelectQueryBuilder<any>,
+    users: AvailableUsers,
+    resources: Array<'orgs'|'workspaces'|'docs'>,
+    accessStyle: AccessStyle = 'open',
+    variableNamePrefix?: string) {
+    let newQb = qb;
+    newQb.addCommonTableExpression(
+      this._markIsPermittedOptimized(newQb.connection.manager, users, accessStyle, null, 'limit'),
+      "permissions"
+    );
+    for (const res of resources) {
+      const aclIdColumn = res.slice(0, -1) + "_id";
+      const permTable = `${res}_permissions`;
+      newQb = newQb
+        .addSelect(`"${permTable}"."permissions" as "${res}_permissions"`)
+        .leftJoin("permissions", permTable, `"${permTable}"."${aclIdColumn}" = "${res}"."id"`);
+    }
+    return newQb;
+  }
+
   private _withAccess(qb: SelectQueryBuilder<any>, users: AvailableUsers,
                       table: 'orgs'|'workspaces'|'docs',
                       accessStyle: AccessStyle = 'open',
@@ -4631,6 +4652,85 @@ export class HomeDBManager {
    * @param userId: id of user accessing the resource
    * @param permissions: permission to test for - if null, we return the permissions
    */
+  private _markIsPermittedOptimized(
+    manager: EntityManager,
+    users: AvailableUsers,
+    accessStyle: AccessStyle,
+    permissions: Permissions|null = Permissions.VIEW,
+    variableNamePrefix?: string,
+  ): SelectQueryBuilder<any> {
+    let cte = manager.createQueryBuilder();
+    const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
+    const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
+    // Overall permissions are the bitwise-or of all individual
+    // permissions from ACL rules.  We also include
+    // Permissions.PUBLIC if any of the ACL rules are for the
+    // public (shared with everyone@ or anon@).  This could be
+    // optimized if we eliminate one of those users.  The guN
+    // aliases are joining in _getUsersAcls, and refer to the
+    // group_users table at different levels of nesting.
+
+    // When listing, everyone@ shares do not contribute to access permissions,
+    // only to the public flag.  So resources available to the user only because
+    // they are publically available will not be listed.  Shares with anon@,
+    // on the other hand, *are* listed.
+
+    // At this point, we have user ids available for a group associated with the acl
+    // rule, or a subgroup of that group, of a subgroup of that group, or a subgroup
+    // of that group (this is enough nesting to support docs in workspaces in orgs,
+    // with one level of nesting held for future use).
+    const userIdCols = ['gu0.user_id', 'gu1.user_id', 'gu2.user_id', 'gu3.user_id'];
+
+    // If any of the user ids is public (everyone@, anon@), we set the PUBLIC flag.
+    // This is only advisory, for display in the client - it plays no role in access
+    // control.
+    const publicFlagSql = `case when ` +
+      hasAtLeastOneOfTheseIds(this._dbType, [everyoneId, anonId], userIdCols) +
+      ` then ${Permissions.PUBLIC} else 0 end`;
+
+    // The contribution made by the acl rule to overall user permission is contained
+    // in acl_rules.permissions. BUT if we are listing resources, we discount the
+    // permission contribution if it is only made with everyone@, and not anon@
+    // or any of the ids associated with the user. The resource may end up being
+    // accessible but unlisted for this user.
+    const contributionSql = accessStyle !== 'list' ? 'acl_rules.permissions' :
+      `case when ` +
+        hasOnlyTheseIdsOrNull(this._dbType, [everyoneId], userIdCols) +
+        ` then 0 else acl_rules.permissions end`;
+
+    // Finally, if all users are null, the resource is being viewed by the special
+    // previewer user.
+    const previewerSql = `case when coalesce(${userIdCols.join(',')}) is null` +
+      ` then acl_rules.permissions else 0 end`;
+
+    cte = cte.select(
+      bitOr(this._dbType, `(${publicFlagSql} | ${contributionSql} | ${previewerSql})`, 8),
+      'permissions'
+    );
+    cte = cte
+      .addSelect("acl_rules.doc_id")
+      .addSelect("acl_rules.workspace_id")
+      .addSelect("acl_rules.org_id")
+      .addGroupBy("acl_rules.doc_id")
+      .addGroupBy("acl_rules.workspace_id")
+      .addGroupBy("acl_rules.org_id")
+    ;
+    cte = cte.from('acl_rules', 'acl_rules');
+    cte = this._getUsersAcls(cte, users, accessStyle, variableNamePrefix);
+    if (permissions !== null) {
+      cte = cte.andWhere(`(acl_rules.permissions & :permissions) = :permissions`, {permissions}).limit(1);
+    }
+    return cte;
+  }
+
+
+  /**
+   * Return a query builder to check if we have access to the given resource.
+   * Tests the given permission-level access, defaulting to view permission.
+   * @param resType: type of resource (table name)
+   * @param userId: id of user accessing the resource
+   * @param permissions: permission to test for - if null, we return the permissions
+   */
   private _markIsPermitted(
     resType: 'orgs'|'workspaces'|'docs',
     users: AvailableUsers,
@@ -4844,9 +4944,7 @@ export class HomeDBManager {
       }
     }
     if (limit.users || limit.userId) {
-      for (const res of resources) {
-        qb = this._withAccess(qb, limit.users || limit.userId, res, accessStyle, 'limit');
-      }
+      qb = this._withAccessOptimized(qb, limit.users || limit.userId, resources, accessStyle, 'limit');
     }
     if (resources.includes('docs') && resources.includes('workspaces') && !limit.showAll) {
       // Add Workspace.filteredOut column that is set for workspaces that should be filtered out.
