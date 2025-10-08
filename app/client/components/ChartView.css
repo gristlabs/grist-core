@@ -4,3 +4,16 @@
   height: 100%;
   width: 100%;
 }
+
+/* Add some spacing between pie chart slices, to help people differentiate them. */
+.chart_container .plotly .pielayer .slice .surface {
+  stroke: var(--grist-theme-chart-bg) !important;
+  stroke-width: 2px !important;
+  stroke-opacity: 0.5 !important;
+}
+
+@media print {
+  .chart_container .plotly .pielayer .slice .surface {
+    stroke-opacity: 1 !important;
+  }
+}
