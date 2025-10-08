@@ -364,6 +364,18 @@ export class ChartView extends BaseView {
     const {colors} = gristThemeObs().get();
     const {chartBg, chartLegendBg, chartFg, chartXAxis, chartYAxis} = colors.components;
     return {
+      colorway: [
+        '#2b78ae',
+        '#fe945b',
+        '#3a936e',
+        '#d34141',
+        '#8563cc',
+        '#8c564b',
+        '#db7fbf',
+        '#7f7f7f',
+        '#b3b42b',
+        '#28b4d3',
+      ],
       paper_bgcolor: typeof chartBg === 'string' ? chartBg : chartBg.getRawValue(),
       plot_bgcolor: typeof chartBg === 'string' ? chartBg : chartBg.getRawValue(),
       xaxis: {
