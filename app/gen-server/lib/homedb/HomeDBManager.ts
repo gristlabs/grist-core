@@ -643,7 +643,7 @@ export class HomeDBManager {
     if (scope.specialPermit && scope.specialPermit.org === orgKey) {
       effectiveUserId = this._usersManager.getPreviewerUserId();
     }
-    qb = this._withAccess(qb, effectiveUserId, 'orgs');
+    qb = this._withAccess(qb, effectiveUserId, ['orgs']);
     qb = qb.leftJoinAndSelect('orgs.owner', 'owner');
     // Add preference information that will be relevant for presentation of the org.
     // That includes preference information specific to the site and the user,
@@ -892,7 +892,7 @@ export class HomeDBManager {
     }
     let qb = this._orgs();
     qb = this._whereOrg(qb, org);
-    qb = this._withAccess(qb, users, 'orgs');
+    qb = this._withAccess(qb, users, ['orgs']);
     const result = await this._verifyAclPermissions(qb, {emptyAllowed: true});
     if (!result.data) {
       throw new ApiError(result.errMessage || 'failed to select user', result.status);
@@ -926,7 +926,7 @@ export class HomeDBManager {
     queryBuilder = queryBuilder
       .addOrderBy('users.name')
       .addOrderBy('orgs.name');
-    queryBuilder = this._withAccess(queryBuilder, users, 'orgs');
+    queryBuilder = this._withAccess(queryBuilder, users, ['orgs']);
     // Add a direct, efficient filter to remove irrelevant personal orgs from consideration.
     queryBuilder = this._filterByOrgGroups(queryBuilder, users, domain, options);
     if (this._usersManager.isAnonymousUser(users) && !listPublicSites) {
@@ -1149,7 +1149,7 @@ export class HomeDBManager {
       .innerJoin('workspace.org', 'org')
       .where('docs.name = :docName', {docName})
       .andWhere('org.id = :orgId', {orgId});
-    qb = this._withAccess(qb, userId, 'docs');
+    qb = this._withAccess(qb, userId, ['docs']);
     return this._single(await this._verifyAclPermissions(qb));
   }
 
@@ -2089,7 +2089,7 @@ export class HomeDBManager {
       .leftJoinAndSelect('acl_rules.group', 'org_groups')
       .leftJoinAndSelect('org_groups.memberUsers', 'org_member_users');
       orgQuery = this._addFeatures(orgQuery);
-      orgQuery = this._withAccess(orgQuery, userId, 'orgs');
+      orgQuery = this._withAccess(orgQuery, userId, ['orgs']);
       const queryResult = await verifyEntity(orgQuery);
       if (queryResult.status !== 200) {
         // If the query for the organization failed, return the failure result.
@@ -2163,7 +2163,7 @@ export class HomeDBManager {
         markPermissions: analysis.permissionThreshold,
       };
       let wsQuery = this._buildWorkspaceWithACLRules(scope, wsId, options);
-      wsQuery = this._withAccess(wsQuery, userId, 'workspaces');
+      wsQuery = this._withAccess(wsQuery, userId, ['workspaces']);
       const wsQueryResult = await verifyEntity(wsQuery);
 
       if (wsQueryResult.status !== 200) {
@@ -4299,7 +4299,7 @@ export class HomeDBManager {
     return qb;
   }
 
-  private _withAccessOptimized(
+  private _withAccess(
     qb: SelectQueryBuilder<any>,
     users: AvailableUsers,
     resources: Array<'orgs'|'workspaces'|'docs'>,
@@ -4318,14 +4318,6 @@ export class HomeDBManager {
         .leftJoin("permissions", permTable, `"${permTable}"."${aclIdColumn}" = "${res}"."id"`);
     }
     return newQb;
-  }
-
-  private _withAccess(qb: SelectQueryBuilder<any>, users: AvailableUsers,
-                      table: 'orgs'|'workspaces'|'docs',
-                      accessStyle: AccessStyle = 'open',
-                      variableNamePrefix?: string) {
-    return qb
-      .addSelect(this._markIsPermitted(table, users, accessStyle, null, variableNamePrefix), `${table}_permissions`);
   }
 
   /**
@@ -4944,7 +4936,7 @@ export class HomeDBManager {
       }
     }
     if (limit.users || limit.userId) {
-      qb = this._withAccessOptimized(qb, limit.users || limit.userId, resources, accessStyle, 'limit');
+      qb = this._withAccess(qb, limit.users || limit.userId, resources, accessStyle, 'limit');
     }
     if (resources.includes('docs') && resources.includes('workspaces') && !limit.showAll) {
       // Add Workspace.filteredOut column that is set for workspaces that should be filtered out.
