@@ -1527,7 +1527,7 @@ export class FlexServer implements GristServer {
         docManager
       );
       if (this._docWorkerLoadTracker) {
-        await this._docWorkerMap.setWorkerLoad(this.worker, this._docWorkerLoadTracker.getLoad());
+        await this._docWorkerMap.setWorkerLoad(this.worker, await this._docWorkerLoadTracker.getLoad());
         this._docWorkerLoadTracker.start();
       }
       this._comm.registerMethods({
