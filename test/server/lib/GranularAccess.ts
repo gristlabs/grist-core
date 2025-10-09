@@ -79,6 +79,7 @@ describe('GranularAccess', function() {
     return { actionNum, actionHash };
   }
   let fakeActionNum = 10000;
+  let oldEnv: testUtils.EnvironmentSnapshot;
 
   /**
    * Apply actions as a fake undo, inserting them in history and then activating
@@ -114,6 +115,7 @@ describe('GranularAccess', function() {
   }
 
   before(async function() {
+    oldEnv = new testUtils.EnvironmentSnapshot();
     home = new TestServer(this);
     process.env.GRIST_DEFAULT_EMAIL = 'ham@getgrist.com';
     await home.start(['home', 'docs']);
@@ -136,6 +138,7 @@ describe('GranularAccess', function() {
     await api.deleteOrg('testy');
     await home.stop();
     await globalUploadSet.cleanupAll();
+    oldEnv.restore();
   });
 
   afterEach(async function() {
