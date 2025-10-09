@@ -6,7 +6,7 @@ import { getTimeFromNow } from 'app/client/lib/timeUtils';
 import { urlState } from 'app/client/models/gristUrlState';
 import { docListHeader } from 'app/client/ui/DocMenuCss';
 import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
-import { bigBasicButton, bigPrimaryButton } from 'app/client/ui2018/buttons';
+import { basicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
 import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
 import {
@@ -234,7 +234,7 @@ export class ProposedChangesPage extends Disposable {
                 this._renderComparisonDetails(details),
                 proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
                 isReadOnly ? null : cssDataRow(
-                  bigPrimaryButton(
+                  primaryButton(
                     applied ? t("Reapply") : t("Apply"),
                     dom.on('click', async () => {
                       const outcome = await this.gristDoc.docComm.applyProposal(proposal.shortId);
@@ -250,7 +250,7 @@ export class ProposedChangesPage extends Disposable {
                     testId('propose'),
                   ),
                   ' ',
-                  (isReadOnly || proposal.status.status === 'dismissed') ? null : bigBasicButton(
+                  (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
                     t("Dismiss"),
                     dom.on('click', async () => {
                       const result = await this.gristDoc.docComm.applyProposal(proposal.shortId, {
