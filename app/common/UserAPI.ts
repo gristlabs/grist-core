@@ -1195,14 +1195,6 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(url.href);
   }
 
-  public async copyDoc(workspaceId: number, options: CopyDocOptions): Promise<string> {
-    const {documentName, asTemplate} = options;
-    return this.requestJson(`${this._url}/copy`, {
-      body: JSON.stringify({workspaceId, documentName, asTemplate}),
-      method: 'POST'
-     });
-  }
-
   public async compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison> {
     const url = new URL(`${this._url}/compare`);
     url.searchParams.append('left', leftHash);
