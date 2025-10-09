@@ -9,6 +9,7 @@ import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import { Group } from 'app/gen-server/entity/Group';
 import { isAffirmative } from 'app/common/gutil';
+import { UserTypes } from 'app/common/User';
 
 function scimConfigForUser(user: string) {
   const config = configForUser(user);
@@ -122,8 +123,8 @@ describe('Scim', () => {
       };
     }
 
-    async function getOrCreateUserId(user: string) {
-      return (await getDbManager().getUserByLogin(user + '@getgrist.com'))!.id;
+    async function getOrCreateUserId(user: string, {type}: {type?: UserTypes} = {}) {
+      return (await getDbManager().getUserByLogin(user + '@getgrist.com', {}, type))!.id;
     }
 
     async function cleanupUser(userId: number) {
@@ -131,6 +132,7 @@ describe('Scim', () => {
         await getDbManager().deleteUser({ userId: userId }, userId);
       }
     }
+
     async function checkOperationOnTechUserDisallowed({op, opType}: {
       op: (id: number) => Promise<AxiosResponse>,
       opType: string
@@ -269,6 +271,17 @@ describe('Scim', () => {
           });
         });
 
+        it('should return 404 when the user is not of type login', async function () {
+        const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+        const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
+        assert.deepEqual(res.data, {
+          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+          status: '404',
+          detail: `User with ID ${serviceUserId} not found`
+        });
+        assert.equal(res.status, 404);
+      });
+
         checkCommonErrors('get', '/Users/1');
       });
 
@@ -299,6 +312,12 @@ describe('Scim', () => {
             assert.equal(secondPageResourceId, 2);
           }
         });
+
+        it('should not return non login users', async function () {
+        const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+        const res = await axios.get(scimUrl('/Users'), chimpy);
+        assert.isEmpty(res.data.Resources.filter((user: any) => user.id === serviceUserId));
+      });
 
         checkCommonErrors('get', '/Users');
       });
@@ -354,6 +373,8 @@ describe('Scim', () => {
             assert.equal(res.status, 201);
             const newUserId = await getOrCreateUserId(userName);
             assert.deepEqual(res.data, toSCIMUserWithId(userName, newUserId));
+            const newUser = await getDbManager().getUser(newUserId);
+            assert.equal(newUser!.type, 'login');
           });
         });
 
@@ -385,8 +406,8 @@ describe('Scim', () => {
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
-              id: '12',
-              meta: { resourceType: 'User', location: '/api/scim/v2/Users/12' },
+              id: res.data.id,
+              meta: { resourceType: 'User', location: `/api/scim/v2/Users/${res.data.id}` },
               userName: 'emails.value@getgrist.com',
               name: { formatted: 'emails.value' },
               displayName: 'emails.value',
@@ -483,6 +504,17 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
+        it('should return 403 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.put(scimUrl(`/Users/${serviceUserId}`), toSCIMUserWithoutId('chimpy'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '403',
+            detail: 'Only login user modifications are permitted'
+          });
+          assert.equal(res.status, 403);
+        });
+
         it('should return 403 for system users', async function () {
           const data = toSCIMUserWithoutId('whoever');
           await checkOperationOnTechUserDisallowed({
@@ -572,8 +604,18 @@ describe('Scim', () => {
           });
         });
 
-        checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
-      });
+        it('should return 403 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.patch(scimUrl(`/Users/${serviceUserId}`), validPatchBody('whatever'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'User with ID 9 not found'
+          });
+          assert.equal(res.status, 404);
+        });
+          checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
+        });
 
       describe('DELETE /Users/{id}', function () {
         let userToDeleteId: number;
@@ -601,6 +643,17 @@ describe('Scim', () => {
             detail: 'user not found'
           });
           assert.equal(res.status, 404);
+        });
+
+        it('should return 403 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.delete(scimUrl(`/Users/${serviceUserId}`), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '403',
+            detail: 'Only login user deletions are permitted'
+          });
+          assert.equal(res.status, 403);
         });
 
         it('should return 403 for system users', async function () {
@@ -1625,3 +1678,4 @@ describe('Scim', () => {
     });
   });
 });
+
