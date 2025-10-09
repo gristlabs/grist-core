@@ -1,10 +1,11 @@
 import {hooks} from 'app/client/Hooks';
 import {loadUserManager} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
+import {getLoginOrSignupUrl} from 'app/client/lib/urlUtils';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {reportWarning} from 'app/client/models/errors';
-import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {
   downloadAttachmentsModal,
   downloadDocModal,

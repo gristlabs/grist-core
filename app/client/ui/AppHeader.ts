@@ -1,4 +1,5 @@
-import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
+import {getWelcomeHomeUrl} from 'app/client/lib/urlUtils';
+import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme} from 'app/client/ui/CustomThemes';
 import {cssLeftPane} from 'app/client/ui/PagePanels';
 import {colors, theme, vars} from 'app/client/ui2018/cssVars';

@@ -1,5 +1,5 @@
 import {HistWindow, UrlState} from 'app/client/lib/UrlState';
-import {getLoginUrl, UrlStateImpl} from 'app/client/models/gristUrlState';
+import {UrlStateImpl} from 'app/client/models/gristUrlState';
 import {IGristUrlState} from 'app/common/gristUrls';
 import {assert} from 'chai';
 import {dom} from 'grainjs';
@@ -344,60 +344,5 @@ describe('gristUrlState', function() {
       'https://bar.example.com/doc/DOC/p/44?foo_=X&bar_=B');
     await state.pushUrl(prevState => omit(prevState, 'params'));
     assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5');
-  });
-
-  describe('login-urls', function() {
-    const originalWindow = (global as any).window;
-
-    after(() => {
-      (global as any).window = originalWindow;
-    });
-
-    function setWindowLocation(href: string) {
-      (global as any).window = {location: {href}};
-    }
-
-    it('getLoginUrl should return appropriate login urls', function() {
-      setWindowLocation('http://localhost:8080');
-      assert.equal(getLoginUrl(), 'http://localhost:8080/login?next=%2F');
-      setWindowLocation('https://docs.getgrist.com/');
-      assert.equal(getLoginUrl(), 'https://docs.getgrist.com/login?next=%2F');
-      setWindowLocation('https://foo.getgrist.com?foo=1&bar=2#baz');
-      assert.equal(getLoginUrl(), 'https://foo.getgrist.com/login?next=%2F%3Ffoo%3D1%26bar%3D2%23baz');
-      setWindowLocation('https://example.com');
-      assert.equal(getLoginUrl(), 'https://example.com/login?next=%2F');
-    });
-
-    it('getLoginUrl should encode redirect url in next param', function() {
-      setWindowLocation('http://localhost:8080/o/docs/foo');
-      assert.equal(getLoginUrl(), 'http://localhost:8080/o/docs/login?next=%2Ffoo');
-      setWindowLocation('https://docs.getgrist.com/RW25C4HAfG/Test-Document');
-      assert.equal(getLoginUrl(), 'https://docs.getgrist.com/login?next=%2FRW25C4HAfG%2FTest-Document');
-    });
-
-    it('getLoginUrl should include query params and hashes in next param', function() {
-      setWindowLocation('https://foo.getgrist.com/Y5g3gBaX27D/With-Hash/p/1/#a1.s8.r2.c23');
-      assert.equal(
-        getLoginUrl(),
-        'https://foo.getgrist.com/login?next=%2FY5g3gBaX27D%2FWith-Hash%2Fp%2F1%2F%23a1.s8.r2.c23'
-      );
-      setWindowLocation('https://example.com/rHz46S3F77DF/With-Params?compare=RW25C4HAfG');
-      assert.equal(
-        getLoginUrl(),
-        'https://example.com/login?next=%2FrHz46S3F77DF%2FWith-Params%3Fcompare%3DRW25C4HAfG'
-      );
-      setWindowLocation('https://example.com/rHz46S3F77DF/With-Params?compare=RW25C4HAfG#a1.s8.r2.c23');
-      assert.equal(
-        getLoginUrl(),
-        'https://example.com/login?next=%2FrHz46S3F77DF%2FWith-Params%3Fcompare%3DRW25C4HAfG%23a1.s8.r2.c23'
-      );
-    });
-
-    it('getLoginUrl should skip encoding redirect url on signed-out page', function() {
-      setWindowLocation('http://localhost:8080/o/docs/signed-out');
-      assert.equal(getLoginUrl(), 'http://localhost:8080/o/docs/login?next=%2F');
-      setWindowLocation('https://docs.getgrist.com/signed-out');
-      assert.equal(getLoginUrl(), 'https://docs.getgrist.com/login?next=%2F');
-    });
   });
 });
