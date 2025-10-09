@@ -5007,21 +5007,15 @@ export class HomeDBManager {
                                transaction?: EntityManager): Promise<Document> {
     return await this.runInTransaction(transaction, async manager => {
 
-      const docQuery = this._doc(scope, {manager, markPermissions})
-      // Join the workspace so we know what should be inherited.  We will join
-      // the workspace member groups/users as a separate query, since
-      // SQL results are flattened, and multiplying the number of rows we have already
-      // by the number of workspace users could get excessive.
-      .leftJoinAndSelect('docs.workspace', 'workspace');
+      const docQuery = this._doc(scope, {manager, markPermissions});
       const queryResult = await verifyEntity(docQuery);
       const doc: Document = this.unwrapQueryResult(queryResult);
 
-      // Join the doc's ACL rules and groups/users so we can edit them.
-      // As for the workspace, we do this as a separate query to avoid
-      // repeating the document row (which can be particulary costly
-      // since the main document query contains some non-trivial
-      // subqueries and postgres will re-execute them for each
-      // repeated document row).
+      // Retrieve the doc's ACL rules and groups/users so we can edit them.
+      // We do this as a separate query to avoid repeating the document
+      // row (which can be particulary costly since the main document
+      // query contains some non-trivial subqueries and postgres
+      // will re-execute them for each repeated document row).
       const aclQuery = this._docs(manager)
       .where({ id: doc.id })
       .leftJoinAndSelect('docs.aclRules', 'acl_rules')
