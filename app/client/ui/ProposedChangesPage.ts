@@ -30,15 +30,38 @@ const t = makeT('ProposedChangesPage');
  *
  */
 export class ProposedChangesPage extends Disposable {
-  // This page shows information pulled from an API call, which
-  // takes a little time to fetch. This flag tracks whether
-  // everything needed has been fetched.
+  public body: ProposedChangesTrunkPage | ProposedChangesForkPage;
   public readonly isInitialized = Observable.create(this, false);
+  constructor(public gristDoc: GristDoc) {
+    super();
+    const urlId = this.gristDoc.docPageModel.currentDocId.get();
+    const parts = parseUrlId(urlId || '');
+    const isFork = urlId && parts.trunkId && parts.forkId;
 
-  // This will hold a comparison between this document and another version.
-  private _comparison?: DocStateComparison;
-  private _proposals?: Proposal[];
+    this.body = this.autoDispose(
+      isFork ?
+          ProposedChangesForkPage.create(null, gristDoc) :
+          ProposedChangesTrunkPage.create(null, gristDoc));
+
+    this.body.load().then(result => {
+      if (result) { this.isInitialized.set(true); }
+    }).catch(reportError);
+  }
+
+  public buildDom() {
+    return cssContainer(
+      cssHeader(t('Proposed Changes'), betaTag('Beta')),
+      dom.maybe(this.isInitialized, () => {
+        return this.body.buildDom();
+      })
+    );
+  }
+}
+
+export class ProposedChangesTrunkPage extends Disposable {
   private _proposalsObs: MutableObsArray<Proposal> = this.autoDispose(obsArray());
+  private _proposals?: Proposal[];
+
   private _proposalCount = Computed.create(
     this, this._proposalsObs,
     (_owner, ps) => ps.length,
@@ -47,131 +70,21 @@ export class ProposedChangesPage extends Disposable {
 
   constructor(public gristDoc: GristDoc) {
     super();
-    this.load();
   }
 
-  /**
-   * Use the API to compare this doc with the original.
-   * TODO: make sure the comparison remains live either by recomputing
-   * or by concatenating incoming changes to the computed difference.
-   */
-  public load() {
-    const urlId = this.gristDoc.docPageModel.currentDocId.get();
-    const doc = this.gristDoc.docPageModel.currentDoc.get();
-    const mayHaveProposals = doc?.options?.proposedChanges?.acceptProposals;
-    const parts = parseUrlId(urlId || '');
-    if (urlId && parts.trunkId && parts.forkId) {
-      const comparisonUrlId = parts.trunkId;
-      this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
-        comparisonUrlId, { detail: true }
-      ).then(comparison => {
-        if (this.isDisposed()) { return; }
-        this._comparison = comparison;
-        this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
-          outgoing: true
-        }).then(proposals => {
-          if (this.isDisposed()) { return; }
-          this._proposalsObs.push(...proposals);
-          this.isInitialized.set(true);
-        }).catch(reportError);
-      }).catch(reportError);
-    } else if (urlId && mayHaveProposals) {
-      // TODO: bring in handling for trunk view. The idea is that it
-      // would list proposed changes from forks. I've omitted it for now
-      // to tackle that part separately. We just avoid showing the page
-      // when not on a fork.
-      this.gristDoc.appModel.api.getDocAPI(urlId).getProposals().then(proposals => {
-        if (this.isDisposed()) { return; }
-        this._proposals = proposals.filter(p => p.status.status !== 'retracted');
-        this._proposalsObs.splice(0);
-        this._proposalsObs.push(...this._proposals);
-        this.isInitialized.set(true);
-      }).catch(reportError);
-    } else {
-      console.error('ProposedChangesPage opened unexpectedly');
-    }
-  }
-
-  public update() {
+  public async load() {
     const urlId = this.gristDoc.docPageModel.currentDocId.get();
     if (!urlId) { return; }
-    this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
-      outgoing: true
-    }).then(proposals => {
-      if (this.isDisposed()) { return; }
-      this._proposalsObs.splice(0, undefined, ...proposals);
-    }).catch(reportError);
+    const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals();
+    if (this.isDisposed()) { return; }
+    this._proposals = proposals.filter(p => p.status.status !== 'retracted');
+    this._proposalsObs.splice(0);
+    this._proposalsObs.push(...this._proposals);
+    return true;
   }
 
   public buildDom() {
-    return cssContainer(
-      cssHeader(t('Proposed Changes'), betaTag('Beta')),
-      dom.maybe(this.isInitialized, () => {
-        if (this._proposals !== undefined) {
-          return this.buildTrunkDom();
-        } else {
-          return this.buildForkDom();
-        }
-      })
-    );
-  }
-
-  public buildForkDom() {
-    const details = this._comparison?.details;
-    const isSnapshot = this.gristDoc.docPageModel.isSnapshot.get();
-    const docId = this.gristDoc.docId();
-    const origUrlId = buildOriginalUrlId(docId, isSnapshot);
-    const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
-
-    return [
-      dom('p',
-          t('This is a list of changes relative to the {{originalDocument}}.', {
-            originalDocument: cssBannerLink(
-              t('original document'),
-              urlState().setLinkUrl({
-                doc: origUrlId,
-                docPage: 'proposals',
-              }, {
-                extraStep: () => this.gristDoc.docPageModel.clearUnsavedChanges()
-              }),
-              dom.on('click', () => {
-                this.gristDoc.docPageModel.clearUnsavedChanges();
-              }),
-            )
-          }),
-         ),
-      cssDataRow(
-        details ? this._renderComparisonDetails(details) : null,
-      ),
-      dom.maybe(this._proposalsObs, proposals => {
-        const proposal = proposals[0];
-        return [
-          dom('p',
-              getProposalActionSummary(proposal)
-             ),
-          isReadOnly ? null : cssControlRow(
-            bigPrimaryButton(
-              proposal?.updatedAt ? t('Update Change') : t('Propose Change'),
-              dom.on('click', async () => {
-                const urlId = this.gristDoc.docPageModel.currentDocId.get();
-                await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
-                this.update();
-              }),
-              testId('propose'),
-            ),
-            (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigPrimaryButton(
-              t("Retract Change"),
-              dom.on('click', async () => {
-                const urlId = this.gristDoc.docPageModel.currentDocId.get();
-                await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
-                this.update();
-              }),
-              testId('propose'),
-            ) : null
-          )
-        ];
-      })
-    ];
+    return this.buildTrunkDom();
   }
 
   public buildTrunkDom() {
@@ -231,7 +144,7 @@ export class ProposedChangesPage extends Disposable {
                   proposal.srcDoc.creator.name || proposal.srcDoc.creator.email, ' | ',
                   getProposalActionSummary(proposal),
                 ),
-                this._renderComparisonDetails(details),
+                renderComparisonDetails(this.gristDoc, details),
                 proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
                 isReadOnly ? null : cssDataRow(
                   primaryButton(
@@ -268,27 +181,110 @@ export class ProposedChangesPage extends Disposable {
       })
     ];
   }
+}
 
-  private _renderComparisonDetails(origDetails: DocStateComparisonDetails) {
-    // The change we want to render is based on a calculation
-    // done on the fork document. The calculation treated the
-    // fork as the local/left document, and the trunk as the
-    // remote/right document.
-    const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
-    console.log({details, leftHadMetadata});
-    // We want to look at the changes from their most recent
-    // common ancestor and the current doc.
-    const part = new ActionLogPartInProposal(this.gristDoc, details);
-    // This holds any extra context known about the comparison. Computed on
-    // request. It is managed by ActionLogPart.
-    // TODO: does this need ownership of some kind for disposal?
-    const context = ko.observable({});
+
+export class ProposedChangesForkPage extends Disposable {
+  // This will hold a comparison between this document and another version.
+  private _comparison?: DocStateComparison;
+
+  private _proposalObs: Observable<Proposal|null> = Observable.create(this, null);
+
+  constructor(public gristDoc: GristDoc) {
+    super();
+  }
+
+  /**
+   * Use the API to compare this doc with the original.
+   * TODO: make sure the comparison remains live either by recomputing
+   * or by concatenating incoming changes to the computed difference.
+   */
+  public async load() {
+    const urlId = this.gristDoc.docPageModel.currentDocId.get();
+    if (!urlId) { return; }
+    const parts = parseUrlId(urlId || '');
+    const comparisonUrlId = parts.trunkId;
+    const comparison = await this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
+      comparisonUrlId, { detail: true }
+    );
+    if (this.isDisposed()) { return; }
+    this._comparison = comparison;
+    const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
+      outgoing: true
+    });
+    if (this.isDisposed()) { return; }
+    this._proposalObs.set(proposals[0] || null);
+    return true;
+  }
+
+  public buildDom() {
+    const details = this._comparison?.details;
+    const isSnapshot = this.gristDoc.docPageModel.isSnapshot.get();
+    const docId = this.gristDoc.docId();
+    const origUrlId = buildOriginalUrlId(docId, isSnapshot);
+    const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
+
     return [
-      leftHadMetadata ? dom('p', "(some changes we can't deal with yet were ignored)") : null,
-      part.renderTabularDiffs(details.leftChanges, "", context),
+      dom('p',
+          t('This is a list of changes relative to the {{originalDocument}}.', {
+            originalDocument: cssBannerLink(
+              t('original document'),
+              urlState().setLinkUrl({
+                doc: origUrlId,
+                docPage: 'proposals',
+              }, {
+                beforeChange: () => this.gristDoc.docPageModel.clearUnsavedChanges()
+              }),
+              dom.on('click', () => {
+                this.gristDoc.docPageModel.clearUnsavedChanges();
+              }),
+            )
+          }),
+         ),
+      cssDataRow(
+        details ? renderComparisonDetails(this.gristDoc, details) : null,
+      ),
+      dom.maybe(this._proposalObs, proposal => {
+        return [
+          dom('p',
+              getProposalActionSummary(proposal)
+             ),
+          isReadOnly ? null : cssControlRow(
+            bigPrimaryButton(
+              proposal?.updatedAt ? t('Update Change') : t('Propose Change'),
+              dom.on('click', async () => {
+                const urlId = this.gristDoc.docPageModel.currentDocId.get();
+                await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
+                await this.update();
+              }),
+              testId('propose'),
+            ),
+            (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigPrimaryButton(
+              t("Retract Change"),
+              dom.on('click', async () => {
+                const urlId = this.gristDoc.docPageModel.currentDocId.get();
+                await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
+                await this.update();
+              }),
+              testId('propose'),
+            ) : null
+          )
+        ];
+      })
     ];
   }
+
+  public async update() {
+    const urlId = this.gristDoc.docPageModel.currentDocId.get();
+    if (!urlId) { return; }
+    const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
+      outgoing: true
+    });
+    if (this.isDisposed()) { return; }
+    this._proposalObs.set(proposals[0] || null);
+  }
 }
+
 
 class ActionLogPartInProposal extends ActionLogPart {
   public constructor(
@@ -368,4 +364,25 @@ function getProposalActionSummary(proposal: Proposal) {
         t("Applied {{at}}", {at: getTimeFromNow(proposal.appliedAt)}) :
         t("Proposed {{at}}", {at: getTimeFromNow(proposal.updatedAt)}),
   ) : null;
+}
+
+
+function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateComparisonDetails) {
+  // The change we want to render is based on a calculation
+  // done on the fork document. The calculation treated the
+  // fork as the local/left document, and the trunk as the
+  // remote/right document.
+  const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
+  console.log({details, leftHadMetadata});
+  // We want to look at the changes from their most recent
+  // common ancestor and the current doc.
+  const part = new ActionLogPartInProposal(gristDoc, details);
+  // This holds any extra context known about the comparison. Computed on
+  // request. It is managed by ActionLogPart.
+  // TODO: does this need ownership of some kind for disposal?
+  const context = ko.observable({});
+  return [
+    leftHadMetadata ? dom('p', "(some changes we can't deal with yet were ignored)") : null,
+    part.renderTabularDiffs(details.leftChanges, "", context),
+  ];
 }
