@@ -5008,12 +5008,6 @@ export class HomeDBManager {
     return await this.runInTransaction(transaction, async manager => {
 
       const docQuery = this._doc(scope, {manager, markPermissions})
-      // Join the doc's ACL rules and groups/users so we can edit them.
-      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'doc_groups')
-      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_group_users')
-      .leftJoinAndSelect('doc_groups.memberGroups', 'doc_group_groups')
-      .leftJoinAndSelect('doc_group_users.logins', 'doc_user_logins')
       // Join the workspace so we know what should be inherited.  We will join
       // the workspace member groups/users as a separate query, since
       // SQL results are flattened, and multiplying the number of rows we have already
@@ -5021,6 +5015,22 @@ export class HomeDBManager {
       .leftJoinAndSelect('docs.workspace', 'workspace');
       const queryResult = await verifyEntity(docQuery);
       const doc: Document = this.unwrapQueryResult(queryResult);
+
+      // Join the doc's ACL rules and groups/users so we can edit them.
+      // As for the workspace, we do this as a separate query to avoid
+      // repeating the document row (which can be particulary costly
+      // since the main document query contains some non-trivial
+      // subqueries and postgres will re-execute them for each
+      // repeated document row).
+      const aclQuery = this._docs(manager)
+      .where({ id: doc.id })
+      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
+      .leftJoinAndSelect('acl_rules.group', 'doc_groups')
+      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_group_users')
+      .leftJoinAndSelect('doc_groups.memberGroups', 'doc_group_groups')
+      .leftJoinAndSelect('doc_group_users.logins', 'doc_user_logins');
+      const aclDoc: Document = (await aclQuery.getOne())!;
+      doc.aclRules = aclDoc.aclRules;
 
       // Load the workspace's member groups/users.
       const workspaceQuery = this._workspace(scope, doc.workspace.id, {manager})
