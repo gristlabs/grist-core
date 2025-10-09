@@ -31,7 +31,7 @@ import {RowSource, SortedRowSet} from 'app/client/models/rowset';
 import {createFilterMenu, IColumnFilterMenuOptions} from 'app/client/ui/ColumnFilterMenu';
 import {buildReassignModal} from 'app/client/ui/buildReassignModal';
 import {closeRegisteredMenu} from 'app/client/ui2018/menus';
-import type {CommentText} from 'app/client/widgets/MentionTextBox';
+import type {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {BuildEditorOptions, createAllFieldWidgets, FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {BulkColValues, CellValue, DocAction, UserAction} from 'app/common/DocActions';
 import {DismissedPopup} from 'app/common/Prefs';
@@ -331,7 +331,7 @@ export default class BaseView extends Disposable {
     copyLink: function() { this.copyLink().catch(reportError); },
     filterByThisCellValue: function() { this.filterByThisCellValue(); },
     duplicateRows: function() { this._duplicateRows().catch(reportError); },
-    openDiscussion: function(ev: unknown, payload: CommentText|null) {
+    openDiscussion: function(ev: unknown, payload: CommentWithMentions|null) {
       const state = typeof payload === 'object' && payload ? payload : null;
       this._openDiscussionAtCursor(state);
     },
@@ -475,7 +475,7 @@ export default class BaseView extends Disposable {
   /**
    * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
    */
-  private _openDiscussionAtCursor(text: CommentText|null) {
+  private _openDiscussionAtCursor(text: CommentWithMentions|null) {
     const builder = this.activeFieldBuilder();
     if (builder.isEditorActive()) {
       return false;

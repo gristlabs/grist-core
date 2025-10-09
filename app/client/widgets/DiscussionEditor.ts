@@ -1,4 +1,3 @@
-import {createPopper, Options as PopperOptions} from '@popperjs/core';
 import {allCommands} from 'app/client/components/commands';
 import {showUndoDiscardNotification} from 'app/client/components/Drafts';
 import {GristDoc} from 'app/client/components/GristDoc';
@@ -18,10 +17,10 @@ import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {menu, menuItem} from 'app/client/ui2018/menus';
 import {cssMarkdown} from 'app/client/widgets/MarkdownTextBox';
-import {buildMentionTextBox, CommentText} from 'app/client/widgets/MentionTextBox';
+import {buildMentionTextBox, CommentWithMentions} from 'app/client/widgets/MentionTextBox';
+import {CommentContent} from 'app/common/DocComments';
 import {CellInfoType} from 'app/common/gristTypes';
 import {FullUser, PermissionData} from 'app/common/UserAPI';
-import {CommentContent} from 'app/common/DocComments';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {
   bundleChanges,
@@ -36,18 +35,19 @@ import {
   MultiHolder,
   ObsArray,
   Observable,
-  styled} from 'grainjs';
+  styled
+} from 'grainjs';
 import * as ko from 'knockout';
 import flatMap from 'lodash/flatMap';
 import moment from 'moment';
-import maxSize from 'popper-max-size-modifier';
+import {PopupControl, popupOpen} from 'popweasel';
 
 const testId = makeTestId('test-discussion-');
 const t = makeT('DiscussionEditor');
 const COMMENTS_LIMIT = 200;
 
 export interface DiscardedComment extends CursorPos {
-  text: CommentText;
+  text: CommentWithMentions;
 }
 
 interface DiscussionModel {
@@ -64,11 +64,11 @@ interface DiscussionModel {
    * Saves a comment that creates a new discussion in the given cell.
    * Assumes that the cell has no comments yet.
    */
-  startIn(pos: CursorPos, text: CommentText): Promise<void>;
+  startIn(pos: CursorPos, text: CommentWithMentions): Promise<void>;
   /**
    * Replies to a comment with the provided text.
    */
-  reply(discussion: CellRec, text: CommentText): Promise<void>;
+  reply(discussion: CellRec, text: CommentWithMentions): Promise<void>;
   /**
    * Resolves one discussion thread. There should be only one unresolved discussion per cell.
    */
@@ -76,7 +76,7 @@ interface DiscussionModel {
   /**
    * Updates a comment with the provided text.
    */
-  update(comment: CellRec, text: CommentText): Promise<void>;
+  update(comment: CellRec, text: CommentWithMentions): Promise<void>;
   /**
    * Opens a resolved discussion thread. There should be only one unresolved discussion thread at a time. Popup will
    * show only the last unresolved discussion thread, but all threads are available in the discussion panel.
@@ -123,7 +123,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     });
   }
 
-  public async startIn(pos: CursorPos, commentText: CommentText): Promise<void> {
+  public async startIn(pos: CursorPos, commentText: CommentWithMentions): Promise<void> {
     this.gristDoc.commentMonitor?.clear();
     if (!pos.sectionId || pos.fieldIndex === undefined || typeof pos.rowId !== 'number') {
       throw new Error("Cannot start discussion without sectionId, fieldIndex and rowId in cursor position");
@@ -155,7 +155,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     ]], t('Started discussion'));
   }
 
-  public async reply(comment: CellRec, commentText: CommentText): Promise<void> {
+  public async reply(comment: CellRec, commentText: CommentWithMentions): Promise<void> {
     this.gristDoc.commentMonitor?.clear();
     const author = commentAuthor(this.gristDoc);
     await this.gristDoc.docData.bundleActions(t("Reply to a comment"), () =>
@@ -189,7 +189,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     return comment.timeUpdated.saveOnly(Date.now());
   }
 
-  public async update(comment: CellRec, commentText: CommentText): Promise<void> {
+  public async update(comment: CellRec, commentText: CommentWithMentions): Promise<void> {
     this.gristDoc.commentMonitor?.clear();
     comment.text(commentText.text);
     comment.mentions(commentText.mentions);
@@ -211,31 +211,52 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
  * Discussion popup that is attached to a cell.
  */
 export class CommentPopup extends Disposable {
-  private _newText: Observable<CommentText> = Observable.create(this,
-    this._props.initialText ?? new CommentText());
+  private _newText: Observable<CommentWithMentions> = Observable.create(this,
+    this._props.initialText ?? new CommentWithMentions());
+  private _menuInstance: PopupControl;
 
   constructor(private _props: {
     domEl: Element,
     cell: DiscussionModel,
     gristDoc: GristDoc,
     cursorPos: CursorPos,
-    initialText?: CommentText|null,
+    initialText?: CommentWithMentions|null,
     closeClicked: () => void;
   }) {
     super();
     this._props.gristDoc.docPageModel.refreshDocumentAccess().catch(reportError);
-    const content = dom('div',
-      testId('popup'),
-      dom.maybe(this._props.gristDoc.docPageModel.docUsers, access => [
+    const access = this._props.gristDoc.docPageModel.docUsers;
+
+    this._menuInstance = popupOpen(this._props.domEl, (ctl) => {
+      this.onDispose(() => {
+        if (!ctl.isDisposed()) {
+          ctl.close();
+        }
+      });
+      // When the popup is being disposed (after closing).
+      ctl.onDispose(() => {
+        // Make sure we are not disposed already. TODO: popupMenu should have some hooks exposed like beforeClose.
+        if (this.isDisposed() || this._newText.isDisposed()) { return; }
+        // If there is some text, store it in the comment monitor to allow restoring it.
+        const text = this._newText.get();
+        if (text.shouldBeRestored()) {
+          this._props.gristDoc.commentMonitor?.setDiscardedComment({
+            text,
+            ...this._props.cursorPos,
+          });
+        }
+      });
+      return cssCommentPopup(
+        testId('popup'),
         dom.domComputed(this._props.cell.isEmpty, empty => {
           if (!empty) {
             return dom.create(SingleThread, {
               text: this._newText,
               cell: _props.cell,
               gristDoc: _props.gristDoc,
-              cursorPos: _props.cursorPos,
               access,
               closeClicked: _props.closeClicked,
+              cursorPos: _props.cursorPos,
             });
           } else {
             return dom.create(EmptyThread, {
@@ -247,28 +268,18 @@ export class CommentPopup extends Disposable {
             });
           }
         })
-      ]),
-    );
-    const popper = createPopper(_props.domEl, content, cellPopperOptions);
-    this.onDispose(() => popper.destroy());
-    document.body.appendChild(content);
-    this.onDispose(() => { dom.domDispose(content); content.remove(); });
-    this.autoDispose(onClickOutside(content, () => this._clickedOutside()));
+      );
+    }, {
+      placement: 'bottom',
+      attach: 'body',
+      boundaries: 'window',
+    });
   }
 
-  private _clickedOutside() {
-    // Save discarded comment if it's long enough and not empty
-    const text = this._newText.get();
-    if (text.shouldBeRestored()) {
-      this._props.gristDoc.commentMonitor?.setDiscardedComment({
-        text,
-        ...this._props.cursorPos,
-      });
+  private async _onSave(text: CommentWithMentions) {
+    if (!this._menuInstance.isDisposed()) {
+      this._menuInstance.update();
     }
-    this._props.closeClicked?.();
-  }
-
-  private async _onSave(text: CommentText) {
     await this._props.cell.startIn(this._props.cursorPos, text);
   }
 }
@@ -314,11 +325,11 @@ class EmptyThread extends Disposable {
   private _entry: CommentEntry;
 
   constructor(public props: {
-    text: Observable<CommentText>,
-    access: PermissionData,
+    text: Observable<CommentWithMentions>,
+    access: Observable<PermissionData|null>,
     currentUserId: number,
     closeClicked: () => void,
-    onSave: (text: CommentText) => void
+    onSave: (text: CommentWithMentions) => void
   }) {
     super();
     this._entry = CommentEntry.create(this, {
@@ -339,27 +350,23 @@ class EmptyThread extends Disposable {
     return cssTopic(
       testId('topic-empty'),
       testId('topic'),
-      this._createCommentEntry(),
+      cssCommonPadding(
+        this._entry.buildDom()
+      ),
       dom.onKeyDown({
         Escape: () => this.props.closeClicked?.(),
       })
     );
   }
 
-  private _createCommentEntry() {
-    return cssCommonPadding(
-      this._entry.buildDom()
-    );
-  }
-
-  private _onSave(md: CommentText) {
-    this.props.text.set(new CommentText());
+  private _onSave(md: CommentWithMentions) {
+    this.props.text.set(new CommentWithMentions());
     this.props.onSave(md);
     this._entry.clear();
   }
 
   private _onCancel() {
-    this.props.text.set(new CommentText());
+    this.props.text.set(new CommentWithMentions());
     this.props.closeClicked?.();
   }
 }
@@ -388,12 +395,13 @@ class SingleThread extends Disposable implements IDomComponent {
   private _entry: CommentEntry;
 
   constructor(public props: {
-    text: Observable<CommentText>,
+    text: Observable<CommentWithMentions>,
     cell: DiscussionModel,
-    access: PermissionData,
+    access: Observable<PermissionData|null>,
     gristDoc: GristDoc,
     cursorPos: CursorPos,
-    closeClicked?: () => void
+    closeClicked?: () => void,
+    listChanged?: () => void,
   }) {
     super();
     // On popup we will only show last non resolved comment.
@@ -406,6 +414,14 @@ class SingleThread extends Disposable implements IDomComponent {
       const start = Math.max(0, sorted.length - COMMENTS_LIMIT);
       return sorted.slice(start);
     });
+
+    if (this.props.listChanged) {
+      const sizeObs = Computed.create(this, use => use(this._commentsToRender).length);
+      this.autoDispose(sizeObs.addListener(() => {
+        this.props.listChanged?.();
+      }));
+    }
+
     this._truncated = Computed.create(this, use => use(this._comments).length > COMMENTS_LIMIT);
     this._entry = CommentEntry.create(this, {
       access: this.props.access,
@@ -467,7 +483,7 @@ class SingleThread extends Disposable implements IDomComponent {
     try {
       const list = this._commentsToRender.get();
       const md = this._newText.get();
-      this._newText.set(new CommentText());
+      this._newText.set(new CommentWithMentions());
       this._entry.clear();
       if (!list.length) {
         throw new Error("There should be only one comment in edit mode");
@@ -532,24 +548,22 @@ class MultiThreads extends Disposable implements IDomComponent {
       dom.hide(this._closing),
       testId('topic'),
       testId('topic-filled'),
-      dom.maybe(this._access, access => [
-        cssCommentList(
-          testId('topic-comments'),
-          dom.forEach(this._commentsToRender, comment => {
-            return cssDiscussionWrapper(
-              cssDiscussion(
-                cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
-                dom.create(Comment, {
-                  ...this._props,
-                  access,
-                  panel: true,
-                  comment
-                })
-              )
-            );
-          })
-        ),
-      ]),
+      cssCommentList(
+        testId('topic-comments'),
+        dom.forEach(this._commentsToRender, comment => {
+          return cssDiscussionWrapper(
+            cssDiscussion(
+              cssDiscussion.cls("-resolved", use => Boolean(use(comment.resolved))),
+              dom.create(Comment, {
+                ...this._props,
+                access: this._access,
+                panel: true,
+                comment
+              })
+            )
+          );
+        })
+      ),
       dom.onKeyDown({
         Escape: () => this._props.closeClicked?.(),
       })
@@ -599,7 +613,7 @@ class Comment extends Disposable {
   constructor(
     public props: {
       comment: CellRec,
-      access: PermissionData,
+      access: Observable<PermissionData|null>,
       cell: DiscussionModel,
       gristDoc: GristDoc,
       cursorPos?: CursorPos,
@@ -630,6 +644,9 @@ class Comment extends Disposable {
   public buildDom() {
     const comment = this.props.comment;
     const topic = this.props.cell;
+
+    const containerClass = () => this.props.panel ? cssDiscussionPanel.className : cssCommentPopup.className;
+
     const user = (c: CellRec) =>
       comment.hidden() ? null : commentAuthor(this.props.gristDoc, c.userRef(), c.userName());
     this._bodyDom = cssComment(
@@ -663,7 +680,10 @@ class Comment extends Disposable {
                   icon('Dots'),
                   testId('comment-menu'),
                   dom.style('margin-left', `3px`),
-                  menu(() => this._menuItems(), {placement: 'bottom-start'}),
+                  menu(() => this._menuItems(), {
+                    placement: 'bottom-start',
+                    attach: `.${containerClass()}`,
+                  }),
                   dom.on('click', stopPropagation)
                 )
               ]),
@@ -688,7 +708,7 @@ class Comment extends Disposable {
         // Comment editor
         dom.maybeOwned(this._isEditing,
           (owner) => {
-            const text = Observable.create(owner, new CommentText(comment.text.peek() ?? ''));
+            const text = Observable.create(owner, new CommentWithMentions(comment.text.peek() ?? ''));
             return dom.create(CommentEntry, {
               text,
               mainButton: t('Save'),
@@ -742,12 +762,12 @@ class Comment extends Disposable {
               );
             } else {
               return dom.create(CommentEntry, {
-                text: Observable.create(null, new CommentText()),
+                text: Observable.create(null, new CommentWithMentions()),
                 args: [dom.style('margin-top', '8px'), testId('editor-reply')],
                 mainButton: t('Reply'),
                 buttons: [t('Cancel')],
                 currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
-                onSave: (value: CommentText) => {
+                onSave: (value: CommentWithMentions) => {
                   this.replying.set(false);
                   topic.reply(comment, value).catch(reportError);
                 },
@@ -861,16 +881,16 @@ class CommentEntry extends Disposable {
   private _editableDiv: HTMLDivElement;
 
   constructor(public props: {
-    text: Observable<CommentText>,
+    text: Observable<CommentWithMentions>,
     mode?: 'comment' | 'start' | 'reply', // inline for reply, full for new discussion
     mainButton?: string, // Text for the main button (defaults to Send)
     buttons?: string[], // Additional buttons to show.
     editorArgs?: DomArg<HTMLElement>[]
     args?: DomArg<HTMLDivElement>[],
-    access: PermissionData,
+    access: Observable<PermissionData|null>,
     currentUserId: number,
     onClick?: (button: string) => void,
-    onSave?: (m: CommentText) => void,
+    onSave?: (m: CommentWithMentions) => void,
     onCancel?: () => void, // On Escape
   }) {
     super();
@@ -1176,20 +1196,20 @@ function buildNick(user: {name: string} | null, ...args: DomArg<HTMLElement>[]) 
 
 
 
-// Helper binding function to handle click outside an element. Takes into account floating menus.
-function onClickOutside(content: HTMLElement, click: () => void) {
-  const onClick = (evt: MouseEvent) => {
-    const target: Node | null = evt.target as Node;
-    if (target && !content.contains(target)) {
-      // Check if any parent of target has class grist-floating-menu, if so, don't close.
-      if (target.parentElement?.closest(".grist-floating-menu")) {
-        return;
-      }
-      click();
-    }
-  };
-  return dom.onElem(document, 'click', onClick, {useCapture: true});
-}
+// // Helper binding function to handle click outside an element. Takes into account floating menus.
+// function onClickOutside(content: HTMLElement, click: () => void) {
+//   const onClick = (evt: MouseEvent) => {
+//     const target: Node | null = evt.target as Node;
+//     if (target && !content.contains(target)) {
+//       // Check if any parent of target has class grist-floating-menu, if so, don't close.
+//       if (target.parentElement?.closest(".grist-floating-menu")) {
+//         return;
+//       }
+//       click();
+//     }
+//   };
+//   return dom.onElem(document, 'click', onClick, {useCapture: true});
+// }
 
 // Display timestamp as a relative time ago using moment.js
 function formatTime(timeStamp: number) {
@@ -1230,41 +1250,6 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
   }
 }
 
-// Options for popper.js
-const calcMaxSize = {
-  ...maxSize,
-  options: {padding: 4},
-};
-const applyMaxSize: any = {
-  name: 'applyMaxSize',
-  enabled: true,
-  phase: 'beforeWrite',
-  requires: ['maxSize'],
-  fn({state}: any) {
-    // The `maxSize` modifier provides this data
-    const {height} = state.modifiersData.maxSize;
-    Object.assign(state.styles.popper, {
-      maxHeight: `${Math.min(Math.max(250, height), 600)}px`
-    });
-  }
-};
-const cellPopperOptions: Partial<PopperOptions> = {
-  placement: 'bottom',
-  strategy: 'fixed',
-  modifiers: [
-    calcMaxSize,
-    applyMaxSize,
-    {
-      name: 'offset',
-      options: {
-        offset: [0, 4],
-      },
-    },
-    {name: "computeStyles", options: {gpuAcceleration: false}},
-    {name: 'eventListeners', enabled: false}
-  ],
-};
-
 
 function stopPropagation(ev: Event) {
   ev.stopPropagation();
@@ -1281,6 +1266,12 @@ function withStop(handler: () => any) {
 const cssAvatar = styled(createUserImage, `
   flex: none;
   margin-top: 2px;
+`);
+
+const cssCommentPopup = styled('div', `
+  width: 350px;
+  max-width: min(350px, calc(100vw - 10px));
+  max-height: min(600px, calc(100vh - 10px));
 `);
 
 
@@ -1378,8 +1369,6 @@ const cssTopic = styled('div', `
   background-color: ${theme.commentsPopupBodyBg};
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
   z-index: 100;
-  width: 325px;
-  overflow: hidden;
   outline: none;
   max-height: inherit;
   &-disabled {

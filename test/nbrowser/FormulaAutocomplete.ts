@@ -353,12 +353,12 @@ describe('FormulaAutocomplete', function() {
 
     // Repeat a similar test,
     // but the `(` should be inserted by selecting an autocomplete option and pressing ENTER
-    await driver.sendKeys(') + Films');
+    await gu.sendKeys(40, ') + Films');
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
       assert.isTrue(completions[1].startsWith("Films.lookupOne(colName=<value>, ...)"));
     });
-    await driver.sendKeys(Key.DOWN, Key.DOWN, Key.ENTER);
+    await gu.sendKeys(40, Key.DOWN, Key.DOWN, Key.ENTER);
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
       assert.isTrue(completions[0].startsWith("Films.lookupOne(A="));
@@ -369,12 +369,12 @@ describe('FormulaAutocomplete', function() {
     });
 
     // Same as the previous test, but with TAB instead of ENTER
-    await driver.sendKeys(') + Friends');
+    await gu.sendKeys(40, ') + Friends');
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
       assert.isTrue(completions[1].startsWith("Friends.lookupOne(colName=<value>, ...)"));
     });
-    await driver.sendKeys(Key.DOWN, Key.DOWN, Key.TAB);
+    await gu.sendKeys(40, Key.DOWN, Key.DOWN, Key.TAB);
     await gu.waitToPass(async () => {
       const completions = await getCompletionLines();
       assert.isTrue(completions[0].startsWith("Friends.lookupOne(Age="));
@@ -389,28 +389,28 @@ describe('FormulaAutocomplete', function() {
   it('appends a "(" when completing function or method calls', async function() {
     await startFormulaAutocomplete('SUM');
     await waitForAutocomplete();
-    await driver.sendKeys(Key.DOWN, Key.ENTER);
+    await gu.sendKeys(40, Key.DOWN, Key.ENTER);
     assert.equal(await driver.findWait('.ace_editor', 1000).getText(), 'SUM(');
 
-    await driver.sendKeys(
+    await gu.sendKeys(40,
       '1, 2)',
       ...arrayRepeat(6, Key.ARROW_LEFT),
       ...arrayRepeat(3, Key.BACK_SPACE),
       'AVERAGE',
     );
     await waitForAutocomplete();
-    await driver.sendKeys(Key.DOWN, Key.DOWN, Key.ENTER);
+    await gu.sendKeys(40, Key.DOWN, Key.DOWN, Key.ENTER);
     assert.equal(await driver.findWait('.ace_editor', 1000).getText(), 'AVERAGE(1, 2)');
 
-    await driver.sendKeys(Key.END, ' Films.lookupOne');
+    await gu.sendKeys(40, Key.END, ' Films.lookupOne');
     await waitForAutocomplete();
-    await driver.sendKeys(Key.DOWN, Key.ENTER);
+    await gu.sendKeys(40, Key.DOWN, Key.ENTER);
     assert.equal(
       await driver.findWait('.ace_editor', 1000).getText(),
       'AVERAGE(1, 2) Films.lookupOne('
     );
 
-    await driver.sendKeys(
+    await gu.sendKeys(40,
       'A="foo")',
       ...arrayRepeat(9, Key.ARROW_LEFT),
       ...arrayRepeat(3, Key.BACK_SPACE),
@@ -427,6 +427,7 @@ describe('FormulaAutocomplete', function() {
 
 
 async function startFormulaAutocomplete(formula: string) {
+  await gu.waitAppFocus();
   await driver.sendKeys("=");
   await gu.waitAppFocus(false);
   // Send the keys separately. (Sending them together seems to cause the
