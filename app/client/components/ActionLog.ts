@@ -611,7 +611,6 @@ export async function showCell(gristDoc: GristDoc, cell: {
  * cells. This is useful to help the user understand what row it is.
  * This is not robust code, or much tested, and should be seen as a
  * placeholder for some systematic work.
- *
  */
 export async function computeContext(gristDoc: GristDoc, base: ActionSummary, init?: (cursor: TimeCursor) => void) {
   if (!gristDoc) { return; }
