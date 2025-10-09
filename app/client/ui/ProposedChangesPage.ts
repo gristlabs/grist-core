@@ -28,11 +28,6 @@ const t = makeT('ProposedChangesPage');
  * weak, so this page inherits that weakness.
  * TODO: improve the rendering of differences.
  *
- * The page is assumed to be shown when working on an unsaved copy. It
- * could be useful to show in other circumstances, but the goal is to
- * use it for a crowdsourcing workflow. At that point, the page will
- * have a "Propose Changes" button rather than just what it has now,
- * a "Replace Original" button.
  */
 export class ProposedChangesPage extends Disposable {
   // This page shows information pulled from an API call, which
