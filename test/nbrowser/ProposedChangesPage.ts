@@ -6,6 +6,29 @@ describe('ProposedChangesPage', function() {
   this.timeout(60000);
   const cleanup = setupTestSuite();
 
+  it('can be enabled experimentally for a document', async function() {
+    const session = await gu.session().teamSite.login();
+    await session.tempDoc(cleanup, 'Hello.grist');
+    await driver.find('.test-tools-settings').click();
+    const url = await driver.getCurrentUrl();
+    await driver.get(url + '?experiment=proposedChangesPage');
+    await driver.findWait('.test-modal-confirm', 2000).click();
+    await driver.findWait('.test-modal-confirm', 2000).click();
+    assert.match(
+      await driver.findWait('#admin-panel-item-description-acceptProposals', 2000).getText(),
+      /Allow others to propose changes/);
+    assert.equal(
+      await driver.find('input.test-settings-accept-proposals').getAttribute('checked'),
+      null
+    );
+    await driver.find('input.test-settings-accept-proposals').click();
+    await driver.findWait('.test-tools-proposals', 2000);
+    assert.equal(
+      await driver.find('input.test-settings-accept-proposals').getAttribute('checked'),
+      'true'
+    );
+  });
+
   it('show comparison and functions as expected', async function() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
