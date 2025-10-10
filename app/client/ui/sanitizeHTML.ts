@@ -30,7 +30,7 @@ export function sanitizeTourHTML(source: string | Node): DocumentFragment {
   return tourPurifier.sanitize(source, {
     RETURN_DOM_FRAGMENT: true,
     ALLOWED_TAGS: [
-      'p', 'div', 'span', 'h1', 'h2', 'h3', 'h4',  'table', 'tr', 'td',
+      'p', 'span', 'h1', 'h2', 'h3', 'h4',  'table', 'tr', 'td',
       'strong', 'em', 'bold', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'del',
       'br', 'img', 'iframe', 'a'
       ],
