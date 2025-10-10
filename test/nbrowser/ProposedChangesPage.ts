@@ -7,21 +7,27 @@ describe('ProposedChangesPage', function() {
   const cleanup = setupTestSuite();
 
   it('show comparison and functions as expected', async function() {
+    // Load a test document.
     const session = await gu.session().teamSite.login();
-    // const api = session.createHomeApi();
     await session.tempDoc(cleanup, 'Hello.grist');
-    // Open the share menu and click item to work on a copy.
+
+    // Put something known in the first cell.
     await gu.getCell('A', 1).click();
     await gu.waitAppFocus();
     await gu.enterCell('test1');
+
+    // Work on a copy.
     await driver.find('.test-tb-share').click();
     await driver.find('.test-work-on-copy').click();
     await gu.waitForServer();
+
+    // Change the content of the first cell.
     await gu.getCell('A', 1).click();
     await gu.waitAppFocus();
     await gu.enterCell('test2');
+
     await driver.find('.test-tools-proposals').click();
-    await driver.findContentWait('.test-main-content', /Proposed Changes/, 2000);
+    await driver.findContentWait('.test-main-content', /Propose Changes/, 2000);
     await driver.findWait('.action_log_table', 2000);
     assert.lengthOf(await driver.findAll('.action_log_table'), 1);
     assert.equal(

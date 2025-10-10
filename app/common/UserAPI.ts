@@ -222,7 +222,10 @@ export interface Proposal {
   appliedAt: string|null;  // ISO date string
   srcDoc: Document & {
     creator: FullUser
-  }
+  },
+  destDoc: Document & {
+    creator: FullUser
+  },
 }
 
 // Non-core options for a user.
@@ -600,7 +603,7 @@ export interface DocAPI {
   }): Promise<void>;
   getProposals(options?: {
     outgoing?: boolean
-  }): Promise<Proposal[]>;
+  }): Promise<{proposals: Proposal[], options: ProposedChanges}>;
 }
 
 // Operations that are supported by a doc worker.

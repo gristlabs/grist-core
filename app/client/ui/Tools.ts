@@ -30,7 +30,7 @@ import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
-import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
+import { computed, Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
 
 const testId = makeTestId('test-tools-');
@@ -40,6 +40,13 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const docPageModel = gristDoc.docPageModel;
   const isDocOwner = isOwner(docPageModel.currentDoc.get());
   const isOverridden = Boolean(docPageModel.userOverride.get());
+  const isProposable = computed((use) => {
+    return use(docPageModel.isFork) && !use(docPageModel.isBareFork) && !use(docPageModel.isPrefork) &&
+        !use(docPageModel.isSnapshot);
+  });
+  const acceptsProposals = computed((use) => {
+    return use(docPageModel.currentDoc)?.options?.proposedChanges?.acceptProposals
+  });
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
     canViewAccessRules.set((isDocOwner && !isOverridden) ||
@@ -98,13 +105,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     dom.maybe(
-      (use) => use(docPageModel.isFork) ||
-          use(docPageModel.currentDoc)?.options?.proposedChanges?.acceptProposals, () => {
+      (use) => (use(isProposable) || use(acceptsProposals)), () => {
       return cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'proposals'),
         cssPageLink(
           cssPageIcon('MobileChat'),
-          cssLinkText(t("Proposed Changes")),
+          dom.domComputed(isProposable, (proposable) => {
+            return cssLinkText(proposable ? t("Propose Changes") : t("Proposed Changes"));
+          }),
           testId('proposals'),
           urlState().setLinkUrl({docPage: 'proposals'})
         )

@@ -1424,7 +1424,13 @@ export class DocWorkerApi {
           }
         }
       }
-      await sendReply(req, res, {data: result, status: 200});
+      const destDoc =
+          await this._dbManager.getDoc({userId: getUserId(req), urlId: parsed.trunkId});
+      const flags = destDoc.options?.proposedChanges;
+      await sendReply(req, res, {
+        data: { proposals: result, options: flags },
+        status: 200
+      });
     }));
 
     this._app.post('/api/docs/:docId/proposals/:proposalId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
