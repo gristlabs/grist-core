@@ -34,7 +34,8 @@ function MetaTableModel(docModel, tableData, fields, rowConstructor) {
       if (value === null) {
         const rowId = prop;
         ko.ignoreDependencies(() => {
-          target[rowId] = MetaRowModel.create(self, self._fields, self._rowConstructor, rowId);
+          console.log(`Loaded: ${self.tableData.isLoaded}`);
+          target[rowId] = MetaRowModel.create(self, self._fields, self._rowConstructor, Number.parseInt(rowId));
 
           // Whenever a rowModel is created, increment its version number.
           let inc = self._rowModelVersions[rowId] || (self._rowModelVersions[rowId] = ko.observable(0));
@@ -129,9 +130,8 @@ MetaTableModel.prototype._createRowModel = function(rowId) {
     // _createRowModel is called from within the evaluation of a computed(), we do NOT want that
     // computed to subscribe to observables used by individual MetaRowModels.
     this.rowModels[rowId] = null;
-
   }
-  return this.rowModels[rowId];
+  //return this.rowModels[rowId];
 };
 
 
