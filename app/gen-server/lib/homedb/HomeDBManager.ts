@@ -3487,7 +3487,7 @@ export class HomeDBManager {
       .leftJoinAndSelect('src_doc.creator', 'src_creator')
       .leftJoinAndSelect('src_creator.logins', 'src_logins')
       .where(options)
-      .orderBy('proposals.updated_at', 'DESC')
+      .orderBy('proposals.short_id', 'DESC')
       .getMany();
     const result2 = this._normalizeQueryResults(result);
     return result2;
