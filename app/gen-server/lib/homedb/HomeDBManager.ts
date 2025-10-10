@@ -3486,6 +3486,9 @@ export class HomeDBManager {
       .leftJoinAndSelect('proposals.srcDoc', 'src_doc')
       .leftJoinAndSelect('src_doc.creator', 'src_creator')
       .leftJoinAndSelect('src_creator.logins', 'src_logins')
+      .leftJoinAndSelect('proposals.destDoc', 'dest_doc')
+      .leftJoinAndSelect('dest_doc.creator', 'dest_creator')
+      .leftJoinAndSelect('dest_creator.logins', 'dest_logins')
       .where(options)
       .orderBy('proposals.short_id', 'DESC')
       .getMany();

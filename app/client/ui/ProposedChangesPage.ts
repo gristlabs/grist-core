@@ -8,13 +8,16 @@ import { docListHeader } from 'app/client/ui/DocMenuCss';
 import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
 import { basicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
+import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { loadingSpinner } from 'app/client/ui2018/loaders';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from 'app/common/DocState';
 import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
+import { isLongerThan } from 'app/common/gutil';
 import { Proposal } from 'app/common/UserAPI';
 import {
   Computed, Disposable, dom, makeTestId, MutableObsArray,
@@ -36,28 +39,35 @@ const testId = makeTestId('test-proposals-');
  */
 export class ProposedChangesPage extends Disposable {
   public body: ProposedChangesTrunkPage | ProposedChangesForkPage;
-  public readonly isInitialized = Observable.create(this, false);
+  public readonly isInitialized: Observable<boolean|'slow'> = Observable.create(this, false);
+
   constructor(public gristDoc: GristDoc) {
     super();
     const urlId = this.gristDoc.docPageModel.currentDocId.get();
     const parts = parseUrlId(urlId || '');
-    const isFork = urlId && parts.trunkId && parts.forkId;
+    const isFork = Boolean(urlId && parts.trunkId && parts.forkId);
 
     this.body = this.autoDispose(
       isFork ?
           ProposedChangesForkPage.create(null, gristDoc) :
           ProposedChangesTrunkPage.create(null, gristDoc));
 
-    this.body.load().then(result => {
+    const loader = this.body.load();
+    loader.then(result => {
       if (result) { this.isInitialized.set(true); }
     }).catch(reportError);
+    isLongerThan(loader, 100).then((slow) => slow && this.isInitialized.set("slow")).catch(() => {});
   }
 
   public buildDom() {
     return cssContainer(
-      cssHeader(t('Proposed Changes'), betaTag('Beta')),
-      dom.maybe(this.isInitialized, () => {
-        return this.body.buildDom();
+      cssHeader(this.body.title(), betaTag('Beta')),
+      dom.maybe(this.isInitialized, (init) => {
+        if (init === 'slow') {
+          return loadingSpinner();
+        } else {
+          return this.body.buildDom();
+        }
       })
     );
   }
@@ -82,10 +92,14 @@ export class ProposedChangesTrunkPage extends Disposable {
     if (!urlId) { return; }
     const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals();
     if (this.isDisposed()) { return; }
-    this._proposals = proposals.filter(p => p.status.status !== 'retracted');
+    this._proposals = proposals.proposals.filter(p => p.status.status !== 'retracted');
     this._proposalsObs.splice(0);
     this._proposalsObs.push(...this._proposals);
     return true;
+  }
+
+  public title() {
+    return t('Proposed Changes');
   }
 
   public buildDom() {
@@ -195,9 +209,14 @@ export class ProposedChangesForkPage extends Disposable {
   private _comparison?: DocStateComparison;
 
   private _proposalObs: Observable<Proposal|null> = Observable.create(this, null);
+  private _acceptingProposals: boolean;
 
   constructor(public gristDoc: GristDoc) {
     super();
+  }
+
+  public title() {
+    return t('Propose Changes');
   }
 
   /**
@@ -219,7 +238,8 @@ export class ProposedChangesForkPage extends Disposable {
       outgoing: true
     });
     if (this.isDisposed()) { return; }
-    this._proposalObs.set(proposals[0] || null);
+    this._proposalObs.set(proposals.proposals[0] || null);
+    this._acceptingProposals = Boolean(proposals.options?.acceptProposals);
     return true;
   }
 
@@ -229,8 +249,16 @@ export class ProposedChangesForkPage extends Disposable {
     const docId = this.gristDoc.docId();
     const origUrlId = buildOriginalUrlId(docId, isSnapshot);
     const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
-
+    const maybeHasChanges =
+        Object.keys(details?.leftChanges.tableDeltas || {}).length !== 0 ||
+        details?.leftChanges.tableRenames.length !== 0;
     return [
+      dom.maybe(() => !this._acceptingProposals, () => {
+        return cssWarningMessage(
+          cssWarningIcon('Warning'),
+          t(`The original document isn't asking for proposed changes.`)
+        );
+      }),
       dom('p',
           t('This is a list of changes relative to the {{originalDocument}}.', {
             originalDocument: cssBannerLink(
@@ -247,6 +275,9 @@ export class ProposedChangesForkPage extends Disposable {
             )
           }),
          ),
+      dom.maybe(() => !maybeHasChanges, () => {
+        return dom('p', t('No changes found to propose.'));
+      }),
       cssDataRow(
         details ? renderComparisonDetails(this.gristDoc, details) : null,
       ),
@@ -256,7 +287,7 @@ export class ProposedChangesForkPage extends Disposable {
               getProposalActionSummary(proposal),
               testId('status'),
              ),
-          isReadOnly ? null : cssControlRow(
+          (isReadOnly || !maybeHasChanges) ? null : cssControlRow(
             bigPrimaryButton(
               (proposal?.updatedAt &&
                   proposal?.status?.status === undefined) ? t('Update Change') : t('Propose Change'),
@@ -289,7 +320,7 @@ export class ProposedChangesForkPage extends Disposable {
       outgoing: true
     });
     if (this.isDisposed()) { return; }
-    this._proposalObs.set(proposals[0] || null);
+    this._proposalObs.set(proposals.proposals[0] || null);
   }
 }
 
@@ -367,6 +398,19 @@ const cssProposalHeader = styled('h3', `
   color: ${theme.accessRulesTableHeaderFg};
 `);
 
+export const cssWarningMessage = styled('div', `
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+`);
+
+export const cssWarningIcon = styled(icon, `
+  --icon-color: ${colors.warning};
+  flex-shrink: 0;
+`);
+
+
 function getProposalActionSummary(proposal: Proposal|null) {
   return proposal?.updatedAt ? dom.text(
     proposal?.status.status === 'retracted' ?
@@ -386,7 +430,6 @@ function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateCompar
   // fork as the local/left document, and the trunk as the
   // remote/right document.
   const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
-  console.log({details, leftHadMetadata});
   // We want to look at the changes from their most recent
   // common ancestor and the current doc.
   const part = new ActionLogPartInProposal(gristDoc, details);
