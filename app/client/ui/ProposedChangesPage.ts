@@ -8,7 +8,7 @@ import { docListHeader } from 'app/client/ui/DocMenuCss';
 import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
 import { basicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { mediaSmall, testId, theme, vars } from 'app/client/ui2018/cssVars';
+import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
@@ -16,10 +16,15 @@ import {
 } from 'app/common/DocState';
 import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
 import { Proposal } from 'app/common/UserAPI';
-import { Computed, Disposable, dom, MutableObsArray, obsArray, Observable, styled } from 'grainjs';
+import {
+  Computed, Disposable, dom, makeTestId, MutableObsArray,
+  obsArray, Observable, styled
+} from 'grainjs';
 import * as ko from 'knockout';
 
 const t = makeT('ProposedChangesPage');
+
+const testId = makeTestId('test-proposals-');
 
 /**
  * This is a page to show the differences between the current document
@@ -143,6 +148,7 @@ export class ProposedChangesTrunkPage extends Disposable {
                   ' | ',
                   proposal.srcDoc.creator.name || proposal.srcDoc.creator.email, ' | ',
                   getProposalActionSummary(proposal),
+                  testId('header'),
                 ),
                 renderComparisonDetails(this.gristDoc, details),
                 proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
@@ -160,7 +166,7 @@ export class ProposedChangesTrunkPage extends Disposable {
                         console.log(change);
                       }
                     }),
-                    testId('propose'),
+                    testId('apply'),
                   ),
                   ' ',
                   (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
@@ -247,11 +253,13 @@ export class ProposedChangesForkPage extends Disposable {
       dom.domComputed(this._proposalObs, proposal => {
         return [
           dom('p',
-              getProposalActionSummary(proposal)
+              getProposalActionSummary(proposal),
+              testId('status'),
              ),
           isReadOnly ? null : cssControlRow(
             bigPrimaryButton(
-              proposal?.updatedAt ? t('Update Change') : t('Propose Change'),
+              (proposal?.updatedAt &&
+                  proposal?.status?.status === undefined) ? t('Update Change') : t('Propose Change'),
               dom.on('click', async () => {
                 const urlId = this.gristDoc.docPageModel.currentDocId.get();
                 await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
@@ -266,7 +274,7 @@ export class ProposedChangesForkPage extends Disposable {
                 await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
                 await this.update();
               }),
-              testId('propose'),
+              testId('retract'),
             ) : null
           )
         ];
