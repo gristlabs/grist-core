@@ -47,9 +47,9 @@ describe('DocTour', function () {
     const docTour = await driver.executeScript('return window._gristDocTour()');
     assert.deepEqual(docTour, [
       {
-        body: '<div>' +
+        body: '<span>' +
           '<p>General Kenobi!</p>\n' +
-          '</div>',
+          '</span>',
         placement: 'bottom',
         selector: '.active_cursor',
         showHasModal: false,
@@ -57,9 +57,9 @@ describe('DocTour', function () {
         urlState: {colRef: 2, rowId: 2, sectionId: 1}
       },
       {
-        body: '<div>' +
+        body: '<span>' +
           '<p>no title</p>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -67,15 +67,15 @@ describe('DocTour', function () {
         urlState: null,
       },
       {
-        body: '<div>' +
-          '<div></div>' +
+        body: '<span>' +
+          '<span></span>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://www.getgrist.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
           '<div class="_grainXXX_ _grainXXX_" style="mask-image: var(--icon-Page);"></div>' +
           'A link with an icon' +
           '</a>' +
           '</div></p>' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
@@ -83,14 +83,14 @@ describe('DocTour', function () {
         urlState: {colRef: 4, rowId: 4, sectionId: 1}
       },
       {
-        body: '<div><div>' +
-          '<p>Good riddance</p>\n</div>' +
+        body: '<span><span>' +
+          '<p>Good riddance</p>\n</span>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://xkcd.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
           'Test link here' +
           '</a>' +
           '</div></p>' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -98,13 +98,13 @@ describe('DocTour', function () {
         urlState: null,
       },
       {
-        body: '<div><p>' +
+        body: '<span><p>' +
           '<strong>bold</strong>' +
           ' <em>italicized</em>' +
           ' <code>code</code>' +
           ' <del>strikethrough</del>' +
           '</p>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -112,13 +112,11 @@ describe('DocTour', function () {
         urlState: null,
       },
       {
-        body: '<div><p></p>' +
-          '<div class="doc-tutorial-popup-thumbnail">\n' +
-          '  <img title="" src="https://example.com/image.jpg">\n' +
-          '  <div class="doc-tutorial-popup-thumbnail-icon-wrapper">\n' +
-          '    <div class="doc-tutorial-popup-thumbnail-icon"></div>\n' +
-          '  </div>\n</div><p></p>\n' +
-          '</div>',
+        body: '<span><p>' +
+          '<img alt=\"Grist text as image alt\" src=\"https://www.getgrist.com/wp-content/uploads/2023/03/Grist-Logo.png\">' +
+          '</p>\n</span>',
+
+
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
@@ -130,9 +128,9 @@ describe('DocTour', function () {
           },
       },
       {
-        body: '<div>' +
+        body: '<span>' +
           '<h1>H1</h1>\n<h2>H2</h2>\n<h3>H3</h3>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -140,9 +138,9 @@ describe('DocTour', function () {
         urlState: null,
       },
       {
-        body: '<div>' +
+        body: '<span>' +
           '<ol>\n<li>First item</li>\n<li>Second item</li>\n<li>Third item</li>\n</ol>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
@@ -154,9 +152,9 @@ describe('DocTour', function () {
           },
       },
       {
-        body: '<div>' +
+        body: '<span>' +
           '<ul>\n<li>First item</li>\n<li>Second item</li>\n<li>Third item</li>\n</ul>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -164,9 +162,9 @@ describe('DocTour', function () {
         urlState: null,
       },
       {
-        body: '<div>' +
+        body: '<span>' +
           '<blockquote>\n<p>blockquote</p>\n</blockquote>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
@@ -178,22 +176,22 @@ describe('DocTour', function () {
           },
       },
       {
-        body: '<div>' +
+        body: '<span>' +
           '<pre><code>{\n  ' +
           '"firstName": "John",\n  "lastName": "Smith",\n  "age": 25\n' +
           '}\n' +
           '</code></pre>\n' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
         title: 'Markdown code block',
-        urlState: null,
+        urlState: null
       },
       {
-        body: '<div>' +
-          '<p><a href="https://www.example.com">title</a></p>\n' +
-          '</div>',
+        body: '<span>' +
+          '<p><span class=\"test-text-link _grainXXX_\"><a class=\"_grainXXX_\" rel=\"noopener noreferrer\" href=\"https://www.example.com/\"><span class=\"_grainXXX_ _grainXXX_ _grainXXX_\"><span style=\"mask-image: var(--icon-FieldLink);\" class=\"test-tb-link-icon _grainXXX_\"></span></span></a><span class=\"_grainXXX_\">title</span></span></p>\n' +
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
@@ -203,6 +201,21 @@ describe('DocTour', function () {
             "rowId": 14,
             "sectionId": 1
           },
+      },
+      {
+        body: '<span>' +
+          '<p>Do not render HTML only Markdown</p>\n<h1>This is a H1 Title</h1>\n' +
+          '<p>Previous SHOULD BE a level 1 Title.</p>\n' +
+          '<p>Next should NOT BE a level 1 Title :</p>\n' +
+          '&lt;H1&gt;Level 1 title&lt;/H1&gt; \n\n' +
+          '<p>The HTML &lt;H1&gt; within this text should not be rendered but the previous Markdown # should</p>\n' +
+          '<p>This is another test where the following text SHOULD NOT BE BOLD : &lt;b&gt;should just render the tags without bold &lt;/b&gt;</p>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown with HTML',
+        urlState: null
       }
     ]);
   });

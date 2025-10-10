@@ -11,7 +11,7 @@ import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 import {marked} from "marked";
-import {renderer} from 'app/client/ui/DocTutorialRenderer';
+import {renderer} from 'app/client/ui/DocTourRenderer';
 import {sanitizeTourHTML} from "app/client/ui/sanitizeHTML";
 
 const t = makeT('DocTour');
@@ -52,7 +52,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
     if (!title && !(bodyValue.trim()) ) {
       return null;
     }
-    //const bodyHtmlContent
+
     const element = sanitizeTourHTML(marked.parse(bodyValue, {
       async: false, renderer
     }));
@@ -75,11 +75,11 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       validLinkUrl = false;
     }
 
-    let body: HTMLElement = dom('div', element);
+    let body: HTMLElement = dom('span', element);
 
     if (validLinkUrl && linkText) {
       body = dom(
-        'div',
+        'span',
         body,
         dom('p',
           cssButtons(cssLinkBtn(
