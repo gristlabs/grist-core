@@ -134,8 +134,6 @@ export const GristLight: ThemeTokens = {
     /* Right Panel */
     rightPanelTabButtonHoverBg: tokens.primaryMuted,
     rightPanelSubtabFg: '#707070',
-    rightPanelToggleButtonDisabledFg: tokens.white,
-    rightPanelToggleButtonDisabledBg: tokens.decorationSecondary,
     rightPanelFieldSettingsBg: tokens.decorationSecondary,
     rightPanelFieldSettingsButtonBg: 'lightgrey',
 

@@ -29,6 +29,7 @@ export const IconList = [
   "FieldLink",
   "FieldMarkdown",
   "FieldNumeric",
+  "FieldReferenceDisabled",
   "FieldReference",
   "FieldSpinner",
   "FieldSwitcher",
