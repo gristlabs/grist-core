@@ -19,7 +19,7 @@ import {openFilePicker} from 'app/client/ui/FileDialog';
 import {buildNotificationsConfig} from 'app/client/ui/Notifications';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
+import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
@@ -62,6 +62,10 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  private _acceptProposals = Observable.create(
+    this,
+    Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals)
+  );
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -72,6 +76,7 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
+    const proposedChangesEnabled = docPageModel.appModel?.experiments?.isEnabled('proposedChangesPage');
 
     return cssContainer({tabIndex: '-1'},
       dom.create(AdminSection, t('Document Settings'), [
@@ -112,6 +117,31 @@ export class DocSettingsPage extends Disposable {
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
+        proposedChangesEnabled ? dom.create(AdminSectionItem, {
+          id: 'acceptProposals',
+          name: t('Proposals'),
+          description: t('Allow others to propose changes'),
+          value: labeledSquareCheckbox(
+            this._acceptProposals,
+            t("Show proposals"),
+            dom.on('click', () => {
+              // A tiny delay just to make reload feel less jarring.
+              setTimeout(async () => {
+                const docId = docPageModel.currentDocId.get();
+                if (!docId) {
+                  // Should never happen, don't bother translating.
+                  reportError(new Error('Document not found'));
+                  return;
+                }
+                const acceptProposals = this._acceptProposals.get();
+                await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
+                window.location.reload();
+              }, 250);
+            }),
+            testId('accept-proposals'),
+          ),
+          disabled: isDocOwner ? false : t('Only available to document owners'),
+        }) : null,
       ]),
 
       dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),

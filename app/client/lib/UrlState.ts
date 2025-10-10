@@ -125,10 +125,16 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * Applies to an <a> element to create a smart link, e.g. dom('a', setLinkUrl({ws: wsId})). It
    * both sets the href (e.g. to allow the link to be opened to a new tab), AND intercepts plain
    * clicks on it to "follow" the link without reloading the page.
+   *
+   * If a "beforeChange" option is passed in, it will be run just before changing the URL.
    */
   public setLinkUrl(
     urlState: IUrlState|UpdateFunc<IUrlState>,
-    options?: {replace?: boolean, avoidReload?: boolean}
+    options?: {
+      replace?: boolean,
+      avoidReload?: boolean,
+      beforeChange?: () => void;
+    }
   ): DomElementMethod[] {
     return [
       dom.attr('href', (use) => this.makeUrl(urlState, use)),
@@ -136,6 +142,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
         // Only override plain-vanilla clicks.
         if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
         ev.preventDefault();
+        options?.beforeChange?.();
         return this.pushUrl(urlState, options);
       }),
     ];

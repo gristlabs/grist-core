@@ -3,8 +3,8 @@
  */
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
+import {DocState} from 'app/common/DocState';
 import * as marshaller from 'app/common/marshal';
-import {DocState} from 'app/common/UserAPI';
 import {reportTimeTaken} from 'app/server/lib/reportTimeTaken';
 import * as crypto from 'crypto';
 import keyBy = require('lodash/keyBy');
