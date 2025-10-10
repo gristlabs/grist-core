@@ -358,8 +358,13 @@ export const betaTag = styled('span', `
 `);
 
 const cssProposalHeader = styled('h3', `
+  padding: 5px;
   padding-top: 20px;
-  border-top: 1px solid black;
+  padding-bottom: 5px;
+  border-top-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  background-color: ${theme.accessRulesTableHeaderBg};
+  color: ${theme.accessRulesTableHeaderFg};
 `);
 
 function getProposalActionSummary(proposal: Proposal|null) {
