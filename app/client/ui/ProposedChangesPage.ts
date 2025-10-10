@@ -60,7 +60,7 @@ export class ProposedChangesPage extends Disposable {
   }
 
   public buildDom() {
-    return cssContainer(
+    const content = cssContainer(
       cssHeader(this.body.title(), betaTag('Beta')),
       dom.maybe(this.isInitialized, (init) => {
         if (init === 'slow') {
@@ -70,6 +70,10 @@ export class ProposedChangesPage extends Disposable {
         }
       })
     );
+    // Common pattern on other pages to avoid clipboard deactivation.
+    return dom('div.clipboard',
+               {tabIndex: "-1"},
+               content);
   }
 }
 
@@ -276,7 +280,7 @@ export class ProposedChangesForkPage extends Disposable {
           }),
          ),
       dom.maybe(() => !maybeHasChanges, () => {
-        return dom('p', t('No changes found to propose.'));
+        return dom('p', t('No changes found to propose. Please make some edits.'));
       }),
       cssDataRow(
         details ? renderComparisonDetails(this.gristDoc, details) : null,
