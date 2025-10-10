@@ -244,7 +244,7 @@ export class ProposedChangesForkPage extends Disposable {
       cssDataRow(
         details ? renderComparisonDetails(this.gristDoc, details) : null,
       ),
-      dom.maybe(this._proposalObs, proposal => {
+      dom.domComputed(this._proposalObs, proposal => {
         return [
           dom('p',
               getProposalActionSummary(proposal)
@@ -354,7 +354,7 @@ const cssProposalHeader = styled('h3', `
   border-top: 1px solid black;
 `);
 
-function getProposalActionSummary(proposal: Proposal) {
+function getProposalActionSummary(proposal: Proposal|null) {
   return proposal?.updatedAt ? dom.text(
     proposal?.status.status === 'retracted' ?
         t("Retracted {{at}}", {at: getTimeFromNow(proposal.updatedAt)}) :
