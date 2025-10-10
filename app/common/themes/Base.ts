@@ -390,17 +390,17 @@ export const Base: BaseThemeTokens = {
     infoButtonActiveFg: '#5c5c5c',
 
     /* Button Groups */
-    buttonGroupBg: 'transparent',
+    buttonGroupBg: tokens.bg,
     buttonGroupFg: tokens.body,
     buttonGroupLightBg: tokens.bgSecondary,
     buttonGroupLightFg: tokens.secondary,
     buttonGroupIcon: tokens.secondary,
     buttonGroupBorder: tokens.decoration,
-    buttonGroupSelectedFg: tokens.veryLight,
+    buttonGroupSelectedFg: tokens.body,
     buttonGroupLightSelectedFg: tokens.primary,
     buttonGroupLightSelectedBg: tokens.selectionOpaque,
-    buttonGroupSelectedBg: tokens.bgEmphasis,
-    buttonGroupSelectedBorder: tokens.bgEmphasis,
+    buttonGroupSelectedBg: tokens.selectionOpaque,
+    buttonGroupSelectedBorder: tokens.primary,
 
     /* Access Rules */
     accessRulesTableHeaderFg: tokens.body,

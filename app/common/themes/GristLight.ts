@@ -205,7 +205,7 @@ export const GristLight: ThemeTokens = {
     menuToggleActiveFg: tokens.primaryDim,
 
     /* Button Groups */
-    buttonGroupBgHover: tokens.decoration,
+    buttonGroupBgHover: tokens.bgSecondary,
     buttonGroupBorderHover: tokens.hover,
 
     /* Cells */

@@ -251,7 +251,7 @@ export const GristDark: ThemeTokens = {
     menuToggleActiveFg: tokens.primaryEmphasis,
 
     /* Button Groups */
-    buttonGroupBgHover: 'rgba(111,111,125,0.25)',
+    buttonGroupBgHover: '#41414e',
     buttonGroupBorderHover: tokens.bgEmphasis,
 
     /* Access Rules */
