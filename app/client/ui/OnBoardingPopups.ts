@@ -143,6 +143,10 @@ class OnBoardingPopupsCtl extends Disposable {
   public async start() {
     this._showOverlay();
     await this._move(0);
+    if (this.isDisposed()) {
+      return;
+    }
+
     Mousetrap.setPaused(true);
     this.onDispose(() => {
       Mousetrap.setPaused(false);
