@@ -1424,11 +1424,8 @@ export class DocWorkerApi {
           }
         }
       }
-      const destDoc =
-          await this._dbManager.getDoc({userId: getUserId(req), urlId: parsed.trunkId});
-      const flags = destDoc.options?.proposedChanges;
       await sendReply(req, res, {
-        data: { proposals: result, options: flags },
+        data: { proposals: result },
         status: 200
       });
     }));

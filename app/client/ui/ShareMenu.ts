@@ -50,6 +50,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
     const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
+    console.log("HIYA", doc);
     if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
       return shareButton(t("Back to Current"), () => [
@@ -73,23 +74,23 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
+      if (doc.options?.proposedChanges?.acceptProposals) {
+        return shareButton(t("Propose Changes"), () => [
+          menuManageUsers(doc, pageModel),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+          menuOriginal(doc, pageModel),
+          menuExports(doc, pageModel),
+        ], {buttonAction: async () => {
+          await urlState().pushUrl({
+            docPage: 'proposals'
+          });
+        }});
+      }
       // For forks, the main actions are "Replace Original" and "Save Copy". When "Replace
       // Original" is unavailable (for samples, forks of public docs, etc), we'll consider "Save
       // Copy" primary and keep it as an action button on top. Otherwise, show a tag without a
       // default action; click opens the menu where the user can choose.
       if (!roles.canEdit(doc.trunkAccess || null)) {
-        if (doc.options?.proposedChanges?.acceptProposals) {
-          return shareButton(t("Propose Changes"), () => [
-            menuManageUsers(doc, pageModel),
-            menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
-            menuOriginal(doc, pageModel),
-            menuExports(doc, pageModel),
-          ], {buttonAction: async () => {
-            await urlState().pushUrl({
-              docPage: 'proposals'
-            });
-          }});
-        }
         return shareButton(t("Save Copy"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),

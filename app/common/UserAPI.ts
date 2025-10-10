@@ -603,7 +603,7 @@ export interface DocAPI {
   }): Promise<void>;
   getProposals(options?: {
     outgoing?: boolean
-  }): Promise<{proposals: Proposal[], options: ProposedChanges}>;
+  }): Promise<{proposals: Proposal[]}>;
 }
 
 // Operations that are supported by a doc worker.

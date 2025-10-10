@@ -9,7 +9,17 @@ describe('ProposedChangesPage', function() {
   it('show comparison and functions as expected', async function() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
-    await session.tempDoc(cleanup, 'Hello.grist');
+    const doc = await session.tempDoc(cleanup, 'Hello.grist');
+
+    // Turn on feature.
+    const api = session.createHomeApi();
+    await api.updateDoc(doc.id, {
+      options: {
+        proposedChanges: {
+          acceptProposals: true
+        }
+      }
+    });
 
     // Put something known in the first cell.
     await gu.getCell('A', 1).click();
@@ -26,6 +36,8 @@ describe('ProposedChangesPage', function() {
     await gu.waitAppFocus();
     await gu.enterCell('test2');
 
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Propose Changes');
     await driver.find('.test-tools-proposals').click();
     await driver.findContentWait('.test-main-content', /Propose Changes/, 2000);
     await driver.findWait('.action_log_table', 2000);
@@ -72,7 +84,9 @@ describe('ProposedChangesPage', function() {
 
     await driver.findContentWait('.test-widget-title-text', /TABLE1/, 2000);
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), 'test1');
-    await driver.navigate().back();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Proposed Changes');
+    await driver.find('.test-tools-proposals').click();
 
     await driver.findWait('.test-proposals-apply', 2000).click();
     await gu.waitForServer();

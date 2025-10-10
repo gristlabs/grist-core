@@ -209,7 +209,6 @@ export class ProposedChangesForkPage extends Disposable {
   private _comparison?: DocStateComparison;
 
   private _proposalObs: Observable<Proposal|null> = Observable.create(this, null);
-  private _acceptingProposals: boolean;
 
   constructor(public gristDoc: GristDoc) {
     super();
@@ -239,7 +238,6 @@ export class ProposedChangesForkPage extends Disposable {
     });
     if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
-    this._acceptingProposals = Boolean(proposals.options?.acceptProposals);
     return true;
   }
 
@@ -252,8 +250,10 @@ export class ProposedChangesForkPage extends Disposable {
     const maybeHasChanges =
         Object.keys(details?.leftChanges.tableDeltas || {}).length !== 0 ||
         details?.leftChanges.tableRenames.length !== 0;
+    const trunkAcceptsProposals =
+        this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
     return [
-      dom.maybe(() => !this._acceptingProposals, () => {
+      dom.maybe(() => !trunkAcceptsProposals, () => {
         return cssWarningMessage(
           cssWarningIcon('Warning'),
           t(`The original document isn't asking for proposed changes.`)

@@ -40,12 +40,13 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const docPageModel = gristDoc.docPageModel;
   const isDocOwner = isOwner(docPageModel.currentDoc.get());
   const isOverridden = Boolean(docPageModel.userOverride.get());
-  const isProposable = computed((use) => {
+  const canMakeProposal = computed((use) => {
     return use(docPageModel.isFork) && !use(docPageModel.isBareFork) && !use(docPageModel.isPrefork) &&
         !use(docPageModel.isSnapshot);
   });
-  const acceptsProposals = computed((use) => {
-    return use(docPageModel.currentDoc)?.options?.proposedChanges?.acceptProposals
+  // If we are on a fork, currentDoc options are actually for the trunk.
+  const trunkAcceptsProposals = computed((use) => {
+    return use(docPageModel.currentDoc)?.options?.proposedChanges?.acceptProposals;
   });
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
@@ -105,12 +106,12 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     dom.maybe(
-      (use) => (use(isProposable) || use(acceptsProposals)), () => {
+      (use) => use(trunkAcceptsProposals), () => {
       return cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'proposals'),
         cssPageLink(
           cssPageIcon('MobileChat'),
-          dom.domComputed(isProposable, (proposable) => {
+          dom.domComputed(canMakeProposal, (proposable) => {
             return cssLinkText(proposable ? t("Propose Changes") : t("Proposed Changes"));
           }),
           testId('proposals'),
