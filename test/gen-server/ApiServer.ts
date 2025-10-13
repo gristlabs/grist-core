@@ -24,12 +24,14 @@ let userCountUpdates: {[orgId: number]: number[]} = {};
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('Kiwi');
 const charon = configForUser('Charon');
+const ham = configForUser('Ham');
 const support = configForUser('Support');
 const nobody = configForUser('Anonymous');
 
 const chimpyEmail = 'chimpy@getgrist.com';
 const kiwiEmail = 'kiwi@getgrist.com';
 const charonEmail = 'charon@getgrist.com';
+const hamEmail = 'ham@getgrist.com';
 
 let chimpyRef = '';
 let kiwiRef = '';
@@ -47,6 +49,8 @@ describe('ApiServer', function() {
   before(async function() {
     oldEnv = new testUtils.EnvironmentSnapshot();
     process.env.GRIST_TEMPLATE_ORG = 'templates';
+    // ham (as in dramatic actor) is the admin
+    process.env.GRIST_DEFAULT_EMAIL = hamEmail;
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
     dbManager = server.dbManager;
@@ -1083,6 +1087,55 @@ describe('ApiServer', function() {
     const did = await dbManager.testGetId('Jupiter');
     const resp = await axios.get(`${homeUrl}/api/docs/${did}`, kiwi);
     assert.equal(resp.status, 403);
+  });
+
+  it('GET /api/docs/{did} returns 403 for disabled users', async function () {
+    const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
+    const chimpyId = chimpyUser.id;
+    try {
+      const did = await dbManager.testGetId('Jupiter');
+
+      // Chimpy has access at first.
+      let resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 200);
+      await axios.get(`${homeUrl}/api/docs/${did}/records`, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Then chimpy misbehaves. So, kiwi tries to ban chimpy...
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Kiwi' }, kiwi);
+      assert.equal(resp.status, 403);
+
+      // ... but it doesn't work!
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 200);
+
+      // Since kiwi doesn't have permission to ban chimpy, ham steps in with the banHAMmer
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
+      assert.equal(resp.status, 200);
+
+      // Poor chimpy now really is banned
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 403);
+      await axios.get(`${homeUrl}/api/docs/${did}/records`, chimpy);
+      assert.equal(resp.status, 403);
+
+      // Chimpy learns their lesson but kiwi can't let them back in
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Kiwi' }, kiwi);
+      assert.equal(resp.status, 403);
+
+      // So ham has to give chimpy a second chance
+      resp = await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
+      assert.equal(resp.status, 200);
+
+      // Welcome back chimpy, we're all friends again
+      resp = await axios.get(`${homeUrl}/api/docs/${did}`, chimpy);
+      assert.equal(resp.status, 200);
+      await axios.get(`${homeUrl}/api/docs/${did}/records`, chimpy);
+      assert.equal(resp.status, 200);
+    } finally {
+      chimpyUser.disabledAt = null;
+      await chimpyUser.save();
+    }
   });
 
   // Unauthorized folks can currently check if a document uuid exists and that's ok,

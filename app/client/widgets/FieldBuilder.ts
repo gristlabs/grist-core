@@ -92,6 +92,12 @@ function buildFontOptions(
   })).onlyNotifyUnequal();
 }
 
+export interface BuildEditorOptions {
+  init?: string;
+  state?: unknown;
+  event?: KeyboardEvent | MouseEvent
+}
+
 /**
  * Creates an instance of FieldBuilder.  Used to create all column configuration DOMs, cell DOMs,
  * and cell editor DOMs for all Grist Types.
@@ -736,11 +742,7 @@ export class FieldBuilder extends Disposable {
     };
   }
 
-  public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: {
-    init?: string,
-    state?: any
-    event?: KeyboardEvent | MouseEvent
-  }) {
+  public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: BuildEditorOptions) {
     // If the user attempts to edit a value during transform, finalize (i.e. cancel or execute)
     // the transform.
     if (this.columnTransform) {

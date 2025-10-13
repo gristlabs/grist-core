@@ -454,6 +454,7 @@ export const componentsCssMapping = {
   infoButtonActiveFg: 'info-button-active-fg',
   buttonGroupFg: 'button-group-fg',
   buttonGroupLightFg: 'button-group-light-fg',
+  buttonGroupLightBg: 'button-group-light-bg',
   buttonGroupBg: 'button-group-bg',
   buttonGroupBgHover: 'button-group-bg-hover',
   buttonGroupIcon: 'button-group-icon',
@@ -461,6 +462,7 @@ export const componentsCssMapping = {
   buttonGroupBorderHover: 'button-group-border-hover',
   buttonGroupSelectedFg: 'button-group-selected-fg',
   buttonGroupLightSelectedFg: 'button-group-light-selected-fg',
+  buttonGroupLightSelectedBg: 'button-group-light-selected-bg',
   buttonGroupSelectedBg: 'button-group-selected-bg',
   buttonGroupSelectedBorder: 'button-group-selected-border',
   accessRulesTableHeaderFg: 'access-rules-table-header-fg',
@@ -1258,10 +1260,12 @@ export interface BaseThemeTokens {
     buttonGroupBg: Token;
     buttonGroupFg: Token;
     buttonGroupLightFg: Token;
+    buttonGroupLightBg: Token;
     buttonGroupIcon: Token;
     buttonGroupBorder: Token;
     buttonGroupSelectedFg: Token;
     buttonGroupLightSelectedFg: Token;
+    buttonGroupLightSelectedBg: Token;
     buttonGroupSelectedBg: Token;
     buttonGroupSelectedBorder: Token;
     accessRulesTableHeaderFg: Token;

@@ -92,7 +92,9 @@
         "Action Log failed to load": "Nepodarilo sa načítať denník akcií",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Stĺpec {{colId}} bol následne odstránený v akcii #{{action.actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Tento riadok bol následne odstránený v akcii {{action.actionNum}}",
-        "All tables": "Všetky tabuľky"
+        "All tables": "Všetky tabuľky",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Stĺpec {{colId}} bol následne odstránený v akcii #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Tento riadok bol následne odstránený v akcii {{actionNum}}"
     },
     "ApiKey": {
         "By generating an API key, you will be able to make API calls for your own account.": "Vygenerovaním kľúča API budete môcť uskutočňovať volania API pre svoj vlastný účet.",
@@ -120,7 +122,8 @@
         "Legacy": "Dedičstvo",
         "Personal Site": "Osobná stránka",
         "Team Site": "Tímová stránka",
-        "Grist Templates": "Grist Šablóny"
+        "Grist Templates": "Grist Šablóny",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Návrat domov"
     },
     "CellContextMenu": {
         "Delete {{count}} columns_one": "Odstrániť stĺpec",
@@ -206,7 +209,12 @@
         "Search": "Vyhľadať",
         "Search values": "Hľadať hodnoty",
         "All": "Všetko",
-        "All Except": "Všetko Okrem"
+        "All Except": "Všetko Okrem",
+        "Clear search": "Vyčistiť vyhľadávanie",
+        "Pin filter": "Pripnúť filter",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Zoradiť abecedne (aktuálne: zoradené podľa počtu výskytov)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Zoradiť podľa počtu výskytov (aktuálne: zoradené abecedne)",
+        "Unpin filter": "Odopnúť filter"
     },
     "CustomSectionConfig": {
         " (optional)": " (voliteľné)",
@@ -234,7 +242,8 @@
         "ACCESS LEVEL": "ÚROVEŇ PRÍSTUPU",
         "Accept": "Prijať",
         "Reject": "Odmietnuť",
-        "Widget": "Miniaplikácia"
+        "Widget": "Miniaplikácia",
+        "Change custom widget": "Zmeniť vlastný widget"
     },
     "AppModel": {
         "This team site is suspended. Documents can be read, but not modified.": "Táto tímová stránka je pozastavená. Dokumenty je možné čítať, ale nie upravovať."
@@ -424,7 +433,9 @@
         "**Some existing attachments are still [external]({{externalLink}})**.": "**Niektoré existujúce prílohy sú stále [external]({{externalLink}})**.",
         "**Some existing attachments are still [internal]({{internalLink}})** (stored in SQLite file).": "**Niektoré existujúce prílohy sú stále [internal]({{internalLink}})** (uložené v súbore SQLite).",
         "Default": "Predvolené",
-        "Document type": "Typ dokumentu"
+        "Document type": "Typ dokumentu",
+        "[Learn more.]({{learnLink}})": "[Naučiť sa viac.]({{learnLink}})",
+        "Default, template, or tutorial": "Predvolené, šablóna alebo návod"
     },
     "DocumentUsage": {
         "Attachments Size": "Veľkosť Príloh",
@@ -572,7 +583,11 @@
         "Zebra Stripes": "Zebra Pruhy"
     },
     "FilterConfig": {
-        "Add Column": "Pridať Stĺpec"
+        "Add Column": "Pridať Stĺpec",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Pripnúť filter - stĺpec {{- columnName}} (aktuálne: nepripnuté)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Odopnúť filter - {{- columnName}} stĺpec (aktuálne: pripnutý)",
+        "remove filter - {{- columnName}} column": "odstrániť filter - {{- columnName}} stĺpec",
+        "{{- columnName }} column filters": "{{- columnName }} filtre stĺpca"
     },
     "HomeIntro": {
         "Welcome to {{- orgName}}": "Vitajte v {{- orgName}}",
@@ -622,7 +637,10 @@
         "Skip": "Preskočiť",
         "Skip Import": "Preskočiť import",
         "Skip Table on Import": "Preskočiť Tabuľku pri Importe",
-        "Source column": "Zdrojový stĺpec"
+        "Source column": "Zdrojový stĺpec",
+        "Import options": "Možnosti importu",
+        "Cancel": "Zrušiť",
+        "Import": "Import"
     },
     "MakeCopyMenu": {
         "As Template": "Ako Šablóna",
@@ -686,10 +704,12 @@
         "Workspaces": "Pracovné priestory",
         "Terms of service": "Podmienky služby",
         "Tutorial": "Návod",
-        "Grist Resources": "Zdroje Grist"
+        "Grist Resources": "Zdroje Grist",
+        "context menu - {{- workspaceName }}": "kontextové menu - {{- workspaceName }}"
     },
     "LeftPanelCommon": {
-        "Help Center": "Centrum Pomoci"
+        "Help Center": "Centrum Pomoci",
+        "Accessibility": "Prístupnosť"
     },
     "NotifyUI": {
         "Go to your free personal site": "Prejdite na svoju bezplatnú osobnú stránku",
@@ -724,7 +744,8 @@
         "Delete": "Odstrániť",
         "Delete data and this page.": "Odstrániť údaje a túto stránku.",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Uložiť údaje a odstrániť stránku. Tabuľka zostane k dispozícii v {{rawDataLink}}",
-        "raw data page": "stránka surových údajov"
+        "raw data page": "stránka surových údajov",
+        "Document pages": "Stránky dokumentu"
     },
     "PermissionsWidget": {
         "Deny All": "Odmietnuť Všetko",
@@ -797,7 +818,8 @@
         "Select a field in the form widget to configure.": "Vyberte pole v miniaplikácii formulára, ktoré chcete nakonfigurovať.",
         "Submit button label": "Označenie tlačidla Odoslať",
         "Submit": "Odoslať",
-        "Thank you! Your response has been recorded.": "Ďakujem! Vaša odpoveď bola zaznamenaná."
+        "Thank you! Your response has been recorded.": "Ďakujem! Vaša odpoveď bola zaznamenaná.",
+        "Chart options": "Možnosti grafu"
     },
     "RowContextMenu": {
         "Copy anchor link": "Kopírovať odkaz na kotvu",
@@ -854,7 +876,11 @@
         "Access Rules": "Pravidlá Prístupu",
         "Raw Data": "Nespracované Údaje",
         "Return to viewing as yourself": "Vráťiť sa ku svojmu zobrazeniu",
-        "TOOLS": "NÁSTROJE"
+        "TOOLS": "NÁSTROJE",
+        "context menu - Access Rules": "kontextové menu - Pravidlá Prístupu",
+        "Delete document tour": "Vymazať prehliadku dokumentov",
+        "Preview the tutorial": "Náhľad tutoriálu",
+        "Proposed Changes": "Navrhované Zmeny"
     },
     "TopBar": {
         "Manage Team": "Riadiť Tím",
@@ -1637,7 +1663,12 @@
         "Natural sort": "Prirodzené triedenie",
         "Update Data": "Aktualizovať Údaje",
         "Search Columns": "Hľadať stĺpce",
-        "Use choice position": "Použiť výber pozície"
+        "Use choice position": "Použiť výber pozície",
+        "Remove sort setting - {{- columnName }} column": "Odstrániť nastavenie triedenia - {{- columnName }} stĺpec",
+        "Sort in ascending order (current: descending)": "Zoradiť vo vzostupnom poradí (aktuálne: zostupne)",
+        "Sort in descending order (current: ascending)": "Zoradiť v zostupnom poradí (aktuálne: vzostupne)",
+        "Sort options - {{- columnName }} column": "Možnosti zoradenia - {{- columnName }} stĺpec",
+        "{{- columnName }} column": "{{- columnName }} stĺpec"
     },
     "SortFilterConfig": {
         "Filter": "FILTER",
@@ -1776,7 +1807,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Neznámy Používateľ",
         "You are viewing this document as": "Zobraziť dokument z pohľadu",
-        "View as Yourself": "Vlastný Pohľad"
+        "View as Yourself": "Vlastný Pohľad",
+        "You're seeing what this user would see if given access": "Vidíte, čo by tento používateľ videl, keby mu bol udelený prístup"
     },
     "EditorTooltip": {
         "Convert column to formula": "Previesť stĺpec na vzorec"

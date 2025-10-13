@@ -1,4 +1,4 @@
-import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
+import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
 
 const G = getBrowserGlobals('document', 'window');
 
@@ -20,7 +20,7 @@ async function copyTextToClipboard(txt: string) {
   // If present and we have permission to use it, the navigator.clipboard interface
   // is convenient.  This method works in non-headless tests, and regular chrome
   // and firefox.
-  if (G.window.navigator && G.window.navigator.clipboard && G.window.navigator.clipboard.writeText) {
+  if (G.window.navigator?.clipboard?.writeText) {
     try {
       await G.window.navigator.clipboard.writeText(txt);
       return;
@@ -38,13 +38,13 @@ async function copyTextToClipboard(txt: string) {
   stash.style.position = 'absolute';
   stash.style.left = '-10000px';
   G.document.body.appendChild(stash);
-  const selection = G.document.getSelection().rangeCount > 0 && G.document.getSelection().getRangeAt(0);
+  const selection = G.document.getSelection()!.rangeCount > 0 && G.document.getSelection()!.getRangeAt(0);
   stash.select();
   G.document.execCommand('copy');
   G.document.body.removeChild(stash);
   if (selection) {
-    G.document.getSelection().removeAllRanges();
-    G.document.getSelection().addRange(selection);
+    G.document.getSelection()!.removeAllRanges();
+    G.document.getSelection()!.addRange(selection);
   }
 }
 

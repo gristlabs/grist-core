@@ -118,7 +118,12 @@
         "Natural sort": "Природне сортування",
         "Update Data": "Оновити дані",
         "Use choice position": "Використовувати позицію вибору",
-        "Search Columns": "Стовпці пошуку"
+        "Search Columns": "Стовпці пошуку",
+        "Remove sort setting - {{- columnName }} column": "Вилучити налаштування сортування – стовпець {{- columnName }}",
+        "Sort in ascending order (current: descending)": "Сортувати за зростанням (поточний: спадання)",
+        "Sort in descending order (current: ascending)": "Сортувати за спаданням (поточний: за зростанням)",
+        "Sort options - {{- columnName }} column": "Параметри сортування – стовпець {{- columnName }}",
+        "{{- columnName }} column": "{{- columnName }} Стовпець"
     },
     "SortFilterConfig": {
         "Save": "Зберегти",
@@ -134,7 +139,11 @@
         "Zebra Stripes": "Смужки зебри"
     },
     "FilterConfig": {
-        "Add Column": "Додати стовпець"
+        "Add Column": "Додати стовпець",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Фільтр закріплення – стовпець {{- columnName}} (поточний: відкріплений)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Відкріпити фільтр – стовпець {{- columnName}} (поточний: закріплений)",
+        "remove filter - {{- columnName}} column": "вилучити фільтр – стовпець {{- columnName}}",
+        "{{- columnName }} column filters": "{{- columnName }} фільтри стовпців"
     },
     "FilterBar": {
         "SearchColumns": "Стовпці пошуку",
@@ -276,7 +285,9 @@
         "Show {{label}}": "Показати {{label}}",
         "Visible {{label}}": "Видимі {{label}}",
         "Hide {{label}}": "Приховати {{label}}",
-        "Hidden {{label}}": "Приховані {{label}}"
+        "Hidden {{label}}": "Приховані {{label}}",
+        "Hide {{label}} (batch mode)": "Приховати {{label}} (пакетний режим)",
+        "Show {{label}} (batch mode)": "Показати {{label}} (пакетний режим)"
     },
     "TriggerFormulas": {
         "Apply to new records": "Застосувати до нових записів",
@@ -357,7 +368,12 @@
         "Other Values": "Інші значення",
         "Others": "Інші",
         "Search values": "Пошук значень",
-        "No matching values": "Немає співпадаючих значень"
+        "No matching values": "Немає співпадаючих значень",
+        "Clear search": "Очистити пошук",
+        "Pin filter": "Фільтр Pin",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Сортувати за алфавітом (поточне: відсортовано за кількістю входжень)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Сортувати за кількістю входжень (поточне: відсортовано в алфавітному порядку)",
+        "Unpin filter": "Відкріпити фільтр"
     },
     "CustomSectionConfig": {
         "Pick a {{columnType}} column": "Виберіть {{columnType}} стовпець",
@@ -385,7 +401,8 @@
         "Last updated:": "Востаннє оновлено:",
         "Missing description and author information.": "Відсутній опис та інформація про автора.",
         "Reject": "Відхилити'",
-        "Widget": "Віджет"
+        "Widget": "Віджет",
+        "Change custom widget": "Змінити власний віджет"
     },
     "ACUserManager": {
         "Invite new member": "Запросити нового користувача",
@@ -480,7 +497,9 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблиця {{tableId}} згодом була видалена під час події #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Ця строка згодом була видалена під час події {{action.actionNum}}",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Колонка {{colId}} згодом була видалена під час події #{{action.actionNum}}",
-        "All tables": "Всі таблиці"
+        "All tables": "Всі таблиці",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Колонку {{colId}} згодом було видалено в дії №{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Цей рядок згодом було вилучено в рамках дії {{actionNum}}"
     },
     "ApiKey": {
         "Click to show": "Натисніть, щоб показати",
@@ -793,7 +812,8 @@
         "Import": "Імпорт"
     },
     "LeftPanelCommon": {
-        "Help Center": "Центр допомоги"
+        "Help Center": "Центр допомоги",
+        "Accessibility": "Доступність"
     },
     "OnBoardingPopups": {
         "Finish": "Завершити",
@@ -895,7 +915,8 @@
         "No field selected": "Поле не вибрано",
         "Select a field in the form widget to configure.": "Виберіть поле у віджеті форми для налаштування.",
         "Submit": "Надіслати",
-        "Thank you! Your response has been recorded.": "Дякуємо! Вашу відповідь записано."
+        "Thank you! Your response has been recorded.": "Дякуємо! Вашу відповідь записано.",
+        "Chart options": "Параметри діаграми"
     },
     "RowContextMenu": {
         "Copy anchor link": "Скопіювати якірне посилання",
@@ -931,7 +952,8 @@
         "API Console": "Консоль API",
         "context menu - Access Rules": "контекстне меню - Правила доступу",
         "Delete document tour": "Видалити огляд документа",
-        "Preview the tutorial": "Попередній перегляд посібника"
+        "Preview the tutorial": "Попередній перегляд посібника",
+        "Proposed Changes": "Запропоновані зміни"
     },
     "TopBar": {
         "Manage Team": "Керувати командою",
@@ -1054,7 +1076,20 @@
         "Form not found": "Форму не знайдено",
         "Powered by": "Працює на",
         "Failed to log in.{{separator}}Please try again or contact support.": "Не вдалося ввійти.{{separator}}Будь ласка, спробуйте ще раз або зверніться до служби підтримки.",
-        "Sign-in failed{{suffix}}": "Не вдалося ввійти{{suffix}}"
+        "Sign-in failed{{suffix}}": "Не вдалося ввійти{{suffix}}",
+        "Manage settings": "Керування налаштуваннями",
+        "Need Help?": "Потрібна допомога?",
+        "There was an error": "Сталася помилка",
+        "Unsubscribed{{suffix}}": "Скасовано підписку{{suffix}}",
+        "We could not unsubscribe you": "Нам не вдалося скасувати вашу підписку",
+        "You are unsubscribed": "Ви скасували підписку",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Ви все ще можете відмовитися від підписки на цей документ, оновивши свої налаштування в налаштуваннях документа",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Ви більше не отримуватимете сповіщення електронною поштою про {{changes}} у {{docName}} на адресу {{email}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Ви більше не отримуватимете сповіщення електронною поштою про {{comments}} у {{docName}} на адресу {{email}}.",
+        "changes": "зміни",
+        "comments": "коментарі",
+        "this document": "цей документ",
+        "your email": "ваша електронна адреса"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Робочі простори доступні в командних тарифах. ",
@@ -1112,7 +1147,8 @@
         "Find Previous ": "Знайти попереднє ",
         "Search in document": "Пошук у документі",
         "No results": "Немає результатів",
-        "Search": "Пошук"
+        "Search": "Пошук",
+        "Close search bar": "Закрити рядок пошуку"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Надсилання файлу на Google Диск"
@@ -1525,7 +1561,8 @@
         "Search all tables": "Пошук у всіх таблицях"
     },
     "searchDropdown": {
-        "Search": "Пошук"
+        "Search": "Пошук",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Показано {{displayedCount}} з {{totalCount}} елементів. Шукайте більше."
     },
     "SupportGristNudge": {
         "Close": "Закрити",
@@ -1704,7 +1741,11 @@
         "Mapped": "Нанесено на карту",
         "Select All": "Вибрати все",
         "Unmap fields": "Скасувати зіставлення полів",
-        "Unmapped": "Не нанесено на карту"
+        "Unmapped": "Не нанесено на карту",
+        "Hide {{label}}": "Приховати {{label}}",
+        "Hide {{label}} (batch mode)": "Приховати {{label}} (пакетний режим)",
+        "Unmap {{label}}": "Зняти з карти {{label}}",
+        "Unmap {{label}} (batch mode)": "Розв'язати зіставлення {{label}} (пакетний режим)"
     },
     "Section": {
         "Insert section above": "Вставити розділ вище",
@@ -1837,7 +1878,8 @@
         "Search": "Пошук",
         "Select...": "Виберіть...",
         "Submit": "Надіслати",
-        "Submitting…": "Надсилання…"
+        "Submitting…": "Надсилання…",
+        "Clear selection for: {{-inputLabel}}": "Очистити вибір для: {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Календар",
@@ -2069,7 +2111,8 @@
         "Unpin": "Відкріпити",
         "Workspace": "Робочий простір",
         "context menu - {{- documentName }}": "контекстне меню - {{- documentName }}",
-        "Documents list": "Список документів"
+        "Documents list": "Список документів",
+        "Download document...": "Завантажити документ..."
     },
     "RenameDocModal": {
         "Choose color": "Виберіть колір",
@@ -2241,5 +2284,36 @@
         "Skip leading whitespace": "Пропустити початкові пробіли",
         "Start with row": "Почати з рядка",
         "Character encoding. See [the supported codecs]({{link}})": "Кодування символів. Див. [підтримувані кодеки]({{link}})"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " або ",
+        "\"Regions\" are what we call the different parts of the user interface:": "«Регіонами» ми називаємо різні частини інтерфейсу користувача:",
+        "Accessibility": "Доступність",
+        "Close": "Закрити",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Зрештою, права панель – або панель творця – доступна лише через власний ярлик і не включена до наступного та попереднього циклу регіонів.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Зосередьтеся на інших частинах інтерфейсу користувача за допомогою таких комбінацій клавіш:",
+        "High contrast theme": "Тема високої контрастності",
+        "Keyboard navigation": "Навігація по клавіатурі",
+        "On a document page, keyboard navigation is first locked on the current widget.": "На сторінці документа навігація за допомогою клавіатури спочатку блокується на поточному віджеті.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "На сторінках документа кожен [віджет]({{supportPageUrl}}) – це область, на яку може перевести фокус.",
+        "On non-document pages, the main content area is a region.": "На сторінках, що не є документами, основною областю вмісту є регіон.",
+        "Other important keyboard shortcuts": "Інші важливі комбінації клавіш",
+        "The left panel, home of the main navigation.": "Ліва панель, де розташована основна панель навігації.",
+        "The top panel, or the document header.": "Верхня панель або заголовок документа.",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "Щоб переглянути інші доступні теми, перейдіть до свого {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Використовуйте тему високої контрастності (світлий вигляд)",
+        "You are currently **not using** the high contrast theme.": "Ви зараз **не використовуєте** тему високої контрастності.",
+        "You are currently using the high contrast theme.": "Ви зараз використовуєте тему високої контрастності.",
+        "profile settings": "налаштування профілю",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Показати параметри доступності (це модальне вікно)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Фокус на панель творця та назад",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Перейти до наступного регіону",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Фокус на попередньому регіоні",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Показати повний список комбінацій клавіш"
+    },
+    "ProposedChangesPage": {
+        "Proposed Changes": "Запропоновані зміни",
+        "Replace Original": "Замінити оригінал",
+        "This is a list of changes relative to the original document.": "Це список змін порівняно з оригінальним документом."
     }
 }

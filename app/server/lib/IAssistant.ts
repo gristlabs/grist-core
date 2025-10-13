@@ -57,6 +57,7 @@ export interface AssistantV1Options {
 
 export interface AssistantV2Options extends AssistantV1Options {
   maxToolCalls?: number;
+  structuredOutput?: boolean;
 }
 
 /**

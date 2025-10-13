@@ -329,7 +329,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     return records;
   }
 
-  public filterRowIds(properties: {[key: string]: any}): number[] {
+  public filterRowIds(properties: {[key: string]: CellValue|undefined}): number[] {
     return this._filterRowIndices(properties).map(i => this._rowIdCol[i]);
   }
 
@@ -337,7 +337,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Builds and returns the list of records in this table that match the given properties object.
    * Properties may include 'id' and any table columns. Returned records are not sorted.
    */
-  public filterRecords(properties: {[key: string]: any}): RowRecord[] {
+  public filterRecords(properties: {[key: string]: CellValue|undefined}): RowRecord[] {
     const rowIndices: number[] = this._filterRowIndices(properties);
 
     // Convert the array of indices to an array of RowRecords.
@@ -353,13 +353,29 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   /**
    * Returns the rowId in the table where colValue is found in the column with the given colId.
    */
-  public findRow(colId: string, colValue: any): number {
+  public findRow(colId: string, colValue: CellValue): number {
     const colData = this._columns.get(colId);
     if (!colData) {
       return 0;
     }
     const index = colData.values.indexOf(colValue);
     return index < 0 ? 0 : this._rowIdCol[index];
+  }
+
+  /**
+   * Returns a record object for the row where colValue is found in the column with the given
+   * colId. If there are multiple matches, it is unspecified which will be returned.
+   */
+  public findRecord(colId: string, colValue: CellValue): RowRecord|undefined {
+    const searchColData = this._columns.get(colId);
+    if (!searchColData) { return undefined; }
+    const index = searchColData.values.indexOf(colValue);
+    if (index < 0) { return undefined; }
+    const ret: RowRecord = { id: this._rowIdCol[index] };
+    for (const colData of this._colArray) {
+      ret[colData.colId] = colData.values[index];
+    }
+    return ret;
   }
 
   /**
@@ -528,7 +544,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     this._isLoaded = false;
   }
 
-  private _filterRowIndices(properties: {[key: string]: any}): number[] {
+  private _filterRowIndices(properties: {[key: string]: CellValue|undefined}): number[] {
     const rowIndices: number[] = [];
     // Array of {col: arrayOfColValues, value: valueToMatch}
     const props = Object.keys(properties).map(p => ({col: this._columns.get(p)!, value: properties[p]}));
@@ -597,6 +613,12 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
     colId: ColId, colValue: MetaRowRecord<TableId>[ColId]
   ): number {
     return super.findRow(colId, colValue);
+  }
+
+  public findRecord<ColId extends MetaColId<TableId>>(
+    colId: ColId, colValue: MetaRowRecord<TableId>[ColId]
+  ): MetaRowRecord<TableId>|undefined {
+    return super.findRecord(colId, colValue) as any;
   }
 }
 

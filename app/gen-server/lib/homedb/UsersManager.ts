@@ -28,6 +28,7 @@ import { Pref } from 'app/gen-server/entity/Pref';
 
 import flatten from 'lodash/flatten';
 import { EntityManager, IsNull, Not } from 'typeorm';
+import crypto from 'crypto';
 
 // A special user allowed to add/remove both the EVERYONE_EMAIL and ANONYMOUS_USER_EMAIL to/from a resource.
 export const SUPPORT_EMAIL = appSettings.section('access').flag('supportEmail').requireString({
@@ -182,6 +183,22 @@ export class UsersManager {
   }
 
   /**
+   * Gets a user and ensures that they have an unsubscribe key.
+   */
+  public async getUserAndEnsureUnsubscribeKey(userId: number): Promise<User> {
+    return await this._runInTransaction(undefined, async manager => {
+      const relations = ["logins"];
+      const user = await manager.findOne(User, {where: {id: userId}, relations});
+      if (!user) { throw new ApiError("unable to find user", 400); }
+      if (!user.unsubscribeKey) {
+        user.unsubscribeKey = crypto.randomBytes(32).toString('base64url');
+        await manager.save(user);
+      }
+      return user;
+    });
+  }
+
+  /**
    * Convert a user record into the format specified in api.
    */
   public makeFullUser(user: User): FullUser {
@@ -202,6 +219,7 @@ export class UsersManager {
       locale: user.options?.locale,
       prefs: user.prefs?.find((p)=> p.orgId === null)?.prefs,
       firstLoginAt: user.firstLoginAt || null,
+      disabledAt: user.disabledAt || null,
     };
     if (user.firstLoginAt) {
       result.firstLoginAt = user.firstLoginAt;
@@ -282,6 +300,10 @@ export class UsersManager {
       const previous = structuredClone(user);
       if (props.name && props.name !== user.name) {
         user.name = props.name;
+        needsSave = true;
+      }
+      if (props.disabledAt !== undefined && props.disabledAt !== user.disabledAt) {
+        user.disabledAt = props.disabledAt;
         needsSave = true;
       }
       if (props.isFirstTimeUser !== undefined && props.isFirstTimeUser !== user.isFirstTimeUser) {

@@ -30,6 +30,7 @@ export interface SearchModel {
 
   findNext(): Promise<void>;       // find next match
   findPrev(): Promise<void>;       // find previous match
+  onPageChange(callback: () => void): void; // exposes page changes triggered by search through a callback
 }
 
 interface SearchPosition {
@@ -177,7 +178,7 @@ class FinderImpl implements IFinder {
   private _clearCursorHighlight: (() => void)|undefined;
 
   constructor(private _gristDoc: GristDoc, value: string, private _openDocPageCB: DocPageOpener,
-              public multiPage: Observable<boolean>) {
+              public multiPage: Observable<boolean>, private _onPageChange?: () => void) {
     this._searchRegexp = makeRegexp(value);
   }
 
@@ -393,6 +394,10 @@ class FinderImpl implements IFinder {
       this._rowStepper.setStart(step);
       this._fieldStepper.setStart(step);
       console.log("SearchBar: loaded view %s section %s", view.getViewId(), section.getRowId());
+      if (this._onPageChange) {
+        this._onPageChange();
+      }
+
       return true;
     }
     return false;
@@ -459,7 +464,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
   private _isRestartNeeded = false;
   private _finder: IFinder|null = null;
-
+  private _onPageChange: (() => void) | undefined;
   constructor(private _gristDoc: GristDoc) {
     super();
 
@@ -507,6 +512,10 @@ export class SearchModelImpl extends Disposable implements SearchModel {
     });
   }
 
+  public onPageChange(callback: () => void) {
+    this._onPageChange = callback;
+  }
+
   private async _findFirst(value: string) {
     this._isRestartNeeded = false;
     this.isEmpty.set(!value);
@@ -519,7 +528,12 @@ export class SearchModelImpl extends Disposable implements SearchModel {
 
   private async _updateFinder(value: string) {
     if (this._finder) { this._finder.abort(); }
-    const impl = new FinderImpl(this._gristDoc, value, this._openDocPage.bind(this), this.multiPage);
+    const impl = new FinderImpl(this._gristDoc,
+      value,
+      this._openDocPage.bind(this),
+      this.multiPage,
+      this._onPageChange
+    );
     const isValid = await impl.init();
     this._finder = isValid ? impl : null;
   }

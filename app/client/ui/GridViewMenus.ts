@@ -704,7 +704,7 @@ export interface IMultiColumnContextMenu {
   isFormula: boolean|'mixed';
   columnIndices: number[];
   totalColumnCount: number;
-  disableFrozenMenu: boolean;
+  disableFrozenMenu?: boolean;
 }
 
 interface IColumnContextMenu extends IMultiColumnContextMenu {

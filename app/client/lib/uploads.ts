@@ -113,7 +113,7 @@ export async function uploadFiles(
   await maybeFakeSlowUploadsForTests();
 
   // Check for upload limits.
-  const gristConfig: GristLoadConfig = (window as any).gristConfig || {};
+  const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
   const {maxUploadSizeImport, maxUploadSizeAttachment} = gristConfig;
   if (options.sizeLimit === 'import' && maxUploadSizeImport) {
     // For imports, we limit the total upload size, but exempt .grist files from the upload limit.

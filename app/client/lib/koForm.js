@@ -438,7 +438,7 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
 
   var reorderFunc, removeFunc;
   itemCreateFunc = itemCreateFunc || identity;
-  var list = dom('div.kf_drag_container',
+  var list = dom('ul.kf_drag_container',
     function(elem) {
       if (options.reorder) {
         reorderFunc = Promise.method(options.reorder);
@@ -455,7 +455,7 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
     kd.foreach(contentArray, item => {
       var row = itemCreateFunc(item);
       if (row) {
-        return dom('div.kf_draggable',
+        return dom('li.kf_draggable',
           // Fix for JQueryUI bug where mousedown on draggable elements fail to blur
           // active element. See: https://bugs.jqueryui.com/ticket/4261
           dom.on('mousedown', () => G.document.activeElement.blur()),

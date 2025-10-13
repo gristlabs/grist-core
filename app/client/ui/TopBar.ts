@@ -4,6 +4,7 @@ import {loadSearch} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
+import {urlState} from "app/client/models/gristUrlState";
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildActiveUserList} from 'app/client/ui/ActiveUserList';
@@ -135,7 +136,10 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     ]),
     dom.domComputed((use) => {
       const model = use(searchModelObs);
-      return model && use(moduleObs)?.searchBar(model, makeTestId('test-tb-search-'));
+      return model && use(moduleObs)?.searchBar(
+        model, makeTestId('test-tb-search-'),
+        pageModel.gristDoc.get()?.regionFocusSwitcher,
+      );
     }),
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
@@ -155,6 +159,7 @@ function buildShowDiscussionButton(gristDoc: GristDoc) {
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
     gristDoc.behavioralPromptsManager.attachPopup('comments', {
+      isDisabled: () => !!urlState().state.get().params?.assistantState,
       popupOptions: {
         placement: 'bottom-end',
       },

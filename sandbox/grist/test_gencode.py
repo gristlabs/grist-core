@@ -1,4 +1,4 @@
-# coding=utf-8
+import ast
 
 import unittest
 import difflib
@@ -87,6 +87,66 @@ class TestGenCode(unittest.TestCase):
     module = gcode.usercode
     # pylint: disable=E1101
     self.assertTrue(isinstance(module.Students, table.UserTable))
+
+  def test_multiline_string_indent(self):
+    """
+    Test that multiline strings don't get affected by formula indentations.
+    """
+    def get_built_formula(formula):
+      # We rebuild the entire doc with the given formula (for the "Students.fullName" column), and
+      # return the AST node for the formula's function. This goes through the entire module
+      # compilation, so includes all formula transformations including indentation changes.
+      updated_schema = self.schema.copy()
+      updated_columns = updated_schema['Students'].columns.copy()
+      updated_columns['fullName'] = updated_columns['fullName']._replace(formula=formula)
+      updated_schema['Students'] = updated_schema['Students']._replace(columns=updated_columns)
+
+      gcode = gencode.GenCode()
+      gcode.make_module(updated_schema)
+      # Find the ast node for the "fullName" function which has our formula.
+      tree = ast.parse(gcode.get_user_text())
+      for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == 'fullName':
+          return node
+      return None
+
+    def assert_correct_formula(formula, expected_compiled_formula):
+      actual_formula_body = get_built_formula(formula).body
+      expected_formula_body = ast.parse(expected_compiled_formula).body
+      self.assertEqual(
+          [ast.dump(n, indent=2) for n in actual_formula_body],
+          [ast.dump(n, indent=2) for n in expected_formula_body])
+
+    # The original simple one-line formula.
+    assert_correct_formula(
+        "rec.firstName + ' ' + rec.lastName",
+        "return rec.firstName + ' ' + rec.lastName")
+
+    # Same, but with $. We are just testing normal behavior, and that test checks work.
+    assert_correct_formula(
+        "$firstName + ' ' + $lastName",
+        "return rec.firstName + ' ' + rec.lastName")
+
+    # Try a formulas with multiple lines and indents.
+    assert_correct_formula(
+        "if rec.a:\n  return 1\nelse:\n  return 2\nreturn unreachable",
+        "if rec.a:\n  return 1\nelse:\n  return 2\nreturn unreachable")
+
+    # Test multiline strings
+    assert_correct_formula(
+        "$firstName\n'''\nMultiline\n''' + 'Not\\nactually\\nmultiline'",
+        "rec.firstName\nreturn '''\nMultiline\n''' + 'Not\\nactually\\nmultiline'")
+    assert_correct_formula(
+        "a = '''\nMultiline\n'''\nreturn a",
+        "a = '''\nMultiline\n'''\nreturn a")
+    assert_correct_formula(
+        "r'''    foo\nMultiline\n\n  bar''' + 'Not\\nactually\\nmultiline'",
+        "return r'''    foo\nMultiline\n\n  bar''' + 'Not\\nactually\\nmultiline'")
+    # Multi-line f-string.
+    assert_correct_formula(
+        "rf'''\nMulti{\n1 + $fullNameLen}line\n''' + 'Not\\nactually\\nmultiline'",
+        "return rf'''\nMulti{\n1 + rec.fullNameLen}line\n''' + 'Not\\nactually\\nmultiline'")
+
 
   def test_ident_combining_chars(self):
     def check(label, ident):

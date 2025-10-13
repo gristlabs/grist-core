@@ -252,7 +252,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
         throw new Error(`Widget ${viewSection.getRowId()} not found`);
       }
 
-      rowId = await view.insertRow();
+      rowId = await view.insertRow()!;
     }
 
     // Upload the attachments.

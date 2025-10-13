@@ -104,7 +104,7 @@ export class FloatingEditor extends Disposable {
         minWidth: 328,
         minHeight: 400,
         position: this._getPopupPosition(),
-        args: [testId('popup')]
+        testId,
       });
       // Set a public flag that we are active.
       this.active.set(true);

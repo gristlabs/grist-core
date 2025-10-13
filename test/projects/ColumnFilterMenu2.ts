@@ -39,7 +39,7 @@ describe('ColumnFilterMenu2', function() {
 
     it('should limit shown value to the first opt.limitShown', async () => {
       // check list has 3 items
-      assert.lengthOf(await driver.findAll('.test-filter-menu-list label'), 3);
+      assert.lengthOf(await driver.findAll('.test-filter-menu-list .test-filter-menu-value'), 3);
 
       // check Apple is included
       assert.equal(await driver.findContent('.test-filter-menu-list label', /Apple/).find('input').isSelected(), true);
@@ -69,7 +69,7 @@ describe('ColumnFilterMenu2', function() {
 
       // check 'Date', 'Figs' and 'Rhubarb' are not shown
       assert.notIncludeMembers(
-        await driver.findAll('.test-filter-menu-list label', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
         ['Dates', 'Figs', 'Rhubarb']);
 
       // click 'Other Values'
@@ -132,9 +132,9 @@ describe('ColumnFilterMenu2', function() {
         assert.equal(3 + 6 + 8, (await parseAllValues()).length);
 
         // Check Apples, Bananas are shown
-        assert.lengthOf(await driver.findAll('.test-filter-menu-list label'), 3);
+        assert.lengthOf(await driver.findAll('.test-filter-menu-list .test-filter-menu-value'), 3);
         assert.includeMembers(
-          await driver.findAll('.test-filter-menu-list label', (e) => e.getText()),
+          await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
           ['Apples', 'Bananas']);
 
         // check Dates, Knapples are not excluded
@@ -173,6 +173,7 @@ describe('ColumnFilterMenu2', function() {
         await driver.sendKeys('A');
 
         // click 'Apple'
+        await driver.findWait('.test-filter-menu-list label', 100);
         await driver.findContent('.test-filter-menu-list label', /Apple/).click();
 
         // check Apple is not included
@@ -193,6 +194,7 @@ describe('ColumnFilterMenu2', function() {
         // enter 'A'
         await driver.sendKeys('A');
 
+        await driver.findWait('.test-filter-menu-summary label', 100);
         // check 'Other Non-Matching' is checked
         assert.equal(
           await driver.findContent('.test-filter-menu-summary label', /Other Non-Matching/).find('input').isSelected(),

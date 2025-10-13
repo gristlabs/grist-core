@@ -91,6 +91,10 @@ export class MinIOExternalStorage implements ExternalStorage {
         ...head.metaData && { metadata: toGristMetadata(head.metaData) },
       };
     } catch (err) {
+      // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
+      // and should return a falsy null.
+      // Other errors like 'ECONNRESET' and 'InternalError' are fatal errors and should be thrown
+      // in order to avoir weird behavior when MinIO is experiencing hiccups.
       if (!this.isFatalError(err)) { return null; }
       throw err;
     }
@@ -194,13 +198,10 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public isFatalError(err: any) {
-    // ECONNRESET should not count as fatal:
-    //   https://github.com/aws/aws-sdk-js/pull/3739
-    // Likewise for "We encountered an internal error. Please try again."
-    // These are errors associated with the AWS S3 backend, and which
-    // the AWS S3 SDK would typically handle.
-    return err.code !== 'NotFound' && err.code !== 'NoSuchKey' &&
-      err.code !== 'ECONNRESET' && err.code !== 'InternalError';
+    // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
+    // Other errors like 'ECONNRESET' and 'InternalError' were added to the list by mistake
+    // which caused problems like overriding an existing document when MinIO was experiencing hiccups.
+    return err.code !== 'NotFound' && err.code !== 'NoSuchKey';
   }
 
   public async close() {

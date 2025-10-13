@@ -206,6 +206,7 @@ function setupTest() {
     allLabel: observable('Search on all pages'),
     findNext: () => Promise.resolve(),
     findPrev: () => Promise.resolve(),
+    onPageChange: () => {},
   };
 
   const search = dom('div#search',

@@ -42,7 +42,7 @@ function newRecordButton(view: BaseView) {
     icon('Plus'),
     dom('span', translationString),
     dom.on('click', () => {
-      view.onNewRecordRequest?.();
+      view.onNewRecordRequest?.()?.catch(reportError);
     }),
     testId('new-record-button')
   );

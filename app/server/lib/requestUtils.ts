@@ -28,7 +28,7 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 const INTERNAL_FIELDS = new Set([
   'apiKey', 'billingAccountId', 'firstLoginAt', 'lastConnectionAt', 'filteredOut', 'ownerId', 'gracePeriodStart',
   'stripeCustomerId', 'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
-  'authSubject', 'usage', 'createdBy'
+  'authSubject', 'usage', 'createdBy', 'unsubscribeKey', 'disabledAt',
 ]);
 
 /**
