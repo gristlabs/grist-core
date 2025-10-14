@@ -58,7 +58,7 @@ const WEBHOOK_COLUMNS = [
     widgetOptions: JSON.stringify({
       widget: 'TextBox',
       alignment: 'left',
-      choices: ['add', 'update'],
+      choices: ['add', 'update', 'remove'],
       choiceOptions: {},
     }),
   },
