@@ -4,7 +4,6 @@ import {loadSearch} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from "app/client/models/gristUrlState";
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildActiveUserList} from 'app/client/ui/ActiveUserList';
@@ -158,12 +157,6 @@ function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
-    gristDoc.behavioralPromptsManager.attachPopup('comments', {
-      isDisabled: () => !!urlState().state.get().params?.assistantState,
-      popupOptions: {
-        placement: 'bottom-end',
-      },
-    }),
     testId('open-discussion'),
     dom.on('click', () => {
       gristDoc.showTool('discussion');
