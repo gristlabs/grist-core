@@ -182,6 +182,8 @@ describe('ProposedChangesPage', function() {
 
     // Work on a copy.
     async function workOnCopy() {
+      await driver.get(url);
+      await gu.waitForDocToLoad();
       await driver.findWait('.test-tb-share', 2000).click();
       await driver.findWait('.test-work-on-copy', 2000).click();
       await gu.waitForServer();
@@ -204,7 +206,6 @@ describe('ProposedChangesPage', function() {
     await proposeChange();
 
     // Work on another copy and propose a different change.
-    await driver.get(url);
     await workOnCopy();
     await gu.getCell('B', 2).click();
     await gu.waitAppFocus();
@@ -212,7 +213,6 @@ describe('ProposedChangesPage', function() {
     await proposeChange();
 
     // Work on another copy and propose a different change.
-    await driver.get(url);
     await workOnCopy();
     await gu.getCell('B', 3).click();
     await gu.waitAppFocus();
