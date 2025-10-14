@@ -37,13 +37,13 @@ export const Deps = {
     .section("docWorker")
     .flag("memoryUsagePath")
     .readString({
-      envVar: "GRIST_DOC_WORKER_MEMORY_USED_BYTES_PATH",
+      envVar: "GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH",
     }),
   docWorkerMemoryCapacityPath: appSettings
     .section("docWorker")
     .flag("memoryCapacityPath")
     .readString({
-      envVar: "GRIST_DOC_WORKER_MEMORY_MAX_BYTES_PATH",
+      envVar: "GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH",
     }),
 };
 
@@ -165,7 +165,7 @@ export class DocWorkerLoadTracker {
   private async _getMemoryUsedMB(): Promise<number> {
     if (this._canReadValueFromFile(Deps.docWorkerMemoryUsagePath)) {
       try {
-        return this._readValueFromFileInMB(Deps.docWorkerMemoryUsagePath);
+        return await this._readValueFromFileInMB(Deps.docWorkerMemoryUsagePath);
       } catch (e) {
         const methodName = `${DocWorkerLoadTracker.name}.${this._getMemoryUsedMB.name}`;
         log.error(`${methodName}: can't read value from file ${Deps.docWorkerMemoryUsagePath}.` +
@@ -188,12 +188,12 @@ export class DocWorkerLoadTracker {
    * 3. Return Infinity
    */
   private async _getMemoryTotalMB() {
-    if (Deps.docWorkerMaxMemoryMB) {
+    if (Deps.docWorkerMaxMemoryMB !== undefined) {
       return Deps.docWorkerMaxMemoryMB;
     }
     if (this._canReadValueFromFile(Deps.docWorkerMemoryCapacityPath)) {
       try {
-        return this._readValueFromFileInMB(
+        return await this._readValueFromFileInMB(
           Deps.docWorkerMemoryCapacityPath,
           // When the value is "max", return Infinity, otherwise return undefined so
           // so the function read what's probably an integer value.
