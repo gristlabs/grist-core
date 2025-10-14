@@ -2,6 +2,7 @@ import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI} from 'app/common/UserAPI'
 import {GristClient, openClient} from 'test/server/gristClient';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {assert} from 'chai';
+import {zipObject} from 'lodash';
 import * as sinon from 'sinon';
 
 const TEST_ORG = "userpresence";
@@ -129,23 +130,53 @@ describe('UserPresence', function() {
     },
   ];
 
-  joiningTestCases.forEach(testCase =>
-    it(`sends the correct update messages: ${testCase.name}`, async function () {
-      const observerClient = await testCase.makeObserverClient();
-      const joiningClient = await testCase.makeJoinerClient();
-      await observerClient.openDocOnConnect(docId);
-      await joiningClient.openDocOnConnect(docId);
+  const publicEmails = [EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];
 
-      const joinMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
-      const expectedProfile = {...testCase.expectedProfile, id: joinMessage.data.profile.id};
-      assert.deepStrictEqual(joinMessage.data.profile, expectedProfile);
+  // everyone@getgrist.com and anon@getgrist.com need testing separately, as they both provide
+  // public access to a doc, and in both cases public users should show as anonymous
+  publicEmails.forEach(currentPublicEmail => {
+    const _newPermissions = zipObject(
+        publicEmails,
+        publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null)
+    );
 
-      await closeClient(joiningClient);
+    describe(`shows the correct profile details - public email ${currentPublicEmail}`, async function() {
+      before(async function () {
+        await owner.updateDocPermissions(docId, {
+          users: _newPermissions,
+        });
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log("Fbish");
+        console.log(await owner.getDocAccess(docId));
+      });
 
-      const sessionEndMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
-      assert.equal(sessionEndMessage.data.id, joinMessage.data.id, "id of session ended doesn't match start");
-    })
-  );
+      joiningTestCases.forEach(testCase =>
+        it(testCase.name, async function () {
+          const observerClient = await testCase.makeObserverClient();
+          const joiningClient = await testCase.makeJoinerClient();
+          await observerClient.openDocOnConnect(docId);
+          await joiningClient.openDocOnConnect(docId);
+
+          const joinMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+          const expectedProfile = {...testCase.expectedProfile, id: joinMessage.data.profile.id};
+          assert.deepStrictEqual(joinMessage.data.profile, expectedProfile);
+
+          await closeClient(joiningClient);
+
+          const sessionEndMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+          assert.equal(sessionEndMessage.data.id, joinMessage.data.id, "id of session ended doesn't match start");
+        })
+      );
+    });
+  });
 
   describe("multiple user connections should only show once on the client", async function () {
     const testCombinations = [
@@ -202,6 +233,7 @@ describe('UserPresence', function() {
       await owner.updateDocPermissions(docId, {
         users: {
           [Users.loggedInPublic.email]: 'viewers',
+          [ANONYMOUS_USER_EMAIL]: null,
           // Make all public users editors to show that no public users can see others.
           [EVERYONE_EMAIL]: 'editors',
         }
