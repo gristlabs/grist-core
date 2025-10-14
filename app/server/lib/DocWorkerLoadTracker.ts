@@ -2,7 +2,7 @@ import { clamp } from "app/common/gutil";
 import { Interval } from "app/common/Interval";
 import { DocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { appSettings } from "app/server/lib/AppSettings";
-import { DocManager } from "app/server/lib/DocManager";
+import { DocManager, IMemoryLoadEstimator } from "app/server/lib/DocManager";
 import { DocWorkerInfo, IDocWorkerMap } from "app/server/lib/DocWorkerMap";
 import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
@@ -69,7 +69,7 @@ export function getDocWorkerLoadTracker(
  * {@link IDocWorkerMap}.
  */
 export class DocWorkerLoadTracker {
-  private _useSystemLoad = Boolean(Deps.docWorkerMemoryUsagePath && Deps.docWorkerMemoryCapacityPath);
+  private _disabledFilePaths = new Set<string>();
   private _log = new LogMethods("DocWorkerLoadTracker ", () => ({}));
   private _interval = new Interval(
     this._updateLoad.bind(this),
@@ -85,7 +85,7 @@ export class DocWorkerLoadTracker {
   constructor(
     private _docWorkerInfo: DocWorkerInfo,
     private _docWorkerMap: IDocWorkerMap,
-    private _docManager: DocManager
+    private _docManager: IMemoryLoadEstimator
   ) {}
 
   /**
@@ -134,41 +134,67 @@ export class DocWorkerLoadTracker {
     filePath: string,
     valueProcessor?: (val: string) => number|undefined
   ): Promise<number> {
-    const rawVal = await fs.readFile(filePath, "utf-8");
-    const valInBytes = valueProcessor?.(rawVal) ?? parseInt(rawVal, 10);
+    try {
+      const rawVal = await fs.readFile(filePath, "utf-8");
+      const valInBytes = valueProcessor?.(rawVal) ?? parseInt(rawVal, 10);
 
-    if (isNaN(valInBytes)) {
-      throw new Error(
-        `Unexpected value found in file (not a number), aborting. value = ${rawVal.slice(0, 1000)}`
-      );
+      if (isNaN(valInBytes)) {
+        throw new Error(
+          `Unexpected value found in file (not a number), aborting. value = ${rawVal.slice(0, 1000)}`
+        );
+      }
+
+      return valInBytes / 1024**2;
+    } catch (e) {
+      this._disabledFilePaths.add(filePath);
+      throw e;
     }
-
-    return valInBytes / 1024**2;
   }
 
+  private _canReadValueFromFile(filePath: string|undefined): filePath is string {
+    return filePath !== undefined && !this._disabledFilePaths.has(filePath);
+  }
+
+  /**
+   * We read the memory used in this order:
+   * 1. If we have a path specified for a file that contain the memory used, read this file
+   * 1.1. If there is an error, don't consider this file path anymore
+   * 2. In other case, read instead the load using the estimation given by the doc manager
+   *    (less accurate, typically it does not include nodejs load).
+   */
   private async _getMemoryUsedMB(): Promise<number> {
-    if (this._useSystemLoad) {
+    if (this._canReadValueFromFile(Deps.docWorkerMemoryUsagePath)) {
       try {
-        return this._readValueFromFileInMB(Deps.docWorkerMemoryUsagePath!);
+        return this._readValueFromFileInMB(Deps.docWorkerMemoryUsagePath);
       } catch (e) {
         const methodName = `${DocWorkerLoadTracker.name}.${this._getMemoryUsedMB.name}`;
         log.error(`${methodName}: can't read value from file ${Deps.docWorkerMemoryUsagePath}.` +
           `Falling back permanently to reading values from Doc Manager estimation. Error = ${e.stack}`);
-        this._useSystemLoad = false;
       }
     }
 
     return  this._docManager.getTotalMemoryUsedMB();
   }
 
+  /**
+   * We read the total memory available in this order:
+   * 1. If the admin specified an amount of total memory available through GRIST_DOC_WORKER_MAX_MEMORY_MB
+   *    then use it (to cover the case the administrator wants to pass a lower value than the actual
+   *    total memory, and have spare free memory for the current documents)
+   * 2. If the admin specified a path to read the total amoun of memory, read it.
+   * 2.1. If the value is max, consider as "Infinity"
+   * 2.2. If the value is a number, return it
+   * 2.3. If there is an error reading the value, don't consider this file path anymore
+   * 3. Return Infinity
+   */
   private async _getMemoryTotalMB() {
     if (Deps.docWorkerMaxMemoryMB) {
       return Deps.docWorkerMaxMemoryMB;
     }
-    if (this._useSystemLoad) {
+    if (this._canReadValueFromFile(Deps.docWorkerMemoryCapacityPath)) {
       try {
         return this._readValueFromFileInMB(
-          Deps.docWorkerMemoryCapacityPath!,
+          Deps.docWorkerMemoryCapacityPath,
           // When the value is "max", return Infinity, otherwise return undefined so
           // so the function read what's probably an integer value.
           (val) => val === 'max' ? Infinity : undefined
@@ -177,11 +203,10 @@ export class DocWorkerLoadTracker {
         const methodName = `${DocWorkerLoadTracker.name}.${this._getMemoryTotalMB.name}`;
         log.error(`${methodName}: can't read value from file ${Deps.docWorkerMemoryCapacityPath}.` +
           `Assuming the memory available is unlimited. Error = ${e.stack}`);
-        this._useSystemLoad = false;
       }
     }
 
-    return +Infinity;
+    return Infinity;
   }
 
   private async _updateLoad() {
