@@ -50,7 +50,6 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
     const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
-    console.log("HIYA", doc);
     if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
       return shareButton(t("Back to Current"), () => [
