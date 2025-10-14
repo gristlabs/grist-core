@@ -220,9 +220,11 @@ export interface Proposal {
   createdAt: string;  // ISO date string
   updatedAt: string;  // ISO date string
   appliedAt: string|null;  // ISO date string
+  srcDocId: string;
   srcDoc: Document & {
     creator: FullUser
   },
+  destDocId: string;
   destDoc: Document & {
     creator: FullUser
   },

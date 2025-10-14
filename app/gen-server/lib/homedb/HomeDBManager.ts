@@ -21,6 +21,7 @@ import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {
   ANONYMOUS_USER_EMAIL,
+  Proposal as ApiProposal,
   DocumentProperties,
   EVERYONE_EMAIL,
   getRealAccess,
@@ -3479,7 +3480,7 @@ export class HomeDBManager {
     srcDocId?: string,
     destDocId?: string,
     shortId?: number,
-  }): Promise<Proposal[]> {
+  }): Promise<ApiProposal[]> {
     const result = await this._connection.createQueryBuilder()
       .select('proposals')
       .from(Proposal, 'proposals')
@@ -3492,12 +3493,11 @@ export class HomeDBManager {
       .where(options)
       .orderBy('proposals.short_id', 'DESC')
       .getMany();
-    const result2 = this._normalizeQueryResults(result);
-    return result2;
+    return this._normalizeQueryResults(result);
   }
 
   public async getProposal(destDocId: string, shortId: number,
-                           transaction?: EntityManager): Promise<Proposal> {
+                           transaction?: EntityManager): Promise<ApiProposal> {
     const result = await (transaction || this._connection).createQueryBuilder()
       .select('proposals')
       .from(Proposal, 'proposals')
@@ -3507,8 +3507,7 @@ export class HomeDBManager {
       .where('proposals.shortId = :shortId', {shortId})
       .andWhere('proposals.destDocId = :destDocId', {destDocId})
       .getOne();
-    const result2 = this._normalizeQueryResults(result);
-    return result2;
+    return this._normalizeQueryResults(result);
   }
 
   /**

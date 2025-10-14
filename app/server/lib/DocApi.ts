@@ -37,7 +37,6 @@ import {
   ArchiveUploadResult,
   CreatableArchiveFormats,
   DocReplacementOptions,
-  FullUser,
   NEW_DOCUMENT_CODE
 } from 'app/common/UserAPI';
 import {Document} from "app/gen-server/entity/Document";
@@ -1377,29 +1376,38 @@ export class DocWorkerApi {
       );
     }));
 
+    /**
+     * Take the content of the document, relative to a trunk, and make
+     * it a proposal to the trunk document.
+     */
     this._app.post('/api/docs/:docId/propose', canEdit, withDoc(async (activeDoc, req, res) => {
       const urlId = activeDoc.docName;
       const parts = parseUrlId(urlId || '');
       const retracted = Boolean(req.body.retracted);
-      if (urlId && parts.trunkId && parts.forkId) {
-        const comparisonUrlId = parts.trunkId;
-        const comp = await this._compareDoc(req, activeDoc, {
-          showDetails: true,
-          docId2: comparisonUrlId,
-          maxRows: null,
-        });
-        await this._dbManager.setProposal({
-          srcDocId: parts.forkId,
-          destDocId: parts.trunkId,
-          comparison: comp,
-          retracted
-        });
-        res.json(comp);
-        return;
+      if (!parts.forkId) {
+        throw new ApiError('Can only propose from a fork', 400);
       }
-      res.json(null);
+      const comparisonUrlId = parts.trunkId;
+      const comp = await this._compareDoc(req, activeDoc, {
+        showDetails: true,
+        docId2: comparisonUrlId,
+        maxRows: null,
+      });
+      await this._dbManager.setProposal({
+        srcDocId: parts.forkId,
+        destDocId: parts.trunkId,
+        comparison: comp,
+        retracted
+      });
+      res.json(comp);
     }));
 
+    /**
+     * List the proposals associated with a document.
+     * if an `outgoing` flag is provided, then proposals
+     * where the document is the source are listed. Otherwise
+     * proposals where the document is the desination are listed.
+     */
     this._app.get('/api/docs/:docId/proposals', canView, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
       if (!await activeDoc.canCopyEverything(docSession)) {
@@ -1417,7 +1425,7 @@ export class DocWorkerApi {
       const owner = await activeDoc.isOwner(docSession);
       if (!owner) {
         for (const proposal of result) {
-          const creator = proposal.srcDoc.creator as any as FullUser;
+          const creator = proposal.srcDoc.creator;
           if (creator.anonymous) {
             proposal.srcDocId = 'hidden';
             proposal.srcDoc.id = 'hidden';

@@ -169,7 +169,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
 import {OnDemandActions} from 'app/server/lib/OnDemandActions';
-import {Patch } from 'app/server/lib/Patch';
+import {Patch} from 'app/server/lib/Patch';
 import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
@@ -904,9 +904,17 @@ export class ActiveDoc extends EventEmitter {
     return this._activeDocImport.generateImportDiff(hiddenTableId, transformRule, mergeOptions);
   }
 
+  /**
+   * Apply a proposal to the document. The proposal is applied as a set of linked actions
+   * for ease of undo.
+   */
   public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
     dismiss?: boolean,
   }): Promise<ApplyProposalResult> {
+    if (!await this.isOwner(docSession)) {
+      // For now, only owners can use this method.
+      throw new ApiError('Only owners can apply proposals', 400);
+    }
     const urlId = this.docName;
     const proposal = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
     if (!proposal) {
@@ -914,6 +922,7 @@ export class ActiveDoc extends EventEmitter {
     }
     const origDetails = proposal.comparison.comparison?.details;
     if (!origDetails) {
+      // This shouldn't happen.
       throw new ApiError('Proposal details not found', 500);
     }
     let result: PatchLog = {changes: [], applied: false};
@@ -931,8 +940,11 @@ export class ActiveDoc extends EventEmitter {
         status: 'dismissed'
       });
     }
-    const proposal2 = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
-    return {proposal: proposal2 as any, log: result};
+    const proposalUpdated = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
+    return {
+      proposal: proposalUpdated,
+      log: result
+    };
   }
 
   /**
