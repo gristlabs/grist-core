@@ -183,6 +183,7 @@ describe('ProposedChangesPage', function() {
     // Work on a copy.
     async function workOnCopy() {
       await driver.get(url);
+      if (await gu.isAlertShown()) { await gu.acceptAlert(); }
       await gu.waitForDocToLoad();
       await driver.findWait('.test-tb-share', 2000).click();
       await driver.findWait('.test-work-on-copy', 2000).click();
