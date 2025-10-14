@@ -145,17 +145,6 @@ describe('UserPresence', function() {
         await owner.updateDocPermissions(docId, {
           users: _newPermissions,
         });
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log("Fbish");
-        console.log(await owner.getDocAccess(docId));
       });
 
       joiningTestCases.forEach(testCase =>
