@@ -18,10 +18,17 @@ export class Patch {
 
   public constructor(public gristDoc: ActiveDoc, public docSession: OptDocSession) {}
 
+  /**
+   * Apply the given comparison as a patch. Return a list of notes.
+   * The returned list is currently haphazard, for debugging purposes only.
+   */
   public async applyChanges(details: DocStateComparisonDetails): Promise<PatchLog> {
     const changes: PatchItem[] = [];
     try {
       const summary = details.leftChanges;
+
+      // Throw an error if there are structural changes. We'll be able
+      // to handle those! But not yet.
       if (summary.tableRenames.length > 0) {
         throw new Error('table-level changes cannot be handled yet');
       }
@@ -30,23 +37,18 @@ export class Patch {
           throw new Error('column-level changes cannot be handled yet');
         }
       }
+
       for (const [tableId, delta] of Object.entries(summary.tableDeltas)) {
-        if (tableId.startsWith('_grist_')) {
-          continue;
-        }
-        if (delta.columnRenames.length > 0) {
-          changes.push({
-            msg: 'column renames ignored',
-          });
-        }
+        // Ignore metadata for now.
+        if (tableId.startsWith('_grist_')) { continue; }
         if (delta.removeRows.length > 0) {
-          changes.push(...await this.removeRows(tableId, delta));
+          changes.push(...await this._removeRows(tableId, delta));
         }
         if (delta.updateRows.length > 0) {
-          changes.push(...await this.updateRows(tableId, delta));
+          changes.push(...await this._updateRows(tableId, delta));
         }
         if (delta.addRows.length > 0) {
-          changes.push(...await this.addRows(tableId, delta));
+          changes.push(...await this._addRows(tableId, delta));
         }
       }
     } catch (e) {
@@ -59,63 +61,9 @@ export class Patch {
     return {changes, applied};
   }
 
-  public async change(delta: TableDelta, tableId: string, rowId: number, colId: string,
-                      pre: any, post: any): Promise<PatchItem> {
-    await this.applyUserActions([
-      ['UpdateRecord', tableId, rowId, { [colId]: post }],
-    ]);
-    // delta.accepted ||= {};
-    // delta.accepted.updateRows ||= [];
-    // delta.accepted.updateRows.push(rowId);
-    return {
-      msg: 'did an update',
-    };
-  }
-
-  public async applyUserActions(actions: UserAction[]) {
-    const result = await this.gristDoc.applyUserActions(
-      this.docSession, actions, {
-        otherId: this._otherId,
-        linkId: this._linkId,
-      }
-    );
-    if (!this._otherId) {
-      this._otherId = result.actionNum;
-    }
-    this._linkId = result.actionNum;
-  }
-
-  public async doAdd(delta: TableDelta, tableId: string, rowId: number, rec: Record<string, any>): Promise<PatchItem> {
-    if (rec.manualSort) {
-      delete rec.manualSort;
-    }
-    await this.applyUserActions([
-      ['AddRecord', tableId, null, rec],
-    ]);
-    // delta.accepted ||= {};
-    // delta.accepted.addRows ||= [];
-    // delta.accepted.addRows.push(rowId);
-    return {
-      msg: 'did an add',
-    };
-  }
-
-  public async doRemove(delta: TableDelta, tableId: string, rowId: number,
-                        rec: Record<string, any>): Promise<PatchItem> {
-    await this.applyUserActions([
-      ['RemoveRecord', tableId, rowId],
-    ]);
-    //delta.accepted ||= {};
-    //delta.accepted.removeRows ||= [];
-    //delta.accepted.removeRows.push(rowId);
-    return {
-      msg: 'did a remove',
-    };
-  }
-
-  public async updateRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
+  private async _updateRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
     const changes: PatchItem[] = [];
-    const rows = remaining(delta.updateRows, undefined); //, delta.accepted?.updateRows);
+    const rows = delta.updateRows;
     const columnDeltas = delta.columnDeltas;
     for (const row of rows) {
       for (const [colId, columnDelta] of Object.entries(columnDeltas)) {
@@ -128,15 +76,15 @@ export class Patch {
         }
         const pre = cellDelta[0]?.[0];
         const post = cellDelta[1]?.[0];
-        changes.push(await this.change(delta, tableId, row, colId, pre, post));
+        changes.push(await this._changeCell(delta, tableId, row, colId, pre, post));
       }
     }
     return changes;
   }
 
-  public async addRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
+  private async _addRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
     const changes: PatchItem[] = [];
-    const rows = remaining(delta.addRows, undefined); //delta.accepted?.addRows);
+    const rows = delta.addRows;
     const columnDeltas = delta.columnDeltas;
     for (const row of rows) {
       const rec: Record<string, any> = {};
@@ -150,14 +98,14 @@ export class Patch {
         }
         rec[colId] = cellDelta[1]?.[0];
       }
-      changes.push(await this.doAdd(delta, tableId, row, rec));
+      changes.push(await this._doAdd(delta, tableId, row, rec));
     }
     return changes;
   }
 
-  public async removeRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
+  private async _removeRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
     const changes: PatchItem[] = [];
-    const rows = remaining(delta.removeRows, undefined); //delta.accepted?.removeRows);
+    const rows = delta.removeRows;
     const columnDeltas = delta.columnDeltas;
     for (const row of rows) {
       const rec: Record<string, any> = {};
@@ -171,14 +119,54 @@ export class Patch {
         }
         rec[colId] = cellDelta[0]?.[0];
       }
-      changes.push(await this.doRemove(delta, tableId, row, rec));
+      changes.push(await this._doRemove(delta, tableId, row, rec));
     }
     return changes;
   }
-}
 
+  private async _applyUserActions(actions: UserAction[]) {
+    const result = await this.gristDoc.applyUserActions(
+      this.docSession, actions, {
+        otherId: this._otherId,
+        linkId: this._linkId,
+      }
+    );
+    if (!this._otherId) {
+      this._otherId = result.actionNum;
+    }
+    this._linkId = result.actionNum;
+  }
 
-function remaining(proposed: number[], accepted: number[]|undefined): number[] {
-  const a = new Set(accepted);
-  return proposed.filter(n => !a.has(n));
+  private async _doAdd(delta: TableDelta, tableId: string,
+                       rowId: number, rec: Record<string, any>): Promise<PatchItem> {
+    if (rec.manualSort) {
+      delete rec.manualSort;
+    }
+    await this._applyUserActions([
+      ['AddRecord', tableId, null, rec],
+    ]);
+    return {
+      msg: 'added a record',
+    };
+  }
+
+  private async _doRemove(delta: TableDelta, tableId: string, rowId: number,
+                          rec: Record<string, any>): Promise<PatchItem> {
+    await this._applyUserActions([
+      ['RemoveRecord', tableId, rowId],
+    ]);
+    return {
+      msg: 'removed a record',
+    };
+  }
+
+  private async _changeCell(delta: TableDelta, tableId: string, rowId: number, colId: string,
+                            pre: any, post: any): Promise<PatchItem> {
+    await this._applyUserActions([
+      ['UpdateRecord', tableId, rowId, { [colId]: post }],
+    ]);
+    return {
+      msg: 'updated a cell',
+    };
+  }
 }
