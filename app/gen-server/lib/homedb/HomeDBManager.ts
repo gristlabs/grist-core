@@ -2585,25 +2585,7 @@ export class HomeDBManager {
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       // Get the doc
-      const docQuery = this._doc(scope, {
-        manager,
-        markPermissions: Permissions.OWNER
-      })
-      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'doc_groups')
-      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
-      .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
-      .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_groups')
-      .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_users')
-      .leftJoinAndSelect('orgs.aclRules', 'org_acl_rules')
-      .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-      .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
-      const docQueryResult = await verifyEntity(docQuery);
-      if (docQueryResult.status !== 200) {
-        // If the query for the doc failed, return the failure result.
-        return docQueryResult;
-      }
-      const doc = getDocResult(docQueryResult);
+      const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -5009,7 +4991,8 @@ export class HomeDBManager {
 
       const docQuery = this._doc(scope, {manager, markPermissions});
       const queryResult = await verifyEntity(docQuery);
-      const doc: Document = this.unwrapQueryResult(queryResult);
+      this.checkQueryResult(queryResult);
+      const doc = getDocResult(queryResult);
 
       // Retrieve the doc's ACL rules and groups/users so we can edit them.
       // We do this as a separate query to avoid repeating the document
