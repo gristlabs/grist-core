@@ -2,7 +2,6 @@ import { getDocWorkerMap } from 'app/gen-server/lib/DocWorkerMap';
 import { IMemoryLoadEstimator } from 'app/server/lib/DocManager';
 import { Deps, DocWorkerLoadTracker } from 'app/server/lib/DocWorkerLoadTracker';
 import { DocWorkerInfo, IDocWorkerMap } from 'app/server/lib/DocWorkerMap';
-import log from 'app/server/lib/log';
 
 import fs from 'node:fs/promises';
 
@@ -14,7 +13,6 @@ describe("DocWorkerLoadTracker", function () {
   let docWorkerLoadTracker: DocWorkerLoadTracker;
   let docWorkerMap: IDocWorkerMap;
   let getTotalMemoryUsedStub: sinon.SinonStub;
-  let errorStub: sinon.SinonStub;
   const sandbox = sinon.createSandbox();
   const originalDeps = {...Deps};
   let cleanupFiles: Array<() => {}> = [];
@@ -29,7 +27,6 @@ describe("DocWorkerLoadTracker", function () {
   });
 
   beforeEach(function () {
-    errorStub = sandbox.stub(log, 'error');
     getTotalMemoryUsedStub = sandbox.stub();
     const docManagerMock: IMemoryLoadEstimator = {
       getTotalMemoryUsedMB: getTotalMemoryUsedStub
@@ -117,50 +114,49 @@ describe("DocWorkerLoadTracker", function () {
       });
     }
 
-    it('should permanently fallback to using the estimation from the doc manager ' +
-      'when failing reading GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH', async function () {
-        await Promise.all([
-          mockValueInFile('docWorkerMemoryUsagePath', 'Yikes, not a number'),
-          mockValueInFile('docWorkerMemoryCapacityPath', bytesToMb(1024))
-        ]);
-        getTotalMemoryUsedStub.returns(512);
+    it('should reject when the memory usage read from a file is not a number', async function () {
+      await Promise.all([
+        mockValueInFile('docWorkerMemoryUsagePath', 'Yikes, not a number'),
+        mockValueInFile('docWorkerMemoryCapacityPath', bytesToMb(1024))
+      ]);
+      getTotalMemoryUsedStub.returns(512);
 
-        let val = await docWorkerLoadTracker.getLoad();
+      await assert.isRejected(docWorkerLoadTracker.getLoad(), /Unexpected value .* found in file.*Yikes/);
+    });
 
-        assert.equal(val, 512/1024);
-        assert.match(errorStub.firstCall.firstArg, /Unexpected value found in file/);
+    it('should reject when the max memory available is specified but cannot be read', async function () {
+      await mockValueInFile('docWorkerMemoryUsagePath', bytesToMb(512));
+      await fs.rm(Deps.docWorkerMemoryCapacityPath!);
 
-        errorStub.reset();
-        await mockValueInFile('docWorkerMemoryUsagePath', 128);
+      await assert.isRejected(docWorkerLoadTracker.getLoad(), /ENOENT/);
+    });
+  });
 
-        val = await docWorkerLoadTracker.getLoad();
+  describe('interval runner', function () {
+    let getLoadStub: sinon.SinonStub;
+    let setWorkerLoadStub: sinon.SinonStub;
+    let logErrorStub: sinon.SinonStub;
+    beforeEach(function () {
+      getLoadStub = sandbox.stub(docWorkerLoadTracker, 'getLoad').resolves(0);
+      setWorkerLoadStub = sandbox.stub(docWorkerMap, 'setWorkerLoad').resolves(undefined);
+      logErrorStub = sandbox.stub(docWorkerLoadTracker['_log'], 'error').returns(undefined);
+    });
 
-        assert.equal(val, 512/1024);
-        assert.isFalse(errorStub.called, "log.error should not have been called a second time");
-      }
-    );
+    const triggerTimer = () => docWorkerLoadTracker['_interval']['_onTimeoutTriggered']();
 
-    it('should permanently return a load of zero ' +
-      'when failing reading GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH', async function () {
-        await mockValueInFile('docWorkerMemoryUsagePath', bytesToMb(512));
-        await fs.rm(Deps.docWorkerMemoryCapacityPath!);
+    it('should update the worker load when the timer is triggered', async function () {
+      getLoadStub.resolves(0.42);
+      await triggerTimer();
+      assert.equal(setWorkerLoadStub.callCount, 1, 'setWorkerLoad should have been called');
+      assert.deepEqual(setWorkerLoadStub.firstCall.args, [docWorkerInfoMap, 0.42]);
+    });
 
-        let val = await docWorkerLoadTracker.getLoad();
-
-        assert.equal(val, 0);
-        assert.match(errorStub.firstCall.firstArg, /ENOENT/);
-
-        errorStub.reset();
-        await Promise.all([
-          mockValueInFile('docWorkerMemoryUsagePath', bytesToMb(128)),
-          mockValueInFile('docWorkerMemoryCapacityPath', bytesToMb(1024))
-        ]);
-
-        val = await docWorkerLoadTracker.getLoad();
-
-        assert.equal(val, 0);
-        assert.isFalse(errorStub.called, "log.error should not have been called a second time");
-      }
-    );
+    it('should log an error when the load cannot be retrieved', async function () {
+      const error = new Error('an error');
+      getLoadStub.rejects(error);
+      await triggerTimer();
+      assert.equal(setWorkerLoadStub.callCount, 0, 'setWorkerLoad should not have been called');
+      assert.include(logErrorStub.firstCall.args, error, 'the error should have been logged');
+    });
   });
 });
