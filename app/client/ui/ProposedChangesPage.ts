@@ -275,11 +275,18 @@ export class ProposedChangesForkPage extends Disposable {
                 doc: origUrlId,
                 docPage: 'proposals',
               }, {
-                beforeChange: () => this.gristDoc.docPageModel.clearUnsavedChanges()
-              }),
-              dom.on('click', () => {
-                this.gristDoc.docPageModel.clearUnsavedChanges();
-              }),
+                beforeChange: () => {
+                  const user = this.gristDoc.currentUser.get();
+                  // If anonymous, be careful, proposal list won't
+                  // give a link back to this URL since that would
+                  // let anyone edit it.
+                  if (user?.anonymous) { return; }
+                  // Otherwise, don't worry about losing the link
+                  // to this page, you can get it from the original
+                  // document.
+                  this.gristDoc.docPageModel.clearUnsavedChanges();
+                }
+              })
             )
           }),
          ),
