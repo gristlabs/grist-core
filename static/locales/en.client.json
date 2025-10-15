@@ -1557,7 +1557,7 @@
         "Access overview": "Access overview",
         "Share it publicly": "Share it publicly",
         "Verify your sensitive data before sharing publicly": "Verify your sensitive data before sharing publicly",
-        "Your {{resourceType}} will be accessible to anyone with the link, including those who have found your document through a search engine. \n\nCarefully check that your {{resourceType}} does not contain sensitive data.": "Your {{resourceType}} will be accessible to anyone with the link, including those who have found your document through a search engine. \n\nCarefully check that your {{resourceType}} does not contain sensitive data."
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing."
     },
     "SearchModel": {
         "Search all pages": "Search all pages",

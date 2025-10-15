@@ -132,9 +132,9 @@ from someone else with sufficient access to the {{resourceType}}.', { resourceTy
         () => onConfirm(ctl, new Set([...acceptedWarnings, 'public-sharing'])),
         {
           explanation: (
-            markdown(t('Your {{resourceType}} will be accessible to anyone \
-with the link, including those who have found your document through a search engine. \
-\n\nCarefully check that your {{resourceType}} does not contain sensitive data.',
+            markdown(t('Your {{resourceType}} will be accessible to anyone with the link, \
+whether shared directly or found through a search engine. \n \
+Ensure that your {{resourceType}} does not contain sensitive data before sharing.',
               { resourceType }))),
         }
       );
