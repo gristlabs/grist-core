@@ -141,7 +141,7 @@ describe('ProposedChangesPage', function() {
     await driver.findContentWait('.test-widget-title-text', /TABLE1/, 2000);
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), 'test1');
 
-    // Go back to the changes page, and click "Apply".
+    // Go back to the changes page, and click "Accept".
     assert.equal(await driver.find('.test-tools-proposals').getText(),
                  'Proposed Changes');
     await driver.find('.test-tools-proposals').click();
@@ -234,31 +234,34 @@ describe('ProposedChangesPage', function() {
     // Apply the second one and check that it has an effect.
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      [ 'Fish', 'Primate' ]);
-    await (await driver.findAll('.test-proposals-apply')).at(1)?.click();
+    await driver.find('.test-proposals-patch:nth-child(2)')
+      .find('.test-proposals-apply').click();
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /# 2/).getText(),
-      /Applied/
+      /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      [ 'Fish', 'Mammal' ]);
 
     // Now the third one.
-    await (await driver.findAll('.test-proposals-apply')).at(2)?.click();
+    await driver.find('.test-proposals-patch:nth-child(3)')
+      .find('.test-proposals-apply').click();
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /# 1/).getText(),
-      /Applied/
+      /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      [ 'Bird', 'Mammal' ]);
 
     // Now the first one.
-    await (await driver.findAll('.test-proposals-apply')).at(0)?.click();
+    await driver.find('.test-proposals-patch:nth-child(1)')
+      .find('.test-proposals-apply').click();
     await gu.waitForServer();
     assert.match(
       await driver.findContent('.test-proposals-header', /# 3/).getText(),
-      /Applied/
+      /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      [ 'Bird', 'Mammal', 'SpaceDuck' ]);
