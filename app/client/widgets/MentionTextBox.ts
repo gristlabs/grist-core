@@ -28,7 +28,7 @@ const t = makeT('MentionTextBox');
 
 
 /**
- * Some not-so-old Firefox ESR versions don't support "plaintext-only" as contenteditable value.
+ * Some not-so-old Firefox ESR versions (<= 128) don't support "plaintext-only" as contenteditable value.
  *
  * We make sure to check for support before using it.
  * If it's not supported, we handle ourselves stripping pasted text formatting.
