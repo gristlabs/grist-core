@@ -206,7 +206,7 @@ const cssSelectorBtn = styled(unstyledButton, `
 
   &-selected {
     color: ${theme.buttonGroupSelectedFg};
-    --icon-color: ${theme.buttonGroupSelectedFg};
+    --icon-color: ${theme.buttonGroupSelectedBorder};
     border: 1px solid ${theme.buttonGroupSelectedBorder};
     background-color: ${theme.buttonGroupSelectedBg};
     z-index: 10;  /* Update z-index so selected borders take precedent */
