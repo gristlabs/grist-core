@@ -1066,6 +1066,7 @@ export class FlexServer implements GristServer {
     if (this._hosts) { this._hosts.close(); }
     this._emitNotifier.removeAllListeners();
     this._dbManager?.clearCaches();
+    this._installAdmin?.clearCaches();
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
