@@ -1,4 +1,14 @@
-import {BaseEntity, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn} from "typeorm";
+import {
+  BaseEntity,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn
+} from "typeorm";
 
 import {User} from "app/gen-server/entity/User";
 
@@ -23,4 +33,25 @@ export class Login extends BaseEntity {
   @ManyToOne(type => User)
   @JoinColumn({name: 'user_id'})
   public user: User;
+
+  @BeforeInsert()
+  public async beforeInsert() {
+    this._checkServiceAccountMailAreInvalid();
+  }
+
+  @BeforeUpdate()
+  public async beforeUpdate() {
+    this._checkServiceAccountMailAreInvalid();
+  }
+
+  private _checkServiceAccountMailAreInvalid(){
+    if (this.user.type === "service" && !this._isInvalidEmail()) {
+      throw new Error("Users of type service must have email like XXXXXX@serviceaccount.invalid");
+    }
+  }
+
+  private _isInvalidEmail(): boolean {
+    const tld = this.email.split(".").at(-1);
+    return tld === "invalid";
+  }
 }
