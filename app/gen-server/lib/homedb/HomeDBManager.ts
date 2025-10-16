@@ -3464,6 +3464,10 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.getServiceAccount(serviceLogin);
   }
 
+  public async getServiceAccountWithOwner(serviceLogin: string) {
+    return this._serviceAccountsManager.getServiceAccountWithOwner(serviceLogin);
+  }
+
   public async updateServiceAccount(
     serviceLogin: string, partial: Partial<ServiceAccount>, options: { expectedOwnerId?: number } = {}
   ) {
@@ -3480,10 +3484,6 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async revokeServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
     return this._serviceAccountsManager.revokeServiceAccountApiKey(serviceLogin, options);
-  }
-
-  public async isServiceAccountAlive(serviceLogin: string) {
-    return this._serviceAccountsManager.isServiceAccountAlive(serviceLogin);
   }
 
   public async getApiKey(userId: number) {

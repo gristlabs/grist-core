@@ -40,4 +40,9 @@ export class ServiceAccount extends BaseEntity {
       throw new ApiError("Invalid expiresAt", 400);
     }
   }
+
+  public isAlive(): Boolean {
+    const currentDate = new Date();
+    return this.expiresAt > currentDate;
+  }
 }

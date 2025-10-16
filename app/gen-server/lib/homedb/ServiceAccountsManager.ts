@@ -75,6 +75,22 @@ export class ServiceAccountsManager {
     });
   }
 
+  public async getServiceAccountWithOwner(
+    serviceAccountLogin: string,
+    transaction?: EntityManager
+  ) {
+    return await this._runInTransaction(transaction, async manager => {
+      return await manager.createQueryBuilder()
+        .select("serviceAccount")
+        .from(ServiceAccount, "serviceAccount")
+        .innerJoinAndSelect("serviceAccount.serviceUser", "serviceUser")
+        .innerJoinAndSelect("serviceUser.logins", "logins")
+        .innerJoinAndSelect("serviceAccount.owner", "owner")
+        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
+        .getOne();
+    });
+  }
+
   public async getAllServiceAccounts(
     ownerId: number,
     transaction?: EntityManager
@@ -112,7 +128,7 @@ export class ServiceAccountsManager {
       // We perform a soft delete
       // as we don't want a service user's apiKey to still work
       serviceUser.apiKey = null;
-      serviceUser.removedAt = new Date();
+      serviceUser.disabledAt = new Date();
       await manager.save(serviceUser);
       await manager.remove(serviceAccount);
       return serviceAccount;
@@ -140,16 +156,6 @@ export class ServiceAccountsManager {
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       serviceAccount.serviceUser = await this._homeDb.deleteApiKey(serviceAccount.serviceUser.id, manager);
       return serviceAccount;
-    });
-  }
-
-  public async isServiceAccountAlive(serviceAccountLogin: string) {
-    return await this._connection.transaction(async manager => {
-      const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
-      this._assertExisting(serviceAccount);
-      const expiresAt = new Date(serviceAccount.expiresAt);
-      const currentDate = new Date();
-      return expiresAt > currentDate;
     });
   }
 
