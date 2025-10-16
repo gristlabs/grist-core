@@ -8,7 +8,7 @@
 import {makeT} from 'app/client/lib/localization';
 import {normalizeEmail} from 'app/common/emails';
 import {commonUrls, isOrgInPathOnly} from 'app/common/gristUrls';
-import {capitalizeFirstWord, isLongerThan} from 'app/common/gutil';
+import {capitalizeFirstWord, isAffirmative, isLongerThan} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
@@ -87,6 +87,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
 
   async function onConfirm(ctl: IModalControl, acceptedWarnings = new Set<ACCEPTED_WARNINGS>()) {
     const model = modelObs.get();
+    const config = getGristConfig();
     if (!model || model === 'slow') {
       ctl.close();
       return;
@@ -125,7 +126,8 @@ from someone else with sufficient access to the {{resourceType}}.', { resourceTy
       );
       return;
     }
-    if (model.goingToSharePublicly() && !acceptedWarnings.has('public-sharing')) {
+    if (isAffirmative(config.warnBeforeSharingPublicly) && model.goingToSharePublicly()
+      && !acceptedWarnings.has('public-sharing')) {
       confirmModal(
         t('Verify your sensitive data before sharing publicly'),
         t('Share it publicly'),

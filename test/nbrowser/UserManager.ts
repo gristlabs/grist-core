@@ -7,6 +7,7 @@ import { assert } from 'chai';
 describe('UserManager', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
+  gu.withEnvironmentSnapshot({GRIST_WARN_BEFORE_SHARING_PUBLICLY: '1'});
   const user1 = gu.translateUser('user1');
   const user2 = gu.translateUser('user2');
   const user3 = gu.translateUser('user3');
