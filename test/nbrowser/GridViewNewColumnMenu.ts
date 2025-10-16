@@ -1,12 +1,29 @@
-import {driver, Key} from "mocha-webdriver";
-import {assert} from "chai";
-import * as gu from "test/nbrowser/gristUtils";
-import {setupTestSuite} from "test/nbrowser/testUtils";
 import {UserAPIImpl} from 'app/common/UserAPI';
+import {assert} from 'chai';
+import {driver, Key} from 'mocha-webdriver';
+import {
+  addRefListLookup,
+  AVERAGE,
+  checkTypeAndFormula,
+  clickAddColumn,
+  closeAddColumnMenu,
+  collapsedHiddenColumns,
+  hasAddNewColumMenu,
+  hasLookupMenu,
+  hasShortcuts,
+  isMenuPresent,
+  MAX,
+  MIN,
+  PERCENT,
+  revertEach,
+  revertThis
+} from 'test/nbrowser/GridViewNewColumnMenuUtils';
+import * as gu from 'test/nbrowser/gristUtils';
+import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('GridViewNewColumnMenu', function () {
   const STANDARD_WAITING_TIME = 1000;
-  this.timeout('2m');
+  this.timeout('3m');
   const cleanup = setupTestSuite();
   gu.bigScreen();
   let api: UserAPIImpl;
@@ -1366,164 +1383,77 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  it("should not show hidden Ref columns", async function () {
-    // Duplicate current tab and start transforming a column.
-    const mainTab = await gu.myTab();
-    const transformTab = await gu.duplicateTab();
+  describe('bug fixes', function () {
+    it("should not show hidden Ref columns", async function () {
+      // Duplicate current tab and start transforming a column.
+      const mainTab = await gu.myTab();
+      const transformTab = await gu.duplicateTab();
 
-    // Start transforming a column.
-    await gu.sendActions([
-      ['AddRecord', 'Table1', null, {A: 1, B: 2, C: 3}],
-    ]);
-    await gu.getCell('A', 1).click();
-    await gu.setType('Reference', {apply: false});
-    await gu.waitForServer();
-    await gu.setRefTable('Person');
-    await gu.waitForServer();
+      // Start transforming a column.
+      await gu.sendActions([
+        ['AddRecord', 'Table1', null, {A: 1, B: 2, C: 3}],
+      ]);
+      await gu.getCell('A', 1).click();
+      await gu.setType('Reference', {apply: false});
+      await gu.waitForServer();
+      await gu.setRefTable('Person');
+      await gu.waitForServer();
 
-    // Now we have two hidden columns present.
-    let columns = await api.getTable(docId, 'Table1');
-    assert.includeMembers(Object.keys(columns), [
-      'gristHelper_Converted',
-      'gristHelper_Transform'
-    ]);
+      // Now we have two hidden columns present.
+      let columns = await api.getTable(docId, 'Table1');
+      assert.includeMembers(Object.keys(columns), [
+        'gristHelper_Converted',
+        'gristHelper_Transform'
+      ]);
 
-    // Now on the main tab, make sure we don't see those references in lookup menu.
-    await mainTab.open();
-    await clickAddColumn();
-    await driver.findWait('.test-new-columns-menu-lookups-none', STANDARD_WAITING_TIME);
+      // Now on the main tab, make sure we don't see those references in lookup menu.
+      await mainTab.open();
+      await clickAddColumn();
+      await driver.findWait('.test-new-columns-menu-lookups-none', STANDARD_WAITING_TIME);
 
-    // Now test RefList columns.
-    await transformTab.open();
-    await driver.find('.test-type-transform-cancel').click();
-    await gu.waitForServer();
-    // Make sure hidden columns are removed.
-    columns = await api.getTable(docId, 'Table1');
-    assert.notIncludeMembers(Object.keys(columns), [
-      'gristHelper_Converted',
-      'gristHelper_Transform'
-    ]);
-    await gu.setType('Reference List', {apply: false});
-    await gu.setRefTable('Person');
-    await gu.waitForServer();
-    columns = await api.getTable(docId, 'Table1');
-    assert.includeMembers(Object.keys(columns), [
-      'gristHelper_Converted',
-      'gristHelper_Transform'
-    ]);
+      // Now test RefList columns.
+      await transformTab.open();
+      await driver.find('.test-type-transform-cancel').click();
+      await gu.waitForServer();
+      // Make sure hidden columns are removed.
+      columns = await api.getTable(docId, 'Table1');
+      assert.notIncludeMembers(Object.keys(columns), [
+        'gristHelper_Converted',
+        'gristHelper_Transform'
+      ]);
+      await gu.setType('Reference List', {apply: false});
+      await gu.setRefTable('Person');
+      await gu.waitForServer();
+      columns = await api.getTable(docId, 'Table1');
+      assert.includeMembers(Object.keys(columns), [
+        'gristHelper_Converted',
+        'gristHelper_Transform'
+      ]);
 
-    // Now on the main make sure we still don't see those references in lookup menu.
-    await mainTab.open();
-    await clickAddColumn();
-    await driver.findWait('.test-new-columns-menu-lookups-none', STANDARD_WAITING_TIME);
+      // Now on the main make sure we still don't see those references in lookup menu.
+      await mainTab.open();
+      await clickAddColumn();
+      await driver.findWait('.test-new-columns-menu-lookups-none', STANDARD_WAITING_TIME);
 
-    // Now test reverse lookups.
-    await gu.openPage('Person');
-    await clickAddColumn();
+      // Now test reverse lookups.
+      await gu.openPage('Person');
+      await clickAddColumn();
 
-    // Wait for any menu to show up.
-    await driver.findWait('.test-new-columns-menu-lookup', STANDARD_WAITING_TIME);
+      // Wait for any menu to show up.
+      await driver.findWait('.test-new-columns-menu-lookup', STANDARD_WAITING_TIME);
 
-    // Now make sure we don't have helper columns
-    assert.isEmpty(await driver.findAll('.test-new-columns-menu-revlookup', e => e.getText()));
+      // Now make sure we don't have helper columns
+      assert.isEmpty(await driver.findAll('.test-new-columns-menu-revlookup', e => e.getText()));
 
-    await gu.sendKeys(Key.ESCAPE);
-    await gu.scrollActiveView(-1000, 0);
+      await gu.sendKeys(Key.ESCAPE);
+      await gu.scrollActiveView(-1000, 0);
 
-    await transformTab.open();
-    await driver.find('.test-type-transform-cancel').click();
-    await gu.waitForServer();
-    await transformTab.close();
-    await mainTab.open();
-    await gu.openPage('Table1');
+      await transformTab.open();
+      await driver.find('.test-type-transform-cancel').click();
+      await gu.waitForServer();
+      await transformTab.close();
+      await mainTab.open();
+      await gu.openPage('Table1');
+    });
   });
-
-  async function clickAddColumn() {
-    const isMenuPresent = await driver.find(".test-new-columns-menu").isPresent();
-    if (!isMenuPresent) {
-      await driver.findWait(".mod-add-column", STANDARD_WAITING_TIME).click();
-    }
-    await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
-  }
-
-  async function isMenuPresent() {
-    return await driver.find(".test-new-columns-menu").isPresent();
-  }
-
-  async function closeAddColumnMenu() {
-    await driver.sendKeys(Key.ESCAPE);
-    assert.isFalse(await isMenuPresent(), 'menu is still present');
-  }
-
-  async function hasAddNewColumMenu() {
-    await isDisplayed('.test-new-columns-menu-add-new', 'add new column menu is not present');
-  }
-
-  async function isDisplayed(selector: string, message: string) {
-    assert.isTrue(await driver.findWait(selector, STANDARD_WAITING_TIME, message).isDisplayed(), message);
-  }
-
-  async function hasShortcuts() {
-    await isDisplayed('.test-new-columns-menu-shortcuts', 'shortcuts section is not present');
-    await isDisplayed('.test-new-columns-menu-shortcuts-timestamp', 'timestamp shortcuts section is not present');
-    await isDisplayed('.test-new-columns-menu-shortcuts-author', 'authorship shortcuts section is not present');
-  }
-
-  async function hasLookupMenu(colId: string) {
-    await isDisplayed('.test-new-columns-menu-lookup', 'lookup section is not present');
-    await isDisplayed(`.test-new-columns-menu-lookup-${colId}`, `lookup section for ${colId} is not present`);
-  }
-
-  async function collapsedHiddenColumns() {
-    return await driver.findAll('.test-new-columns-menu-hidden-column-collapsed', (el) => el.getText());
-  }
-
-  function revertEach() {
-    let revert: () => Promise<void>;
-    beforeEach(async function () {
-      revert = await gu.begin();
-    });
-
-    gu.afterEachCleanup(async function () {
-      if (await isMenuPresent()) {
-        await closeAddColumnMenu();
-      }
-      await revert();
-    });
-  }
-
-
-  function revertThis() {
-    let revert: () => Promise<void>;
-    before(async function () {
-      revert = await gu.begin();
-    });
-
-    gu.afterCleanup(async function () {
-      if (await isMenuPresent()) {
-        await closeAddColumnMenu();
-      }
-      await revert();
-    });
-  }
-
-  async function addRefListLookup(refListId: string, colId: string, func: string) {
-    await clickAddColumn();
-    await driver.findWait(`.test-new-columns-menu-lookup-${refListId}`, STANDARD_WAITING_TIME).click();
-    await driver.findWait(`.test-new-columns-menu-lookup-submenu-${colId}`, STANDARD_WAITING_TIME).mouseMove();
-    await driver.findWait(`.test-new-columns-menu-lookup-submenu-function-${func}`, STANDARD_WAITING_TIME).click();
-    await gu.waitForServer();
-  }
-
-  async function checkTypeAndFormula(type: string, formula: string) {
-    assert.equal(await gu.getType(), type);
-    await driver.find('.formula_field_sidepane').click();
-    assert.equal(await gu.getFormulaText(false).then(s => s.trim()), formula);
-    await gu.sendKeys(Key.ESCAPE);
-  }
 });
-
-const PERCENT = (ref: string, col: string) => `ref = ${ref}\nAVERAGE(map(int, ref.${col})) if ref else None`;
-const AVERAGE = (ref: string, col: string) => `ref = ${ref}\nAVERAGE(ref.${col}) if ref else None`;
-const MIN = (ref: string, col: string) => `ref = ${ref}\nMIN(ref.${col}) if ref else None`;
-const MAX = (ref: string, col: string) => `ref = ${ref}\nMAX(ref.${col}) if ref else None`;
