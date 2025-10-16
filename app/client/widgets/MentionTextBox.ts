@@ -31,7 +31,7 @@ const t = makeT('MentionTextBox');
  * Some not-so-old Firefox ESR versions (<= 128) don't support "plaintext-only" as contenteditable value.
  *
  * We make sure to check for support before using it.
- * If it's not supported, we handle ourselves stripping pasted text formatting.
+ * If it's not supported, we'll handle ourselves stripping pasted text formatting.
  * @see https://stackoverflow.com/a/18316972
  */
 const supportsPlaintextEditables = () => {
@@ -39,7 +39,13 @@ const supportsPlaintextEditables = () => {
   div.setAttribute('contenteditable', 'PLAINTEXT-ONLY');
   return div.contentEditable === 'plaintext-only';
 };
-const contentEditableValue = supportsPlaintextEditables() ? 'plaintext-only' : 'true';
+let _contentEditableValue: string | undefined;
+const contentEditableValue = () => {
+  if (!_contentEditableValue) {
+    _contentEditableValue = supportsPlaintextEditables() ? 'plaintext-only' : 'true';
+  }
+  return _contentEditableValue;
+};
 
 /**
  * A tuple of text and mentions parsed from a comment text or HTML.
@@ -165,7 +171,7 @@ export function buildMentionTextBox(
     dom.autoDispose(owner),
     dom.on('input', (_: Event, el: HTMLElement) => setHtml(el)),
     autoGrow(content),
-    dom.attr('contentEditable', contentEditableValue),
+    dom.attr('contentEditable', contentEditableValue()),
     /*
      * In case contenteditable="plaintext-only" is not supported,
      * we handle ourselves stripping pasted text formatting.
@@ -173,7 +179,7 @@ export function buildMentionTextBox(
      * @see https://stackoverflow.com/a/58980415
      */
     dom.on('paste', (e: ClipboardEvent) => {
-      if (contentEditableValue === 'plaintext-only') {
+      if (contentEditableValue() === 'plaintext-only') {
         return;
       }
       e.preventDefault();
@@ -240,7 +246,7 @@ interface MentionPickerProps {
 
 const MENTION_CLASS = 'grist-mention';
 function buildMentionElement() {
-  return cssLink(dom.cls(MENTION_CLASS), '@', dom.attr('contentEditable', contentEditableValue));
+  return cssLink(dom.cls(MENTION_CLASS), '@', dom.attr('contentEditable', contentEditableValue()));
 }
 
 /**
@@ -345,7 +351,7 @@ class MentionPicker extends Disposable {
   }
 
   private _updateTarget() {
-    this._parent.contentEditable = contentEditableValue;
+    this._parent.contentEditable = contentEditableValue();
     this._parent.focus();
     this._props.setHtml(this._parent);
   }
@@ -522,7 +528,8 @@ const cssContentEditable = styled('div', `
   & a {
     outline: none !important;
   }
-  & a[contenteditable="${contentEditableValue}"] {
+  & a[contenteditable="true"],
+  & a[contenteditable="plaintext-only"] {
     text-decoration: none !important;
   }
 `);
