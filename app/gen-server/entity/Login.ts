@@ -35,16 +35,8 @@ export class Login extends BaseEntity {
   public user: User;
 
   @BeforeInsert()
-  public async beforeInsert() {
-    this._checkServiceAccountMailAreInvalid();
-  }
-
   @BeforeUpdate()
-  public async beforeUpdate() {
-    this._checkServiceAccountMailAreInvalid();
-  }
-
-  private _checkServiceAccountMailAreInvalid(){
+  public checkServiceAccountMailAreInvalid(){
     if (this.user.type === "service" && !this._isInvalidEmail()) {
       throw new Error("Users of type service must have email like XXXXXX@serviceaccount.invalid");
     }
