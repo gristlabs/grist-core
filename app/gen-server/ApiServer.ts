@@ -348,7 +348,11 @@ export class ApiServer {
     // Enables the specified doc if it was previously disabled and is
     // still available.
     this._app.post('/api/docs/:did/enable', requireInstallAdmin, expressWrap(async (req, res) => {
-      const {data} = await this._dbManager.enableDocument(getDocScope(req));
+      const mreq = req as RequestWithLogin;
+      const docId = req.params.did;
+      // We have admin access, so grant a special permit to this doc
+      mreq.specialPermit = {...mreq.specialPermit, docId};
+      const {data} = await this._dbManager.enableDocument(getDocScope(mreq));
       if (data) { this._logEnableDocumentEvents(req, data); }
       return sendOkReply(req, res);
     }));

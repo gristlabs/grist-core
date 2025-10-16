@@ -1176,7 +1176,10 @@ export class DocWorkerApi {
     // Disables doc (similar to soft-delete, but needs admin access)
     this._app.post('/api/docs/:docId/disable', requireInstallAdmin, async (req, res) => {
       const mreq = req as RequestWithLogin;
-      const {data} = await this._disableDoc(mreq, res, req.params.docId);
+      const docId = req.params.docId;
+      // We have admin access, so grant a special permit to this doc
+      mreq.specialPermit = {...mreq.specialPermit, docId};
+      const {data} = await this._disableDoc(mreq, res, docId);
       if (data) {
         this._logDisableDocumentEvents(mreq, data);
       }

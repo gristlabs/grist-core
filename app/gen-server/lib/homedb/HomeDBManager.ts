@@ -838,7 +838,10 @@ export class HomeDBManager {
     const org: Organization = this.unwrapQueryResult(orgQueryResult);
     const productFeatures = org.billingAccount.getFeatures();
 
-    // Grab all the non-removed documents in the org.
+    // Grab all the non-removed, non-disabled documents in the org. We
+    // omit them because they will be eventually permanently deleted
+    // by the housekeeper, so it doesn't seem fair to count them
+    // against the user's usage.
     let docsQuery = this._docs()
       .innerJoin('docs.workspace', 'workspaces')
       .innerJoin('workspaces.org', 'orgs')
@@ -5156,9 +5159,7 @@ export class HomeDBManager {
       if (!value) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
       }
-      // For `disabledAt`, the API endpoint already checks for admin access
-      const skipPermissionCheck = property === 'disabledAt';
-      const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery, {skipPermissionCheck}));
+      const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery));
       if (!value) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
