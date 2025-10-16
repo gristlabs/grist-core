@@ -56,7 +56,7 @@ describe("DocWorkerLoadTracker", function () {
     });
 
     async function mockValueInFile(
-      depsProperty: 'docWorkerMemoryCapacityPath'|'docWorkerMemoryUsagePath',
+      depsProperty: 'docWorkerUsedMemoryBytesPath'|'docWorkerMaxMemoryBytesPath',
       value: number|string|undefined): Promise<void> {
       if (value !== undefined) {
         const {path, cleanup} = await tmp.file();
@@ -73,7 +73,7 @@ describe("DocWorkerLoadTracker", function () {
     for (const ctx of [{
       itMsg: 'should retrieve max memory using GRIST_DOC_WORKER_MAX_MEMORY_MB in priority',
       setup() {
-        Deps.docWorkerMaxMemoryMB = 1024;
+        Deps.docWorkerMaxMemoryMBForcedValue = 1024;
       },
       maxFromFile: bytesToMb(512),
       usedFromFile: bytesToMb(128),
@@ -104,8 +104,8 @@ describe("DocWorkerLoadTracker", function () {
       it(ctx.itMsg, async function () {
         ctx.setup?.();
         await Promise.all([
-          mockValueInFile('docWorkerMemoryUsagePath', ctx.usedFromFile),
-          mockValueInFile('docWorkerMemoryCapacityPath', ctx.maxFromFile)
+          mockValueInFile('docWorkerUsedMemoryBytesPath', ctx.usedFromFile),
+          mockValueInFile('docWorkerMaxMemoryBytesPath', ctx.maxFromFile)
         ]);
 
         assert.equal(await docWorkerLoadTracker.getLoad(), ctx.result);
@@ -114,8 +114,8 @@ describe("DocWorkerLoadTracker", function () {
 
     it('should reject when the memory usage read from a file is not a number', async function () {
       await Promise.all([
-        mockValueInFile('docWorkerMemoryUsagePath', 'Yikes, not a number'),
-        mockValueInFile('docWorkerMemoryCapacityPath', bytesToMb(1024))
+        mockValueInFile('docWorkerUsedMemoryBytesPath', 'Yikes, not a number'),
+        mockValueInFile('docWorkerMaxMemoryBytesPath', bytesToMb(1024))
       ]);
       getTotalMemoryUsedStub.returns(512);
 
@@ -123,8 +123,8 @@ describe("DocWorkerLoadTracker", function () {
     });
 
     it('should reject when the max memory available is specified but cannot be read', async function () {
-      await mockValueInFile('docWorkerMemoryUsagePath', bytesToMb(512));
-      Deps.docWorkerMemoryCapacityPath = '/this/path/leads/nowhere';
+      await mockValueInFile('docWorkerUsedMemoryBytesPath', bytesToMb(512));
+      Deps.docWorkerMaxMemoryBytesPath = '/this/path/leads/nowhere';
 
       await assert.isRejected(docWorkerLoadTracker.getLoad(), /ENOENT/);
     });

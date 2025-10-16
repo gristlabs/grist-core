@@ -10,7 +10,7 @@ import { LogMethods } from "app/server/lib/LogMethods";
 import fs from "node:fs/promises";
 
 export const Deps = {
-  docWorkerMaxMemoryMB: appSettings
+  docWorkerMaxMemoryMBForcedValue: appSettings
     .section("docWorker")
     .flag("maxMemoryMB")
     .readInt({
@@ -33,13 +33,13 @@ export const Deps = {
       minValue: 0,
       defaultValue: 1 * 1000,
     }),
-  docWorkerMemoryUsagePath: appSettings
+  docWorkerUsedMemoryBytesPath: appSettings
     .section("docWorker")
     .flag("memoryUsagePath")
     .readString({
       envVar: "GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH",
     }),
-  docWorkerMemoryCapacityPath: appSettings
+  docWorkerMaxMemoryBytesPath: appSettings
     .section("docWorker")
     .flag("memoryCapacityPath")
     .readString({
@@ -160,8 +160,8 @@ export class DocWorkerLoadTracker {
    * @throws When the file at the path can't be read or doesn't contain a number.
    */
   private async _getMemoryUsedMB(): Promise<number> {
-    if (this._canReadValueFromFile(Deps.docWorkerMemoryUsagePath)) {
-      return await this._readValueFromFileInMB(Deps.docWorkerMemoryUsagePath);
+    if (this._canReadValueFromFile(Deps.docWorkerUsedMemoryBytesPath)) {
+      return await this._readValueFromFileInMB(Deps.docWorkerUsedMemoryBytesPath);
     }
 
     return  this._docManager.getTotalMemoryUsedMB();
@@ -181,12 +181,12 @@ export class DocWorkerLoadTracker {
    * @throws When the file at the path can't be read or doesn't contain a valid value as described above.
    */
   private async _getMemoryTotalMB() {
-    if (Deps.docWorkerMaxMemoryMB !== undefined) {
-      return Deps.docWorkerMaxMemoryMB;
+    if (Deps.docWorkerMaxMemoryMBForcedValue !== undefined) {
+      return Deps.docWorkerMaxMemoryMBForcedValue;
     }
-    if (this._canReadValueFromFile(Deps.docWorkerMemoryCapacityPath)) {
+    if (this._canReadValueFromFile(Deps.docWorkerMaxMemoryBytesPath)) {
       return await this._readValueFromFileInMB(
-        Deps.docWorkerMemoryCapacityPath,
+        Deps.docWorkerMaxMemoryBytesPath,
         // When the value is "max", return Infinity, otherwise return undefined so
         // so the function read what's probably an integer value.
         (val) => val === 'max' ? Infinity : undefined
