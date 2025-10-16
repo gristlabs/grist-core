@@ -2640,7 +2640,7 @@ describe('ApiServer', function() {
         const resp6 = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
         assert.equal(resp6.status, 200);
 
-        // Now it service account should no longer be have access to ressources
+        // Now its service account should no longer be have access to ressources
         const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
         assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
       });
