@@ -664,7 +664,7 @@ describe('DocWorkerMap', function() {
             sandbox
               .stub(NSandbox.prototype, 'reportMemoryUsage')
               .returns(Promise.resolve(MEMORY_PER_DOC_MB * 1024 * 1024));
-            sandbox.stub(Deps, 'docWorkerMaxMemoryMB').value(MAX_MEMORY_MB);
+            sandbox.stub(Deps, 'docWorkerMaxMemoryMBForcedValue').value(MAX_MEMORY_MB);
             sandbox.stub(Deps, 'docWorkerUpdateLoadIntervalMs').value(50);
             sandbox.stub(Deps, 'docWorkerUpdateLoadVarianceMs').value(0);
 

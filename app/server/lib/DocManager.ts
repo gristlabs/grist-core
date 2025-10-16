@@ -53,11 +53,15 @@ export const RECOVERY_CACHE_TTL = 30000; // 30 seconds
 // How long to remember the timing mode of a document.
 export const TIMING_ON_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
+export interface IMemoryLoadEstimator {
+  getTotalMemoryUsedMB(): number;
+}
+
 /**
  * DocManager keeps track of "active" Grist documents, i.e. those loaded
  * in-memory, with clients connected to them.
  */
-export class DocManager extends EventEmitter {
+export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   /**
    * Maps docName to promise for ActiveDoc object. Most of the time the promise
    * will be long since resolved, with the resulting document cached.
