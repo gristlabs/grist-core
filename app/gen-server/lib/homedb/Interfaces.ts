@@ -10,6 +10,7 @@ import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
 import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
+import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 
 export interface QueryResult<T> {
   status: number;
@@ -120,7 +121,7 @@ export interface HomeDBAuth {
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
   getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
-  isServiceAccountAlive(email: string): Promise<boolean>;
+  getServiceAccountWithOwner(email: string): Promise<ServiceAccount|null>;
   makeFullUser(user: User): FullUser;
 }
 

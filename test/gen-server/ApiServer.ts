@@ -2437,7 +2437,7 @@ describe('ApiServer', function() {
         const serviceUser = await dbManager.getExistingUserByLogin(serviceLogin);
         assert.isNotEmpty(serviceUser);
         assert.isNull(serviceUser?.apiKey);
-        assert.isNotNull(serviceUser?.removedAt);
+        assert.isNotNull(serviceUser?.disabledAt);
       });
 
       checkCommonErrors((saId, user) =>
@@ -2511,7 +2511,7 @@ describe('ApiServer', function() {
         const login  = resp.data.login;
         const oid = await dbManager.testGetId('NASA');
         const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
-        assert.equal(resp2.status, 200, "chimpy should list NASA worksapces");
+        assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
         const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
         assert.equal(resp3.status, 403);
         const delta = {
@@ -2585,11 +2585,54 @@ describe('ApiServer', function() {
       });
 
       it("Service user MUST NOT log into the app", async function() {
-        // In my mind it should not as login is performed through SAML or login Forward.
+        // In my mind it should not as login if performed through SAML or login Forward.
         // The service account user created identified by XXXXXX@serviceaccount.invalid should
         // never exist in Identity provider.
-        // SCIM should exclude users of type service
+        // SCIM server should exclude users of type service with valid emails
         // and never be able to receive a connection mail
+        // TODO add a before insert in login entity to avoid insertion of valid mail with login
+      });
+    });
+
+    describe("On owner disabled", function(){
+      it("Should be disabled as well", async function(){
+        const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
+        const chimpyId = chimpyUser.id;
+
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
+        const key = resp.data.key;
+        const serviceAccountConfig: AxiosRequestConfig = {
+          responseType: 'json',
+          validateStatus: (status: number) => true,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Authorization': `Bearer ${key}`
+          }
+        };
+        const login  = resp.data.login;
+        const oid = await dbManager.testGetId('NASA');
+        const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+        assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
+        const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+        assert.equal(resp3.status, 403);
+        const delta = {
+          "delta": {
+            "users": {}
+          }
+        };
+        (delta.delta.users as any)[login] = "owners";
+        const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
+        assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
+        const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+        assert.equal(resp5.status, 200, "Service Account should list NASA org");
+
+        // Ham bans chimpy
+        const resp6 = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
+        assert.equal(resp6.status, 200);
+
+        // Now it service account should no longer be have access to ressources
+        const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+        assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
       });
     });
   });

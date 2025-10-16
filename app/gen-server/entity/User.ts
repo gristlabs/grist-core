@@ -78,9 +78,6 @@ export class User extends BaseEntity {
   @Column({name: 'unsubscribe_key', type: String, nullable: true})
   public unsubscribeKey: string|null;
 
-  @Column({name: 'removed_at', nullable: true})
-  public removedAt: Date;
-
   @Column({name: 'type', type: String, default: 'login'})
   public type: UserTypes | null;
 

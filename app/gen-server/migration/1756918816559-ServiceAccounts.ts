@@ -14,11 +14,6 @@ export class ServiceAccounts1756918816559 implements MigrationInterface {
         isNullable: false,
         default: "'login'",
       }),
-      new TableColumn({
-        name: 'removed_at',
-        type: datetime,
-        isNullable: true,
-      }),
     ]);
     await queryRunner.createTable(
       new Table({
@@ -97,7 +92,6 @@ export class ServiceAccounts1756918816559 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.dropColumn('users', 'type');
-    await queryRunner.dropColumn('users', 'removed_at');
     await queryRunner.dropTable('service_accounts');
   }
 }
