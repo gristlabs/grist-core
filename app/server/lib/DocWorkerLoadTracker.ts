@@ -128,7 +128,7 @@ export class DocWorkerLoadTracker {
    * @param filePath The path to the file to read
    * @param valueProcessor A function that may return an amount of memory if the file contains a special value.
    *
-   * @return The amount of memory reported by the file converted to megabytes.
+   * @returns The amount of memory reported by the file converted to megabytes.
    */
   private async _readValueFromFileInMB(
     filePath: string,
@@ -155,6 +155,9 @@ export class DocWorkerLoadTracker {
    * 1. If we have a path specified for a file that contain the memory used, read this file
    * 2. Otherwise read instead the load using the estimation given by the doc manager
    *    (less accurate, typically it does not include nodejs load).
+   *
+   * @returns The used memory
+   * @throws When the file at the path can't be read or doesn't contain a number.
    */
   private async _getMemoryUsedMB(): Promise<number> {
     if (this._canReadValueFromFile(Deps.docWorkerMemoryUsagePath)) {
@@ -172,8 +175,10 @@ export class DocWorkerLoadTracker {
    * 2. If the admin specified a path to read the total amoun of memory, read it.
    * 2.1. If the value is max, consider as "Infinity"
    * 2.2. If the value is a number, return it
-   * 2.3. If there is an error reading the value, an error is thrown.
    * 3. Return Infinity
+   *
+   * @returns The total memory we should consider as available for the worker.
+   * @throws When the file at the path can't be read or doesn't contain a valid value as described above.
    */
   private async _getMemoryTotalMB() {
     if (Deps.docWorkerMaxMemoryMB !== undefined) {

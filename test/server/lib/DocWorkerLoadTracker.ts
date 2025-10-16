@@ -15,7 +15,6 @@ describe("DocWorkerLoadTracker", function () {
   let getTotalMemoryUsedStub: sinon.SinonStub;
   const sandbox = sinon.createSandbox();
   const originalDeps = {...Deps};
-  let cleanupFiles: Array<() => {}> = [];
   const docWorkerInfoMap: DocWorkerInfo = {
     id: 'some-id',
     internalUrl: 'http://grist-internal/dw/10.0.0.2/some-path',
@@ -31,11 +30,13 @@ describe("DocWorkerLoadTracker", function () {
     const docManagerMock: IMemoryLoadEstimator = {
       getTotalMemoryUsedMB: getTotalMemoryUsedStub
     };
+
     docWorkerLoadTracker = new DocWorkerLoadTracker(
       docWorkerInfoMap,
       docWorkerMap,
       docManagerMock,
     );
+    docWorkerLoadTracker.stop();
   });
 
   afterEach(function () {
@@ -43,15 +44,9 @@ describe("DocWorkerLoadTracker", function () {
     sandbox.restore();
   });
 
-  describe('getLoad', function () {
-    beforeEach(async function () {
-      docWorkerLoadTracker.stop();
-      const {path: max, cleanup: maxCleanup} = await tmp.file();
-      const {path: used, cleanup: usedCleanup} = await tmp.file();
-      cleanupFiles.push(maxCleanup, usedCleanup);
-      Deps.docWorkerMemoryCapacityPath = max;
-      Deps.docWorkerMemoryUsagePath = used;
-    });
+  describe('getLoad()', function () {
+    let cleanupFiles: Array<() => {}> = [];
+    const registerCleanup = (cleanup: () => Promise<void>) => cleanupFiles.push(cleanup);
 
     afterEach(function () {
       for (const cleanup of cleanupFiles) {
@@ -63,8 +58,11 @@ describe("DocWorkerLoadTracker", function () {
     async function mockValueInFile(
       depsProperty: 'docWorkerMemoryCapacityPath'|'docWorkerMemoryUsagePath',
       value: number|string|undefined): Promise<void> {
-      if (value) {
-        await fs.writeFile(Deps[depsProperty]!, value.toString(), 'utf-8');
+      if (value !== undefined) {
+        const {path, cleanup} = await tmp.file();
+        registerCleanup(cleanup);
+        Deps[depsProperty] = path;
+        await fs.writeFile(path, value.toString(), 'utf-8');
       } else {
         Deps[depsProperty] = undefined;
       }
@@ -73,7 +71,7 @@ describe("DocWorkerLoadTracker", function () {
     const bytesToMb = (val: number) => val * (1024 ** 2);
 
     for (const ctx of [{
-      itMsg: 'should compute max memory using GRIST_DOC_WORKER_MAX_MEMORY_MB in priority',
+      itMsg: 'should retrieve max memory using GRIST_DOC_WORKER_MAX_MEMORY_MB in priority',
       setup() {
         Deps.docWorkerMaxMemoryMB = 1024;
       },
@@ -81,7 +79,7 @@ describe("DocWorkerLoadTracker", function () {
       usedFromFile: bytesToMb(128),
       result: 128/1024
     }, {
-      itMsg: 'should compute max memory using GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH',
+      itMsg: 'should otherwise retrieve max memory using GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH',
       maxFromFile: bytesToMb(512),
       usedFromFile: bytesToMb(128),
       result: 128/512,
@@ -95,7 +93,7 @@ describe("DocWorkerLoadTracker", function () {
       usedFromFile: bytesToMb(128),
       result: 0,
     }, {
-      itMsg: 'should read memory used using estimation from doc manager when '
+      itMsg: 'should let the DocManager compute an estimation of the memory used when '
         + 'GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH is not provided',
       setup() {
           getTotalMemoryUsedStub.returns(128);
@@ -126,7 +124,7 @@ describe("DocWorkerLoadTracker", function () {
 
     it('should reject when the max memory available is specified but cannot be read', async function () {
       await mockValueInFile('docWorkerMemoryUsagePath', bytesToMb(512));
-      await fs.rm(Deps.docWorkerMemoryCapacityPath!);
+      Deps.docWorkerMemoryCapacityPath = '/this/path/leads/nowhere';
 
       await assert.isRejected(docWorkerLoadTracker.getLoad(), /ENOENT/);
     });
@@ -147,11 +145,11 @@ describe("DocWorkerLoadTracker", function () {
     it('should update the worker load when the timer is triggered', async function () {
       getLoadStub.resolves(0.42);
       await triggerTimer();
-      assert.equal(setWorkerLoadStub.callCount, 1, 'setWorkerLoad should have been called');
+      assert.equal(setWorkerLoadStub.callCount, 1, 'setWorkerLoad should have been called to update the load value');
       assert.deepEqual(setWorkerLoadStub.firstCall.args, [docWorkerInfoMap, 0.42]);
     });
 
-    it('should log an error when the load cannot be retrieved', async function () {
+    it('should log an error when the worker load cannot be computed', async function () {
       const error = new Error('an error');
       getLoadStub.rejects(error);
       await triggerTimer();
