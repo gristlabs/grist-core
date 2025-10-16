@@ -2584,13 +2584,23 @@ describe('ApiServer', function() {
         assert.equal(resp3.data, "Service Account has reached its end of life");
       });
 
-      it("Service user MUST NOT log into the app", async function() {
+      it("Service user MUST have an invalid mail", async function() {
         // In my mind it should not as login if performed through SAML or login Forward.
         // The service account user created identified by XXXXXX@serviceaccount.invalid should
         // never exist in Identity provider.
         // SCIM server should exclude users of type service with valid emails
         // and never be able to receive a connection mail
         // TODO add a before insert in login entity to avoid insertion of valid mail with login
+        const email = "randomuser@getgrist.com";
+        assert.notExists(await dbManager.getExistingUserByLogin(email));
+        let error;
+        try {
+          await dbManager.getUserByLogin(email, {}, 'service');
+        } catch (e) {
+          error = e;
+        }
+        assert.exists(error);
+        assert.equal(error.message, "Users of type service must have email like XXXXXX@serviceaccount.invalid");
       });
     });
 
