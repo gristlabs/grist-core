@@ -34,7 +34,7 @@ import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from
  *   - dismissed
  *   - retracted
  *   - applied
- * If this feature were to  grow, probably status would need to be events
+ * If this feature were to grow, probably status would need to be events
  * in a full timeline, but it doesn't make sense to invest in that now, and
  * some kind of summary state would be needed anyway.
  *

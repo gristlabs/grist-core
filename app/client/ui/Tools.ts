@@ -30,7 +30,8 @@ import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
-import { computed, Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
+import {Computed, computed, Disposable, dom, makeTestId,
+        Observable, observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
 
 const testId = makeTestId('test-tools-');
@@ -40,7 +41,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const docPageModel = gristDoc.docPageModel;
   const isDocOwner = isOwner(docPageModel.currentDoc.get());
   const isOverridden = Boolean(docPageModel.userOverride.get());
-  const canMakeProposal = computed((use) => {
+  const canMakeProposal = Computed.create(owner, (use) => {
     return use(docPageModel.isFork) && !use(docPageModel.isBareFork) && !use(docPageModel.isPrefork) &&
         !use(docPageModel.isSnapshot);
   });
@@ -106,7 +107,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     dom.maybe(
-      (use) => use(trunkAcceptsProposals), () => {
+      trunkAcceptsProposals, () => {
       return cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'proposals'),
         cssPageLink(

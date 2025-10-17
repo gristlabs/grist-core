@@ -66,6 +66,7 @@ describe('ProposedChangesPage', function() {
     await driver.find('.test-tb-share').click();
     await driver.findWait('.test-work-on-copy', 2000).click();
     await gu.waitForServer();
+    await gu.waitForDocToLoad();
 
     // Change the content of the first cell.
     await gu.getCell('A', 1).click();

@@ -66,6 +66,7 @@ export class DocSettingsPage extends Disposable {
     this,
     Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals)
   );
+  private _working: Observable<boolean> = Observable.create(this, false);
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -124,20 +125,25 @@ export class DocSettingsPage extends Disposable {
           value: labeledSquareCheckbox(
             this._acceptProposals,
             t("Show proposals"),
-            dom.on('click', () => {
-              // A tiny delay just to make reload feel less jarring.
-              setTimeout(async () => {
+            dom.on('click', async (elem) => {
+              this._working.set(true);
+              try {
                 const docId = docPageModel.currentDocId.get();
                 if (!docId) {
                   // Should never happen, don't bother translating.
                   reportError(new Error('Document not found'));
                   return;
                 }
-                const acceptProposals = this._acceptProposals.get();
+                const acceptProposals = !this._acceptProposals.get();
                 await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
                 window.location.reload();
-              }, 250);
+              } catch(e) {
+                reportError(e);
+              } finally {
+                this._working.set(false);
+              }
             }),
+            dom.prop('disabled', this._working),
             testId('accept-proposals'),
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),

@@ -948,10 +948,6 @@ export function isAffirmative(parameter: any): boolean {
   return ['1', 'on', 'true', 'yes'].includes(String(parameter).toLowerCase());
 }
 
-export function isNotAffirmative(parameter: any): boolean {
-  return ['0', 'off', 'false', 'no'].includes(String(parameter).toLowerCase());
-}
-
 /**
  * Returns whether a value is neither null nor undefined, with a type guard for the return type.
  *

@@ -138,76 +138,79 @@ export class ProposedChangesTrunkPage extends Disposable {
               return labeledSquareCheckbox(this._showDismissed, 'Show dismissed proposals');
             }
           }),
-          // this seems silly, shouldn't there be something special for arrays
           dom(
             'div',
-            dom.maybe(this._proposalsObs, proposals => {
-              return proposals.map((proposal, idx) => {
-                const details = proposal.comparison.comparison?.details;
-                if (!details) { return null; }
-                const applied = proposal.status.status === 'applied';
-                const dismissed = proposal.status.status === 'dismissed';
-                if (dismissed && !showDismissed) { return null; }
-                const name = `# ${proposal.shortId}`;
-                return dom('div', [
-                  cssProposalHeader(
-                    proposal.srcDoc.id !== 'hidden' ?
-                        cssBannerLink(
-                          name,
-                          urlState().setLinkUrl({
-                            doc: buildUrlId({
-                              trunkId: this.gristDoc.docId(),
-                              forkId: proposal.srcDoc.id,
-                              ...(proposal.srcDoc.creator.anonymous ? {} : {
-                                forkUserId: proposal.srcDoc.creator.id,
-                              })
-                            }),
-                            docPage: 'proposals',
-                          })
-                        ) : name,
-                    ' | ',
-                    proposal.srcDoc.creator.name || proposal.srcDoc.creator.email, ' | ',
-                    getProposalActionSummary(proposal),
-                    testId('header'),
-                  ),
-                  renderComparisonDetails(this.gristDoc, details),
-                  proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
-                  isReadOnly ? null : cssDataRow(
-                    applied ? null : primaryButton(
-                      t("Accept"),
-                      dom.on('click', async () => {
-                        const outcome = await this.gristDoc.docComm.applyProposal(proposal.shortId);
-                        this._proposalsObs.splice(idx, 1, outcome.proposal);
-                        // For the moment, send debug information to console
-                        for (const change of outcome.log.changes) {
-                          if (change.fail) {
-                            reportError(new Error(change.msg));
-                          }
-                          console.log(change);
+            dom.forEach(this._proposalsObs, (proposal) => {
+              const details = proposal.comparison.comparison?.details;
+              if (!details) { return null; }
+              const applied = proposal.status.status === 'applied';
+              const dismissed = proposal.status.status === 'dismissed';
+              if (dismissed && !showDismissed) { return null; }
+              const name = `# ${proposal.shortId}`;
+              return dom('div', [
+                cssProposalHeader(
+                  proposal.srcDoc.id !== 'hidden' ?
+                      cssBannerLink(
+                        name,
+                        urlState().setLinkUrl({
+                          doc: buildUrlId({
+                            trunkId: this.gristDoc.docId(),
+                            forkId: proposal.srcDoc.id,
+                            ...(proposal.srcDoc.creator.anonymous ? {} : {
+                              forkUserId: proposal.srcDoc.creator.id,
+                            })
+                          }),
+                          docPage: 'proposals',
+                        })
+                      ) : name,
+                  ' | ',
+                  proposal.srcDoc.creator.name || proposal.srcDoc.creator.email, ' | ',
+                  getProposalActionSummary(proposal),
+                  testId('header'),
+                ),
+                renderComparisonDetails(this.gristDoc, details),
+                proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
+                isReadOnly ? null : cssDataRow(
+                  applied ? null : primaryButton(
+                    t("Accept"),
+                    dom.on('click', async () => {
+                      const outcome = await this.gristDoc.docComm.applyProposal(proposal.shortId);
+                      this._updateProposal(proposal, outcome.proposal);
+                      // For the moment, send debug information to console
+                      for (const change of outcome.log.changes) {
+                        if (change.fail) {
+                          reportError(new Error(change.msg));
                         }
-                      }),
-                      testId('apply'),
-                    ),
-                    ' ',
-                    (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
-                      t("Dismiss"),
-                      dom.on('click', async () => {
-                        const result = await this.gristDoc.docComm.applyProposal(proposal.shortId, {
-                          dismiss: true,
-                        });
-                        this._proposalsObs.splice(idx, 1, result.proposal);
-                      }),
-                      testId('dismiss'),
-                    ),
+                        console.log(change);
+                      }
+                    }),
+                    testId('apply'),
                   ),
-                ], testId('patch'));
-              });
+                  ' ',
+                  (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
+                    t("Dismiss"),
+                    dom.on('click', async () => {
+                      const result = await this.gristDoc.docComm.applyProposal(proposal.shortId, {
+                        dismiss: true,
+                      });
+                      this._updateProposal(proposal, result.proposal);
+                    }),
+                    testId('dismiss'),
+                  ),
+                ),
+              ], testId('patch'));
             }),
             testId('patches'),
           ),
         ];
       })
     ];
+  }
+
+  private _updateProposal(oldProposal: Proposal, newProposal: Proposal) {
+    const proposals = this._proposalsObs.get();
+    const idx = proposals.findIndex(p => p === oldProposal);
+    this._proposalsObs.splice(idx, 1, newProposal);
   }
 }
 
@@ -269,7 +272,7 @@ export class ProposedChangesForkPage extends Disposable {
     const trunkAcceptsProposals =
         this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
     return [
-      dom.maybe(() => !trunkAcceptsProposals, () => {
+      dom.maybe(!trunkAcceptsProposals, () => {
         return cssWarningMessage(
           cssWarningIcon('Warning'),
           t(`The original document isn't asking for proposed changes.`)
@@ -298,7 +301,7 @@ export class ProposedChangesForkPage extends Disposable {
             )
           }),
          ),
-      dom.maybe(() => !maybeHasChanges, () => {
+      dom.maybe(!maybeHasChanges, () => {
         return dom('p', t('No changes found to propose. Please make some edits.'));
       }),
       cssDataRow(

@@ -905,8 +905,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Apply a proposal to the document. The proposal is applied as a set of linked actions
-   * for ease of undo.
+   * Apply a proposal to the document. The proposal is applied as a set of linked action groups
+   * for ease of undo, meaning each action group has a linkId refering to the previous one, and
+   * a otherId set to the first (or root) action group.
    */
   public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
     dismiss?: boolean,

@@ -127,6 +127,8 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * clicks on it to "follow" the link without reloading the page.
    *
    * If a "beforeChange" option is passed in, it will be run just before changing the URL.
+   * It was added to allow clearing any unsaved state before navigating away, in cases where
+   * this makes sense.
    */
   public setLinkUrl(
     urlState: IUrlState|UpdateFunc<IUrlState>,

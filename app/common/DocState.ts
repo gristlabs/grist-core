@@ -60,7 +60,7 @@ export function removeMetadataChangesFromDetails(details: DocStateComparisonDeta
   };
 }
 
-export function removeMetadataChangesFromSummary(summary: ActionSummary) {
+function removeMetadataChangesFromSummary(summary: ActionSummary) {
   const result = createEmptyActionSummary();
   result.tableRenames = summary.tableRenames;
   const tables = Object.keys(summary.tableDeltas);

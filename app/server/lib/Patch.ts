@@ -139,7 +139,7 @@ export class Patch {
 
   private async _doAdd(delta: TableDelta, tableId: string,
                        rowId: number, rec: Record<string, any>): Promise<PatchItem> {
-    if (rec.manualSort) {
+    if ('manualSort' in rec) {
       delete rec.manualSort;
     }
     await this._applyUserActions([
