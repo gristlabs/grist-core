@@ -159,6 +159,14 @@ export const cssButtonSelect = styled('div', `
     opacity: 0.4;
     pointer-events: none;
   }
+
+  &:not(&-light) {
+    background-color: ${theme.inputBg};
+    padding: 3px;
+    gap: 4px;
+    border: 1px solid ${theme.buttonGroupBorder};
+    border-radius: ${vars.controlBorderRadius};
+  }
 `);
 
 const cssSelectorBtn = styled(unstyledButton, `
@@ -175,24 +183,19 @@ const cssSelectorBtn = styled(unstyledButton, `
   min-width: 32px;
   white-space: nowrap;
   padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: ${vars.controlBorderRadius};
 
   background-color: ${theme.buttonGroupBg};
-  border: 1px solid ${theme.buttonGroupBorder};
   --icon-color: ${theme.buttonGroupIcon};
 
   margin-left: -1px;
 
   cursor: pointer;
+  outline-offset: -2px;
 
   &:first-child {
-    border-top-left-radius: ${vars.controlBorderRadius};
-    border-bottom-left-radius: ${vars.controlBorderRadius};
     margin-left: 0;
-  }
-
-  &:last-child {
-    border-top-right-radius: ${vars.controlBorderRadius};
-    border-bottom-right-radius: ${vars.controlBorderRadius};
   }
 
   &:hover:not(&-selected) {
@@ -203,7 +206,7 @@ const cssSelectorBtn = styled(unstyledButton, `
 
   &-selected {
     color: ${theme.buttonGroupSelectedFg};
-    --icon-color: ${theme.buttonGroupSelectedFg};
+    --icon-color: ${theme.buttonGroupSelectedBorder};
     border: 1px solid ${theme.buttonGroupSelectedBorder};
     background-color: ${theme.buttonGroupSelectedBg};
     z-index: 10;  /* Update z-index so selected borders take precedent */
@@ -227,6 +230,7 @@ const cssSelectorBtn = styled(unstyledButton, `
     color: ${theme.buttonGroupLightFg};
     --icon-color: ${theme.buttonGroupLightFg};
   }
+
   .${cssButtonSelect.className}-light > &-selected {
     border-color: ${theme.buttonGroupLightSelectedFg};
     color: ${theme.buttonGroupLightSelectedFg};
