@@ -13,6 +13,7 @@ import sortBy = require('lodash/sortBy');
 import {marked} from "marked";
 import {renderer} from 'app/client/ui/MarkdownCellRenderer';
 import {sanitizeTourHTML} from "app/client/ui/sanitizeHTML";
+import {safeJsonParse} from 'app/common/gutil';
 
 const t = makeT('DocTour');
 
@@ -46,16 +47,30 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
     function getValue(colId: string): string {
       return String(tableData.getValue(rowId, colId) || "");
     }
+
+    function getCellFormat(colId: string) {
+      const tableRef = docData.getMetaTable("_grist_Tables").findRow('tableId', tableId);
+      const bodyCol = docData.getMetaTable("_grist_Tables_column").filterRecords({parentId: tableRef, colId: colId})[0];
+      const widgetType: string|undefined = safeJsonParse(bodyCol?.widgetOptions, {})?.widget;
+      return widgetType;
+    }
+
     const title = getValue("Title");
-    const bodyValue = getValue("Body");
+    const bodyValue = getValue("Body"); 
 
     if (!title && !(bodyValue.trim()) ) {
       return null;
     }
-
-    const element = sanitizeTourHTML(marked.parse(bodyValue, {
+    
+    let body: HTMLElement | string = bodyValue;
+    // Renders Markdown only if the `Body` colum of type `Text` specifies "Cell Format" as `Markdown`
+    const cellFormat = getCellFormat("Body");
+    if(cellFormat == "Markdown") {
+      const element = sanitizeTourHTML(marked.parse(bodyValue, {
       async: false, renderer
-    }));
+      }));
+      body = dom('span', element);
+    }
 
     const linkText = getValue("Link_Text");
     const linkUrl = getValue("Link_URL");
@@ -74,8 +89,6 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
     } catch {
       validLinkUrl = false;
     }
-
-    let body: HTMLElement = dom('span', element);
 
     if (validLinkUrl && linkText) {
       body = dom(
