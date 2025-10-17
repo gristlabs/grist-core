@@ -51,6 +51,7 @@ describe('ApiServer', function() {
     process.env.GRIST_TEMPLATE_ORG = 'templates';
     // ham (as in dramatic actor) is the admin
     process.env.GRIST_DEFAULT_EMAIL = hamEmail;
+    process.env.GRIST_SERVICE_ACCOUNTS = 'true';
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
     dbManager = server.dbManager;
@@ -193,7 +194,7 @@ describe('ApiServer', function() {
     // personal orgs should have an owner and no domain
     // createdAt and updatedAt are omitted since exact times cannot be predicted.
     assert.deepEqual(
-      omit(resp.data[0], 'createdAt', 'updatedAt', 'owner.createdAt'),
+      omit(resp.data[0], 'createdAt', 'updatedAt', 'owner.createdAt', 'owner.removedAt'),
       {
         id: await dbManager.testGetId('Chimpyland'),
         name: 'Chimpyland',
@@ -205,7 +206,8 @@ describe('ApiServer', function() {
           id: await dbManager.testGetId('Chimpy'),
           ref: await dbManager.testGetRef('Chimpy'),
           name: 'Chimpy',
-          picture: null
+          picture: null,
+          type: 'login'
         }
       }
     );
@@ -254,7 +256,7 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 200);
     // billingAccount is omitted since it isn't focus of this test.
     assert.deepEqual(
-      omit(resp.data, 'createdAt', 'updatedAt', 'billingAccount', 'owner.createdAt'),
+      omit(resp.data, 'createdAt', 'updatedAt', 'billingAccount', 'owner.createdAt', 'owner.removedAt'),
       {
         id: oid,
         name: 'Chimpyland',
@@ -265,7 +267,8 @@ describe('ApiServer', function() {
           id: await dbManager.testGetId('Chimpy'),
           ref: await dbManager.testGetRef('Chimpy'),
           name: 'Chimpy',
-          picture: null
+          picture: null,
+          type: 'login'
         }
       }
     );
@@ -2237,6 +2240,411 @@ describe('ApiServer', function() {
 
     const countsAfter = await getRowCounts();
     assert.deepEqual(countsAfter, countsBefore);
+  });
+
+  describe('Service Accounts', function() {
+    afterEach(async ()=>{
+      await dbManager.testDeleteAllServiceAccounts();
+    });
+
+    const SERVICE_ACCOUNT_BODY = {
+      label: "A small service for the chimpy",
+      description: "A big service for robotkind",
+      expiresAt:"2042-07-21",
+    };
+
+    async function createServiceAccount(body = SERVICE_ACCOUNT_BODY) {
+      const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+      assert.equal(resp.status, 200);
+      return resp.data;
+    }
+
+    function checkCommonErrors(
+      makeRequest: (saId: string, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>
+    ) {
+      it('returns 404 on non-existing {saId}', async function() {
+        const resp = await makeRequest('inexistent@serviceaccounts.invalid', chimpy);
+        assert.equal(resp.status, 404);
+      });
+
+      it('returns 403 for non-owned service accounts {saId}', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await makeRequest(serviceLogin, kiwi);
+        assert.equal(resp.status, 403);
+      });
+
+      it('is rejected when requested by an anonymous user', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const resp = await makeRequest(serviceLogin, nobody);
+        assert.equal(resp.status, 401);
+      });
+    }
+
+    describe('Endpoint POST /api/service-accounts', function () {
+      it('is operational', async function() {
+        const data = await createServiceAccount();
+        assert.isObject(data);
+
+        const expectedData = {
+          login: data.login,
+          key: data.key,
+          label: SERVICE_ACCOUNT_BODY.label,
+          description: SERVICE_ACCOUNT_BODY.description,
+          expiresAt: new Date(SERVICE_ACCOUNT_BODY.expiresAt).toISOString(),
+          hasValidKey: true,
+        };
+        assert.deepEqual(data, expectedData);
+      });
+
+      it('is rejected when requested by an anonymous user', async function() {
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, nobody);
+        assert.equal(resp.status, 401);
+      });
+
+      it('returns 400 when wrong expiresAt is given', async function() {
+        const body = {
+          expiresAt: 'tutu',
+        };
+        let resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+        assert.equal(resp.status, 400);
+        const emptyBody = {};
+        resp = await axios.post(`${homeUrl}/api/service-accounts/`, emptyBody, chimpy);
+        assert.equal(resp.status, 400);
+      });
+    });
+
+
+    describe('Endpoint GET /api/service-accounts', function () {
+      it('is operational', async function() {
+        const body = SERVICE_ACCOUNT_BODY;
+        const body2 = {
+          label: "More service",
+          description: "More robots",
+          expiresAt:"2042-07-22",
+        };
+        await createServiceAccount(body);
+        await createServiceAccount(body2);
+        const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
+        assert.equal(resp.status, 200);
+        assert.isArray(resp.data);
+        assert.lengthOf(resp.data, 2);
+      });
+
+      it("returns 200 and a empty list when there is no service account", async function() {
+        const resp = await axios.get(`${homeUrl}/api/service-accounts`, kiwi);
+        assert.equal(resp.status, 200);
+        assert.isArray(resp.data);
+        assert.isEmpty(resp.data);
+      });
+
+      it("returns 401 when user is anonymous", async function() {
+        const resp = await axios.get(`${homeUrl}/api/service-accounts`, nobody);
+        assert.equal(resp.status, 401);
+      });
+    });
+
+    describe('Endpoint GET /api/service-accounts/{saId}', function () {
+      it('is operational', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const expectedBody = {
+          ...SERVICE_ACCOUNT_BODY,
+          expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
+          hasValidKey: true
+        };
+        const resp = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
+        assert.equal(resp.status, 200);
+        assert.isObject(resp.data);
+        assert.deepEqual(resp.data, {login:serviceLogin, ...expectedBody});
+      });
+
+      checkCommonErrors((saId, user) => axios.get(`${homeUrl}/api/service-accounts/${saId}`, user));
+    });
+
+    describe('Endpoint PATCH /api/service-accounts/{saId}', function () {
+      it('is operational', async function() {
+        const newDescription = "to an end";
+        const patch = {
+          description: newDescription
+        };
+        const {login: serviceLogin} = await createServiceAccount();
+        const expectedBody = {
+          ...SERVICE_ACCOUNT_BODY,
+          login: serviceLogin,
+          description: newDescription,
+          expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
+          hasValidKey: true
+        };
+        const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp2.status, 200);
+        const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
+        assert.isObject(resp3.data);
+        assert.hasAllKeys(resp3.data, ["login", "label", "description", "expiresAt", "hasValidKey"]);
+        assert.deepEqual(resp3.data, expectedBody);
+      });
+
+      it('returns 400 on invalid label', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const patch = {
+          label: null
+        };
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp.status, 400);
+      });
+
+      it('returns 400 on invalid expiresAt', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const patch = {
+          expiresAt: "something"
+        };
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp.status, 400);
+      });
+
+      it('returns 400 if trying to update the owner or the service account', async function() {
+        const {login: serviceLogin} = await createServiceAccount();
+        const patch = {
+          ownerId: 1,
+          owner_id: 1,
+          serviceOwnerId: "something",
+        };
+        const resp = await axios.patch(`${homeUrl}/api/service-accounts/${serviceLogin}`, patch, chimpy);
+        assert.equal(resp.status, 400);
+        for (const key in patch) {
+          assert.include(resp.data.details.userError, `${key} is extraneous`);
+        }
+      });
+
+      checkCommonErrors((saId, user) =>
+        axios.patch(`${homeUrl}/api/service-accounts/${saId}`, {description: 'description'}, user)
+      );
+    });
+
+    describe('Endpoint DELETE /api/service-accounts/{saId}', function () {
+      it('is operational', async function() {
+        const body = {
+          label: "Short life service",
+          description: "Doomed soon",
+          expiresAt:"2042-10-10",
+        };
+        const {login: serviceLogin} = await createServiceAccount(body);
+        const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
+        assert.equal(resp2.status, 200);
+        const resp3 = await axios.delete(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
+        assert.equal(resp3.status, 200);
+        const resp4 = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
+        assert.equal(resp4.status, 404);
+
+        const serviceUser = await dbManager.getExistingUserByLogin(serviceLogin);
+        assert.isNotEmpty(serviceUser);
+        assert.isNull(serviceUser?.apiKey);
+        assert.isNotNull(serviceUser?.disabledAt);
+      });
+
+      checkCommonErrors((saId, user) =>
+        axios.delete(`${homeUrl}/api/service-accounts/${saId}`, user)
+      );
+    });
+
+    describe('Endpoint POST /api/service-accounts/{saId}/key/regenerate', function () {
+      it('is operational', async function() {
+        const body = {
+          label: "Short life service",
+          description: "Doomed soon",
+          expiresAt:"2042-10-10",
+        };
+        const {login: serviceLogin, key: apikey1} = await createServiceAccount(body);
+
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/regenerate`, {}, chimpy);
+        const apikey2 = resp.data.key;
+        assert.equal(resp.status, 200);
+        assert.isNotEmpty(apikey2);
+        assert.notEqual(apikey1, apikey2);
+      });
+
+      checkCommonErrors((saId, user) =>
+        axios.post(`${homeUrl}/api/service-accounts/${saId}/key/regenerate`, {}, user)
+      );
+    });
+
+    describe('Endpoint POST /api/service-accounts/{saId}/key/revoke', function () {
+      it('is operational', async function() {
+        const body = {
+          label: "Short life service",
+          description: "Doomed soon",
+          expiresAt:"2042-10-10",
+        };
+        const {login: serviceLogin} = await createServiceAccount(body);
+        const expectedBody = {
+          ...body,
+          login: serviceLogin,
+          expiresAt: `${body.expiresAt}T00:00:00.000Z`,
+          hasValidKey: false
+        };
+
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, chimpy);
+        assert.equal(resp.status, 200);
+
+        const respGet = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
+        assert.deepEqual(respGet.data, expectedBody);
+      });
+
+      checkCommonErrors((saId, user) =>
+        axios.post(`${homeUrl}/api/service-accounts/${saId}/key/revoke`, {}, user)
+      );
+    });
+
+    describe('Authentication', function () {
+
+      // Service account can be added to a document then
+      // do some action via api
+      it('with valid key and in its lifetime should access to resources it is added to', async function() {
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
+        const key = resp.data.key;
+        const serviceAccountConfig: AxiosRequestConfig = {
+          responseType: 'json',
+          validateStatus: (status: number) => true,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Authorization': `Bearer ${key}`
+          }
+        };
+        const login  = resp.data.login;
+        const oid = await dbManager.testGetId('NASA');
+        const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+        assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
+        const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+        assert.equal(resp3.status, 403);
+        const delta = {
+          "delta": {
+            "users": {}
+          }
+        };
+        (delta.delta.users as any)[login] = "owners";
+        const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
+        assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
+        const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+        assert.equal(resp5.status, 200, "Service Account should list NASA org");
+      });
+
+      // Revoked service account musn't do api calls
+      // create a service account add its user to a document
+      it('with revoked key should fail to access resource it is added to', async function() {
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
+        const serviceLogin = resp.data.login;
+        const key = resp.data.key;
+        const serviceAccountConfig: AxiosRequestConfig = {
+          responseType: 'json',
+          validateStatus: (status: number) => true,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Authorization': `Bearer ${key}`
+          }
+        };
+        const login  = resp.data.login;
+        const oid = await dbManager.testGetId('NASA');
+        const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+        assert.equal(resp2.status, 200, "chimpy should list NASA worksapces");
+        const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+        assert.equal(resp3.status, 403);
+        const delta = {
+          "delta": {
+            "users": {}
+          }
+        };
+        (delta.delta.users as any)[login] = "owners";
+        const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
+        assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
+        await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, chimpy);
+        const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+        assert.equal(resp5.status, 401, "Service Account should list NASA org");
+      });
+
+      // outdated service account can't do api calls
+      it('with outdated expiresAt should fail to access resource it is added to', async function() {
+        const body = {
+          label: "A small service for the chimpy",
+          description: "A big service for robotkind",
+          expiresAt: new Date(0).toISOString(),
+        };
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
+        const key = resp.data.key;
+        const serviceAccountConfig: AxiosRequestConfig = {
+          responseType: 'json',
+          validateStatus: (status: number) => true,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Authorization': `Bearer ${key}`
+          }
+        };
+        const oid = await dbManager.testGetId('NASA');
+        const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+        assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
+        const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+        assert.equal(resp3.status, 401);
+        assert.equal(resp3.data, "Service Account has reached its end of life");
+      });
+
+      it("Service user MUST have an invalid mail", async function() {
+        // With .invalid as tld in their email service account can't recieve a connection mail
+        const email = "randomuser@getgrist.com";
+        assert.notExists(await dbManager.getExistingUserByLogin(email));
+        let error;
+        try {
+          await dbManager.getUserByLogin(email, {}, 'service');
+        } catch (e) {
+          error = e;
+        }
+        assert.exists(error);
+        assert.equal(error.message, "Users of type service must have email like XXXXXX@YYYYYYYYY.invalid");
+      });
+    });
+
+    describe("On owner disabled", function(){
+      it("Should be disabled as well", async function(){
+        const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
+        const chimpyId = chimpyUser.id;
+
+        try {
+          const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
+          const key = resp.data.key;
+          const serviceAccountConfig: AxiosRequestConfig = {
+            responseType: 'json',
+            validateStatus: (status: number) => true,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Authorization': `Bearer ${key}`
+            }
+          };
+          const login  = resp.data.login;
+          const oid = await dbManager.testGetId('NASA');
+          const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+          assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
+          const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+          assert.equal(resp3.status, 403);
+          const delta = {
+            "delta": {
+              "users": {}
+            }
+          };
+          (delta.delta.users as any)[login] = "owners";
+          const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
+          assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
+          const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+          assert.equal(resp5.status, 200, "Service Account should list NASA org");
+
+          // Ham bans chimpy
+          const resp6 = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
+          assert.equal(resp6.status, 200);
+
+          // Now its service account should no longer be have access to ressources
+          const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+          assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
+        } finally {
+          // Unban chimpy so the next tests work
+          await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
+        }
+      });
+    });
   });
 
   describe('GET /api/orgs/{oid}/usage', function() {
