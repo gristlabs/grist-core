@@ -2059,14 +2059,22 @@ export async function removeUser(emails: string|string[], resourceType: Resource
  * any extra modal that pops up will be accepted. Returns true unless
  * clickRemove was set and no modal popped up.
  */
-export async function saveAcls(sharePublicly: boolean = false) {
+export async function saveAcls(
+  {sharePublicly = false, clickRemove = false}: {sharePublicly?: boolean, clickRemove?: boolean} = {}
+) {
   await driver.findWait('.test-um-confirm', 3000).click();
+  let clickedRemove: boolean = false;
   if (sharePublicly) {
     await driver.findWait('.test-modal-confirm', 3000).click();
   }
   await driver.wait(async () => {
+    if (clickRemove && !clickedRemove && await driver.find('.test-modal-confirm').isPresent()) {
+      await driver.find('.test-modal-confirm').click();
+      clickedRemove = true;
+    }
     return !(await driver.find('.test-um-members').isPresent());
   }, 3000);
+  return clickedRemove || !clickRemove;
 }
 
 /**
