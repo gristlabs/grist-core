@@ -611,7 +611,7 @@ describe('Scim', () => {
           assert.deepEqual(res.data, {
             schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
             status: '404',
-            detail: 'User with ID 9 not found'
+            detail: `User with ID ${serviceUserId} not found`
           });
           assert.equal(res.status, 404);
         });
