@@ -11,7 +11,7 @@ import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
 import sortBy = require('lodash/sortBy');
 import {marked} from "marked";
-import {renderer} from 'app/client/ui/DocTourRenderer';
+import {renderer} from 'app/client/ui/MarkdownCellRenderer';
 import {sanitizeTourHTML} from "app/client/ui/sanitizeHTML";
 
 const t = makeT('DocTour');

@@ -113,7 +113,7 @@ describe('DocTour', function () {
       },
       {
         body: '<span><p>' +
-          '<img alt=\"Grist text as image alt\" src=\"https://www.getgrist.com/wp-content/uploads/2023/03/Grist-Logo.png\">' +
+          '![Grist text as image alt](https://www.getgrist.com/wp-content/uploads/2023/03/Grist-Logo.png)' +
           '</p>\n</span>',
 
 
