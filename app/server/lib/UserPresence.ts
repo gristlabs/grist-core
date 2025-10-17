@@ -1,7 +1,7 @@
 import {VisibleUserProfile} from 'app/common/ActiveDocAPI';
 import {CommDocUserPresenceUpdate} from 'app/common/CommTypes';
 import * as roles from 'app/common/roles';
-import {FullUser, getRealAccess} from 'app/common/UserAPI';
+import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, FullUser, getRealAccess} from 'app/common/UserAPI';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {DocClients, isUserPresenceDisabled} from 'app/server/lib/DocClients';
 import {DocSession} from 'app/server/lib/DocSession';
@@ -142,10 +142,11 @@ function getVisibleUserProfileFromDocSession(
 
   const user = userPresenceSession.user;
   const userId = userPresenceSession.userId;
+  const userEmail = user?.loginEmail ?? user?.email;
   const explicitUserRole = userId ? docUserRoles[userId] : null;
   // Only signed-in users that have explicit document access or are a member of the org / workspace
   // have visible details by default.
-  const isAnonymous = !explicitUserRole;
+  const isAnonymous = !explicitUserRole || userEmail === ANONYMOUS_USER_EMAIL || userEmail === EVERYONE_EMAIL;
   return {
     id: userPresenceSession.publicId,
     name: (isAnonymous ? "Anonymous User" : user?.name) || "Unknown User",
