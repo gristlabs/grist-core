@@ -179,8 +179,7 @@ export class Command implements CommandDef {
    * Returns the text description for the command, including the keyboard shortcuts.
    */
   public getDesc() {
-    const parts = [this.desc ? this.desc() : ''];
-
+    const parts = [this.desc?.() ?? ''];
     const keysDesc = this.getKeysDesc();
     if (keysDesc) { parts.push(keysDesc); }
 
