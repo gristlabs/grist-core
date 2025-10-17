@@ -3532,6 +3532,7 @@ export class HomeDBManager implements HomeDBAuth {
       users: [...foundUsers, ...notFoundUsers],
     };
   }
+
   private _installConfig(
     key: ConfigKey,
     { manager }: { manager?: EntityManager }

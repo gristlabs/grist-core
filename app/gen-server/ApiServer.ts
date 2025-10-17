@@ -695,7 +695,7 @@ export class ApiServer {
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt,
           hasValidKey
-      };
+        };
         return sendOkReply(req, res, resp);
       }));
 

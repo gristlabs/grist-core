@@ -35,7 +35,7 @@ export class ServiceAccount extends BaseEntity {
 
   @BeforeUpdate()
   @BeforeInsert()
-  public checkexpiresAt() {
+  public checkExpiresAt() {
     if (Number.isNaN(this.expiresAt.getTime())) {
       throw new ApiError("Invalid expiresAt", 400);
     }
