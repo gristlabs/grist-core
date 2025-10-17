@@ -205,7 +205,7 @@ export async function addRequestUser(
       }
       if (user.type === "service") {
         const serviceAccount = await dbManager.getServiceAccountWithOwner(user.loginEmail as string);
-        if (serviceAccount?.owner.disabledAt){
+        if (serviceAccount?.owner.disabledAt) {
           return res.status(403).send('Unauthorized');
         }
         if (!serviceAccount!.isAlive()) {
