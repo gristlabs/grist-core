@@ -141,7 +141,7 @@ export interface CommandOptions {
  */
 export class Command implements CommandDef {
   public name: CommandName;
-  public desc: string|null;
+  public desc: (() => string) | null;
   public humanKeys: string[];
   public keys: string[];
   public bindKeys: boolean;
@@ -152,7 +152,7 @@ export class Command implements CommandDef {
   private _implGroupStack: CommandGroup[] = [];
   private _activeFunc: (...args: any[]) => any = _.noop;
 
-  constructor(name: CommandName, desc: string|null, keys: string[], options: CommandOptions = {}) {
+  constructor(name: CommandName, desc: (() => string) | null, keys: string[], options: CommandOptions = {}) {
     this.name = name;
     this.desc = desc;
     this.humanKeys = keys.map(key => getHumanKey(key, isMac));
@@ -179,7 +179,7 @@ export class Command implements CommandDef {
    * Returns the text description for the command, including the keyboard shortcuts.
    */
   public getDesc() {
-    const parts = [this.desc];
+    const parts = [this.desc ? this.desc() : ''];
 
     const keysDesc = this.getKeysDesc();
     if (keysDesc) { parts.push(keysDesc); }
