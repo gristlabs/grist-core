@@ -2638,6 +2638,9 @@ describe('ApiServer', function() {
         // Now its service account should no longer be have access to ressources
         const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
         assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
+
+        // Unban chimpy so the next tests work
+        await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
       });
     });
   });
