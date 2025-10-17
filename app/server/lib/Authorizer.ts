@@ -204,11 +204,11 @@ export async function addRequestUser(
         return res.status(401).send('Bad request: invalid API key');
       }
       if (user.type === "service") {
-        const serviceAccount = await dbManager.getServiceAccountWithOwner(user.loginEmail as string);
-        if (serviceAccount?.owner.disabledAt) {
+        const serviceAccount = (await dbManager.getServiceAccountWithOwner(user.loginEmail as string))!;
+        if (serviceAccount.owner.disabledAt) {
           return res.status(403).send('Unauthorized');
         }
-        if (!serviceAccount!.isAlive()) {
+        if (!serviceAccount.isAlive()) {
           return res.status(401).send('Service Account has reached its end of life');
         }
       }
