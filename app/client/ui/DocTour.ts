@@ -10,6 +10,10 @@ import {IconList, IconName} from 'app/client/ui2018/IconList';
 import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
 import sortBy = require('lodash/sortBy');
+import {marked} from "marked";
+import {renderer} from 'app/client/ui/MarkdownCellRenderer';
+import {sanitizeTourHTML} from "app/client/ui/sanitizeHTML";
+import {safeJsonParse} from 'app/common/gutil';
 
 const t = makeT('DocTour');
 
@@ -43,17 +47,36 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
     function getValue(colId: string): string {
       return String(tableData.getValue(rowId, colId) || "");
     }
+
+    function getCellFormat(colId: string) {
+      const tableRef = docData.getMetaTable("_grist_Tables").findRow('tableId', tableId);
+      const bodyCol = docData.getMetaTable("_grist_Tables_column").filterRecords({parentId: tableRef, colId: colId})[0];
+      const widgetType: string|undefined = safeJsonParse(bodyCol?.widgetOptions, {})?.widget;
+      return widgetType;
+    }
+
     const title = getValue("Title");
-    let body: HTMLElement | string = getValue("Body");
+    const bodyValue = getValue("Body"); 
+
+    if (!title && !(bodyValue.trim()) ) {
+      return null;
+    }
+    
+    let body: HTMLElement | string = bodyValue;
+    // Renders Markdown only if the `Body` colum of type `Text` specifies "Cell Format" as `Markdown`
+    const cellFormat = getCellFormat("Body");
+    if(cellFormat == "Markdown") {
+      const element = sanitizeTourHTML(marked.parse(bodyValue, {
+      async: false, renderer
+      }));
+      body = dom('span', element);
+    }
+
     const linkText = getValue("Link_Text");
     const linkUrl = getValue("Link_URL");
     const linkIcon = getValue("Link_Icon") as IconName;
     const locationValue = getValue("Location");
     let placement = getValue("Placement");
-
-    if (!(title || body)) {
-      return null;
-    }
 
     const urlState = sameDocumentUrlState(locationValue);
     if (isNarrowScreen() || !placements.includes(placement as Placement)) {
@@ -69,8 +92,8 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
 
     if (validLinkUrl && linkText) {
       body = dom(
-        'div',
-        dom('p', body),
+        'span',
+        body,
         dom('p',
           cssButtons(cssLinkBtn(
             IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,

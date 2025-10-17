@@ -47,7 +47,9 @@ describe('DocTour', function () {
     const docTour = await driver.executeScript('return window._gristDocTour()');
     assert.deepEqual(docTour, [
       {
-        body: 'General Kenobi!',
+        body: '<span>' +
+          '<p>General Kenobi!</p>\n' +
+          '</span>',
         placement: 'bottom',
         selector: '.active_cursor',
         showHasModal: false,
@@ -55,7 +57,9 @@ describe('DocTour', function () {
         urlState: {colRef: 2, rowId: 2, sectionId: 1}
       },
       {
-        body: 'no title',
+        body: '<span>' +
+          '<p>no title</p>\n' +
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
@@ -63,15 +67,15 @@ describe('DocTour', function () {
         urlState: null,
       },
       {
-        body: '<div>' +
-          '<p></p>' +
+        body: '<span>' +
+          '<span></span>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://www.getgrist.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
           '<div class="_grainXXX_ _grainXXX_" style="mask-image: var(--icon-Page);"></div>' +
           'A link with an icon' +
           '</a>' +
           '</div></p>' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
@@ -79,19 +83,139 @@ describe('DocTour', function () {
         urlState: {colRef: 4, rowId: 4, sectionId: 1}
       },
       {
-        body: '<div>' +
-          '<p>Good riddance</p>' +
+        body: '<span><span>' +
+          '<p>Good riddance</p>\n</span>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://xkcd.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
           'Test link here' +
           '</a>' +
           '</div></p>' +
-          '</div>',
+          '</span>',
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
         title: 'Bye',
         urlState: null,
+      },
+      {
+        body: '<span><p>' +
+          '<strong>bold</strong>' +
+          ' <em>italicized</em>' +
+          ' <code>code</code>' +
+          ' <del>strikethrough</del>' +
+          '</p>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown formating',
+        urlState: null,
+      },
+      {
+        body: '<span><p>' +
+          '![Grist text as image alt](https://www.getgrist.com/wp-content/uploads/2023/03/Grist-Logo.png)' +
+          '</p>\n</span>',
+
+
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown image (NOT RENDERED BY CHOICE)',
+        urlState: {
+            "colRef": 8,
+            "rowId": 8,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<span>' +
+          '<h1>H1</h1>\n<h2>H2</h2>\n<h3>H3</h3>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown headings',
+        urlState: null,
+      },
+      {
+        body: '<span>' +
+          '<ol>\n<li>First item</li>\n<li>Second item</li>\n<li>Third item</li>\n</ol>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown ordered list',
+        urlState: {
+            "colRef": 10,
+            "rowId": 10,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<span>' +
+          '<ul>\n<li>First item</li>\n<li>Second item</li>\n<li>Third item</li>\n</ul>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown unordered list',
+        urlState: null,
+      },
+      {
+        body: '<span>' +
+          '<blockquote>\n<p>blockquote</p>\n</blockquote>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown quote',
+        urlState: {
+            "colRef": 12,
+            "rowId": 12,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<span>' +
+          '<pre><code>{\n  ' +
+          '"firstName": "John",\n  "lastName": "Smith",\n  "age": 25\n' +
+          '}\n' +
+          '</code></pre>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown code block',
+        urlState: null
+      },
+      {
+        body: '<span>' +
+          '<p><span class=\"test-text-link _grainXXX_\"><a class=\"_grainXXX_\" rel=\"noopener noreferrer\" href=\"https://www.example.com/\"><span class=\"_grainXXX_ _grainXXX_ _grainXXX_\"><span style=\"mask-image: var(--icon-FieldLink);\" class=\"test-tb-link-icon _grainXXX_\"></span></span></a><span class=\"_grainXXX_\">title</span></span></p>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: false,
+        title: 'Markdown link',
+        urlState: {
+            "colRef": 14,
+            "rowId": 14,
+            "sectionId": 1
+          },
+      },
+      {
+        body: '<span>' +
+          '<p>Do not render HTML only Markdown</p>\n<h1>This is a H1 Title</h1>\n' +
+          '<p>Previous SHOULD BE a level 1 Title.</p>\n' +
+          '<p>Next should NOT BE a level 1 Title :</p>\n' +
+          '&lt;H1&gt;Level 1 title&lt;/H1&gt; \n\n' +
+          '<p>The HTML &lt;H1&gt; within this text should not be rendered but the previous Markdown # should</p>\n' +
+          '<p>This is another test where the following text SHOULD NOT BE BOLD : &lt;b&gt;should just render the tags without bold &lt;/b&gt;</p>\n' +
+          '</span>',
+        placement: 'auto',
+        selector: '.active_cursor',
+        showHasModal: true,
+        title: 'Markdown with HTML (NOT RENDERED BY CHOICE)',
+        urlState: null
       }
     ]);
   });
@@ -154,7 +278,9 @@ describe('DocTour', function () {
 
   async function checkDocTourPresent() {
     // Check the expected message.
-    assert.match(await driver.findWait('.test-onboarding-popup', 500).getText(), /General Kenobi/);
+     assert.isTrue(await driver.findWait('.test-onboarding-popup', 500)
+       .findContent('div', 'General Kenobi!').isPresent());
+
     // Check that there is only one popup, and no errors.
     assert.lengthOf(await driver.findAll('.test-onboarding-popup'), 1);
     await gu.checkForErrors();
