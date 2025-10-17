@@ -120,7 +120,7 @@ describe('DocTour', function () {
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: false,
-        title: 'Markdown image',
+        title: 'Markdown image (NOT RENDERED BY CHOICE)',
         urlState: {
             "colRef": 8,
             "rowId": 8,
@@ -214,7 +214,7 @@ describe('DocTour', function () {
         placement: 'auto',
         selector: '.active_cursor',
         showHasModal: true,
-        title: 'Markdown with HTML',
+        title: 'Markdown with HTML (NOT RENDERED BY CHOICE)',
         urlState: null
       }
     ]);
