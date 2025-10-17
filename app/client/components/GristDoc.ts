@@ -71,7 +71,7 @@ import {delay} from 'app/common/delay';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isSchemaAction, UserAction} from 'app/common/DocActions';
 import {OpenLocalDocResult} from 'app/common/DocListAPI';
-import {DocStateComparison} from 'app/common/DocState';
+import {DocState, DocStateComparison} from 'app/common/DocState';
 import {isList, isListType, isRefListType} from 'app/common/gristTypes';
 import {HashLink, IDocPage, isViewDocPage, parseUrlId, SpecialDocPage, ViewDocPage} from 'app/common/gristUrls';
 import {undef, waitObs} from 'app/common/gutil';
@@ -189,6 +189,8 @@ export interface GristDoc extends DisposableWithEvents {
   attachmentTransfer: Observable<AttachmentTransferStatus | null>;
   canShowRawData: Observable<boolean>;
   currentUser: Observable<ExtendedUser|null>;
+  // Keep track of the actionNum/actionHash of the document.
+  latestActionState: Observable<DocState|null>;
   regionFocusSwitcher?: RegionFocusSwitcher;
 
   docId(): string;
@@ -305,6 +307,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    */
   public canShowRawData: Computed<boolean>;
   public currentUser: Observable<ExtendedUser|null>;
+  public latestActionState: Observable<DocState|null>;
 
   private _actionLog: ActionLog;
   private _undoStack: UndoStack;
@@ -357,6 +360,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.currentUser = Computed.create(this, use => {
       return use(this.app.topAppModel.appObs)?.currentUser ?? null;
     });
+
+    this.latestActionState = Observable.create<DocState | null>(this, null);
 
     const defaultViewId = this.docInfo.newDefaultViewId;
 
@@ -602,6 +607,13 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     this._actionLog = this.autoDispose(ActionLog.create({gristDoc: this}));
     this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {gristDoc: this}));
+    if (openDocResponse.log.length > 0) {
+      const latestAction = openDocResponse.log[openDocResponse.log.length - 1];
+      this.latestActionState.set({
+        h: latestAction.actionHash,
+        n: latestAction.actionNum,
+      });
+    }
     this._docHistory = DocHistory.create(this, this.docPageModel, this._actionLog);
     this._discussionPanel = DiscussionPanel.create(this, this);
 
@@ -1373,6 +1385,10 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     }
     if (this.docComm.isActionFromThisDoc(message)) {
       const docActions = message.data.docActions;
+      this.latestActionState.set({
+        h: message.data.actionGroup.actionHash,
+        n: message.data.actionGroup.actionNum,
+      });
       for (let i = 0, len = docActions.length; i < len; i++) {
         console.log("GristDoc applying #%d", i, docActions[i]);
         this.docData.receiveAction(docActions[i]);

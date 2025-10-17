@@ -109,8 +109,8 @@ describe('ProposedChangesPage', function() {
 
     // Once proposed, there should be a status line, and the same
     // button should now be labelled "Update".
-    await driver.findContentWait('.test-proposals-status', /Proposed/, 2000);
-    assert.match(await driver.find('.test-proposals-propose').getText(), /Update/);
+    await driver.findContentWait('.test-proposals-status', /Proposal/, 2000);
+    assert.equal(await driver.find('.test-proposals-propose').isPresent(), false);
 
     // Try retracting the proposal. The status should become "retracted"
     // and the proposal button should be back to its original state.
@@ -118,7 +118,7 @@ describe('ProposedChangesPage', function() {
     await driver.findContentWait('.test-proposals-status', /Retracted/, 2000);
     assert.match(await driver.find('.test-proposals-propose').getText(), /Propose/);
     await driver.find('.test-proposals-propose').click();
-    await driver.findContentWait('.test-proposals-status', /Proposed/, 2000);
+    await driver.findContentWait('.test-proposals-status', /Proposal/, 2000);
 
     // Click on the "original document" to see how things are there now.
     await driver.findContentWait('span', /original document/, 2000).click();
@@ -127,7 +127,7 @@ describe('ProposedChangesPage', function() {
     // Changes versus Propose Changes)
     assert.match(
       await driver.findContentWait('.test-proposals-header', /# 1/, 2000).getText(),
-      /Proposed/
+      /Proposal/
     );
 
     // There should be exactly one proposal.

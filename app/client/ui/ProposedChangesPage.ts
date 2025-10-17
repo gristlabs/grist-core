@@ -6,7 +6,7 @@ import { getTimeFromNow } from 'app/client/lib/timeUtils';
 import { urlState } from 'app/client/models/gristUrlState';
 import { docListHeader } from 'app/client/ui/DocMenuCss';
 import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
-import { basicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
+import { basicButton, bigBasicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
 import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
@@ -217,9 +217,17 @@ export class ProposedChangesForkPage extends Disposable {
   private _comparison?: DocStateComparison;
 
   private _proposalObs: Observable<Proposal|null> = Observable.create(this, null);
+  private _outOfDateObs: Computed<boolean>;
 
   constructor(public gristDoc: GristDoc) {
     super();
+    this._outOfDateObs = Computed.create(
+      this, gristDoc.latestActionState, this._proposalObs,
+      (_owner, actionState, proposal) => {
+        const proposed = proposal?.comparison.comparison?.left;
+        return Boolean(proposed && actionState && proposed.h !== actionState.h);
+      }
+    );
   }
 
   public title() {
@@ -296,16 +304,17 @@ export class ProposedChangesForkPage extends Disposable {
       cssDataRow(
         details ? renderComparisonDetails(this.gristDoc, details) : null,
       ),
-      dom.domComputed(this._proposalObs, proposal => {
+      dom.domComputed((use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
+        const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
         return [
           dom('p',
               getProposalActionSummary(proposal),
               testId('status'),
              ),
+          this._getProposalRelativeToCurrent(),
           (isReadOnly || !maybeHasChanges) ? null : cssControlRow(
-            bigPrimaryButton(
-              (proposal?.updatedAt &&
-                  proposal?.status?.status === undefined) ? t('Update Change') : t('Propose Change'),
+            (hasProposal && !outOfDate) ? null : bigPrimaryButton(
+              hasProposal ? t('Update Proposal') : t('Propose Change'),
               dom.on('click', async () => {
                 const urlId = this.gristDoc.docPageModel.currentDocId.get();
                 await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
@@ -313,8 +322,8 @@ export class ProposedChangesForkPage extends Disposable {
               }),
               testId('propose'),
             ),
-            (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigPrimaryButton(
-              t("Retract Change"),
+            (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigBasicButton(
+              t("Retract Proposal"),
               dom.on('click', async () => {
                 const urlId = this.gristDoc.docPageModel.currentDocId.get();
                 await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
@@ -336,6 +345,17 @@ export class ProposedChangesForkPage extends Disposable {
     });
     if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
+  }
+
+  private _getProposalRelativeToCurrent() {
+    return dom.maybe(this._outOfDateObs, outOfDate => {
+      if (outOfDate) {
+        return dom(
+          'p',
+          t(`There are fresh changes that haven't been added to the proposal yet.`)
+        );
+      }
+    });
   }
 }
 
@@ -429,12 +449,12 @@ export const cssWarningIcon = styled(icon, `
 function getProposalActionSummary(proposal: Proposal|null) {
   return proposal?.updatedAt ? dom.text(
     proposal?.status.status === 'retracted' ?
-        t("Retracted {{at}}", {at: getTimeFromNow(proposal.updatedAt)}) :
+        t("Retracted {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
         proposal?.status.status === 'dismissed' ?
-        t("Dismissed {{at}}", {at: getTimeFromNow(proposal.updatedAt)}) :
+        t("Dismissed {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
         proposal?.status.status === 'applied' && proposal.appliedAt ?
-        t("Accepted {{at}}", {at: getTimeFromNow(proposal.appliedAt)}) :
-        t("Proposed {{at}}", {at: getTimeFromNow(proposal.updatedAt)}),
+        t("Accepted {{at}}.", {at: getTimeFromNow(proposal.appliedAt)}) :
+        t("Proposal made {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}),
   ) : null;
 }
 

@@ -49,6 +49,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // to render its contents, but we handle by merely skipping such content if gristDoc is not yet
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
+    const isProposable = Boolean(doc.options?.proposedChanges?.acceptProposals);
     const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
     if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
@@ -64,16 +65,18 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuOriginal(doc, pageModel, {isTutorialFork: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
-    } else if (doc.isPreFork || doc.isBareFork) {
+    } else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
       // A new unsaved document, or a fiddle, or a public example.
-      const saveActionTitle = doc.isBareFork ? t("Save Document") : t("Save Copy");
+      const saveActionTitle =
+          doc.isBareFork ? t("Save Document") :
+          isProposable ? t("Propose Changes") : t("Save Copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
-      if (doc.options?.proposedChanges?.acceptProposals) {
+      if (isProposable) {
         return shareButton(t("Propose Changes"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),

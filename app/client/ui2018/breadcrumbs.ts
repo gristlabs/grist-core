@@ -161,8 +161,14 @@ export function docBreadcrumbs(
                              testId('recovery-mode-tag'));
         }
         if (use(options.isFiddle)) {
-          return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
+          if (options.isProposable && use(options.isProposable)) {
+            return cssTag(t("propose changes"), tooltip({title: t(`You may make edits,
+but they will not affect the original document.
+You can propose them as suggestions.`)}), testId('fiddle-tag'));
+          } else {
+            return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
 not affect the original document.`)}), testId('fiddle-tag'));
+          }
         }
         if (options.isProposable && use(options.isProposable)) {
           if (options.isReadonly && use(options.isReadonly)) {
