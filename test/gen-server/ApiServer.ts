@@ -2595,7 +2595,7 @@ describe('ApiServer', function() {
           error = e;
         }
         assert.exists(error);
-        assert.equal(error.message, "Users of type service must have email like XXXXXX@serviceaccount.invalid");
+        assert.equal(error.message, "Users of type service must have email like XXXXXX@YYYYYYYYY.invalid");
       });
     });
 
