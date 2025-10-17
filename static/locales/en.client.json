@@ -1400,7 +1400,8 @@
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators."
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "DESCRIPTION"
+        "DESCRIPTION": "DESCRIPTION",
+        "Set description": "Set description"
     },
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
@@ -2177,7 +2178,8 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
     },
     "MentionTextBox": {
-        "no access": "no access"
+        "no access": "no access",
+        "...loading": "...loading"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.",
@@ -2312,5 +2314,48 @@
         "Proposed Changes": "Proposed Changes",
         "Replace Original": "Replace Original",
         "This is a list of changes relative to the original document.": "This is a list of changes relative to the original document."
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "12-hour format",
+        "24-hour format": "24-hour format",
+        "AM": {
+            "PM": "AM/PM"
+        },
+        "Calendar": "Calendar",
+        "Date helpers…": "Date helpers…",
+        "Day": "Day",
+        "Day of month": "Day of month",
+        "Day of week": "Day of week",
+        "Day of week (abbrev)": "Day of week (abbrev)",
+        "Day of week (full)": "Day of week (full)",
+        "Day of week (numeric)": "Day of week (numeric)",
+        "Days since": "Days since",
+        "Days until": "Days until",
+        "Default": "Default",
+        "End of": "End of",
+        "Full date": "Full date",
+        "Full name with year": "Full name with year",
+        "Hour": "Hour",
+        "Intervals": "Intervals",
+        "Is weekend?": "Is weekend?",
+        "Minute": "Minute",
+        "Month": "Month",
+        "Months since": "Months since",
+        "Months until": "Months until",
+        "Name only": "Name only",
+        "Number only": "Number only",
+        "Quarter": "Quarter",
+        "Quick Picks": "Quick Picks",
+        "Relative": "Relative",
+        "Short with year": "Short with year",
+        "Sortable": "Sortable",
+        "Start of": "Start of",
+        "Time": "Time",
+        "Time bucket": "Time bucket",
+        "Week": "Week",
+        "Week of year": "Week of year",
+        "Year": "Year",
+        "Years since": "Years since",
+        "Years until": "Years until"
     }
 }
