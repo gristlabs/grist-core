@@ -591,6 +591,11 @@ export function assertAccess(
     throw new ErrorWithCode("AUTH_NO_VIEW", "Document is deleted", {status: 404});
   }
 
+  // Disabled docs in the process of being removed (deleted) are allowed,
+  if (docAuth.disabled && !docAuth.removed) {
+    throw new ErrorWithCode("AUTH_NO_VIEW", "Document is disabled", {status: 404});
+  }
+
   // If docAuth has no error, the doc is accessible, but we should still check the level (in case
   // it's possible to access the doc with a level less than "viewer").
   if (!canView(docAuth.access)) {
