@@ -127,7 +127,7 @@ export class AppImpl extends DisposableWithEvents implements App {
                 dom.forEach(cmds, (cmd) =>
                   dom('tr',
                     dom('td', commands.allCommands[cmd.name]!.getKeysDom()),
-                    dom('td', cmd.desc)
+                    dom('td', cmd.desc?.() ?? '')
                   )
                 )
               ) : null;
