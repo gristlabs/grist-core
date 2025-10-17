@@ -124,7 +124,8 @@ describe('Scim', () => {
     }
 
     async function getOrCreateUserId(user: string, {type}: {type?: UserTypes} = {}) {
-      return (await getDbManager().getUserByLogin(user + '@getgrist.com', {}, type))!.id;
+      const domain = type === "service" ? "serviceaccounts.invalid" : "getgrist.com";
+      return (await getDbManager().getUserByLogin(`${user}@${domain}`, {}, type))!.id;
     }
 
     async function cleanupUser(userId: number) {
