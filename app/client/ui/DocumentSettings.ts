@@ -77,6 +77,7 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
+    const isFork = docPageModel.currentDoc.get()?.isFork;
     const proposedChangesEnabled = docPageModel.appModel?.experiments?.isEnabled('proposedChangesPage');
 
     return cssContainer({tabIndex: '-1'},
@@ -118,7 +119,7 @@ export class DocSettingsPage extends Disposable {
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
-        proposedChangesEnabled ? dom.create(AdminSectionItem, {
+        (proposedChangesEnabled && !isFork) ? dom.create(AdminSectionItem, {
           id: 'acceptProposals',
           name: t('Proposals'),
           description: t('Allow others to propose changes'),
