@@ -92,6 +92,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public fieldEditorHolder: Holder<IDisposable> = Holder.create(this);
   public activeEditor = Observable.create(this, null);
   public currentView = Observable.create(this, null);
+  public latestActionState = Observable.create(this, null);
   public cursorPosition = Observable.create(this, undefined);
   public userOrgPrefs = Observable.create(this, {});
   public behavioralPromptsManager: BehavioralPromptsManager;

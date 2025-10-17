@@ -1,6 +1,6 @@
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {DocState} from 'app/common/UserAPI';
+import {DocState} from 'app/common/DocState';
 import {ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
         asMinimalActionGroup} from 'app/server/lib/ActionHistory';
 import {ActionHistoryImpl, computeActionHash} from 'app/server/lib/ActionHistoryImpl';

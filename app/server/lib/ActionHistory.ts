@@ -16,8 +16,8 @@
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
 import {createEmptyActionSummary} from 'app/common/ActionSummary';
-import {DocState} from 'app/common/UserAPI';
 import {summarizeAction} from 'app/common/ActionSummarizer';
+import {DocState} from 'app/common/DocState';
 
 export interface ActionGroupOptions {
   // If set, inspect the action in detail in order to include a summary of
