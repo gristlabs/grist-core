@@ -72,6 +72,7 @@ export class Cursor extends Disposable {
 
   public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
+  public lastPosInvalid: ko.Observable<boolean>;
 
   public rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
 
@@ -111,6 +112,7 @@ export class Cursor extends Disposable {
     }));
 
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
+    this.lastPosInvalid = ko.observable(false);
 
     this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasRegionFocus));
 
@@ -165,15 +167,25 @@ export class Cursor extends Disposable {
    * @param isFromLink: should be set if this is a cascading update from cursor-linking
    */
   public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): void {
-
     try {
       // If updating as a result of links, we want to NOT update lastEditedAt
       if (isFromLink) { this._silentUpdatesFlag = true; }
 
-      if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
-        this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId));
+      let newRowIndex: number | null = null;
+
+      if (cursorPos.rowId !== undefined) {
+        newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
       } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
-        this.rowIndex(cursorPos.rowIndex);
+        newRowIndex = cursorPos.rowIndex;
+      }
+
+      if (newRowIndex === -1) {
+        this.lastPosInvalid(true);
+      }
+
+      if (newRowIndex !== null && newRowIndex >= 0) {
+        this.rowIndex(newRowIndex);
+        this.lastPosInvalid(false);
       } else {
         // Write rowIndex to itself to force an update of rowId if needed.
         this.rowIndex(this.rowIndex.peek() || 0);
