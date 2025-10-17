@@ -2604,43 +2604,45 @@ describe('ApiServer', function() {
         const chimpyUser = await dbManager.getUserByLogin(chimpyEmail);
         const chimpyId = chimpyUser.id;
 
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
-        const key = resp.data.key;
-        const serviceAccountConfig: AxiosRequestConfig = {
-          responseType: 'json',
-          validateStatus: (status: number) => true,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Authorization': `Bearer ${key}`
-          }
-        };
-        const login  = resp.data.login;
-        const oid = await dbManager.testGetId('NASA');
-        const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
-        assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
-        const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
-        assert.equal(resp3.status, 403);
-        const delta = {
-          "delta": {
-            "users": {}
-          }
-        };
-        (delta.delta.users as any)[login] = "owners";
-        const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
-        assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
-        const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
-        assert.equal(resp5.status, 200, "Service Account should list NASA org");
+        try {
+          const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
+          const key = resp.data.key;
+          const serviceAccountConfig: AxiosRequestConfig = {
+            responseType: 'json',
+            validateStatus: (status: number) => true,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Authorization': `Bearer ${key}`
+            }
+          };
+          const login  = resp.data.login;
+          const oid = await dbManager.testGetId('NASA');
+          const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
+          assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
+          const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
+          assert.equal(resp3.status, 403);
+          const delta = {
+            "delta": {
+              "users": {}
+            }
+          };
+          (delta.delta.users as any)[login] = "owners";
+          const resp4 = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, delta, chimpy);
+          assert.equal(resp4.status, 200, "Chimpy should add service account to NASA org");
+          const resp5 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+          assert.equal(resp5.status, 200, "Service Account should list NASA org");
 
-        // Ham bans chimpy
-        const resp6 = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
-        assert.equal(resp6.status, 200);
+          // Ham bans chimpy
+          const resp6 = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
+          assert.equal(resp6.status, 200);
 
-        // Now its service account should no longer be have access to ressources
-        const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
-        assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
-
-        // Unban chimpy so the next tests work
-        await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
+          // Now its service account should no longer be have access to ressources
+          const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
+          assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
+        } finally {
+          // Unban chimpy so the next tests work
+          await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
+        }
       });
     });
   });
