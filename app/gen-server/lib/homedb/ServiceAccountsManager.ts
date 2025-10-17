@@ -65,12 +65,7 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      return await manager.createQueryBuilder()
-        .select("serviceAccount")
-        .from(ServiceAccount, "serviceAccount")
-        .innerJoinAndSelect("serviceAccount.serviceUser", "serviceUser")
-        .innerJoinAndSelect("serviceUser.logins", "logins")
-        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
+      return await this._buildServiceAccountQuery(manager, serviceAccountLogin)
         .getOne();
     });
   }
@@ -80,13 +75,8 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ) {
     return await this._runInTransaction(transaction, async manager => {
-      return await manager.createQueryBuilder()
-        .select("serviceAccount")
-        .from(ServiceAccount, "serviceAccount")
-        .innerJoinAndSelect("serviceAccount.serviceUser", "serviceUser")
-        .innerJoinAndSelect("serviceUser.logins", "logins")
+      return await this._buildServiceAccountQuery(manager, serviceAccountLogin)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
-        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
         .getOne();
     });
   }
@@ -172,5 +162,14 @@ export class ServiceAccountsManager {
     if (serviceAccount === null) {
       throw new ApiError("This Service Account does not exist", 404);
     }
+  }
+
+  private _buildServiceAccountQuery(manager: EntityManager, serviceAccountLogin: string) {
+    return manager.createQueryBuilder()
+      .select("serviceAccount")
+      .from(ServiceAccount, "serviceAccount")
+      .innerJoinAndSelect("serviceAccount.serviceUser", "serviceUser")
+      .innerJoinAndSelect("serviceUser.logins", "logins")
+      .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)});
   }
 }
