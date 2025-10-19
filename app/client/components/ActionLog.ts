@@ -471,8 +471,8 @@ export abstract class ActionLogPart {
       const ai = order.get(a);
       const bi = order.get(b);
       if (ai === undefined && bi === undefined) { return 0; }
-      if (ai === undefined) return 1;
-      if (bi === undefined) return -1;
+      if (ai === undefined) { return 1; }
+      if (bi === undefined) { return -1; }
       return ai - bi;
     });
   }
