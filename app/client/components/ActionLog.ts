@@ -260,7 +260,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
  */
 export abstract class ActionLogPart {
   public constructor(
-    _gristDoc: GristDoc|null,
+    private _gristDocBase: GristDoc|null,
   ) {}
 
   /**
@@ -290,7 +290,10 @@ export abstract class ActionLogPart {
    */
   public renderTabularDiffs(sum: ActionSummary, txt?: string, contextObs?: ko.Observable<ActionContext>): HTMLElement {
     const editDom = koDom.scope(contextObs, (context: ActionContext) => {
-      const act = asTabularDiffs(sum, context);
+      const act = asTabularDiffs(sum, {
+        context,
+        order: this._naiveColumnOrder.bind(this),
+      });
       return dom(
         'div',
         this._renderTableSchemaChanges(sum),
@@ -450,6 +453,28 @@ export abstract class ActionLogPart {
     if (result) {
       contextObs({...context, [tableId]: result[tableId]});
     }
+  }
+
+  private _naiveColumnOrder(tableId: string, colIds: string[]) {
+    // Naively, if there is currently a table matching the name,
+    // use its columns for ordering. It might not be the same table!
+    // Columns may have changed since! But the consequence of getting
+    // order wrong in some cases isn't that bad, compared to getting
+    // it wrong in regular case of unchanged schema.
+    // TODO: remove this method and replace with something that uses
+    // TimeQuery or related machinery.
+    const refColIds = this._gristDocBase?.docData.getTable(tableId)?.getColIds();
+    if (!refColIds) { return colIds; }
+    const order = new Map(refColIds.map((id, i) => [id, i]));
+    order.set('id', 0);
+    return [...colIds].sort((a, b) => {
+      const ai = order.get(a);
+      const bi = order.get(b);
+      if (ai === undefined && bi === undefined) { return 0; }
+      if (ai === undefined) return 1;
+      if (bi === undefined) return -1;
+      return ai - bi;
+    });
   }
 }
 
