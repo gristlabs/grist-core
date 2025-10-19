@@ -69,7 +69,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       // A new unsaved document, or a fiddle, or a public example.
       const saveActionTitle =
           doc.isBareFork ? t("Save Document") :
-          isProposable ? t("Propose Changes") : t("Save Copy");
+          isProposable ? t("Suggest Changes") : t("Save Copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle}),
@@ -77,14 +77,14 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
       if (isProposable) {
-        return shareButton(t("Propose Changes"), () => [
+        return shareButton(t("Suggest Changes"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ], {buttonAction: async () => {
           await urlState().pushUrl({
-            docPage: 'proposals'
+            docPage: 'suggestions'
           });
         }});
       }

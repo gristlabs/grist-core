@@ -811,7 +811,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
           content === 'code' ? dom.create(CodeEditorPanel, this) :
           content === 'acl' ? dom.create(AccessRules, this) :
           content === 'data' ? dom.create(RawDataPage, this) :
-          content === 'proposals' ? dom.create(ProposedChangesPage, this) :
+          content === 'suggestions' ? dom.create(ProposedChangesPage, this) :
           content === 'settings' ? dom.create(DocSettingsPage, this) :
           content === 'webhook' ? dom.create(WebhookPage, this) :
           content === 'timing' ? dom.create(TimingPage, this) :

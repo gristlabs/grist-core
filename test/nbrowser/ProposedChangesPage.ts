@@ -25,7 +25,7 @@ describe('ProposedChangesPage', function() {
     // Check the accepting proposals checkbox is now visible.
     assert.match(
       await driver.findWait('#admin-panel-item-description-acceptProposals', 2000).getText(),
-      /Allow others to propose changes/);
+      /Allow others to suggest changes/);
     // But it shouldn't be checked yet.
     assert.equal(
       await driver.find('input.test-settings-accept-proposals').getAttribute('checked'),
@@ -75,11 +75,11 @@ describe('ProposedChangesPage', function() {
 
     // Go to the propose-changes page.
     assert.equal(await driver.find('.test-tools-proposals').getText(),
-                 'Propose Changes');
+                 'Suggest Changes');
     await driver.find('.test-tools-proposals').click();
 
     // Make sure the expected change is shown.
-    await driver.findContentWait('.test-main-content', /Propose Changes/, 2000);
+    await driver.findContentWait('.test-main-content', /Suggest Changes/, 2000);
     await driver.findWait('.action_log_table', 2000);
     assert.lengthOf(await driver.findAll('.action_log_table'), 1);
     assert.equal(
@@ -104,22 +104,22 @@ describe('ProposedChangesPage', function() {
       '→ 1\ntest1test2\nTEST1TEST2'
     );
 
-    // Check a "Propose" button is present, and click it.
-    assert.match(await driver.find('.test-proposals-propose').getText(), /Propose/);
+    // Check a "Suggest" button is present, and click it.
+    assert.match(await driver.find('.test-proposals-propose').getText(), /Suggest/);
     await driver.find('.test-proposals-propose').click();
 
     // Once proposed, there should be a status line, and the same
     // button should now be labelled "Update".
-    await driver.findContentWait('.test-proposals-status', /Proposal/, 2000);
+    await driver.findContentWait('.test-proposals-status', /Suggestion/, 2000);
     assert.equal(await driver.find('.test-proposals-propose').isPresent(), false);
 
     // Try retracting the proposal. The status should become "retracted"
     // and the proposal button should be back to its original state.
     await driver.findWait('.test-proposals-retract', 2000).click();
     await driver.findContentWait('.test-proposals-status', /Retracted/, 2000);
-    assert.match(await driver.find('.test-proposals-propose').getText(), /Propose/);
+    assert.match(await driver.find('.test-proposals-propose').getText(), /Suggest/);
     await driver.find('.test-proposals-propose').click();
-    await driver.findContentWait('.test-proposals-status', /Proposal/, 2000);
+    await driver.findContentWait('.test-proposals-status', /Suggest/, 2000);
 
     // Click on the "original document" to see how things are there now.
     await driver.findContentWait('span', /original document/, 2000).click();
@@ -128,7 +128,7 @@ describe('ProposedChangesPage', function() {
     // Changes versus Propose Changes)
     assert.match(
       await driver.findContentWait('.test-proposals-header', /# 1/, 2000).getText(),
-      /Proposal/
+      /Suggestion/
     );
 
     // There should be exactly one proposal.
@@ -144,7 +144,7 @@ describe('ProposedChangesPage', function() {
 
     // Go back to the changes page, and click "Accept".
     assert.equal(await driver.find('.test-tools-proposals').getText(),
-                 'Proposed Changes');
+                 'Suggestions');
     await driver.find('.test-tools-proposals').click();
     await driver.findWait('.test-proposals-apply', 2000).click();
     await gu.waitForServer();
@@ -201,7 +201,7 @@ describe('ProposedChangesPage', function() {
     // Propose the change.
     async function proposeChange() {
       assert.equal(await driver.find('.test-tools-proposals').getText(),
-                   'Propose Changes');
+                   'Suggest Changes');
       await driver.find('.test-tools-proposals').click();
       await driver.findWait('.test-proposals-propose', 2000).click();
     }

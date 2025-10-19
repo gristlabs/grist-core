@@ -103,7 +103,7 @@ export class ProposedChangesTrunkPage extends Disposable {
   }
 
   public title() {
-    return t('Proposed Changes');
+    return t('Suggestions');
   }
 
   public buildDom() {
@@ -118,11 +118,11 @@ export class ProposedChangesTrunkPage extends Disposable {
         return [
           dom.maybe((use) => use(this._proposalCount) === 0, () => {
             return [
-              dom('p', 'There are no proposed changes.'),
+              dom('p', 'There are no suggestions.'),
             ];
           }),
           isReadOnly ? [
-            dom('p', 'Would you like to propose some changes?'),
+            dom('p', 'Would you like to suggest some changes?'),
             bigPrimaryButton(
               t("Work on a Copy"),
               dom.on('click', async () => {
@@ -135,7 +135,7 @@ export class ProposedChangesTrunkPage extends Disposable {
           dom.maybe(this._proposalsObs, proposals => {
             if (proposals.some(p => p.status.status === 'dismissed')) {
               if (isReadOnly) { return null; }
-              return labeledSquareCheckbox(this._showDismissed, 'Show dismissed proposals');
+              return labeledSquareCheckbox(this._showDismissed, 'Show dismissed suggestions.');
             }
           }),
           dom(
@@ -160,7 +160,7 @@ export class ProposedChangesTrunkPage extends Disposable {
                               forkUserId: proposal.srcDoc.creator.id,
                             })
                           }),
-                          docPage: 'proposals',
+                          docPage: 'suggestions',
                         })
                       ) : name,
                   ' | ',
@@ -234,7 +234,7 @@ export class ProposedChangesForkPage extends Disposable {
   }
 
   public title() {
-    return t('Propose Changes');
+    return t('Suggest Changes');
   }
 
   /**
@@ -284,7 +284,7 @@ export class ProposedChangesForkPage extends Disposable {
               t('original document'),
               urlState().setLinkUrl({
                 doc: origUrlId,
-                docPage: 'proposals',
+                docPage: 'suggestions',
               }, {
                 beforeChange: () => {
                   const user = this.gristDoc.currentUser.get();
@@ -302,7 +302,7 @@ export class ProposedChangesForkPage extends Disposable {
           }),
          ),
       dom.maybe(!maybeHasChanges, () => {
-        return dom('p', t('No changes found to propose. Please make some edits.'));
+        return dom('p', t('No changes found to suggest. Please make some edits.'));
       }),
       cssDataRow(
         details ? renderComparisonDetails(this.gristDoc, details) : null,
@@ -317,7 +317,7 @@ export class ProposedChangesForkPage extends Disposable {
           this._getProposalRelativeToCurrent(),
           (isReadOnly || !maybeHasChanges) ? null : cssControlRow(
             (hasProposal && !outOfDate) ? null : bigPrimaryButton(
-              hasProposal ? t('Update Proposal') : t('Propose Change'),
+              hasProposal ? t('Update Suggestion') : t('Suggest Change'),
               dom.on('click', async () => {
                 const urlId = this.gristDoc.docPageModel.currentDocId.get();
                 await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
@@ -326,7 +326,7 @@ export class ProposedChangesForkPage extends Disposable {
               testId('propose'),
             ),
             (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigBasicButton(
-              t("Retract Proposal"),
+              t("Retract Suggestion"),
               dom.on('click', async () => {
                 const urlId = this.gristDoc.docPageModel.currentDocId.get();
                 await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
@@ -355,7 +355,7 @@ export class ProposedChangesForkPage extends Disposable {
       if (outOfDate) {
         return dom(
           'p',
-          t(`There are fresh changes that haven't been added to the proposal yet.`)
+          t(`There are fresh changes that haven't been added to the suggestion yet.`)
         );
       }
     });
@@ -457,7 +457,7 @@ function getProposalActionSummary(proposal: Proposal|null) {
         t("Dismissed {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
         proposal?.status.status === 'applied' && proposal.appliedAt ?
         t("Accepted {{at}}.", {at: getTimeFromNow(proposal.appliedAt)}) :
-        t("Proposal made {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}),
+        t("Suggestion made {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}),
   ) : null;
 }
 

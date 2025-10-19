@@ -109,14 +109,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     dom.maybe(
       trunkAcceptsProposals, () => {
       return cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'proposals'),
+        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'suggestions'),
         cssPageLink(
           cssPageIcon('MobileChat'),
           dom.domComputed(canMakeProposal, (proposable) => {
-            return cssLinkText(proposable ? t("Propose Changes") : t("Proposed Changes"));
+            return cssLinkText(proposable ? t("Suggest Changes") : t("Suggestions"));
           }),
           testId('proposals'),
-          urlState().setLinkUrl({docPage: 'proposals'})
+          urlState().setLinkUrl({docPage: 'suggestions'})
         )
       );
     }),

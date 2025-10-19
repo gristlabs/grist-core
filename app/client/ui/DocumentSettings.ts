@@ -121,11 +121,11 @@ export class DocSettingsPage extends Disposable {
         }),
         (proposedChangesEnabled && !isFork) ? dom.create(AdminSectionItem, {
           id: 'acceptProposals',
-          name: t('Proposals'),
-          description: t('Allow others to propose changes'),
+          name: t('Suggestions'),
+          description: t('Allow others to suggest changes'),
           value: labeledSquareCheckbox(
             this._acceptProposals,
-            t("Show proposals"),
+            t("Show suggestions"),
             dom.on('click', async (elem) => {
               this._working.set(true);
               try {
