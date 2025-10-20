@@ -31,16 +31,20 @@ import {
 } from 'app/server/lib/HostedStorageManager';
 import log from 'app/server/lib/log';
 import {SQLiteDB} from 'app/server/lib/SQLiteDB';
-import * as bluebird from 'bluebird';
-import {assert} from 'chai';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import {createClient, RedisClient} from 'redis';
-import * as sinon from 'sinon';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
+
+
+import * as bluebird from 'bluebird';
+import {assert} from 'chai';
+import * as fse from 'fs-extra';
+import * as minio from 'minio';
+import * as path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
+import {createClient, RedisClient} from 'redis';
+import * as sinon from 'sinon';
 import {v4 as uuidv4} from 'uuid';
 
 bluebird.promisifyAll(RedisClient.prototype);
@@ -993,6 +997,7 @@ describe('HostedStorageManager', function() {
     let docWorkerMap: IDocWorkerMap;
     let externalStorageCreate: ExternalStorageCreator;
     let defaultParams: ConstructorParameters<typeof HostedStorageManager>;
+    const sandbox = sinon.createSandbox();
 
     before(async function() {
       tmpDir = await createTmpDir();
@@ -1042,6 +1047,10 @@ describe('HostedStorageManager', function() {
       ];
     });
 
+    afterEach(function() {
+      sandbox.restore();
+    });
+
     it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
 
       const storageManager = new HostedStorageManager(...defaultParams);
@@ -1055,6 +1064,74 @@ describe('HostedStorageManager', function() {
       await storageManager.prepareLocalDoc(docId);
 
       assert.isTrue(await fse.pathExists(path));
+    });
+
+    it("does not overwrite remote doc on retriable error", async function () {
+      const testStore = new TestStore(
+        tmpDir,
+        workerId,
+        docWorkerMap,
+        externalStorageCreate
+      );
+
+      await testStore.run(async () => {
+        const { storageManager } = testStore;
+        const docId = "ShouldNotBeOverwritten";
+
+        // let's create a new document and ensure it is pushed to S3.
+        let isNew = await storageManager.prepareLocalDoc(docId);
+        storageManager.markAsChanged(docId);
+        await storageManager.flushDoc(docId);
+
+        assert.isTrue(isNew, 'The document should have been created');
+
+        // Remove the document cache so we need to fetch it from the MinIO server
+        const path = storageManager.getPath(docId);
+        await fse.remove(path);
+
+        // Let's block the access to the MinIO server with a retriable error.
+        const retriableError: any = new Error("Error that should be retried");
+        retriableError.code = 'ECONNRESET';
+        const stub = sandbox.stub(minio.Client.prototype, 'statObject')
+          .rejects(retriableError);
+
+        let promiseIsPending = true;
+        const promise = storageManager.prepareLocalDoc(docId).finally(() => { promiseIsPending = false; });
+
+        // Wait a little bit, the promise should not be resolved
+        await setTimeout(1000);
+        assert.isTrue(promiseIsPending, 'prepareLocalDoc should continue retrying joining the MinIO server');
+        assert.isTrue(stub.called, 'the stub should have been called preventing '
+          + ' the external storage to access to MinIO');
+
+        // Now let's unblock the access to the MinIO server
+        stub.restore();
+        isNew = await promise;
+
+        assert.isFalse(isNew, 'prepareLocalDoc should have fetched the existing document from MinIO');
+      });
+    });
+
+    it("should fail immediately (without retries) on fatal error", async function () {
+      const testStore = new TestStore(
+        tmpDir,
+        workerId,
+        docWorkerMap,
+        externalStorageCreate
+      );
+
+      await testStore.run(async () => {
+        const { storageManager } = testStore;
+        const docId = "ExpectFailure";
+
+        const fatalError = new Error('this is fatal');
+        const stub = sandbox.stub(minio.Client.prototype, 'statObject')
+          .rejects(fatalError);
+        const promise = storageManager.prepareLocalDoc(docId);
+
+        await assert.isRejected(promise, fatalError);
+        assert.equal(stub.callCount, 1, 'The stub should have been called once stopping the rest of the execution');
+      });
     });
 
     it("fetches remote docs if they don't exist locally", async function() {
