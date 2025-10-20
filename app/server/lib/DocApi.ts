@@ -126,6 +126,7 @@ import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import {v4 as uuidv4} from "uuid";
 import {appSettings} from "app/server/lib/AppSettings";
+import { filenameContentDisposition, filenameStarredContentDisposition } from "./filenamesUtils";
 
 // This is NOT the number of docs that can be handled at a time.
 // It's a very generous upper bound of what that number might be.
@@ -675,8 +676,10 @@ export class DocWorkerApi {
       const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, {cell});
       res.status(200)
         .type(ext)
-        // Construct a content-disposition header of the form 'attachment; filename="NAME"'
-        .set('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`)
+        // Construct a content-disposition header of the form 'attachment; filename*=UTF-8''"NAME"'
+        .set('Content-Disposition', filenameStarredContentDisposition('attachment', fileName))
+        // Construct a content-disposition header of the form 'attachment; filename="NAME"' removing non-ASCII characters and %
+        .set('Content-Disposition', filenameContentDisposition('attachment', fileName))
         .set('Cache-Control', 'private, max-age=3600')
         .send(fileData);
     }));

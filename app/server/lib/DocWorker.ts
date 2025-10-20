@@ -19,6 +19,7 @@ import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as mimeTypes from 'mime-types';
 import * as path from 'path';
+import { filenameContentDisposition, filenameStarredContentDisposition } from 'app/server/lib/filenamesUtils';
 
 export interface AttachOptions {
   comm: Comm;                             // Comm object for methods called via websocket
@@ -56,11 +57,13 @@ export class DocWorker {
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
       const filename = encodeURIComponent(stringParam(req.query.name, 'name'));
-      const contentDispHeader = `${contentDispType}; filename*=UTF-8''${filename}`;
+      const contentDispHeader = filenameContentDisposition(contentDispType, filename);
+      const contentDispHeaderStarred = filenameStarredContentDisposition(contentDispType, filename);
       const data = await activeDoc.getAttachmentData(docSession, attRecord, {cell, maybeNew});
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)
+        .set('Content-Disposition', contentDispHeaderStarred)
         .set('Cache-Control', 'private, max-age=3600')
         .set("Content-Security-Policy", "sandbox; default-src: 'none'")
         .send(data);
