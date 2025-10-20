@@ -343,14 +343,6 @@ export default class DetailView extends BaseView {
       // Add a marker class that editor is active - used for hiding context menu toggle.
       dom.cls('detailview_layout_editor', this.recordLayout.isEditingLayout),
       dom.domComputed((use) => {
-        if (this._isSingle && use(this.cursor.lastPosInvalid)) {
-          // TODO Issue: Flickers slightly when opening due to opening before the cursor is set.
-          return dom(
-            'div.detailview_record_unavailable_overlay',
-            dom('span', "This record does not exist or is unavailable.")
-          );
-        }
-
         const isEditingLayout = use(this.recordLayout.isEditingLayout);
         if (isEditingLayout) {
           const rowId = this.viewData.getRowId(this.recordLayout.editIndex.peek());

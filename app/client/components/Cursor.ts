@@ -72,7 +72,6 @@ export class Cursor extends Disposable {
 
   public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
-  public lastPosInvalid: ko.Observable<boolean>;
 
   public rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
 
@@ -112,7 +111,6 @@ export class Cursor extends Disposable {
     }));
 
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
-    this.lastPosInvalid = ko.observable(false);
 
     this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasRegionFocus));
 
@@ -163,10 +161,12 @@ export class Cursor extends Disposable {
    * preferring rowId.
    *
    * isFromLink prevents lastEditedAt from being updated, so lastEdit reflects only user-driven edits
-   * @param cursorPos: Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
-   * @param isFromLink: should be set if this is a cascading update from cursor-linking
+   * @param cursorPos - Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
+   * @param isFromLink - should be set if this is a cascading update from cursor-linking
+   *
+   * @returns {boolean} True if the cursor position was valid
    */
-  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): void {
+  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): boolean {
     try {
       // If updating as a result of links, we want to NOT update lastEditedAt
       if (isFromLink) { this._silentUpdatesFlag = true; }
@@ -179,13 +179,8 @@ export class Cursor extends Disposable {
         newRowIndex = cursorPos.rowIndex;
       }
 
-      if (newRowIndex === -1) {
-        this.lastPosInvalid(true);
-      }
-
       if (newRowIndex !== null && newRowIndex >= 0) {
         this.rowIndex(newRowIndex);
-        this.lastPosInvalid(false);
       } else {
         // Write rowIndex to itself to force an update of rowId if needed.
         this.rowIndex(this.rowIndex.peek() || 0);
@@ -210,6 +205,8 @@ export class Cursor extends Disposable {
       //   but that shouldn't cause any problems, since we don't care about edit counts, just who was edited latest.
       this._cursorEdited();
 
+      // If newRowIndex exists and is less than 0, a bad row was requested.
+      return (newRowIndex === null || newRowIndex >= 0);
     } finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
     }
