@@ -2262,6 +2262,11 @@ describe('ApiServer', function() {
       return resp.data as ServiceAccountCreationResponse;
     }
 
+    function requestConfigWithKey(key: string|undefined) {
+      assert.isDefined(key);
+      return requestConfig(key);
+    }
+
     function checkCommonErrors(
       makeRequest: (saId: string, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>
     ) {
@@ -2301,7 +2306,7 @@ describe('ApiServer', function() {
 
       it('is rejected when requested by a service account', async function() {
         const {key: bearer} = await createServiceAccount();
-        const service = requestConfig(bearer);
+        const service = requestConfigWithKey(bearer);
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, service);
         assert.equal(resp.status, 403);
       });
@@ -2510,14 +2515,7 @@ describe('ApiServer', function() {
       it('with valid key and in its lifetime should access to resources it is added to', async function() {
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
         const key = resp.data.key;
-        const serviceAccountConfig: AxiosRequestConfig = {
-          responseType: 'json',
-          validateStatus: (status: number) => true,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Authorization': `Bearer ${key}`
-          }
-        };
+        const serviceAccountConfig = requestConfigWithKey(key);
         const login  = resp.data.login;
         const oid = await dbManager.testGetId('NASA');
         const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
@@ -2542,14 +2540,7 @@ describe('ApiServer', function() {
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
         const serviceLogin = resp.data.login;
         const key = resp.data.key;
-        const serviceAccountConfig: AxiosRequestConfig = {
-          responseType: 'json',
-          validateStatus: (status: number) => true,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Authorization': `Bearer ${key}`
-          }
-        };
+        const serviceAccountConfig = requestConfigWithKey(key);
         const login  = resp.data.login;
         const oid = await dbManager.testGetId('NASA');
         const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
@@ -2578,14 +2569,7 @@ describe('ApiServer', function() {
         };
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
         const key = resp.data.key;
-        const serviceAccountConfig: AxiosRequestConfig = {
-          responseType: 'json',
-          validateStatus: (status: number) => true,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Authorization': `Bearer ${key}`
-          }
-        };
+        const serviceAccountConfig = requestConfigWithKey(key);
         const oid = await dbManager.testGetId('NASA');
         const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
         assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
@@ -2617,14 +2601,7 @@ describe('ApiServer', function() {
         try {
           const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, chimpy);
           const key = resp.data.key;
-          const serviceAccountConfig: AxiosRequestConfig = {
-            responseType: 'json',
-            validateStatus: (status: number) => true,
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-              'Authorization': `Bearer ${key}`
-            }
-          };
+          const serviceAccountConfig = requestConfigWithKey(key);
           const login  = resp.data.login;
           const oid = await dbManager.testGetId('NASA');
           const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
