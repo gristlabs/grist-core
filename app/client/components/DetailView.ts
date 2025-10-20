@@ -342,41 +342,39 @@ export default class DetailView extends BaseView {
         (use) => this._isSingle || use(this.recordLayout.isEditingLayout)),
       // Add a marker class that editor is active - used for hiding context menu toggle.
       dom.cls('detailview_layout_editor', this.recordLayout.isEditingLayout),
-      dom.domComputed((use) => {
-        const isEditingLayout = use(this.recordLayout.isEditingLayout);
-        if (isEditingLayout) {
-          const rowId = this.viewData.getRowId(this.recordLayout.editIndex.peek());
-          const record = this.getRenderedRowModel(rowId);
-          return dom.update(
-            this.recordLayout.buildLayoutDom(record, true),
-            dom.cls((use2) => 'detail_theme_record_' + use2(this.viewSection.themeDef)),
-            dom.cls('detailview_record_' + this.viewSection.parentKey.peek()),
+      dom.maybe(this.recordLayout.isEditingLayout, () => {
+        const rowId = this.viewData.getRowId(this.recordLayout.editIndex.peek());
+        const record = this.getRenderedRowModel(rowId);
+        return dom.update(
+          this.recordLayout.buildLayoutDom(record, true),
+          dom.cls((use) => 'detail_theme_record_' + use(this.viewSection.themeDef)),
+          dom.cls('detailview_record_' + this.viewSection.parentKey.peek()),
+        );
+      }),
+      dom.maybe((use) => !use(this.recordLayout.isEditingLayout), () => {
+        if (!this._isSingle) {
+          return this.scrollPane = dom('div.detailview_scroll_pane.flexitem',
+            kd.scrollChildIntoView(this.cursor.rowIndex),
+            dom.onDispose(() => {
+              // Save the previous scroll values to the section.
+              if (this.scrolly()) {
+                this.viewSection.lastScrollPos = this.scrolly().getScrollPos();
+              }
+            }),
+            koDomScrolly.scrolly(this.viewData, {fitToWidth: true},
+              (row: DataRowModel) => this.makeRecord(row)),
+
+            dom.maybe(this._isPrinting, () =>
+              renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), row =>
+                this.makeRecord(row))
+            ),
           );
         } else {
-          if (!this._isSingle) {
-            return this.scrollPane = dom('div.detailview_scroll_pane.flexitem',
-              kd.scrollChildIntoView(this.cursor.rowIndex),
-              dom.onDispose(() => {
-                // Save the previous scroll values to the section.
-                if (this.scrolly()) {
-                  this.viewSection.lastScrollPos = this.scrolly().getScrollPos();
-                }
-              }),
-              koDomScrolly.scrolly(this.viewData, {fitToWidth: true},
-                (row: DataRowModel) => this.makeRecord(row)),
-
-              dom.maybe(this._isPrinting, () =>
-                renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), row =>
-                  this.makeRecord(row))
-              ),
-            );
-          } else {
-            return dom.update(
-              this.makeRecord(this.detailRecord!),
-              kd.domData('itemModel', this.detailRecord),
-              dom.hide((use2) => use2(this.cursor.rowIndex) === null)
-            );
-          }
+          return dom.update(
+            this.makeRecord(this.detailRecord!),
+            kd.domData('itemModel', this.detailRecord),
+            dom.hide((use) => use(this.cursor.rowIndex) === null)
+          );
         }
       }),
     );
