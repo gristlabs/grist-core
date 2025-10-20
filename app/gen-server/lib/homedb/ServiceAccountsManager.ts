@@ -38,6 +38,13 @@ export class ServiceAccountsManager {
     }
   ) {
     return await this._connection.transaction(async manager => {
+      const owner = await this._homeDb.getUser(ownerId);
+      if (!owner) {
+        throw new ApiError("owner not found", 404);
+      }
+      if (owner.type !== 'login') {
+        throw new ApiError('Only regular users (of type "login") are allowed to create service accounts', 403);
+      }
       const uuid = uuidv4();
       // We use .invalid as tld following RFC 2606
       // as we don't ever want service user to be able to recieve any email
@@ -49,7 +56,7 @@ export class ServiceAccountsManager {
       await this._homeDb.createApiKey(serviceUser.id, false, manager);
 
       const newServiceAccount = ServiceAccount.create({
-        ownerId,
+        owner,
         serviceUserId: serviceUser.id,
         label: options?.label,
         description: options?.description,

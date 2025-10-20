@@ -1,7 +1,9 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import * as chai from 'chai';
 import omit = require('lodash/omit');
-import {configForUser, configWithPermit, getRowCounts as getRowCountsForDb} from 'test/gen-server/testUtils';
+import {
+  configForUser, configWithPermit, getRowCounts as getRowCountsForDb, requestConfig
+} from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 import {createEmptyOrgUsageSummary, OrgUsageSummary} from 'app/common/DocUsage';
@@ -13,6 +15,7 @@ import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager
 import {TestServer} from 'test/gen-server/apiUtils';
 import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
+import { ServiceAccountCreationResponse } from 'app/common/ServiceAccount';
 
 const assert = chai.assert;
 
@@ -2256,7 +2259,7 @@ describe('ApiServer', function() {
     async function createServiceAccount(body = SERVICE_ACCOUNT_BODY) {
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
-      return resp.data;
+      return resp.data as ServiceAccountCreationResponse;
     }
 
     function checkCommonErrors(
@@ -2294,6 +2297,13 @@ describe('ApiServer', function() {
           hasValidKey: true,
         };
         assert.deepEqual(data, expectedData);
+      });
+
+      it('is rejected when requested by a service account', async function() {
+        const {key: bearer} = await createServiceAccount();
+        const service = requestConfig(bearer);
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, service);
+        assert.equal(resp.status, 403);
       });
 
       it('is rejected when requested by an anonymous user', async function() {

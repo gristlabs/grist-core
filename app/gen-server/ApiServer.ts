@@ -656,12 +656,12 @@ export class ApiServer {
         const serviceAccount = await this._dbManager.createServiceAccount(
           ownerId, options
         );
-        const resp: SATypes.ServiceAccountApiResponse = {
-          login: serviceAccount.serviceUser.loginEmail,
-          key: serviceAccount.serviceUser.apiKey,
+        const resp: SATypes.ServiceAccountCreationResponse = {
+          login: serviceAccount.serviceUser.loginEmail!,
+          key: serviceAccount.serviceUser.apiKey!,
           label: serviceAccount.label,
           description: serviceAccount.description,
-          expiresAt: serviceAccount.expiresAt,
+          expiresAt: serviceAccount.expiresAt.toISOString(),
           hasValidKey: true
         };
 
@@ -693,7 +693,7 @@ export class ApiServer {
           login: serviceAccountLogin,
           label: serviceAccount.label,
           description: serviceAccount.description,
-          expiresAt: serviceAccount.expiresAt,
+          expiresAt: serviceAccount.expiresAt.toISOString(),
           hasValidKey
         };
         return sendOkReply(req, res, resp);
@@ -752,7 +752,7 @@ export class ApiServer {
           key: serviceAccount.serviceUser.apiKey,
           label: serviceAccount.label,
           description: serviceAccount.description,
-          expiresAt: serviceAccount.expiresAt,
+          expiresAt: serviceAccount.expiresAt.toISOString(),
           hasValidKey: true
         };
         return sendOkReply(req, res, resp);
