@@ -21,21 +21,11 @@ describe('Comments', function() {
   const notification = '.test-draft-notification';
 
   before(async function() {
-    session = await gu.session().teamSite.login({showTips: true});
+    session = await gu.session().teamSite.login();
     MODKEY = await modKey();
     currentApi = session.createHomeApi();
     ownerApi = currentApi;
     ownerRef = (await currentApi.getSessionActive()).user.ref ?? '';
-  });
-
-  it('should show an announcement popup', async function() {
-    docId = (await session.tempShortDoc(cleanup, 'Hello.grist')).id;
-    await gu.waitToPass(async () => {
-      assert.equal(
-        await driver.find(".test-behavioral-prompt-title").getText(),
-        "Comments are here!"
-      );
-    });
   });
 
   it('should not render markdown on edits', async function() {
@@ -835,6 +825,8 @@ describe('Comments', function() {
     await clickMenuItem('Remove'); // can remove as this is my thread.
     await waitForPopup('empty');
     await gu.checkForErrors();
+    await gu.sendKeys(Key.ESCAPE);
+    await assertNoPopup();
   });
 
   it('should mark cells with a triangle', async function() {
@@ -1970,6 +1962,11 @@ async function getRepliesData(index: number, where: 'popup' | 'panel' = 'popup')
   return await extractData(replyElements);
 }
 
+async function waitForComment(where: 'popup' | 'panel' = 'popup') {
+  const container = where === 'popup' ? '.test-discussion-popup' : '.test-discussion-panel';
+  await driver.findWait(`${container} .test-discussion-comment`, 1000);
+}
+
 async function findComments(where: 'popup' | 'panel' = 'popup') {
   const container = where === 'popup' ? '.test-discussion-popup' : '.test-discussion-panel';
   const commentElements = await driver.findAll(`${container} .test-discussion-comment`);
@@ -1977,6 +1974,7 @@ async function findComments(where: 'popup' | 'panel' = 'popup') {
 }
 
 async function findComment(index: number, where: 'popup' | 'panel' = 'popup') {
+  await waitForComment(where);
   const commentElements = await findComments(where);
   const comment = commentElements[index];
   if (!comment) {
@@ -2048,6 +2046,8 @@ async function waitForInput(which?: EditorType) {
     const input = await (which ? waitForEditor(which) : driver).find(".test-discussion-textarea");
     assert.isTrue(await input.isDisplayed());
     assert.isTrue(await input.hasFocus());
+    // Wait for the access to be ready.
+    assert.isTrue(await input.matches('.test-mention-textbox-ready'));
   }, 1000);
 }
 

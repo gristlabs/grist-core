@@ -2585,25 +2585,7 @@ export class HomeDBManager {
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       // Get the doc
-      const docQuery = this._doc(scope, {
-        manager,
-        markPermissions: Permissions.OWNER
-      })
-      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'doc_groups')
-      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
-      .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
-      .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_groups')
-      .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_users')
-      .leftJoinAndSelect('orgs.aclRules', 'org_acl_rules')
-      .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-      .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
-      const docQueryResult = await verifyEntity(docQuery);
-      if (docQueryResult.status !== 200) {
-        // If the query for the doc failed, return the failure result.
-        return docQueryResult;
-      }
-      const doc = getDocResult(docQueryResult);
+      const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -5007,20 +4989,25 @@ export class HomeDBManager {
                                transaction?: EntityManager): Promise<Document> {
     return await this.runInTransaction(transaction, async manager => {
 
-      const docQuery = this._doc(scope, {manager, markPermissions})
-      // Join the doc's ACL rules and groups/users so we can edit them.
+      const docQuery = this._doc(scope, {manager, markPermissions});
+      const queryResult = await verifyEntity(docQuery);
+      this.checkQueryResult(queryResult);
+      const doc = getDocResult(queryResult);
+
+      // Retrieve the doc's ACL rules and groups/users so we can edit them.
+      // We do this as a separate query to avoid repeating the document
+      // row (which can be particulary costly since the main document
+      // query contains some non-trivial subqueries and postgres
+      // will re-execute them for each repeated document row).
+      const aclQuery = this._docs(manager)
+      .where({ id: doc.id })
       .leftJoinAndSelect('docs.aclRules', 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'doc_groups')
       .leftJoinAndSelect('doc_groups.memberUsers', 'doc_group_users')
       .leftJoinAndSelect('doc_groups.memberGroups', 'doc_group_groups')
-      .leftJoinAndSelect('doc_group_users.logins', 'doc_user_logins')
-      // Join the workspace so we know what should be inherited.  We will join
-      // the workspace member groups/users as a separate query, since
-      // SQL results are flattened, and multiplying the number of rows we have already
-      // by the number of workspace users could get excessive.
-      .leftJoinAndSelect('docs.workspace', 'workspace');
-      const queryResult = await verifyEntity(docQuery);
-      const doc: Document = this.unwrapQueryResult(queryResult);
+      .leftJoinAndSelect('doc_group_users.logins', 'doc_user_logins');
+      const aclDoc: Document = (await aclQuery.getOne())!;
+      doc.aclRules = aclDoc.aclRules;
 
       // Load the workspace's member groups/users.
       const workspaceQuery = this._workspace(scope, doc.workspace.id, {manager})

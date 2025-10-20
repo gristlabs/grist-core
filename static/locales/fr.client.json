@@ -1444,7 +1444,7 @@
         "Apply": "Appliquer",
         "Cancel": "Annuler",
         "Hi, I'm the Grist Formula AI Assistant.": "Bonjour, je suis l'assistant IA de Grist pour les formules.",
-        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Je ne peux aider que pour les formules, je ne peut pas créer de tables, de colonnes, de vue ou gérer les droits d'accès.",
+        "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Je ne peux aider que pour les formules, je ne peux pas créer de tables, de colonnes, de vues ou gérer les droits d'accès.",
         "Learn more": "En apprendre plus",
         "Clear Conversation": "Effacer la conversation",
         "Code View": "Vue du code",

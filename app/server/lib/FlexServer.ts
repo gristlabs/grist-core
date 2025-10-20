@@ -65,6 +65,7 @@ import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {EmitNotifier, INotifier} from 'app/server/lib/INotifier';
 import {InstallAdmin} from 'app/server/lib/InstallAdmin';
 import log, {logAsJson} from 'app/server/lib/log';
+import {disableCache} from 'app/server/lib/middleware';
 import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
@@ -960,7 +961,7 @@ export class FlexServer implements GristServer {
     // API endpoints need req.userId and need to support requests from different subdomains.
     this.app.use("/api", this._userIdMiddleware);
     this.app.use("/api", this._trustOriginsMiddleware);
-    this.app.use("/api", noCaching);
+    this.app.use("/api", disableCache);
   }
 
   /**
@@ -1065,6 +1066,7 @@ export class FlexServer implements GristServer {
     if (this._hosts) { this._hosts.close(); }
     this._emitNotifier.removeAllListeners();
     this._dbManager?.clearCaches();
+    this._installAdmin?.clearCaches();
     if (this.server)      { this.server.close(); }
     if (this.httpsServer) { this.httpsServer.close(); }
     if (this.housekeeper) { await this.housekeeper.stop(); }
@@ -2752,12 +2754,6 @@ function trustOriginHandler(req: express.Request, res: express.Response, next: e
   } else {
     next();
   }
-}
-
-// Set Cache-Control header to "no-cache"
-function noCaching(req: express.Request, res: express.Response, next: express.NextFunction) {
-  res.header("Cache-Control", "no-cache");
-  next();
 }
 
 // Methods that Electron app relies on.

@@ -495,7 +495,6 @@ export class RightPanel extends Disposable {
       dom.maybe(use => !use(activeSection.isRecordCard), () => [
         cssLabel(dom.text(use => use(activeSection.isRaw) ? t("DATA TABLE NAME") : t("WIDGET TITLE")),
           {for: "right-widget-title-input"},
-          dom.style('margin-bottom', '14px'),
         ),
         cssRow(cssTextInput(
           Computed.create(owner, (use) => use(activeSection.titleDef)),

@@ -81,7 +81,7 @@ export const image = styled('div', `
 `);
 
 export const gristLogo = styled(image, `
-  width: 100%;
+  width: 35px;
   height: 32px;
   background-image: var(--icon-GristLogo);
 `);
@@ -144,7 +144,7 @@ export const pageContainer = styled('div', `
   }
 `);
 
-export const centeredFlexContainer = styled('div', `
+export const flexJustifyCenter = styled('div', `
   display: flex;
   justify-content: center;
 `);

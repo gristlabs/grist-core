@@ -85,10 +85,12 @@
     },
     "ActionLog": {
         "Action Log failed to load": "Aktionsprotokoll konnte nicht geladen werden",
-        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Spalte {{colId}} wurde anschließend in Aktion #{{action.actionNum}} entfernt",
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Spalte {{colId}} wurde nachträglich in Aktion #{{action.actionNum}} entfernt",
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Tabelle {{tableId}} wurde anschließend in Aktion #{{actionNum}} entfernt",
         "This row was subsequently removed in action {{action.actionNum}}": "Diese Zeile wurde anschließend in Aktion entfernt {{action.actionNum}}",
-        "All tables": "Alle Tabellen"
+        "All tables": "Alle Tabellen",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Spalte {{colId}} wurde nachträglich in Aktion {{actionNum}} entfernt",
+        "This row was subsequently removed in action {{actionNum}}": "Diese Zeile wurde nachträglich in Aktion {{actionNum}} entfernt"
     },
     "AddNewButton": {
         "Add New": "Neu hinzufügen"
@@ -225,7 +227,12 @@
         "Search": "Suchen",
         "Search values": "Werte suchen",
         "Start": "Start",
-        "Filter by Range": "Nach Bereich filtern"
+        "Filter by Range": "Nach Bereich filtern",
+        "Clear search": "Suche löschen",
+        "Pin filter": "Filter anheften",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Alphabetisch sortieren (aktuell: sortiert nach Häufigkeit)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Nach Häufigkeit sortieren (aktuell: alphabetisch sortiert)",
+        "Unpin filter": "Filter nicht mehr anheften"
     },
     "CustomSectionConfig": {
         " (optional)": " (Optional)",
@@ -255,7 +262,8 @@
         "Reject": "Ablehnen",
         "Widget": "Widget",
         "Developer:": "Entwickler:",
-        "Accept": "Akzeptieren"
+        "Accept": "Akzeptieren",
+        "Change custom widget": "Benutzerdefiniertes Widget ändern"
     },
     "DataTables": {
         "Click to copy": "Zum Kopieren anklicken",
@@ -324,7 +332,9 @@
         "Any documents created in this site will appear here.": "Alle Dokumente, die auf dieser Seite erstellt wurden, werden hier angezeigt.",
         "Create my first document": "Mein erstes Dokument erstellen",
         "You have read-only access to this site. Currently there are no documents.": "Sie haben nur Lesezugriff auf diese Seite. Derzeit sind keine Dokumente vorhanden.",
-        "personal site": "persönliche Seite"
+        "personal site": "persönliche Seite",
+        "Grid view": "Rasteransicht",
+        "List view": "Listenansicht"
     },
     "DocPageModel": {
         "Add Empty Table": "Leere Tabelle hinzufügen",
@@ -513,7 +523,11 @@
         "Using separate settings": "Separate Einstellungen verwenden"
     },
     "FilterConfig": {
-        "Add Column": "Spalte hinzufügen"
+        "Add Column": "Spalte hinzufügen",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Filter anheften - {{- columnName}} Spalte (aktuell: nicht angeheftet)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Filter nicht mehr anheften - {{- columnName}} Spalte (aktuell: angeheftet)",
+        "remove filter - {{- columnName}} column": "Filter entfernen - {{- columnName}} Spalte",
+        "{{- columnName }} column filters": "{{- columnName }}Spaltenfilter"
     },
     "GridOptions": {
         "Grid Options": "Raster-Optionen",
@@ -688,7 +702,8 @@
         "Import": "Importieren"
     },
     "LeftPanelCommon": {
-        "Help Center": "Hilfe-Center"
+        "Help Center": "Hilfe-Center",
+        "Accessibility": "Barrierefreiheit"
     },
     "MakeCopyMenu": {
         "As Template": "Als Vorlage",
@@ -858,7 +873,8 @@
         "No field selected": "Kein Feld ausgewählt",
         "Select a field in the form widget to configure.": "Wählen Sie ein Feld im Formular Widget aus, um es zu konfigurieren.",
         "Submit": "Einreichen",
-        "Thank you! Your response has been recorded.": "Vielen Dank! Ihre Antwort wurde registriert."
+        "Thank you! Your response has been recorded.": "Vielen Dank! Ihre Antwort wurde registriert.",
+        "Chart options": "Tabellenoptionen"
     },
     "RowContextMenu": {
         "Copy anchor link": "Ankerlink kopieren",
@@ -917,7 +933,8 @@
         "Natural sort": "Natürlich Sortieren",
         "Update Data": "Daten aktualisieren",
         "Use choice position": "Auswahlposition verwenden",
-        "Search Columns": "Spalten suchen"
+        "Search Columns": "Spalten suchen",
+        "{{- columnName }} column": "{{- columnName }} Spalte"
     },
     "SortFilterConfig": {
         "FILTER": "FILTER",

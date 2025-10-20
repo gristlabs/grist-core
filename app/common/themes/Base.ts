@@ -392,11 +392,13 @@ export const Base: BaseThemeTokens = {
     /* Button Groups */
     buttonGroupBg: 'transparent',
     buttonGroupFg: tokens.body,
+    buttonGroupLightBg: tokens.bgSecondary,
     buttonGroupLightFg: tokens.secondary,
     buttonGroupIcon: tokens.secondary,
     buttonGroupBorder: tokens.decoration,
     buttonGroupSelectedFg: tokens.veryLight,
     buttonGroupLightSelectedFg: tokens.primary,
+    buttonGroupLightSelectedBg: tokens.selectionOpaque,
     buttonGroupSelectedBg: tokens.bgEmphasis,
     buttonGroupSelectedBorder: tokens.bgEmphasis,
 

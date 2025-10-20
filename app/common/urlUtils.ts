@@ -36,6 +36,8 @@ export function addOrgToPath(path: string, page: string, skipIfInDomain: boolean
   if (skipIfInDomain && srcParts.orgFromHost) {
     return path;
   }
+  // TODO: this is confusing -- orgs are typically expected _before_ the path, not after.
+  // Figure out how this is used and make this function less misleading.
   return `${path}/o/${srcParts.subdomain}`;
 }
 

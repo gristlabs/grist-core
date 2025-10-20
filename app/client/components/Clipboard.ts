@@ -25,11 +25,12 @@ import * as commands from 'app/client/components/commands';
 import {copyToClipboard, readDataFromClipboard} from 'app/client/lib/clipboardUtils';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
-import * as tableUtil from 'app/client/lib/tableUtil';
+import {makePasteHtml, makePasteText, parsePasteHtml, PasteData} from 'app/client/lib/tableUtil';
 import type {App} from 'app/client/ui/App';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
 import {confirmModal} from 'app/client/ui2018/modals';
 import type {DocAction} from 'app/common/DocActions';
+import {isNonNullish} from 'app/common/gutil';
 import type {TableData} from 'app/common/TableData';
 import {tsvDecode} from 'app/common/tsvFormat';
 import {Disposable, dom, styled} from 'grainjs';
@@ -46,8 +47,6 @@ export interface PasteObj {
   selection: CopySelection;
   cutCallback?: CutCallback;
 }
-
-export type PasteData = string[][] | tableUtil.RichPasteObject[][];
 
 export type CutCallback = () => DocAction|null;
 
@@ -177,9 +176,9 @@ export class Clipboard extends Disposable {
   private _setCBdata(pasteObj: PasteObj, clipboardData: DataTransfer) {
     if (!pasteObj) { return; }
 
-    const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection, false);
+    const plainText = makePasteText(pasteObj.data, pasteObj.selection, false);
     clipboardData.setData('text/plain', plainText);
-    const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection, false);
+    const htmlText = makePasteHtml(pasteObj.data, pasteObj.selection, false);
     clipboardData.setData('text/html', htmlText);
 
     this._setCutCallback(pasteObj, plainText);
@@ -188,10 +187,10 @@ export class Clipboard extends Disposable {
   private async _copyToClipboard(pasteObj: PasteObj, action: 'cut'|'copy', includeColHeaders: boolean = false) {
     if (!pasteObj) { return; }
 
-    const plainText = tableUtil.makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
+    const plainText = makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
     let data;
     if (typeof ClipboardItem === 'function') {
-      const htmlText = tableUtil.makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
+      const htmlText = makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
       // eslint-disable-next-line no-undef
       data = new ClipboardItem({
         // eslint-disable-next-line no-undef
@@ -240,26 +239,31 @@ export class Clipboard extends Disposable {
     const cb = event.clipboardData!;
     const plainText = cb.getData('text/plain');
     const htmlText = cb.getData('text/html');
-    const pasteData = getPasteData(plainText, htmlText);
+    // We process and filter cb.items because the promising-sounding cb.files may not be set for
+    // paste events, even when items include files.
+    // Note that on Firefox, this is limited to a single file due to an old Firefox bug:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=864052
+    const files = Array.from(cb.items, it => it.getAsFile()).filter(isNonNullish);
+    const pasteData = getPasteData(plainText, htmlText, files);
     this._doPaste(pasteData, plainText);
   }
 
   private async _doContextMenuPaste() {
-    let clipboardItem;
+    let clipboardItems: ClipboardItem[];
     try {
-      clipboardItem = (await readDataFromClipboard())?.[0];
+      clipboardItems = await readDataFromClipboard();
     } catch {
       showUnavailableMenuCommandModal('paste');
       return;
     }
-    const plainText = await getTextFromClipboardItem(clipboardItem, 'text/plain');
-    const htmlText = await getTextFromClipboardItem(clipboardItem, 'text/html');
-    const pasteData = getPasteData(plainText, htmlText);
+    const plainText = await getTextFromClipboardItem(clipboardItems[0], 'text/plain');
+    const htmlText = await getTextFromClipboardItem(clipboardItems[0], 'text/html');
+    const files = await getFilesFromClipboardItems(clipboardItems);
+    const pasteData = getPasteData(plainText, htmlText, files);
     this._doPaste(pasteData, plainText);
   }
 
   private _doPaste(pasteData: PasteData, plainText: string) {
-    console.log(this._cutData, plainText, this._cutCallback);
     if (this._cutData === plainText) {
       if (this._cutCallback) {
         // Cuts should only be possible on the first paste after a cut and only if the data being
@@ -289,15 +293,18 @@ const FOCUS_TARGET_TAGS = new Set([
  * check if text/html exists (should exist for Grist and other spreadsheet software), and fall
  * back to text/plain otherwise.
  */
-function getPasteData(plainText: string, htmlText: string): PasteData {
+function getPasteData(plainText: string, htmlText: string, fileItems: File[]): PasteData {
   try {
-    return tableUtil.parsePasteHtml(htmlText);
+    return parsePasteHtml(htmlText);
   } catch (e) {
-    if (plainText === '' || plainText.charCodeAt(0) === 0xFEFF) {
-      return [['']];
-    } else {
+    const text = plainText.replace(/^\uFEFF/, '');
+    if (text) {
       return tsvDecode(plainText.replace(/\r\n?/g, "\n").trimEnd());
     }
+    if (fileItems.length > 0) {
+      return [[fileItems]];
+    }
+    return [['']];
   }
 }
 
@@ -307,7 +314,7 @@ function getPasteData(plainText: string, htmlText: string): PasteData {
  * Returns an empty string if `clipboardItem` is nullish or no data exists
  * for the given `type`.
  */
-async function getTextFromClipboardItem(clipboardItem: ClipboardItem, type: string) {
+async function getTextFromClipboardItem(clipboardItem: ClipboardItem|undefined, type: string) {
   if (!clipboardItem) { return ''; }
 
   try {
@@ -316,6 +323,22 @@ async function getTextFromClipboardItem(clipboardItem: ClipboardItem, type: stri
     // No clipboard data exists for the MIME type.
     return '';
   }
+}
+
+/**
+ * Returns a list of Blobs included among clipboardItems.
+ */
+async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Promise<File[]> {
+  const blobs = await Promise.all(
+    clipboardItems.map(item => {
+      // Find a non-text mime type, which should indicate a file.
+      // Note that browsers may not support arbitrary files, but should support images on clipboard.
+      const mimeType = item.types.find(mtime => !mtime.startsWith("text/"));
+      return mimeType ? item.getType(mimeType) : null;
+    })
+    .filter(isNonNullish)
+  );
+  return blobs.map(blob => new File([blob], 'from-clipboard', {type: blob.type}));
 }
 
 function showUnavailableMenuCommandModal(action: 'cut'|'copy'|'paste') {

@@ -81,6 +81,10 @@ export const DEFAULT_HOME_SUBDOMAIN = 'api';
 // as a prefix of the docId.
 export const MIN_URLID_PREFIX_LENGTH = 12;
 
+// Values meeting MIN_URLID_PREFIX_LENGTH that appear in non-document URLs and
+// should not be recognized as urlId prefixes when decoding URLs.
+const RESERVED_URLID_PREFIXES = new Set(['forgot-password']);
+
 // A prefix that identifies a urlId as a share key.
 // Important that this not be part of a valid docId.
 export const SHARE_KEY_PREFIX = 's.';
@@ -133,7 +137,6 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
   helpSharing: 'https://support.getgrist.com/sharing',
-  helpComments: 'https://support.getgrist.com/sharing/#comments',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),
@@ -487,7 +490,10 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   // the minimum length of a urlId prefix is longer than the maximum length
   // of any of the valid keys in the url.
   for (const key of map.keys()) {
-    if (key.length >= MIN_URLID_PREFIX_LENGTH && !LoginPage.guard(key)) {
+    if (
+      key.length >= MIN_URLID_PREFIX_LENGTH &&
+      !RESERVED_URLID_PREFIXES.has(key)
+    ) {
       map.set('doc', key);
       map.set('slug', map.get(key)!);
       map.delete(key);

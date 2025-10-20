@@ -19,9 +19,9 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
 
   return cssPageContainer(
     testId('welcome-page'),
-    css.centeredFlexContainer(
+    css.flexJustifyCenter(
       css.formContainer(
-        css.gristLogo(),
+        css.flexJustifyCenter(css.gristLogo()),
         cssHeading(t('Welcome back')),
         cssMessage(t('You have access to the following Grist sites.')),
         cssColumns(

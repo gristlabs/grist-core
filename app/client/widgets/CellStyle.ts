@@ -137,7 +137,7 @@ export class CellStyle extends Disposable {
 
 const cssLine = styled('div', `
   display: flex;
-  margin: 16px 16px 12px 16px;
+  margin: 16px 16px 8px 16px;
   justify-content: space-between;
   align-items: baseline;
 `);

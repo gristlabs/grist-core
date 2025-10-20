@@ -629,7 +629,9 @@
         "Any documents created in this site will appear here.": "Будь-які документи, створені на цьому сайті, з'являться тут.",
         "Create my first document": "Створіть мій перший документ",
         "You have read-only access to this site. Currently there are no documents.": "Ви маєте доступ лише для читання на цей сайт. Наразі документів немає.",
-        "personal site": "персональний сайт"
+        "personal site": "персональний сайт",
+        "Grid view": "Сітковий вигляд",
+        "List view": "Список"
     },
     "DocPageModel": {
         "Add Empty Table": "Додати порожню таблицю",

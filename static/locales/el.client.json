@@ -16,7 +16,12 @@
         "Search": "Αναζήτηση",
         "Other Values": "Άλλες Τιμές",
         "Search values": "Αναζήτηση τιμών",
-        "Other Non-Matching": "Άλλα Μη Αντιστοιχιζόμενα"
+        "Other Non-Matching": "Άλλα Μη Αντιστοιχιζόμενα",
+        "Clear search": "Καθαρισμός αναζήτησης",
+        "Pin filter": "Καρφίτσωμα φίλτρου",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Ταξινόμηση αλφαβητικά (τρέχουσα: ταξινομημένη κατά αριθμό εμφανίσεων)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Ταξινόμηση κατά αριθμό εμφανίσεων (τρέχουσα: ταξινομημένη αλφαβητικά)",
+        "Unpin filter": "Ξεκαρφίτσωμα φίλτρου"
     },
     "AccessRules": {
         "Permission to edit document structure": "Άδεια επεξεργασίας δομής εγγράφου",
@@ -121,7 +126,9 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Ο πίνακας {{tableId}} αφαιρέθηκε στη συνέχεια στην ενέργεια #{{actionNum}}",
         "All tables": "Όλοι οι πίνακες",
         "This row was subsequently removed in action {{action.actionNum}}": "Αυτή η σειρά αφαιρέθηκε στη συνέχεια στην ενέργεια {{action.actionNum}}",
-        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Η στήλη {{colId}} αφαιρέθηκε στη συνέχεια στην ενέργεια #{{action.actionNum}}"
+        "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Η στήλη {{colId}} αφαιρέθηκε στη συνέχεια στην ενέργεια #{{action.actionNum}}",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Η στήλη {{colId}} αφαιρέθηκε στην συνέχεια στην ενέργεια #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Αυτή η γραμμή αφαιρέθηκε στην συνέχεια στην ενέργεια {{actionNum}}"
     },
     "AddNewButton": {
         "Add New": "Προσθήκη Νέου"
@@ -139,7 +146,8 @@
         "Team Site": "Ιστότοπος Oμάδας",
         "Grist Templates": "Πρότυπα Grist",
         "Billing Account": "Λογαριασμός Χρέωσης",
-        "Manage Team": "Διαχείριση Ομάδας"
+        "Manage Team": "Διαχείριση Ομάδας",
+        "{{- organizationName }} - Back to home": "{{- organizationName }} - Επιστροφή στην αρχική"
     },
     "CellContextMenu": {
         "Clear values": "Καθαρισμός τιμών",
@@ -234,7 +242,8 @@
         "Full document access": "Πλήρης πρόσβαση σε έγγραφα",
         "No document access": "Δεν υπάρχει πρόσβαση σε έγγραφα",
         "Widget needs to {{read}} the current table.": "Το γραφικό στοιχείο (widget) πρέπει να {{read}} τον τρέχοντα πίνακα.",
-        "Developer:": "Προγραμματιστής:"
+        "Developer:": "Προγραμματιστής:",
+        "Change custom widget": "Αλλαγή προσαρμοσμένου γραφικού στοιχείου"
     },
     "DataTables": {
         "Click to copy": "Κάντε κλικ για αντιγραφή",
@@ -315,7 +324,8 @@
         "Add Page": "Προσθήκη Σελίδας",
         "Add Widget to Page": "Προσθήκη Γραφικού Στοιχείου (Widget) στην Σελίδα",
         "Document owners can attempt to recover the document. [{{error}}]": "Οι κάτοχοι εγγράφων μπορούν να επιχειρήσουν να ανακτήσουν το έγγραφο. [{{error}}]",
-        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Μπορείτε να δοκιμάσετε να επαναφορτώσετε το έγγραφο ή να χρησιμοποιήσετε τη λειτουργία ανάκτησης. Η λειτουργία ανάκτησης ανοίγει το έγγραφο ώστε να είναι πλήρως προσβάσιμο στους κατόχους και μη προσβάσιμο σε άλλους. Απενεργοποιεί επίσης τους τύπους. [{{error}}]"
+        "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Μπορείτε να δοκιμάσετε να επαναφορτώσετε το έγγραφο ή να χρησιμοποιήσετε τη λειτουργία ανάκτησης. Η λειτουργία ανάκτησης ανοίγει το έγγραφο ώστε να είναι πλήρως προσβάσιμο στους κατόχους και μη προσβάσιμο σε άλλους. Απενεργοποιεί επίσης τους τύπους. [{{error}}]",
+        "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Παρακαλούμε επαναφορτώστε το έγγραφο και, εάν το σφάλμα επιμένει, επικοινωνήστε με τους κατόχους του εγγράφου για να επιχειρήσετε την ανάκτησή του. [{{error}}]"
     },
     "DocTour": {
         "No valid document tour": "Δεν υπάρχει έγκυρη περιήγηση για το έγγραφο",
@@ -564,7 +574,8 @@
         "Import from file": "Εισαγωγή από αρχείο",
         "Saved linked section {{title}} in view {{name}}": "Αποθηκευμένη συνδεδεμένη ενότητα {{title}} στην προβολή {{name}}",
         "go to webhook settings": "μεταβείτε στις ρυθμίσεις του webhook",
-        "Added new linked section to view {{viewName}}": "Προστέθηκε νέα συνδεδεμένη ενότητα στην προβολή {{viewName}}"
+        "Added new linked section to view {{viewName}}": "Προστέθηκε νέα συνδεδεμένη ενότητα στην προβολή {{viewName}}",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "Οι νέες αλλαγές έχουν προσωρινά ανασταλεί. Η ουρά webhooks έχει υπερχειλίσει. Ελέγξτε τις ρυθμίσεις των webhooks, καταργήστε τα μη έγκυρα webhooks και καθαρίστε την ουρά."
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Οποιαδήποτε έγγραφα δημιουργούνται σε αυτόν τον ιστότοπο θα εμφανίζονται εδώ.",
@@ -611,7 +622,8 @@
         "Terms of service": "Όροι Παροχής Υπηρεσιών",
         "Grist Resources": "Πόροι Grist",
         "Delete {{workspace}} and all included documents?": "Διαγραφή του {{workspace}} και όλων των εγγράφων που περιλαμβάνονται;",
-        "Trash": "Κάδος Απορριμμάτων"
+        "Trash": "Κάδος Απορριμμάτων",
+        "context menu - {{- workspaceName }}": "μενού περιβάλλοντος - {{- workspaceName }}"
     },
     "Importer": {
         "{{count}} unmatched field in import_one": "{{count}} μη αντιστοιχισμένο πεδίο στην εισαγωγή",
@@ -631,10 +643,14 @@
         "Select fields to match on": "Επιλέξτε πεδία για αντιστοίχιση",
         "Merge rows that match these fields:": "Συγχώνευση γραμμών που ταιριάζουν με αυτά τα πεδία:",
         "Update existing records": "Ενημέρωση υπαρχόντων εγγραφών",
-        "{{count}} unmatched field in import_other": "{{count}} μη ταιριασμένα πεδία στην εισαγωγή"
+        "{{count}} unmatched field in import_other": "{{count}} μη ταιριασμένα πεδία στην εισαγωγή",
+        "Import options": "Επιλογές εισαγωγής",
+        "Cancel": "Ακύρωση",
+        "Import": "Εισαγωγή"
     },
     "LeftPanelCommon": {
-        "Help Center": "Κέντρο Βοήθειας"
+        "Help Center": "Κέντρο Βοήθειας",
+        "Accessibility": "Προσβασιμότητα"
     },
     "MakeCopyMenu": {
         "As Template": "Ως Πρότυπο",
@@ -672,7 +688,8 @@
         "download attachments": "λήψη συνημμένων",
         "Overwrite": "Αντικατάσταση",
         "Replacing the original requires editing rights on the original document.": "Η αντικατάσταση του πρωτοτύπου απαιτεί δικαιώματα επεξεργασίας στο πρωτότυπο έγγραφο.",
-        "Download an archive of all the attachments present in this document.": "Κατεβάστε ένα αρχείο με όλα τα συνημμένα που υπάρχουν σε αυτό το έγγραφο."
+        "Download an archive of all the attachments present in this document.": "Κατεβάστε ένα αρχείο με όλα τα συνημμένα που υπάρχουν σε αυτό το έγγραφο.",
+        "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Τα συνημμένα είναι εξωτερικά και δεν περιλαμβάνονται σε αυτό το στοιχείο λήψης. Εάν ανεβάσετε το έγγραφο σε ξεχωριστή εγκατάσταση του Grist, θα χρειαστεί επίσης να το {{downloadLink}} ξεχωριστά. "
     },
     "NotifyUI": {
         "Ask for help": "Ζητήστε βοήθεια",
@@ -707,7 +724,10 @@
         "Delete": "Διαγραφή",
         "Delete data and this page.": "Διαγραφή δεδομένων και αυτής της σελίδας.",
         "The following tables will no longer be visible_other": "Οι παρακάτω πίνακες δεν θα είναι πλέον ορατοί",
-        "The following tables will no longer be visible_one": "Ο παρακάτω πίνακας δεν θα είναι πλέον ορατός"
+        "The following tables will no longer be visible_one": "Ο παρακάτω πίνακας δεν θα είναι πλέον ορατός",
+        "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Διατήρηση δεδομένων και διαγραφή σελίδας. Ο πίνακας θα παραμείνει διαθέσιμος στο {{rawDataLink}}",
+        "raw data page": "σελίδα ακατέργαστων δεδομένων",
+        "Document pages": "Σελίδες εγγράφων"
     },
     "PermissionsWidget": {
         "Allow All": "Επιτρέπονται Όλα",
@@ -783,7 +803,8 @@
         "Submit": "Υποβολή",
         "Add referenced columns": "Προσθήκη στηλών με αναφορά",
         "Default field value": "Προεπιλεγμένη τιμή πεδίου",
-        "Select a field in the form widget to configure.": "Επιλέξτε ένα πεδίο στο γραφικό στοιχείο (widget) φόρμας για να το διαμορφώσετε."
+        "Select a field in the form widget to configure.": "Επιλέξτε ένα πεδίο στο γραφικό στοιχείο (widget) φόρμας για να το διαμορφώσετε.",
+        "Chart options": "Επιλογές γραφήματος"
     },
     "RowContextMenu": {
         "Duplicate rows_one": "Αντιγραφή σειράς",
@@ -836,7 +857,12 @@
         "Add Column": "Προσθήκη Στήλης",
         "Empty values last": "Οι κενές τιμές τελευταίες",
         "Use choice position": "Χρήση θέσης επιλογής",
-        "Update Data": "Ενημέρωση Δεδομένων"
+        "Update Data": "Ενημέρωση Δεδομένων",
+        "Remove sort setting - {{- columnName }} column": "Κατάργηση ρύθμισης ταξινόμησης - στήλη {{- columnName }}",
+        "Sort in ascending order (current: descending)": "Ταξινόμηση σε αύξουσα σειρά (τρέχουσα: φθίνουσα)",
+        "Sort in descending order (current: ascending)": "Ταξινόμηση κατά φθίνουσα σειρά (τρέχουσα: αύξουσα)",
+        "Sort options - {{- columnName }} column": "Επιλογές ταξινόμησης - στήλη {{- columnName }}",
+        "{{- columnName }} column": "{{- columnName }} στήλη"
     },
     "SortFilterConfig": {
         "Filter": "ΦΙΛΤΡΟ",
@@ -862,7 +888,11 @@
         "Validate Data": "Επικύρωση Δεδομένων",
         "Tour of this Document": "Περιήγηση σε αυτό το Εγγραφο",
         "Settings": "Ρυθμίσεις",
-        "Code View": "Προβολή Κώδικα"
+        "Code View": "Προβολή Κώδικα",
+        "context menu - Access Rules": "μενού περιβάλλοντος - Κανόνες πρόσβασης",
+        "Delete document tour": "Διαγραφή περιήγησης εγγράφου",
+        "Preview the tutorial": "Προεπισκόπηση του οδηγού εκμάθησης",
+        "Proposed Changes": "Προτεινόμενες αλλαγές"
     },
     "TopBar": {
         "Manage Team": "Διαχείριση Ομάδας",
@@ -902,7 +932,8 @@
     "ViewAsBanner": {
         "UnknownUser": "Αγνωστος Χρήστης",
         "View as Yourself": "Προβολή ως ο εαυτός σας",
-        "You are viewing this document as": "Βλέπετε αυτό το έγγραφο ως"
+        "You are viewing this document as": "Βλέπετε αυτό το έγγραφο ως",
+        "You're seeing what this user would see if given access": "Βλέπετε τι θα έβλεπε αυτός ο χρήστης αν του δοθεί πρόσβαση"
     },
     "ViewConfigTab": {
         "Advanced settings": "Προχωρημένες ρυθμίσεις",
@@ -933,7 +964,8 @@
         "Add to page": "Προσθήκη στη σελίδα",
         "Create a form": "Δημιουργήστε μια φόρμα",
         "Delete widget": "Διαγραφή γραφικού στοιχείου (widget)",
-        "Open configuration": "Άνοιγμα διαμόρφωσης"
+        "Open configuration": "Άνοιγμα διαμόρφωσης",
+        "Duplicate widget": "Διπλότυπο γραφικό στοιχείο"
     },
     "VisibleFieldsConfig": {
         "Clear": "Καθαρισμός",
@@ -943,7 +975,9 @@
         "Hidden {{label}}": "Κρυφό {{label}}",
         "Show {{label}}": "Προβολή {{label}}",
         "Cannot drop items into Hidden Fields": "Δεν είναι δυνατή η απόθεση αντικειμένων σε κρυφά πεδία",
-        "Hidden Fields cannot be reordered": "Δεν είναι δυνατή η αναδιάταξη των κρυφών πεδίων"
+        "Hidden Fields cannot be reordered": "Δεν είναι δυνατή η αναδιάταξη των κρυφών πεδίων",
+        "Hide {{label}} (batch mode)": "Απόκρυψη {{label}} (λειτουργία παρτίδας)",
+        "Show {{label}} (batch mode)": "Εμφάνιση {{label}} (λειτουργία παρτίδας)"
     },
     "WelcomeQuestions": {
         "Education": "Εκπαίδευση",
@@ -1003,7 +1037,20 @@
         "Something went wrong": "Κάτι πήγε στραβά",
         "Failed to log in.{{separator}}Please try again or contact support.": "Αποτυχία σύνδεσης.{{separator}}Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.",
         "The requested page could not be found.{{separator}}Please check the URL and try again.": "Δεν ήταν δυνατή η εύρεση της σελίδας που ζητήθηκε.{{separator}}Ελέγξτε τη διεύθυνση URL και προσπαθήστε ξανά.",
-        "Build your own form": "Δημιουργήστε τη δική σας φόρμα"
+        "Build your own form": "Δημιουργήστε τη δική σας φόρμα",
+        "Manage settings": "Διαχείριση ρυθμίσεων",
+        "Need Help?": "Χρειάζεστε βοήθεια;",
+        "There was an error": "Παρουσιάστηκε ένα σφάλμα",
+        "Unsubscribed{{suffix}}": "Μη εγγεγραμμένος {{suffix}}",
+        "We could not unsubscribe you": "Δεν μπορέσαμε να σας διαγράψουμε από την εγγραφή σας",
+        "You are unsubscribed": "Έχετε διαγραφεί από την εγγραφή σας",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Μπορείτε ακόμα να διαγραφείτε από αυτό το έγγραφο ενημερώνοντας τις προτιμήσεις σας στις ρυθμίσεις του εγγράφου",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Δεν θα λαμβάνετε πλέον ειδοποιήσεις μέσω email σχετικά με {{changes}} στο {{docName}} στη διεύθυνση {{email}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Δεν θα λαμβάνετε πλέον ειδοποιήσεις μέσω email σχετικά με τα {{comments}} στο {{docName}} στη διεύθυνση {{email}}.",
+        "changes": "αλλαγές",
+        "comments": "σχόλια",
+        "this document": "αυτό το έγγραφο",
+        "your email": "το email σας"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Οι χώροι εργασίας είναι διαθέσιμοι στα ομαδικά προγράμματα. ",
@@ -1048,7 +1095,13 @@
         "You do not have edit access to this document": "Δεν έχετε πρόσβαση επεξεργασίας σε αυτό το έγγραφο",
         "Rename": "Μετονομασία",
         "Duplicate Page": "Διπλότυπη Σελίδα",
-        "Remove": "Αφαίρεση"
+        "Remove": "Αφαίρεση",
+        "(default)": "(εξ' ορισμού)",
+        "Collapse {{maybeDefault}}": "Σύμπτυξη {{maybeDefault}}",
+        "Expand {{maybeDefault}}": "Ανάπτυξη {{maybeDefault}}",
+        "Set default: Collapse": "Ορισμός προεπιλογής: Σύμπτυξη",
+        "Set default: Expand": "Ορισμός προεπιλογής: Ανάπτυξη",
+        "context menu - {{- pageName }}": "μενού περιβάλλοντος - {{- pageName }}"
     },
     "NTextBox": {
         "true": "αληθής",
@@ -1061,7 +1114,9 @@
     "ACLUsers": {
         "Users from table": "Χρήστες από τον πίνακα",
         "View As": "Προβολή Ως",
-        "Example Users": "Παραδείγματα χρηστών"
+        "Example Users": "Παραδείγματα χρηστών",
+        "Other users from table": "Άλλοι χρήστες από τον πίνακα",
+        "Shared users": "Κοινόχρηστοι χρήστες"
     },
     "TypeTransform": {
         "Apply": "Εφαρμογή",
@@ -1121,7 +1176,10 @@
         "Open": "Άνοιγμα",
         "Cancel": "Ακύρωση",
         "Started discussion": "Ξεκίνησε η συζήτηση",
-        "Marked as resolved": "Επισημάνθηκε ως επιλυμένο"
+        "Marked as resolved": "Επισημάνθηκε ως επιλυμένο",
+        "{{count}} comments_one": "{{count}} σχόλιο",
+        "{{count}} comments_other": "{{count}} σχόλια",
+        "Copy link": "Αντιγραφή συνδέσμου"
     },
     "EditorTooltip": {
         "Convert column to formula": "Μετατροπή στήλης σε φόρμουλα"
@@ -1136,7 +1194,11 @@
         "Changing multiple column types": "Αλλαγή πολλαπλών τύπων στηλών",
         "Mixed format": "Μικτή μορφή",
         "Use separate field settings for {{colId}}": "Χρησιμοποιήστε ξεχωριστές ρυθμίσεις πεδίου για το {{colId}}",
-        "DATA FROM TABLE": "ΔΕΔΟΜΕΝΑ ΑΠΟ ΤΟΝ ΠΙΝΑΚΑ"
+        "DATA FROM TABLE": "ΔΕΔΟΜΕΝΑ ΑΠΟ ΤΟΝ ΠΙΝΑΚΑ",
+        "Common": "Κοινό",
+        "Separate": "Ξεχωριστό",
+        "Field in {{count}} views_one": "Πεδίο σε μία προβολή",
+        "Field in {{count}} views_other": "Πεδίο σε {{count}} προβολές"
     },
     "FieldEditor": {
         "It should be impossible to save a plain data value into a formula column": "Θα πρέπει να είναι αδύνατο να αποθηκεύσετε μια απλή τιμή δεδομένων σε μια στήλη τύπου",
@@ -1177,7 +1239,8 @@
         "Welcome to Grist!": "Καλώς ήρθατε στο Grist!",
         "Building up": "Χτίζοντας",
         "Enter": "Είσοδος",
-        "Use {{addNew}} to add widgets, pages, or import more data. ": "Χρησιμοποιήστε το {{addNew}} για να προσθέσετε γραφικά στοιχεία, σελίδες ή να εισαγάγετε περισσότερα δεδομένα. "
+        "Use {{addNew}} to add widgets, pages, or import more data. ": "Χρησιμοποιήστε το {{addNew}} για να προσθέσετε γραφικά στοιχεία, σελίδες ή να εισαγάγετε περισσότερα δεδομένα. ",
+        "AI Assistant": "Βοηθός Τεχνητής Νοημοσύνης"
     },
     "LanguageMenu": {
         "Language": "Γλώσσα"
@@ -1252,7 +1315,16 @@
             "end dates and event titles. Note each column's type.": "Για να διαμορφώσετε το ημερολόγιό σας, επιλέξτε στήλες για ημερομηνίες έναρξης/λήξης και τίτλους συμβάντων. Σημειώστε τον τύπο κάθε στήλης."
         },
         "To allow multiple assignments, change the referenced column's type to Reference List.": "Για να επιτρέψετε πολλαπλές αναθέσεις, αλλάξτε τον τύπο της στήλης στην οποία γίνεται αναφορά σε Λίστα Αναφορών.",
-        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Οι αμφίδρομες αναφορές δεν υποστηρίζονται προς το παρόν για στήλες φόρμουλας ή φόρμουλας ενεργοποίησης"
+        "Two-way references are not currently supported for Formula or Trigger Formula columns": "Οι αμφίδρομες αναφορές δεν υποστηρίζονται προς το παρόν για στήλες φόρμουλας ή φόρμουλας ενεργοποίησης",
+        "Formulas support many Excel functions and full Python syntax.": "Οι τύποι υποστηρίζουν πολλές συναρτήσεις του Excel και πλήρη σύνταξη Python.",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Δημιουργεί μια νέα στήλη Λίστας Αναφορών στον πίνακα προορισμού, με αυτήν και τις στήλες προορισμού επεξεργάσιμες και συγχρονισμένες.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Εσωτερικός χώρος αποθήκευσης σημαίνει ότι όλα τα συνημμένα αποθηκεύονται στο αρχείο SQLite του εγγράφου, ενώ εξωτερικός χώρος αποθήκευσης υποδεικνύει ότι όλα τα συνημμένα αποθηκεύονται στον ίδιο εξωτερικό χώρο αποθήκευσης.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Αυτό σας επιτρέπει να προσθέσετε συνημμένα που λείπουν από εξωτερικό χώρο αποθήκευσης, π.χ. σε ένα εισαγόμενο έγγραφο. Μόνο τα αρχεία συνημμένων .tar που έχουν ληφθεί από το Grist μπορούν να μεταφορτωθούν εδώ.",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Κατανοήστε, τροποποιήστε και εργαστείτε με τα δεδομένα και τους τύπους σας με τη βοήθεια του νέου Βοηθού Τεχνητής Νοημοσύνης της Grist!",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Αυτή η φόρμα δημιουργήθηκε από έναν χρήστη της Grist και δεν έχει εγκριθεί από την Grist Labs, Inc. ή από οποιοδήποτε μέρος που παρέχει αυτήν την υπηρεσία. Για την ασφάλειά σας, μην υποβάλλετε κωδικούς πρόσβασης μέσω αυτής της φόρμας και να είστε προσεκτικοί όταν κάνετε κλικ σε ενσωματωμένους συνδέσμους. Αναφέρετε κακόβουλες φόρμες στο [{{mail}}](mailto:{{mail}}).",
+        "Set the maximum number of lines for multi-line text.": "Ορίστε τον μέγιστο αριθμό γραμμών για κείμενο πολλαπλών γραμμών.",
+        "Comments are here!": "Τα σχόλια είναι εδώ!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Μπορείτε να προσθέσετε σχόλια σε κελιά, να απαντήσετε σε νήματα σχολίων και να κάνετε συνεργάτες με @-αναφορά."
     },
     "ColumnTitle": {
         "Add description": "Προσθήκη περιγραφής",
@@ -1267,7 +1339,8 @@
     },
     "Clipboard": {
         "Got it": "Το κατάλαβα",
-        "Unavailable Command": "Μη διαθέσιμη εντολή"
+        "Unavailable Command": "Μη διαθέσιμη εντολή",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "Η εντολή μενού {{action}} δεν είναι διαθέσιμη σε αυτό το πρόγραμμα περιήγησης. Μπορείτε ακόμα να {{action}} χρησιμοποιώντας τη συντόμευση πληκτρολογίου {{shortcut}}."
     },
     "FieldContextMenu": {
         "Clear field": "Καθαρισμός πεδίου",
@@ -1275,7 +1348,8 @@
         "Cut": "Αποκοπή",
         "Hide field": "Απόκρυψη πεδίου",
         "Paste": "Επικόλληση",
-        "Copy anchor link": "Αντιγραφή συνδέσμου αγκύρωσης"
+        "Copy anchor link": "Αντιγραφή συνδέσμου αγκύρωσης",
+        "Comment": "Σχόλιο"
     },
     "WebhookPage": {
         "Clear Queue": "Εκκαθάριση ουράς",
@@ -1333,7 +1407,10 @@
         "New Chat": "Νέα Συνομιλία",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Μπορώ να βοηθήσω μόνο με τύπους. Δεν μπορώ να δημιουργήσω πίνακες, στήλες και προβολές ή να γράψω κανόνες πρόσβασης.",
         "Learn more": "Μάθετε περισσότερα",
-        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Εγγραφείτε για έναν δωρεάν λογαριασμό Grist για να ξεκινήσετε να χρησιμοποιείτε τον Βοηθό Τεχνητής Νοημοσύνης Φόρμουλας."
+        "Sign up for a free Grist account to start using the Formula AI Assistant.": "Εγγραφείτε για έναν δωρεάν λογαριασμό Grist για να ξεκινήσετε να χρησιμοποιείτε τον Βοηθό Τεχνητής Νοημοσύνης Φόρμουλας.",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "Για περισσότερη βοήθεια με τους τύπους, ανατρέξτε στις σελίδες {{functionList}} και {{formulaCheatSheet}} ή επισκεφθείτε την {{community}} μας για περισσότερη βοήθεια.",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "Όταν μου μιλάτε, οι ερωτήσεις σας και η δομή του εγγράφου σας (ορατή στο {{codeView}}) αποστέλλονται στο OpenAI. {{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "Μίλησέ μου σαν να ήμουν άνθρωπος. Δεν χρειάζεται να καθορίσεις ονόματα πινάκων και στηλών. Για παράδειγμα, μπορείς να ρωτήσεις \"Παρακαλώ υπολογίστε το συνολικό ποσό του τιμολογίου.\""
     },
     "UserManager": {
         "Guest": "Επισκέπτης",
@@ -1399,7 +1476,11 @@
         "You have opted out of telemetry.": "Έχετε εξαιρεθεί από την τηλεμετρία.",
         "Sponsor": "Χορηγός",
         "We only collect usage statistics, as detailed in our {{link}}, never document contents.": "Συλλέγουμε μόνο στατιστικά στοιχεία χρήσης, όπως περιγράφεται λεπτομερώς στο {{link}} μας, ποτέ δεν καταγράφουμε περιεχόμενο.",
-        "You have opted in to telemetry. Thank you!": "Έχετε επιλέξει να χρησιμοποιείτε την τηλεμετρία. Ευχαριστούμε!"
+        "You have opted in to telemetry. Thank you!": "Έχετε επιλέξει να χρησιμοποιείτε την τηλεμετρία. Ευχαριστούμε!",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Το λογισμικό Grist αναπτύσσεται από την Grist Labs, η οποία προσφέρει δωρεάν και επί πληρωμή προγράμματα φιλοξενίας. Επίσης, διαθέτουμε κώδικα Grist με μια τυπική δωρεάν και ανοιχτή άδεια OSS (Apache 2.0) στο {{link}}.",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "Υποστηρίξτε την Grist επιλέγοντας την τηλεμετρία, η οποία μας βοηθά να κατανοήσουμε πώς χρησιμοποιείται το προϊόν, ώστε να μπορούμε να ιεραρχήσουμε τις μελλοντικές βελτιώσεις.",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "Είμαστε μια μικρή και αποφασισμένη ομάδα. Η υποστήριξή σας έχει μεγάλη σημασία για εμάς. Δείχνει επίσης στους άλλους ότι υπάρχει μια αποφασισμένη κοινότητα πίσω από αυτό το προϊόν.",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "Μπορείτε να υποστηρίξετε την ανάπτυξη ανοιχτού κώδικα της Grist χρηματοδοτώντας μας στο {{link}} μας."
     },
     "FloatingPopup": {
         "Maximize": "Μεγιστοποίηση",
@@ -1433,7 +1514,11 @@
         "Preview": "Προεπισκόπηση",
         "Unpublish": "Κατάργηση δημοσίευσης",
         "Code copied to clipboard": "Ο κώδικας αντιγράφηκε στο πρόχειρο",
-        "Unpublish your form?": "Κατάργηση δημοσίευσης της φόρμας σας;"
+        "Unpublish your form?": "Κατάργηση δημοσίευσης της φόρμας σας;",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "Η δημοσίευση της φόρμας σας θα δημιουργήσει έναν σύνδεσμο κοινής χρήσης. Οποιοσδήποτε διαθέτει τον σύνδεσμο μπορεί να δει την κενή φόρμα και να υποβάλει μια απάντηση.",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "Η κατάργηση της δημοσίευσης της φόρμας θα απενεργοποιήσει τον σύνδεσμο κοινής χρήσης, έτσι ώστε οι χρήστες που έχουν πρόσβαση στη φόρμα σας μέσω αυτού του συνδέσμου να βλέπουν ένα σφάλμα.",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "Οι χρήστες περιορίζονται στην υποβολή καταχωρήσεων (εγγραφές στον πίνακά σας) και στην ανάγνωση προκαθορισμένων τιμών σε καθορισμένα πεδία, όπως στήλες αναφοράς και επιλογής.",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "Η φόρμα σας έχει δημοσιευτεί. Κάθε αλλαγή είναι ενεργή και ορατή στους χρήστες που έχουν πρόσβαση στη φόρμα. Εάν θέλετε να κάνετε αλλαγές στο προσχέδιο, καταργήστε τη δημοσίευση της φόρμας."
     },
     "UnmappedFieldsConfig": {
         "Map fields": "Αντιστοίχιση πεδίων",
@@ -1474,7 +1559,11 @@
         "Clear": "Καθαρισμός",
         "Map fields": "Αντιστοίχιση πεδίων",
         "Select All": "Επιλογή Ολων",
-        "Mapped": "Αντιστοιχισμένο"
+        "Mapped": "Αντιστοιχισμένο",
+        "Hide {{label}}": "Απόκρυψη {{label}}",
+        "Hide {{label}} (batch mode)": "Απόκρυψη {{label}} (λειτουργία παρτίδας)",
+        "Unmap {{label}}": "Κατάργηση αντιστοίχισης {{label}}",
+        "Unmap {{label}} (batch mode)": "Κατάργηση αντιστοίχισης {{label}} (λειτουργία παρτίδας)"
     },
     "AdminPanel": {
         "Current": "Τρέχον",
@@ -1534,7 +1623,17 @@
         "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Το Grist επιτρέπει πολύ ισχυρούς τύπους, χρησιμοποιώντας Python. Συνιστούμε να ορίσετε τη μεταβλητή περιβάλλοντος GRIST_SANDBOX_FLAVOR σε gvisor, εάν το υλικό σας το υποστηρίζει (τα περισσότερα θα το κάνουν), για να εκτελείτε τύπους σε κάθε έγγραφο μέσα σε ένα sandbox απομονωμένο από άλλα έγγραφα και απομονωμένο από το δίκτυο.",
         "Administrator Panel Unavailable": "Ο πίνακας διαχειριστή δεν είναι διαθέσιμος",
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Το Grist επιτρέπει τη διαμόρφωση διαφορετικών τύπων ελέγχου ταυτότητας, συμπεριλαμβανομένων των SAML και OIDC.      Συνιστούμε να ενεργοποιήσετε έναν από αυτούς εάν το Grist είναι προσβάσιμο μέσω δικτύου ή διατίθεται      σε πολλά άτομα.",
-        "Results": "Αποτελέσματα"
+        "Results": "Αποτελέσματα",
+        "Auto-check weekly": "Αυτόματος έλεγχος εβδομαδιαίως",
+        "No record of last version check": "Δεν υπάρχει καταγραφή ελέγχου τελευταίας έκδοσης",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Μπορείτε να ρυθμίσετε τη ροή συμβάντων ελέγχου από το Grist σε ένα εξωτερικό σύστημα πληροφοριών ασφαλείας και διαχείρισης συμβάντων (SIEM), εάν ενεργοποιήσετε το Grist Enterprise. {{contactUsLink}} για να μάθετε περισσότερα.",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "Οι αυτόματοι έλεγχοι είναι απενεργοποιημένοι. Ορίστε τη μεταβλητή περιβάλλοντος GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING σε \"true\" για να τους ενεργοποιήσετε.",
+        "auth error": "σφάλμα ελέγχου ταυτότητας",
+        "configured": "διαμορφωμένο",
+        "default": "Προεπιλογή",
+        "more...": "περισσότερα...",
+        "no authentication": "χωρίς έλεγχο ταυτότητας",
+        "unavailable": "μη διαθέσιμο"
     },
     "ChoiceListEditor": {
         "No choices to select": "Δεν υπάρχουν επιλογές για να διαλέξετε",
@@ -1609,7 +1708,8 @@
         "Skip step": "Παράλειψη βήματος",
         "Your organization": "Ο οργανισμός σας",
         "Tell us who you are": "Πες μας ποιος είσαι",
-        "What brings you to Grist (you can select multiple)?": "Τι σας φέρνει στο Grist (μπορείτε να επιλέξετε πολλαπλά);"
+        "What brings you to Grist (you can select multiple)?": "Τι σας φέρνει στο Grist (μπορείτε να επιλέξετε πολλαπλά);",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Το Grist μπορεί να μοιάζει με υπολογιστικό φύλλο, αλλά δεν λειτουργεί πάντα έτσι. Ανακαλύψτε τι κάνει το Grist να διαφέρει."
     },
     "ToggleEnterpriseWidget": {
         "Enable Grist Enterprise": "Ενεργοποίηση Grist Enterprise",
@@ -1669,7 +1769,9 @@
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "Σας ευχαριστούμε! Η εμπιστοσύνη και η υποστήριξή σας εκτιμώνται ιδιαίτερα. Μπορείτε να εξαιρεθείτε οποιαδήποτε στιγμή από το {{link}} στο μενού χρήστη.",
         "Support Grist": "Υποστήριξε το Grist",
         "Admin Panel": "Πίνακας Διαχείρισης",
-        "Close": "Κλείσιμο"
+        "Close": "Κλείσιμο",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "Επιλέξτε να ενεργοποιήσετε την τηλεμετρία για να κατανοήσουμε καλύτερα τον τρόπο χρήσης του προϊόντος, ώστε να μπορέσουμε να δώσουμε προτεραιότητα στις μελλοντικές βελτιώσεις.",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "Συλλέγουμε μόνο στατιστικά στοιχεία χρήσης, όπως περιγράφεται λεπτομερώς στο {{helpCenterLink}} μας, ποτέ περιεχόμενο εγγράφων. Μπορείτε να εξαιρεθείτε οποιαδήποτε στιγμή από το {{supportGristLink}} στο μενού χρήστη."
     },
     "AuditLogsPage": {
         "upgrade your plan": "αναβάθμιση του προγράμματός σας",
@@ -1678,7 +1780,9 @@
         "Contact us": "Επικοινωνήστε μαζί μας",
         "Home": "Αρχική",
         "Log streaming": "Ροή αρχείων καταγραφής",
-        "Only site owners may access audit logs.": "Μόνο οι κάτοχοι ιστότοπων έχουν πρόσβαση στα αρχεία καταγραφής ελέγχου."
+        "Only site owners may access audit logs.": "Μόνο οι κάτοχοι ιστότοπων έχουν πρόσβαση στα αρχεία καταγραφής ελέγχου.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "Μπορείτε να ρυθμίσετε τη ροή συμβάντων ελέγχου από το Grist σε ένα εξωτερικό σύστημα SIEM (πληροφορίες ασφαλείας και διαχείριση συμβάντων), εάν ενεργοποιήσετε το Grist Enterprise. {{contactUsLink}} για να μάθετε περισσότερα.",
+        "You can set up streaming of audit events from Grist to an external SIEM (security information and event management) system if you {{upgradePlanButton}}.": "Μπορείτε να ρυθμίσετε τη ροή συμβάντων ελέγχου από το Grist σε ένα εξωτερικό σύστημα SIEM (πληροφορίες ασφαλείας και διαχείριση συμβάντων) εάν {{upgradePlanButton}}."
     },
     "DocList": {
         "Access details": "Λεπτομέρειες πρόσβασης",
@@ -1702,13 +1806,16 @@
         "Sort by date": "Ταξινόμηση κατά ημερομηνία",
         "Sort by name": "Ταξινόμηση κατά όνομα",
         "Unpin": "Ξεκαρφίτσωμα",
-        "Workspace": "Χώρος εργασίας"
+        "Workspace": "Χώρος εργασίας",
+        "context menu - {{- documentName }}": "μενού περιβάλλοντος - {{- documentName }}",
+        "Documents list": "Λίστα εγγράφων",
+        "Download document...": "Λήψη εγγράφου..."
     },
     "RightPanelUtils": {
         "Series_one": "Σειρές",
-        "Columns_one": "Στήλες",
+        "Columns_one": "Στήλη",
         "Columns_other": "Στήλες",
-        "Fields_one": "Πεδία",
+        "Fields_one": "Πεδίο",
         "Fields_other": "Πεδία",
         "Series_other": "Σειρές"
     },
@@ -1737,7 +1844,8 @@
         "Sign up for a free Grist account to start using the AI Assistant.": "Εγγραφείτε για έναν δωρεάν λογαριασμό Grist για να ξεκινήσετε να χρησιμοποιείτε τον Βοηθό Τεχνητής Νοημοσύνης.",
         "Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}": "Αναβαθμίστε σε Grist Enterprise για να δοκιμάσετε τον νέο Βοηθό Grist. {{learnMoreLink}}",
         "upgrade to the Pro Team plan": "αναβάθμιση στο πρόγραμμα Pro Team",
-        "upgrade your plan": "αναβάθμιση του προγράμματός σας"
+        "upgrade your plan": "αναβάθμιση του προγράμματός σας",
+        "The conversation has become too long and I can no longer respond effectively. Please {{startANewChatButton}} to continue receiving assistance.": "Η συζήτηση έχει γίνει πολύ μεγάλη και δεν μπορώ πλέον να απαντήσω αποτελεσματικά. Παρακαλώ {{startANewChatButton}} για να συνεχίσετε να λαμβάνετε βοήθεια."
     },
     "apiconsole": {
         "Deletion was not confirmed, skipping.": "Η διαγραφή δεν επιβεβαιώθηκε, παράβλεψη.",
@@ -1763,7 +1871,8 @@
         "Search all tables": "Αναζήτηση σε όλoυς τους πίνακες"
     },
     "searchDropdown": {
-        "Search": "Αναζήτηση"
+        "Search": "Αναζήτηση",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Εμφάνιση {{displayedCount}} από {{totalCount}} στοιχεία. Αναζήτηση για περισσότερα."
     },
     "SupportGristNudge": {
         "Close": "Κλείσιμο",
@@ -1864,7 +1973,9 @@
         "Reset": "Επαναφορά",
         "Select...": "Επιλέξτε...",
         "Search": "Αναζήτηση",
-        "Submit": "Υποβολή"
+        "Submit": "Υποβολή",
+        "Submitting…": "Υποβολή…",
+        "Clear selection for: {{-inputLabel}}": "Εκκαθάριση επιλογής για: {{-inputLabel}}"
     },
     "AdminPanelName": {
         "Admin Panel": "Πίνακας Διαχείρισης"
@@ -1889,7 +2000,9 @@
         "Webinars": "Διαδικτυακά σεμινάρια",
         "Templates": "Πρότυπα",
         "Tutorial": "Οδηγός Εκμάθησης",
-        "Learn more {{webinarsLinks}}": "Μάθετε περισσότερα {{webinarsLinks}}"
+        "Learn more {{webinarsLinks}}": "Μάθετε περισσότερα {{webinarsLinks}}",
+        "Find solutions and explore more resources": "Βρείτε λύσεις και εξερευνήστε περισσότερους πόρους",
+        "Learn more": "Μάθετε περισσότερα"
     },
     "ReverseReferenceConfig": {
         "Add two-way reference": "Προσθήκη αμφίδρομης αναφοράς",
@@ -1900,12 +2013,13 @@
         "Two-way Reference": "Αμφίδρομη Αναφορά",
         "Delete two-way reference?": "Διαγραφή αμφίδρομης αναφοράς;",
         "Table": "Πίνακας",
-        "Target table": "Πίνακας προορισμού"
+        "Target table": "Πίνακας προορισμού",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "Αυτό θα διαγράψει τη στήλη αναφοράς {{refCol}} στον πίνακα {{refTable}}. Η στήλη αναφοράς {{myName}} θα παραμείνει στον τρέχοντα πίνακα {{myTable}}."
     },
     "buildReassignModal": {
         "Reassign": "Επαναανάθεση",
         "Record already assigned_one": "Η εγγραφή έχει ήδη ανατεθεί",
-        "Record already assigned_other": "Η εγγραφή έχει ήδη ανατεθεί",
+        "Record already assigned_other": "Οι εγγραφές έχουν ήδη ανατεθεί",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Επαναανάθεση στην εγγραφή {{sourceTable}} {{sourceName}}.",
         "Reassign to new {{sourceTable}} records.": "Επαναανάθεση σε νέες εγγραφές {{sourceTable}}.",
         "Cancel": "Ακύρωση",
@@ -1931,7 +2045,8 @@
         "Delete": "Διαγραφή",
         "Add destination": "Προσθήκη προορισμού",
         "Destination": "Προορισμός",
-        "Edit": "Επεξεργασία"
+        "Edit": "Επεξεργασία",
+        "Set up streaming of audit events from Grist to an external security information and event management (SIEM) system like Splunk. {{learnMoreLink}}.": "Ρυθμίστε τη ροή συμβάντων ελέγχου από το Grist σε ένα εξωτερικό σύστημα πληροφοριών ασφαλείας και διαχείρισης συμβάντων (SIEM) όπως το Splunk. {{learnMoreLink}}."
     },
     "RenameDocModal": {
         "Choose color": "Επιλέξτε χρώμα",
@@ -1967,7 +2082,11 @@
         "Default cell style": "Προεπιλεγμένο στυλ κελιού"
     },
     "FilterConfig": {
-        "Add Column": "Προσθήκη Στήλης"
+        "Add Column": "Προσθήκη Στήλης",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Φίλτρο καρφιτσώματος - στήλη {{- columnName}} (τρέχουσα: ξεκαρφιτσωμένη)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Ξεκαρφίτσωμα φίλτρου - στήλη {{- columnName}} (τρέχουσα: καρφιτσωμένη)",
+        "remove filter - {{- columnName}} column": "αφαίρεση φίλτρου - στήλη {{- columnName}}",
+        "{{- columnName }} column filters": "Φίλτρα στηλών {{- columnName }}"
     },
     "SiteSwitcher": {
         "Switch Sites": "Αλλαγή ιστότοπων",
@@ -2009,7 +2128,8 @@
         "No results": "Δεν υπάρχουν αποτελέσματα",
         "Search in document": "Αναζήτηση στο έγγραφο",
         "Search": "Αναζήτηση",
-        "Find Next ": "Εύρεση Επόμενου "
+        "Find Next ": "Εύρεση Επόμενου ",
+        "Close search bar": "Κλείσιμο γραμμής αναζήτησης"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Αποστολή αρχείου στο Google Drive"
@@ -2019,7 +2139,9 @@
         "free coaching call": "δωρεάν κλήση καθοδήγησης",
         "Maybe Later": "Ίσως Αργότερα",
         "Schedule Call": "Προγραμματισμός Κλήσης",
-        "Schedule your {{freeCoachingCall}} with a member of our team.": "Κλείστε ραντεβού για το {{freeCoachingCall}} με ένα μέλος της ομάδας μας."
+        "Schedule your {{freeCoachingCall}} with a member of our team.": "Κλείστε ραντεβού για το {{freeCoachingCall}} με ένα μέλος της ομάδας μας.",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Μπορείτε επίσης να δείτε τα {{ourWeeklyWebinars}} για να μάθετε περισσότερα για τον Grist.",
+        "our weekly webinars": "τα εβδομαδιαία διαδικτυακά μας σεμινάρια"
     },
     "ChoiceTextBox": {
         "CHOICES": "ΕΠΙΛΟΓΕΣ"
@@ -2029,7 +2151,13 @@
     },
     "PagePanels": {
         "Open Creator Panel": "Άνοιγμα Πίνακα Δημιουργού",
-        "Close Creator Panel": "Κλείσιμο Πίνακα Δημιουργού"
+        "Close Creator Panel": "Κλείσιμο Πίνακα Δημιουργού",
+        "Creator panel (right panel)": "Πίνακας δημιουργού (δεξιό πλαίσιο)",
+        "Document header": "Κεφαλίδα εγγράφου",
+        "Main content": "Κύριο περιεχόμενο",
+        "Main navigation and document settings (left panel)": "Κύριες ρυθμίσεις πλοήγησης και εγγράφου (αριστερό πλαίσιο)",
+        "Close navigation panel (left panel)": "Κλείσιμο του πίνακα πλοήγησης (αριστερό πλαίσιο)",
+        "Open navigation panel (left panel)": "Άνοιγμα του πίνακα πλοήγησης (αριστερό πλαίσιο)"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ΠΕΡΙΓΡΑΦΗ"
@@ -2048,5 +2176,142 @@
                 "markdownguide.org) *inside*\n *      a Grainjs element.": "# Νέα Συνάρτηση Markdown\n*\n* Μπορούμε να _γράψουμε_ [το συνηθισμένο Markdown](https://markdownguide.org) *μέσα*\n* σε ένα στοιχείο Grainjs."
             }
         }
+    },
+    "MentionTextBox": {
+        "no access": "χωρίς πρόσβαση"
+    },
+    "VersionUpdateBanner": {
+        "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Υπάρχει διαθέσιμη μια κρίσιμη ενημέρωση του Grist.\nΕξετάστε το ενδεχόμενο αναβάθμισης στην έκδοση {{version}} το συντομότερο δυνατό.",
+        "Your Grist version is outdated.\nConsider upgrading to version {{version}} as soon as possible.": "Η έκδοση Grist που χρησιμοποιείτε είναι παλιά.\nΕξετάστε το ενδεχόμενο αναβάθμισης στην έκδοση {{version}} το συντομότερο δυνατό."
+    },
+    "ExternalAttachmentBanner": {
+        "Recommendation: {{storageRecommendation}}\nWhen storing large attachments, or many of them, we recommend\nkeeping them in external storage. This document is currently\nusing internal storage for attachments, which keeps it\nself-contained but may limit performance.": "Σύσταση: {{storageRecommendation}}\nΌταν αποθηκεύετε μεγάλα ή πολλά από αυτά συνημμένα, συνιστούμε\nνα τα διατηρείτε σε εξωτερικό χώρο αποθήκευσης. Αυτό το έγγραφο \nχρησιμοποιεί αυτήν τη στιγμή εσωτερικό χώρο αποθήκευσης για συνημμένα, γεγονός που το διατηρεί\nαυτόνομο αλλά ενδέχεται να περιορίσει την απόδοση.",
+        "Set the document to use external storage.": "Ρυθμίστε το έγγραφο ώστε να χρησιμοποιεί εξωτερικό χώρο αποθήκευσης."
+    },
+    "ToggleEnterpriseModel": {
+        "Please wait for the previous operation to complete.": "Περιμένετε να ολοκληρωθεί η προηγούμενη λειτουργία.",
+        "Timed out on waiting for the Grist backend to restart": "Λήξη χρονικού ορίου αναμονής για επανεκκίνηση του backend του Grist"
+    },
+    "Experiments": {
+        "Disable feature": "Απενεργοποίηση λειτουργίας",
+        "Don't worry, you can disable it later if needed.": "Μην ανησυχείτε, μπορείτε να το απενεργοποιήσετε αργότερα, αν χρειαστεί.",
+        "Enable feature": "Ενεργοποίηση λειτουργίας",
+        "Experimental feature": "Πειραματική λειτουργία",
+        "New record button": "Κουμπί νέας εγγραφής",
+        "Reload the page": "Επαναφόρτωση της σελίδας",
+        "Visit this URL at any time to stop using this feature: {{url}}": "Επισκεφθείτε αυτήν τη διεύθυνση URL ανά πάσα στιγμή για να διακόψετε τη χρήση αυτής της λειτουργίας: {{url}}",
+        "You are about to disable this experimental feature: {{experiment}}": "Πρόκειται να απενεργοποιήσετε αυτήν την πειραματική λειτουργία: {{experiment}}",
+        "You are about to enable this experimental feature: {{experiment}}": "Πρόκειται να ενεργοποιήσετε αυτήν την πειραματική λειτουργία: {{experiment}}",
+        "{{experiment}} disabled.": "Το {{experiment}} απενεργοποιήθηκε.",
+        "{{experiment}} enabled.": "Το {{experiment}} ενεργοποιήθηκε."
+    },
+    "NewRecordButton": {
+        "New card": "Νέα κάρτα",
+        "New record": "Νέα εγγραφή"
+    },
+    "RegionFocusSwitcher": {
+        "Trying to access the creator panel? Use {{key}}.": "Προσπαθείτε να αποκτήσετε πρόσβαση στο πλαίσιο δημιουργών; Χρησιμοποιήστε το {{key}}."
+    },
+    "duplicateWidget": {
+        "Duplicate widget": "Διπλότυπο γραφικό στοιχείο",
+        "Duplicate widgets": "Διπλότυπα γραφικά στοιχεία"
+    },
+    "AttachmentsWidget": {
+        "Uploading, please wait…": "Μεταφόρτωση, παρακαλώ περιμένετε…"
+    },
+    "AttachmentsEditor": {
+        "Add": "Προσθήκη",
+        "Delete": "Διαγραφή",
+        "Download": "Λήψη",
+        "Drop files here to attach": "Αποθέστε αρχεία εδώ για επισύναψη",
+        "Drop files here to attach.": "Αποθέστε αρχεία εδώ για επισύναψη.",
+        "No attachments": "Δεν υπάρχουν συνημμένα",
+        "Preview not available.": "Η προεπισκόπηση δεν είναι διαθέσιμη.",
+        "{{index}} of {{total}}": "{{index}} από {{total}}",
+        "Uploading…": "Μεταφόρτωση…"
+    },
+    "RowHeightConfig": {
+        "Expand all rows to this height": "Ανάπτυξη όλων των γραμμών σε αυτό το ύψος",
+        "Max height": "Μέγιστο ύψος",
+        "Max row height": "Μέγιστο ύψος σειράς",
+        "Change": "Αλλαγή"
+    },
+    "TreeViewComponent": {
+        "Collapse": "Σύμπτυξη",
+        "Expand": "Ανάπτυξη"
+    },
+    "ActiveUserList": {
+        "active user": "ενεργός χρήστης",
+        "active user list": "λίστα ενεργών χρηστών",
+        "open full active user list": "άνοιγμα πλήρους λίστας ενεργών χρηστών"
+    },
+    "AdminChecks": {
+        "Grist allows for very powerful formulas, using Python. We recommend setting the environment variable GRIST_SANDBOX_FLAVOR to gvisor if your hardware supports it (most will), to run formulas in each document within a sandbox isolated from other documents and isolated from the network.": "Το Grist επιτρέπει πολύ ισχυρούς τύπους, χρησιμοποιώντας Python. Συνιστούμε να ορίσετε τη μεταβλητή περιβάλλοντος GRIST_SANDBOX_FLAVOR σε gvisor, εάν το υλικό σας το υποστηρίζει (τα περισσότερα θα το κάνουν), για να εκτελείτε τύπους σε κάθε έγγραφο μέσα σε ένα sandbox απομονωμένο από άλλα έγγραφα και απομονωμένο από το δίκτυο.",
+        "Grist has a small built-in health check often used when running it as a container.": "Το Grist έχει έναν μικρό ενσωματωμένο έλεγχο εύρυθμης λειτουργίας που χρησιμοποιείται συχνά όταν εκτελείται ως κοντέινερ.",
+        "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Τα αιτήματα που φτάνουν στο Grist θα πρέπει να έχουν μια ακριβή κεφαλίδα κεντρικού υπολογιστή. Αυτό είναι απαραίτητο όταν έχει οριστεί το GRIST_SERVE_SAME_ORIGIN.",
+        "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Αυτή η σελίδα εκκίνησης δεν θα πρέπει να είναι πολύ εύκολη στην πρόσβαση. Είτε απενεργοποιήστε την όταν η διαμόρφωση είναι εντάξει (καταργώντας τη ρύθμιση του GRIST_BOOT_KEY) είτε κάντε το GRIST_BOOT_KEY μακρύ και κρυπτογραφικά ασφαλές.",
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Οι συνδέσεις Websocket χρειάζονται HTTP 1.1 και τη δυνατότητα διαβίβασης μερικών επιπλέον κεφαλίδων για να λειτουργήσουν. Μερικές φορές, ένας αντίστροφος διακομιστής μεσολάβησης μπορεί να επηρεάσει αυτές τις απαιτήσεις.",
+        "It is good practice not to run Grist as the root user.": "Είναι καλή πρακτική να μην εκτελείτε το Grist ως χρήστης root.",
+        "The main page of Grist should be available.": "Η κύρια σελίδα του Grist θα πρέπει να είναι διαθέσιμη."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} ακόμη",
+        "+{{count}} more_other": "+{{count}} ακόμη",
+        "Edit": "Επεξεργασία",
+        "No choices configured": "Δεν έχουν ρυθμιστεί επιλογές",
+        "Reset": "Επαναφορά",
+        "Cancel": "Ακύρωση",
+        "Save": "Αποθήκευση"
+    },
+    "FormulaTransform": {
+        "Apply": "Εφαρμογή",
+        "Cancel": "Ακύρωση",
+        "Preview": "Προεπισκόπηση"
+    },
+    "ParseOptions": {
+        "Close": "Κλείσιμο",
+        "Update preview": "Ενημέρωση προεπισκόπησης",
+        "Convert quoted fields": "Μετατρέψτε τα πεδία που αναφέρονται",
+        "Escape character": "Χαρακτήρας διαφυγής",
+        "Field separator": "Διαχωριστής πεδίου",
+        "First row contains headers": "Η πρώτη σειρά περιέχει κεφαλίδες",
+        "Line terminator": "Τερματιστής γραμμής",
+        "Number of rows": "Αριθμός γραμμών",
+        "Quote character": "Χαρακτήρας παραθέματος (quote)",
+        "Quotes in fields are doubled": "Τα quotes στα πεδία διπλασιάζονται",
+        "Skip leading whitespace": "Παράλειψη κενού διαστήματος στην αρχή",
+        "Start with row": "Ξεκινήστε με τη γραμμή",
+        "Character encoding. See [the supported codecs]({{link}})": "Κωδικοποίηση χαρακτήρων. Δείτε [τις υποστηριζόμενες κωδικοποιήσεις]({{link}})"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " ή ",
+        "\"Regions\" are what we call the different parts of the user interface:": "Οι \"περιοχές\" είναι αυτά που ονομάζουμε τα διαφορετικά μέρη της διεπαφής χρήστη:",
+        "Accessibility": "Προσβασιμότητα",
+        "Close": "Κλείσιμο",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Τέλος, το δεξιό πλαίσιο – ή το πλαίσιο δημιουργού – είναι διαθέσιμο μόνο μέσω της δικής του συντόμευσης και δεν περιλαμβάνεται στον επόμενο και τον προηγούμενο κύκλο περιοχής.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Εστιάστε σε άλλα μέρη της διεπαφής χρήστη χρησιμοποιώντας τις ακόλουθες συντομεύσεις:",
+        "High contrast theme": "Θέμα υψηλής αντίθεσης",
+        "Keyboard navigation": "Πλοήγηση πληκτρολογίου",
+        "On a document page, keyboard navigation is first locked on the current widget.": "Σε μια σελίδα εγγράφου, η πλοήγηση με το πληκτρολόγιο κλειδώνεται πρώτα στο τρέχον γραφικό στοιχείο (widget).",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "Στις σελίδες εγγράφων, κάθε [widget]({{supportPageUrl}}) είναι μια περιοχή που μπορεί να λάβει εστίαση.",
+        "On non-document pages, the main content area is a region.": "Σε σελίδες που δεν αποτελούν έγγραφα, η κύρια περιοχή περιεχομένου είναι μια περιοχή.",
+        "Other important keyboard shortcuts": "Άλλες σημαντικές συντομεύσεις πληκτρολογίου",
+        "The left panel, home of the main navigation.": "Το αριστερό πλαίσιο, όπου βρίσκεται η κύρια πλοήγηση.",
+        "The top panel, or the document header.": "Το επάνω πλαίσιο ή η κεφαλίδα του εγγράφου.",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "Για να δείτε άλλα διαθέσιμα θέματα, μεταβείτε στο {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Χρησιμοποιήστε το θέμα υψηλής αντίθεσης (ανοιχτόχρωμη εμφάνιση)",
+        "You are currently **not using** the high contrast theme.": "Αυτήν τη στιγμή **δεν χρησιμοποιείτε** το θέμα υψηλής αντίθεσης.",
+        "You are currently using the high contrast theme.": "Αυτήν τη στιγμή χρησιμοποιείτε το θέμα υψηλής αντίθεσης.",
+        "profile settings": "ρυθμίσεις προφίλ",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Εμφάνιση των επιλογών προσβασιμότητας (αυτό το modal)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Εστίαση προς και από το πλαίσιο δημιουργού",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Εστίαση στην επόμενη περιοχή",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Εστίαση στην προηγούμενη περιοχή",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Εμφάνιση της πλήρους λίστας συντομεύσεων πληκτρολογίου"
+    },
+    "ProposedChangesPage": {
+        "Proposed Changes": "Προτεινόμενες αλλαγές",
+        "Replace Original": "Αντικατάσταση πρωτοτύπου",
+        "This is a list of changes relative to the original document.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το αρχικό έγγραφο."
     }
 }

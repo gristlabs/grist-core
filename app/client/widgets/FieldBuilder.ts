@@ -28,7 +28,7 @@ import {buildErrorDom} from 'app/client/widgets/ErrorDom';
 import {FieldEditor, saveWithoutEditor} from 'app/client/widgets/FieldEditor';
 import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
 import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {CommentText} from 'app/client/widgets/MentionTextBox';
+import {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {IEditorConstructor} from 'app/client/widgets/NewBaseEditor';
 import * as UserType from 'app/client/widgets/UserType';
@@ -813,7 +813,7 @@ export class FieldBuilder extends Disposable {
   public buildDiscussionPopup(
     editRow: DataRowModel,
     mainRowModel: DataRowModel,
-    text: CommentText|null
+    text: CommentWithMentions|null
   ) {
     const holder = this.gristDoc.fieldEditorHolder;
     const cellElem: Element = this._rowMap.get(mainRowModel)!;

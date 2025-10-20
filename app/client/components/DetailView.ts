@@ -2,7 +2,7 @@ import BaseView from 'app/client/components/BaseView';
 import {parsePasteForView} from 'app/client/components/BaseView2';
 import * as selector from 'app/client/components/CellSelector';
 import {ElemType} from 'app/client/components/CellSelector';
-import {CutCallback, PasteData} from 'app/client/components/Clipboard';
+import {CutCallback} from 'app/client/components/Clipboard';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {renderAllRows} from 'app/client/components/Printing';
 import RecordLayout from 'app/client/components/RecordLayout';
@@ -10,6 +10,7 @@ import {viewCommands} from 'app/client/components/RegionFocusSwitcher';
 import * as commands from 'app/client/components/commands';
 import kd from 'app/client/lib/koDom';
 import koDomScrolly from 'app/client/lib/koDomScrolly';
+import {PasteData} from 'app/client/lib/tableUtil';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import {DataRowModel} from 'app/client/models/DataRowModel';
@@ -244,7 +245,7 @@ export default class DetailView extends BaseView {
     const field = this.viewSection.viewFields().at(this.cursor.fieldIndex())!;
     const isCompletePaste = (data.length === 1 && data[0].length === 1);
 
-    const richData = await parsePasteForView([[pasteData]], [field], this.gristDoc);
+    const richData = await parsePasteForView([[pasteData]] as PasteData, [field], this.gristDoc);
     if (_.isEmpty(richData)) {
       return;
     }

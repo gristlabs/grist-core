@@ -1,5 +1,6 @@
 import {GristDoc} from 'app/client/components/GristDoc';
 import {allCommands} from 'app/client/components/commands';
+import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {reportError} from 'app/client/models/AppModel';
 import {DocModel, ViewSectionRec} from 'app/client/models/DocModel';
@@ -134,6 +135,7 @@ export function viewSectionMenu(
         // visible.
         dom.autoDispose(viewSection.activeFilters.addListener(() => ctl.update())),
         dom.autoDispose(viewSection.activeSortJson.subscribe(() => ctl.update())),
+        elem => { FocusLayer.create(ctl, {defaultFocusElem: elem, pauseMousetrap: true}); },
       ], {...defaultMenuOptions, placement: 'bottom-end', trigger: [
         // Toggle the menu whenever the filter icon button is clicked.
         (el, ctl) => dom.onMatchElem(el, '.test-section-menu-sortAndFilter', 'click', () => {

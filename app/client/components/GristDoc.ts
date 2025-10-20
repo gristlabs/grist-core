@@ -520,8 +520,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         return;
       }
 
-      // Onboarding tours can conflict with rick rowing and the assistant.
-      if (state.hash?.rickRow || state.params?.assistantState) {
+      // Onboarding tours can conflict with hash links and the assistant.
+      if (state.hash || state.params?.assistantState) {
         this._disableAutoStartingTours = true;
       }
 

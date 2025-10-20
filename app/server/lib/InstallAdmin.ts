@@ -1,5 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
-import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {HomeDBManager, SUPPORT_EMAIL} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {getUser, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {User} from 'app/gen-server/entity/User';
@@ -13,6 +13,13 @@ export abstract class InstallAdmin {
 
   // Returns true if user is authorized to manage the Grist installation.
   public abstract isAdminUser(user: User): Promise<boolean>;
+
+  // Returns an administrator user to use as a last resort, needed
+  // if a boot key is used.
+  public abstract getAdminUser(): Promise<User>;
+
+  // Clear any cached information.
+  public abstract clearCaches(): void;
 
   // Returns true if req is authenticated (contains a user) and the user is authorized to manage
   // the Grist installation. This should not fail, only return true or false.
@@ -41,8 +48,9 @@ export abstract class InstallAdmin {
 }
 
 // Considers the user whose email matches GRIST_DEFAULT_EMAIL env var, if given, to be the
-// installation admin. The support user is also accepted.
-// Otherwise, there is no admin.
+// installation admin.
+// If GRIST_DEFAULT_EMAIL is not given, we fall back on GRIST_SUPPORT_EMAIL,
+// which defaults to support@getgrist.com
 export class SimpleInstallAdmin extends InstallAdmin {
   private _installAdminEmail = appSettings.section('access').flag('installAdminEmail').readString({
     envVar: 'GRIST_DEFAULT_EMAIL',
@@ -52,8 +60,18 @@ export class SimpleInstallAdmin extends InstallAdmin {
     super();
   }
 
+  public override async getAdminUser(): Promise<User> {
+    return this._dbManager.getUserByLoginWithRetry(this._adminEmail);
+  }
+
   public override async isAdminUser(user: User): Promise<boolean> {
-    if (user.id === this._dbManager.getSupportUserId()) { return true; }
-    return this._installAdminEmail ? (user.loginEmail === this._installAdminEmail) : false;
+    return user.loginEmail === this._adminEmail && this._adminEmail !== '';
+  }
+
+  public override clearCaches(): void {
+  }
+
+  private get _adminEmail(): string {
+    return this._installAdminEmail || SUPPORT_EMAIL;
   }
 }
