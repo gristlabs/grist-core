@@ -167,26 +167,23 @@ export class Cursor extends Disposable {
    * @returns {boolean} True if the cursor position was valid
    */
   public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): boolean {
-    let isValidPos = true;
-
     try {
       // If updating as a result of links, we want to NOT update lastEditedAt
       if (isFromLink) { this._silentUpdatesFlag = true; }
 
-      let newRowIndex: number | null = null;
+      let newRowIndex: number | null | undefined = undefined;
 
       if (cursorPos.rowId !== undefined) {
         newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
-        if (newRowIndex < 0) {
-          isValidPos = false;
-          // Show a sensible default if the new row isn't available, instead of the current record.
-          newRowIndex = this.viewData.getRowIndex('new');
-        }
       } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
         newRowIndex = cursorPos.rowIndex;
       }
 
-      if (newRowIndex !== null && newRowIndex >= 0) {
+      if (typeof(newRowIndex) === "number" && newRowIndex < 0) {
+        newRowIndex = null;
+      }
+
+      if (newRowIndex !== undefined && (newRowIndex === null || newRowIndex >= 0)) {
         this.rowIndex(newRowIndex);
       } else {
         // Write rowIndex to itself to force an update of rowId if needed.
@@ -212,11 +209,10 @@ export class Cursor extends Disposable {
       //   but that shouldn't cause any problems, since we don't care about edit counts, just who was edited latest.
       this._cursorEdited();
 
+      return newRowIndex !== null;
     } finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
     }
-
-    return isValidPos;
   }
 
 
