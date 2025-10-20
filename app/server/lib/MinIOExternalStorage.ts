@@ -197,7 +197,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
     // Other errors like 'ECONNRESET' and 'InternalError' were added to the list by mistake
     // which caused problems like overriding an existing document when MinIO was experiencing hiccups.
-    return err.code === 'NotFound' && err.code === 'NoSuchKey';
+    return err.code === 'NotFound' || err.code === 'NoSuchKey';
   }
 
   public isRetryableError(err: any) {
