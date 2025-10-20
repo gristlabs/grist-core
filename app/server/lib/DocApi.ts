@@ -85,6 +85,7 @@ import {downloadDSV} from "app/server/lib/ExportDSV";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {streamXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
+import { filenameContentDisposition, filenameStarredContentDisposition } from "app/server/lib/filenamesUtils";
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
 import {exportToDrive} from "app/server/lib/GoogleExport";
@@ -126,7 +127,6 @@ import * as t from "ts-interface-checker";
 import {Checker} from "ts-interface-checker";
 import {v4 as uuidv4} from "uuid";
 import {appSettings} from "app/server/lib/AppSettings";
-import { filenameContentDisposition, filenameStarredContentDisposition } from "./filenamesUtils";
 
 // This is NOT the number of docs that can be handled at a time.
 // It's a very generous upper bound of what that number might be.
@@ -678,7 +678,8 @@ export class DocWorkerApi {
         .type(ext)
         // Construct a content-disposition header of the form 'attachment; filename*=UTF-8''"NAME"'
         .set('Content-Disposition', filenameStarredContentDisposition('attachment', fileName))
-        // Construct a content-disposition header of the form 'attachment; filename="NAME"' removing non-ASCII characters and %
+        // Construct a content-disposition header of the form 'attachment; filename="NAME"'
+        // removing non-ASCII characters and %
         .set('Content-Disposition', filenameContentDisposition('attachment', fileName))
         .set('Cache-Control', 'private, max-age=3600')
         .send(fileData);

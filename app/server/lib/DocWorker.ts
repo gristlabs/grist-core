@@ -9,6 +9,7 @@ import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Au
 import {Client} from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
 import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
+import { filenameContentDisposition, filenameStarredContentDisposition } from 'app/server/lib/filenamesUtils';
 import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -19,7 +20,6 @@ import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as mimeTypes from 'mime-types';
 import * as path from 'path';
-import { filenameContentDisposition, filenameStarredContentDisposition } from 'app/server/lib/filenamesUtils';
 
 export interface AttachOptions {
   comm: Comm;                             // Comm object for methods called via websocket
