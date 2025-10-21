@@ -368,6 +368,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | APP_UNTRUSTED_URL | URL at which to serve/expect plugin content. |
 | GRIST_ACTION_HISTORY_MAX_ROWS | Maximum number of rows allowed in ActionHistory before pruning (up to a 1.25 grace factor). Defaults to 1000. ⚠️ A too low value may make the "[Work on a copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)" feature [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023) |
 | GRIST_ACTION_HISTORY_MAX_BYTES | Maximum number of rows allowed in ActionHistory before pruning (up to a 1.25 grace factor). Defaults to 1Gb. ⚠️ A too low value may make the "[Work on a copy](https://support.getgrist.com/newsletters/2021-06/#work-on-a-copy)" feature [malfunction](https://github.com/gristlabs/grist-core/issues/1121#issuecomment-2248112023) |
+| GRIST_ACTIVEDOC_TIMEOUT_SECS | Number of seconds a document stays loaded in memory after all clients disconnect. Defaults to 30 seconds (5 seconds in development). |
 | GRIST_ADAPT_DOMAIN | set to "true" to support multiple base domains (careful, host header should be trustworthy) |
 | GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING | Whether Grist is allowed to automatically check if a newer Grist version is available. Defaults to "true" on the default `grist` and `grist-ee` Docker images. Defaults false in `grist-oss` and everywhere else. |
 | GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE | If set, the deprecated DELETE /api/orgs/:orgId endpoint is available. |

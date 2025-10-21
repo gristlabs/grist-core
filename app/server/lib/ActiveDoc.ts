@@ -182,7 +182,11 @@ const DEFAULT_LOCALE = process.env.GRIST_DEFAULT_LOCALE || "en-US";
 // Number of seconds an ActiveDoc is retained without any clients.
 // In dev environment, it is convenient to keep this low for quick tests.
 // In production, it is reasonable to stretch it out a bit.
-const ACTIVEDOC_TIMEOUT = (process.env.NODE_ENV === 'production') ? 30 : 5;
+// Can be configured via GRIST_ACTIVEDOC_TIMEOUT_SECS environment variable.
+const ACTIVEDOC_TIMEOUT = appSettings.section('activeDoc').flag('timeout').requireInt({
+  envVar: 'GRIST_ACTIVEDOC_TIMEOUT_SECS',
+  defaultValue: (process.env.NODE_ENV === 'production') ? 30 : 5
+});
 
 // We'll wait this long between re-measuring sandbox memory.
 const MEMORY_MEASUREMENT_THROTTLE_WAIT_MS = 60 * 1000;
