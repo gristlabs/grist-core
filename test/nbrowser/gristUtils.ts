@@ -10,8 +10,9 @@ import startCase = require('lodash/startCase');
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
-import * as PluginApi from 'app/plugin/grist-plugin-api';
+import { TimeoutError } from 'selenium-webdriver/lib/error';
 
+import * as PluginApi from 'app/plugin/grist-plugin-api';
 import { BaseAPI } from 'app/common/BaseAPI';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
@@ -34,6 +35,7 @@ import { server } from 'test/nbrowser/testServer';
 import { fetchScreenshotAndLogs } from 'test/nbrowser/webdriverUtils';
 import type { Cleanup } from 'test/server/testCleanup';
 import * as testUtils from 'test/server/testUtils';
+
 import type { AssertionError } from 'assert';
 import axios from 'axios';
 import { lock } from 'proper-lockfile';
@@ -628,7 +630,15 @@ export async function getCursorPosition(section?: WebElement|string) {
   return await retryOnStale(async () => {
     if (typeof section === 'string') { section = await getSection(section); }
     section = section ?? await driver.findWait('.active_section', 4000);
-    const cursor = await section.findWait('.selected_cursor', 1000);
+    let cursor: WebElement;
+    try {
+      cursor = await section.findWait('.selected_cursor', 1000);
+    } catch (err) {
+      if (err instanceof TimeoutError) {
+        return null;
+      }
+      throw err;
+    }
     // Query assuming the cursor is in a GridView and a DetailView, then use whichever query data
     // works out.
     const [colIndex, rowIndex, rowNum, colName] = await Promise.all([
@@ -3283,7 +3293,7 @@ export async function sortAndFilter() {
       return this;
     },
     async clickColumn(col: string) {
-      await driver.findContent(".test-sd-searchable-list-item", col).click();
+      await driver.findContentWait(".test-sd-searchable-list-item", col, 500).click();
       return this;
     },
     async close() {
