@@ -127,7 +127,7 @@ describe('ProposedChangesPage', function() {
     // The wording on the changes page is slightly different now (Proposed
     // Changes versus Propose Changes)
     assert.match(
-      await driver.findContentWait('.test-proposals-header', /# 1/, 2000).getText(),
+      await driver.findContentWait('.test-proposals-header', /#1/, 2000).getText(),
       /Suggestion/
     );
 
@@ -239,7 +239,7 @@ describe('ProposedChangesPage', function() {
       .find('.test-proposals-apply').click();
     await gu.waitForServer();
     assert.match(
-      await driver.findContent('.test-proposals-header', /# 2/).getText(),
+      await driver.findContent('.test-proposals-header', /#2/).getText(),
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
@@ -250,7 +250,7 @@ describe('ProposedChangesPage', function() {
       .find('.test-proposals-apply').click();
     await gu.waitForServer();
     assert.match(
-      await driver.findContent('.test-proposals-header', /# 1/).getText(),
+      await driver.findContent('.test-proposals-header', /#1/).getText(),
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
@@ -261,7 +261,7 @@ describe('ProposedChangesPage', function() {
       .find('.test-proposals-apply').click();
     await gu.waitForServer();
     assert.match(
-      await driver.findContent('.test-proposals-header', /# 3/).getText(),
+      await driver.findContent('.test-proposals-header', /#3/).getText(),
       /Accepted/
     );
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,

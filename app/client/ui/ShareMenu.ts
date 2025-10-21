@@ -111,7 +111,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate Document")}),
-        menuWorkOnCopy(pageModel),
+        menuWorkOnCopy(pageModel, {suggestChanges: isProposable}),
         menuExports(doc, pageModel),
       ]);
     }
@@ -269,7 +269,9 @@ function menuSaveCopy(options: {
 }
 
 // Renders "Work on a Copy" menu item.
-function menuWorkOnCopy(pageModel: DocPageModel) {
+function menuWorkOnCopy(pageModel: DocPageModel, options?: {
+  suggestChanges?: boolean
+}) {
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
@@ -278,8 +280,9 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
     await urlState().pushUrl({doc: urlId});
   };
 
+  const label = options?.suggestChanges ? t("Suggest Changes") : t("Work on a Copy");
   return [
-    menuItem(makeUnsavedCopy, t("Work on a Copy"), testId('work-on-copy')),
+    menuItem(makeUnsavedCopy, label, testId('work-on-copy')),
     menuText(
       withInfoTooltip(
         t("Edit without affecting the original"),

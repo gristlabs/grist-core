@@ -86,6 +86,15 @@ export class ProposedChangesTrunkPage extends Disposable {
     (_owner, ps) => ps.length,
   );
   private _showDismissed = Observable.create(this, false);
+  private _userProposalsObs = Computed.create(
+    this, this.gristDoc.currentUser, this._proposalsObs, this._showDismissed,
+    (_owner, user, ps, showDismissed) => {
+      const proposals = ps
+        .filter(p => p.srcDoc.creator.id === user?.id && !user?.anonymous)
+        .filter(p => p.status.status !== 'dismissed' || showDismissed);
+      return (proposals.length > 0) ? proposals : null;
+    }
+  );
 
   constructor(public gristDoc: GristDoc) {
     super();
@@ -116,6 +125,19 @@ export class ProposedChangesTrunkPage extends Disposable {
     return [
       dom.domComputed(this._showDismissed, showDismissed => {
         return [
+          dom.maybe(this._userProposalsObs, userProposals => {
+            return dom(
+              'p',
+              cssSuggestionSummary(
+                t('Your suggestions'),
+              ),
+              ' ',
+              ...userProposals.map(p => [
+                this._linkProposal(p),
+                ' '
+              ]),
+            );
+          }),
           dom.maybe((use) => use(this._proposalCount) === 0, () => {
             return [
               dom('p', 'There are no suggestions.'),
@@ -146,23 +168,9 @@ export class ProposedChangesTrunkPage extends Disposable {
               const applied = proposal.status.status === 'applied';
               const dismissed = proposal.status.status === 'dismissed';
               if (dismissed && !showDismissed) { return null; }
-              const name = `# ${proposal.shortId}`;
               return dom('div', [
                 cssProposalHeader(
-                  proposal.srcDoc.id !== 'hidden' ?
-                      cssBannerLink(
-                        name,
-                        urlState().setLinkUrl({
-                          doc: buildUrlId({
-                            trunkId: this.gristDoc.docId(),
-                            forkId: proposal.srcDoc.id,
-                            ...(proposal.srcDoc.creator.anonymous ? {} : {
-                              forkUserId: proposal.srcDoc.creator.id,
-                            })
-                          }),
-                          docPage: 'suggestions',
-                        })
-                      ) : name,
+                  this._linkProposal(proposal),
                   ' | ',
                   proposal.srcDoc.creator.name || proposal.srcDoc.creator.email, ' | ',
                   getProposalActionSummary(proposal),
@@ -212,8 +220,25 @@ export class ProposedChangesTrunkPage extends Disposable {
     const idx = proposals.findIndex(p => p === oldProposal);
     this._proposalsObs.splice(idx, 1, newProposal);
   }
-}
 
+  private _linkProposal(proposal: Proposal) {
+    const name = `#${proposal.shortId}`;
+    return proposal.srcDoc.id !== 'hidden' ?
+        cssBannerLink(
+          name,
+          urlState().setLinkUrl({
+            doc: buildUrlId({
+              trunkId: this.gristDoc.docId(),
+              forkId: proposal.srcDoc.id,
+              ...(proposal.srcDoc.creator.anonymous ? {} : {
+                forkUserId: proposal.srcDoc.creator.id,
+              })
+            }),
+            docPage: 'suggestions',
+          })
+        ) : name;
+  }
+}
 
 export class ProposedChangesForkPage extends Disposable {
   // This will hold a comparison between this document and another version.
@@ -424,6 +449,14 @@ export const betaTag = styled('span', `
   vertical-align: super;
   font-size: ${vars.xsmallFontSize};
   color: ${theme.accentText};
+`);
+
+const cssSuggestionSummary = styled('span', `
+  padding: 5px;
+  border-top-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  background-color: ${theme.accessRulesTableHeaderBg};
+  color: ${theme.accessRulesTableHeaderFg};
 `);
 
 const cssProposalHeader = styled('h3', `
