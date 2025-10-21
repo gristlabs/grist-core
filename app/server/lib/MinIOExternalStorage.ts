@@ -189,7 +189,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public isFatalError(err: any) {
-    // Fatal errors are all errors except that are neither expected nor retryable.
+    // Fatal errors are all errors that are neither expected nor retryable.
     return !this.isExpectedNotFoundError(err) && !this.isRetryableError(err);
   }
 
