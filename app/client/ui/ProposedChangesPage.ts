@@ -320,9 +320,10 @@ export class ProposedChangesForkPage extends Disposable {
                       // give a link back to this URL since that would
                       // let anyone edit it.
                       if (user?.anonymous) { return; }
-                      // If a proposal hasn't been saved, also be careful,
-                      // since there won't be a back-link.
-                      if (!proposal?.updatedAt) { return; }
+                      // If a proposal hasn't been saved, or is retracted,
+                      // also be careful, since there won't be a back-link.
+                      if (!proposal?.updatedAt ||
+                          proposal.status.status  === 'retracted') { return; }
                       // Otherwise, don't worry about losing the link
                       // to this page, you can get it from the original
                       // document.
