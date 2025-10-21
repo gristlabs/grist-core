@@ -73,6 +73,7 @@ import {
   QueryResult,
   Resource,
   RoleGroupDescriptor,
+  ServiceAccountProperties,
   UserProfileChange,
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
@@ -3429,17 +3430,19 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async createServiceAccount(
     ownerId: number,
-    options?: {
-      label?: string,
-      description?: string,
-      expiresAt?: Date
-    }
+    props?: ServiceAccountProperties
   ) {
-    return this._serviceAccountsManager.createServiceAccount(ownerId, options);
+    return this._serviceAccountsManager.createServiceAccount(ownerId, props);
   }
 
   public async getAllServiceAccounts(ownerId: number) {
     return this._serviceAccountsManager.getAllServiceAccounts(ownerId);
+  }
+
+  public assertServiceAccountExistingAndOwned(
+    serviceAccount: ServiceAccount|null, expectedOwnerId: number
+  ): asserts serviceAccount is ServiceAccount {
+    return this._serviceAccountsManager.assertServiceAccountExistingAndOwned(serviceAccount, expectedOwnerId);
   }
 
   public async getServiceAccount(serviceLogin: string) {

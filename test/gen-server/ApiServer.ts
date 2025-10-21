@@ -2279,6 +2279,7 @@ describe('ApiServer', function() {
         const {login: serviceLogin} = await createServiceAccount();
         const resp = await makeRequest(serviceLogin, kiwi);
         assert.equal(resp.status, 403);
+        assert.match(resp.data.error, /non-owned/);
       });
 
       it('is rejected when requested by an anonymous user', async function() {

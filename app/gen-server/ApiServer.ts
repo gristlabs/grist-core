@@ -682,12 +682,7 @@ export class ApiServer {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
         const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin);
-        if (!serviceAccount) {
-          throw new ApiError(`No such service account ${serviceAccountLogin}`, 404);
-        }
-        if (serviceAccount.ownerId !== userId) {
-          throw new ApiError(`Unauthorized access to service account ${serviceAccountLogin}`, 403);
-        }
+        this._dbManager.assertServiceAccountExistingAndOwned(serviceAccount, userId);
         const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
         const resp: Partial<SATypes.ServiceAccountApiResponse> = {
           login: serviceAccountLogin,

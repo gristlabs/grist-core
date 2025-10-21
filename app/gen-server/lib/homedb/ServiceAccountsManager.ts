@@ -5,7 +5,7 @@ import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
-import { RunInTransaction } from 'app/gen-server/lib/homedb/Interfaces';
+import { RunInTransaction, ServiceAccountProperties } from 'app/gen-server/lib/homedb/Interfaces';
 
 export class ServiceAccountsManager {
 
@@ -29,14 +29,16 @@ export class ServiceAccountsManager {
     return await queryBuilder.execute();
   }
 
+  /**
+   * Creates a service account.
+   *
+   * @param ownerId The user ID of the owner
+   * @param props Optional properties to set to this service account.
+   */
   public async createServiceAccount(
     ownerId: number,
-    options?: {
-      label?: string,
-      description?: string,
-      expiresAt?: Date,
-    }
-  ) {
+    props?: ServiceAccountProperties,
+  ): Promise<ServiceAccount> {
     return await this._connection.transaction(async manager => {
       const owner = await this._homeDb.getUser(ownerId);
       if (!owner) {
@@ -58,29 +60,39 @@ export class ServiceAccountsManager {
       const newServiceAccount = ServiceAccount.create({
         owner,
         serviceUserId: serviceUser.id,
-        label: options?.label,
-        description: options?.description,
-        expiresAt: options?.expiresAt
+        label: props?.label,
+        description: props?.description,
+        expiresAt: props?.expiresAt
       });
       await manager.save(newServiceAccount);
       return (await this.getServiceAccount(login, manager))!;
     });
   }
 
+  /**
+   * Returns information of the service account, including:
+   *  - the information from the users table
+   *  - the login information
+   *
+   * @param serviceAccountLogin The service account email
+   */
   public async getServiceAccount(
     serviceAccountLogin: string,
     transaction?: EntityManager
-  ) {
+  ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async manager => {
       return await this._buildServiceAccountQuery(manager, serviceAccountLogin)
         .getOne();
     });
   }
 
+  /**
+   * Like getServiceAccount but also returns informations of the owner.
+   */
   public async getServiceAccountWithOwner(
     serviceAccountLogin: string,
     transaction?: EntityManager
-  ) {
+  ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async manager => {
       return await this._buildServiceAccountQuery(manager, serviceAccountLogin)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
@@ -88,10 +100,23 @@ export class ServiceAccountsManager {
     });
   }
 
+  /**
+   * Ensures that the service account exists and is owned by the specified owner.
+   *
+   * @param serviceAccount The service account to check for existence and the ownership
+   * @param expectedOwnerId The user ID we expect the service account is owned (must be passed)
+   */
+  public assertServiceAccountExistingAndOwned(
+    serviceAccount: ServiceAccount | null,
+    expectedOwnerId: number
+  ): asserts serviceAccount is ServiceAccount {
+    return this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
+  }
+
   public async getAllServiceAccounts(
     ownerId: number,
     transaction?: EntityManager
-  ) {
+  ): Promise<ServiceAccount[]> {
     return await this._runInTransaction(transaction, async manager => {
       return await manager.find(
         ServiceAccount,
@@ -100,24 +125,41 @@ export class ServiceAccountsManager {
     });
   }
 
+  /**
+   * Update a service account
+   *
+   * @param serviceAccountLogin The service account email
+   * @param props Properties to change to the service account.
+   * @param options
+   * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
+   * @param options.transaction If passed, reuse this typeorm transaction
+   */
   public async updateServiceAccount(
     serviceAccountLogin: string,
-    partial: Partial<ServiceAccount>,
+    props: ServiceAccountProperties,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
-  ) {
+  ): Promise<ServiceAccount> {
     const { expectedOwnerId } = options;
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
-      ServiceAccount.merge(serviceAccount, partial);
+      ServiceAccount.merge(serviceAccount, props as Partial<ServiceAccount>);
       return await manager.save(serviceAccount);
     });
   }
 
+  /**
+   * Delete a service account
+   *
+   * @param serviceAccountLogin The service account email
+   * @param options
+   * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
+   * @param options.transaction If passed, reuse this typeorm transaction
+   */
   public async deleteServiceAccount(
     serviceAccountLogin: string,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
-  ) {
+  ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
@@ -132,10 +174,18 @@ export class ServiceAccountsManager {
     });
   }
 
+  /**
+   * Regenerates the service account API key.
+   *
+   * @param serviceAccountLogin The service account email
+   * @param options
+   * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
+   * @param options.transaction If passed, reuse this typeorm transaction
+   */
   public async regenerateServiceAccountApiKey(
     serviceAccountLogin: string,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
-  ) {
+  ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
@@ -144,10 +194,18 @@ export class ServiceAccountsManager {
     });
   }
 
+  /**
+   * Revokes the API key of the service account
+   *
+   * @param serviceAccountLogin The service account email
+   * @param options
+   * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
+   * @param options.transaction If passed, reuse this typeorm transaction
+   */
   public async revokeServiceAccountApiKey(
     serviceAccountLogin: string,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
-  ) {
+  ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
@@ -156,6 +214,10 @@ export class ServiceAccountsManager {
     });
   }
 
+  /**
+   * Check that the serviceAccount exists and *if* an expectedOwnerId is passed, check
+   * its ownership.
+   */
   private _assertExistingAndOwned(
     serviceAccount: ServiceAccount|null, expectedOwnerId: number|undefined
   ): asserts serviceAccount is ServiceAccount {

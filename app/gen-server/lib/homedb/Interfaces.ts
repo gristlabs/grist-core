@@ -90,6 +90,8 @@ interface AccessChanges {
   >;
 }
 
+export type ServiceAccountProperties = Partial<Pick<ServiceAccount, 'label' | 'description' | 'expiresAt'>>;
+
 // Identifies a request to access a document. This combination of values is also used for caching
 // DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
 export interface DocAuthKey {
