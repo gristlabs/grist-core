@@ -204,6 +204,7 @@ describe('ProposedChangesPage', function() {
                    'Suggest Changes');
       await driver.find('.test-tools-proposals').click();
       await driver.findWait('.test-proposals-propose', 2000).click();
+      await gu.waitForServer();
     }
     await proposeChange();
 
