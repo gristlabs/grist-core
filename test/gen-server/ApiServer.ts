@@ -2544,7 +2544,7 @@ describe('ApiServer', function() {
         const login  = resp.data.login;
         const oid = await dbManager.testGetId('NASA');
         const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
-        assert.equal(resp2.status, 200, "chimpy should list NASA worksapces");
+        assert.equal(resp2.status, 200, "chimpy should list NASA workspaces");
         const resp3 = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, serviceAccountConfig);
         assert.equal(resp3.status, 403);
         const delta = {
@@ -2579,7 +2579,7 @@ describe('ApiServer', function() {
       });
 
       it("Service user MUST have an invalid mail", async function() {
-        // With .invalid as tld in their email service account can't recieve a connection mail
+        // With .invalid as tld in their email service account can't receive a connection mail
         const email = "randomuser@getgrist.com";
         assert.notExists(await dbManager.getExistingUserByLogin(email));
         let error;
@@ -2623,7 +2623,7 @@ describe('ApiServer', function() {
           const resp6 = await axios.post(`${homeUrl}/api/users/${chimpyId}/disable`, { name: 'Ham' }, ham);
           assert.equal(resp6.status, 200);
 
-          // Now its service account should no longer be have access to ressources
+          // Now its service account should no longer have access to resources
           const resp7 = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
           assert.equal(resp7.status, 403, "Service Account should no longer list NASA org");
         } finally {

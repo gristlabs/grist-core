@@ -47,7 +47,7 @@ export class ServiceAccountsManager {
       }
       const uuid = uuidv4();
       // We use .invalid as tld following RFC 2606
-      // as we don't ever want service user to be able to recieve any email
+      // as we don't ever want service user to be able to receive any email
       // and then be able to connect via link in email
       const login = `${uuid}@serviceaccounts.invalid`;
       // Using getUserByLogin will create the user... Yeah, please don't blame us.

@@ -1,7 +1,7 @@
 /**
  * Base interface for ServiceAccounts whose all attributes are optional.
  * A Service Account is non-login user managed by a login user.
- * Their purpose is be able to interact with via api on the small choosen scope
+ * Their purpose is be able to interact with via api on the small chosen scope
  * given to the service account.
  */
 interface ServiceAccountAllOptional {
