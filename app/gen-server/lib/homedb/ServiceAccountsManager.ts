@@ -1,11 +1,11 @@
-import { EntityManager } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
-
 import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { RunInTransaction, ServiceAccountProperties } from 'app/gen-server/lib/homedb/Interfaces';
+
+import { EntityManager } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ServiceAccountsManager {
 
@@ -164,8 +164,8 @@ export class ServiceAccountsManager {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       const { serviceUser } = serviceAccount;
-      // We perform a soft delete
-      // as we don't want a service user's apiKey to still work
+      // We perform a soft delete as we don't want a service user's apiKey to still work
+      // Still keep the user's information to keep the trace of what the service account may have done.
       serviceUser.apiKey = null;
       serviceUser.disabledAt = new Date();
       await manager.save(serviceUser);
