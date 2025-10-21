@@ -69,7 +69,6 @@ export function getDocWorkerLoadTracker(
  * {@link IDocWorkerMap}.
  */
 export class DocWorkerLoadTracker {
-  private _disabledFilePaths = new Set<string>();
   private _log = new LogMethods("DocWorkerLoadTracker ", () => ({}));
   private _interval = new Interval(
     this._updateLoad.bind(this),
@@ -146,10 +145,6 @@ export class DocWorkerLoadTracker {
     return valInBytes / 1024**2;
   }
 
-  private _canReadValueFromFile(filePath: string|undefined): filePath is string {
-    return filePath !== undefined && !this._disabledFilePaths.has(filePath);
-  }
-
   /**
    * We read the memory used in this order:
    * 1. If we have a path specified for a file that contain the memory used, read this file
@@ -160,7 +155,7 @@ export class DocWorkerLoadTracker {
    * @throws When the file at the path can't be read or doesn't contain a number.
    */
   private async _getMemoryUsedMB(): Promise<number> {
-    if (this._canReadValueFromFile(Deps.docWorkerUsedMemoryBytesPath)) {
+    if (Deps.docWorkerUsedMemoryBytesPath !== undefined) {
       return await this._readValueFromFileInMB(Deps.docWorkerUsedMemoryBytesPath);
     }
 
@@ -184,7 +179,7 @@ export class DocWorkerLoadTracker {
     if (Deps.docWorkerMaxMemoryMBForcedValue !== undefined) {
       return Deps.docWorkerMaxMemoryMBForcedValue;
     }
-    if (this._canReadValueFromFile(Deps.docWorkerMaxMemoryBytesPath)) {
+    if (Deps.docWorkerMaxMemoryBytesPath !== undefined) {
       return await this._readValueFromFileInMB(
         Deps.docWorkerMaxMemoryBytesPath,
         // When the value is "max", return Infinity, otherwise return undefined so
