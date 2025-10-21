@@ -296,45 +296,48 @@ export class ProposedChangesForkPage extends Disposable {
         details?.leftChanges.tableRenames.length !== 0;
     const trunkAcceptsProposals =
         this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
-    return [
-      dom.maybe(!trunkAcceptsProposals, () => {
-        return cssWarningMessage(
-          cssWarningIcon('Warning'),
-          t(`The original document isn't asking for proposed changes.`)
-        );
-      }),
-      dom('p',
-          t('This is a list of changes relative to the {{originalDocument}}.', {
-            originalDocument: cssBannerLink(
-              t('original document'),
-              urlState().setLinkUrl({
-                doc: origUrlId,
-                docPage: 'suggestions',
-              }, {
-                beforeChange: () => {
-                  const user = this.gristDoc.currentUser.get();
-                  // If anonymous, be careful, proposal list won't
-                  // give a link back to this URL since that would
-                  // let anyone edit it.
-                  if (user?.anonymous) { return; }
-                  // Otherwise, don't worry about losing the link
-                  // to this page, you can get it from the original
-                  // document.
-                  this.gristDoc.docPageModel.clearUnsavedChanges();
-                }
-              })
-            )
-          }),
-         ),
-      dom.maybe(!maybeHasChanges, () => {
-        return dom('p', t('No changes found to suggest. Please make some edits.'));
-      }),
-      cssDataRow(
-        details ? renderComparisonDetails(this.gristDoc, details) : null,
-      ),
-      dom.domComputed((use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
-        const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
-        return [
+    return dom.domComputed((use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
+      const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
+      return [
+        dom.maybe(!trunkAcceptsProposals, () => {
+          return cssWarningMessage(
+            cssWarningIcon('Warning'),
+            t(`The original document isn't asking for proposed changes.`)
+          );
+        }),
+        dom('p',
+            t('This is a list of changes relative to the {{originalDocument}}.', {
+              originalDocument: cssBannerLink(
+                t('original document'),
+                urlState().setLinkUrl({
+                  doc: origUrlId,
+                  docPage: 'suggestions',
+                }, {
+                  beforeChange: () => {
+                    const user = this.gristDoc.currentUser.get();
+                    // If anonymous, be careful, proposal list won't
+                    // give a link back to this URL since that would
+                    // let anyone edit it.
+                    if (user?.anonymous) { return; }
+                    // If a proposal hasn't been saved, also be careful,
+                    // since there won't be a back-link.
+                    if (!proposal?.updatedAt) { return; }
+                    // Otherwise, don't worry about losing the link
+                    // to this page, you can get it from the original
+                    // document.
+                    this.gristDoc.docPageModel.clearUnsavedChanges();
+                  }
+                })
+              )
+            }),
+           ),
+        dom.maybe(!maybeHasChanges, () => {
+          return dom('p', t('No changes found to suggest. Please make some edits.'));
+        }),
+        cssDataRow(
+          details ? renderComparisonDetails(this.gristDoc, details) : null,
+        ),
+        [
           dom('p',
               getProposalActionSummary(proposal),
               testId('status'),
@@ -360,9 +363,9 @@ export class ProposedChangesForkPage extends Disposable {
               testId('retract'),
             ) : null
           )
-        ];
-      })
-    ];
+        ]
+      ];
+    });
   }
 
   public async update() {
