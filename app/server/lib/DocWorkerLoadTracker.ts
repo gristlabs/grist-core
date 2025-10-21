@@ -147,7 +147,7 @@ export class DocWorkerLoadTracker {
 
   /**
    * We read the memory used in this order:
-   * 1. If we have a path specified for a file that contain the memory used, read this file
+   * 1. If we have a path specified for a file that contains the memory used, read this file
    * 2. Otherwise read instead the load using the estimation given by the doc manager
    *    (less accurate, typically it does not include nodejs load).
    *
@@ -159,7 +159,7 @@ export class DocWorkerLoadTracker {
       return await this._readValueFromFileInMB(Deps.docWorkerUsedMemoryBytesPath);
     }
 
-    return  this._docManager.getTotalMemoryUsedMB();
+    return this._docManager.getTotalMemoryUsedMB();
   }
 
   /**
@@ -167,7 +167,7 @@ export class DocWorkerLoadTracker {
    * 1. If the admin specified an amount of total memory available through GRIST_DOC_WORKER_MAX_MEMORY_MB
    *    then use it (to cover the case the administrator wants to pass a lower value than the actual
    *    total memory, and have spare free memory for the current documents)
-   * 2. If the admin specified a path to read the total amoun of memory, read it.
+   * 2. If the admin specified a path to read the total amount of memory, read it.
    * 2.1. If the value is max, consider as "Infinity"
    * 2.2. If the value is a number, return it
    * 3. Return Infinity
@@ -182,8 +182,8 @@ export class DocWorkerLoadTracker {
     if (Deps.docWorkerMaxMemoryBytesPath !== undefined) {
       return await this._readValueFromFileInMB(
         Deps.docWorkerMaxMemoryBytesPath,
-        // When the value is "max", return Infinity, otherwise return undefined so
-        // so the function read what's probably an integer value.
+        // When the value is "max", return Infinity, otherwise return undefined
+        // so the function reads what's probably an integer value.
         (val) => val === 'max' ? Infinity : undefined
       );
     }
