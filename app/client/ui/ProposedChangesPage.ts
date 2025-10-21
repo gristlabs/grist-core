@@ -296,76 +296,77 @@ export class ProposedChangesForkPage extends Disposable {
         details?.leftChanges.tableRenames.length !== 0;
     const trunkAcceptsProposals =
         this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
-    return dom.domComputed((use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
-      const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
-      return [
-        dom.maybe(!trunkAcceptsProposals, () => {
-          return cssWarningMessage(
-            cssWarningIcon('Warning'),
-            t(`The original document isn't asking for proposed changes.`)
-          );
-        }),
-        dom('p',
-            t('This is a list of changes relative to the {{originalDocument}}.', {
-              originalDocument: cssBannerLink(
-                t('original document'),
-                urlState().setLinkUrl({
-                  doc: origUrlId,
-                  docPage: 'suggestions',
-                }, {
-                  beforeChange: () => {
-                    const user = this.gristDoc.currentUser.get();
-                    // If anonymous, be careful, proposal list won't
-                    // give a link back to this URL since that would
-                    // let anyone edit it.
-                    if (user?.anonymous) { return; }
-                    // If a proposal hasn't been saved, also be careful,
-                    // since there won't be a back-link.
-                    if (!proposal?.updatedAt) { return; }
-                    // Otherwise, don't worry about losing the link
-                    // to this page, you can get it from the original
-                    // document.
-                    this.gristDoc.docPageModel.clearUnsavedChanges();
-                  }
-                })
-              )
-            }),
-           ),
-        dom.maybe(!maybeHasChanges, () => {
-          return dom('p', t('No changes found to suggest. Please make some edits.'));
-        }),
-        cssDataRow(
-          details ? renderComparisonDetails(this.gristDoc, details) : null,
-        ),
-        [
+    return dom.domComputed(
+      (use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
+        const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
+        return [
+          dom.maybe(!trunkAcceptsProposals, () => {
+            return cssWarningMessage(
+              cssWarningIcon('Warning'),
+              t(`The original document isn't asking for proposed changes.`)
+            );
+          }),
           dom('p',
-              getProposalActionSummary(proposal),
-              testId('status'),
+              t('This is a list of changes relative to the {{originalDocument}}.', {
+                originalDocument: cssBannerLink(
+                  t('original document'),
+                  urlState().setLinkUrl({
+                    doc: origUrlId,
+                    docPage: 'suggestions',
+                  }, {
+                    beforeChange: () => {
+                      const user = this.gristDoc.currentUser.get();
+                      // If anonymous, be careful, proposal list won't
+                      // give a link back to this URL since that would
+                      // let anyone edit it.
+                      if (user?.anonymous) { return; }
+                      // If a proposal hasn't been saved, also be careful,
+                      // since there won't be a back-link.
+                      if (!proposal?.updatedAt) { return; }
+                      // Otherwise, don't worry about losing the link
+                      // to this page, you can get it from the original
+                      // document.
+                      this.gristDoc.docPageModel.clearUnsavedChanges();
+                    }
+                  })
+                )
+              }),
              ),
-          this._getProposalRelativeToCurrent(),
-          (isReadOnly || !maybeHasChanges) ? null : cssControlRow(
-            (hasProposal && !outOfDate) ? null : bigPrimaryButton(
-              hasProposal ? t('Update Suggestion') : t('Suggest Change'),
-              dom.on('click', async () => {
-                const urlId = this.gristDoc.docPageModel.currentDocId.get();
-                await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
-                await this.update();
-              }),
-              testId('propose'),
-            ),
-            (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigBasicButton(
-              t("Retract Suggestion"),
-              dom.on('click', async () => {
-                const urlId = this.gristDoc.docPageModel.currentDocId.get();
-                await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
-                await this.update();
-              }),
-              testId('retract'),
-            ) : null
-          )
-        ]
-      ];
-    });
+          dom.maybe(!maybeHasChanges, () => {
+            return dom('p', t('No changes found to suggest. Please make some edits.'));
+          }),
+          cssDataRow(
+            details ? renderComparisonDetails(this.gristDoc, details) : null,
+          ),
+          [
+            dom('p',
+                getProposalActionSummary(proposal),
+                testId('status'),
+               ),
+            this._getProposalRelativeToCurrent(),
+            (isReadOnly || !maybeHasChanges) ? null : cssControlRow(
+              (hasProposal && !outOfDate) ? null : bigPrimaryButton(
+                hasProposal ? t('Update Suggestion') : t('Suggest Change'),
+                dom.on('click', async () => {
+                  const urlId = this.gristDoc.docPageModel.currentDocId.get();
+                  await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal();
+                  await this.update();
+                }),
+                testId('propose'),
+              ),
+              (proposal?.updatedAt && (proposal?.status.status !== 'retracted')) ? bigBasicButton(
+                t("Retract Suggestion"),
+                dom.on('click', async () => {
+                  const urlId = this.gristDoc.docPageModel.currentDocId.get();
+                  await this.gristDoc.appModel.api.getDocAPI(urlId!).makeProposal({retracted: true});
+                  await this.update();
+                }),
+                testId('retract'),
+              ) : null
+            )
+          ]
+        ];
+      });
   }
 
   public async update() {
