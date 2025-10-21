@@ -2476,7 +2476,7 @@ export class FlexServer implements GristServer {
 
   private _createServers() {
     // Start the app.
-    const server = configServer(http.createServer(this.app));
+    const server = logServer(http.createServer(getServerFlags(), this.app));
     let httpsServer;
     if (TEST_HTTPS_OFFSET) {
       const certFile = process.env.GRIST_TEST_SSL_CERT;
@@ -2485,7 +2485,8 @@ export class FlexServer implements GristServer {
       if (!privateKeyFile) { throw new Error('Set GRIST_TEST_SSL_KEY to location of private key file'); }
       log.debug(`https support: reading cert from ${certFile}`);
       log.debug(`https support: reading private key from ${privateKeyFile}`);
-      httpsServer = configServer(https.createServer({
+      httpsServer = logServer(https.createServer({
+        ...getServerFlags(),
         key: fse.readFileSync(privateKeyFile, 'utf8'),
         cert: fse.readFileSync(certFile, 'utf8'),
       }, this.app));
@@ -2696,31 +2697,86 @@ export class FlexServer implements GristServer {
 }
 
 /**
- * Returns the passed-in server, with some options adjusted. Specifically, removes the default
- * socket timeout.
+ * Set flags on the server, related to timeouts.
+ * Note if you try to set very long timeouts, e.g. for a gnarly
+ * import, you may run into browser limits. In firefox a relevant
+ * configuration variable is network.http.response.timeout -
+ * if you set that high, and set the flags here high, and
+ * set everything right in your reverse proxy, you should
+ * be able to have very long imports. (Clearly, it would be
+ * better if long imports were made using a mechanism that
+ * isn't just a single http request)
  */
-function configServer<T extends https.Server|http.Server>(server: T): T {
-  // Remove the socket timeout, which causes node to close socket for long-running requests
-  // (like imports), triggering browser retry. (The default is 2 min; removed starting node v13.)
-  // See also https://nodejs.org/docs/latest-v10.x/api/http.html#http_server_settimeout_msecs_callback.)
-  server.setTimeout(0);
+function getServerFlags(): https.ServerOptions {
+  const flags: https.ServerOptions = {};
+
+  // We used to set the socket timeout to 0, but that has been
+  // the default now since Node 13.
+
+  // Node 18 introduced a requestTimeout that defaults to 5
+  // minutes, affecting long-running requests (like imports). Make
+  // this overridable in case someone needs it to be even longer.
+  const requestTimeoutMs = appSettings.section('server').flag('requestTimeoutMs').readInt({
+    envVar: 'GRIST_REQUEST_TIMEOUT_MS',
+  });
+  if (requestTimeoutMs !== undefined) {
+    flags.requestTimeout = requestTimeoutMs;
+  }
+
+  // Now that we've made requestTimeout configurable, it would
+  // be awkward if the related headersTimeout wasn't also.
+  const headersTimeoutMs = appSettings.section('server').flag('headersTimeoutMs').readInt({
+    envVar: 'GRIST_HEADERS_TIMEOUT_MS',
+  });
+  if (headersTimeoutMs !== undefined) {
+    flags.headersTimeout = headersTimeoutMs;
+  }
+
+  // Likewise keepAlive
+  const keepAliveTimeoutMs = appSettings.section('server').flag('keepAliveTimeoutMs').readInt({
+    envVar: 'GRIST_KEEP_ALIVE_TIMEOUT_MS',
+  });
+  if (keepAliveTimeoutMs !== undefined) {
+    flags.keepAliveTimeout = keepAliveTimeoutMs;
+  }
+
+  // Some complicated Grist Labs logic for their particular SaaS
+  // follows. It is weird that it is hardcoded this way, since
+  // everyone's load balancer is different.  It also feels a little
+  // wrong now that requestsTimeout exists (headersTimeout really
+  // shouldn't be greater than it). But it hasn't caused trouble so
+  // I'm not going to touch it until someone complains.
+  // TODO: get Grist Labs to use the new flags above, then consider
+  // removing this code.
 
   // The server's keepAlive timeout should be longer than the load-balancer's. Otherwise LB will
   // produce occasional 502 errors when it sends a request to node just as node closes a
   // connection. See https://adamcrowder.net/posts/node-express-api-and-aws-alb-502/.
   const lbTimeoutSec = 300;
 
-  // Ensure all inactive connections are terminated by the ALB, by setting this a few seconds
-  // higher than the ALB idle timeout
-  server.keepAliveTimeout = (lbTimeoutSec + 5) * 1000;
+  if (requestTimeoutMs === undefined && keepAliveTimeoutMs === undefined && headersTimeoutMs === undefined) {
+    // Ensure all inactive connections are terminated by the ALB, by setting this a few seconds
+    // higher than the ALB idle timeout
+    flags.keepAliveTimeout = (lbTimeoutSec + 5) * 1000;
+    // Ensure the headersTimeout is set higher than the keepAliveTimeout due to this nodejs
+    // regression bug: https://github.com/nodejs/node/issues/27363
+    flags.headersTimeout = (lbTimeoutSec + 6) * 1000;
+    // It is important that requestsTimeout be greater than or equal to headersTimeout,
+    // and for node 18 and on the default is actually slightly smaller. This wasn't
+    // caught as an error since node only checks this contraint if the timeouts are
+    // set sufficiently early.
+    flags.requestTimeout = flags.headersTimeout;
+  }
 
-  // Ensure the headersTimeout is set higher than the keepAliveTimeout due to this nodejs
-  // regression bug: https://github.com/nodejs/node/issues/27363
-  server.headersTimeout = (lbTimeoutSec + 6) * 1000;
+  return flags;
+}
 
-  log.info("Server timeouts: keepAliveTimeout %s headersTimeout %s",
-    server.keepAliveTimeout, server.headersTimeout);
-
+/**
+ * log some properties of the server.
+ */
+function logServer<T extends https.Server|http.Server>(server: T): T {
+  log.info("Server timeouts: requestTimeout %s keepAliveTimeout %s headersTimeout %s",
+           server.requestTimeout, server.keepAliveTimeout, server.headersTimeout);
   return server;
 }
 
