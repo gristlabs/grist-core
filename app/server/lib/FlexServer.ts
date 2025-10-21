@@ -1529,7 +1529,11 @@ export class FlexServer implements GristServer {
         docManager
       );
       if (this._docWorkerLoadTracker) {
-        await this._docWorkerMap.setWorkerLoad(this.worker, this._docWorkerLoadTracker.getLoad());
+        // Get the initial load value. If this call fails, the server will crash.
+        // This is meant to check whether the admin has correctly configured
+        // how to measure it.
+        const initialLoadValue = await this._docWorkerLoadTracker.getLoad();
+        await this._docWorkerMap.setWorkerLoad(this.worker, initialLoadValue);
         this._docWorkerLoadTracker.start();
       }
       this._comm.registerMethods({
