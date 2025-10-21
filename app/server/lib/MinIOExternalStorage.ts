@@ -85,7 +85,7 @@ export class MinIOExternalStorage implements ExternalStorage {
       // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
       // and should return a falsy null.
       // Other errors like 'ECONNRESET' and 'InternalError' are fatal errors and should be thrown
-      // in order to avoir weird behavior when MinIO is experiencing hiccups
+      // in order to avoid weird behavior when MinIO is experiencing hiccups
       if (this.isExpectedNotFoundError(err)) { return null; }
       throw err;
     }
