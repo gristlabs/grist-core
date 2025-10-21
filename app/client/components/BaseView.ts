@@ -8,7 +8,6 @@ import {SelectionSummary} from 'app/client/components/SelectionSummary';
 import * as commands from 'app/client/components/commands';
 import {buildConfirmDelete, reportUndo} from 'app/client/components/modals';
 import {KoArray} from 'app/client/lib/koArray';
-import {makeT} from 'app/client/lib/localization';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import BaseRowModel from 'app/client/models/BaseRowModel';
 import {ClientColumnGetters} from 'app/client/models/ClientColumnGetters';
@@ -54,8 +53,6 @@ import {IOpenController} from 'popweasel';
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
 /* eslint-disable @typescript-eslint/member-ordering */
-
-const t = makeT("BaseView");
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -439,12 +436,7 @@ export default class BaseView extends Disposable {
       return;
     }
     if (!this._isLoading.peek() || immediate) {
-      const isValidPos = this.cursor.setCursorPos(cursorPos, isFromLink);
-      if (!isValidPos) {
-        this.gristDoc.appModel.notifier.createUserMessage(t("This requested row is unavailable"), {
-          level: "warning",
-        });
-      }
+      this.cursor.setCursorPos(cursorPos, isFromLink);
     } else {
       // This is the first step; the second happens in onTableLoaded.
       this._pendingCursorPos = cursorPos;
