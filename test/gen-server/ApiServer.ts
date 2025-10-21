@@ -2309,6 +2309,7 @@ describe('ApiServer', function() {
         const service = requestConfigWithKey(bearer);
         const resp = await axios.post(`${homeUrl}/api/service-accounts/`, SERVICE_ACCOUNT_BODY, service);
         assert.equal(resp.status, 403);
+        assert.match(resp.data.error, /Only regular users/);
       });
 
       it('is rejected when requested by an anonymous user', async function() {

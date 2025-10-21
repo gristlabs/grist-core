@@ -647,11 +647,11 @@ export class ApiServer {
       // Creates a new service account attached to the user making the api call.
       this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
         const ownerId = getAuthorizedUserId(req);
-        const {label, description, expiresAt: expiresAt} = req.body as SATypes.PostServiceAccount;
+        const body = req.body as SATypes.PostServiceAccount;
         const options = {
-          label,
-          description,
-          expiresAt: new Date(expiresAt)
+          label: body.label,
+          description: body.description,
+          expiresAt: new Date(body.expiresAt)
         };
         const serviceAccount = await this._dbManager.createServiceAccount(
           ownerId, options

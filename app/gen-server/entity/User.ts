@@ -64,7 +64,7 @@ export class User extends BaseEntity {
   public connectId: string | null;
 
   @OneToOne(() => ServiceAccount, sa => sa.serviceUser)
-  public serviceAccount: ServiceAccount;
+  public serviceAccount?: ServiceAccount;
   /**
    * Unique reference for this user. Primarily used as an ownership key in a cell metadata (comments).
    */

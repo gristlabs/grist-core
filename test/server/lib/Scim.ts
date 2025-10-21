@@ -273,15 +273,15 @@ describe('Scim', () => {
         });
 
         it('should return 404 when the user is not of type login', async function () {
-        const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
-        const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
-        assert.deepEqual(res.data, {
-          schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-          status: '404',
-          detail: `User with ID ${serviceUserId} not found`
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: `User with ID ${serviceUserId} not found`
+          });
+          assert.equal(res.status, 404);
         });
-        assert.equal(res.status, 404);
-      });
 
         checkCommonErrors('get', '/Users/1');
       });
@@ -314,11 +314,11 @@ describe('Scim', () => {
           }
         });
 
-        it('should not return non login users', async function () {
-        const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
-        const res = await axios.get(scimUrl('/Users'), chimpy);
-        assert.isEmpty(res.data.Resources.filter((user: any) => user.id === serviceUserId));
-      });
+        it('should skip users of type other than "login"', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.get(scimUrl('/Users'), chimpy);
+          assert.isEmpty(res.data.Resources.filter((user: any) => user.id === serviceUserId));
+        });
 
         checkCommonErrors('get', '/Users');
       });
