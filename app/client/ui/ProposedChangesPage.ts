@@ -140,7 +140,11 @@ export class ProposedChangesTrunkPage extends Disposable {
           }),
           dom.maybe((use) => use(this._proposalCount) === 0, () => {
             return [
-              dom('p', 'This is an experimental feature, and may be subject to change and withdrawal.'),
+              cssWarningMessage(
+                cssWarningIcon('Warning'),
+                `This is an experimental feature, with many limitations,
+and is subject to change and withdrawal.`
+              ),
               dom('p', 'There are currently no suggestions.'),
             ];
           }),
@@ -477,9 +481,13 @@ const cssProposalHeader = styled('h3', `
 
 export const cssWarningMessage = styled('div', `
   margin-top: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
   display: flex;
   align-items: center;
   column-gap: 8px;
+  max-width: 400px;
+  border: 1px solid ${theme.accessRulesTableHeaderFg};
 `);
 
 export const cssWarningIcon = styled(icon, `

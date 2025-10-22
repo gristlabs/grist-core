@@ -125,7 +125,7 @@ export class DocSettingsPage extends Disposable {
           description: t('Allow others to suggest changes'),
           value: labeledSquareCheckbox(
             this._acceptProposals,
-            t("Show suggestions"),
+            t("Enable suggestions"),
             dom.on('click', async (elem) => {
               this._working.set(true);
               try {
