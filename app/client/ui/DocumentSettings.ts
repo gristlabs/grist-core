@@ -20,7 +20,7 @@ import {buildNotificationsConfig} from 'app/client/ui/Notifications';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
+import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -121,7 +121,7 @@ export class DocSettingsPage extends Disposable {
         }),
         (proposedChangesEnabled && !isFork) ? dom.create(AdminSectionItem, {
           id: 'acceptProposals',
-          name: t('Suggestions'),
+          name: [t('Suggestions'), betaTag(t('experiment'))],
           description: t('Allow others to suggest changes'),
           value: labeledSquareCheckbox(
             this._acceptProposals,
@@ -1002,4 +1002,11 @@ const cssLoadingSpinner = styled(loadingSpinner, `
       --loader-bg: #adadad;
     }
   }
+`);
+
+export const betaTag = styled('span', `
+  text-transform: uppercase;
+  vertical-align: super;
+  font-size: ${vars.xsmallFontSize};
+  color: ${theme.accentText};
 `);

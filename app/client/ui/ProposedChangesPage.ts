@@ -61,7 +61,7 @@ export class ProposedChangesPage extends Disposable {
 
   public buildDom() {
     const content = cssContainer(
-      cssHeader(this.body.title(), betaTag('Beta')),
+      cssHeader(this.body.title(), betaTag(t('experiment'))),
       dom.maybe(this.isInitialized, (init) => {
         if (init === 'slow') {
           return loadingSpinner();
@@ -140,7 +140,8 @@ export class ProposedChangesTrunkPage extends Disposable {
           }),
           dom.maybe((use) => use(this._proposalCount) === 0, () => {
             return [
-              dom('p', 'There are no suggestions.'),
+              dom('p', 'This is an experimental feature, and may be subject to change and withdrawal.'),
+              dom('p', 'There are currently no suggestions.'),
             ];
           }),
           isReadOnly ? [
