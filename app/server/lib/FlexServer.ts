@@ -2713,60 +2713,50 @@ function getServerFlags(): https.ServerOptions {
   // We used to set the socket timeout to 0, but that has been
   // the default now since Node 13.
 
-  // Node 18 introduced a requestTimeout that defaults to 5
-  // minutes, affecting long-running requests (like imports). Make
-  // this overridable in case someone needs it to be even longer.
-  const requestTimeoutMs = appSettings.section('server').flag('requestTimeoutMs').readInt({
-    envVar: 'GRIST_REQUEST_TIMEOUT_MS',
-  });
-  if (requestTimeoutMs !== undefined) {
-    flags.requestTimeout = requestTimeoutMs;
-  }
+  // The default timeouts that follow have a convoluted history.
+  // Basically, Grist Labs had a SaaS with a load balancer
+  // configured to have a 5 min idle timeout. It starts there.
 
-  // Now that we've made requestTimeout configurable, it would
-  // be awkward if the related headersTimeout wasn't also.
-  const headersTimeoutMs = appSettings.section('server').flag('headersTimeoutMs').readInt({
-    envVar: 'GRIST_HEADERS_TIMEOUT_MS',
+  // Then, there was a complicated issue:
+  //   https://adamcrowder.net/posts/node-express-api-and-aws-alb-502/
+  // which meant that the Grist server's keepAlive timeout should be
+  // longer than the load-balancer's. Otherwise it would produce occasional
+  // 502 errors when it sends a request to node just as node closes a
+  // connection.
+  // So keepAliveTimeout was set to 5*60+5 seconds.
+
+  // Then, there was another complicated issue:
+  //   https://github.com/nodejs/node/issues/27363
+  // which meant that the headersTimeout should be set higher than
+  // the keepAliveTimeout.
+  // So headersTimeout was set to 5*60+6 seconds.
+
+  // Node 18 introduced a requestTimeout that defaults to 5 minutes.
+  // That timeout is supposed to be longer than or same as headersTimeout.
+  // So requestTimeout is set to 5*60+6 seconds.
+
+  // Long story short, it is good to have these timeouts be longish
+  // so imports don't get interrupted too early (but Grist should
+  // probably change how long uploads are done).
+
+  const requestTimeoutMs = appSettings.section('server').flag('requestTimeoutMs').requireInt({
+    envVar: 'GRIST_REQUEST_TIMEOUT_MS',
+    defaultValue: 306000,
   });
-  if (headersTimeoutMs !== undefined) {
-    flags.headersTimeout = headersTimeoutMs;
-  }
+  flags.requestTimeout = requestTimeoutMs;
+
+  const headersTimeoutMs = appSettings.section('server').flag('headersTimeoutMs').requireInt({
+    envVar: 'GRIST_HEADERS_TIMEOUT_MS',
+    defaultValue: 306000,
+  });
+  flags.headersTimeout = headersTimeoutMs;
 
   // Likewise keepAlive
-  const keepAliveTimeoutMs = appSettings.section('server').flag('keepAliveTimeoutMs').readInt({
+  const keepAliveTimeoutMs = appSettings.section('server').flag('keepAliveTimeoutMs').requireInt({
     envVar: 'GRIST_KEEP_ALIVE_TIMEOUT_MS',
+    defaultValue: 305000,
   });
-  if (keepAliveTimeoutMs !== undefined) {
-    flags.keepAliveTimeout = keepAliveTimeoutMs;
-  }
-
-  // Some complicated Grist Labs logic for their particular SaaS
-  // follows. It is weird that it is hardcoded this way, since
-  // everyone's load balancer is different.  It also feels a little
-  // wrong now that requestsTimeout exists (headersTimeout really
-  // shouldn't be greater than it). But it hasn't caused trouble so
-  // I'm not going to touch it until someone complains.
-  // TODO: get Grist Labs to use the new flags above, then consider
-  // removing this code.
-
-  // The server's keepAlive timeout should be longer than the load-balancer's. Otherwise LB will
-  // produce occasional 502 errors when it sends a request to node just as node closes a
-  // connection. See https://adamcrowder.net/posts/node-express-api-and-aws-alb-502/.
-  const lbTimeoutSec = 300;
-
-  if (requestTimeoutMs === undefined && keepAliveTimeoutMs === undefined && headersTimeoutMs === undefined) {
-    // Ensure all inactive connections are terminated by the ALB, by setting this a few seconds
-    // higher than the ALB idle timeout
-    flags.keepAliveTimeout = (lbTimeoutSec + 5) * 1000;
-    // Ensure the headersTimeout is set higher than the keepAliveTimeout due to this nodejs
-    // regression bug: https://github.com/nodejs/node/issues/27363
-    flags.headersTimeout = (lbTimeoutSec + 6) * 1000;
-    // It is important that requestsTimeout be greater than or equal to headersTimeout,
-    // and for node 18 and on the default is actually slightly smaller. This wasn't
-    // caught as an error since node only checks this contraint if the timeouts are
-    // set sufficiently early.
-    flags.requestTimeout = flags.headersTimeout;
-  }
+  flags.keepAliveTimeout = keepAliveTimeoutMs;
 
   return flags;
 }
