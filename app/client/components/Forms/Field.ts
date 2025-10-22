@@ -8,6 +8,7 @@ import {makeT} from 'app/client/lib/localization';
 import {DocModel, refRecord} from 'app/client/models/DocModel';
 import TableModel from 'app/client/models/TableModel';
 import {
+  FormFieldOptions,
   FormNumberFormat,
   FormOptionsAlignment,
   FormOptionsSortOrder,
@@ -141,6 +142,13 @@ export class FieldModel extends BoxModel {
         content,
       },
       dom.on('dblclick', () => this.selected.get() && this.edit.set(true)),
+      dom.style('opacity', use => {
+        if ((use(use(this.field).widgetOptionsJson) as FormFieldOptions).formIsHidden) {
+          return '50%';
+        } else {
+          return '';
+        }
+      }),
       ...args
     );
   }

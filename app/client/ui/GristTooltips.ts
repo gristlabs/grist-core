@@ -54,6 +54,7 @@ export type Tooltip =
   | 'uploadAttachments'
   | 'adminControls'
   | 'formFraming'
+  | 'formUrlValues'
   | 'rowHeight'
   ;
 
@@ -238,6 +239,11 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
         mail: getGristConfig().supportEmail
       }
     )),
+  ),
+  formUrlValues: () => cssTooltipContent(
+    dom('div',
+      t("When checked, this field’s default value can be prefilled from the URL using query parameters.")),
+    dom('div', cssLink({href: commonUrls.helpFormUrlValues, target: "_blank"}, t('Learn more.'))),
   ),
   rowHeight: (...args: DomElementArg[]) => cssTooltipContent(
     t('Set the maximum number of lines for multi-line text.'),

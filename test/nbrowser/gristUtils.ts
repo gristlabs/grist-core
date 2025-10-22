@@ -3097,27 +3097,40 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
  * logs, named using the test name, before opening the new tab, and before and after closing it.
  */
 export async function onNewTab(action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
+  return onNewTabForUrl('about:blank', action, options);
+}
+
+/**
+ * Opens the given URL in a new tab, runs action() on that tab, and closes it after.
+ *
+ * See onNewTab for documentation of options.
+ */
+export async function onNewTabForUrl(url: string, action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
   const currentTab = await driver.getWindowHandle();
-  await driver.executeScript("window.open('about:blank', '_blank')");
+  await driver.executeScript((urlArg: string) => { window.open(urlArg, '_blank'); }, url);
   const tabs = await driver.getAllWindowHandles();
   const newTab = tabs[tabs.length - 1];
   const test = options?.test;
+  let failed = false;
   if (test) { await fetchScreenshotAndLogs(test); }
   await driver.switchTo().window(newTab);
   try {
     await action();
   } catch (e) {
-    console.warn("onNewTab cleaning up tab after error", e);
+    console.warn("onNewTab error", e);
+    failed = true;
     throw e;
   } finally {
     if (test) { await fetchScreenshotAndLogs(test); }
     const newCurrentTab = await driver.getWindowHandle();
-    if (newCurrentTab === newTab) {
+    if (newCurrentTab !== newTab) {
+      console.log("onNewTab not cleaning up because is not on expected tab");
+    } else if (failed && process.env.NO_CLEANUP) {
+      console.log("onNewTab not cleaning up because failed with NO_CLEANUP set");
+    } else {
       await driver.close();
       await driver.switchTo().window(currentTab);
       console.log("onNewTab returned to original tab");
-    } else {
-      console.log("onNewTab not cleaning up because is not on expected tab");
     }
     if (test) { await fetchScreenshotAndLogs(test); }
   }
