@@ -9,13 +9,13 @@ import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Au
 import {Client} from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
 import {DocSession, docSessionFromRequest} from 'app/server/lib/DocSession';
+import { filenameContentDisposition, filenameStarredContentDisposition } from 'app/server/lib/filenamesUtils';
 import {filterDocumentInPlace} from 'app/server/lib/filterUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import {getDocId, integerParam, optIntegerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
 import {OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import contentDisposition from 'content-disposition';
 import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as mimeTypes from 'mime-types';
@@ -56,11 +56,14 @@ export class DocWorker {
 
       // Construct a content-disposition header of the form 'inline|attachment; filename="NAME"'
       const contentDispType = inline ? "inline" : "attachment";
-      const contentDispHeader = contentDisposition(stringParam(req.query.name, 'name'), {type: contentDispType});
+      const filename = encodeURIComponent(stringParam(req.query.name, 'name'));
+      const contentDispHeader = filenameContentDisposition(contentDispType, filename);
+      const contentDispHeaderStarred = filenameStarredContentDisposition(contentDispType, filename);
       const data = await activeDoc.getAttachmentData(docSession, attRecord, {cell, maybeNew});
       res.status(200)
         .type(ext)
         .set('Content-Disposition', contentDispHeader)
+        .set('Content-Disposition', contentDispHeaderStarred)
         .set('Cache-Control', 'private, max-age=3600')
         .set("Content-Security-Policy", "sandbox; default-src: 'none'")
         .send(data);
