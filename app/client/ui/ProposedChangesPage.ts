@@ -128,13 +128,11 @@ export class ProposedChangesTrunkPage extends Disposable {
           dom.maybe(this._userProposalsObs, userProposals => {
             return dom(
               'p',
-              cssSuggestionSummary(
+              cssSuggestionLabel(
                 t('Your suggestions'),
               ),
-              ' ',
               ...userProposals.map(p => [
-                this._linkProposal(p),
-                ' '
+                cssSuggestionLink(this._linkProposal(p)),
               ]),
             );
           }),
@@ -461,12 +459,22 @@ export const betaTag = styled('span', `
   color: ${theme.accentText};
 `);
 
-const cssSuggestionSummary = styled('span', `
+const cssSuggestionLabel = styled('span', `
+  display: inline-block;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-right: 5px;
+`);
+
+const cssSuggestionLink = styled('span', `
+  display: inline-block;
+  margin-left: 10px;
   padding: 5px;
   border-top-left-radius: 20px;
   border-bottom-right-radius: 20px;
   background-color: ${theme.accessRulesTableHeaderBg};
   color: ${theme.accessRulesTableHeaderFg};
+  min-width: 30px;
 `);
 
 const cssProposalHeader = styled('h3', `
