@@ -41,18 +41,19 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
 
-  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any)
-    .map(rowId => {
-      function getValue(colId: string): string {
-        return String(tableData.getValue(rowId, colId) || "");
-      }
-
-      function getCellFormat(colId: string) {
+  function getColumnCellFormat(colId: string) {
         const tableRef = docData.getMetaTable("_grist_Tables").findRow('tableId', tableId);
         const bodyCol = docData.getMetaTable("_grist_Tables_column")
           .filterRecords({ parentId: tableRef, colId: colId })[0];
         const widgetType: string | undefined = safeJsonParse(bodyCol?.widgetOptions, {})?.widget;
         return widgetType;
+      }
+  const columnCellFormat = getColumnCellFormat("Body");
+
+  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any)
+    .map(rowId => {
+      function getValue(colId: string): string {
+        return String(tableData.getValue(rowId, colId) || "");
       }
 
       const title = getValue("Title");
@@ -63,54 +64,53 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
       }
 
       let body: HTMLElement | string = bodyValue;
-  // Renders Markdown only if the `Body` colum of type `Text` specifies "Cell Format" as `Markdown`
-    const cellFormat = getCellFormat("Body");
-    if (cellFormat == "Markdown") {
-      body = dom('div', renderCellMarkdown(bodyValue));
-    }
+      // Renders Markdown only if the `Body` colum of type `Text` specifies "Cell Format" as `Markdown`
+      if (columnCellFormat == "Markdown") {
+        body = dom('div', renderCellMarkdown(bodyValue));
+      }
 
-    const linkText = getValue("Link_Text");
-    const linkUrl = getValue("Link_URL");
-    const linkIcon = getValue("Link_Icon") as IconName;
-    const locationValue = getValue("Location");
-    let placement = getValue("Placement");
+      const linkText = getValue("Link_Text");
+      const linkUrl = getValue("Link_URL");
+      const linkIcon = getValue("Link_Icon") as IconName;
+      const locationValue = getValue("Location");
+      let placement = getValue("Placement");
 
-    const urlState = sameDocumentUrlState(locationValue);
-    if (isNarrowScreen() || !placements.includes(placement as Placement)) {
-      placement = "auto";
-    }
+      const urlState = sameDocumentUrlState(locationValue);
+      if (isNarrowScreen() || !placements.includes(placement as Placement)) {
+        placement = "auto";
+      }
 
-    let validLinkUrl = true;
-    try {
-      new URL(linkUrl);
-    } catch {
-      validLinkUrl = false;
-    }
+      let validLinkUrl = true;
+      try {
+        new URL(linkUrl);
+      } catch {
+        validLinkUrl = false;
+      }
 
-    if (validLinkUrl && linkText) {
-      body = dom(
-        'div',
+      if (validLinkUrl && linkText) {
+        body = dom(
+          'div',
+          body,
+          dom('p',
+            cssButtons(cssLinkBtn(
+              IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
+              linkText,
+              { href: linkUrl, target: '_blank' },
+            ))
+          ),
+        );
+      }
+
+      return {
+        title,
         body,
-        dom('p',
-          cssButtons(cssLinkBtn(
-            IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
-            linkText,
-            {href: linkUrl, target: '_blank'},
-          ))
-        ),
-      );
-    }
-
-    return {
-      title,
-      body,
-      placement,
-      urlState,
-      selector: '.active_cursor',
-      // Center the popup if the user doesn't provide a link to a cell
-      showHasModal: !urlState?.hash
-    };
-  }).filter(x => x !== null) as IOnBoardingMsg[];
+        placement,
+        urlState,
+        selector: '.active_cursor',
+        // Center the popup if the user doesn't provide a link to a cell
+        showHasModal: !urlState?.hash
+      };
+    }).filter(x => x !== null) as IOnBoardingMsg[];
   if (!result.length) {
     return null;
   }

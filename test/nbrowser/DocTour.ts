@@ -71,7 +71,7 @@ describe('DocTour', function () {
           '<div><!--a--><!--b--></div>' +
           '<p><div class="_grainXXX_">' +
           '<a href="https://www.getgrist.com/" target="_blank" class="_grainXXX_ _grainXXX_">' +
-          '<div class="_grainXXX_ _grainXXX_" style=\"mask-image: var(--icon-Page);"></div>' +
+          '<div class="_grainXXX_ _grainXXX_" style="mask-image: var(--icon-Page);"></div>' +
           'A link with an icon' +
           '</a>' +
           '</div></p>' +
@@ -178,27 +178,27 @@ describe('DocTour', function () {
       {
         body: '<div><!--a-->' +
           '<pre><code>' +
-          '<div class=\"ace-chrome\">' +
-          '<div style=\"counter-reset:ace_line 0\" class=\"ace_static_highlight\">' + 
-          '<div class=\"ace_line\">' +
-          '<span class=\"ace_paren ace_lparen\">{</span>\n' +
-          '</div><div class=\"ace_line\">' + 
-          '  <span class=\"ace_string\">\"firstName\"</span>' +
-          '<span class=\"ace_punctuation\">:</span>' + 
-          ' <span class=\"ace_string\">\"John\"</span>' +
-          '<span class=\"ace_punctuation\">,</span>\n</div>' + 
-          '<div class=\"ace_line\">' + 
-          '  <span class=\"ace_string\">\"lastName\"</span>' + 
-          '<span class=\"ace_punctuation\">:</span>' + 
-          ' <span class=\"ace_string\">\"Smith\"</span>' +
-          '<span class=\"ace_punctuation\">,</span>\n' + 
-          '</div><div class=\"ace_line\">' + 
-          '  <span class=\"ace_string\">\"age\"</span>' +
-          '<span class=\"ace_punctuation\">:</span>' + 
-          ' <span class=\"ace_constant ace_numeric\">25</span>\n</div>' + 
-          '<div class=\"ace_line\">' +
-          '<span class=\"ace_paren ace_rparen\">}</span>\n' + 
-          '</div></div></div>\n' + 
+          '<div class="ace-chrome">' +
+          '<div style="counter-reset:ace_line 0" class="ace_static_highlight">' +
+          '<div class="ace_line">' +
+          '<span class="ace_paren ace_lparen">{</span>\n' +
+          '</div><div class="ace_line">' +
+          '  <span class="ace_string">"firstName"</span>' +
+          '<span class="ace_punctuation">:</span>' +
+          ' <span class="ace_string">"John"</span>' +
+          '<span class="ace_punctuation">,</span>\n</div>' +
+          '<div class="ace_line">' +
+          '  <span class="ace_string">"lastName"</span>' +
+          '<span class="ace_punctuation">:</span>' +
+          ' <span class="ace_string">"Smith"</span>' +
+          '<span class="ace_punctuation">,</span>\n' +
+          '</div><div class="ace_line">' +
+          '  <span class="ace_string">"age"</span>' +
+          '<span class="ace_punctuation">:</span>' +
+          ' <span class="ace_constant ace_numeric">25</span>\n</div>' +
+          '<div class="ace_line">' +
+          '<span class="ace_paren ace_rparen">}</span>\n' +
+          '</div></div></div>\n' +
           '</code></pre>\n' +
           '<!--b--></div>',
         placement: 'auto',
@@ -209,12 +209,12 @@ describe('DocTour', function () {
       },
       {
         body: '<div><!--a-->' +
-          '<p><span class=\"test-text-link _grainXXX_\">' +
-          '<a class=\"_grainXXX_\" rel=\"noopener noreferrer\" href=\"https://www.example.com/\" target=\"_blank\">' +
-          '<span class=\"_grainXXX_ _grainXXX_ _grainXXX_\">' +
-          '<span style=\"mask-image: var(--icon-FieldLink);\" class=\"test-tb-link-icon _grainXXX_\">' +
+          '<p><span class="test-text-link _grainXXX_">' +
+          '<a class="_grainXXX_" rel="noopener noreferrer" href="https://www.example.com/" target="_blank">' +
+          '<span class="_grainXXX_ _grainXXX_ _grainXXX_">' +
+          '<span style="mask-image: var(--icon-FieldLink);" class="test-tb-link-icon _grainXXX_">' +
           '</span></span></a>' +
-          '<span class=\"_grainXXX_\">title</span></span></p>\n' + 
+          '<span class="_grainXXX_">title</span></span></p>\n' +
           '<!--b--></div>',
         placement: 'auto',
         selector: '.active_cursor',
