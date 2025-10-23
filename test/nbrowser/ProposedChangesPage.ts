@@ -7,22 +7,13 @@ describe('ProposedChangesPage', function() {
   const cleanup = setupTestSuite();
 
   // Currently this page exists only on a document where accepting
-  // proposals is turned on. The flag for turning this on is, in turn, hidden
-  // behind an experimental flag.
-  it('can be enabled experimentally for a document', async function() {
+  // proposals is turned on.
+  it('can be enabled for a document', async function() {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, 'Hello.grist');
     await driver.find('.test-tools-settings').click();
 
-    // Add the experimental flag to the URL.
-    const url = await driver.getCurrentUrl();
-    await driver.get(url + '?experiment=proposedChangesPage');
-    // Confirm the flag.
-    await driver.findWait('.test-modal-confirm', 2000).click();
-    // Confirm we want to reload.
-    await driver.findWait('.test-modal-confirm', 2000).click();
-
-    // Check the accepting proposals checkbox is now visible.
+    // Check the accepting proposals checkbox is visible.
     assert.match(
       await driver.findWait('#admin-panel-item-description-acceptProposals', 2000).getText(),
       /Allow others to suggest changes/);

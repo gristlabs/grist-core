@@ -78,7 +78,6 @@ export class DocSettingsPage extends Disposable {
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
     const isFork = docPageModel.currentDoc.get()?.isFork;
-    const proposedChangesEnabled = docPageModel.appModel?.experiments?.isEnabled('proposedChangesPage');
 
     return cssContainer({tabIndex: '-1'},
       dom.create(AdminSection, t('Document Settings'), [
@@ -119,7 +118,7 @@ export class DocSettingsPage extends Disposable {
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
-        (proposedChangesEnabled && !isFork) ? dom.create(AdminSectionItem, {
+        !isFork ? dom.create(AdminSectionItem, {
           id: 'acceptProposals',
           name: [t('Suggestions'), betaTag(t('experiment'))],
           description: t('Allow others to suggest changes'),
