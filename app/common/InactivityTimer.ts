@@ -15,7 +15,7 @@
 
 export class InactivityTimer {
 
-  private _timeout?: NodeJS.Timer | null;
+  private _timeout?: NodeJS.Timeout | null;
   private _counter: number = 0;
   private _enabled: boolean = true;
 

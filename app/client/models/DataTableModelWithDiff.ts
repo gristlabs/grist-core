@@ -8,10 +8,9 @@ import { TableData } from 'app/client/models/TableData';
 import { createEmptyTableDelta, getTableIdAfter, getTableIdBefore, TableDelta } from 'app/common/ActionSummary';
 import { DisposableWithEvents } from 'app/common/DisposableWithEvents';
 import { CellVersions, UserAction } from 'app/common/DocActions';
-import { GristObjCode } from 'app/plugin/GristData';
+import { DocStateComparisonDetails } from 'app/common/DocState';
 import { CellDelta } from 'app/common/TabularDiff';
-import { DocStateComparisonDetails } from 'app/common/UserAPI';
-import { CellValue } from 'app/plugin/GristData';
+import { CellValue, GristObjCode } from 'app/plugin/GristData';
 
 // A special row id, representing omitted rows.
 const ROW_ID_SKIP = -1;
