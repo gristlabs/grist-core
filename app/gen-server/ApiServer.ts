@@ -40,11 +40,6 @@ const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section('api').flag('allowB
   envVar: 'GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE',
 });
 
-// exposed for testing purposes
-export const Deps = {
-  apiKeyGenerator: () => crypto.randomBytes(20).toString('hex')
-};
-
 const {PatchServiceAccount, PostServiceAccount} = t.createCheckers(ServiceAccountTI);
 
 for (const checker of [PatchServiceAccount, PostServiceAccount]) {

@@ -198,7 +198,7 @@ describe('ApiServer', function() {
     // personal orgs should have an owner and no domain
     // createdAt and updatedAt are omitted since exact times cannot be predicted.
     assert.deepEqual(
-      omit(resp.data[0], 'createdAt', 'updatedAt', 'owner.createdAt', 'owner.removedAt'),
+      omit(resp.data[0], 'createdAt', 'updatedAt', 'owner.createdAt'),
       {
         id: await dbManager.testGetId('Chimpyland'),
         name: 'Chimpyland',
@@ -260,7 +260,7 @@ describe('ApiServer', function() {
     assert.equal(resp.status, 200);
     // billingAccount is omitted since it isn't focus of this test.
     assert.deepEqual(
-      omit(resp.data, 'createdAt', 'updatedAt', 'billingAccount', 'owner.createdAt', 'owner.removedAt'),
+      omit(resp.data, 'createdAt', 'updatedAt', 'billingAccount', 'owner.createdAt'),
       {
         id: oid,
         name: 'Chimpyland',
