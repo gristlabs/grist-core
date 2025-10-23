@@ -15,11 +15,12 @@ import * as PluginApi from 'app/plugin/grist-plugin-api';
 import { BaseAPI } from 'app/common/BaseAPI';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
+import { DocStateComparison } from 'app/common/DocState';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { TestState } from 'app/common/TestState';
-import { Organization as APIOrganization, DocStateComparison,
+import { Organization as APIOrganization,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';

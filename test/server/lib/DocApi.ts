@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
+import {DocState} from 'app/common/DocState';
 import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
-import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
+import {DocAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {Deps} from 'app/server/lib/ActiveDoc';
