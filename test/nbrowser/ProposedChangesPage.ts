@@ -99,8 +99,8 @@ describe('ProposedChangesPage', function() {
     assert.match(await driver.find('.test-proposals-propose').getText(), /Suggest/);
     await driver.find('.test-proposals-propose').click();
 
-    // Once proposed, there should be a status line, and the same
-    // button should now be labelled "Update".
+    // Once proposed, there should be a status line, and the "Suggest"
+    // button should be absent.
     await driver.findContentWait('.test-proposals-status', /Suggestion/, 2000);
     assert.equal(await driver.find('.test-proposals-propose').isPresent(), false);
 

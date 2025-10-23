@@ -1877,6 +1877,7 @@ export class HomeDBManager {
       if (forkId) {
         query = this._fork(scope, {
           manager,
+          allowSpecialPermit: options?.allowSpecialPermit,
         });
       } else {
         query = this._doc(scope, {
@@ -3446,15 +3447,13 @@ export class HomeDBManager {
       }, manager, {
         allowSpecialPermit: true,
       }));
-      // typeorm is super annoying...
       const proposal = await manager.createQueryBuilder()
         .from(Proposal, 'proposals')
         .select('proposals')
         .where("proposals.dest_doc_id = :destDocId", { destDocId: options.destDocId })
         .andWhere("proposals.src_doc_id = :srcDocId", { srcDocId: options.srcDocId })
         .getOneOrFail();
-      const proposal2 = this._normalizeQueryResults(proposal);
-      return proposal2;
+      return this._normalizeQueryResults(proposal);
     });
   }
 
