@@ -88,7 +88,7 @@ export class Client {
 
   private _missedMessages = new Map<number, string>();
   private _missedMessagesTotalLength: number = 0;
-  private _destroyTimer: NodeJS.Timer|null = null;
+  private _destroyTimer: NodeJS.Timeout|null = null;
   private _destroyed: boolean = false;
   private _websocket: GristServerSocket|null = null;
   private _req: IncomingMessage|null = null;
