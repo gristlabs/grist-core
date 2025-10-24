@@ -75,7 +75,7 @@
     "@types/mocha": "10.0.1",
     "@types/moment-timezone": "0.5.9",
     "@types/mousetrap": "1.6.2",
-    "@types/node": "22",
+    "@types/node": "22.18.12",
     "@types/node-fetch": "2.6.2",
     "@types/pidusage": "2.0.5",
     "@types/plotly.js": "2.12.1",
