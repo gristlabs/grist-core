@@ -56,6 +56,7 @@ export type Tooltip =
   | 'formFraming'
   | 'formUrlValues'
   | 'rowHeight'
+  | 'suggestions'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -248,6 +249,20 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
   rowHeight: (...args: DomElementArg[]) => cssTooltipContent(
     t('Set the maximum number of lines for multi-line text.'),
     ...args,
+  ),
+  suggestions: () => cssTooltipContent(
+    cssMarkdownSpan(
+      t(
+        "With suggestions, users make changes in a personal copy without \
+modifying the original document, then submit these suggestions \
+to be reviewed by the document owner prior to integration."
+      ) +
+      "\n\n" +
+      t(
+      "[Learn more.]({{link}})", {
+        link: commonUrls.helpSuggestions,
+      }
+    )),
   ),
 };
 

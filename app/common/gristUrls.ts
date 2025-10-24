@@ -119,6 +119,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",
   helpLinkingWidgets: "https://support.getgrist.com/linking-widgets",
   helpRawData: "https://support.getgrist.com/raw-data",
+  helpSuggestions: "https://support.getgrist.com/sharing/#suggestions",
   helpUnderstandingReferenceColumns: "https://support.getgrist.com/col-refs/#understanding-reference-columns",
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",

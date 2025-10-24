@@ -121,7 +121,10 @@ export class DocSettingsPage extends Disposable {
         !isFork ? dom.create(AdminSectionItem, {
           id: 'acceptProposals',
           name: [t('Suggestions'), betaTag(t('experiment'))],
-          description: t('Allow others to suggest changes'),
+          description: withInfoTooltip(
+            t('Allow others to suggest changes'),
+            'suggestions'
+          ),
           value: labeledSquareCheckbox(
             this._acceptProposals,
             t("Enable suggestions"),
