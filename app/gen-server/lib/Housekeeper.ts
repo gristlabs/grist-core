@@ -136,7 +136,7 @@ export class Housekeeper {
     const docs = await this._getDocsToDelete();
     for (const doc of docs) {
       // Last minute check - is the doc really soft-deleted?
-      if (doc.removedAt === null && doc.workspace.removedAt === null) {
+      if (doc.disabledAt === null && doc.removedAt === null && doc.workspace.removedAt === null) {
         throw new Error(`attempted to hard-delete a document that was not soft-deleted: ${doc.id}`);
       }
       // In general, documents can only be manipulated with the coordination of the
@@ -387,9 +387,9 @@ export class Housekeeper {
       .select('docs')
       .from(Document, 'docs')
       .leftJoinAndSelect('docs.workspace', 'workspaces')
-      .where(`COALESCE(docs.removed_at, workspaces.removed_at) <= ${this._getThreshold()}`)
+      .where(`COALESCE(docs.removed_at, docs.disabled_at, workspaces.removed_at) <= ${this._getThreshold()}`)
       // the following has no effect (since null <= date is false) but added for clarity
-      .andWhere('COALESCE(docs.removed_at, workspaces.removed_at) IS NOT NULL')
+      .andWhere('COALESCE(docs.removed_at, docs.disabled_at, workspaces.removed_at) IS NOT NULL')
       .getMany();
     return docs;
   }

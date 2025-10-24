@@ -842,12 +842,15 @@ export class HomeDBManager {
     const org: Organization = this.unwrapQueryResult(orgQueryResult);
     const productFeatures = org.billingAccount.getFeatures();
 
-    // Grab all the non-removed documents in the org.
+    // Grab all the non-removed, non-disabled documents in the org. We
+    // omit them because they will be eventually permanently deleted
+    // by the housekeeper, so it doesn't seem fair to count them
+    // against the user's usage.
     let docsQuery = this._docs()
       .innerJoin('docs.workspace', 'workspaces')
       .innerJoin('workspaces.org', 'orgs')
       .where('docs.workspace_id = workspaces.id')
-      .andWhere('workspaces.removed_at IS NULL AND docs.removed_at IS NULL');
+      .andWhere('workspaces.removed_at IS NULL AND docs.removed_at IS NULL AND docs.disabled_at IS NULL');
     docsQuery = this._whereOrg(docsQuery, orgKey);
     if (this.isMergedOrg(orgKey)) {
       docsQuery = docsQuery.andWhere('orgs.owner_id = :userId', {userId: scope.userId});
@@ -983,6 +986,7 @@ export class HomeDBManager {
         .leftJoinAndSelect('billing_account.product', 'product')
         .where('key = :key', {key: shareKey})
         .andWhere('doc.removed_at IS NULL')
+        .andWhere('doc.disabled_at IS NULL')
         .getOne();
       if (!res) {
         throw new ApiError('Share not known', 404);
@@ -1099,10 +1103,15 @@ export class HomeDBManager {
     const promise = this.getDocImpl(key, transaction);
     await mapSetOrClear(this._docAuthCache, stringifyDocAuthKey(key), makeDocAuthResult(promise));
     const doc = await promise;
-    // Filter the result for removed / non-removed documents.
-    if (!scope.showAll && scope.showRemoved ?
-        (doc.removedAt === null && doc.workspace.removedAt === null) :
-        (doc.removedAt || doc.workspace.removedAt)) {
+    const docRemoved = Boolean(doc.removedAt || doc.workspace.removedAt);
+    const onlyShowRemoved = Boolean(scope.showRemoved && !scope.showAll);
+    // if onlyShowRemoved XOR docRemoved, then we have no document
+    // (the condition inside the "if" below is an XOR).
+    if (onlyShowRemoved !== docRemoved) {
+      throw new ApiError('document not found', 404);
+    }
+
+    if (doc.disabledAt) {
       throw new ApiError('document not found', 404);
     }
     return doc;
@@ -1989,6 +1998,14 @@ export class HomeDBManager {
 
   public async undeleteDocument(scope: DocScope): Promise<QueryResult<Document>> {
     return this._setDocumentRemovedAt(scope, null);
+  }
+
+  public disableDocument(scope: DocScope): Promise<QueryResult<Document>> {
+    return this._setDocumentDisabledAt(scope, new Date());
+  }
+
+  public async enableDocument(scope: DocScope): Promise<QueryResult<Document>> {
+    return this._setDocumentDisabledAt(scope, null);
   }
 
   // Fetches and provides a callback with the billingAccount so it may be updated within
@@ -3855,7 +3872,8 @@ export class HomeDBManager {
         .leftJoinAndSelect('docs.aclRules', 'doc_acl_rules')
         .leftJoinAndSelect('doc_acl_rules.group', 'doc_groups')
         .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
-        .andWhere('docs.removed_at IS NULL')  // Don't grant guest access for soft-deleted docs.
+        .andWhere('docs.removed_at IS NULL')   // Don't grant guest access for soft-deleted docs.
+        .andWhere('docs.disabled_at IS NULL')  // Nor to disabled docs
         .andWhere('doc_users.id is not null');
       const wsWithDocs = await wsWithDocsQuery.getOne();
       await this._groupsManager.setGroupUsers(manager, wsGuestGroup.id, wsGuestGroup.memberUsers,
@@ -4322,9 +4340,11 @@ export class HomeDBManager {
    * would entirely remove information about a workspace with no docs.  The "ON"
    * clause, in combination with a "LEFT JOIN", preserves the workspace information
    * and just sets doc information to NULL.
+   *
+   * We also filter out all disabled docs unconditionally.
    */
   private _onDoc(scope: Scope) {
-    const onDefault = 'docs.workspace_id = workspaces.id';
+    const onDefault = 'docs.workspace_id = workspaces.id AND docs.disabled_at IS NULL';
     if (scope.showAll) {
       return onDefault;
     } else if (scope.showRemoved) {
@@ -4561,7 +4581,6 @@ export class HomeDBManager {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
-
     if (options.checkDisabledUser) {
       if (results.raw.some(entry => entry.users_disabled_at === undefined)) {
         throw new Error('checkDisabledUser requested but users_disabled_at is undefined');
@@ -4745,6 +4764,8 @@ export class HomeDBManager {
     // doc that the user does have access to.
     if (entity.docs && scope?.showRemoved && entity.docs.length === 0 &&
         !entity.removedAt)  { return true; }
+    // Disabled documents are forbidden, unless they are being removed (deleted)
+    if (entity.disabledAt && !entity.removedAt) { return true; }
     if (ignoreAccess) { return false; }
     if (entity.access === null) { return true; }
     if (!entity.accessOptions) { return false; }
@@ -5217,22 +5238,30 @@ export class HomeDBManager {
 
   // Set Document.removedAt to null (undeletion) or to a datetime (soft deletion)
   private _setDocumentRemovedAt(scope: DocScope, removedAt: Date|null) {
+    return this._setDocumentDeletionProperty(scope, 'removedAt', removedAt);
+  }
+
+  private _setDocumentDisabledAt(scope: DocScope, removedAt: Date|null) {
+    return this._setDocumentDeletionProperty(scope, 'disabledAt', removedAt);
+  }
+
+  private _setDocumentDeletionProperty(scope: DocScope, property: 'removedAt'|'disabledAt', value: Date|null) {
     return this._connection.transaction(async manager => {
       let docQuery = this._doc({...scope, showAll: true}, {
         manager,
         markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,
         allowSpecialPermit: true
       });
-      if (!removedAt) {
+      if (!value) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
       }
       const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery));
-      if (!removedAt) {
+      if (!value) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
-      doc.removedAt = removedAt;
+      doc[property] = value;
       await manager.createQueryBuilder()
-        .update(Document).set({removedAt}).where({id: doc.id})
+        .update(Document).set({[property]: value}).where({id: doc.id})
         .execute();
 
       // Update guests of the workspace and org after soft-deleting/undeleting this doc.
@@ -5370,9 +5399,10 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
   try {
     const doc = await docPromise;
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
-    return {docId: doc.id, access: doc.access, removed, cachedDoc: doc};
+    const disabled = Boolean(doc.disabledAt);
+    return {docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc};
   } catch (error) {
-    return {docId: null, access: null, removed: null, error};
+    return {docId: null, access: null, removed: null, disabled: null, error};
   }
 }
 

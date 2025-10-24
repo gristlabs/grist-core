@@ -218,6 +218,9 @@ export class DocWorkerApi {
       next();
     });
 
+    // Some endpoints require the admin
+    const requireInstallAdmin = this._grist.getInstallAdmin().getMiddlewareRequireAdmin();
+
     // check document exists (not soft deleted) and user can view it
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));
     // check document exists (not soft deleted) and user can edit it
@@ -1170,6 +1173,19 @@ export class DocWorkerApi {
         }
       }
     }));
+
+    // POST /api/docs/:docId/disable
+    // Disables doc (similar to soft-delete, but needs admin access)
+    this._app.post('/api/docs/:docId/disable', requireInstallAdmin, async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const docId = req.params.docId;
+      // We have admin access, so grant a special permit to this doc
+      mreq.specialPermit = {...mreq.specialPermit, docId};
+      const {data} = await this._disableDoc(mreq, res, docId);
+      if (data) {
+        this._logDisableDocumentEvents(mreq, data);
+      }
+    });
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
       const docSession = docSessionFromRequest(req);
@@ -2310,6 +2326,15 @@ export class DocWorkerApi {
     return result;
   }
 
+  private async _disableDoc(req: Request, res: Response, docId: string): Promise<QueryResult<Document>> {
+    const scope = getDocScope(req);
+    const result = await  this._dbManager.disableDocument(scope);
+    await sendOkReply(req, res);
+    await this._dbManager.flushSingleDocAuthCache(scope, docId);
+    await this._docManager.interruptDocClients(docId);
+    return result;
+  }
+
   private async _runSql(
     activeDoc: ActiveDoc,
     req: RequestWithLogin,
@@ -2380,6 +2405,18 @@ export class DocWorkerApi {
         docIdDigest: id,
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,
+      },
+    });
+  }
+
+  private _logDisableDocumentEvents(req: RequestWithLogin, document: Document) {
+    this._grist.getAuditLogger().logEvent(req, {
+      action: "document.disable",
+      context: {
+        site: _.pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: _.pick(document, "id", "name"),
       },
     });
   }
