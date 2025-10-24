@@ -464,7 +464,7 @@ export class UserManager extends Disposable {
         cssMemberListItem(
           cssPublicMemberIcon('PublicFilled'),
           cssMemberText(
-            cssMemberPrimary(t('Public Access')),
+            cssMemberPrimary(t('Public access')),
             cssMemberSecondary(t('Anyone with link '), makeCopyBtn(this._options.linkToCopy)),
           ),
           this._memberRoleSelector(publicMember.effectiveAccess, publicMember.inheritedAccess, false,
@@ -680,7 +680,7 @@ function getFullUser(member: IEditableMember): FullUser {
 
 // Create a "Copy Link" button.
 function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
-  return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), t('Copy Link'),
+  return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), t('Copy link'),
     dom.on('click', (ev, elem) => copyLink(elem, linkToCopy)),
     testId('um-copy-link'),
     ...domArgs,

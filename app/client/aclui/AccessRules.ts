@@ -437,7 +437,7 @@ export class AccessRules extends Disposable {
           testId('rules-revert'),
         ),
 
-        bigBasicButton(t("Add Table Rules"), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
+        bigBasicButton(t("Add table rules"), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
           menu(() =>
             this.allTableIds.map((tableId) =>
               // Add the table on a timeout, to avoid disabling the clicked menu item
@@ -449,8 +449,8 @@ export class AccessRules extends Disposable {
             ),
           ),
         ),
-        bigBasicButton(t('Add User Attributes'), dom.on('click', () => this._addUserAttributes())),
-        bigBasicButton(t('View As'), cssDropdownIcon('Dropdown'),
+        bigBasicButton(t('Add user attributes'), dom.on('click', () => this._addUserAttributes())),
+        bigBasicButton(t('View as'), cssDropdownIcon('Dropdown'),
           elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end', resetDocPage: true}),
           dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
       ),
@@ -488,7 +488,7 @@ export class AccessRules extends Disposable {
         ),
         dom.forEach(this._sortedTableRules, (tableRules) => tableRules.buildDom()),
         cssSection(
-          cssSectionHeading(t("Default Rules"), testId('rule-table-header')),
+          cssSectionHeading(t("Default rules"), testId('rule-table-header')),
           dom.maybe(this._specialRulesWithDefault, tableRules => cssSeedRule(
             tableRules.buildCheckBoxes())),
           cssTableRounded(
@@ -770,9 +770,9 @@ class TableRules extends Disposable {
         dom('span', t("Rules for table "), cssTableName(this._accessRules.getTableTitle(this.tableId))),
         cssIconButton(icon('Dots'), {style: 'margin-left: auto'},
           menu(() => [
-            menuItemAsync(() => this._addColumnRuleSet(), t("Add Column Rule")),
-            menuItemAsync(() => this._addDefaultRuleSet(), t("Add Table-wide Rule")),
-            menuItemAsync(() => this._accessRules.removeTableRules(this), t("Delete Table Rules")),
+            menuItemAsync(() => this._addColumnRuleSet(), t("Add column rule")),
+            menuItemAsync(() => this._addDefaultRuleSet(), t("Add table-wide rule")),
+            menuItemAsync(() => this._accessRules.removeTableRules(this), t("Delete table rules")),
           ]),
           testId('rule-table-menu-btn'),
         ),
@@ -907,7 +907,7 @@ class TableRules extends Disposable {
 class SpecialRules extends TableRules {
   public buildDom() {
     return cssSection(
-      cssSectionHeading(t('Special Rules'), testId('rule-table-header')),
+      cssSectionHeading(t('Special rules'), testId('rule-table-header')),
       this.buildCheckBoxes(),
       testId('rule-table'),
     );

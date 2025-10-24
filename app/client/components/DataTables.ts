@@ -99,7 +99,7 @@ export class DataTables extends Disposable {
                   hoverTooltip(
                     dom.domComputed(use => use(use(tableRec.recordCardViewSection).disabled)
                       ? t('Record Card Disabled')
-                      : t('Edit Record Card')),
+                      : t('Edit record card')),
                     {key: DATA_TABLES_TOOLTIP_KEY, closeOnClick: false}
                   ),
                   dom.hide(this._gristDoc.isReadonly),
@@ -166,13 +166,13 @@ export class DataTables extends Disposable {
     return [
       menuItem(
         () => { isEditingName.set(true); },
-        t("Rename Table"),
+        t("Rename table"),
         dom.cls('disabled', use => use(isReadonly) || use(table.summarySourceTable) !== 0),
         testId('menu-rename-table'),
       ),
       menuItem(
         () => this._duplicateTable(table),
-        t("Duplicate Table"),
+        t("Duplicate table"),
         dom.cls('disabled', use =>
           use(isReadonly) ||
           use(table.isHidden) ||
@@ -182,7 +182,7 @@ export class DataTables extends Disposable {
       ),
       menuItem(
         () => this._removeTable(table),
-        t("Remove Table"),
+        t("Remove table"),
         dom.cls('disabled', use => use(isReadonly) || (
           // Can't delete last visible table, unless it is a hidden table.
           use(docModel.visibleTables.getObservable()).length <= 1 && !use(table.isHidden)
@@ -194,7 +194,7 @@ export class DataTables extends Disposable {
         menuItem(
           () => this._editRecordCard(table),
           cssMenuItemIcon('TypeCard'),
-          t("Edit Record Card"),
+          t("Edit record card"),
           dom.cls('disabled', use => use(isReadonly)),
           testId('menu-edit-record-card'),
         ),

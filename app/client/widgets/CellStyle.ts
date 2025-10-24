@@ -130,7 +130,7 @@ export class CellStyle extends Disposable {
           );
         }),
       ),
-      dom.create(ConditionalStyle, t("Cell Style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect))
+      dom.create(ConditionalStyle, t("Cell style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect))
     ];
   }
 }

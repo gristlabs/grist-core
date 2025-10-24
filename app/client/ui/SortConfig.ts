@@ -237,7 +237,7 @@ export class SortConfig extends Disposable {
       dom.domComputed(use => {
         const cols = use(available);
         return textButton(
-          t("Add Column"),
+          t("Add column"),
           dropdownWithSearch({
             popupOptions: menuOptions,
             options: () => cols.map((col) => ({label: col.label, value: col})),
@@ -255,7 +255,7 @@ export class SortConfig extends Disposable {
   private _buildUpdateDataButton() {
     return dom.maybe(this._section.isSorted, () =>
       cssButtonRow(
-        textButton(t("Update Data"),
+        textButton(t("Update data"),
           dom.on('click', () => updatePositions(this._gristDoc, this._section)),
           testId('update'),
           dom.show((use) => (

@@ -27,7 +27,7 @@ export function getDateRangeOptions(): IDateRangeOption[] {
       max: [{quantity: 7, unit: 'day'}],
     },
     {
-      label: t('Last Week'),
+      label: t('Last week'),
       min: [{quantity: -1, unit: 'week'}],
       max: [{quantity: -1, unit: 'week', endOf: true}],
     },
