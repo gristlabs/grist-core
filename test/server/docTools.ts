@@ -18,6 +18,7 @@ import * as fse from 'fs-extra';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as tmp from 'tmp-promise';
+import { IAttachmentVirusScanProvider } from 'app/server/lib/AttachmentVirusScanProvider';
 
 tmp.setGracefulCleanup();
 
@@ -148,16 +149,19 @@ export async function createDocManager(
               storageManager?: IDocStorageManager,
               server?: GristServer,
               attachmentStoreProvider?: IAttachmentStoreProvider,
+              virusScanProviders?: IAttachmentVirusScanProvider[]
              } = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
   const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);
   const pluginManager = options.pluginManager || await getGlobalPluginManager();
   const attachmentStoreProvider = options.attachmentStoreProvider ?? new AttachmentStoreProvider([], "TEST_INSTALL");
+  const virusScanProviders = options.virusScanProviders ?? [];
   const store = getDocWorkerMap();
   const internalPermitStore = store.getPermitStore('1');
   const externalPermitStore = store.getPermitStore('2');
-  return new DocManager(docStorageManager, pluginManager, null, attachmentStoreProvider, options.server || {
+  return new DocManager(docStorageManager, pluginManager, null, attachmentStoreProvider, virusScanProviders,
+                        options.server || {
     ...createDummyGristServer(),
     getPermitStore() { return internalPermitStore; },
     getExternalPermitStore() { return externalPermitStore; },

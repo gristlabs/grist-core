@@ -7,6 +7,7 @@ import { DocStorageManager } from 'app/server/lib/DocStorageManager';
 import { createDummyTelemetry } from 'app/server/lib/GristServer';
 import { createNullAuditLogger } from 'app/server/lib/IAuditLogger';
 import { PluginManager } from 'app/server/lib/PluginManager';
+import { TestAttachmentVirusScanProvider } from 'app/server/lib/AttachmentVirusScanProvider';
 
 import * as childProcess from 'child_process';
 import * as fse from 'fs-extra';
@@ -35,7 +36,7 @@ export async function main(baseName: string) {
       await fse.remove(fname);
     }
     const docManager = new DocManager(storageManager, pluginManager, null as any,
-      new AttachmentStoreProvider([], ""), {
+      new AttachmentStoreProvider([], ""), [new TestAttachmentVirusScanProvider()], {
         create,
         getAuditLogger() { return createNullAuditLogger(); },
         getTelemetry() { return createDummyTelemetry(); },

@@ -842,6 +842,18 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   /**
+   * Removes the file from the document database.
+   * @param fileIdent - The unique identifier of the file in the database.
+   * @returns A promise that resolves when the file is removed.
+   */
+  public removeFile(fileIdent: string): Promise<void> {
+    return this.execTransaction(async (db) => {
+      await this._removeFileRecord(db, fileIdent);
+      // TODO: Remove the file from the documents.
+    });
+  }
+
+  /**
    * Reads and returns the data for the given attachment.
    * @param {string} fileIdent - The unique identifier of a file, as used by attachFileIfNew.
    *   file identifier.
@@ -1983,6 +1995,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     db: SQLiteDB, fileIdent: string, fileData?: Buffer, storageId?: string
   ): Promise<void> {
     await db.run('UPDATE _gristsys_Files SET data=?, storageId=? WHERE ident=?', fileData, storageId, fileIdent);
+  }
+
+  private async _removeFileRecord(db: SQLiteDB, fileIdent: string): Promise<void> {
+    await db.run('DELETE FROM _gristsys_Files WHERE ident=?', fileIdent);
   }
 }
 
