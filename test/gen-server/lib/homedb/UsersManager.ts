@@ -760,6 +760,18 @@ describe('UsersManager', function () {
         assert.notExists(user.personalOrg);
       });
 
+      it('should force the creation of service users with emails having an ".invalid" tld', async function () {
+        disableLoggingLevel('debug');
+        const legitEmail = ensureUnique('legit@serviceaccounts.invalid');
+        const legitPromise = db.getUserByLogin(legitEmail, {}, 'service');
+        await assert.isFulfilled(legitPromise);
+
+        const nonLegitEmail = ensureUnique('nonlegit@serviceaccounts.com');
+        const nonLegitPromise = db.getUserByLogin(nonLegitEmail, {}, 'service');
+        await assert.isRejected(nonLegitPromise, "Users of type service must have email like XXXXXX@YYYYYYYYY.invalid");
+
+      });
+
       it('should not update user information when no profile is passed', async function () {
         const localPart = ensureUnique('getuserbylogin-does-not-update-without-profile');
 

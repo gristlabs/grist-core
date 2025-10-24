@@ -5,26 +5,29 @@ import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {GristServer} from 'app/server/lib/GristServer';
 import {EmitNotifier} from 'app/server/lib/INotifier';
+
 import {AxiosRequestConfig} from 'axios';
 import {delay} from 'bluebird';
 
+export function requestConfig(bearer?: string): AxiosRequestConfig {
+  return {
+    responseType: 'json',
+    validateStatus: (status: number) => true,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(bearer ? {Authorization: `Bearer ${bearer}`} : {})
+    }
+  };
+}
 /**
  * Returns an AxiosRequestConfig, that identifies the user with `username` on a server running
  * against a database using `test/gen-server/seed.ts`. Also tells axios not to raise exception on
  * failed request.
  */
 export function configForUser(username: string): AxiosRequestConfig {
-  const config: AxiosRequestConfig = {
-    responseType: 'json',
-    validateStatus: (status: number) => true,
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-    }
-  };
-  if (username !== 'Anonymous') {
-    config.headers!.Authorization = 'Bearer api_key_for_' + username.toLowerCase();
-  }
-  return config;
+  const bearer = username !== 'Anonymous' ? `api_key_for_${username.toLowerCase()}` : undefined;
+
+  return requestConfig(bearer);
 }
 
 /**
