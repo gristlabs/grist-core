@@ -482,7 +482,7 @@ export class FieldBuilder extends Disposable {
                  }
                }),
                cssRow(
-                 textButton(t('Apply Formula to Data'),
+                 textButton(t('Apply formula to data'),
                  dom.on('click', () => transformButton(true)),
                  kd.hide(this._isTransformingFormula),
                  kd.boolAttr('disabled', () =>

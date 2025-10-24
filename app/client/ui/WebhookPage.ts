@@ -372,9 +372,9 @@ export class WebhookPage extends DisposableWithEvents {
       );
     }
     return cssContainer(
-      cssHeader(t('Webhook Settings')),
+      cssHeader(t('Webhook settings')),
       cssControlRow(
-        bigPrimaryButton(t("Clear Queue"),
+        bigPrimaryButton(t("Clear queue"),
           dom.on('click', () => this.reset()),
           testId('webhook-reset'),
         )

@@ -170,14 +170,14 @@ describe("AccessRules2", function() {
     await driver.findWait('.test-rule-set', 2000);
 
     // Add table rules for ClientsTable.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     const options = await gu.findOpenMenuAllItems('li', e => e.getText());
     assert.deepEqual(options, ["ClientsTable", "ClientsTable [by Shared]", "FinancialsTable"]);
     await gu.findOpenMenuItem('li', /ClientsTable/).click();
 
     // Add rules hiding First_Name, Last_Name columns.
     await findTableWait(/ClientsTable/).find('.test-rule-table-menu-btn').click();
-    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add column rule/).click();
     let ruleSet = findRuleSetWait(/ClientsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     await gu.findOpenMenuItem('li', 'First_Name').click();
@@ -186,7 +186,7 @@ describe("AccessRules2", function() {
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
 
     // Add table rule entirely hiding FinancialsTable.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
@@ -218,7 +218,7 @@ describe("AccessRules2", function() {
     // Remove FinancialsTable from being blocked. Check that it's now available in dropdown.
     ruleSet = findRuleSetWait(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-part-and-memo:nth-child(1) .test-rule-remove').click();
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     assert.equal(await gu.findOpenMenuItem('li', /FinancialsTable/).isPresent(), true);
     assert.equal(await gu.findOpenMenuItem('li', /FinancialsTable/).matches('.disabled'), false);
     await driver.sendKeys(Key.ESCAPE);
@@ -236,7 +236,7 @@ describe("AccessRules2", function() {
 
     // Add back FinancialsTable to be blocked.
     assert.equal(await findRuleSet(/FinancialsTable/, 1).isPresent(), false);
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/).click();
     ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
 
@@ -308,14 +308,14 @@ describe("AccessRules2", function() {
       await findTable(/ClientsTable/).find('.test-rule-table-menu-btn').click();
       await gu.findOpenMenuItem('li', /Delete Table Rules/).click();
     }
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /ClientsTable/).click();
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     // newRec term in the following does nothing, it is just there to test renaming later.
     await enterRulePart(ruleSet, 1, `not user.MyAccess.SharedOnly or rec.Shared or newRec.Shared`,
                         {R: 'allow'});
-    await enterRulePart(ruleSet, 2, null, 'Deny All');
+    await enterRulePart(ruleSet, 2, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitToPass(async () => {
       await gu.openPage('ClientsTable');
@@ -366,7 +366,7 @@ describe("AccessRules2", function() {
     assert.equal(await ruleSet.find('.test-rule-extra-add').isPresent(), false);
 
     // Enter a condition into the new default rule.
-    await enterRulePart(ruleSet, 2, `True`, 'Deny All');
+    await enterRulePart(ruleSet, 2, `True`, 'Deny all');
 
     // A new "+" button should appear.
     assert.lengthOf(await ruleSet.findAll('.test-rule-part'), 2);
@@ -449,7 +449,7 @@ describe("AccessRules2", function() {
       ["not user.MyAccess.ONLY_SHARED or rec.PUBLIC or newRec.PUBLIC", "Everyone Else"]);
 
     // Table options should update
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     const options = await driver.findAll('.grist-floating-menu li', e => e.getText());
     assert.deepEqual(options, ["ACCESS2", "CLIENT LIST", "CLIENT LIST [by Shared]", "FinancialsTable"]);
     await driver.sendKeys(Key.ESCAPE);    // Close menu.
@@ -605,18 +605,18 @@ describe("AccessRules2", function() {
     await driver.findWait('.test-rule-set', 2000);
 
     // Add a rule for TmpTable1.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /TmpTable1/, 3000).click();
     let ruleSet = findDefaultRuleSet(/TmpTable1/);
-    await enterRulePart(ruleSet, 1, null, 'Allow All');
+    await enterRulePart(ruleSet, 1, null, 'Allow all');
 
     // Add a rule for columns of TmpTable2.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /TmpTable2/, 3000).click();
     ruleSet = findDefaultRuleSet(/TmpTable2/);
-    await enterRulePart(ruleSet, 1, null, 'Allow All');
+    await enterRulePart(ruleSet, 1, null, 'Allow all');
     await findTable(/TmpTable2/).find('.test-rule-table-menu-btn').click();
-    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add column rule/).click();
     ruleSet = findRuleSet(/TmpTable2/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     await gu.findOpenMenuItem('li', 'A').click();

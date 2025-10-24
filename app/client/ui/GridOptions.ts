@@ -26,7 +26,7 @@ export class GridOptions extends Disposable {
         cssRow(
           labeledSquareCheckbox(
             setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines')),
-            t("Vertical Gridlines"),
+            t("Vertical gridlines"),
           ),
           testId('v-grid-button')
         ),
@@ -34,7 +34,7 @@ export class GridOptions extends Disposable {
         cssRow(
           labeledSquareCheckbox(
             setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines')),
-            t("Horizontal Gridlines"),
+            t("Horizontal gridlines"),
           ),
           testId('h-grid-button')
         ),
@@ -42,7 +42,7 @@ export class GridOptions extends Disposable {
         cssRow(
           labeledSquareCheckbox(
             setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes')),
-            t("Zebra Stripes"),
+            t("Zebra stripes"),
           ),
           testId('zebra-stripe-button')
         ),

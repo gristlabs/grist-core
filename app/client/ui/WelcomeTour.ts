@@ -59,7 +59,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Building up'),
       body: () => [
         dom('p', t('Use {{addNew}} to add widgets, pages, or import more data. ', {
-          addNew: ShortcutKey(t('Add New')),
+          addNew: ShortcutKey(t('Add new')),
         })),
       ],
       placement: 'right',

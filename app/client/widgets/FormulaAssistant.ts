@@ -262,7 +262,7 @@ export class FormulaAssistant extends Disposable {
           menu(() => [
             menuItem(
               () => this._chat.clear(),
-              t('Clear Conversation'),
+              t('Clear conversation'),
               testId('ai-assistant-options-clear-conversation'),
             ),
           ], {menuWrapCssClass: cssChatOptionsMenu.className}),
@@ -573,7 +573,7 @@ function buildIntroMessage(...args: DomElementArg[]) {
 are sent to OpenAI. {{learnMore}}.",
                   {
                     codeView: cssLink(
-                      t("Code View"),
+                      t("Code view"),
                       urlState().setLinkUrl({ docPage: "code" })
                     ),
                     learnMore: cssLink(t("Learn more"), {

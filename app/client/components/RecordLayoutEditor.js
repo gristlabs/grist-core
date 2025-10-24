@@ -93,9 +93,9 @@ RecordLayoutEditor.prototype.buildEditorDom = function() {
   };
 
   return cssControls(
-    basicButton(t('Add Field'), cssCollapseIcon('Collapse'),
+    basicButton(t('Add field'), cssCollapseIcon('Collapse'),
       menu((ctl) => [
-        menuItem(() => addNewField(), t('Create New Field')),
+        menuItem(() => addNewField(), t('Create new field')),
         dom.maybe((use) => use(this._hiddenColumns).length > 0,
           () => menuDivider()),
         dom.forEach(this._hiddenColumns, (col) =>
@@ -113,7 +113,7 @@ RecordLayoutEditor.prototype.buildEditorDom = function() {
 
 RecordLayoutEditor.prototype.buildFinishButtons = function() {
   return [
-    primaryButton(t('Save Layout'),
+    primaryButton(t('Save layout'),
       dom.on('click', () => commands.allCommands.accept.run()),
     ),
     basicButton(t('Cancel'),

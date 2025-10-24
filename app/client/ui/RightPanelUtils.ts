@@ -10,12 +10,12 @@ const t = makeT('RightPanel');
 export function getFieldType(widgetType: IWidgetType | null) {
   // A map of widget type to the icon and label to use for a field of that widget.
   const fieldTypes = new Map<IWidgetType, {label: string; icon: IconName; pluralLabel: string;}>([
-    ['record', {label: t('Columns', {count: 1}), icon: 'TypeCell', pluralLabel: t('Columns', {count: 2})}],
-    ['detail', {label: t('Fields', {count: 1}), icon: 'TypeCell', pluralLabel: t('Fields', {count: 2})}],
-    ['single', {label: t('Fields', {count: 1}), icon: 'TypeCell', pluralLabel: t('Fields', {count: 2})}],
-    ['chart', {label: t('Series', {count: 1}), icon: 'ChartLine', pluralLabel: t('Series', {count: 2})}],
-    ['custom', {label: t('Columns', {count: 1}), icon: 'TypeCell', pluralLabel: t('Columns', {count: 2})}],
-    ['form', {label: t('Fields', {count: 1}), icon: 'TypeCell', pluralLabel: t('Fields', {count: 2})}],
+    ['record', {label: t('columns', {count: 1}), icon: 'TypeCell', pluralLabel: t('columns', {count: 2})}],
+    ['detail', {label: t('fields', {count: 1}), icon: 'TypeCell', pluralLabel: t('fields', {count: 2})}],
+    ['single', {label: t('fields', {count: 1}), icon: 'TypeCell', pluralLabel: t('fields', {count: 2})}],
+    ['chart', {label: t('series', {count: 1}), icon: 'ChartLine', pluralLabel: t('series', {count: 2})}],
+    ['custom', {label: t('columns', {count: 1}), icon: 'TypeCell', pluralLabel: t('columns', {count: 2})}],
+    ['form', {label: t('fields', {count: 1}), icon: 'TypeCell', pluralLabel: t('fields', {count: 2})}],
   ]);
 
   return fieldTypes.get(widgetType || 'record') || fieldTypes.get('record')!;

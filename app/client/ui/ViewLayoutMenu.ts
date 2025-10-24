@@ -88,13 +88,13 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
     menuItemLink(hooks.maybeModifyLinkAttrs({ href: gristDoc.getXlsxActiveViewLink(), target: '_blank', download: ''}),
       t("Download as XLSX"), testId('download-section')),
     dom.maybe((use) => ['detail', 'single'].includes(use(viewSection.parentKey)), () =>
-      menuItemCmd(allCommands.editLayout, t("Edit Card Layout"),
+      menuItemCmd(allCommands.editLayout, t("Edit card layout"),
         dom.cls('disabled', isReadonly))),
 
     dom.maybe(!isSinglePage, () => [
       menuDivider(),
       menuItemCmd(allCommands.viewTabOpen, t("Widget options"), testId('widget-options')),
-      menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced Sort & Filter"), dom.hide(viewSection.isRecordCard)),
+      menuItemCmd(allCommands.sortFilterTabOpen, t("Advanced sort & filter"), dom.hide(viewSection.isRecordCard)),
       menuItemCmd(allCommands.dataSelectionTabOpen, t("Data selection"), dom.hide(viewSection.isRecordCard)),
       menuItemCmd(allCommands.createForm, t("Create a form"), dom.show(isTable)),
     ]),

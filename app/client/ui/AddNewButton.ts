@@ -21,7 +21,7 @@ export function addNewButton(
     cssAddNewButton.cls('-disabled', isDisabled),
     // Setting spacing as flex items allows them to shrink faster when there isn't enough space.
     cssLeftMargin(),
-    cssAddText(t("Add New")),
+    cssAddText(t("Add new")),
     dom('div', {style: 'flex: 1 1 16px'}),
     cssPlusButton(
       cssPlusButton.cls('-disabled', isDisabled),

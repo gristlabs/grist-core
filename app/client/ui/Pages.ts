@@ -166,7 +166,7 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
             t("Keep data and delete page. Table will remain available in {{rawDataLink}}",
               {
                 rawDataLink: cssLink(
-                  t('raw data page'),
+                  t('Raw Data page'),
                   urlState().setHref({docPage: 'data'}),
                   {target: '_blank'},
                 )

@@ -117,11 +117,11 @@ export class AccountPage extends Disposable {
         ),
         // show warning for invalid name but not for the empty string
         dom.maybe(use => use(this._nameEdit) && !use(this._isNameValid), this._buildNameWarningsDom.bind(this)),
-        css.header(t("Password & Security")),
+        css.header(t("Password & security")),
         css.dataRow(
-          css.inlineSubHeader(t("Login Method")),
+          css.inlineSubHeader(t("Login method")),
           css.loginMethod(user.loginMethod),
-          user.loginMethod === 'Email + Password' ? css.textBtn(t("Change Password"),
+          user.loginMethod === 'Email + Password' ? css.textBtn(t("Change password"),
             dom.on('click', () => this._showChangePasswordDialog()),
           ) : null,
           testId('login-method'),
