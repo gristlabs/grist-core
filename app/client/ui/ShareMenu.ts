@@ -49,6 +49,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // to render its contents, but we handle by merely skipping such content if gristDoc is not yet
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
+    const isProposable = Boolean(doc.options?.proposedChanges?.acceptProposals);
     const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
     if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
@@ -64,15 +65,29 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuOriginal(doc, pageModel, {isTutorialFork: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
-    } else if (doc.isPreFork || doc.isBareFork) {
+    } else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
       // A new unsaved document, or a fiddle, or a public example.
-      const saveActionTitle = doc.isBareFork ? t("Save Document") : t("Save Copy");
+      const saveActionTitle =
+          doc.isBareFork ? t("Save Document") :
+          isProposable ? t("Suggest Changes") : t("Save Copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
+      if (isProposable) {
+        return shareButton(t("Suggest Changes"), () => [
+          menuManageUsers(doc, pageModel),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+          menuOriginal(doc, pageModel),
+          menuExports(doc, pageModel),
+        ], {buttonAction: async () => {
+          await urlState().pushUrl({
+            docPage: 'suggestions'
+          });
+        }});
+      }
       // For forks, the main actions are "Replace Original" and "Save Copy". When "Replace
       // Original" is unavailable (for samples, forks of public docs, etc), we'll consider "Save
       // Copy" primary and keep it as an action button on top. Otherwise, show a tag without a
@@ -96,7 +111,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate Document")}),
-        menuWorkOnCopy(pageModel),
+        menuWorkOnCopy(pageModel, {suggestChanges: isProposable}),
         menuExports(doc, pageModel),
       ]);
     }
@@ -254,7 +269,9 @@ function menuSaveCopy(options: {
 }
 
 // Renders "Work on a Copy" menu item.
-function menuWorkOnCopy(pageModel: DocPageModel) {
+function menuWorkOnCopy(pageModel: DocPageModel, options?: {
+  suggestChanges?: boolean
+}) {
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
@@ -263,8 +280,9 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
     await urlState().pushUrl({doc: urlId});
   };
 
+  const label = options?.suggestChanges ? t("Suggest Changes") : t("Work on a Copy");
   return [
-    menuItem(makeUnsavedCopy, t("Work on a Copy"), testId('work-on-copy')),
+    menuItem(makeUnsavedCopy, label, testId('work-on-copy')),
     menuText(
       withInfoTooltip(
         t("Edit without affecting the original"),

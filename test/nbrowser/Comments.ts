@@ -21,21 +21,11 @@ describe('Comments', function() {
   const notification = '.test-draft-notification';
 
   before(async function() {
-    session = await gu.session().teamSite.login({showTips: true});
+    session = await gu.session().teamSite.login();
     MODKEY = await modKey();
     currentApi = session.createHomeApi();
     ownerApi = currentApi;
     ownerRef = (await currentApi.getSessionActive()).user.ref ?? '';
-  });
-
-  it('should show an announcement popup', async function() {
-    docId = (await session.tempShortDoc(cleanup, 'Hello.grist')).id;
-    await gu.waitToPass(async () => {
-      assert.equal(
-        await driver.find(".test-behavioral-prompt-title").getText(),
-        "Comments are here!"
-      );
-    });
   });
 
   it('should not render markdown on edits', async function() {

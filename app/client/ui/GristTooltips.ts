@@ -3,7 +3,6 @@ import {makeT} from 'app/client/lib/localization';
 import {cssMarkdownSpan} from 'app/client/lib/markdown';
 import {buildHighlightedCode} from 'app/client/ui/CodeHighlight';
 import {ShortcutKey, ShortcutKeyContent} from 'app/client/ui/ShortcutKey';
-import {basicButtonLink} from 'app/client/ui2018/buttons';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, GristDeploymentType} from 'app/common/gristUrls';
@@ -32,23 +31,6 @@ const cssIcon = styled(icon, `
   width: 18px;
 `);
 
-const cssNewsPopupLink = styled(basicButtonLink, `
-  color: white;
-  border: 1px solid white;
-  padding: 3px;
-
-  &:hover, &:focus, &:visited {
-    color: white;
-    border-color: white;
-  }
-`);
-
-const cssNewsPopupTitle = styled('div', `
-  display: flex;
-  align-items: center;
-  column-gap: 8px;
-`);
-
 export type Tooltip =
   | 'dataSize'
   | 'setTriggerFormula'
@@ -72,6 +54,7 @@ export type Tooltip =
   | 'uploadAttachments'
   | 'adminControls'
   | 'formFraming'
+  | 'formUrlValues'
   | 'rowHeight'
   ;
 
@@ -257,6 +240,11 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
       }
     )),
   ),
+  formUrlValues: () => cssTooltipContent(
+    dom('div',
+      t("When checked, this field’s default value can be prefilled from the URL using query parameters.")),
+    dom('div', cssLink({href: commonUrls.helpFormUrlValues, target: "_blank"}, t('Learn more.'))),
+  ),
   rowHeight: (...args: DomElementArg[]) => cssTooltipContent(
     t('Set the maximum number of lines for multi-line text.'),
     ...args,
@@ -441,27 +429,6 @@ Note each column's type.")),
       dom('div', t("Can't find the right columns? Click 'Change Widget' to select the table with events \
 data.")),
       dom('div', cssLink({href: commonUrls.helpCalendarWidget, target: '_blank'}, t('Learn more.'))),
-      ...args,
-    ),
-    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
-  },
-  comments: {
-    popupType: 'news',
-    audience: 'signed-in-users',
-    title: () => cssNewsPopupTitle(
-      icon('Chat'),
-      t('Comments are here!'),
-    ),
-    content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div',
-        t('You can add comments to cells, reply to comment threads, and @-mention collaborators.'),
-      ),
-      dom('div',
-        cssNewsPopupLink(t('Learn more.'), {
-          href: commonUrls.helpComments,
-          target: '_blank',
-        }),
-      ),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],

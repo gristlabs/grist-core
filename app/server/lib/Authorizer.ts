@@ -223,9 +223,12 @@ export async function addRequestUser(
     if (!bootKey || bootKey !== reqBootKey) {
       return res.status(401).send('Bad request: invalid Boot key');
     }
-    const userId = dbManager.getSupportUserId();
-    const user = await dbManager.getUser(userId);
-    setRequestUser(mreq, dbManager, user!);
+    const admin = options.gristServer.getInstallAdmin();
+    const user = await admin.getAdminUser();
+    if (!user) {
+      return res.status(500).send('No admin user available');
+    }
+    setRequestUser(mreq, dbManager, user);
     authDone = true;
   }
 

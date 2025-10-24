@@ -34,13 +34,13 @@ import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 import type {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {BuildEditorOptions, createAllFieldWidgets, FieldBuilder} from 'app/client/widgets/FieldBuilder';
 import {BulkColValues, CellValue, DocAction, UserAction} from 'app/common/DocActions';
+import {DocStateComparison} from 'app/common/DocState';
 import {DismissedPopup} from 'app/common/Prefs';
 import {SortFunc} from 'app/common/SortFunc';
 import {Sort} from 'app/common/SortSpec';
 import * as gristTypes from 'app/common/gristTypes';
 import {IGristUrlState} from 'app/common/gristUrls';
 import {arrayRepeat, nativeCompare, roundDownToMultiple, waitObs} from 'app/common/gutil';
-import {DocStateComparison} from 'app/common/UserAPI';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 
 import {Events as BackboneEvents} from 'backbone';

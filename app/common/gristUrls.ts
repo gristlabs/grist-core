@@ -24,7 +24,7 @@ const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
 export const SpecialDocPage = StringUnion(
   'code', 'acl', 'data', 'GristDocTour',
-  'proposals', 'settings', 'webhook', 'timing',
+  'settings', 'suggestions', 'webhook', 'timing',
 );
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
@@ -137,7 +137,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
   helpSharing: 'https://support.getgrist.com/sharing',
-  helpComments: 'https://support.getgrist.com/sharing/#comments',
+  helpFormUrlValues: 'https://support.getgrist.com/widget-form/#accept-value-from-url',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),

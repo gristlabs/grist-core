@@ -916,7 +916,7 @@ export async function timeoutReached(
   }
   const timedOut = {};
   // Be careful to clean up the timer after ourselves, so it doesn't remain in the event loop.
-  let timer: NodeJS.Timer;
+  let timer: NodeJS.Timeout;
   const delayPromise = new Promise<any>((resolve) => { timer = setTimeout(() => resolve(timedOut), msec); });
   try {
     const res = await Promise.race([promise, delayPromise]);

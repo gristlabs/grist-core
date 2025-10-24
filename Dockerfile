@@ -10,7 +10,7 @@ FROM scratch AS ext
 ## Javascript build stage
 ################################################################################
 
-FROM node:22-bookworm AS prod-builder
+FROM node:22-trixie AS prod-builder
 
 # Install all node dependencies.
 WORKDIR /grist
@@ -61,13 +61,9 @@ RUN \
 ################################################################################
 
 # Fetch python3.11
-FROM python:3.11-slim-bookworm AS collector-py3
+FROM python:3.11-slim-trixie AS collector-py3
 COPY sandbox/requirements.txt requirements.txt
-# setuptools is installed explicitly to 75.8.1 to avoid vunerable 65.5.1
-# version installed by default. 75.8.1 is the up to date version compatible with
-# python >= 3.9
 RUN \
-  pip3 install setuptools==75.8.1 && \
   pip3 install -r requirements.txt
 
 ################################################################################
@@ -89,7 +85,7 @@ FROM docker.io/gristlabs/gvisor-unprivileged:buster AS sandbox
 ################################################################################
 
 # Now, start preparing final image.
-FROM node:22-bookworm-slim
+FROM node:22-trixie-slim
 
 ARG GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=false
 

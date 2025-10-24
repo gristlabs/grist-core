@@ -10,10 +10,10 @@ import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, Impor
         TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, CellValue, fromTableDataAction, UserAction} from 'app/common/DocActions';
+import {DocStateComparison} from 'app/common/DocState';
 import {isBlankValue} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
 import {localTimestampToUTC} from 'app/common/RelativeDates';
-import {DocStateComparison} from 'app/common/UserAPI';
 import {guessColInfoForImports} from 'app/common/ValueGuesser';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {GristColumn, GristTable} from 'app/plugin/GristTable';

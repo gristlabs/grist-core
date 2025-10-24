@@ -89,7 +89,7 @@ export function mapSetOrClear<K, V>(map: Map<K, Promise<V>>, key: K, pvalue: Pro
  * A Map implementation that allows for expiration of old values.
  */
 export class MapWithTTL<K, V> extends Map<K, V> {
-  private _timeouts = new Map<K, NodeJS.Timer>();
+  private _timeouts = new Map<K, NodeJS.Timeout>();
 
   /**
    * Create a map with keys that will be automatically deleted _ttlMs

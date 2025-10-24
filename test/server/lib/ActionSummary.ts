@@ -138,7 +138,7 @@ describe("ActionSummary", function() {
       ["RemoveRecord", "Frogs", 2],
     ]);
     const sum = await summarizeLastAction(doc);
-    const tabularDiffs = asTabularDiffs(sum);
+    const tabularDiffs = asTabularDiffs(sum, {});
     assert.sameDeepMembers(tabularDiffs.Frogs.header,
                            ['species', 'color', 'place']);
     assert.lengthOf(tabularDiffs.Frogs.cells, 3);
@@ -171,7 +171,7 @@ describe("ActionSummary", function() {
       }]
     ]);
     const sum = await summarizeLastAction(doc);
-    const tabularDiffs = asTabularDiffs(sum);
+    const tabularDiffs = asTabularDiffs(sum, {});
     assert.sameDeepMembers(tabularDiffs.Frogs.header,
                            ['species', 'color', 'place']);
     assert(tabularDiffs.Frogs.cells.length < ids.length);
@@ -197,7 +197,7 @@ describe("ActionSummary", function() {
         }
       }
     };
-    const tabularDiffs = asTabularDiffs(sum);
+    const tabularDiffs = asTabularDiffs(sum, {});
     assert.lengthOf(tabularDiffs.Duck.cells, 2);
     assert.sameDeepMembers(tabularDiffs.Duck.cells,
                            [{type: "-", rowId: 1, cellDeltas: [[["yellow"], null]]},

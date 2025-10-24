@@ -45,7 +45,7 @@ import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widget
 import {ariaTabs} from 'app/client/ui2018/ariaTabs';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {cssLabel as cssCheckboxLabel, labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
@@ -1192,6 +1192,9 @@ const cssRow = styled('div', `
   }
   &-disabled {
     color: ${theme.disabledText};
+  }
+  & .${cssCheckboxLabel.className} {
+    flex-shrink: revert;  /* allow checkbox labels to wrap in right-panel rows */
   }
 `);
 
