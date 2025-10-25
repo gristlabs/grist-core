@@ -54,7 +54,6 @@ import {IOpenController} from 'popweasel';
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
 /* eslint-disable @typescript-eslint/member-ordering */
 
-
 /**
  * BaseView forms the basis for ViewSection classes.
  * @param {Object} viewSectionModel - The model for the viewSection represented.
@@ -426,13 +425,17 @@ export default class BaseView extends Disposable {
 
   /**
    * Sets the cursor to the given position, deferring if necessary until the current query finishes
-   * loading. isFromLink will be set when called as result of cursor linking(see Cursor.setCursorPos for info)
+   * loading.
+   *
+   * @param cursorPos - Cursor position to set to
+   * @param isFromLink - Set when called as a result of cursor linking (see Cursor.setCursorPos for info)
+   * @param immediate - Avoids deferring - immediately sets the cursor pos
    */
-  public setCursorPos(cursorPos: CursorPos, isFromLink = false): void {
+  public setCursorPos(cursorPos: CursorPos, isFromLink = false, immediate = false): void {
     if (this.isDisposed()) {
       return;
     }
-    if (!this._isLoading.peek()) {
+    if (!this._isLoading.peek() || immediate) {
       this.cursor.setCursorPos(cursorPos, isFromLink);
     } else {
       // This is the first step; the second happens in onTableLoaded.
@@ -809,7 +812,7 @@ export default class BaseView extends Disposable {
   protected onTableLoaded() {
     // Complete the setting of a pending cursor position (see setCursorPos() for the first half).
     if (this._pendingCursorPos) {
-      this.cursor.setCursorPos(this._pendingCursorPos);
+      this.setCursorPos(this._pendingCursorPos, false, true);
       this._pendingCursorPos = null;
     }
     this._isLoading(false);

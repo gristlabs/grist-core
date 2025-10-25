@@ -829,7 +829,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Describes the most recent cursor position in the section.
   this.lastCursorPos = {
-    rowId:      0,
+    rowIndex:   0,
     fieldIndex: 0
   };
 
