@@ -620,6 +620,7 @@ export class DocWorkerApi {
         // Sending headers then resetting the connection shows as 'Download failed', regardless of the
         // 'download' attribute being set.
         res.destroy(err);
+        log.error("Error while packing attachment archive", err);
       }
       res.end();
     }));

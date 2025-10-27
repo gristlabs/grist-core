@@ -48,28 +48,37 @@ export function create_zip_archive(
     fileExtension: "zip",
     async packInto(destination: stream.Writable, options: ArchivePackingOptions = defaultPackingOptions) {
       const archive = new ZipStream(zipOptions);
-      let pipeline: Promise<void> | undefined;
-      try {
-        // `as any` cast required with @types/node 18.X due to the `end` parameter missing from the type declaration.
-        pipeline = stream.promises.pipeline(archive, destination, { end: options.endDestStream } as any);
-        for await (const entry of entries) {
-          // ZipStream will break if multiple entries try to be added at the same time.
-          await addEntryToZipArchive(archive, entry);
-        }
-        archive.finish();
-      } catch (error) {
-        archive.destroy(error);
-      } finally {
-        // This ensures any errors in the stream (e.g. from destroying it above) are handled.
-        // Without this, node will see the stream as having an uncaught error, and complain or crash.
-        await pipeline;
-      }
+      // `as any` cast required with @types/node 18.X due to the `end` parameter missing from the type declaration.
+      const pipeline = stream.promises.pipeline(archive, destination, { end: options.endDestStream } as any);
+
+      // This can hang indefinitely in various error cases (e.g. `destination` stream closes unexpectedly).
+      // `pipeline` should still resolve correctly, but none of the code in this block is guaranteed to execute.
+      addEntriesToZipArchive(archive, entries)
+        .then(() => archive.finish())
+        .catch((err) => archive.destroy(err));
+
+      // This ensures any errors in the stream (e.g. from destroying it above) are propagated.
+      await pipeline;
     }
   };
 }
 
+// Asynchronously iterating entries - and trying to add them to the archive.
+// Warning: This function may hang indefinitely in the archive stream errors. DO NOT AWAIT IT.
+// This is due to the underlying ZipStream "pumping" the entry queue to keep adding entries.
+// In some circumstances the callback doesn't fire (e.g. there's a downstream error).
+async function addEntriesToZipArchive(archive: ZipStream, entries: AsyncIterable<ArchiveEntry>): Promise<void> {
+  // ZipStream will break if multiple entries try to be added at the same time.
+  for await ( const entry of entries) {
+    await addEntryToZipArchive(archive, entry);
+  }
+}
+
 function addEntryToZipArchive(archive: ZipStream, file: ArchiveEntry): Promise<ZipArchiveEntry | undefined> {
   return new Promise((resolve, reject) => {
+    archive.on("error", function (err) {
+      reject(new Error(`Archive error: ${err}`, { cause: err }));
+    });
     archive.entry(file.data, { name: file.name }, function(err, entry) {
       if (err) {
         return reject(err);
