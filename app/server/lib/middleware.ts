@@ -8,3 +8,10 @@ export function disableCache(_req: Request, res: Response, next: NextFunction) {
 
   next();
 }
+
+/**
+ * Calls the `next` function.
+ */
+export function noop(_req: Request, _res: Response, next: NextFunction) {
+  next();
+}

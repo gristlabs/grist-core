@@ -1,6 +1,10 @@
-import {bigPrimaryButton as gristBigPrimaryButton,
-        bigPrimaryButtonLink as gristBigPrimaryButtonLink,
-        textButton as gristTextButton} from 'app/client/ui2018/buttons';
+import {
+  bigBasicButton as gristBigBasicButton,
+  bigBasicButtonLink as gristBigBasicButtonLink,
+  bigPrimaryButton as gristBigPrimaryButton,
+  bigPrimaryButtonLink as gristBigPrimaryButtonLink,
+  textButton as gristTextButton,
+} from 'app/client/ui2018/buttons';
 import {mediaXSmall, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui/inputs';
 import {styled} from 'grainjs';
@@ -104,28 +108,30 @@ export const horizontalLine = styled('hr', `
   flex-grow: 1;
 `);
 
-/**
- * TODO: Consider using our own outline.
- *
- * We revert here to improve accessibility on the login pages. We could also
- * leave the default outline alone, since it doesn't seem to appear on
- * click anymore (in modern browsers, at least).
- */
-export const bigPrimaryButton = styled(gristBigPrimaryButton, `
+const buttonCommonStyles = `
+  /* TODO: Remove once Grist buttons have outlines. */
   outline: revert;
-  font-weight: 500;
-  height: 48px;
-  font-size: 15px;
-  line-height: 16px;
-`);
 
-export const bigPrimaryButtonLink = styled(gristBigPrimaryButtonLink, `
-  outline: revert;
-  padding: 16px 32px 16px 32px;
   font-weight: 500;
   font-size: 15px;
   line-height: 16px;
-`);
+`;
+
+const buttonStyles = buttonCommonStyles + `
+  height: 48px;
+`;
+
+const buttonLinkStyles = buttonCommonStyles + `
+  padding: 16px 32px 16px 32px;
+`;
+
+export const bigBasicButton = styled(gristBigBasicButton, buttonStyles);
+
+export const bigBasicButtonLink = styled(gristBigBasicButtonLink, buttonLinkStyles);
+
+export const bigPrimaryButton = styled(gristBigPrimaryButton, buttonStyles);
+
+export const bigPrimaryButtonLink = styled(gristBigPrimaryButtonLink, buttonLinkStyles);
 
 export const textButton = styled(gristTextButton, `
   outline: revert;
@@ -176,7 +182,6 @@ export const formHeading = styled('div', `
     & {
       font-size: 24px;
       line-height: 32px;
-      margin-bottom: 16px;
     }
   }
 `);

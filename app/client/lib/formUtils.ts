@@ -10,7 +10,8 @@ interface SubmitOptions<T> {
   disabled?: Observable<boolean>;
   onSubmit?: (
     fields: { [key: string]: string },
-    form: HTMLFormElement
+    form: HTMLFormElement,
+    event: SubmitEvent
   ) => MaybePromise<T>;
   onSuccess?: (v: T) => void;
   onError?: (e: unknown) => void;
@@ -42,7 +43,7 @@ export function handleSubmit<T>(
 
     pending?.set(true);
     try {
-      const result = await onSubmit(formDataToObj(form), form);
+      const result = await onSubmit(formDataToObj(form), form, e);
       onSuccess(result);
     } catch (err) {
       onError(err);
