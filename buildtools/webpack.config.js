@@ -11,6 +11,18 @@ const base = path.dirname(path.dirname(require.resolve('grainjs/package.json')))
 const extraModulePaths = (process.env.WEBPACK_EXTRA_MODULE_PATHS || '')
   .split(path.delimiter).filter(Boolean);
 
+if (process.env.WEBPACK_EXTRA_MODULE_PATHS === undefined &&
+    fs.existsSync('ext')) {
+  console.warn('Including ../node_modules because ext is present');
+  // When adding extensions to Grist, the node packages are
+  // placed one directory up from the main repository. This
+  // is annoying, but goes with the grain of how node looks
+  // for node_modules directories. But webpack doesn't match
+  // that, so add `../node_modules` if the `ext` exists and
+  // the user isn't controlling module paths.
+  extraModulePaths.push(path.resolve('../node_modules'));
+}
+
 module.exports = {
   target: 'web',
   entry: {
