@@ -344,6 +344,19 @@ export class ApiServer {
       return sendOkReply(req, res);
     }));
 
+    // POST /api/docs/:did/enable
+    // Enables the specified doc if it was previously disabled and is
+    // still available.
+    this._app.post('/api/docs/:did/enable', requireInstallAdmin, expressWrap(async (req, res) => {
+      const mreq = req as RequestWithLogin;
+      const docId = req.params.did;
+      // We have admin access, so grant a special permit to this doc
+      mreq.specialPermit = {...mreq.specialPermit, docId};
+      const {data} = await this._dbManager.enableDocument(getDocScope(mreq));
+      if (data) { this._logEnableDocumentEvents(req, data); }
+      return sendOkReply(req, res);
+    }));
+
     // PATCH /api/orgs/:oid/access
     // Update the specified org acl rules.
     this._app.patch('/api/orgs/:oid/access', expressWrap(async (req, res) => {
@@ -788,6 +801,21 @@ export class ApiServer {
   private _logRestoreDocumentEvents(req: Request, document: Document) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "document.restore_from_trash",
+      context: {
+        site: pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details: {
+        document: {
+          ...pick(document, "id", "name"),
+          workspace: pick(document.workspace, "id", "name"),
+        },
+      },
+    });
+  }
+
+  private _logEnableDocumentEvents(req: Request, document: Document) {
+    this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
+      action: "document.enable",
       context: {
         site: pick(document.workspace.org, "id", "name", "domain"),
       },
