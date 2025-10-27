@@ -391,6 +391,8 @@ export class Importer extends DisposableWithEvents {
     this.onDispose(() => {
       this._resetImportDiffState();
     });
+
+    this._setupGlobalEditorCleanup();
   }
 
   /*
@@ -449,6 +451,19 @@ export class Importer extends DisposableWithEvents {
     } else {
       await this._cancelImport();
     }
+  }
+
+  private _setupGlobalEditorCleanup() {
+    // Whenever we get focus, close also the main global formula editor that might get activated
+    // by the preview itself.
+    // TODO: refactor this code, the formula editor here should reuse global cleanup code.
+    const closeGlobalEditor = () => this._gristDoc.fieldEditorHolder.clear();
+    this.on('importer_focus', closeGlobalEditor);
+    this.onDispose(() => {
+      this.off('importer_focus', closeGlobalEditor);
+      if (this._gristDoc.isDisposed()) { return; }
+      closeGlobalEditor();
+    });
   }
 
   private _getPrimaryViewSection(tableId: string): ViewSectionRec {

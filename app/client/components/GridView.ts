@@ -144,7 +144,9 @@ export default class GridView extends BaseView {
     super(gristDoc, viewSectionModel, { isPreview, 'addNewRow': true });
 
     this.viewSection = viewSectionModel;
-    this.isReadonly = this.gristDoc.isReadonly.get() || this.viewSection.isVirtual();
+    this.isReadonly = this.gristDoc.isReadonly.get() ||
+                      this.viewSection.isVirtual() ||
+                      isPreview;
 
     //--------------------------------------------------
     // Observables local to this view
@@ -1352,7 +1354,7 @@ export default class GridView extends BaseView {
 
                 let filterTriggerCtl: PopupControl;
                 const isTooltip = ko.pureComputed(() =>
-                  this.editingFormula() &&
+                  this.editingFormula() && !this.isReadonly &&
                   ko.unwrap(this.hoverColumn) === field._index()
                 );
 
@@ -1618,7 +1620,7 @@ export default class GridView extends BaseView {
             });
 
             const isTooltip = ko.pureComputed(() =>
-              this.editingFormula() &&
+              this.editingFormula() && !this.isReadonly &&
               ko.unwrap(this.hoverColumn) === field._index()
             );
 
