@@ -1,7 +1,7 @@
 import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer";
 import {createEmptyActionSummary} from "app/common/ActionSummary";
 import {QueryFilters} from 'app/common/ActiveDocAPI';
-import {ApiError, LimitType} from 'app/common/ApiError';
+import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
 import {
   BulkColValues,
@@ -228,8 +228,6 @@ export class DocWorkerApi {
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
-    // check that limit can be increased by 1
-    const checkLimit = (type: LimitType) => expressWrap(this._checkLimit.bind(this, type));
 
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
@@ -1539,24 +1537,10 @@ export class DocWorkerApi {
      * Send a request to the assistant to get completions. Increases the
      * usage of the assistant for the billing account in case of success.
      */
-    this._app.post('/api/docs/:docId/assistant', canView, checkLimit('assistant'),
-      withDoc(async (activeDoc, req, res) => {
+    this._app.post('/api/docs/:docId/assistant', canView, withDoc(async (activeDoc, req, res) => {
         const docSession = docSessionFromRequest(req);
         const request = req.body;
-        const assistant = this._grist.getAssistant();
-        if (!assistant) {
-          throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
-        }
-
-        const result = await assistant.getAssistance(docSession, activeDoc, request);
-        const limit = await this._increaseLimit('assistant', req);
-        res.json({
-          ...result,
-          limit: !limit ? undefined : {
-            usage: limit.usage,
-            limit: limit.limit,
-          },
-        });
+        res.json(await activeDoc.getAssistance(docSession, request));
       })
     );
 
@@ -2129,22 +2113,6 @@ export class DocWorkerApi {
 
     // Allow the request through.
     return false;
-  }
-
-  /**
-   * Creates a middleware that checks the current usage of a limit and rejects the request if it is
-   * exceeded.
-   */
-  private async _checkLimit(limit: LimitType, req: Request, res: Response, next: NextFunction) {
-    await this._dbManager.increaseUsage(getDocScope(req), limit, {dryRun: true, delta: 1});
-    next();
-  }
-
-  /**
-   * Increases the current usage of a limit by 1.
-   */
-  private async _increaseLimit(limit: LimitType, req: Request) {
-    return await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
   }
 
   /**

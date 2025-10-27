@@ -114,8 +114,11 @@ import {getAndRemoveAssistantStatePermit} from 'app/server/lib/AssistantStatePer
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
+  isAssistantV2,
 } from 'app/server/lib/IAssistant';
-import {AssistanceContextV1} from 'app/common/Assistance';
+import {
+  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2
+} from 'app/common/Assistance';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -646,6 +649,40 @@ export class ActiveDoc extends EventEmitter {
 
   public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
     return this._userPresence.listVisibleUserProfiles(docSession);
+  }
+
+  public async getAssistance(docSession: OptDocSession,
+                             params: AssistanceRequest): Promise<AssistanceResponse> {
+    const dbManager = this._getHomeDbManagerOrFail();
+    const userId = docSession.userId || dbManager.getAnonymousUserId();
+    const scope = {
+      urlId: this.docName,
+      userId,
+    };
+    await dbManager.increaseUsage(scope, 'assistant', {delta: 1, dryRun: true});
+
+    const assistant = this._server.getAssistant();
+    if (!assistant) {
+      throw new Error('Please set ASSISTANT_CHAT_COMPLETION_ENDPOINT OPENAI_API_KEY');
+    }
+
+    let result: AssistanceResponse;
+    if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
+      result = await assistant.getAssistance(docSession, this, params);
+    } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
+      // Same code, different types.
+      result = await assistant.getAssistance(docSession, this, params);
+    } else {
+      throw new ApiError('Wrong type of assistance request', 400);
+    }
+    const limit = await dbManager.increaseUsage(scope, 'assistant', {delta: 1});
+    return {
+      ...result,
+      limit: !limit ? undefined : {
+        usage: limit.usage,
+        limit: limit.limit,
+      },
+    };
   }
 
   /**
