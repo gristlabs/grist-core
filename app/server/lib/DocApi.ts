@@ -620,7 +620,11 @@ export class DocWorkerApi {
         // Sending headers then resetting the connection shows as 'Download failed', regardless of the
         // 'download' attribute being set.
         res.destroy(err);
-        log.error("Error while packing attachment archive", err);
+        if (err?.code === "ERR_STREAM_PREMATURE_CLOSE") {
+          log.warn("Client closed archive download stream before completion");
+        } else {
+          log.error("Error while packing attachment archive", err);
+        }
       }
       res.end();
     }));
