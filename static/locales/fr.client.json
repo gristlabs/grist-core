@@ -217,7 +217,12 @@
         "Min": "Min",
         "Max": "Max",
         "Start": "Début",
-        "End": "Fin"
+        "End": "Fin",
+        "Clear search": "Effacer la recherche",
+        "Pin filter": "Épingler le filtre",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Trier par ordre alphabétique (actuellement : trié par nombre d'occurrences)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Trier par nombre d'occurrences (actuellement : trié par ordre alphabétique)",
+        "Unpin filter": "Désépingler le filtre"
     },
     "CustomSectionConfig": {
         "Add": "Ajouter",
@@ -245,7 +250,8 @@
         "Missing description and author information.": "Informations sur la description et sur l'auteur/rice manquantes.",
         "Last updated:": "Dernière mise à jour :",
         "Reject": "Refuser",
-        "Widget": "Widget"
+        "Widget": "Widget",
+        "Change custom widget": "Changer la vue personnalisée"
     },
     "DataTables": {
         "Raw Data Tables": "Données sources",
@@ -314,7 +320,9 @@
         "Any documents created in this site will appear here.": "Tout document créé dans cet espace apparaîtra ici.",
         "Create my first document": "Créer mon premier document",
         "You have read-only access to this site. Currently there are no documents.": "Vous avez accès en lecture seule à cet espace. Actuellement il n'y a aucun document.",
-        "personal site": "espace personnel"
+        "personal site": "espace personnel",
+        "Grid view": "Vue icônes",
+        "List view": "Vue liste"
     },
     "DocPageModel": {
         "Error accessing document": "Erreur lors de l'accès au document",
@@ -491,7 +499,11 @@
         "Revert to common settings": "Revenir aux paramètres communs"
     },
     "FilterConfig": {
-        "Add Column": "Ajouter une colonne"
+        "Add Column": "Ajouter une colonne",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Épingler le filtre - colonne {{- columnName}} (actuellement: désépinglé)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Désépingler le filtre - colonne {{- columnName}} (actuellement : épinglé)",
+        "remove filter - {{- columnName}} column": "supprimer le filtre - colonne {{- columnName}}",
+        "{{- columnName }} column filters": "filtres de la colonne {{- columnName }}"
     },
     "FilterBar": {
         "SearchColuns": "Rechercher",
@@ -809,7 +821,8 @@
         "No field selected": "Aucun champ sélectionné",
         "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer.",
         "Submit": "Valider",
-        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée."
+        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée.",
+        "Chart options": "Options du graphique"
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -866,7 +879,12 @@
         "Use choice position": "Utiliser l'ordre des choix",
         "Natural sort": "Trier",
         "Empty values last": "Valeurs vides en dernier",
-        "Search Columns": "Rechercher dans les colonnes"
+        "Search Columns": "Rechercher dans les colonnes",
+        "Remove sort setting - {{- columnName }} column": "Supprimer l'option de tri - colonne {{- columnName }}",
+        "Sort in ascending order (current: descending)": "Trier par ordre croissant (actuellement : ordre décroissant)",
+        "Sort in descending order (current: ascending)": "Trier par ordre décroissant (actuellement : ordre croissant)",
+        "Sort options - {{- columnName }} column": "Options de tri - colonne {{- columnName }}",
+        "{{- columnName }} column": "colonne {{- columnName }}"
     },
     "SortFilterConfig": {
         "Save": "Enregistrer",
@@ -984,7 +1002,9 @@
         "Visible {{label}}": "{{label}} visible",
         "Hide {{label}}": "Cacher {{label}}",
         "Show {{label}}": "Montrer {{label}}",
-        "Hidden {{label}}": "{{label}} caché"
+        "Hidden {{label}}": "{{label}} caché",
+        "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
+        "Show {{label}} (batch mode)": "Montrer {{label}} (mode groupé)"
     },
     "WelcomeQuestions": {
         "Welcome to Grist!": "Bienvenue sur Grist !",
@@ -1048,7 +1068,19 @@
         "Powered by": "Créé avec",
         "An unknown error occurred.": "Une erreur inconnue s'est produite.",
         "Sign-in failed{{suffix}}": "Échec de l'authentification{{suffix}}",
-        "Failed to log in.{{separator}}Please try again or contact support.": "Échec de la connexion.{{separator}}Merci de retenter ou contacter le support."
+        "Failed to log in.{{separator}}Please try again or contact support.": "Échec de la connexion.{{separator}}Merci de retenter ou contacter le support.",
+        "Manage settings": "Gérer les paramètres",
+        "Need Help?": "Besoin d'aide ?",
+        "There was an error": "Une erreur s'est produite",
+        "We could not unsubscribe you": "Nous n'avons pas pu vous désabonner",
+        "You are unsubscribed": "Vous êtes désabonné·e",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Vous pouvez toujours vous désabonner de ce document en mettant à jour vos préférences dans les paramètres du document",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications à l'adresse {{email}} concernant les {{changes}} apportés à {{docName}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications à l'adresse {{email}} concernant les {{comments}} dans {{docName}}.",
+        "changes": "modifications",
+        "comments": "commentaires",
+        "this document": "ce document",
+        "your email": "votre email"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1106,7 +1138,8 @@
         "No results": "Aucun résultat",
         "Find Next ": "Rechercher suivant ",
         "Find Previous ": "Rechercher le précédent ",
-        "Search": "Chercher"
+        "Search": "Chercher",
+        "Close search bar": "Fermer la barre de recherche"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Envoi en cours vers Google Drive"
@@ -1561,7 +1594,8 @@
         "Search all pages": "Rechercher dans toutes les pages"
     },
     "searchDropdown": {
-        "Search": "Chercher"
+        "Search": "Chercher",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Affichage de {{displayedCount}} éléments sur {{totalCount}}. Rechercher pour plus de résultats."
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1709,7 +1743,11 @@
         "Unmap fields": "Champs non utilisés",
         "Map fields": "Champs utilisés",
         "Clear": "Effacer",
-        "Unmapped": "Non utilisé"
+        "Unmapped": "Non utilisé",
+        "Hide {{label}}": "Masquer {{label}}",
+        "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
+        "Unmap {{label}}": "Désélectionner {{label}}",
+        "Unmap {{label}} (batch mode)": "Désélectionner {{label}} (mode groupé)"
     },
     "Section": {
         "Insert section above": "Ajouter une section ci-dessus",
@@ -1842,7 +1880,8 @@
         "Select...": "Sélectionner...",
         "Search": "Rechercher",
         "Reset": "Réinitialiser",
-        "Submitting…": "En cours de soumission…"
+        "Submitting…": "En cours de soumission…",
+        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Table": "Table",
@@ -2074,7 +2113,8 @@
         "Move {{name}} to workspace": "Déplacer {{name}} vers le dossier",
         "Workspace": "Dossier",
         "context menu - {{- documentName }}": "menu contextuel - {{- documentName }}",
-        "Documents list": "Liste des documents"
+        "Documents list": "Liste des documents",
+        "Download document...": "Télécharger le document..."
     },
     "RenameDocModal": {
         "Icon": "Icône",
@@ -2274,6 +2314,8 @@
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers"
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Suggestions de modifications"
+        "Proposed Changes": "Suggestions de modifications",
+        "Replace Original": "Remplacer l'original",
+        "This is a list of changes relative to the original document.": "Liste des modifications apportées par rapport au document original."
     }
 }
