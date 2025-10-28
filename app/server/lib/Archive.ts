@@ -105,27 +105,32 @@ export function create_tar_archive(
     async packInto(destination: stream.Writable, options: ArchivePackingOptions = defaultPackingOptions) {
       const archive = tar.pack();
       const passthrough = new stream.PassThrough();
-      let pipeline: Promise<void> | undefined;
-      try {
-        // 'end' prevents `destination` being closed when completed, or if an error occurs in archive.
-        // Passthrough stream is needed as the tar-stream library doesn't implement the 'end' parameter,
-        // piping to the passthrough stream fixes this and prevents `destination` being closed.
-        // Cast is required due to a bug with @types/node 18.X missing the parameter
-        pipeline = stream.promises.pipeline(archive, passthrough, destination, { end: options.endDestStream } as any);
-        for await (const entry of entries) {
-          const entryStream = archive.entry({ name: entry.name, size: entry.size });
-          await stream.promises.pipeline(entry.data, entryStream);
-        }
-        archive.finalize();
-      } catch (error) {
-        archive.destroy(error);
-      } finally {
-        // This ensures any errors in the stream (e.g. from destroying it above) are handled.
-        // Without this, node will see the stream as having an uncaught error, and complain or crash.
-        await pipeline;
-      }
+      // 'end' prevents `destination` being closed when completed, or if an error occurs in archive.
+      // Passthrough stream is needed as the tar-stream library doesn't implement the 'end' parameter,
+      // piping to the passthrough stream fixes this and prevents `destination` being closed.
+      // Cast is required due to a bug with @types/node 18.X missing the parameter
+      const pipeline = stream.promises.pipeline(archive, passthrough, destination,
+                                                { end: options.endDestStream } as any);
+
+      // Zip packing had issues where adding archive entries could hang indefinitely in error states.
+      // While that hasn't been observed with .tar archives, this block isn't awaited as a precaution.
+      addEntriesToTarArchive(archive, entries)
+        .then(() => archive.finalize())
+        .catch((err) => archive.destroy(err));
+
+      // This ensures any errors in the stream (e.g. from destroying it above) are handled.
+      // Without this, node will see the stream as having an uncaught error, and complain or crash.
+      await pipeline;
     }
   };
+}
+
+async function addEntriesToTarArchive(archive: tar.Pack, entries: AsyncIterable<ArchiveEntry>): Promise<void> {
+  // ZipStream will break if multiple entries try to be added at the same time.
+  for await ( const entry of entries) {
+    const entryStream = archive.entry({ name: entry.name, size: entry.size });
+    await stream.promises.pipeline(entry.data, entryStream);
+  }
 }
 
 export interface UnpackedFile {
