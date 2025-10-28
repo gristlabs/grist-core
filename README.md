@@ -13,7 +13,9 @@ The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open 
 Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
 and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
-> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
+> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/). 
+>
+> To keep up-to-date with everything that's going on, you can [sign up for Grist's monthly newsletter](https://www.getgrist.com/newsletter/).
 
 https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
