@@ -272,7 +272,7 @@ just move everything into a subdirectory first.
     yarn install:ee
     yarn install:python
     yarn build
-    yarp start
+    yarn start
     # Grist will be available at http://localhost:8484/
 
 The enterprise code will by default not be used. You need to explicitly enable
