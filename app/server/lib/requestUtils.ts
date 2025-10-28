@@ -360,6 +360,8 @@ export function optBooleanParam(p: any, name: string): boolean|undefined {
 
 export function booleanParam(p: any, name: string): boolean {
   if (typeof p === 'boolean') { return p; }
+  if (gutil.isAffirmative(p)) { return true; }
+  if (String(p) === 'false') { return false; }
   throw new ApiError(`${name} parameter should be a boolean: ${p}`, 400);
 }
 

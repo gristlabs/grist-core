@@ -74,6 +74,10 @@ export interface FormFieldOptions {
   formOptionsSortOrder?: FormOptionsSortOrder;
   /** True if the field is required. Defaults to `false`. */
   formRequired?: boolean;
+  /** True if the field is marked as hidden, to hide from users. Defaults to false. */
+  formIsHidden?: boolean;
+  /** If set, this field will allow values to be set via URL. */
+  formAcceptFromUrl?: boolean;
 }
 
 export type FormTextFormat = 'singleline' | 'multiline';

@@ -1,6 +1,7 @@
 import {makeT} from 'app/client/lib/localization';
+import {getLoginUrl, getSignupUrl} from 'app/client/lib/urlUtils';
 import {AppModel} from 'app/client/models/AppModel';
-import {getLoginUrl, getMainOrgUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';

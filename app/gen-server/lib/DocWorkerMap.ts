@@ -337,7 +337,10 @@ export class DocWorkerMap implements IDocWorkerMap {
    * Note: This method should only be called by the worker.
    */
   public async setWorkerLoad(workerInfo: DocWorkerInfo, load: number): Promise<void> {
-    log.info(`DocWorkerMap.setWorkerLoad ${workerInfo.id} ${load}`);
+    log.rawInfo('DocWorkerMap.setWorkerLoad', {
+      workerId: workerInfo.id,
+      load,
+    });
     const group = workerInfo.group || DEFAULT_GROUP;
     // The "XX" argument means only update the key if it exists.
     await this._client.zaddAsync(`workers-available-by-load-${group}`, 'XX', load, workerInfo.id);

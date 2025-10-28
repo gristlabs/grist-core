@@ -130,11 +130,13 @@ export function createEmptyTableDelta(): TableDelta {
  * If context is supplied, in the form of row data for tables, then
  * the difference information is overlaid on it.
  */
-export function asTabularDiffs(summary: ActionSummary,
-                               context?: Record<string, ResultRow[]>): TabularDiffs {
+export function asTabularDiffs(summary: ActionSummary, options: {
+  context?: Record<string, ResultRow[]>,
+  order?: (tableId: string, colIds: string[]) => string[],
+}): TabularDiffs {
   const allChanges: TabularDiffs = {};
   for (const [tableId, td] of toPairs(summary.tableDeltas)) {
-    const singleTableContext = context?.[tableId];
+    const singleTableContext = options.context?.[tableId];
     const tableChanges: TabularDiff = allChanges[tableId] = {
       header: [],
       cells: [],
@@ -164,7 +166,10 @@ export function asTabularDiffs(summary: ActionSummary,
       }
     }
     // TODO: recover row numbers (as opposed to rowIds)
-    const activeColsWithoutManualSort = [...activeCols].filter(c => c !== 'manualSort');
+    const reorder = options.order ?? ((_, colIds) => colIds);
+    const activeColsWithoutManualSort = [
+      ...reorder(tableId, [...activeCols])
+    ].filter(c => c !== 'manualSort');
     tableChanges.header = activeColsWithoutManualSort;
     const addedRows = new Set(td.addRows);
     const removedRows = new Set(td.removeRows);

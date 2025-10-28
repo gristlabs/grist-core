@@ -15,11 +15,12 @@ import * as PluginApi from 'app/plugin/grist-plugin-api';
 import { BaseAPI } from 'app/common/BaseAPI';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
+import { DocStateComparison } from 'app/common/DocState';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { TestState } from 'app/common/TestState';
-import { Organization as APIOrganization, DocStateComparison,
+import { Organization as APIOrganization,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
@@ -499,13 +500,16 @@ export async function getCardCount(): Promise<number> {
  * Return the .column-name element for the specified column, which may be specified by full name
  * or index, and may include a section (or will use the active section by default).
  */
-export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementPromise {
+export function getColumnHeader(colOrColOptions: string|IColHeader, opts = {waitMs: 0}): WebElementPromise {
   const colOptions = typeof colOrColOptions === 'string' ? {col: colOrColOptions} : colOrColOptions;
   const {col, section} = colOptions;
   const sectionElem = section ? getSection(section) : driver.findWait('.active_section', 4000);
   return new WebElementPromise(driver, typeof col === 'number' ?
     sectionElem.find(`.column_name:nth-child(${col + 1})`) :
-    sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col)).findClosest('.column_name'));
+    (opts?.waitMs ?
+      sectionElem.findContentWait('.column_name .test-column-title-text', exactMatch(col), opts.waitMs) :
+      sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col))
+    ).findClosest('.column_name'));
 }
 
 export function getSelectedColumn() {
@@ -3094,27 +3098,40 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
  * logs, named using the test name, before opening the new tab, and before and after closing it.
  */
 export async function onNewTab(action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
+  return onNewTabForUrl('about:blank', action, options);
+}
+
+/**
+ * Opens the given URL in a new tab, runs action() on that tab, and closes it after.
+ *
+ * See onNewTab for documentation of options.
+ */
+export async function onNewTabForUrl(url: string, action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
   const currentTab = await driver.getWindowHandle();
-  await driver.executeScript("window.open('about:blank', '_blank')");
+  await driver.executeScript((urlArg: string) => { window.open(urlArg, '_blank'); }, url);
   const tabs = await driver.getAllWindowHandles();
   const newTab = tabs[tabs.length - 1];
   const test = options?.test;
+  let failed = false;
   if (test) { await fetchScreenshotAndLogs(test); }
   await driver.switchTo().window(newTab);
   try {
     await action();
   } catch (e) {
-    console.warn("onNewTab cleaning up tab after error", e);
+    console.warn("onNewTab error", e);
+    failed = true;
     throw e;
   } finally {
     if (test) { await fetchScreenshotAndLogs(test); }
     const newCurrentTab = await driver.getWindowHandle();
-    if (newCurrentTab === newTab) {
+    if (newCurrentTab !== newTab) {
+      console.log("onNewTab not cleaning up because is not on expected tab");
+    } else if (failed && process.env.NO_CLEANUP) {
+      console.log("onNewTab not cleaning up because failed with NO_CLEANUP set");
+    } else {
       await driver.close();
       await driver.switchTo().window(currentTab);
       console.log("onNewTab returned to original tab");
-    } else {
-      console.log("onNewTab not cleaning up because is not on expected tab");
     }
     if (test) { await fetchScreenshotAndLogs(test); }
   }

@@ -1,5 +1,6 @@
 import * as css from 'app/client/components/FormRendererCss';
 import {bindMarkdown} from 'app/client/components/Forms/styles';
+import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
 import {makeT} from 'app/client/lib/localization';
 import {FormField} from 'app/client/ui/FormAPI';
 import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
@@ -7,6 +8,7 @@ import {isXSmallScreenObs} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {confirmModal} from 'app/client/ui2018/modals';
 import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
+import {isAffirmative, isNumber} from 'app/common/gutil';
 import {CellValue} from 'app/plugin/GristData';
 import {Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable} from 'grainjs';
 import {IPopupOptions, PopupControl} from 'popweasel';
@@ -14,6 +16,8 @@ import {IPopupOptions, PopupControl} from 'popweasel';
 const testId = makeTestId('test-form-');
 
 const t = makeT('FormRenderer');
+
+const G = getBrowserGlobals('window');
 
 /**
  * A node in a recursive, tree-like hierarchy comprising the layout of a form.
@@ -251,6 +255,7 @@ abstract class BaseFieldRenderer extends Disposable {
 
   public render() {
     return css.field(
+      dom.hide(this.field.options.formIsHidden || false),
       this.label(),
       dom('div', this.input()),
       this.fieldDomAttributes(),
@@ -284,6 +289,24 @@ abstract class BaseFieldRenderer extends Disposable {
   public fieldDomAttributes(): IAttrObj {
     return {};
   }
+
+  protected getInitialValue(): string|null {
+    if (this.field.options.formAcceptFromUrl) {
+      if (G.window.location.search) {
+        return new URLSearchParams(window.location.search).get(this.field.colId);
+      }
+    }
+    return null;
+  }
+
+  protected getInitialValueList(): string[] {
+    if (this.field.options.formAcceptFromUrl) {
+      if (G.window.location.search) {
+        return new URLSearchParams(window.location.search).getAll(this.field.colId);
+      }
+    }
+    return [];
+  }
 }
 
 class TextRenderer extends BaseFieldRenderer {
@@ -291,7 +314,7 @@ class TextRenderer extends BaseFieldRenderer {
 
   private _format = this.field.options.formTextFormat ?? 'singleline';
   private _lineCount = String(this.field.options.formTextLineCount || 3);
-  private _value = Observable.create<string>(this, '');
+  private _value = Observable.create<string>(this, this.getInitialValue() ?? '');
 
   public input() {
     if (this._format === 'singleline') {
@@ -302,7 +325,7 @@ class TextRenderer extends BaseFieldRenderer {
   }
 
   public resetInput(): void {
-    this._value.setAndTrigger('');
+    this._value.setAndTrigger(this.getInitialValue() ?? '');
   }
 
   private _renderSingleLineInput() {
@@ -336,8 +359,8 @@ class NumericRenderer extends BaseFieldRenderer {
   protected inputType = 'text';
 
   private _format = this.field.options.formNumberFormat ?? 'text';
-  private _value = Observable.create<string>(this, '');
-  private _spinnerValue = Observable.create<number|''>(this, '');
+  private _value = Observable.create<string>(this, this.getInitialValue() ?? '');
+  private _spinnerValue = Observable.create<number|''>(this, this.getInitialNumericValue());
 
   public input() {
     if (this._format === 'text') {
@@ -348,8 +371,13 @@ class NumericRenderer extends BaseFieldRenderer {
   }
 
   public resetInput(): void {
-    this._value.setAndTrigger('');
-    this._spinnerValue.setAndTrigger('');
+    this._value.setAndTrigger(this.getInitialValue() ?? '');
+    this._spinnerValue.setAndTrigger(this.getInitialNumericValue());
+  }
+
+  protected getInitialNumericValue(): number|'' {
+    const val = this.getInitialValue();
+    return (val && isNumber(val)) ? parseFloat(val) : '';
   }
 
   private _renderTextInput() {
@@ -403,7 +431,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
   private _radioButtons: MutableObsArray<{
     label: string;
-    checked: Observable<string|null>
+    checked: Observable<boolean>
   }> = this.autoDispose(obsArray());
 
   public constructor(field: FormField, context: FormRendererContext) {
@@ -423,11 +451,12 @@ class ChoiceRenderer extends BaseFieldRenderer  {
       this._choices = choices;
     }
 
-    this.value = Observable.create<string>(this, '');
+    const initialValue = this.getInitialValue();
+    this.value = Observable.create<string>(this, initialValue ?? '');
 
     this._radioButtons.set(this._choices.map(choice => ({
       label: String(choice),
-      checked: Observable.create(this, null),
+      checked: Observable.create(this, String(choice) === initialValue),
     })));
   }
 
@@ -450,10 +479,16 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   }
 
   public resetInput() {
-    this.value.set('');
+    const initialValue = this.getInitialValue();
+    this.value.set(initialValue ?? '');
     this._radioButtons.get().forEach(radioButton => {
-      radioButton.checked.set(null);
+      radioButton.checked.set(radioButton.label === initialValue);
     });
+  }
+
+  protected override getInitialValue() {
+    const val = super.getInitialValue();
+    return val && this._choices.includes(val) ? val : null;
   }
 
   private _renderSelectInput() {
@@ -526,7 +561,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
         css.radio(
           dom('input',
             dom.prop('checked', radioButton.checked),
-            dom.on('change', (_e, elem) => radioButton.checked.set(elem.value)),
+            dom.on('change', (_e, elem) => radioButton.checked.set(elem.checked)),
             {
               type: 'radio',
               name: `${this.name()}`,
@@ -553,7 +588,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
 
 class BoolRenderer extends BaseFieldRenderer {
   protected inputType = 'checkbox';
-  protected checked = Observable.create<boolean>(this, false);
+  protected checked = Observable.create<boolean>(this, isAffirmative(this.getInitialValue()));
 
   private _format = this.field.options.formToggleFormat ?? 'switch';
 
@@ -572,7 +607,7 @@ class BoolRenderer extends BaseFieldRenderer {
   }
 
   public resetInput(): void {
-    this.checked.set(false);
+    this.checked.set(isAffirmative(this.getInitialValue()));
   }
 
   private _renderSwitchInput() {
@@ -612,7 +647,7 @@ class BoolRenderer extends BaseFieldRenderer {
 class ChoiceListRenderer extends BaseFieldRenderer  {
   protected checkboxes: MutableObsArray<{
     label: string;
-    checked: Observable<string|null>
+    checked: Observable<boolean>
   }> = this.autoDispose(obsArray());
 
   private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
@@ -635,9 +670,10 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
       choices = choices.slice(0, 30);
     }
 
+    const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.set(choices.map(choice => ({
       label: choice,
-      checked: Observable.create(this, null),
+      checked: Observable.create(this, initialValues.has(choice)),
     })));
   }
 
@@ -659,7 +695,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
         css.checkbox(
           css.checkboxInput(
             dom.prop('checked', checkbox.checked),
-            dom.on('change', (_e, elem) => checkbox.checked.set(elem.value)),
+            dom.on('change', (_e, elem) => checkbox.checked.set(elem.checked)),
             {
               type: 'checkbox',
               name: `${this.name()}[]`,
@@ -674,8 +710,9 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
   }
 
   public resetInput(): void {
+    const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.get().forEach(checkbox => {
-      checkbox.checked.set(null);
+      checkbox.checked.set(initialValues.has(checkbox.label));
     });
   }
 }
@@ -684,7 +721,7 @@ class RefListRenderer extends BaseFieldRenderer {
   protected checkboxes: MutableObsArray<{
     label: string;
     value: string;
-    checked: Observable<string|null>
+    checked: Observable<boolean>
   }> = this.autoDispose(obsArray());
 
   private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
@@ -703,10 +740,11 @@ class RefListRenderer extends BaseFieldRenderer {
     }
     // Support for 30 choices. TODO: make limit dynamic.
     references.splice(30);
+    const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.set(references.map(reference => ({
       label: String(reference[1]),
       value: String(reference[0]),
-      checked: Observable.create(this, null),
+      checked: Observable.create(this, initialValues.has(String(reference[1]))),
     })));
   }
 
@@ -728,7 +766,7 @@ class RefListRenderer extends BaseFieldRenderer {
         css.checkbox(
           css.checkboxInput(
             dom.prop('checked', checkbox.checked),
-            dom.on('change', (_e, elem) => checkbox.checked.set(elem.value)),
+            dom.on('change', (_e, elem) => checkbox.checked.set(elem.checked)),
             {
               type: 'checkbox',
               'data-grist-type': this.field.type,
@@ -744,14 +782,15 @@ class RefListRenderer extends BaseFieldRenderer {
   }
 
   public resetInput(): void {
+    const initialValues = new Set(this.getInitialValueList());
     this.checkboxes.get().forEach(checkbox => {
-      checkbox.checked.set(null);
+      checkbox.checked.set(initialValues.has(checkbox.label));
     });
   }
 }
 
 class RefRenderer extends BaseFieldRenderer {
-  protected value = Observable.create(this, '');
+  protected value: Observable<string>;
 
   private _format = this.field.options.formSelectFormat ?? 'select';
   private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
@@ -761,7 +800,7 @@ class RefRenderer extends BaseFieldRenderer {
   private _radioButtons: MutableObsArray<{
     label: string;
     value: string;
-    checked: Observable<string|null>
+    checked: Observable<boolean>
   }> = this.autoDispose(obsArray());
 
   public constructor(field: FormField, context: FormRendererContext) {
@@ -778,15 +817,15 @@ class RefRenderer extends BaseFieldRenderer {
     }
     this._choices = choices;
 
-    this.value = Observable.create<string>(this, '');
+    const initialValue = this.getInitialValue();
+    this.value = Observable.create<string>(this, initialValue ?? '');
 
     this._radioButtons.set(this._choices.map(reference => ({
       label: String(reference[1]),
       value: String(reference[0]),
-      checked: Observable.create(this, null),
+      checked: Observable.create(this, String(reference[0]) === initialValue),
     })));
   }
-
 
   public fieldDomAttributes() {
     if (this._format === 'radio') {
@@ -807,10 +846,18 @@ class RefRenderer extends BaseFieldRenderer {
   }
 
   public resetInput(): void {
-    this.value.set('');
+    const initialValue = this.getInitialValue();
+    this.value.set(initialValue ?? '');
     this._radioButtons.get().forEach(radioButton => {
-      radioButton.checked.set(null);
+      radioButton.checked.set(radioButton.value === initialValue);
     });
+  }
+
+  // This returns the reference rather than its label (e.g. '5' rather than 'Some Name').
+  protected override getInitialValue() {
+    const initialValue = super.getInitialValue();
+    const choice = initialValue && this._choices.find(([id, value]) => (value === initialValue));
+    return choice ? String(choice[0]) : null;
   }
 
   private _renderSelectInput() {
@@ -895,7 +942,7 @@ class RefRenderer extends BaseFieldRenderer {
         css.radio(
           dom('input',
             dom.prop('checked', radioButton.checked),
-            dom.on('change', (_e, elem) => radioButton.checked.set(elem.value)),
+            dom.on('change', (_e, elem) => radioButton.checked.set(elem.checked)),
             {
               type: 'radio',
               name: `${this.name()}`,
@@ -922,6 +969,8 @@ class RefRenderer extends BaseFieldRenderer {
 
 class AttachmentsRenderer extends BaseFieldRenderer {
   protected inputType = 'file';
+  // Note that we aren't attempting to support initial values (taken from URL) for attachments.
+  // That wouldn't be expected by anyone anyway.
   private _value = Observable.create<File[]>(this, []);
 
   public input() {

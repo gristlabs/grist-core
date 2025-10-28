@@ -729,7 +729,7 @@ const cssInputButtonMenuElem = styled(cssMenuElem, `
   padding: 4px 0px;
 `);
 
-const cssMenuItemCmd = styled('div', `
+export const cssMenuItemCmd = styled('div', `
   justify-content: space-between;
   --icon-color: ${theme.menuItemFg};
 
@@ -742,7 +742,7 @@ const cssMenuItemCmd = styled('div', `
   }
 `);
 
-const cssCmdKey = styled('span', `
+export const cssCmdKey = styled('span', `
   margin-left: 16px;
   color: ${theme.menuItemIconFg};
   margin-right: -12px;

@@ -94,8 +94,8 @@ export class MinIOExternalStorage implements ExternalStorage {
       // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
       // and should return a falsy null.
       // Other errors like 'ECONNRESET' and 'InternalError' are fatal errors and should be thrown
-      // in order to avoir weird behavior when MinIO is experiencing hiccups.
-      if (!this.isFatalError(err)) { return null; }
+      // in order to avoid weird behavior when MinIO is experiencing hiccups
+      if (this.isExpectedNotFoundError(err)) { return null; }
       throw err;
     }
   }
@@ -198,10 +198,21 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   public isFatalError(err: any) {
+    // Fatal errors are all errors that are neither expected nor retryable.
+    return !this.isExpectedNotFoundError(err) && !this.isRetryableError(err);
+  }
+
+  public isExpectedNotFoundError(err: any) {
     // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
     // Other errors like 'ECONNRESET' and 'InternalError' were added to the list by mistake
     // which caused problems like overriding an existing document when MinIO was experiencing hiccups.
-    return err.code !== 'NotFound' && err.code !== 'NoSuchKey';
+    return err.code === 'NotFound' || err.code === 'NoSuchKey';
+  }
+
+  public isRetryableError(err: any) {
+    // Retry MinIO requests on some common transient errors.
+    return err.code === 'ECONNRESET' || err.code === 'InternalError' ||
+      err.code === 'EAI_AGAIN';
   }
 
   public async close() {

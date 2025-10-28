@@ -25,9 +25,7 @@
 import {unsavedChanges} from 'app/client/components/UnsavedChanges';
 import {hooks} from 'app/client/Hooks';
 import {UrlState} from 'app/client/lib/UrlState';
-import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState,
-        parseFirstUrlPart} from 'app/common/gristUrls';
-import {addOrgToPath} from 'app/common/urlUtils';
+import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
 import {Document} from 'app/common/UserAPI';
 import isEmpty = require('lodash/isEmpty');
 import isEqual = require('lodash/isEqual');
@@ -61,73 +59,6 @@ export function getMainOrgUrl(): string { return urlState().makeUrl({}); }
 
 // When on a document URL, returns the URL with just the doc ID, omitting other bits (like page).
 export function getCurrentDocUrl(): string { return urlState().makeUrl({docPage: undefined}); }
-
-export interface GetLoginOrSignupUrlOptions {
-  srcDocId?: string | null;
-  /** Defaults to the current URL. */
-  nextUrl?: string | null;
-}
-
-// Get URL for the login page.
-export function getLoginUrl(options: GetLoginOrSignupUrlOptions = {}): string {
-  return _getLoginLogoutUrl('login', options);
-}
-
-// Get URL for the signup page.
-export function getSignupUrl(options: GetLoginOrSignupUrlOptions = {}): string {
-  return _getLoginLogoutUrl('signup', options);
-}
-
-// Get URL for the logout page.
-export function getLogoutUrl(): string {
-  return _getLoginLogoutUrl('logout');
-}
-
-// Get the URL that users are redirect to after deleting their account.
-export function getAccountDeletedUrl(): string {
-  return _getLoginLogoutUrl('account-deleted', {nextUrl: ''});
-}
-
-// Get URL for the signin page.
-export function getLoginOrSignupUrl(options: GetLoginOrSignupUrlOptions = {}): string {
-  return _getLoginLogoutUrl('signin', options);
-}
-
-export function getWelcomeHomeUrl() {
-  return _buildUrl('welcome/home').href;
-}
-
-const FINAL_PATHS = ['/signed-out', '/account-deleted'];
-
-// Returns the relative URL (i.e. path) of the current page, except when it's the
-// "/signed-out" page or "/account-deleted", in which case it returns the home page ("/").
-// This is a good URL to use for a post-login redirect.
-function _getCurrentUrl(): string {
-  const {hash, pathname, search} = new URL(window.location.href);
-  if (FINAL_PATHS.some(final => pathname.endsWith(final))) { return '/'; }
-
-  return parseFirstUrlPart('o', pathname).path + search + hash;
-}
-
-// Returns the URL for the given login page.
-function _getLoginLogoutUrl(
-  page: 'login'|'logout'|'signin'|'signup'|'account-deleted',
-  options: GetLoginOrSignupUrlOptions = {}
-): string {
-  const {srcDocId, nextUrl = _getCurrentUrl()} = options;
-  const startUrl = _buildUrl(page);
-  if (srcDocId) { startUrl.searchParams.set('srcDocId', srcDocId); }
-  if (nextUrl) { startUrl.searchParams.set('next', nextUrl); }
-  return startUrl.href;
-}
-
-function _buildUrl(page?: string): URL {
-  const startUrl = new URL(window.location.href);
-  startUrl.pathname = addOrgToPath('', window.location.href, true) + '/' + (page ?? '');
-  startUrl.search = '';
-  startUrl.hash = '';
-  return startUrl;
-}
 
 /**
  * Implements the interface expected by UrlState. It is only exported for the sake of tests; the
@@ -214,9 +145,8 @@ export class UrlStateImpl {
     const welcomeReload = Boolean(prevState.welcome) !== Boolean(newState.welcome);
     // Reload when link keys change, which changes what the user can access
     const linkKeysReload = !isEqual(prevState.params?.linkParameters, newState.params?.linkParameters);
-    // Reload when moving to/from the Grist sign-up page.
-    const signupReload = [prevState.login, newState.login].includes('signup')
-      && prevState.login !== newState.login;
+    // Always reload on login pages.
+    const loginReload = prevState.login || newState.login;
     // Reload when moving to/from the support Grist page.
     const adminPanelReload = Boolean(prevState.adminPanel) !== Boolean(newState.adminPanel);
     return Boolean(
@@ -229,7 +159,7 @@ export class UrlStateImpl {
         docReload ||
         welcomeReload ||
         linkKeysReload ||
-        signupReload ||
+        loginReload ||
         adminPanelReload
     );
   }

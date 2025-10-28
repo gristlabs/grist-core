@@ -248,7 +248,7 @@ export class AppSettings {
    * As for describe(), but include all nested settings also.
    * Used dotted notation for setting names. Omit settings that
    * are undefined and without useful information about how they
-   * might be defined.
+   * might be defined. Sort alphabetically.
    */
   public describeAll(): AppSettingDescription[] {
     const inv: AppSettingDescription[] = [];
@@ -261,8 +261,8 @@ export class AppSettings {
       }
     }
     return inv.filter(item => item.value !== undefined ||
-      item.wouldFindInEnvVar !== undefined ||
-      item.usedDefault);
+        item.wouldFindInEnvVar !== undefined ||
+        item.usedDefault).sort((a, b) => a.name.localeCompare(b.name));
   }
 }
 

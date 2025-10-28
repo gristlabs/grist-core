@@ -107,12 +107,12 @@ export const BehavioralPrompt = StringUnion(
   'addNew',
   'rickRow',
   'calendarConfig',
-  'comments',
 
   // The following were used in the past and should not be re-used.
   // 'customURL',
   // 'formsAreHere',
   // 'newAssistant',
+  // 'comments',
 
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;

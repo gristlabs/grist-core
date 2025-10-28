@@ -98,6 +98,27 @@ export interface ViewSectionOptions extends ChartOptions {
 // Represents a section of user views, now also known as a "page widget" (e.g. a view may contain
 // a grid section and a chart section).
 export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleOwner {
+  // The underlying RowModel provides a KoSaveableObservable for each field in app/common/schema.ts.
+  //   tableRef: number;
+  //   parentId: number;
+  //   parentKey: string;
+  //   title: string;
+  //   description: string;
+  //   defaultWidth: number;
+  //   borderWidth: number;
+  //   theme: string;
+  //   options: string;
+  //   chartType: string;
+  //   layoutSpec: string;
+  //   filterSpec: string;
+  //   sortColRefs: string;
+  //   linkSrcSectionRef: number;
+  //   linkSrcColRef: number;
+  //   linkTargetColRef: number;
+  //   embedId: string;
+  //   rules: [GristObjCode.List, ...number[]]|null;
+  //   shareOptions: string;
+
   viewFields: ko.Computed<KoArray<ViewFieldRec>>;
 
   // List of sections linked from this one, i.e. for whom this one is the selector or link source.
@@ -121,8 +142,6 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   titleDef: modelUtil.KoSaveableObservable<string>;
   // Default widget title (the one that is used in titleDef).
   defaultWidgetTitle: ko.PureComputed<string>;
-
-  description: modelUtil.KoSaveableObservable<string>;
 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.
@@ -536,9 +555,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
   // Widget title.
   this.titleDef = modelUtil.fieldWithDefault(this.title, this.defaultWidgetTitle);
-
-  // Widget description
-  this.description = modelUtil.fieldWithDefault(this.description, this.description());
 
   // true if this record is its table's rawViewSection, i.e. a 'raw data view'
   // in which case the UI prevents various things like hiding columns or changing the widget type.

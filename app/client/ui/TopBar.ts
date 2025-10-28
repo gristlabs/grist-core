@@ -4,7 +4,7 @@ import {loadSearch} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
-import {urlState} from "app/client/models/gristUrlState";
+import {urlState} from 'app/client/models/gristUrlState';
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildActiveUserList} from 'app/client/ui/ActiveUserList';
@@ -110,6 +110,15 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
           isTemplate: pageModel.isTemplate,
           isAnonymous,
+          isProposable: Computed.create(
+            owner, gristDoc.docPageModel.currentDoc,
+            (_use, currentDoc) => Boolean(currentDoc?.options?.proposedChanges?.acceptProposals)
+          ),
+          isReadonly: pageModel.isReadonly,
+          proposeChanges: async () => {
+            const {urlId} = await gristDoc.docComm.fork();
+            await urlState().pushUrl({doc: urlId});
+          },
         }),
         dom.hide(use => use(isSearchOpen) && use(isNarrowScreenObs())),
       )
@@ -158,12 +167,6 @@ function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
-    gristDoc.behavioralPromptsManager.attachPopup('comments', {
-      isDisabled: () => !!urlState().state.get().params?.assistantState,
-      popupOptions: {
-        placement: 'bottom-end',
-      },
-    }),
     testId('open-discussion'),
     dom.on('click', () => {
       gristDoc.showTool('discussion');

@@ -13,7 +13,7 @@ const cssLabelBase = `
   display: block;
   color: ${theme.text};
   text-transform: uppercase;
-  margin: 16px 16px 12px 16px;
+  margin: 16px 16px 8px 16px;
   font-size: ${vars.xsmallFontSize};
 `;
 
@@ -113,7 +113,6 @@ export const cssNumericSpinner = styled(numericSpinner, `
 export const cssFieldFormula = styled('div', `
   flex: auto;
   cursor: pointer;
-  margin-top: 4px;
   padding-left: 24px;
   --icon-color: ${theme.accentIcon};
 

@@ -1,9 +1,10 @@
 import { Disposable, dom, domComputed, DomContents, MultiHolder, Observable, styled } from "grainjs";
 
 import { handleSubmit } from "app/client/lib/formUtils";
+import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";
 import { App } from 'app/client/ui/App';
-import { getLoginUrl, getSignupUrl, urlState } from "app/client/models/gristUrlState";
+import { urlState } from "app/client/models/gristUrlState";
 import { AccountWidget } from "app/client/ui/AccountWidget";
 import { AppHeader } from 'app/client/ui/AppHeader';
 import { textInput } from 'app/client/ui/inputs';

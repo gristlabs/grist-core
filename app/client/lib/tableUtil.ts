@@ -104,6 +104,8 @@ export interface RichPasteObject {
   rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
 }
 
+export type PasteData = string[][] | RichPasteObject[][] | Array<File>[][];
+
 /**
  * Parses a 2-d array of objects from a text string containing an HTML table.
  * @param {string} data - String of an HTML table.

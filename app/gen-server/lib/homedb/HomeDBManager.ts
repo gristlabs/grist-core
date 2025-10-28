@@ -3,6 +3,7 @@ import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
+import {DocStateComparison} from 'app/common/DocState';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {
@@ -20,6 +21,7 @@ import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import {
   ANONYMOUS_USER_EMAIL,
+  Proposal as ApiProposal,
   DocumentProperties,
   EVERYONE_EMAIL,
   getRealAccess,
@@ -30,9 +32,10 @@ import {
   PermissionData,
   PermissionDelta,
   PREVIEWER_EMAIL,
+  ProposalStatus,
   UserAccessData,
   UserOptions,
-  WorkspaceProperties
+  WorkspaceProperties,
 } from 'app/common/UserAPI';
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
 import {Alias} from 'app/gen-server/entity/Alias';
@@ -51,6 +54,7 @@ import {
   personalFreeFeatures,
   Product
 } from 'app/gen-server/entity/Product';
+import {Proposal} from 'app/gen-server/entity/Proposal';
 import {Secret} from 'app/gen-server/entity/Secret';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
@@ -1860,7 +1864,10 @@ export class HomeDBManager {
   public async updateDocument(
     scope: DocScope,
     props: Partial<DocumentProperties>,
-    transaction?: EntityManager
+    transaction?: EntityManager,
+    options?: {
+      allowSpecialPermit?: boolean,
+    }
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
     const notifications: Array<() => Promise<void>> = [];
     const markPermissions = Permissions.SCHEMA_EDIT;
@@ -1870,11 +1877,13 @@ export class HomeDBManager {
       if (forkId) {
         query = this._fork(scope, {
           manager,
+          allowSpecialPermit: options?.allowSpecialPermit,
         });
       } else {
         query = this._doc(scope, {
           manager,
           markPermissions,
+          allowSpecialPermit: options?.allowSpecialPermit,
         });
       }
       const queryResult = await verifyEntity(query);
@@ -2585,25 +2594,7 @@ export class HomeDBManager {
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       // Get the doc
-      const docQuery = this._doc(scope, {
-        manager,
-        markPermissions: Permissions.OWNER
-      })
-      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'doc_groups')
-      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
-      .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
-      .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_groups')
-      .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_users')
-      .leftJoinAndSelect('orgs.aclRules', 'org_acl_rules')
-      .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-      .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
-      const docQueryResult = await verifyEntity(docQuery);
-      if (docQueryResult.status !== 200) {
-        // If the query for the doc failed, return the failure result.
-        return docQueryResult;
-      }
-      const doc = getDocResult(docQueryResult);
+      const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -3412,6 +3403,110 @@ export class HomeDBManager {
       ))
       .getMany();
     return new Map<number|null, DocPrefs>(records.map(r => [r.userId, r.prefs]));
+  }
+
+  public setProposal(options: {
+    srcDocId: string,
+    destDocId: string,
+    comparison: DocStateComparison
+    retracted?: boolean
+  }) {
+    return this._connection.transaction(async manager => {
+      const maxRow = await manager.createQueryBuilder()
+        .from(Proposal, 'proposals')
+        .select("MAX(proposals.short_id)", "max")
+        .where("proposals.dest_doc_id = :docId", { docId: options.destDocId })
+        .getRawOne<{ max: number }>();
+      const shortId = (maxRow?.max || 0) + 1;
+      const status: ProposalStatus = options?.retracted ? { status: 'retracted' } : {};
+      await manager.createQueryBuilder()
+        .insert()
+        .into(Proposal, ['srcDocId', 'destDocId', 'comparison', 'shortId', 'status', 'updatedAt', 'appliedAt'])
+        .values({
+          srcDocId: options.srcDocId,
+          destDocId: options.destDocId,
+          comparison: {comparison: options.comparison},
+          status,
+          appliedAt: null,
+          shortId,
+        })
+        .orUpdate(['comparison', 'status', 'updated_at', 'applied_at'], ['src_doc_id', 'dest_doc_id'])
+        .execute();
+      this.unwrapQueryResult(await this.updateDocument({
+        urlId: options.destDocId,
+        userId: this.getPreviewerUserId(),
+        specialPermit: {
+          docId: options.destDocId,
+        }
+      }, {
+        options: {
+          proposedChanges: {
+            mayHaveProposals: true,
+          },
+        },
+      }, manager, {
+        allowSpecialPermit: true,
+      }));
+      const proposal = await manager.createQueryBuilder()
+        .from(Proposal, 'proposals')
+        .select('proposals')
+        .where("proposals.dest_doc_id = :destDocId", { destDocId: options.destDocId })
+        .andWhere("proposals.src_doc_id = :srcDocId", { srcDocId: options.srcDocId })
+        .getOneOrFail();
+      return this._normalizeQueryResults(proposal);
+    });
+  }
+
+  public async updateProposalStatus(destDocId: string, shortId: number,
+                              status: ProposalStatus) {
+    const timestamp = new Date();
+    const result = await this._connection.createQueryBuilder()
+      .update(Proposal)
+      .set({
+        status,
+        updatedAt: timestamp,
+        ...(status.status === 'applied') ? {
+          appliedAt: timestamp
+        } : {}
+      })
+      .where('shortId = :shortId', {shortId})
+      .andWhere('destDocId = :destDocId', {destDocId})
+      .execute();
+    return result;
+  }
+
+  public async getProposals(options: {
+    srcDocId?: string,
+    destDocId?: string,
+    shortId?: number,
+  }): Promise<ApiProposal[]> {
+    const result = await this._connection.createQueryBuilder()
+      .select('proposals')
+      .from(Proposal, 'proposals')
+      .leftJoinAndSelect('proposals.srcDoc', 'src_doc')
+      .leftJoinAndSelect('src_doc.creator', 'src_creator')
+      .leftJoinAndSelect('src_creator.logins', 'src_logins')
+      .leftJoinAndSelect('proposals.destDoc', 'dest_doc')
+      .leftJoinAndSelect('dest_doc.creator', 'dest_creator')
+      .leftJoinAndSelect('dest_creator.logins', 'dest_logins')
+      .where(options)
+      .orderBy('proposals.short_id', 'DESC')
+      .getMany();
+    return this._normalizeQueryResults(result);
+  }
+
+  public async getProposal(destDocId: string, shortId: number,
+                           transaction?: EntityManager): Promise<ApiProposal> {
+    const result = await (transaction || this._connection).createQueryBuilder()
+      .select('proposals')
+      .from(Proposal, 'proposals')
+      .leftJoinAndSelect('proposals.srcDoc', 'src_doc')
+      .leftJoinAndSelect('src_doc.creator', 'src_creator')
+      .leftJoinAndSelect('src_creator.logins', 'src_logins')
+      .where('proposals.shortId = :shortId', {shortId})
+      .andWhere('proposals.destDocId = :destDocId', {destDocId})
+      .getOne();
+    return this._normalizeQueryResults(result);
   }
 
   /**
@@ -5009,7 +5104,8 @@ export class HomeDBManager {
 
       const docQuery = this._doc(scope, {manager, markPermissions});
       const queryResult = await verifyEntity(docQuery);
-      const doc: Document = this.unwrapQueryResult(queryResult);
+      this.checkQueryResult(queryResult);
+      const doc = getDocResult(queryResult);
 
       // Retrieve the doc's ACL rules and groups/users so we can edit them.
       // We do this as a separate query to avoid repeating the document

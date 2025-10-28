@@ -90,7 +90,11 @@
         "Other Matching": "Другие соответствующие",
         "Others": "Другие",
         "Search": "Поиск",
-        "Search values": "Поиск значений"
+        "Search values": "Поиск значений",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Сортировка по алфавиту (текущий: отсортирован по количеству появлений)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Сортировка по количеству вхождений (текущее: отсортировано по алфавиту)",
+        "Unpin filter": "Открепить фильтр",
+        "Pin filter": "Закрепить фильтр"
     },
     "AppHeader": {
         "Personal Site": "Личный сайт",
@@ -206,7 +210,8 @@
         "ACCESS LEVEL": "УРОВЕНЬ ДОСТУПА",
         "Accept": "Принять",
         "Last updated:": "Последнее обновление:",
-        "Missing description and author information.": "Отсутствует описание и информация об авторе."
+        "Missing description and author information.": "Отсутствует описание и информация об авторе.",
+        "Change custom widget": "Изменить кастомный виджет"
     },
     "AccountWidget": {
         "Access Details": "Сведения о доступе",
@@ -233,7 +238,9 @@
         "Action Log failed to load": "Не удалось загрузить журнал действий",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Столбец {{colId}} впоследствии был удален в действии #{{action.actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Эта строка впоследствии была удалена в действии {{action.actionNum}}",
-        "All tables": "Все таблицы"
+        "All tables": "Все таблицы",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Столбец {{colId}} впоследствии был удален в действии #{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Впоследствии эта строка была удалена в действии {{actionNum}}"
     },
     "ViewAsDropdown": {
         "Example Users": "Пользователи для примеров",
@@ -357,7 +364,12 @@
         "Empty values last": "Последние пустые значения",
         "Natural sort": "Естественная сортировка",
         "Update Data": "Обновить данные",
-        "Use choice position": "Use choice position"
+        "Use choice position": "Use choice position",
+        "Remove sort setting - {{- columnName }} column": "Удалить настройку сортировки - {{- columnName }} столбца",
+        "Sort in ascending order (current: descending)": "Сортировка по возрастанию (текущая: по убыванию)",
+        "Sort in descending order (current: ascending)": "Сортировка по убыванию (текущая: по возрастанию)",
+        "Sort options - {{- columnName }} column": "Параметры сортировки - {{- columnName }} столбец",
+        "{{- columnName }} column": "{{- columnName }} столбец"
     },
     "SortFilterConfig": {
         "Filter": "ФИЛЬТР",
@@ -382,7 +394,8 @@
         "API Console": "API-консоль",
         "context menu - Access Rules": "контекстное меню - Правила доступа",
         "Delete document tour": "Удалить тур по документу",
-        "Preview the tutorial": "Предварительный просмотр учебника"
+        "Preview the tutorial": "Предварительный просмотр учебника",
+        "Proposed Changes": "Предлагаемые изменения"
     },
     "TypeTransformation": {
         "Cancel": "Отмена",
@@ -677,7 +690,7 @@
         "Convert formula to data": "Преобразование формулы в данные",
         "Freeze {{count}} columns_one": "Закрепить этот столбец",
         "Freeze {{count}} columns_other": "Закрепить {{count}} столбцы",
-        "Freeze {{count}} more columns_one": "Закрепить еще одну колонку",
+        "Freeze {{count}} more columns_one": "Закрепить еще один столбец",
         "Delete {{count}} columns_other": "Удалить {{count}} столбцы",
         "Hide {{count}} columns_one": "Скрыть столбец",
         "Freeze {{count}} more columns_other": "Закрепить ещё {{count}} столбцов",
@@ -744,7 +757,11 @@
         "Search Columns": "Столбцы поиска"
     },
     "FilterConfig": {
-        "Add Column": "Добавить столбец"
+        "Add Column": "Добавить столбец",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Закрепить фильтр - {{- columnName}} столбец (текущий: открепленный)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Открепить фильтр - {{- columnName}} столбец (текущий: закреплен)",
+        "remove filter - {{- columnName}} column": "удалить фильтр - {{- columnName}} столбец",
+        "{{- columnName }} column filters": "{{- columnName }} фильтры столбцов"
     },
     "GristDoc": {
         "Import from file": "Импорт из файла",
@@ -777,7 +794,8 @@
         "Import": "Импорт"
     },
     "LeftPanelCommon": {
-        "Help Center": "Справочный центр"
+        "Help Center": "Справочный центр",
+        "Accessibility": "Доступность"
     },
     "RowContextMenu": {
         "Duplicate rows_other": "Дублировать строки",
@@ -1020,7 +1038,14 @@
         "Form not found": "Форма не найдена",
         "Powered by": "Разработано",
         "Failed to log in.{{separator}}Please try again or contact support.": "Не удалось войти в систему.{{separator}}Пожалуйста, повторите попытку или обратитесь в службу поддержки.",
-        "Sign-in failed{{suffix}}": "Не удалось выполнить вход в систему{{suffix}}"
+        "Sign-in failed{{suffix}}": "Не удалось выполнить вход в систему{{suffix}}",
+        "Manage settings": "Управление настройками",
+        "Need Help?": "Нужна помощь?",
+        "There was an error": "Произошла ошибка",
+        "changes": "изменения",
+        "comments": "комментарии",
+        "this document": "этот документ",
+        "your email": "ваш email"
     },
     "CellStyle": {
         "CELL STYLE": "СТИЛЬ ЯЧЕЙКИ",
@@ -1119,7 +1144,9 @@
         "Hide {{label}}": "Скрыть {{label}}",
         "Hidden {{label}}": "Скрытый {{label}}",
         "Show {{label}}": "Показать {{label}}",
-        "Visible {{label}}": "Видимый {{label}}"
+        "Visible {{label}}": "Видимый {{label}}",
+        "Hide {{label}} (batch mode)": "Скрыть {{label}} (пакетный режим)",
+        "Show {{label}} (batch mode)": "Показать {{label}} (пакетный режим)"
     },
     "WelcomeQuestions": {
         "Marketing": "Маркетинг",
@@ -1188,7 +1215,8 @@
         "No results": "Нет результатов",
         "Find Previous ": "Найти предыдущий ",
         "Search in document": "Поиск в документе",
-        "Search": "Поиск"
+        "Search": "Поиск",
+        "Close search bar": "Закрыть панель поиска"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Отправка файла в Google Drive"
@@ -1687,7 +1715,9 @@
         "Mapped": "Сопоставлено",
         "Select All": "Выбрать все",
         "Unmap fields": "Отменить сопоставление полей",
-        "Unmapped": "Несопоставленные"
+        "Unmapped": "Несопоставленные",
+        "Hide {{label}}": "Скрыть {{label}}",
+        "Hide {{label}} (batch mode)": "Скрыть {{label}} (пакетный режим)"
     },
     "Section": {
         "Insert section above": "Вставить секцию выше",

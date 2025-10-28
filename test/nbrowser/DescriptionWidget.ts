@@ -13,15 +13,39 @@ describe('DescriptionWidget', function() {
     await gu.openWidgetPanel();
   });
 
+  const getDescriptionAddLink = () => driver.find('.test-right-panel .test-description-add');
+  const getDescriptionPreview = () => driver.find('.test-right-panel .test-description-preview');
+  const getDescriptionInput = () => driver.find('.test-right-panel .test-right-widget-description');
+
   it('should support basic edition in right panel', async () => {
     const newWidgetDesc = "This is the widget description\nIt is in two lines";
-    const rightPanelDescriptionInput = await driver.find('.test-right-panel .test-right-widget-description');
-    await rightPanelDescriptionInput.click();
-    await gu.clearInput();
-    await rightPanelDescriptionInput.sendKeys(newWidgetDesc);
+    await getDescriptionAddLink().click();
+    await driver.sleep(10);
+    assert.equal(await getDescriptionInput().hasFocus(), true);
+    await gu.sendKeys(newWidgetDesc.split('\n')[0]);
+    await gu.sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
+    await gu.sendKeys(newWidgetDesc.split('\n')[1]);
     // Click on other input to unselect descriptionInput
     await driver.find('.test-right-panel .test-right-widget-title').click();
+    await gu.waitForServer();
+    assert.equal(await getDescriptionAddLink().isPresent(), false);
+    assert.equal(await getDescriptionPreview().isPresent(), true);
+    assert.equal(await getDescriptionInput().isPresent(), false);
+
     await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
+  });
+
+  it('should support clearing description in right panel', async function() {
+    // Should support clearing the description after reload (there was a bug with that at one point).
+    await gu.reloadDoc();
+    assert.equal(await getDescriptionPreview().isPresent(), true);
+    await getDescriptionPreview().click();
+    await getDescriptionInput().sendKeys(Key.BACK_SPACE, Key.ENTER);
+    await gu.waitForServer();
+
+    assert.equal(await getDescriptionAddLink().isPresent(), true);
+    assert.equal(await getDescriptionPreview().isPresent(), false);
+    assert.equal(await getDescriptionInput().isPresent(), false);
   });
 
   it('should support basic edition in widget popup', async () => {

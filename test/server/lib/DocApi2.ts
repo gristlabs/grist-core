@@ -45,6 +45,138 @@ describe('DocApi2', function() {
     oldEnv.restore();
   });
 
+  describe('bugs and fixes', async () => {
+    it('/move endpoint scales well with user count', async function() {
+      this.timeout(120000); // Increase timeout for creating many users
+
+      const testScenarios = [
+        {userCount: 5, label: 'small document'},
+        {userCount: 5, label: 'small document'}, // Use results from second run to avoid cold start issues
+        {userCount: 100, label: 'large document'},
+        {userCount: 100, label: 'large document'}
+      ];
+
+      const results = new Map<number, number>();
+
+      for (const scenario of testScenarios) {
+        // Create a test document
+        const docId = await owner.newDoc({name: `test-move-doc-${scenario.userCount}`}, wsId);
+
+        // Create users and share the document with them
+        const userEmails: string[] = [];
+        for (let i = 1; i <= scenario.userCount; i++) {
+          const email = `testuser${scenario.userCount}_${i}@example.com`;
+          userEmails.push(email);
+        }
+
+        // Share the document with all users
+        await owner.updateDocPermissions(docId, {
+          users: userEmails.reduce((acc, email) => {
+            acc[email] = 'viewers';
+            return acc;
+          }, {} as {[email: string]: 'viewers'})
+        });
+
+        // Create a new workspace called "TO"
+        const toWsId = await owner.newWorkspace({name: `TO_${scenario.userCount}`}, 'current');
+
+        try {
+          // Measure the time it takes to move the document
+          const startTime = Date.now();
+          await owner.moveDoc(docId, toWsId);
+          const moveTime = Date.now() - startTime;
+          results.set(scenario.userCount, moveTime);
+
+          // Verify the document was moved by checking its workspace
+          const docInfo = await owner.getDoc(docId);
+          assert.equal(docInfo.workspace.id, toWsId);
+
+        } finally {
+          // Clean up: delete the document and workspace
+          await owner.deleteDoc(docId);
+          await owner.deleteWorkspace(toWsId);
+        }
+      }
+
+      // Analyze performance scaling
+      const smallDocTime = results.get(5)!;
+      const largeDocTime = results.get(100)!;
+
+      // Make sure that moving the larger doc is within a reasonable factor of the smaller one. Before the fix
+      // it wasn't possible to move a document with 100 users at all, so this is a big improvement.
+      assert.isAtMost(largeDocTime, smallDocTime * 7); // As for 20251008 on my machine it is ~5x
+    });
+
+    it('/move endpoint scales well with user count (cross-org)', async function() {
+      this.timeout(120000); // Increase timeout for creating many users
+
+      const testScenarios = [
+        {userCount: 5, label: 'small document'},
+        {userCount: 5, label: 'small document'}, // Use results from second run to avoid cold start issues
+        {userCount: 100, label: 'large document'},
+        {userCount: 100, label: 'large document'}
+      ];
+
+      const results = new Map<number, number>();
+
+      // Create a destination org
+      const destApi = await server.createHomeApi('chimpy', 'docs', true);
+      await destApi.newOrg({name: 'dest-org', domain: 'dest-org'});
+      const destOwner = await server.createHomeApi('chimpy', 'dest-org', true);
+      const destWsId = await destOwner.newWorkspace({name: 'dest-ws'}, 'current');
+
+      try {
+        for (const scenario of testScenarios) {
+          // Create a test document in the original org
+          const docId = await owner.newDoc({name: `test-move-doc-${scenario.userCount}`}, wsId);
+
+          // Create users and share the document with them
+          const userEmails: string[] = [];
+          for (let i = 1; i <= scenario.userCount; i++) {
+            const email = `testuser${scenario.userCount}_${i}@example.com`;
+            userEmails.push(email);
+          }
+
+          // Share the document with all users
+          await owner.updateDocPermissions(docId, {
+            users: userEmails.reduce((acc, email) => {
+              acc[email] = 'viewers';
+              return acc;
+            }, {} as {[email: string]: 'viewers'})
+          });
+
+          try {
+            // Measure the time it takes to move the document to different org
+            const startTime = Date.now();
+            await owner.moveDoc(docId, destWsId);
+            const moveTime = Date.now() - startTime;
+            results.set(scenario.userCount, moveTime);
+
+            // Verify the document was moved by checking its workspace
+            const docInfo = await destOwner.getDoc(docId);
+            assert.equal(docInfo.workspace.id, destWsId);
+
+          } finally {
+            // Clean up: delete the document
+            await destOwner.deleteDoc(docId);
+          }
+        }
+
+        // Analyze performance scaling
+        const smallDocTime = results.get(5)!;
+        const largeDocTime = results.get(100)!;
+
+        // Make sure that moving the larger doc is within a reasonable factor of the smaller one. Before the fix
+        // it wasn't possible to move a document with 100 users at all, so this is a big improvement.
+        assert.isAtMost(largeDocTime, smallDocTime * 9); // As for 20251008 on my machine it is ~4x
+
+      } finally {
+        // Clean up: delete the destination org
+        await destApi.deleteOrg('dest-org');
+      }
+    });
+  });
+
   describe('DELETE /docs/{did}', async () => {
     it('permanently deletes a document and all of its forks', async function() {
       // Create a new document and fork it twice.
@@ -154,7 +286,7 @@ describe('DocApi2', function() {
 
     it('GET /docs/{did}/timing', async function() {
       // Now we can check the results. Start timing and check that we got [] in response.
-      let resp =  await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
+      let resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/start`, {}, chimpy);
       assert.equal(resp.status, 200);
 
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
@@ -164,7 +296,7 @@ describe('DocApi2', function() {
       // Now create a table with a formula column and make sure we see it in the results.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/apply`, [
         ['AddTable', 'Timings', [
-          {id: 'A', formula: '$id' }
+          {id: 'A', formula: '$id'}
         ]],
       ], chimpy);
       assert.equal(resp.status, 200);
