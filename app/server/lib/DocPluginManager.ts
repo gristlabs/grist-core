@@ -192,7 +192,7 @@ export class DocPluginManager {
   }
 
   private async _initialize(): Promise<void> {
-    this._tmpDir = (await tmp.dir({ prefix: 'grist-tmp-', unsafeCleanup: true })).path;
+    this._tmpDir = await fse.realpath((await tmp.dir({ prefix: 'grist-tmp-', unsafeCleanup: true })).path);
     for (const plugin of this._localPlugins) {
       try {
         // todo: once Comm has been replaced by grain-rpc, pluginInstance.rpc should forward '*' to client
