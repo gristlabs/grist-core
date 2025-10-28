@@ -48,8 +48,8 @@ export function checkMinIOExternalStorage() {
     envVar: ['GRIST_DOCS_MINIO_SECRET_KEY'],
     censor: true,
   });
-  const authAutoDetect = settings.flag('authAutoDetect').read({
-    envVar: ['GRIST_DOCS_MINIO_AUTH_AUTO_DETECT'],
+  const useAwsCredentialChain = settings.flag('useAwsCredentialChain').read({
+    envVar: ['GRIST_DOCS_MINIO_USE_AWS_CREDENTIAL_CHAIN'],
     defaultValue: false,
   }).getAsBool();
   settings.flag('url').set(`minio://${bucket}/${prefix}`);
@@ -62,7 +62,7 @@ export function checkMinIOExternalStorage() {
     accessKey,
     secretKey,
     region,
-    authAutoDetect,
+    useAwsCredentialChain,
   };
 }
 
