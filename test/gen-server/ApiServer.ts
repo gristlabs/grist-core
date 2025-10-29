@@ -55,7 +55,7 @@ describe('ApiServer', function() {
     process.env.GRIST_TEMPLATE_ORG = 'templates';
     // ham (as in dramatic actor) is the admin
     process.env.GRIST_DEFAULT_EMAIL = hamEmail;
-    process.env.GRIST_SERVICE_ACCOUNTS = 'true';
+    process.env.GRIST_ENABLE_SERVICE_ACCOUNTS = 'true';
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
     dbManager = server.dbManager;

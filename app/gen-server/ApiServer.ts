@@ -637,7 +637,7 @@ export class ApiServer {
       return sendReply(req, res, result);
     }));
 
-    if (isAffirmative(process.env.GRIST_SERVICE_ACCOUNTS)) {
+    if (isAffirmative(process.env.GRIST_ENABLE_SERVICE_ACCOUNTS)) {
       // POST /service-accounts/
       // Creates a new service account attached to the user making the api call.
       this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
