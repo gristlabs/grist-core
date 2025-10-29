@@ -790,7 +790,7 @@ export class ApiData implements ExternalData {
 }
 
 /**
- * Converts the Records format ({record: {id, fields}[]}) to TableDataAction.
+ * Converts the Records format ({records: {id, fields}[]}) to TableDataAction.
  */
 export class RecordsFormat implements ExternalFormat {
   public convert(tableId: string, data: TableRecordValues, keys: string[]): TableDataAction {
