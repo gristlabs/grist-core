@@ -505,15 +505,15 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
-        it('should return 403 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function () {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.put(scimUrl(`/Users/${serviceUserId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
             schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '403',
-            detail: 'Only login user modifications are permitted'
+            status: '404',
+            detail: 'unable to find user to update'
           });
-          assert.equal(res.status, 403);
+          assert.equal(res.status, 404);
         });
 
         it('should return 403 for system users', async function () {
@@ -605,7 +605,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should return 403 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function () {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.patch(scimUrl(`/Users/${serviceUserId}`), validPatchBody('whatever'), chimpy);
           assert.deepEqual(res.data, {
@@ -646,15 +646,15 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
-        it('should return 403 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function () {
           const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
           const res = await axios.delete(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
             schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
-            status: '403',
-            detail: 'Only login user deletions are permitted'
+            status: '404',
+            detail: 'user not found'
           });
-          assert.equal(res.status, 403);
+          assert.equal(res.status, 404);
         });
 
         it('should return 403 for system users', async function () {

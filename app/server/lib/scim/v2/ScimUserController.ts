@@ -81,7 +81,7 @@ class ScimUserController extends BaseController {
       }
       const user = await this.dbManager.getUser(id);
       if (user?.type !== 'login') {
-        throw new SCIMMY.Types.Error(403, null!, 'Only login user modifications are permitted');
+        throw new SCIMMY.Types.Error(404, null!, 'unable to find user to update');
       }
       await this._checkEmailCanBeUsed(data.userName, id);
       const updatedUser = await this.dbManager.overwriteUser(id, toUserProfile(data));
@@ -103,7 +103,7 @@ class ScimUserController extends BaseController {
       }
       const user = await this.dbManager.getUser(id);
       if (user?.type !== 'login') {
-        throw new SCIMMY.Types.Error(403, null!, 'Only login user deletions are permitted');
+        throw new SCIMMY.Types.Error(404, null!, 'user not found');
       }
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably be rewritten to not require a scope. We should move
