@@ -1,4 +1,4 @@
-import {AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
+import {AttachmentScanVirusStatus, AttachmentTransferStatus, DocAttachmentsLocation} from 'app/common/UserAPI';
 import {
   AttachmentFile,
   AttachmentStoreDocInfo,
@@ -7,6 +7,7 @@ import {
   IAttachmentStore, loadAttachmentFileIntoMemory
 } from 'app/server/lib/AttachmentStore';
 import {AttachmentStoreId, IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {IAttachmentVirusScanProvider} from 'app/server/lib/AttachmentVirusScanProvider';
 import {checksumFileStream, HashPassthroughStream} from 'app/server/lib/checksumFile';
 import {DocStorage, FileInfo} from 'app/server/lib/DocStorage';
 import log from 'app/server/lib/log';
@@ -48,6 +49,15 @@ export class MissingAttachmentError extends Error {
 
   constructor(fileIdent: string) {
     super(`Attachment file '${fileIdent}' could not be found in this document`);
+    this.fileIdent = fileIdent;
+  }
+}
+
+export class VirusScanError extends Error {
+  public readonly fileIdent: string;
+
+  constructor(fileIdent: string) {
+    super(`Virus scan failed for attachment file '${fileIdent}'`);
     this.fileIdent = fileIdent;
   }
 }
@@ -95,6 +105,8 @@ export class MismatchedFileHashError extends Error {
 export class AttachmentFileManager extends EventEmitter {
 
   public static events = {
+    VIRUS_SCAN_STARTED: 'virus-scan-started',
+    VIRUS_SCAN_COMPLETED: 'virus-scan-completed',
     TRANSFER_STARTED: 'transfer-started',
     TRANSFER_COMPLETED: 'transfer-completed',
   };
@@ -113,6 +125,8 @@ export class AttachmentFileManager extends EventEmitter {
   private _successes: number = 0;
   private _failures: number = 0;
   private _transferJob?: TransferJob;
+  private _pendingVirusScans: string[] = [];
+  private _virusScanJob?: TransferJob;
   private _loopAbortController: AbortController = new AbortController();
   private _loopAbort = this._loopAbortController?.signal as globalThis.AbortSignal;
 
@@ -126,6 +140,7 @@ export class AttachmentFileManager extends EventEmitter {
   constructor(
     private _docStorage: DocStorage,
     private _storeProvider: IAttachmentStoreProvider | undefined,
+    private _virusScanProviders: IAttachmentVirusScanProvider[] | undefined,
     _docInfo: AttachmentStoreDocInfo | undefined,
     private _assertInternalStorageAvailable?: (extraBytes: number) => Promise<void>,
   ) {
@@ -141,8 +156,10 @@ export class AttachmentFileManager extends EventEmitter {
     this._pendingFileTransfers.clear();
     this._successes = 0;
     this._failures = 0;
+    this._pendingVirusScans = [];
     this._loopAbortController.abort();
     await this._transferJob?.catch(reason => this._log.error({}, `Error during shutdown: ${reason}`));
+    await this._virusScanJob?.catch(reason => this._log.error({}, `Error during shutdown: ${reason}`));
   }
 
   // This attempts to add the attachment to the given store.
@@ -154,7 +171,9 @@ export class AttachmentFileManager extends EventEmitter {
     fileData: Buffer
   ): Promise<AddFileResult> {
     const fileIdent = await this._getFileIdentifier(fileExtension, stream.Readable.from(fileData));
-    return this._addFile(storeId, fileIdent, fileData);
+    const fileResult = await this._addFile(storeId, fileIdent, fileData);
+    this._markFileWaitingForVirusScan(fileIdent);
+    return fileResult;
   }
 
   /**
@@ -356,6 +375,29 @@ export class AttachmentFileManager extends EventEmitter {
     };
   }
 
+  /**
+   * Marks a file as waiting for a virus scan.
+   * @param fileIdent - The unique identifier of the file in the database.
+   */
+  public _markFileWaitingForVirusScan(fileIdent: string) {
+    this._pendingVirusScans.push(fileIdent);
+    this._runVirusScanJob();
+    this._log.debug({fileIdent}, `marked file for virus scan`);
+  }
+
+  public async allVirusScansCompleted(): Promise<void> {
+    if (this._virusScanJob) {
+      await this._virusScanJob;
+    }
+  }
+
+  public virusScanStatus() {
+    return {
+      pendingVirusScanCount: this._pendingVirusScans.length,
+      isRunning: this._virusScanJob !== undefined
+    };
+  }
+
   private _runTransferJob() {
     if (this._transferJob) {
       return;
@@ -425,6 +467,77 @@ export class AttachmentFileManager extends EventEmitter {
       locationSummary: await this.locationSummary(),
       status: {pendingTransferCount: this._pendingFileTransfers.size, isRunning: false}
     } as AttachmentTransferStatus);
+  }
+
+  private _runVirusScanJob() {
+    if (this._virusScanJob) {
+      return;
+    }
+    this._virusScanJob = this._performPendingVirusScans();
+
+    this._virusScanJob.catch((err) => this._log.error({}, `Error during virus scan: ${err}`));
+
+    this._virusScanJob.finally(() => {
+      this._virusScanJob = undefined;
+    });
+  }
+
+  private async _performPendingVirusScans() {
+    if (!this._virusScanProviders) {
+      this._log.warn({}, `no virus scan providers configured`);
+      return;
+    }
+
+    try {
+      await this._notifyAboutVirusScanStart();
+      while (this._pendingVirusScans.length > 0 && !this._loopAbort.aborted) {
+        for (const fileIdent of this._pendingVirusScans) {
+          try {
+            for (const virusScanProvider of this._virusScanProviders) {
+              const fileInfo = await this._getFileInfo(fileIdent);
+              const isVirusFree = await virusScanProvider.scanAttachment(fileInfo.file);
+              this._log.debug({fileIdent}, `virus scan result ${isVirusFree}`);
+              if (!isVirusFree) {
+                await this._deleteFile(fileInfo.storageId || undefined, fileIdent);
+                throw new VirusScanError(fileIdent);
+              }
+            }
+          } catch (e) {
+            this._log.warn({fileIdent}, `virus scan failed: ${e.message}`);
+          } finally {
+            // If a virus scan request comes in mid-scan, it will need re-running.
+            if (this._pendingVirusScans.includes(fileIdent)) {
+              this._pendingVirusScans.splice(this._pendingVirusScans.indexOf(fileIdent), 1);
+            }
+          }
+        }
+      }
+    } finally {
+      if (!this._loopAbort.aborted) {
+        await this._docStorage.requestVacuum();
+        await this._notifyAboutVirusScanEnd();
+      }
+    }
+  }
+
+  /**
+   * Sends a notification that a virus scan has started.
+   */
+  private async _notifyAboutVirusScanStart() {
+    this.emit(AttachmentFileManager.events.VIRUS_SCAN_STARTED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingVirusScanCount: this._pendingVirusScans.length, isRunning: true}
+    } as AttachmentScanVirusStatus);
+  }
+
+  /**
+   * Sends a notification that a virus scan has ended.
+   */
+  private async _notifyAboutVirusScanEnd() {
+    this.emit(AttachmentFileManager.events.VIRUS_SCAN_COMPLETED, {
+      locationSummary: await this.locationSummary(),
+      status: {pendingVirusScanCount: this._pendingVirusScans.length, isRunning: false}
+    } as AttachmentScanVirusStatus);
   }
 
   private async _isFileAvailable(fileInfo?: FileInfo | null): Promise<boolean> {
@@ -621,6 +734,38 @@ export class AttachmentFileManager extends EventEmitter {
 
     // Insert (or overwrite) the entry for this file in the document database.
     await this._docStorage.attachOrUpdateFile(fileIdent, undefined, store.id);
+  }
+
+  private async _deleteFile(
+    storeId: AttachmentStoreId | undefined,
+    fileIdent: string,
+  ): Promise<void> {
+    if (storeId === undefined) {
+      return this._deleteFileInLocalStorage(fileIdent);
+    }
+    const store = await this._getStore(storeId);
+    if (!store) {
+      this._log.warn({ fileIdent, storeId }, `unable to delete file, store is unavailable`);
+      throw new StoreNotAvailableError(storeId);
+    }
+    return this._deleteFileInAttachmentStore(store, fileIdent);
+  }
+
+  // Delete the file from local storage and remove the entry for this file in the document database.
+  private async _deleteFileInLocalStorage(fileIdent: string): Promise<void> {
+    await this._docStorage.removeFile(fileIdent);
+  }
+
+  // Delete the file from an attachment store and remove the entry for this file in the document database.
+  private async _deleteFileInAttachmentStore(
+    store: IAttachmentStore, fileIdent: string,
+  ): Promise<void> {
+
+    // Delete the file from the attachment store.
+    await store.delete(this._getDocPoolId(), fileIdent);
+
+    // Remove the entry for this file in the document database.
+    await this._docStorage.removeFile(fileIdent);
   }
 
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<AttachmentFile> {

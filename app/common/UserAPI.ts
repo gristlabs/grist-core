@@ -1355,6 +1355,14 @@ export interface AttachmentTransferStatus {
   locationSummary: DocAttachmentsLocation;
 }
 
+export interface AttachmentScanVirusStatus {
+  status: {
+    pendingVirusScanCount: number;
+    isRunning: boolean;
+  };
+  locationSummary: DocAttachmentsLocation;
+}
+
 
 /**
  * Represents information to build public doc worker url.
