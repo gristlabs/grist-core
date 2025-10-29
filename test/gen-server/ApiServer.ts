@@ -12,7 +12,7 @@ import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager
 import {TestServer} from 'test/gen-server/apiUtils';
 import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
-import {ServiceAccountCreationResponse} from 'app/common/ServiceAccount';
+import {ServiceAccountCreationResponse} from 'app/common/ServiceAccountTypes';
 
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import * as chai from 'chai';

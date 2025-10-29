@@ -9,8 +9,8 @@ import {ApiError} from 'app/common/ApiError';
 import {isAffirmative} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
-import * as SATypes from 'app/common/ServiceAccount';
-import ServiceAccountTI from 'app/common/ServiceAccount-ti';
+import * as SATypes from 'app/common/ServiceAccountTypes';
+import ServiceAccountTI from 'app/common/ServiceAccountTypes-ti';
 import {DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,

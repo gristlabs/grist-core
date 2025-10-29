@@ -80,7 +80,7 @@ class ScimUserController extends BaseController {
         throw new SCIMMY.Types.Error(403, null!, 'System user modification not permitted.');
       }
       const user = await this.dbManager.getUser(id);
-      if (user && user.type !== 'login') {
+      if (user?.type !== 'login') {
         throw new SCIMMY.Types.Error(403, null!, 'Only login user modifications are permitted');
       }
       await this._checkEmailCanBeUsed(data.userName, id);
@@ -102,7 +102,7 @@ class ScimUserController extends BaseController {
         throw new SCIMMY.Types.Error(403, null!, 'System user deletion not permitted.');
       }
       const user = await this.dbManager.getUser(id);
-      if (user && user.type !== 'login') {
+      if (user?.type !== 'login') {
         throw new SCIMMY.Types.Error(403, null!, 'Only login user deletions are permitted');
       }
       const fakeScope: Scope = { userId: id };
