@@ -164,7 +164,10 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       ag,
       this
     );
-    return part.renderTabularDiffs(sum, txt, ag?.context);
+    return part.renderTabularDiffs(sum, {
+      txt,
+      contextObs: ag?.context
+    });
   }
 
   /**
@@ -301,7 +304,8 @@ export abstract class ActionLogPart {
    * @param {string} txt - a textual description of the action
    * @param {Observable} context - extra information about the action
    */
-  public renderTabularDiffs(sum: ActionSummary, txt?: string, contextObs?: ko.Observable<ActionContext>): HTMLElement {
+  public renderTabularDiffs(sum: ActionSummary, options: RenderTabularDiffOptions): HTMLElement {
+    const {txt, contextObs} = options;
     const editDom = koDom.scope(contextObs, (context: ActionContext) => {
       const act = asTabularDiffs(sum, {
         context,
@@ -311,6 +315,7 @@ export abstract class ActionLogPart {
         'div',
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
+        options.customRender?.(act),
         Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
           if (tdiff.cells.length === 0) { return dom('div'); }
           return dom(
@@ -705,4 +710,10 @@ interface DeletedObject {
   thisRow?: boolean;
   colId?: string;
   tableId?: string;
+}
+
+interface RenderTabularDiffOptions {
+  txt?: string;
+  contextObs?: ko.Observable<ActionContext>;
+  customRender?(diffs: TabularDiffs): DomContents;
 }

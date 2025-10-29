@@ -602,6 +602,7 @@ export class VirtualSection extends Disposable {
     /** If this view section is visible or not. Used for resizing when the parent element is initially hidden */
     isVisible?: Observable<boolean>,
     disableAddRemove?: boolean,
+    defaultWidth?: number,
   }) {
     super();
 
@@ -623,7 +624,7 @@ export class VirtualSection extends Disposable {
         parentKey: this.props.type ?? 'record',
         title: this.props?.label ?? tableRec.tableName.peek(),
         borderWidth: 1,
-        defaultWidth: 100,
+        defaultWidth: this.props.defaultWidth ?? 100,
         linkSrcSectionRef,
       }
     ]);
@@ -794,7 +795,7 @@ export class ApiData implements ExternalData {
 }
 
 /**
- * Converts the Records format ({record: {id, fields}[]}) to TableDataAction.
+ * Converts the Records format ({records: {id, fields}[]}) to TableDataAction.
  */
 export class RecordsFormat implements ExternalFormat {
   public convert(tableId: string, data: TableRecordValues, keys: string[]): TableDataAction {
@@ -838,6 +839,7 @@ export interface TableSpec {
   format?: ExternalFormat;
   hidden?: boolean;
   initialFocus?: boolean;
+  defaultWidth?: number;
 }
 
 /**
@@ -985,7 +987,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
         } as BoxSpec),
         showHeader: true,
         borderWidth: 1,
-        defaultWidth: 100,
+        defaultWidth: tabDef.defaultWidth ?? 100,
       }
     ],
     [

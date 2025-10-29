@@ -1,6 +1,7 @@
 import { ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
 import { cssBannerLink } from 'app/client/components/Banner';
 import { GristDoc } from 'app/client/components/GristDoc';
+import { ApiData, RecordsFormat, VirtualDoc, VirtualSection } from 'app/client/components/VirtualDoc';
 import { makeT } from 'app/client/lib/localization';
 import { getTimeFromNow } from 'app/client/lib/timeUtils';
 import { urlState } from 'app/client/models/gristUrlState';
@@ -13,6 +14,7 @@ import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
 import { rebaseSummary } from 'app/common/ActionSummarizer';
+import { TableRecordValue, TableRecordValues } from 'app/common/DocActions';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
@@ -20,7 +22,9 @@ import {
 } from 'app/common/DocState';
 import { buildUrlId, commonUrls, parseUrlId } from 'app/common/gristUrls';
 import { isLongerThan } from 'app/common/gutil';
+import { TabularDiff, TabularDiffs } from 'app/common/TabularDiff';
 import { Proposal } from 'app/common/UserAPI';
+import { GristType } from 'app/plugin/GristData';
 import {
   Computed, Disposable, dom, makeTestId, MutableObsArray,
   obsArray, Observable, styled
@@ -63,6 +67,7 @@ export class ProposedChangesPage extends Disposable {
 
   public buildDom() {
     const content = cssContainer(
+      dom.cls('diff'),
       cssHeader(this.body.title(), betaTag(t('experiment'))),
       dom.maybe(this.isInitialized, (init) => {
         if (init === 'slow') {
@@ -188,7 +193,7 @@ and is subject to change and withdrawal.`,
                   getProposalActionSummary(proposal),
                   testId('header'),
                 ),
-                renderComparisonDetails(this.gristDoc, details, proposal.comparison.comparison),
+                renderComparisonDetails(this, this.gristDoc, details, proposal.comparison.comparison),
                 proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
                 isReadOnly ? null : cssDataRow(
                   applied ? null : primaryButton(
@@ -201,17 +206,16 @@ and is subject to change and withdrawal.`,
                         if (change.fail) {
                           reportError(new Error(change.msg));
                         }
-                        console.log(change);
                       }
                     }),
                     testId('apply'),
                   ),
                   ' ',
-                  (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
-                    t("Dismiss"),
+                  isReadOnly ? null : basicButton(
+                    dismissed ? t("Undo dismissal") : t("Dismiss"),
                     dom.on('click', async () => {
                       const result = await this.gristDoc.docComm.applyProposal(proposal.shortId, {
-                        dismiss: true,
+                        dismiss: !dismissed,
                       });
                       this._updateProposal(proposal, result.proposal);
                     }),
@@ -349,7 +353,7 @@ export class ProposedChangesForkPage extends Disposable {
             return dom('p', t('No changes found to suggest. Please make some edits.'));
           }),
           cssDataRow(
-            details ? renderComparisonDetails(this.gristDoc, details, this._comparison) : null,
+            details ? renderComparisonDetails(this, this.gristDoc, details, this._comparison) : null,
           ),
           [
             dom('p',
@@ -534,7 +538,7 @@ function getProposalActionSummary(proposal: Proposal|null) {
 }
 
 
-function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateComparisonDetails,
+function renderComparisonDetails(owner: Disposable, gristDoc: GristDoc, origDetails: DocStateComparisonDetails,
                                  origComparison: DocStateComparison|undefined) {
   // The change we want to render is based on a calculation
   // done on the fork document. The calculation treated the
@@ -550,6 +554,113 @@ function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateCompar
   const context = ko.observable({});
   return [
     leftHadMetadata ? dom('p', "(some changes we can't deal with yet were ignored)") : null,
-    part.renderTabularDiffs(details.leftChanges, "", context),
+    part.renderTabularDiffs(details.leftChanges, {
+      txt: "",
+      contextObs: context,
+      customRender(diffs) {
+        return makeTable(owner, gristDoc, diffs);
+      }
+    }),
   ];
 }
+
+function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs) {
+  const doc = VirtualDoc.create(owner, gristDoc.appModel);
+  if (diffs) {
+    const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
+      const data: TableRecordValues = {records: []};
+      for (const row of tdiff.cells) {
+        const record: TableRecordValue = {
+          id: row.rowId,
+          fields: {},
+        };
+        for (const [idx, cell] of row.cellDeltas.entries()) {
+          let item;
+          if (cell === null) {
+            item = '...';
+          } else if (!Array.isArray(cell)) {
+            item = cell;
+          } else {
+            const [pre, post] = cell;
+            if (!pre && !post) {
+              item = '';
+            } else {
+              item = ['V', {
+                parent: pre?.[0],
+                remote: post?.[0],
+              }];
+            }
+          }
+          const colId = tdiff.header[idx];
+          record.fields[colId] = item as any;
+        }
+        data.records.push(record);
+      }
+      const tableRow = gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
+      const columnRows = gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
+      const types: Record<string, GristType> = Object.fromEntries(
+        columnRows.map(cr => [cr.colId(), cr.type() as GristType])
+      );
+      const defaultWidth = 200;
+      doc.addTable({
+        name: table,
+        tableId: table,
+        data: new ApiData(() => data),
+        format: new RecordsFormat(),
+        columns: tdiff.header.map(colId => {
+          return {
+            colId,
+            label: colId,
+            type: types[colId] || 'Any'
+          };
+        }),
+        defaultWidth,
+      });
+      doc.refreshTableData(table).catch(reportError);
+      return dom.create(VirtualSection, doc, {
+        tableId: table,
+        sectionId: 'list',
+        defaultWidth,
+      });
+      // return dom('div', table);
+    });
+    return lst;
+  }
+  const data = {
+    records: [
+      {
+        id: 1,
+        fields: {
+          A: ['V', {
+            parent: 99,
+            remote: 98,
+            local: 97
+          }],
+        },
+      },
+      {
+        id: 2,
+        fields: {
+            A: 101,
+        },
+      }
+    ],
+  };
+  doc.addTable({
+    name: 'Users',
+    tableId: 'users',
+    data: new ApiData(() => data),
+    format: new RecordsFormat(),
+    columns: [{
+      colId: 'A',
+      type: 'Int',
+      label: 'A'
+    }],
+  });
+  doc.refreshTableData('users').catch(reportError);
+  return dom.create(VirtualSection, doc, {
+    tableId: 'users',
+    sectionId: 'list',
+  });
+}
+

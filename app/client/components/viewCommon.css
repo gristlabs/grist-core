@@ -314,5 +314,6 @@
 }
 
 .diff-common {
-  color: #555;
+  color: var(--grist-theme-text);
+  --grist-diff-color: var(--grist-theme-text);
 }
