@@ -1,5 +1,5 @@
 import {
-  configForUser, configWithPermit, getRowCounts as getRowCountsForDb, requestConfig
+  configForApiKey, configForUser, configWithPermit, getRowCounts as getRowCountsForDb
 } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
@@ -2265,7 +2265,7 @@ describe('ApiServer', function() {
 
     function requestConfigWithKey(key: string|undefined) {
       assert.isDefined(key);
-      return requestConfig(key);
+      return configForApiKey(key);
     }
 
     function checkCommonErrors(

@@ -9,13 +9,13 @@ import {EmitNotifier} from 'app/server/lib/INotifier';
 import {AxiosRequestConfig} from 'axios';
 import {delay} from 'bluebird';
 
-export function requestConfig(bearer?: string): AxiosRequestConfig {
+export function configForApiKey(apiKey?: string): AxiosRequestConfig {
   return {
     responseType: 'json',
     validateStatus: (status: number) => true,
     headers: {
       'X-Requested-With': 'XMLHttpRequest',
-      ...(bearer ? {Authorization: `Bearer ${bearer}`} : {})
+      ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {})
     }
   };
 }
@@ -25,9 +25,9 @@ export function requestConfig(bearer?: string): AxiosRequestConfig {
  * failed request.
  */
 export function configForUser(username: string): AxiosRequestConfig {
-  const bearer = username !== 'Anonymous' ? `api_key_for_${username.toLowerCase()}` : undefined;
+  const apiKey = username !== 'Anonymous' ? `api_key_for_${username.toLowerCase()}` : undefined;
 
-  return requestConfig(bearer);
+  return configForApiKey(apiKey);
 }
 
 /**
