@@ -1,6 +1,7 @@
 import { ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
 import { cssBannerLink } from 'app/client/components/Banner';
 import { GristDoc } from 'app/client/components/GristDoc';
+import { ApiData, RecordsFormat, VirtualDoc, VirtualSection } from 'app/client/components/VirtualDoc';
 import { makeT } from 'app/client/lib/localization';
 import { getTimeFromNow } from 'app/client/lib/timeUtils';
 import { urlState } from 'app/client/models/gristUrlState';
@@ -28,7 +29,6 @@ import {
   obsArray, Observable, styled
 } from 'grainjs';
 import * as ko from 'knockout';
-import { ApiData, RecordsFormat, VirtualDoc, VirtualSection } from '../components/VirtualDoc';
 
 const t = makeT('ProposedChangesPage');
 
@@ -588,11 +588,13 @@ function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs) 
         data.records.push(record);
       }
       console.log(JSON.stringify({table, data}));
-      const tableRow = gristDoc.docModel.tables.rowModels.filter(t => t.tableId() === table)[0];
+      const tableRow = gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
       console.log({tableRow, id: tableRow.id()});
-      const columnRows = gristDoc.docModel.columns.rowModels.filter(t => t.parentId() === tableRow.id());
+      const columnRows = gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
       console.log({columnRows});
-      const types: Record<string, GristType> = Object.fromEntries(columnRows.map(cr => [cr.colId(), cr.type() as GristType]));
+      const types: Record<string, GristType> = Object.fromEntries(
+        columnRows.map(cr => [cr.colId(), cr.type() as GristType])
+      );
       doc.addTable({
         name: table,
         tableId: table,
