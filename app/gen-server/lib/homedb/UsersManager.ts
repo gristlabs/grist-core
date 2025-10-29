@@ -924,7 +924,7 @@ export class UsersManager {
       // The null value is of no interest to the user, let's show empty string instead.
       return user.apiKey || '';
     }
-    throw new Error("user not known");
+    throw new ApiError("user not known", 404);
   }
 
   public async createApiKey(userId: number, force: boolean, transaction?: EntityManager): Promise<User> {
