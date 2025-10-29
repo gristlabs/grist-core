@@ -9,7 +9,7 @@ import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import { Group } from 'app/gen-server/entity/Group';
 import { isAffirmative } from 'app/common/gutil';
-import { UserTypes } from 'app/common/User';
+import { UserType } from 'app/common/User';
 
 function scimConfigForUser(user: string) {
   const config = configForUser(user);
@@ -123,7 +123,7 @@ describe('Scim', () => {
       };
     }
 
-    async function getOrCreateUserId(user: string, {type}: {type?: UserTypes} = {}) {
+    async function getOrCreateUserId(user: string, {type}: {type?: UserType} = {}) {
       const domain = type === "service" ? "serviceaccounts.invalid" : "getgrist.com";
       return (await getDbManager().getUserByLogin(`${user}@${domain}`, {}, type))!.id;
     }

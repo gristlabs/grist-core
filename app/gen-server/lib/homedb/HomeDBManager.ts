@@ -18,7 +18,7 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {UserTypes} from 'app/common/User';
+import {UserType} from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   DocumentProperties,
@@ -501,7 +501,7 @@ export class HomeDBManager implements HomeDBAuth {
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserTypes = 'login'): Promise<User> {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = 'login'): Promise<User> {
     return this._usersManager.getUserByLogin(email, options, type);
   }
 

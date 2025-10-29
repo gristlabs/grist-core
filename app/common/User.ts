@@ -5,7 +5,7 @@ import {Role} from 'app/common/roles';
 /**
  * User type to distinguish between Users and service accounts
  */
-export type UserTypes = 'login' | 'service';
+export type UserType = 'login' | 'service';
 
 /**
  * Information about a user, including any user attributes.
@@ -24,7 +24,7 @@ export interface UserInfo {
    * via a share. Otherwise null.
    */
   ShareRef: number | null;
-  Type: UserTypes | null;
+  Type: UserType | null;
   [attributes: string]: unknown;
 }
 
@@ -43,7 +43,7 @@ export class User implements UserInfo {
   public SessionID: string | null = null;
   public UserRef: string | null = null;
   public ShareRef: number | null = null;
-  public Type: UserTypes | null = null;
+  public Type: UserType | null = null;
   [attribute: string]: any;
 
   constructor(info: Record<string, unknown> = {}) {

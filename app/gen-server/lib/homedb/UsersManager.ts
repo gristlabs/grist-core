@@ -5,7 +5,7 @@ import { PERSONAL_FREE_PLAN } from 'app/common/Features';
 import { buildUrlId } from 'app/common/gristUrls';
 import { UserOrgPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import { UserTypes } from 'app/common/User';
+import { UserType } from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
   EVERYONE_EMAIL,
@@ -404,7 +404,7 @@ export class UsersManager {
    * unset/outdated fields of an existing record.
    *
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserTypes = 'login') {
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = 'login') {
     const {manager: transaction, profile, userOptions} = options;
     const normalizedEmail = normalizeEmail(email);
     return await this._runInTransaction(transaction, async manager => {
