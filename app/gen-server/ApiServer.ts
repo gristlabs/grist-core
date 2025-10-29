@@ -750,17 +750,17 @@ export class ApiServer {
         return sendOkReply(req, res, resp);
       }));
 
-      // POST /service-accounts/:said/key/revoke
-      // Revokes the apikey of a given Service Account by deleting the key
-      this._app.post('/api/service-accounts/:said/key/revoke', expressWrap(async (req, res) => {
+      // DELETE /service-accounts/:said/apikey
+      // Deletes the apikey of a given Service Account by deleting the key
+      this._app.delete('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
-        const serviceAccount = await this._dbManager.revokeServiceAccountApiKey(
+        const serviceAccount = await this._dbManager.deleteServiceAccountApiKey(
           serviceAccountLogin, {expectedOwnerId: userId}
         );
         if (serviceAccount == null) {
           throw new ApiError(
-            `Can't revoke api key of non existing service account ${serviceAccountLogin}`,
+            `Can't delete api key of non existing service account ${serviceAccountLogin}`,
             404
           );
         }

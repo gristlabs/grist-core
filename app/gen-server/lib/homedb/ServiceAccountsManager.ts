@@ -195,14 +195,14 @@ export class ServiceAccountsManager {
   }
 
   /**
-   * Revokes the API key of the service account
+   * Deletes the API key of the service account
    *
    * @param serviceAccountLogin The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
    */
-  public async revokeServiceAccountApiKey(
+  public async deleteServiceAccountApiKey(
     serviceAccountLogin: string,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ): Promise<ServiceAccount> {

@@ -2490,7 +2490,7 @@ describe('ApiServer', function() {
       );
     });
 
-    describe('Endpoint POST /api/service-accounts/{saId}/key/revoke', function() {
+    describe('Endpoint DELETE /api/service-accounts/{saId}/apikey', function() {
       it('is operational', async function() {
         const body = {
           label: "Short life service",
@@ -2505,7 +2505,7 @@ describe('ApiServer', function() {
           hasValidKey: false
         };
 
-        const revokeAccess = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, chimpy);
+        const revokeAccess = await axios.delete(`${homeUrl}/api/service-accounts/${serviceLogin}/apikey`, chimpy);
         assert.equal(revokeAccess.status, 200);
 
         const serviceAccountInfo = await axios.get(`${homeUrl}/api/service-accounts/${serviceLogin}`, chimpy);
@@ -2514,7 +2514,7 @@ describe('ApiServer', function() {
       });
 
       checkCommonErrors((saId, user) =>
-        axios.post(`${homeUrl}/api/service-accounts/${saId}/key/revoke`, {}, user)
+        axios.delete(`${homeUrl}/api/service-accounts/${saId}/apikey`, user)
       );
     });
 
@@ -2557,7 +2557,7 @@ describe('ApiServer', function() {
       it('with revoked key should fail to access resource it is added to', async function() {
         const {oid, login: serviceLogin, serviceAccountReqConfig} = await setupServiceAccountWithAccessTo('NASA');
 
-        await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/revoke`, {}, chimpy);
+        await axios.delete(`${homeUrl}/api/service-accounts/${serviceLogin}/apikey`, chimpy);
 
         const accessOfServiceAccountAfter = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountReqConfig);
         assert.equal(accessOfServiceAccountAfter.status, 401,
