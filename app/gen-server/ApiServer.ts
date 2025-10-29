@@ -667,7 +667,7 @@ export class ApiServer {
       // Reads all service accounts attached to the user making the api call.
       this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
-        const data = await this._dbManager.getAllServiceAccounts(userId);
+        const data = await this._dbManager.getOwnedServiceAccounts(userId);
         return sendOkReply(req, res, data);
       }));
 

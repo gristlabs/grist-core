@@ -113,7 +113,7 @@ export class ServiceAccountsManager {
     return this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
   }
 
-  public async getAllServiceAccounts(
+  public async getOwnedServiceAccounts(
     ownerId: number,
     transaction?: EntityManager
   ): Promise<ServiceAccount[]> {

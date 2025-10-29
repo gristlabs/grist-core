@@ -3435,8 +3435,8 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.createServiceAccount(ownerId, props);
   }
 
-  public async getAllServiceAccounts(ownerId: number) {
-    return this._serviceAccountsManager.getAllServiceAccounts(ownerId);
+  public async getOwnedServiceAccounts(ownerId: number) {
+    return this._serviceAccountsManager.getOwnedServiceAccounts(ownerId);
   }
 
   public assertServiceAccountExistingAndOwned(
