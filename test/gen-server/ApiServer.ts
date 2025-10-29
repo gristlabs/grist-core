@@ -2437,7 +2437,7 @@ describe('ApiServer', function() {
     });
 
     describe('Endpoint DELETE /api/service-accounts/{saId}', function() {
-      it('deletes the service account and only soft-delete the asssociated user', async function() {
+      it('deletes the service account and only soft-delete the associated user', async function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
