@@ -1080,7 +1080,8 @@
         "changes": "modifications",
         "comments": "commentaires",
         "this document": "ce document",
-        "your email": "votre email"
+        "your email": "votre email",
+        "Unsubscribed{{suffix}}": "Désinscription{{suffix}}"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
