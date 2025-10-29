@@ -206,10 +206,10 @@ export async function addRequestUser(
       if (user.type === "service") {
         const serviceAccount = (await dbManager.getServiceAccountWithOwner(user.loginEmail as string))!;
         if (serviceAccount.owner.disabledAt) {
-          return res.status(403).send('Unauthorized');
+          return res.status(403).send('Owner account is disabled');
         }
         if (!serviceAccount.isAlive()) {
-          return res.status(401).send('Service Account has reached its end of life');
+          return res.status(401).send('Service Account has expired');
         }
       }
       if (user.id === dbManager.getAnonymousUserId()) {

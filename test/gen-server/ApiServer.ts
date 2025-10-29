@@ -2580,7 +2580,7 @@ describe('ApiServer', function() {
         // The error is checked below in any case.
         const accessToNasa = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountConfig);
         assert.equal(accessToNasa.status, 401);
-        assert.equal(accessToNasa.data, "Service Account has reached its end of life");
+        assert.equal(accessToNasa.data, "Service Account has expired");
       });
 
       describe("On owner disabled", function() {
