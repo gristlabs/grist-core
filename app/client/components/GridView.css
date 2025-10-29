@@ -26,6 +26,13 @@
   border-top: 1px solid var(--grist-theme-table-header-border, lightgrey);
 }
 
+/* this is just voodoo so far */
+.diff .gridview_data_scroll {
+  overflow: none;
+  height: 1000px;
+}
+
+
 .gridview_data_pane > .gridview_data_scroll {
   border-top: none;
 }
@@ -154,6 +161,10 @@
   background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
 }
 
+.diff .gridview_header_backdrop_top {
+  background-color: transparent !important;
+}
+
 .gridview_data_corner_overlay {
   width: 52px;
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
@@ -249,6 +260,10 @@
   top: 1px; /* go under 1px border on scrollpane */
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   z-index: 10;
+}
+
+.diff .gridview_header_backdrop_top {
+  border-bottom: none;
 }
 
 .gridview_data_pane > .scroll_shadow_top {

@@ -1448,7 +1448,18 @@ export default class GridView extends BaseView {
           ) //end hbox
         ), // END COL HEADER BOX
 
-        koDomScrolly.scrolly(data, { paddingBottom: 80, paddingRight: 28 }, renderRow.bind(this)),
+          koDomScrolly.scrolly(data, {
+            paddingBottom: 80, paddingRight: 28,
+            cb: (heights?: number[]) => {
+              if (heights) {
+                const total = [...heights].reduce((a, b) => a+b, 0) + 2;
+                const num = parseInt(this.viewPane.style.height.replace('px', '') || '0', 10);
+                if (total > (num || 0)) {
+                  this.viewPane.style.height = String(total) + "px";
+                }
+              }
+            }
+          }, renderRow.bind(this)),
 
         dom.maybe(this._isPrinting, () =>
           renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this))
@@ -1656,7 +1667,7 @@ export default class GridView extends BaseView {
 
   public override onResize() {
     const activeFieldBuilder = this.activeFieldBuilder();
-    let height = null;
+    let height: number|null = null;
     if (isNarrowScreen()) {
       height = window.outerHeight;
     }

@@ -22,6 +22,10 @@
   overflow: hidden;
 }
 
+.diff .viewsection_title {
+  display: none;
+}
+
 .viewsection_title, .viewsection_title_font {
   color: var(--grist-theme-text-light, var(--grist-color-slate));
   font-size: var(--grist-small-font-size);
@@ -87,6 +91,10 @@
   position: relative;
   flex: auto;
   border: 1px solid var(--grist-theme-widget-border, var(--grist-color-dark-grey));
+}
+
+.diff .view_data_pane_container {
+  border: none;
 }
 
 @media not print {
