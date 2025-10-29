@@ -2469,7 +2469,7 @@ describe('ApiServer', function() {
       );
     });
 
-    describe('Endpoint POST /api/service-accounts/{saId}/key/regenerate', function() {
+    describe('Endpoint POST /api/service-accounts/{saId}/apikey', function() {
       it('is operational', async function() {
         const body = {
           label: "Short life service",
@@ -2478,7 +2478,7 @@ describe('ApiServer', function() {
         };
         const {login: serviceLogin, key: apiKeyBefore} = await createServiceAccount(body);
 
-        const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/key/regenerate`, {}, chimpy);
+        const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceLogin}/apikey`, {}, chimpy);
         const apiKeyAfter = resp.data.key;
         assert.equal(resp.status, 200);
         assert.isNotEmpty(apiKeyAfter);
@@ -2486,7 +2486,7 @@ describe('ApiServer', function() {
       });
 
       checkCommonErrors((saId, user) =>
-        axios.post(`${homeUrl}/api/service-accounts/${saId}/key/regenerate`, {}, user)
+        axios.post(`${homeUrl}/api/service-accounts/${saId}/apikey`, {}, user)
       );
     });
 

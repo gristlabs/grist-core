@@ -725,12 +725,12 @@ export class ApiServer {
         return sendOkReply(req, res, resp);
       }));
 
-      // POST /service-accounts/:said/key/regenerate
+      // POST /service-accounts/:said/apikey
       // Regenerate and return the apikey of a given Service Account
-      this._app.post('/api/service-accounts/:said/key/regenerate', expressWrap(async (req, res) => {
+      this._app.post('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const serviceAccountLogin = req.params.said;
-        const serviceAccount = await this._dbManager.regenerateServiceAccountApiKey(
+        const serviceAccount = await this._dbManager.createServiceAccountApiKey(
           serviceAccountLogin, {expectedOwnerId: userId}
         );
         if (serviceAccount === null) {

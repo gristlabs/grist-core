@@ -175,14 +175,14 @@ export class ServiceAccountsManager {
   }
 
   /**
-   * Regenerates the service account API key.
+   * Creates the service account API key.
    *
    * @param serviceAccountLogin The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
    */
-  public async regenerateServiceAccountApiKey(
+  public async createServiceAccountApiKey(
     serviceAccountLogin: string,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ): Promise<ServiceAccount> {

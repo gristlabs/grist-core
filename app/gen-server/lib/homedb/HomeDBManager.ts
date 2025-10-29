@@ -3463,8 +3463,8 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, options);
   }
 
-  public async regenerateServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
-    return this._serviceAccountsManager.regenerateServiceAccountApiKey(serviceLogin, options);
+  public async createServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.createServiceAccountApiKey(serviceLogin, options);
   }
 
   public async revokeServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
