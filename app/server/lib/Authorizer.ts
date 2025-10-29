@@ -208,7 +208,7 @@ export async function addRequestUser(
         if (serviceAccount.owner.disabledAt) {
           return res.status(403).send('Owner account is disabled');
         }
-        if (!serviceAccount.isAlive()) {
+        if (!serviceAccount.isActive()) {
           return res.status(401).send('Service Account has expired');
         }
       }
