@@ -18,6 +18,7 @@ import {CursorPos} from 'app/plugin/GristAPI';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
+import { components, tokens } from 'app/common/ThemePrefs';
 
 const t = makeT('FieldConfig');
 
@@ -82,7 +83,10 @@ export function buildNameConfig(
       ),
       cssColTieBlock(
         cssColTieConnectors(),
-        cssToggleButton(icon('FieldReference'),
+        cssToggleButton(
+          dom.domComputed(untieColId, (isUntied) =>
+            isUntied ? icon('FieldReferenceDisabled') : icon('FieldReference')
+          ),
           cssToggleButton.cls('-selected', (use) => !use(untieColId)),
           dom.on('click', toggleUntieColId),
           cssToggleButton.cls("-disabled", use => use(origColumn.disableModify) || use(disabled)),
@@ -480,19 +484,24 @@ function buildFormula(
 
 const cssToggleButton = styled(cssIconButton, `
   margin-left: 8px;
-  background-color: ${theme.rightPanelToggleButtonDisabledBg};
-  box-shadow: inset 0 0 0 1px ${theme.inputBorder};
+  background-color: ${components.buttonGroupBg};
+  box-shadow: inset 0 0 0 1px ${components.buttonGroupBorder};
   cursor: pointer;
 
+  &:hover {
+    background-color: ${components.buttonGroupBgHover};
+    box-shadow: inset 0 0 0 1px ${components.buttonGroupBorderHover};
+  }
+
   &-selected, &-selected:hover {
-    box-shadow: none;
-    background-color: ${theme.rightPanelToggleButtonEnabledBg};
-    --icon-color: ${theme.rightPanelToggleButtonEnabledFg};
+    box-shadow: inset 0 0 0 1px ${components.buttonGroupSelectedBorder};
+    background-color: ${components.buttonGroupSelectedBg};
+    --icon-color: ${components.buttonGroupSelectedBorder};
   }
   &-disabled, &-disabled:hover {
     cursor: not-allowed;
-    background-color: ${theme.rightPanelToggleButtonDisabledBg};
-    --icon-color: ${theme.iconDisabled};
+    background-color: ${tokens.bg};
+    --icon-color: ${components.iconDisabled};
   }
 `);
 
