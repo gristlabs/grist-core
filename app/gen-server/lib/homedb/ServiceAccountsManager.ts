@@ -164,9 +164,6 @@ export class ServiceAccountsManager {
       const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       const { serviceUser } = serviceAccount;
-      // We perform a soft delete as we don't want a service user's apiKey to still work
-      // Still keep the user's information to keep the trace of what the service account may have done.
-      serviceUser.apiKey = null;
       serviceUser.disabledAt = new Date();
       await manager.save(serviceUser);
       await manager.remove(serviceAccount);

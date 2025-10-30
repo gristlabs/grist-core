@@ -2460,7 +2460,6 @@ describe('ApiServer', function() {
 
         const serviceUser = await dbManager.getExistingUserByLogin(serviceLogin);
         assert.isNotEmpty(serviceUser);
-        assert.isNull(serviceUser?.apiKey);
         assert.isNotNull(serviceUser?.disabledAt);
       });
 
