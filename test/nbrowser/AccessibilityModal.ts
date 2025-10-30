@@ -28,7 +28,9 @@ const assertA11yModalShown = async () => {
 };
 
 const assertA11yModalClosed = async () => {
-  assert.isFalse(await driver.find('.test-modal-dialog').isPresent());
+  await gu.waitToPass(async () => {
+    assert.isFalse(await driver.find('.test-modal-dialog').isPresent());
+  });
 };
 
 describe('AccessibilityModal', function() {

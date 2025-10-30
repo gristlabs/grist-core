@@ -71,12 +71,12 @@ describe("DocTypeConversion", function () {
   }
 
   async function isTemplate(){
-    await assertExistsButton(saveCopyButton, "Save Copy");
+    await assertExistsButton(saveCopyButton, "Save copy");
     assert.isTrue(await fiddleTag.visible());
   }
 
   async function isTutorial(){
-    await assertExistsButton(saveCopyButton, "Save Copy");
+    await assertExistsButton(saveCopyButton, "Save copy");
     assert.isFalse(await fiddleTag.present());
   }
 

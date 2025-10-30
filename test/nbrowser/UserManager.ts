@@ -179,7 +179,7 @@ describe('UserManager', function() {
 
     // Open workspace options and assert that the initial state is as expected.
     await editWsAcls('Small');
-    await assertMaxInheritedRole('In Full');
+    await assertMaxInheritedRole('In full');
     await assertRole('chimpy', 'Owner', null);
     await assertRole('kiwi', 'Editor', true);
     await assertRole('charon', 'Owner', true);
@@ -196,7 +196,7 @@ describe('UserManager', function() {
     // Kiwi and Charon should become an inherited viewers.
     await driver.find('.test-um-max-inherited-role').click();
     await gu.findOpenMenu();
-    await driver.findContent('.test-um-role-option', /View Only/).click();
+    await driver.findContent('.test-um-role-option', /View only/).click();
     await assertRole('chimpy', 'Owner', null);
     await assertRole('kiwi', 'Viewer', true);
     await assertRole('charon', 'Viewer', true);
@@ -204,7 +204,7 @@ describe('UserManager', function() {
     // Save new max inherited role and check that it persists.
     await saveAcls();
     await editWsAcls('Small');
-    await assertMaxInheritedRole('View Only');
+    await assertMaxInheritedRole('View only');
     await driver.find('.test-um-cancel').click();
 
     // Simulate Charon login and assert that Charon can still see the workspace, but cannot
@@ -270,7 +270,7 @@ describe('UserManager', function() {
     await editWsAcls('Small');
     await driver.find('.test-um-max-inherited-role').click();
     await gu.findOpenMenu();
-    await driver.findContent('.test-um-role-option', /In Full/).click();
+    await driver.findContent('.test-um-role-option', /In full/).click();
     await driver.findContent('.test-um-member', /kiwi@getgrist.com/).find('.test-um-member-role').click();
     await gu.findOpenMenu();
     await driver.findContent('.test-um-role-option', /Editor/).click();
@@ -278,7 +278,7 @@ describe('UserManager', function() {
     // Save roles and assert that it persists.
     await saveAcls();
     await editWsAcls('Small');
-    await assertMaxInheritedRole('In Full');
+    await assertMaxInheritedRole('In full');
     await assertRole('chimpy', 'Owner', null);
     await assertRole('kiwi', 'Editor', true);
     await assertRole('charon', 'Owner', true);
@@ -318,7 +318,7 @@ describe('UserManager', function() {
 
     // Open doc options and assert that the initial state is as expected.
     await editDocAcls('Shark');
-    await assertMaxInheritedRole('In Full');
+    await assertMaxInheritedRole('In full');
     await assertRole('chimpy', 'Owner', null);
     await assertRole('kiwi', 'Editor', true);
     await assertRole('charon', 'Owner', true);
@@ -336,7 +336,7 @@ describe('UserManager', function() {
     // Kiwi should remain an inherited editor. Charon should lower to an inherited editor.
     await driver.find('.test-um-max-inherited-role').click();
     await gu.findOpenMenu();
-    await driver.findContent('.test-um-role-option', /View & Edit/).click();
+    await driver.findContent('.test-um-role-option', /View & edit/).click();
     await assertRole('chimpy', 'Owner', null);
     await assertRole('kiwi', 'Editor', true);
     await assertRole('charon', 'Editor', true);
@@ -344,7 +344,7 @@ describe('UserManager', function() {
     // Save new max inherited role and check that it persists.
     await saveAcls();
     await editDocAcls('Shark');
-    await assertMaxInheritedRole('View & Edit');
+    await assertMaxInheritedRole('View & edit');
     await driver.find('.test-um-cancel').click();
 
     // Simulate Charon login and assert that Charon can still edit the doc (but cannot edit
@@ -409,14 +409,14 @@ describe('UserManager', function() {
     await editDocAcls('Shark');
     await driver.find('.test-um-max-inherited-role').click();
     await gu.findOpenMenu();
-    await driver.findContentWait('.test-um-role-option', /In Full/, 100).click();
+    await driver.findContentWait('.test-um-role-option', /In full/, 100).click();
     await driver.findContentWait('.test-um-member', /kiwi@getgrist.com/, 100).find('.test-um-member-role').click();
     await driver.findContentWait('.test-um-role-option', /Editor/, 100).click();
 
     // Save roles and assert that it persists.
     await saveAcls();
     await editDocAcls('Shark');
-    await assertMaxInheritedRole('In Full');
+    await assertMaxInheritedRole('In full');
     await assertRole('chimpy', 'Owner', null);
     await assertRole('kiwi', 'Editor', true);
     await assertRole('charon', 'Owner', true);
@@ -582,7 +582,7 @@ describe('UserManager', function() {
   it('should allow re-adding users who are not visible due to inherited access', async function() {
     // Open doc options and assert that the initial state is as expected.
     await editDocAcls('Beyond');
-    await assertMaxInheritedRole('In Full');
+    await assertMaxInheritedRole('In full');
     await assertRole('chimpy', 'Owner', null);
     await assertRole('mario', 'Editor', true);
 
@@ -848,7 +848,7 @@ describe('UserManager', function() {
     // Make a document, and start editing shares.
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+    await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
 
     // Check that Open Access Rules is shown.

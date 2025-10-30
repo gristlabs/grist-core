@@ -464,7 +464,7 @@ function widgetRemovalPrompt(tableName: string): Promise<PromptAction> {
                 `Keep data and delete widget. Table will remain available in {{rawDataLink}}`,
                 {
                   rawDataLink: cssLink(
-                    t('raw data page'),
+                    t('Raw Data page'),
                     urlState().setHref({docPage: 'data'}),
                     {target: '_blank'},
                   )

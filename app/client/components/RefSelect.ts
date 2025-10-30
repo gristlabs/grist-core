@@ -96,7 +96,7 @@ export class RefSelect extends Disposable {
           testId('ref-select-item'),
         )
       ),
-      cssAddLink(cssAddIcon('Plus'), t("Add Column"),
+      cssAddLink(cssAddIcon('Plus'), t("Add column"),
         menu(() => [
           ...this._validCols.peek()
             .filter((col) => !this._addedSet.peek().has(col.colId.peek()))

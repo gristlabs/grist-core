@@ -505,19 +505,19 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   return [
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
-                                     {isNewPage: true, buttonLabel: t('Add Page')}),
-      menuIcon("Page"), t("Add Page"), testId('dp-add-new-page'),
+                                     {isNewPage: true, buttonLabel: t('Add page')}),
+      menuIcon("Page"), t("Add page"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
-      menuIcon("Widget"), t("Add Widget to Page"), testId('dp-add-widget-to-page'),
+      menuIcon("Widget"), t("Add widget to page"), testId('dp-add-widget-to-page'),
       // disable for readonly doc and all special views
       dom.cls('disabled', (use) => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
-      menuIcon("TypeTable"), t("Add Empty Table"), testId('dp-empty-table'),
+      menuIcon("TypeTable"), t("Add empty table"), testId('dp-empty-table'),
       dom.cls('disabled', isReadonly)
     ),
     menuDivider(),

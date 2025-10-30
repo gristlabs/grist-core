@@ -67,7 +67,7 @@ export class AccountWidget extends Disposable {
 
   private _buildSignInAndSignUpButtons() {
     return [
-      cssSigninButton(t('Sign In'),
+      cssSigninButton(t('Sign in'),
         cssSigninButton.cls('-secondary'),
         dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
         dom.attr('href', use => {
@@ -77,7 +77,7 @@ export class AccountWidget extends Disposable {
         }),
         testId('user-sign-in'),
       ),
-      cssSigninButton(t('Sign Up'),
+      cssSigninButton(t('Sign up'),
         dom.on('click', () => { this._docPageModel?.clearUnsavedChanges(); }),
         dom.attr('href', use => {
           // Keep the redirect param of the signup URL fresh.
@@ -107,10 +107,10 @@ export class AccountWidget extends Disposable {
   private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
     const currentOrg = this._appModel.currentOrg;
 
-    // The 'Document Settings' item, when there is an open document.
+    // The 'Document settings' item, when there is an open document.
     const documentSettingsItem = this._docPageModel ? menuItemLink(
       urlState().setLinkUrl({docPage: 'settings'}),
-      t("Document Settings"),
+      t("Document settings"),
       testId('dm-doc-settings')
     ) : null;
 
@@ -141,14 +141,14 @@ export class AccountWidget extends Disposable {
           cssEmail(user.email, testId('usermenu-email'))
         )
       ),
-      menuItemLink(urlState().setLinkUrl({account: 'account'}), t("Profile Settings"), testId('dm-account-settings')),
+      menuItemLink(urlState().setLinkUrl({account: 'account'}), t("Profile settings"), testId('dm-account-settings')),
 
       documentSettingsItem,
 
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && this._appModel.isTeamSite ?
         menuItem(() => manageTeamUsers({org: currentOrg, user, api: this._appModel.api}),
-                 roles.canEditAccess(currentOrg.access) ? t("Manage Team") : t("Access Details"),
+                 roles.canEditAccess(currentOrg.access) ? t("Manage team") : t("Access Details"),
                  testId('dm-org-access')) :
         // Don't show on doc pages, or for personal orgs.
         null),
@@ -178,10 +178,10 @@ export class AccountWidget extends Disposable {
             cssOtherEmail(_user.email, testId('usermenu-other-email')),
           );
         }),
-        isExternal ? null : menuItemLink({href: getLoginUrl()}, t("Add Account"), testId('dm-add-account')),
+        isExternal ? null : menuItemLink({href: getLoginUrl()}, t("Add account"), testId('dm-add-account')),
       ],
 
-      menuItemLink({href: getLogoutUrl()}, t("Sign Out"), testId('dm-log-out')),
+      menuItemLink({href: getLogoutUrl()}, t("Sign out"), testId('dm-log-out')),
 
       maybeAddSiteSwitcherSection(this._appModel),
     ];
@@ -219,8 +219,8 @@ export class AccountWidget extends Disposable {
       // For links, disabling with just a class is hard; easier to just not make it a link.
       // TODO weasel menus should support disabling menuItemLink.
       (canViewBillingPage ?
-        menuItemLink(urlState().setLinkUrl({billing: 'billing'}), t('Billing Account')) :
-        menuItem(() => null, t('Billing Account'), dom.cls('disabled', true))
+        menuItemLink(urlState().setLinkUrl({billing: 'billing'}), t('Billing account')) :
+        menuItem(() => null, t('Billing account'), dom.cls('disabled', true))
       ) :
       menuItem(() => this._appModel.showUpgradeModal(), t('Upgrade Plan'));
   }

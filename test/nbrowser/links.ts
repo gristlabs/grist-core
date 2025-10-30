@@ -160,7 +160,7 @@ describe("links", function () {
 
       it("include aclAsUser when viewing a document as another user", async function () {
         await driver.find(".test-tools-access-rules").click();
-        await driver.findContentWait("button", /View As/, 3000).click();
+        await driver.findContentWait("button", /View as/, 3000).click();
         await driver
           .findContentWait(".test-acl-user-item", "editor1@example.com", 500)
           .click();

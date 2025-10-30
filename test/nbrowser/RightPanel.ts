@@ -256,7 +256,7 @@ describe('RightPanel', function() {
 
     // remove link
     await driver.find('.test-wselect-selectby').doClick();
-    await driver.findContent('.test-wselect-selectby option', /Select Widget/).doClick();
+    await driver.findContent('.test-wselect-selectby option', /Select widget/).doClick();
 
     // click save
     await driver.find('.test-wselect-addBtn').doClick();
@@ -334,8 +334,8 @@ describe('RightPanel', function() {
     await driver.find('.test-right-tab-pagewidget').click();
     await driver.find('.test-config-widget').click();
 
-    // click `Change Widget`
-    await driver.findContent('.test-right-panel button', /Change Widget/).click();
+    // click `Change widget`
+    await driver.findContent('.test-right-panel button', /Change widget/).click();
 
     // remove column `Country` and save
     await gu.selectWidget(/Table/, /City/, {summarize: []});

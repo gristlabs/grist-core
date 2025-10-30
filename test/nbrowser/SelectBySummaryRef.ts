@@ -173,13 +173,13 @@ async function checkRightPanelSelectByOptions(section: string, expected: string[
   await gu.openSelectByForSection(section);
 
   const actual = await gu.findOpenMenuAllItems('.test-select-row', (e) => e.getText());
-  assert.deepEqual(actual, ['Select Widget', ...expected]);
+  assert.deepEqual(actual, ['Select widget', ...expected]);
   await gu.sendKeys(Key.ESCAPE);
 }
 
 async function checkAddWidgetSelectByOptions(expected: string[]|null) {
   const actual = await driver.findAll('.test-wselect-selectby option', (e) => e.getText());
-  assert.deepEqual(actual, expected === null ? [] : ['', 'Select Widget', ...expected]);
+  assert.deepEqual(actual, expected === null ? [] : ['', 'Select widget', ...expected]);
 }
 
 async function checkCurrentSelectBy(expected: string) {
