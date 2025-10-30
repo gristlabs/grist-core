@@ -1,5 +1,6 @@
 import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
+import { Login } from 'app/gen-server/entity/Login';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { RunInTransaction, ServiceAccountProperties } from 'app/gen-server/lib/homedb/Interfaces';
@@ -51,7 +52,7 @@ export class ServiceAccountsManager {
       // We use .invalid as tld following RFC 2606
       // as we don't ever want service user to be able to receive any email
       // and then be able to connect via link in email
-      const login = `${uuid}@serviceaccounts.invalid`;
+      const login = `${uuid}@${Login.SERVICE_ACCOUNTS_TLD}`;
       // Using getUserByLogin will create the user... Yeah, please don't blame us.
       const serviceUser = await this._homeDb.getUserByLogin(login, {manager}, 'service');
 

@@ -768,7 +768,8 @@ describe('UsersManager', function () {
 
         const nonLegitEmail = ensureUnique('nonlegit@serviceaccounts.com');
         const nonLegitPromise = db.getUserByLogin(nonLegitEmail, {}, 'service');
-        await assert.isRejected(nonLegitPromise, "Users of type service must have email like XXXXXX@YYYYYYYYY.invalid");
+        await assert.isRejected(nonLegitPromise,
+          "Users of type service must have email like XXXXXX@serviceaccounts.invalid");
 
       });
 
