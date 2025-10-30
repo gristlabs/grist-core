@@ -67,7 +67,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
     ),
     menuItem(
       onDuplicate,
-      t("Duplicate Page"),
+      t("Duplicate page"),
       dom.cls("disabled", isReadonly),
       testId("duplicate")
     ),

@@ -31,7 +31,7 @@ describe('DropdownConditionEditor', function () {
     ]);
     await driver.find('.test-tools-access-rules').click();
     await gu.waitForServer();
-    await driver.findContentWait('button', /Add User Attributes/, 2000).click();
+    await driver.findContentWait('button', /Add user attributes/, 2000).click();
     const userAttrRule = await driver.find('.test-rule-userattr');
     await userAttrRule.find('.test-rule-userattr-name').click();
     await driver.sendKeys('Roles', Key.ENTER);

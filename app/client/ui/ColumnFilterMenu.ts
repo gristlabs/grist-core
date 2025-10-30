@@ -271,14 +271,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           const state = use(columnFilter.state);
           return [
             cssSelectAll(
-              dom.text(searchValue ? t('All Shown') : t('All')),
+              dom.text(searchValue ? t('All shown') : t('All')),
               dom.attr('aria-disabled', isEquivalentFilter(state, allSpec) ? 'true' : 'false'),
               dom.on('click', () => !isEquivalentFilter(state, allSpec) && columnFilter.setState(allSpec)),
               testId('bulk-action'),
             ),
             cssDotSeparator('•'),
             cssSelectAll(
-              searchValue ? t('All Except') : t('None'),
+              searchValue ? t('All except') : t('None'),
               dom.attr('aria-disabled', isEquivalentFilter(state, noneSpec) ? 'true' : 'false'),
               dom.on('click', () => !isEquivalentFilter(state, noneSpec) && columnFilter.setState(noneSpec)),
               testId('bulk-action'),
@@ -336,14 +336,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               buildSummary(t("Other Matching"), valuesBeyondLimit, false, model),
               buildSummary(t("Other Non-Matching"), otherValues, true, model),
             ] : [
-              buildSummary(t("Other Values"), concat(otherValues, valuesBeyondLimit), false, model),
-              buildSummary(t("Future Values"), [], true, model),
+              buildSummary(t("Other values"), concat(otherValues, valuesBeyondLimit), false, model),
+              buildSummary(t("Future values"), [], true, model),
             ];
           } else {
             return anyOtherValues ? [
               buildSummary(t('Others'), otherValues, true, model)
             ] : [
-              buildSummary(t("Future Values"), [], true, model)
+              buildSummary(t("Future values"), [], true, model)
             ];
           }
         }),

@@ -97,13 +97,13 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
       cssPageLink(
         cssPageIcon('Database'),
-        cssLinkText(t("Raw Data")),
+        cssLinkText(t("Raw data")),
         testId('raw'),
         urlState().setLinkUrl({docPage: 'data'})
       )
     ),
     cssPageEntry(
-      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
+      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document history")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
     dom.maybe(
@@ -123,7 +123,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
-        cssLinkText(t("Code View")),
+        cssLinkText(t("Code view")),
         urlState().setLinkUrl({docPage: 'code'})
       ),
       testId('code'),

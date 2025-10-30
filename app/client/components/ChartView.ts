@@ -114,7 +114,7 @@ function getSeriesName(series: Series, haveMultiple: boolean) {
 type Data = Partial<PlotlyPlotData>;
 
 // The output of a ChartFunc. Normally it just returns one or more Data[] series, but sometimes it
-// includes layout information: e.g. a "Scatter Plot" returns a Layout with axis labels.
+// includes layout information: e.g. a "Scatter plot" returns a Layout with axis labels.
 interface PlotData {
   data: Data[];
   layout?: Partial<Layout>;
@@ -584,13 +584,13 @@ export class ChartConfig extends GrainJSDisposable {
     return [
       cssRow(
         select(this._chartType, [
-          {value: 'bar',          label: t('Bar Chart'),         icon: 'ChartBar'   },
-          {value: 'pie',          label: t('Pie Chart'),         icon: 'ChartPie'   },
-          {value: 'donut',        label: t('Donut Chart'),       icon: 'ChartDonut' },
-          {value: 'area',         label: t('Area Chart'),        icon: 'ChartArea'  },
-          {value: 'line',         label: t('Line Chart'),        icon: 'ChartLine'  },
-          {value: 'scatter',      label: t('Scatter Plot'),      icon: 'ChartLine'  },
-          {value: 'kaplan_meier', label: t('Kaplan-Meier Plot'), icon: 'ChartKaplan'},
+          {value: 'bar',          label: t('Bar chart'),         icon: 'ChartBar'   },
+          {value: 'pie',          label: t('Pie chart'),         icon: 'ChartPie'   },
+          {value: 'donut',        label: t('Donut chart'),       icon: 'ChartDonut' },
+          {value: 'area',         label: t('Area chart'),        icon: 'ChartArea'  },
+          {value: 'line',         label: t('Line chart'),        icon: 'ChartLine'  },
+          {value: 'scatter',      label: t('Scatter plot'),      icon: 'ChartLine'  },
+          {value: 'kaplan_meier', label: t('Kaplan-Meier plot'), icon: 'ChartKaplan'},
         ]),
         testId("type"),
       ),
@@ -610,12 +610,12 @@ export class ChartConfig extends GrainJSDisposable {
       ]),
       dom.maybeOwned((use) => use(this._section.chartTypeDef) === 'donut', (owner) => [
         cssSlideRow(
-          t('Hole Size'),
+          t('Hole size'),
           Computed.create(owner, (use) => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
           (val: number) => this._optionsObj.prop('donutHoleSize').saveOnly(val),
           testId('option')
         ),
-        cssCheckboxRow(t('Show Total'), this._optionsObj.prop('showTotal')),
+        cssCheckboxRow(t('Show total'), this._optionsObj.prop('showTotal')),
         dom.maybe(this._optionsObj.prop('showTotal'), () => (
           cssNumberWithSpinnerRow(
             t('Text Size'),
@@ -680,7 +680,7 @@ export class ChartConfig extends GrainJSDisposable {
         this._buildYAxis(),
         cssRow(
           cssAddYAxis(
-            cssAddIcon('Plus'), t('Add Series'),
+            cssAddIcon('Plus'), t('Add series'),
             menu(() => {
               const hiddenColumns = this._section.hiddenColumns.peek();
               const filterFunc = this._isCompatibleSeries.bind(this);

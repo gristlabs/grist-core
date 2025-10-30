@@ -120,7 +120,7 @@ class CustomWidgetGallery extends Disposable {
   public buildDom() {
     return cssCustomWidgetGallery(
       cssHeader(
-        cssTitle(t('Choose Custom Widget')),
+        cssTitle(t('Choose custom widget')),
         cssSearchInputWrapper(
           cssSearchIcon('Search'),
           cssSearchInput(
@@ -140,7 +140,7 @@ class CustomWidgetGallery extends Disposable {
           cssHelpLink(
             {href: commonUrls.helpCustomWidgets, target: '_blank'},
             cssHelpIcon('Question'),
-            t('Learn more about Custom Widgets'),
+            t('Learn more about custom widgets'),
           ),
         ),
         cssFooterButtons(
@@ -150,7 +150,7 @@ class CustomWidgetGallery extends Disposable {
             testId('cancel'),
           ),
           bigPrimaryButton(
-            this._options.addWidget ? t('Add Widget') : t('Change Widget'),
+            this._options.addWidget ? t('Add widget') : t('Change widget'),
             dom.on('click', () => this._save()),
             dom.boolAttr('disabled', this._saveDisabled),
             testId('save'),

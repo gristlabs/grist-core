@@ -110,14 +110,14 @@ describe('ColumnFilterMenu', function() {
 
   it('should offer a working `Future Values` option', async () => {
     // Check `Future Values` is present
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).isPresent(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).isPresent(),
                  true, 'Future Values not present');
 
     // Check all values are selected
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
 
     // Check `Future Values` is selected
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                  true, 'Future values should be selected');
 
     // Uncheck `Apple`
@@ -128,7 +128,7 @@ describe('ColumnFilterMenu', function() {
                  JSON.stringify({excluded: ['Apples']}), 'Spec not correct');
 
     // Uncheck the `Future Values` checkbox
-    await driver.findContent('.test-filter-menu-summary', /Future Values/).find('label').click();
+    await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
 
     // check the filter spec is now an inclusion filter all values but 'Apple'
     const spec = JSON.parse(await driver.find('.fixture-json').getText());
@@ -136,17 +136,17 @@ describe('ColumnFilterMenu', function() {
     assert.equal(spec.included.length, 16, 'filter should have 16 excluded values');
 
     // Check `Future Values` is unselected
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                  false);
 
     // Check again the `Future Values`
-    await driver.findContent('.test-filter-menu-summary', /Future Values/).find('label').click();
+    await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
 
     // Check the filter spec is now an inclusion filter with only 'Apple' in it
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
 
     // Check `Future Values` is selected
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                  true);
   });
 
@@ -457,19 +457,19 @@ describe('ColumnFilterMenu', function() {
     await driver.wait(until.stalenessOf(menu));
   });
 
-  it('should update selection properly when clicking `All Shown`', async () => {
+  it('should update selection properly when clicking `All shown`', async () => {
     // search for App
     await driver.find('.test-filter-menu-search-input').click();
     await driver.sendKeys('App');
 
-    // check All Shown and All Except are visible
+    // check All shown and All Except are visible
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action', (e) => e.getText()),
-      ['All Shown', 'All Except']
+      ['All shown', 'All except']
     );
 
-    // click All Shown
-    await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
+    // click All shown
+    await driver.findContent('.test-filter-menu-bulk-action', /All shown/).click();
 
     // send Escape to clear the search box
     await driver.sendKeys(Key.ESCAPE);
@@ -484,7 +484,7 @@ describe('ColumnFilterMenu', function() {
     // check App Shown is disabled
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
-      ['All Shown']
+      ['All shown']
     );
   });
 
@@ -494,7 +494,7 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // click App Except
-    await driver.findContent('.test-filter-menu-bulk-action', /All Except/).click();
+    await driver.findContent('.test-filter-menu-bulk-action', /All except/).click();
 
     // send Escape to clear the search box
     await driver.sendKeys(Key.ESCAPE);
@@ -509,7 +509,7 @@ describe('ColumnFilterMenu', function() {
     // check App Except is disabled
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
-      ['All Except']
+      ['All except']
     );
   });
 

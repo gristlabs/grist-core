@@ -90,7 +90,7 @@ describe('WebhookOverflow', function () {
   it('message should disappear after clearing queue', async function () {
     await openWebhookPageWithoutWaitForServer();
     assert.deepEqual(await getNumWaiting(), [2, 2]);
-    await driver.findContent('button', /Clear Queue/).click();
+    await driver.findContent('button', /Clear queue/).click();
     await overflowResolved();
     assert.deepEqual(await getNumWaiting(), [0, 0]);
   });
@@ -115,7 +115,7 @@ async function openWebhookPageWithoutWaitForServer() {
 }
 
 async function waitForWebhookPage() {
-  await driver.findContentWait('button', /Clear Queue/, 3000);
+  await driver.findContentWait('button', /Clear queue/, 3000);
   // No section, so no easy utility for setting focus. Click on a random cell.
   await gu.waitToPass(async () => {
     await gu.getDetailCell({col: 'Webhook Id', rowNum: 1}).click();
@@ -132,6 +132,6 @@ export async function openAccountMenu() {
 
 export async function openDocumentSettings() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu a', 'Document Settings').click();
+  await driver.findContent('.grist-floating-menu a', 'Document settings').click();
   await gu.waitForUrl(/settings/, 5000);
 }

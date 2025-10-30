@@ -409,9 +409,9 @@ to determine who can see or edit which parts of your document.')),
   },
   addNew: {
     popupType: 'tip',
-    title: () => t('Add New'),
+    title: () => t('Add new'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Click the Add New button to create new documents or workspaces, or import data.')),
+      dom('div', t('Click the Add new button to create new documents or workspaces, or import data.')),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],

@@ -413,7 +413,7 @@ describe('GridViewNewColumnMenu', function () {
       await gu.waitForServer();
       // check if column is created with a proper type
       const type = await gu.columnBehavior();
-      assert.equal(type, 'Formula Column');
+      assert.equal(type, 'Formula column');
 
     });
   });
@@ -658,7 +658,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.deepEqual(columns, ['A', 'B', 'C', 'Person', 'Employees', `Person_${column}`]);
 
         // This should be a formula column.
-        assert.equal(await gu.columnBehavior(), "Formula Column");
+        assert.equal(await gu.columnBehavior(), "Formula column");
 
         // And the formula should be correct.
         await driver.find('.formula_field_sidepane').click();
@@ -812,7 +812,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.deepEqual(columns, ['A', 'B', 'C', 'Person', 'Employees', `Employees_${column}`]);
 
         // This should be a formula column.
-        assert.equal(await gu.columnBehavior(), "Formula Column");
+        assert.equal(await gu.columnBehavior(), "Formula column");
 
         // And the formula should be correct.
         switch(column) {
@@ -929,7 +929,7 @@ describe('GridViewNewColumnMenu', function () {
 
       const columns3 = await gu.getColumnNames();
       assert.deepEqual(columns3, ['A', 'B', 'C', 'Person_Name']);
-      assert.equal(await gu.columnBehavior(), "Formula Column");
+      assert.equal(await gu.columnBehavior(), "Formula column");
       assert.equal(await gu.getType(), 'Any');
       await driver.find('.formula_field_sidepane').click();
       assert.equal(await gu.getFormulaText(), `Person.lookupRecords(Items=CONTAINS($id)).Name`);
@@ -1184,7 +1184,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.equal(await driver.find('.test-field-col-id').value(), '$Created_at');
 
         // Check behavior - this is trigger formula
-        assert.equal(await gu.columnBehavior(), "Data Column");
+        assert.equal(await gu.columnBehavior(), "Data column");
         assert.isTrue(await driver.findContent('div', 'TRIGGER FORMULA').isDisplayed());
 
         // It applies to new records only.
@@ -1211,7 +1211,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.equal(await driver.find('.test-field-col-id').value(), '$Last_updated_at');
 
         // Check behavior - this is trigger formula
-        assert.equal(await gu.columnBehavior(), "Data Column");
+        assert.equal(await gu.columnBehavior(), "Data column");
         assert.isTrue(await driver.findContent('div', 'TRIGGER FORMULA').isDisplayed());
 
         // It applies to new records only and if anything changes.
@@ -1245,7 +1245,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.equal(await driver.find('.test-field-col-id').value(), '$Created_by');
 
         // Check behavior - this is trigger formula
-        assert.equal(await gu.columnBehavior(), "Data Column");
+        assert.equal(await gu.columnBehavior(), "Data column");
         assert.isTrue(await driver.findContent('div', 'TRIGGER FORMULA').isDisplayed());
 
         // It applies to new records only.
@@ -1273,7 +1273,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.equal(await driver.find('.test-field-col-id').value(), '$Last_updated_by');
 
         // Check behavior - this is trigger formula
-        assert.equal(await gu.columnBehavior(), "Data Column");
+        assert.equal(await gu.columnBehavior(), "Data column");
         assert.isTrue(await driver.findContent('div', 'TRIGGER FORMULA').isDisplayed());
 
         // It applies to new records only and if anything changes.
