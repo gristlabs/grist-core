@@ -81,7 +81,8 @@ export class User extends BaseEntity {
   public unsubscribeKey: string|null;
 
   @Column({name: 'type', type: String, enum: [User.LOGIN_TYPE, User.SERVICE_TYPE], default: User.LOGIN_TYPE,
-    nullable: false,
+    // Must be null for migrations testing purpose
+    nullable: true,
   })
   public type: UserType;
 
