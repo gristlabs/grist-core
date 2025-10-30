@@ -123,7 +123,7 @@ export interface HomeDBAuth {
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
   getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
-  getServiceAccountWithOwner(email: string): Promise<ServiceAccount|null>;
+  getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount|null>;
   makeFullUser(user: User): FullUser;
 }
 

@@ -3445,30 +3445,34 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.assertServiceAccountExistingAndOwned(serviceAccount, expectedOwnerId);
   }
 
-  public async getServiceAccount(serviceLogin: string) {
-    return this._serviceAccountsManager.getServiceAccount(serviceLogin);
+  public async getServiceAccount(serviceId: number) {
+    return this._serviceAccountsManager.getServiceAccount(serviceId);
   }
 
-  public async getServiceAccountWithOwner(serviceLogin: string) {
-    return this._serviceAccountsManager.getServiceAccountWithOwner(serviceLogin);
+  public async getServiceAccountWithOwner(serviceId: number) {
+    return this._serviceAccountsManager.getServiceAccountWithOwner(serviceId);
+  }
+
+  public async getServiceAccountByLoginWithOwner(login: string) {
+    return this._serviceAccountsManager.getServiceAccountByLoginWithOwner(login);
   }
 
   public async updateServiceAccount(
-    serviceLogin: string, partial: Partial<ServiceAccount>, options: { expectedOwnerId?: number } = {}
+    serviceId: number, partial: Partial<ServiceAccount>, options: { expectedOwnerId?: number } = {}
   ) {
-    return this._serviceAccountsManager.updateServiceAccount(serviceLogin, partial, options);
+    return this._serviceAccountsManager.updateServiceAccount(serviceId, partial, options);
   }
 
-  public async deleteServiceAccount(serviceLogin: string, options: { expectedOwnerId?: number } = {}){
-    return this._serviceAccountsManager.deleteServiceAccount(serviceLogin, options);
+  public async deleteServiceAccount(serviceId: number, options: { expectedOwnerId?: number } = {}){
+    return this._serviceAccountsManager.deleteServiceAccount(serviceId, options);
   }
 
-  public async createServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
-    return this._serviceAccountsManager.createServiceAccountApiKey(serviceLogin, options);
+  public async createServiceAccountApiKey(serviceId: number, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.createServiceAccountApiKey(serviceId, options);
   }
 
-  public async deleteServiceAccountApiKey(serviceLogin: string, options: {expectedOwnerId?: number} = {}) {
-    return this._serviceAccountsManager.deleteServiceAccountApiKey(serviceLogin, options);
+  public async deleteServiceAccountApiKey(serviceId: number, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.deleteServiceAccountApiKey(serviceId, options);
   }
 
   public async getApiKey(userId: number) {

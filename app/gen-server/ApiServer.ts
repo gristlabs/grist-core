@@ -652,7 +652,7 @@ export class ApiServer {
           ownerId, options
         );
         const resp: SATypes.ServiceAccountCreationResponse = {
-          login: serviceAccount.serviceUser.loginEmail!,
+          id: serviceAccount.id,
           key: serviceAccount.serviceUser.apiKey!,
           label: serviceAccount.label,
           description: serviceAccount.description,
@@ -668,19 +668,29 @@ export class ApiServer {
       this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const data = await this._dbManager.getOwnedServiceAccounts(userId);
-        return sendOkReply(req, res, data);
+        const resp: Array<Partial<SATypes.ServiceAccountApiResponse>> = data.map(serviceAccount => {
+          const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
+          return {
+            id: serviceAccount.id,
+            label: serviceAccount.label,
+            description: serviceAccount.description,
+            expiresAt: serviceAccount.expiresAt.toISOString(),
+            hasValidKey
+          };
+        });
+        return sendOkReply(req, res, resp);
       }));
 
       // GET /service-accounts/:said
       // Reads one particular service account of the user making the api call.
       this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
-        const serviceAccountLogin = req.params.said;
-        const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountLogin);
+        const serviceAccountId = parseInt(req.params.said);
+        const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountId);
         this._dbManager.assertServiceAccountExistingAndOwned(serviceAccount, userId);
         const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
         const resp: Partial<SATypes.ServiceAccountApiResponse> = {
-          login: serviceAccountLogin,
+          id: serviceAccount.id,
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
@@ -694,7 +704,7 @@ export class ApiServer {
       this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
         async (req, res) => {
           const userId = getAuthorizedUserId(req);
-          const serviceAccountLogin = req.params.said;
+          const serviceAccountId = parseInt(req.params.said);
           const payload = req.body as SATypes.PatchServiceAccount;
           const updateProps = {
             ...( payload.label ? { label: payload.label } : {} ),
@@ -704,10 +714,10 @@ export class ApiServer {
           };
 
           const resp = await this._dbManager.updateServiceAccount(
-            serviceAccountLogin, updateProps, { expectedOwnerId: userId }
+            serviceAccountId, updateProps, { expectedOwnerId: userId }
           );
           if (!resp) {
-            throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+            throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
           }
           return sendOkReply(req, res, resp);
         })
@@ -717,10 +727,10 @@ export class ApiServer {
       // Deletes one particular service account of the user making the api call.
       this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
-        const serviceAccountLogin = req.params.said;
-        const resp = await this._dbManager.deleteServiceAccount(serviceAccountLogin, {expectedOwnerId: userId});
+        const serviceAccountId = parseInt(req.params.said);
+        const resp = await this._dbManager.deleteServiceAccount(serviceAccountId, {expectedOwnerId: userId});
         if (resp === null) {
-          throw new ApiError(`No such service account as "${serviceAccountLogin}"`, 404);
+          throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
         }
         return sendOkReply(req, res, resp);
       }));
@@ -729,18 +739,18 @@ export class ApiServer {
       // Regenerate and return the apikey of a given Service Account
       this._app.post('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
-        const serviceAccountLogin = req.params.said;
+        const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.createServiceAccountApiKey(
-          serviceAccountLogin, {expectedOwnerId: userId}
+          serviceAccountId, {expectedOwnerId: userId}
         );
         if (serviceAccount === null) {
           throw new ApiError(
-            `Can't regenerate api key of non existing service account ${serviceAccountLogin}`,
+            `Can't regenerate api key of non existing service account ${serviceAccountId}`,
             404
           );
         }
         const resp: SATypes.ServiceAccountApiResponse = {
-          login: serviceAccountLogin,
+          id: serviceAccount.id,
           key: serviceAccount.serviceUser.apiKey,
           label: serviceAccount.label,
           description: serviceAccount.description,
@@ -754,13 +764,13 @@ export class ApiServer {
       // Deletes the apikey of a given Service Account by deleting the key
       this._app.delete('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
-        const serviceAccountLogin = req.params.said;
+        const serviceAccountId = parseInt(req.params.said);
         const serviceAccount = await this._dbManager.deleteServiceAccountApiKey(
-          serviceAccountLogin, {expectedOwnerId: userId}
+          serviceAccountId, {expectedOwnerId: userId}
         );
         if (serviceAccount == null) {
           throw new ApiError(
-            `Can't delete api key of non existing service account ${serviceAccountLogin}`,
+            `Can't delete api key of non existing service account ${serviceAccountId}`,
             404
           );
         }

@@ -1,5 +1,5 @@
-import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
+import { ApiError } from 'app/common/ApiError';
 import { Login } from 'app/gen-server/entity/Login';
 import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
@@ -65,8 +65,8 @@ export class ServiceAccountsManager {
         description: props?.description,
         expiresAt: props?.expiresAt
       });
-      await manager.save(newServiceAccount);
-      return (await this.getServiceAccount(login, manager))!;
+      const serviceAccount = await manager.save(newServiceAccount);
+      return (await this.getServiceAccount(serviceAccount.id, manager))!;
     });
   }
 
@@ -78,11 +78,12 @@ export class ServiceAccountsManager {
    * @param serviceAccountLogin The service account email
    */
   public async getServiceAccount(
-    serviceAccountLogin: string,
+    serviceAccountId: number,
     transaction?: EntityManager
   ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async manager => {
-      return await this._buildServiceAccountQuery(manager, serviceAccountLogin)
+      return await this._buildServiceAccountQuery(manager)
+        .where("serviceAccount.id = :id", {id: serviceAccountId})
         .getOne();
     });
   }
@@ -91,12 +92,28 @@ export class ServiceAccountsManager {
    * Like getServiceAccount but also returns informations of the owner.
    */
   public async getServiceAccountWithOwner(
+    serviceAccountId: number,
+    transaction?: EntityManager
+  ): Promise<ServiceAccount|null> {
+    return await this._runInTransaction(transaction, async manager => {
+      return await this._buildServiceAccountQuery(manager)
+        .innerJoinAndSelect("serviceAccount.owner", "owner")
+        .where("ServiceAccount.id = :id", {id: serviceAccountId})
+        .getOne();
+    });
+  }
+
+  /**
+   * Like getServiceAccount but also returns informations of the owner.
+   */
+  public async getServiceAccountByLoginWithOwner(
     serviceAccountLogin: string,
     transaction?: EntityManager
   ): Promise<ServiceAccount|null> {
     return await this._runInTransaction(transaction, async manager => {
-      return await this._buildServiceAccountQuery(manager, serviceAccountLogin)
+      return await this._buildServiceAccountQuery(manager)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
+        .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)})
         .getOne();
     });
   }
@@ -119,10 +136,10 @@ export class ServiceAccountsManager {
     transaction?: EntityManager
   ): Promise<ServiceAccount[]> {
     return await this._runInTransaction(transaction, async manager => {
-      return await manager.find(
-        ServiceAccount,
-        {where: {ownerId}}
-      );
+      return await this._buildServiceAccountQuery(manager)
+        .innerJoinAndSelect("serviceAccount.owner", "owner")
+        .where("owner.id = :id", {id: ownerId})
+        .getMany();
     });
   }
 
@@ -136,13 +153,13 @@ export class ServiceAccountsManager {
    * @param options.transaction If passed, reuse this typeorm transaction
    */
   public async updateServiceAccount(
-    serviceAccountLogin: string,
+    serviceAccountId: number,
     props: ServiceAccountProperties,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ): Promise<ServiceAccount> {
     const { expectedOwnerId } = options;
     return await this._runInTransaction(options.transaction, async manager => {
-      const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
+      const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, expectedOwnerId);
       ServiceAccount.merge(serviceAccount, props as Partial<ServiceAccount>);
       return await manager.save(serviceAccount);
@@ -158,11 +175,11 @@ export class ServiceAccountsManager {
    * @param options.transaction If passed, reuse this typeorm transaction
    */
   public async deleteServiceAccount(
-    serviceAccountLogin: string,
+    serviceAccountId: number,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async manager => {
-      const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
+      const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       const { serviceUser } = serviceAccount;
       serviceUser.disabledAt = new Date();
@@ -181,11 +198,11 @@ export class ServiceAccountsManager {
    * @param options.transaction If passed, reuse this typeorm transaction
    */
   public async createServiceAccountApiKey(
-    serviceAccountLogin: string,
+    serviceAccountId: number,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async manager => {
-      const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
+      const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       serviceAccount.serviceUser = await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
       return serviceAccount;
@@ -201,11 +218,11 @@ export class ServiceAccountsManager {
    * @param options.transaction If passed, reuse this typeorm transaction
    */
   public async deleteServiceAccountApiKey(
-    serviceAccountLogin: string,
+    serviceAccountId: number,
     options: {expectedOwnerId?: number, transaction?: EntityManager} = {},
   ): Promise<ServiceAccount> {
     return await this._runInTransaction(options.transaction, async manager => {
-      const serviceAccount = await this.getServiceAccount(serviceAccountLogin, manager);
+      const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
       serviceAccount.serviceUser = await this._homeDb.deleteApiKey(serviceAccount.serviceUser.id, manager);
       return serviceAccount;
@@ -231,12 +248,11 @@ export class ServiceAccountsManager {
     }
   }
 
-  private _buildServiceAccountQuery(manager: EntityManager, serviceAccountLogin: string) {
+  private _buildServiceAccountQuery(manager: EntityManager) {
     return manager.createQueryBuilder()
       .select("serviceAccount")
       .from(ServiceAccount, "serviceAccount")
       .innerJoinAndSelect("serviceAccount.serviceUser", "serviceUser")
-      .innerJoinAndSelect("serviceUser.logins", "logins")
-      .where("logins.email = :email", {email: normalizeEmail(serviceAccountLogin)});
+      .innerJoinAndSelect("serviceUser.logins", "logins");
   }
 }

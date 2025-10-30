@@ -11,7 +11,7 @@ interface ServiceAccountAllOptional {
 }
 
 export interface ServiceAccountApiResponse {
-  login: string|undefined;
+  id: number;
   key: string|null;
   label: string;
   description: string;
@@ -20,7 +20,7 @@ export interface ServiceAccountApiResponse {
 }
 
 export interface ServiceAccountCreationResponse extends ServiceAccountApiResponse {
-  login: string;
+  id: number;
   key: string;
 }
 

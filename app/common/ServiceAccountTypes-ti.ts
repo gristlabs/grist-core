@@ -11,7 +11,7 @@ export const ServiceAccountAllOptional = t.iface([], {
 });
 
 export const ServiceAccountApiResponse = t.iface([], {
-  "login": t.union("string", "undefined"),
+  "id": "number",
   "key": t.union("string", "null"),
   "label": "string",
   "description": "string",
@@ -20,7 +20,7 @@ export const ServiceAccountApiResponse = t.iface([], {
 });
 
 export const ServiceAccountCreationResponse = t.iface(["ServiceAccountApiResponse"], {
-  "login": "string",
+  "id": "number",
   "key": "string",
 });
 
