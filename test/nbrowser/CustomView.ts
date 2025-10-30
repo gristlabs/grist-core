@@ -8,7 +8,7 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 chai.config.truncateThreshold = 5000;
 
 describe('CustomView', function() {
-  this.timeout(20000);
+  this.timeout('30s');
   gu.bigScreen();
   const cleanup = setupTestSuite();
 
@@ -25,6 +25,101 @@ describe('CustomView', function() {
     if (serving) {
       await serving.shutdown();
     }
+  });
+
+  it('disabled navigation in custom view', async function() {
+    // Start a new doc.
+    const session = await gu.session().teamSite.login();
+    await session.tempNewDoc(cleanup);
+
+    // Add some data to the table so we can test navigation.
+    await gu.sendActions([
+      ['AddRecord', 'Table1', null, {A: 'row1'}],
+      ['AddRecord', 'Table1', null, {A: 'row2'}],
+      ['AddRecord', 'Table1', null, {A: 'row3'}],
+    ]);
+
+    // Go to the first row.
+    await gu.getCell({section: 'TABLE1', col: 0, rowNum: 1}).click();
+
+    // Add a custom widget.
+    await gu.addNewSection('Custom', 'Table1');
+    await gu.setCustomWidgetUrl(`${serving.url}/readout`, {openGallery: false});
+    await gu.toggleSidePanel('right', 'open');
+    await gu.openWidgetPanel();
+    await setAccess("read table");
+    await gu.waitForServer();
+
+    // Click on the custom widget to focus it.
+    const iframe = gu.getSection('TABLE1 custom').find('iframe');
+
+    // Helper to get rowId from the custom widget.
+    async function getRowId() {
+      await driver.switchTo().frame(iframe);
+      const rowId = await driver.find('#rowId').getText();
+      await driver.switchTo().defaultContent();
+      return rowId;
+    }
+
+    // Helper to click inside the custom widget.
+    async function clickInside() {
+      await driver.switchTo().frame(iframe);
+      await driver.find('body').click();
+      await driver.switchTo().defaultContent();
+    }
+
+    await clickInside();
+
+    // Wait for the custom section to be active.
+    await gu.waitToPass(async () => assert.equal(await gu.getActiveSectionTitle(), 'TABLE1 Custom'), 200);
+
+    // Check the initial rowId in the custom widget.
+    const initialRowId = await getRowId();
+    assert.equal(initialRowId, '1');
+
+    // Try to navigate down with arrow keys - rowId should not change.
+    await gu.sendKeys(Key.ARROW_DOWN, Key.ARROW_DOWN, Key.ARROW_DOWN);
+    await driver.sleep(100); // There are a lot of setTimeouts there.
+    assert.equal(await getRowId(), '1');
+
+    // Try to navigate up with arrow keys - rowId should still not change.
+    await gu.sendKeys(Key.ARROW_UP, Key.ARROW_UP, Key.ARROW_UP);
+    await driver.sleep(100); // There are a lot of setTimeouts there.
+    assert.equal(await getRowId(), '1');
+
+    // Expand the custom widget.
+    await gu.expandSection('TABLE1 Custom');
+
+    // Click inside the expanded custom widget.
+    await clickInside();
+
+    // Try arrow keys down - rowId should not change.
+    await gu.sendKeys(Key.ARROW_DOWN, Key.ARROW_DOWN, Key.ARROW_DOWN);
+    await driver.sleep(100); // There are a lot of setTimeouts there.
+    assert.equal(await getRowId(), '1');
+
+    // Try arrow keys up - rowId should not change.
+    await gu.sendKeys(Key.ARROW_UP, Key.ARROW_UP, Key.ARROW_UP);
+    await driver.sleep(100); // There are a lot of setTimeouts there.
+    assert.equal(await getRowId(), '1');
+
+    // Close the expanded view.
+    await driver.find('.test-viewLayout-overlay .test-close-button').click();
+    await gu.waitForServer();
+
+    // Custom widget should still be active after closing the overlay.
+    await gu.waitToPass(async () =>
+      assert.equal(await gu.getActiveSectionTitle(), 'TABLE1 Custom'));
+
+    // Try arrow keys down one more time - rowId still should not change.
+    await gu.sendKeys(Key.ARROW_DOWN, Key.ARROW_DOWN, Key.ARROW_DOWN);
+    await driver.sleep(100); // There are a lot of setTimeouts there.
+    assert.equal(await getRowId(), '1');
+
+    // Try arrow keys up one more time - rowId still should not change.
+    await gu.sendKeys(Key.ARROW_UP, Key.ARROW_UP, Key.ARROW_UP);
+    await driver.sleep(100); // There are a lot of setTimeouts there.
+    assert.equal(await getRowId(), '1');
   });
 
   // This tests if test id works. Feels counterintuitive to "test the test" but grist-widget repository test suite

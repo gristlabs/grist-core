@@ -112,7 +112,11 @@ export class Cursor extends Disposable {
 
     this.fieldIndex = baseView.viewSection.viewFields().makeLiveIndex(optCursorPos.fieldIndex || 0);
 
-    this.autoDispose(commands.createGroup(Cursor.editorCommands, this, baseView.viewSection.hasRegionFocus));
+    // Custom widgets may choose to disable cursor support
+    const cursorEnabled = this.autoDispose(ko.computed(() => {
+      return !baseView.options?.disabledCursor && baseView.viewSection.hasRegionFocus();
+    }));
+    this.autoDispose(commands.createGroup(Cursor.editorCommands, this, cursorEnabled));
 
     // RowId might diverge from the one stored in _rowId when the data changes (it is filtered out). So here
     // we will calculate rowId based on rowIndex (so in reverse order), to have a proper value.
