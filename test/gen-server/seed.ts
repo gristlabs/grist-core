@@ -547,6 +547,7 @@ class Seed {
       const user = new User();
       user.name = name;
       user.apiKey = "api_key_for_" + name.toLowerCase();
+      user.type = "login";
       await user.save();
       const login = new Login();
       login.displayEmail = login.email = name.toLowerCase() + "@getgrist.com";
