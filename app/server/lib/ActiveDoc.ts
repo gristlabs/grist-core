@@ -89,6 +89,7 @@ import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {
+  ANONYMOUS_USER_EMAIL,
   Document as APIDocument,
   ArchiveUploadResult,
   AttachmentTransferStatus,
@@ -139,6 +140,7 @@ import {SandboxError} from 'app/server/lib/sandboxUtil';
 import {
   getDocSessionAccess,
   getDocSessionAccessOrNull,
+  getDocSessionShare,
   getDocSessionUsage,
   getLogMeta,
   RequestOrSession,
@@ -2632,7 +2634,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
-    const user = docSession.mode === 'system' ? 'grist' : (docSession.displayEmail || '');
+    const user =
+      docSession.mode === 'system' ? 'grist' :
+      // Anonymize user info for form submissions.
+      // Note: This is half-baked and doesn't account for other types of shares besides forms.
+      getDocSessionShare(docSession) ? ANONYMOUS_USER_EMAIL :
+      docSession.displayEmail || '';
     return {
       time: Date.now(),
       user,
