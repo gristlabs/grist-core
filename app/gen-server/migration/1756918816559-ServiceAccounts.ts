@@ -1,20 +1,27 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey, TableIndex } from "typeorm";
-import * as sqlUtils from "app/gen-server/sqlUtils";
+import { User } from "app/gen-server/entity/User";
+import {nativeValues} from "app/gen-server/lib/values";
+import { MigrationInterface, QueryRunner, Table, TableColumn } from "typeorm";
 
 export class ServiceAccounts1756918816559 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<any> {
-    const dbType = queryRunner.connection.driver.options.type;
-    const datetime = sqlUtils.datetime(dbType);
-
-    await queryRunner.addColumns('users', [
-      new TableColumn({
+    const userTypeColumnTemp = new TableColumn({
         name: 'type',
         type: 'varchar',
-        isNullable: false,
-        default: "'login'",
-      }),
-    ]);
+        enum: [User.LOGIN_TYPE, User.SERVICE_TYPE],
+        isNullable: true,
+    });
+
+    await queryRunner.addColumn('users', userTypeColumnTemp);
+
+    await queryRunner.manager
+      .query('UPDATE users SET type = $1', [User.LOGIN_TYPE]);
+
+    const userTypeColumnNonNull = userTypeColumnTemp.clone();
+    userTypeColumnNonNull.isNullable = false;
+
+    await queryRunner.changeColumn('users', userTypeColumnTemp, userTypeColumnNonNull);
+
     await queryRunner.createTable(
       new Table({
         name: 'service_accounts',
@@ -39,53 +46,43 @@ export class ServiceAccounts1756918816559 implements MigrationInterface {
           {
             name: 'label',
             type: 'varchar',
-            isNullable: false,
-            default: "''",
+            isNullable: true,
           },
           {
             name: 'description',
             type: 'varchar',
-            isNullable: false,
-            default: "''",
+            isNullable: true,
           },
           {
             name: 'expires_at',
-            type: datetime,
+            type: nativeValues.dateTimeType,
             isNullable: false,
           },
         ],
-      })
-    );
-    await queryRunner.createForeignKey(
-      'service_accounts',
-      new TableForeignKey({
-        columnNames: ['service_user_id'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'users',
-        onDelete: 'CASCADE',
-      })
-    );
-    await queryRunner.createForeignKey(
-      'service_accounts',
-      new TableForeignKey({
-        columnNames: ['owner_id'],
-        referencedColumnNames: ['id'],
-        referencedTableName: 'users',
-        onDelete: 'CASCADE',
-      })
-    );
-    await queryRunner.createIndex(
-      'service_accounts',
-      new TableIndex({
-        name: 'service_account__service_user_id',
-        columnNames: ['service_user_id'],
-      })
-    );
-    await queryRunner.createIndex(
-      'service_accounts',
-      new TableIndex({
-        name: 'service_account__owner_id',
-        columnNames: ['owner_id'],
+        foreignKeys: [
+          {
+            columnNames: ['service_user_id'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'users',
+            onDelete: 'CASCADE',
+          },
+          {
+            columnNames: ['owner_id'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'users',
+            onDelete: 'CASCADE',
+          },
+        ],
+        indices: [
+          {
+            name: 'service_account__service_user_id',
+            columnNames: ['service_user_id'],
+          },
+          {
+            name: 'service_account__owner_id',
+            columnNames: ['owner_id'],
+          },
+        ],
       })
     );
   }

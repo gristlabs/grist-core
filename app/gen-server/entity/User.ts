@@ -13,6 +13,8 @@ import {ServiceAccount} from 'app/gen-server/entity/ServiceAccount';
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {
+  public static readonly LOGIN_TYPE: UserType = 'login';
+  public static readonly SERVICE_TYPE: UserType = 'service';
 
   @PrimaryGeneratedColumn()
   public id: number;
@@ -78,8 +80,10 @@ export class User extends BaseEntity {
   @Column({name: 'unsubscribe_key', type: String, nullable: true})
   public unsubscribeKey: string|null;
 
-  @Column({name: 'type', type: String, default: 'login'})
-  public type: UserType | null;
+  @Column({name: 'type', type: String, enum: [User.LOGIN_TYPE, User.SERVICE_TYPE], default: User.LOGIN_TYPE,
+    nullable: false,
+  })
+  public type: UserType;
 
   @BeforeInsert()
   public async beforeInsert() {
