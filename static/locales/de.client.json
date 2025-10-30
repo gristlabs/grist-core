@@ -2321,5 +2321,8 @@
         "Skip leading whitespace": "Führende Whitespace-Zeichen überspringen",
         "Start with row": "Beginn mit Zeile",
         "Character encoding. See [the supported codecs]({{link}})": "Zeichenkodierung. Siehe [die unterstützten Codecs]({{link}})"
+    },
+    "commandList": {
+        "Undo last action": "Letzte Aktion rückgängig machen"
     }
 }
