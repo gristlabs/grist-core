@@ -9,6 +9,7 @@ import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 import { Group } from 'app/gen-server/entity/Group';
 import { isAffirmative } from 'app/common/gutil';
+import { UserType } from 'app/common/User';
 
 function scimConfigForUser(user: string) {
   const config = configForUser(user);
@@ -122,8 +123,9 @@ describe('Scim', () => {
       };
     }
 
-    async function getOrCreateUserId(user: string) {
-      return (await getDbManager().getUserByLogin(user + '@getgrist.com'))!.id;
+    async function getOrCreateUserId(user: string, {type}: {type?: UserType} = {}) {
+      const domain = type === "service" ? "serviceaccounts.invalid" : "getgrist.com";
+      return (await getDbManager().getUserByLogin(`${user}@${domain}`, {}, type))!.id;
     }
 
     async function cleanupUser(userId: number) {
@@ -131,6 +133,7 @@ describe('Scim', () => {
         await getDbManager().deleteUser({ userId: userId }, userId);
       }
     }
+
     async function checkOperationOnTechUserDisallowed({op, opType}: {
       op: (id: number) => Promise<AxiosResponse>,
       opType: string
@@ -269,6 +272,17 @@ describe('Scim', () => {
           });
         });
 
+        it('should return 404 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: `User with ID ${serviceUserId} not found`
+          });
+          assert.equal(res.status, 404);
+        });
+
         checkCommonErrors('get', '/Users/1');
       });
 
@@ -298,6 +312,12 @@ describe('Scim', () => {
             const secondPageResourceId = parseInt(secondPage.data.Resources[0].id);
             assert.equal(secondPageResourceId, 2);
           }
+        });
+
+        it('should skip users of type other than "login"', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.get(scimUrl('/Users'), chimpy);
+          assert.isEmpty(res.data.Resources.filter((user: any) => user.id === serviceUserId));
         });
 
         checkCommonErrors('get', '/Users');
@@ -354,6 +374,8 @@ describe('Scim', () => {
             assert.equal(res.status, 201);
             const newUserId = await getOrCreateUserId(userName);
             assert.deepEqual(res.data, toSCIMUserWithId(userName, newUserId));
+            const newUser = await getDbManager().getUser(newUserId);
+            assert.equal(newUser!.type, 'login');
           });
         });
 
@@ -385,8 +407,8 @@ describe('Scim', () => {
             }, chimpy);
             assert.deepEqual(res.data, {
               schemas: [ 'urn:ietf:params:scim:schemas:core:2.0:User' ],
-              id: '12',
-              meta: { resourceType: 'User', location: '/api/scim/v2/Users/12' },
+              id: res.data.id,
+              meta: { resourceType: 'User', location: `/api/scim/v2/Users/${res.data.id}` },
               userName: 'emails.value@getgrist.com',
               name: { formatted: 'emails.value' },
               displayName: 'emails.value',
@@ -475,6 +497,17 @@ describe('Scim', () => {
 
         it('should return 404 when the user is not found', async function () {
           const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('whoever'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'unable to find user to update'
+          });
+          assert.equal(res.status, 404);
+        });
+
+        it('should return 404 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.put(scimUrl(`/Users/${serviceUserId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
             schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
             status: '404',
@@ -572,8 +605,18 @@ describe('Scim', () => {
           });
         });
 
-        checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
-      });
+        it('should return 404 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.patch(scimUrl(`/Users/${serviceUserId}`), validPatchBody('whatever'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: `User with ID ${serviceUserId} not found`
+          });
+          assert.equal(res.status, 404);
+        });
+          checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
+        });
 
       describe('DELETE /Users/{id}', function () {
         let userToDeleteId: number;
@@ -595,6 +638,17 @@ describe('Scim', () => {
 
         it('should return 404 when the user is not found', async function () {
           const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
+          assert.deepEqual(res.data, {
+            schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
+            status: '404',
+            detail: 'user not found'
+          });
+          assert.equal(res.status, 404);
+        });
+
+        it('should return 404 when the user is not of type login', async function () {
+          const serviceUserId = await getOrCreateUserId('alfred', {type: 'service'});
+          const res = await axios.delete(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
             schemas: [ 'urn:ietf:params:scim:api:messages:2.0:Error' ],
             status: '404',
@@ -1625,3 +1679,4 @@ describe('Scim', () => {
     });
   });
 });
+
