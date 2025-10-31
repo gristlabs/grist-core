@@ -13,7 +13,7 @@ import {
   UserActionBundle
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
-import {ActionSummary} from 'app/common/ActionSummary';
+import { ActionSummary } from 'app/common/ActionSummary';
 import {
   AclResources,
   AclTableDescription,
@@ -125,7 +125,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {getMetaTables} from 'app/server/lib/DocApi';
+import {getChanges, getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
 import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
@@ -964,11 +964,27 @@ export class ActiveDoc extends EventEmitter {
     if (!proposal) {
       throw new ApiError('Proposal not found', 404);
     }
+    // Proposal diffs are computed and stored some time in the past.
     const origDetails = proposal.comparison.comparison?.details;
     if (!origDetails) {
       // This shouldn't happen.
       throw new ApiError('Proposal details not found', 500);
     }
+
+    // The current document may have advanced since then. We should
+    // recompute the changes since the branch point and now.
+    const states = await this.getRecentStates(docSession);
+    const hash = proposal.comparison.comparison?.parent?.h;
+
+    if (hash) {
+      const changes = await getChanges(docSession, this, {
+        states,
+        rightHash: states[0].h,
+        leftHash: hash,
+      });
+      rebaseSummary(changes.details?.rightChanges, origDetails.leftChanges);
+    }
+
     let result: PatchLog = {changes: [], applied: false};
     if (!options?.dismiss) {
       const patch = new Patch(this, docSession);
@@ -3636,4 +3652,46 @@ export function archiveFilePathToAttachmentIdent(filePath: string): string {
   const fileHash = fileName.split("_")[0];
   const fileExt = path.extname(fileName);
   return `${fileHash}${fileExt}`;
+}
+
+// Applies renames etc in ref to target
+function rebaseSummary(ref: ActionSummary|undefined, target: ActionSummary) {
+  if (!ref) {
+    return;
+  }
+  // Deal with table renames
+  if (ref.tableRenames) {
+    for (const [t1, t2] of ref.tableRenames) {
+      if (t2 === null && t1) {
+        delete target.tableDeltas[t1];
+        target.tableRenames = target.tableRenames.filter(rename => rename[0] !== t1);
+      } else if (t1 && t2) {
+        if (target.tableDeltas[t1]) {
+          target.tableDeltas[t2] = target.tableDeltas[t1];
+          delete target.tableDeltas[t1];
+        }
+        target.tableRenames = target.tableRenames.map(([t1a, t2a]) => [(t1a == t1) ? t2 : t1a, t2a]);
+      }
+    }
+  }
+
+  // Deal with column renames
+  for (const [tableId, diff] of Object.entries(ref.tableDeltas)) {
+    if (diff.columnRenames) {
+      const itarget = target.tableDeltas[tableId];
+      if (!itarget) { continue; }
+      for (const [c1, c2] of diff.columnRenames) {
+        if (c2 === null && c1) {
+          delete itarget.columnDeltas[c1];
+          itarget.columnRenames = itarget.columnRenames.filter(rename => rename[0] !== c1);
+        } else if (c1 && c2) {
+          if (itarget.columnDeltas[c1]) {
+            itarget.columnDeltas[c2] = itarget.columnDeltas[c1];
+            delete itarget.columnDeltas[c1];
+          }
+          itarget.columnRenames = itarget.columnRenames.map(([c1a, c2a]) => [(c1a == c1) ? c2 : c1a, c2a]);
+        }
+      }
+    }
+  }
 }
