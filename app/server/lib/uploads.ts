@@ -375,10 +375,13 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
   }
   log.debug("UploadSet: moving uploadId %s to %s", uploadInfo.uploadId, newDir);
   const {tmpDir, cleanupCallback} = await createTmpDir({dir: newDir});
+  // The `tmp` library forcibly resolves the path,
+  // but doing it here makes this predictable even if the library behaviour changes.
+  const resolvedTmpDir = await fse.realpath(tmpDir);
   const move: boolean = Boolean(uploadInfo.tmpDir);
   const files: FileUploadInfo[] = [];
   for (const f of uploadInfo.files) {
-    const absPath = path.join(tmpDir, path.basename(f.absPath));
+    const absPath = path.join(resolvedTmpDir, path.basename(f.absPath));
     await (move ? fse.move(f.absPath, absPath) : fse.copy(f.absPath, absPath));
     files.push({...f, absPath});
   }
@@ -388,7 +391,7 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
     // This is unexpected, but if the move succeeded, let's warn but not fail on cleanup error.
     log.warn(`Error cleaning upload ${uploadInfo.uploadId} after move: ${err}`);
   }
-  Object.assign(uploadInfo, {files, tmpDir, cleanupCallback});
+  Object.assign(uploadInfo, {files, tmpDir: resolvedTmpDir, cleanupCallback});
 }
 
 
