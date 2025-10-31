@@ -87,6 +87,7 @@ import {downloadDSV} from "app/server/lib/ExportDSV";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {streamXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
+import { filenameContentDisposition, filenameStarredContentDisposition } from "app/server/lib/filenamesUtils";
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
 import {exportToDrive} from "app/server/lib/GoogleExport";
@@ -677,8 +678,11 @@ export class DocWorkerApi {
       const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, {cell});
       res.status(200)
         .type(ext)
+        // Construct a content-disposition header of the form 'attachment; filename*=UTF-8''"NAME"'
+        .set('Content-Disposition', filenameStarredContentDisposition('attachment', fileName))
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'
-        .set('Content-Disposition', contentDisposition(fileName, {type: 'attachment'}))
+        // removing non-ASCII characters and %
+        .set('Content-Disposition', filenameContentDisposition('attachment', fileName))
         .set('Cache-Control', 'private, max-age=3600')
         .send(fileData);
     }));
