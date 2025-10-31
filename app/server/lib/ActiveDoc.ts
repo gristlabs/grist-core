@@ -982,7 +982,10 @@ export class ActiveDoc extends EventEmitter {
         rightHash: states[0].h,
         leftHash: hash,
       });
-      rebaseSummary(changes.details?.rightChanges, origDetails.leftChanges);
+      const rightChanges = changes.details?.rightChanges;
+      if (rightChanges) {
+        rebaseSummary(rightChanges, origDetails.leftChanges);
+      }
     }
 
     let result: PatchLog = {changes: [], applied: false};
