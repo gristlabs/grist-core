@@ -245,8 +245,8 @@ You may instead file an issue so someone else can add it.
 To build Grist from source, follow these steps:
 
     yarn install
-    yarn run build
-    yarn run install:python
+    yarn install:python
+    yarn build
     yarn start
     # Grist will be available at http://localhost:8484/
 
@@ -271,11 +271,10 @@ up, at the same level as the Grist repo. If that is a problem for you,
 just move everything into a subdirectory first.
 
     yarn install
-    ./buildtools/checkout-ext-directory.sh grist-ee
-    yarn install --cwd ext --modules-folder ../../node_modules/
-    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn build
-    yarn run install:python
-    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn start
+    yarn install:ee
+    yarn install:python
+    yarn build
+    yarn start
     # Grist will be available at http://localhost:8484/
 
 The enterprise code will by default not be used. You need to explicitly enable
