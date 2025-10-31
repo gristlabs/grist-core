@@ -435,7 +435,11 @@
         "Uploading...": "Uploading...",
         "Default": "Default",
         "Default, template, or tutorial": "Default, template, or tutorial",
-        "Document type": "Document type"
+        "Document type": "Document type",
+        "Allow others to suggest changes": "Allow others to suggest changes",
+        "Enable suggestions": "Enable suggestions",
+        "Suggestions": "Suggestions",
+        "experiment": "experiment"
     },
     "DocumentUsage": {
         "Size of attachments": "Size of attachments",
@@ -866,7 +870,10 @@
         "Tab Separated Values (.tsv)": "Tab Separated Values (.tsv)",
         "Exporting is only available from document pages. Please select a document page and try again.": "Exporting is only available from document pages. Please select a document page and try again.",
         "Download attachments...": "Download attachments...",
-        "Download document...": "Download document..."
+        "Download document...": "Download document...",
+        "Suggest Changes": "Suggest Changes",
+        "current version": "current version",
+        "original": "original"
     },
     "SiteSwitcher": {
         "Create new team site": "Create new team site",
@@ -913,7 +920,9 @@
         "context menu - Access Rules": "context menu - Access Rules",
         "Delete document tour": "Delete document tour",
         "Preview the tutorial": "Preview the tutorial",
-        "Proposed Changes": "Proposed Changes"
+        "Proposed Changes": "Proposed Changes",
+        "Suggest Changes": "Suggest Changes",
+        "Suggestions": "Suggestions"
     },
     "TopBar": {
         "Manage team": "Manage team"
@@ -1040,7 +1049,10 @@
         "override": "override",
         "recovery mode": "recovery mode",
         "snapshot": "snapshot",
-        "unsaved": "unsaved"
+        "unsaved": "unsaved",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.",
+        "editing": "editing",
+        "suggesting": "suggesting"
     },
     "duplicatePage": {
         "Duplicate page {{pageName}}": "Duplicate page {{pageName}}",
@@ -1202,7 +1214,8 @@
         "Row style": "Row style",
         "Rule must return True or False": "Rule must return True or False",
         "Conditional Style": "Conditional Style",
-        "IF...": "IF..."
+        "IF...": "IF...",
+        "Row Style": "Row Style"
     },
     "CurrencyPicker": {
         "Invalid currency": "Invalid currency"
@@ -1392,10 +1405,13 @@
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).",
         "Set the maximum number of lines for multi-line text.": "Set the maximum number of lines for multi-line text.",
         "Comments are here!": "Comments are here!",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "You can add comments to cells, reply to comment threads, and @-mention collaborators.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "When checked, this field’s default value can be prefilled from the URL using query parameters.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration."
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "DESCRIPTION"
+        "DESCRIPTION": "DESCRIPTION",
+        "Set description": "Set description"
     },
     "PagePanels": {
         "Close Creator Panel": "Close Creator Panel",
@@ -1689,7 +1705,10 @@
         "Options Sort Order": "Options Sort Order",
         "Radio": "Radio",
         "Select": "Select",
-        "Vertical": "Vertical"
+        "Vertical": "Vertical",
+        "Accept value from URL": "Accept value from URL",
+        "Hidden field": "Hidden field",
+        "URL parameter:\n{{colId}}=VALUE": "URL parameter:\n{{colId}}=VALUE"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Some required columns aren't mapped",
@@ -2171,7 +2190,8 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it."
     },
     "MentionTextBox": {
-        "no access": "no access"
+        "no access": "no access",
+        "...loading": "...loading"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.",
@@ -2305,7 +2325,27 @@
     "ProposedChangesPage": {
         "Proposed Changes": "Proposed Changes",
         "Replace original": "Replace original",
-        "This is a list of changes relative to the original document.": "This is a list of changes relative to the original document."
+        "This is a list of changes relative to the original document.": "This is a list of changes relative to the original document.",
+        "Accept": "Accept",
+        "Accepted {{at}}.": "Accepted {{at}}.",
+        "Dismiss": "Dismiss",
+        "Dismissed {{at}}.": "Dismissed {{at}}.",
+        "Learn more": "Learn more",
+        "No changes found to suggest. Please make some edits.": "No changes found to suggest. Please make some edits.",
+        "Retract Suggestion": "Retract Suggestion",
+        "Retracted {{at}}.": "Retracted {{at}}.",
+        "Suggest Change": "Suggest Change",
+        "Suggest Changes": "Suggest Changes",
+        "Suggestion made {{at}}.": "Suggestion made {{at}}.",
+        "Suggestions": "Suggestions",
+        "The original document isn't asking for proposed changes.": "The original document isn't asking for proposed changes.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "There are fresh changes that haven't been added to the suggestion yet.",
+        "This is a list of changes relative to the {{originalDocument}}.": "This is a list of changes relative to the {{originalDocument}}.",
+        "Update Suggestion": "Update Suggestion",
+        "Work on a copy": "Work on a copy",
+        "Your suggestions": "Your suggestions",
+        "experiment": "experiment",
+        "original document": "original document"
     },
     "commandList": {
         "Show accessibility options": "Show accessibility options",
@@ -2417,6 +2457,50 @@
         "Use the currently selected row as table headers": "Use the currently selected row as table headers",
         "When in the search bar, close it and focus the current match": "When in the search bar, close it and focus the current match",
         "When typed at the start of a cell, make this a formula column": "When typed at the start of a cell, make this a formula column",
-        "showing a behavioral popup": "showing a behavioral popup"
+        "showing a behavioral popup": "showing a behavioral popup",
+        "Filter this column by just this cell's value": "Filter this column by just this cell's value"
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "12-hour format",
+        "24-hour format": "24-hour format",
+        "AM": {
+            "PM": "AM/PM"
+        },
+        "Calendar": "Calendar",
+        "Date helpers…": "Date helpers…",
+        "Day": "Day",
+        "Day of month": "Day of month",
+        "Day of week": "Day of week",
+        "Day of week (abbrev)": "Day of week (abbrev)",
+        "Day of week (full)": "Day of week (full)",
+        "Day of week (numeric)": "Day of week (numeric)",
+        "Days since": "Days since",
+        "Days until": "Days until",
+        "Default": "Default",
+        "End of": "End of",
+        "Full date": "Full date",
+        "Full name with year": "Full name with year",
+        "Hour": "Hour",
+        "Intervals": "Intervals",
+        "Is weekend?": "Is weekend?",
+        "Minute": "Minute",
+        "Month": "Month",
+        "Months since": "Months since",
+        "Months until": "Months until",
+        "Name only": "Name only",
+        "Number only": "Number only",
+        "Quarter": "Quarter",
+        "Quick Picks": "Quick Picks",
+        "Relative": "Relative",
+        "Short with year": "Short with year",
+        "Sortable": "Sortable",
+        "Start of": "Start of",
+        "Time": "Time",
+        "Time bucket": "Time bucket",
+        "Week": "Week",
+        "Week of year": "Week of year",
+        "Year": "Year",
+        "Years since": "Years since",
+        "Years until": "Years until"
     }
 }
