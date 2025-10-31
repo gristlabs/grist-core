@@ -26,6 +26,13 @@
   border-top: 1px solid var(--grist-theme-table-header-border, lightgrey);
 }
 
+/* this is just voodoo so far */
+.diff .gridview_data_scroll {
+  overflow: none;
+  height: 1000px;
+}
+
+
 .gridview_data_pane > .gridview_data_scroll {
   border-top: none;
 }

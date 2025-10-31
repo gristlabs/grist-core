@@ -1448,7 +1448,23 @@ export default class GridView extends BaseView {
           ) //end hbox
         ), // END COL HEADER BOX
 
-        koDomScrolly.scrolly(data, { paddingBottom: 80, paddingRight: 28 }, renderRow.bind(this)),
+          koDomScrolly.scrolly(data, {
+            paddingBottom: 80, paddingRight: 28,
+            cb: (i: number, x: any) => {
+              console.log("cb", i, x);
+              if (x) {
+                const total = [...(x as number[])].reduce((a, b) => a+b, 0) + 2;
+                const oh = parseInt(this.viewPane.style.height.replace('px', '') || '0', 10);
+                console.log({total, oh});
+                if (total > (oh || 0)) {
+                  this.viewPane.style.height = String(total) + "px";
+                  console.log("SET HEIGHT TO", total);
+                  const oh3 = this.viewPane.style.height;
+                  console.log("CONFIRM", oh3);
+                }
+              }
+            }
+          }, renderRow.bind(this)),
 
         dom.maybe(this._isPrinting, () =>
           renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this))
@@ -1655,11 +1671,13 @@ export default class GridView extends BaseView {
   }
 
   public override onResize() {
+    console.log("ONRESIZE");
     const activeFieldBuilder = this.activeFieldBuilder();
-    let height = null;
+    let height: number|null = null;
     if (isNarrowScreen()) {
       height = window.outerHeight;
     }
+    console.log("CHECK", this.scrolly.rowHeights, this.scrolly.shownHeight);
     if (activeFieldBuilder && activeFieldBuilder.isEditorActive()) {
       // When the editor is active, the common case for a resize is if the virtual keyboard is being
       // shown on mobile device. In that case, we need to scroll active cell into view, and need to

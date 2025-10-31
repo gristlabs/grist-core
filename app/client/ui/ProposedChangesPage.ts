@@ -211,11 +211,11 @@ and is subject to change and withdrawal.`,
                     testId('apply'),
                   ),
                   ' ',
-                  (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
-                    t("Dismiss"),
+                  isReadOnly ? null : basicButton(
+                    dismissed ? t("Undo dismissal") : t("Dismiss"),
                     dom.on('click', async () => {
                       const result = await this.gristDoc.docComm.applyProposal(proposal.shortId, {
-                        dismiss: true,
+                        dismiss: !dismissed,
                       });
                       this._updateProposal(proposal, result.proposal);
                     }),

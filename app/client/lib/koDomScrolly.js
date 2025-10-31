@@ -274,7 +274,10 @@ Scrolly.prototype.addPane = function(containerElem, options, itemCreateFunc) {
 /**
  * Tells Scrolly to call updateSize after things have had a chance to render.
  */
-Scrolly.prototype.scheduleUpdateSize = function(overrideHeight) {
+Scrolly.prototype.scheduleUpdateSize = function(overrideHeight, xcb) {
+  if (xcb) {
+    this.cb = xcb;
+  }
   if (!this.isDisposed() && !this.delayedUpdateSize.isPending()) {
     this.delayedUpdateSize.schedule(0, this.updateSize.bind(this, overrideHeight), this);
   }
@@ -287,10 +290,12 @@ Scrolly.prototype.scheduleUpdateSize = function(overrideHeight) {
  * Pass in an overrideHeight to use instead of the current height of the panes.
  */
 Scrolly.prototype.updateSize = function(overrideHeight) {
+  console.log("UPDATE SIZE", overrideHeight, this.rowHeights);
   this.resetHeights();
   this.shownHeight = Math.max(0, Math.max.apply(null, this.panes.map(function(pane) {
     return pane.container.clientHeight;
   })));
+  console.log("Shown", this.shownHeight);
 
   // Update counts of rows that are shown.
   var numVisible = Math.max(1, Math.ceil((overrideHeight ?? this.shownHeight) / this.minRowHeight));
@@ -301,6 +306,8 @@ Scrolly.prototype.updateSize = function(overrideHeight) {
   this._updateRange();
   this.render();
   this.syncScrollPosition();
+  console.log("CALLBACK??", this.cb);
+  this.cb?.(42, this.rowHeights);
 };
 
 /**
@@ -647,6 +654,7 @@ function scrolly(data, options, itemCreateFunc) {
     var scrollyObj = getInstance(data);
     scrollyObj.addPane(elem, options, itemCreateFunc);
     ko.utils.domData.set(elem, "scrolly", scrollyObj);
+    scrollyObj.cb = options.cb;
   };
 }
 exports.scrolly = scrolly;
