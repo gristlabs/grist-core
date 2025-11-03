@@ -1908,6 +1908,10 @@ export class HomeDBManager implements HomeDBAuth {
       }
       // Update the name and save.
       const doc = getDocResult(queryResult);
+      // Disabled docs can't be modified.
+      if (doc.disabledAt) {
+        return {status: 403, errMessage: 'Document is disabled'};
+      }
       const previous = structuredClone(doc);
       doc.checkProperties(props);
       doc.updateFromProperties(props);
@@ -2614,6 +2618,13 @@ export class HomeDBManager implements HomeDBAuth {
     const result = await this._connection.transaction(async manager => {
       // Get the doc
       const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
+      // Disabled docs can't be moved
+      if (doc.disabledAt) {
+        return {
+          status: 403,
+          errMessage: 'Document is disabled'
+        };
+      }
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -4642,6 +4653,7 @@ export class HomeDBManager implements HomeDBAuth {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
+
     if (options.checkDisabledUser) {
       if (results.raw.some(entry => entry.users_disabled_at === undefined)) {
         throw new Error('checkDisabledUser requested but users_disabled_at is undefined');
