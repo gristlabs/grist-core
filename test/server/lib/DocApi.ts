@@ -2544,7 +2544,7 @@ function testDocApi(settings: {
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'image/jpeg');
       assert.deepEqual(resp.headers['content-disposition'],
-      `attachment; filename="world.jpg"; filename*=UTF-8''world.jpg`);
+      `attachment; filename="world.jpg"; filename*=utf-8''world.jpg`);
       assert.deepEqual(resp.headers['cache-control'], 'private, max-age=3600');
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
@@ -2568,7 +2568,7 @@ function testDocApi(settings: {
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/zip');
       assert.deepEqual(resp.headers['content-disposition'],
-      `attachment; filename="TestDoc-Attachments.zip"; filename*=UTF-8''TestDoc-Attachments.zip`);
+      `attachment; filename="TestDoc-Attachments.zip"; filename*=utf-8''TestDoc-Attachments.zip`);
 
       await assertArchiveContents(resp.data, [
         {
@@ -2590,7 +2590,7 @@ function testDocApi(settings: {
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/x-tar');
       assert.deepEqual(resp.headers['content-disposition'],
-      `attachment; filename="TestDoc-Attachments.tar"; filename*=UTF-8''TestDoc-Attachments.tar`);
+      `attachment; filename="TestDoc-Attachments.tar"; filename*=utf-8''TestDoc-Attachments.tar`);
 
       await assertArchiveContents(resp.data, [
         {
@@ -2615,7 +2615,7 @@ function testDocApi(settings: {
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'image/jpeg');
       assert.deepEqual(resp.headers['content-disposition'],
-      `attachment; filename="world.jpg"; filename*=UTF-8''world.jpg`);
+      `attachment; filename="world.jpg"; filename*=utf-8''world.jpg`);
       assert.deepEqual(resp.headers['cache-control'], 'private, max-age=3600');
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
@@ -2672,21 +2672,21 @@ function testDocApi(settings: {
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/pdf');    // A valid content-type is respected
       assert.deepEqual(resp.headers['content-disposition'],
-`attachment; filename="foo.pdf"; filename*=UTF-8''foo.pdf`);
+`attachment; filename="foo.pdf"; filename*=utf-8''foo.pdf`);
       assert.deepEqual(resp.data, 'xyz');
 
       resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/5/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'image/png');    // Did not pay attention to invalid header
       assert.deepEqual(resp.headers['content-disposition'],
-`attachment; filename="hello.png"; filename*=UTF-8''hello.png`);
+`attachment; filename="hello.png"; filename*=utf-8''hello.png`);
       assert.deepEqual(resp.data, 'abc');
 
       resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/6/download`, chimpy);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.headers['content-type'], 'application/msword');    // Another invalid header ignored
       assert.deepEqual(resp.headers['content-disposition'],
-`attachment; filename="world.doc"; filename*=UTF-8''world.doc`);
+`attachment; filename="world.doc"; filename*=utf-8''world.doc`);
       assert.deepEqual(resp.headers['cache-control'], 'private, max-age=3600');
       assert.deepEqual(resp.headers['bad-header'], undefined);   // Attempt to hack in more headers didn't work
       assert.deepEqual(resp.data, 'def');
@@ -2939,7 +2939,7 @@ function testDocApi(settings: {
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.headers['content-type'], 'application/zip');
         assert.deepEqual(resp.headers['content-disposition'],
-        `attachment; filename="${filename}"; filename*=UTF-8''${filename}`
+        `attachment; filename="${filename}"; filename*=utf-8''${filename}`
         );
 
         await assertArchiveContents(resp.data, [

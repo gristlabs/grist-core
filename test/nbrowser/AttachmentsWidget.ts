@@ -197,7 +197,7 @@ describe("AttachmentsWidget", function () {
     const respDownload = await fetch(hrefDownload, fetchOptions);
     assert.equal(
       respDownload.headers.get("Content-Disposition"),
-      "attachment; filename*=UTF-8''sample.pdf"
+      `attachment; filename="sample.pdf"; filename*=utf-8''sample.pdf`
     );
     assert.equal(
       respDownload.headers.get("Content-Security-Policy"),
@@ -210,7 +210,7 @@ describe("AttachmentsWidget", function () {
     const respInline = await fetch(hrefInline, fetchOptions);
     assert.equal(
       respInline.headers.get("Content-Disposition"),
-      "inline; filename*=UTF-8''sample.pdf"
+      `attachment; filename="sample.pdf"; filename*=utf-8''sample.pdf`
     );
 
     // Attach an html file and ensure it doesn't get served inline.
@@ -226,7 +226,7 @@ describe("AttachmentsWidget", function () {
     // Note that the disposition here is NOT "inline" (that would be bad).
     assert.equal(
       respLinkHtml.headers.get("Content-Disposition"),
-      "attachment; filename*=UTF-8''htmlfile.html"
+      `attachment; filename="htmlfile.html"; filename*=utf-8''htmlfile.html`
     );
     await driver.find(".test-modal-dialog .test-pw-close").click();
   });

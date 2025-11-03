@@ -42,7 +42,7 @@ describe('Export.ntest', function() {
     // Download the data at the link and compare to expected.
     const resp = await axios.get(href, {responseType: 'text', headers});
     assert.equal(resp.headers['content-disposition'],
-                 'attachment; filename="CCTransactions.csv"');
+                 `attachment; filename="CCTransactions.csv"; filename*=utf-8''CCTransactions.csv`);
     assert.equal(resp.data, dataExpected.base);
     await $('.test-tb-share').click();
   });

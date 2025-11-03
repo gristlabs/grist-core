@@ -678,7 +678,7 @@ export class DocWorkerApi {
       res.status(200)
         .type(ext)
         // Construct a content-disposition header of the form :
-        // attachment; filename="NON_ASCII_NAME"; filename*=UTF-8''ENCODED_NAME
+        // attachment; filename="NON_ASCII_NAME"; filename*=utf-8''ENCODED_NAME
         .set('Content-Disposition', filenameContentDisposition('attachment', fileName))
         .set('Cache-Control', 'private, max-age=3600')
         .send(fileData);
