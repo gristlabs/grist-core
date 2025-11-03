@@ -161,7 +161,7 @@ export class DocList extends Disposable {
               dom.forEach(docs, (doc) => {
                 return cssDocRow(
                   cssDoc(
-                    cssDoc.cls("-no-access", !roles.canView(doc.access)),
+                    cssDoc.cls("-no-access", doc.disabledAt !== undefined || !roles.canView(doc.access)),
                     cssDocIconAndName(
                       buildDocIcon(
                         {
