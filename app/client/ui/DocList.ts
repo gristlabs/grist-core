@@ -197,7 +197,7 @@ export class DocList extends Disposable {
                       testId("doc-workspace")
                     ),
                     cssDocEditedAt(
-                      t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) }),
+                      getUpdatedAt(doc),
                       testId("doc-edited-at")
                     ),
                     cssDocDetailsCompact(
@@ -205,11 +205,7 @@ export class DocList extends Disposable {
                         urlState().setLinkUrl(docUrl(doc)),
                         stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))
                       ),
-                      cssDocEditedAt(
-                        t("Edited {{at}}", {
-                          at: getTimeFromNow(doc.updatedAt),
-                        })
-                      ),
+                      cssDocEditedAt(getUpdatedAt(doc)),
                       cssDocBadges(
                         !doc.isPinned
                           ? null
@@ -417,6 +413,13 @@ export async function renameDoc(home: HomeModel, doc: Document, val: string) {
       reportError(err as Error);
     }
   }
+}
+
+export function getUpdatedAt(doc: Document) {
+  if (doc.removedAt) {
+    return t("Deleted {{at}}", { at: getTimeFromNow(doc.removedAt) });
+  }
+  return t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) });
 }
 
 const cssHeader = styled("div", `

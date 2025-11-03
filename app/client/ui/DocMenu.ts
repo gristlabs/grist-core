@@ -10,7 +10,7 @@ import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {HomeModel, makeLocalViewSettings, ViewSettings} from 'app/client/models/HomeModel';
 import {getWorkspaceInfo, workspaceName} from 'app/client/models/WorkspaceInfo';
 import {attachAddNewTip} from 'app/client/ui/AddNewTip';
-import {DocList, makeDocOptionsMenu} from 'app/client/ui/DocList';
+import {DocList, getUpdatedAt, makeDocOptionsMenu} from 'app/client/ui/DocList';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildHomeIntro} from 'app/client/ui/HomeIntro';
 import {buildPinnedDoc, createPinnedDocs} from 'app/client/ui/PinnedDocs';
@@ -308,13 +308,8 @@ function buildWorkspaceDocBlock(
             css.docPinIcon('PinSmall', dom.show(doc.isPinned)),
             doc.public ? css.docPublicIcon('Public', testId('public')) : null,
           ),
-          css.docRowUpdatedAt(
-            (doc.removedAt ?
-              t("Deleted {{at}}", {at: getTimeFromNow(doc.removedAt)}) :
-              t("Edited {{at}}", {at: getTimeFromNow(doc.updatedAt)})),
-            testId('doc-time')
-          ),
-          (doc.removedAt ?
+          css.docRowUpdatedAt(getUpdatedAt(doc), testId('doc-time')),
+          (doc.removedAt || doc.disabledAt ?
             [
               // For deleted documents, attach the menu to the entire doc row, and include the
               // "Dots" icon just to clarify that there are options.
