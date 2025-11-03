@@ -1339,6 +1339,10 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      if (!await activeDoc.canCopyEverything(docSession)) {
+        throw new ApiError('insufficient access', 403);
+      }
       const showDetails = isAffirmative(req.query.detail);
       const maxRows = optIntegerParam(req.query.maxRows, "maxRows", {
         nullable: true,
@@ -1355,6 +1359,10 @@ export class DocWorkerApi {
 
     // Give details about what changed between two versions of a document.
     this._app.get('/api/docs/:docId/compare', canView, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      if (!await activeDoc.canCopyEverything(docSession)) {
+        throw new ApiError('insufficient access', 403);
+      }
       // This could be a relatively slow operation if actions are large.
       const leftHash = stringParam(req.query.left || 'HEAD', 'left');
       const rightHash = stringParam(req.query.right || 'HEAD', 'right');
@@ -1362,10 +1370,9 @@ export class DocWorkerApi {
         nullable: true,
         isValid: (n) => n > 0,
       });
-      const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
       res.json(
-        await this._getChanges(activeDoc, {
+        await this._getChanges(docSession, activeDoc, {
           states,
           leftHash,
           rightHash,
@@ -2199,6 +2206,7 @@ export class DocWorkerApi {
    *
    */
   private async _getChanges(
+    docSession: OptDocSession,
     activeDoc: ActiveDoc,
     options: {
       states: DocState[];
@@ -2207,6 +2215,13 @@ export class DocWorkerApi {
       maxRows?: number | null;
     }
   ): Promise<DocStateComparison> {
+    // The change calculation currently cannot factor in
+    // granular access rules, so we need broad read rights
+    // to execute it.
+    if (!await activeDoc.canCopyEverything(docSession)) {
+      throw new ApiError('insufficient access', 403);
+    }
+
     const { states, leftHash, rightHash, maxRows } = options;
     const finder = new HashUtil(states);
     const leftOffset = finder.hashToOffset(leftHash);
@@ -2215,6 +2230,9 @@ export class DocWorkerApi {
       throw new Error('Comparisons currently require left to be an ancestor of right');
     }
     const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
+    // TODO: if in the future changes can be computed for someone
+    // with partial read access, then the call to getActions should
+    // be updated.
     const actions = (await activeDoc.getActions(actionNums)).reverse();
     let totalAction = createEmptyActionSummary();
     for (const action of actions) {
@@ -2592,7 +2610,7 @@ export class DocWorkerApi {
     if (showDetails && parent) {
       // Calculate changes from the parent to the current version of this document.
       const leftChanges = (
-        await this._getChanges(activeDoc, {
+        await this._getChanges(docSession, activeDoc, {
           states,
           leftHash: parent.h,
           rightHash: "HEAD",
