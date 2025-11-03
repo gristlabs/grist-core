@@ -210,7 +210,7 @@ describe("AttachmentsWidget", function () {
     const respInline = await fetch(hrefInline, fetchOptions);
     assert.equal(
       respInline.headers.get("Content-Disposition"),
-      `attachment; filename="sample.pdf"; filename*=utf-8''sample.pdf`
+      `inline; filename="sample.pdf"; filename*=utf-8''sample.pdf`
     );
 
     // Attach an html file and ensure it doesn't get served inline.
