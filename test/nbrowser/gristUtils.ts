@@ -632,6 +632,8 @@ export async function getCursorPosition(section?: WebElement|string) {
     if (typeof section === 'string') { section = await getSection(section); }
     section = section ?? await driver.findWait('.active_section', 4000);
     let cursor: WebElement;
+    // If there's no active cursor in the widget, this is sometimes a valid case, so return null
+    // instead of erroring. (e.g. a linked widget with the linked row filtered out)
     try {
       cursor = await section.findWait('.selected_cursor', 1000);
     } catch (err) {
