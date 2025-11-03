@@ -2307,5 +2307,8 @@
         "Proposed Changes": "Προτεινόμενες αλλαγές",
         "Replace original": "Αντικατάσταση πρωτοτύπου",
         "This is a list of changes relative to the original document.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το αρχικό έγγραφο."
+    },
+    "commandList": {
+        "showing a behavioral popup": "εμφάνιση ενός αναδυόμενου παραθύρου συμπεριφοράς"
     }
 }
