@@ -3,9 +3,5 @@ function removesNonASCII(filename: string){
 }
 
 export function filenameContentDisposition(disposition: string, filename: string){
-    return `${disposition}; filename="${removesNonASCII(filename)}"`;
-}
-
-export function filenameStarredContentDisposition(disposition: string, filename: string){
-    return `${disposition}; filename*=UTF-8''${encodeURIComponent(filename)}`;
+    return `${disposition}; filename="${removesNonASCII(filename)}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }

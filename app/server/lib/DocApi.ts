@@ -87,7 +87,7 @@ import {downloadDSV} from "app/server/lib/ExportDSV";
 import {collectTableSchemaInFrictionlessFormat} from "app/server/lib/ExportTableSchema";
 import {streamXLSX} from "app/server/lib/ExportXLSX";
 import {expressWrap} from 'app/server/lib/expressWrap';
-import { filenameContentDisposition, filenameStarredContentDisposition } from "app/server/lib/filenamesUtils";
+import { filenameContentDisposition } from "app/server/lib/filenamesUtils";
 import {filterDocumentInPlace} from "app/server/lib/filterUtils";
 import {googleAuthTokenMiddleware} from "app/server/lib/GoogleAuth";
 import {exportToDrive} from "app/server/lib/GoogleExport";
@@ -118,7 +118,6 @@ import {
   makeAccessId, parseMultipartFormRequest,
 } from "app/server/lib/uploads";
 import * as assert from 'assert';
-import contentDisposition from 'content-disposition';
 import {Application, NextFunction, Request, RequestHandler, Response} from "express";
 import * as _ from "lodash";
 import LRUCache from 'lru-cache';
@@ -606,7 +605,7 @@ export class DocWorkerApi {
         .type(archive.mimeType)
         // Construct a content-disposition header of the form 'attachment; filename="NAME"'
         .set('Content-Disposition',
-          contentDisposition(`${docName}.${archive.fileExtension}`, {type: 'attachment'}))
+          filenameContentDisposition('attachment', `${docName}.${archive.fileExtension}`))
         // Avoid storing because this could be huge.
         .set('Cache-Control', 'no-store');
 
@@ -678,10 +677,8 @@ export class DocWorkerApi {
       const fileData = await activeDoc.getAttachmentData(docSessionFromRequest(req), attRecord, {cell});
       res.status(200)
         .type(ext)
-        // Construct a content-disposition header of the form 'attachment; filename*=UTF-8''"NAME"'
-        .set('Content-Disposition', filenameStarredContentDisposition('attachment', fileName))
-        // Construct a content-disposition header of the form 'attachment; filename="NAME"'
-        // removing non-ASCII characters and %
+        // Construct a content-disposition header of the form :
+        // attachment; filename="NON_ASCII_NAME"; filename*=UTF-8''ENCODED_NAME
         .set('Content-Disposition', filenameContentDisposition('attachment', fileName))
         .set('Cache-Control', 'private, max-age=3600')
         .send(fileData);
@@ -2926,6 +2923,6 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
                                    res: Response, options: DownloadOptions) {
   const {filename} = options;
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
+  res.setHeader('Content-Disposition', filenameContentDisposition('attachment', filename + '.xlsx'));
   return streamXLSX(activeDoc, req, res, options);
 }

@@ -3,10 +3,10 @@ import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {FilterColValues} from "app/common/ActiveDocAPI";
 import {DownloadOptions, ExportData, ExportHeader, exportSection, exportTable, Filter} from 'app/server/lib/Export';
 import log from 'app/server/lib/log';
-import contentDisposition from 'content-disposition';
 import {stringify} from 'csv';
 import * as express from 'express';
 import {promisify} from 'util';
+import { filenameContentDisposition } from 'app/server/lib/filenamesUtils';
 
 const stringifyAsync = promisify(stringify);
 
@@ -36,7 +36,7 @@ export async function downloadDSV(
     }) :
     await makeDSVFromTable({activeDoc, tableId, header, delimiter, req});
   res.set('Content-Type', getDSVMimeType(delimiter));
-  res.setHeader('Content-Disposition', contentDisposition(filename + extension));
+  res.setHeader('Content-Disposition', filenameContentDisposition('attachment', filename + extension));
   res.send(data);
 }
 

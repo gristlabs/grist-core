@@ -3,7 +3,7 @@ import {Readable} from 'form-data';
 import {GaxiosError, GaxiosPromise} from 'gaxios';
 import {FetchError, Response as FetchResponse, Headers} from 'node-fetch';
 import {getGoogleAuth} from "app/server/lib/GoogleAuth";
-import contentDisposition from 'content-disposition';
+import { filenameContentDisposition } from 'app/server/lib/filenamesUtils';
 
 const
   SPREADSHEETS_MIMETYPE = 'application/vnd.google-apps.spreadsheet',
@@ -59,7 +59,7 @@ async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string |
     const res = await req;
     const headers = new Headers(res.headers);
     if (filename) {
-      headers.set("content-disposition", contentDisposition(filename));
+      headers.set("content-disposition", filenameContentDisposition('attachment', filename));
     }
     return new FetchResponse(res.data, {
       headers,
