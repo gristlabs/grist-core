@@ -375,13 +375,10 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
   }
   log.debug("UploadSet: moving uploadId %s to %s", uploadInfo.uploadId, newDir);
   const {tmpDir, cleanupCallback} = await createTmpDir({dir: newDir});
-  // The `tmp` library forcibly resolves the path,
-  // but doing it here makes this predictable even if the library behaviour changes.
-  const resolvedTmpDir = await fse.realpath(tmpDir);
   const move: boolean = Boolean(uploadInfo.tmpDir);
   const files: FileUploadInfo[] = [];
   for (const f of uploadInfo.files) {
-    const absPath = path.join(resolvedTmpDir, path.basename(f.absPath));
+    const absPath = path.join(tmpDir, path.basename(f.absPath));
     await (move ? fse.move(f.absPath, absPath) : fse.copy(f.absPath, absPath));
     files.push({...f, absPath});
   }
@@ -391,7 +388,7 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
     // This is unexpected, but if the move succeeded, let's warn but not fail on cleanup error.
     log.warn(`Error cleaning upload ${uploadInfo.uploadId} after move: ${err}`);
   }
-  Object.assign(uploadInfo, {files, tmpDir: resolvedTmpDir, cleanupCallback});
+  Object.assign(uploadInfo, {files, tmpDir, cleanupCallback});
 }
 
 
@@ -410,9 +407,13 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
   const [tmpDir, tmpCleanup]: [string, CleanupCB] = await fromCallback(
     (cb: any) => tmp.dir(fullOptions, cb), {multiArgs: true});
 
+  // The `tmp` library sometimes forcibly resolves the path,
+  // doing it here makes it predictable behaviour and resistant to library behaviour changes.
+  const realTmpDir = await fse.realpath(tmpDir);
+
   async function cleanupCallback() {
     // Using fs-extra is better because it's asynchronous.
-    await fse.remove(tmpDir);
+    await fse.remove(realTmpDir);
     try {
       // Still call the original callback, so that `tmp` module doesn't keep remembering about
       // this directory and doesn't try to delete it again on exit.
@@ -421,7 +422,7 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
       // OK if it fails because the dir is already removed.
     }
   }
-  return {tmpDir, cleanupCallback};
+  return {tmpDir: realTmpDir, cleanupCallback};
 }
 
 /**
