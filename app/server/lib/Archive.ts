@@ -48,8 +48,7 @@ export function create_zip_archive(
     fileExtension: "zip",
     async packInto(destination: stream.Writable, options: ArchivePackingOptions = defaultPackingOptions) {
       const archive = new ZipStream(zipOptions);
-      // `as any` cast required with @types/node 18.X due to the `end` parameter missing from the type declaration.
-      const pipeline = stream.promises.pipeline(archive, destination, { end: options.endDestStream } as any);
+      const pipeline = stream.promises.pipeline(archive, destination, { end: options.endDestStream });
 
       // This can hang indefinitely in various error cases (e.g. `destination` stream closes unexpectedly).
       // `pipeline` should still resolve correctly, but none of the code in this block is guaranteed to execute.
@@ -64,7 +63,7 @@ export function create_zip_archive(
 }
 
 // Asynchronously iterating entries - and trying to add them to the archive.
-// Warning: This function may hang indefinitely in the archive stream errors. DO NOT AWAIT IT.
+// Warning: This function may hang indefinitely if the archive stream errors. DO NOT AWAIT IT.
 // This is due to the underlying ZipStream "pumping" the entry queue to keep adding entries.
 // In some circumstances the callback doesn't fire (e.g. there's a downstream error).
 async function addEntriesToZipArchive(archive: ZipStream, entries: AsyncIterable<ArchiveEntry>): Promise<void> {
@@ -108,9 +107,8 @@ export function create_tar_archive(
       // 'end' prevents `destination` being closed when completed, or if an error occurs in archive.
       // Passthrough stream is needed as the tar-stream library doesn't implement the 'end' parameter,
       // piping to the passthrough stream fixes this and prevents `destination` being closed.
-      // Cast is required due to a bug with @types/node 18.X missing the parameter
       const pipeline = stream.promises.pipeline(archive, passthrough, destination,
-                                                { end: options.endDestStream } as any);
+                                                { end: options.endDestStream });
 
       // Zip packing had issues where adding archive entries could hang indefinitely in error states.
       // While that hasn't been observed with .tar archives, this block isn't awaited as a precaution.
