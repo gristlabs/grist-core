@@ -626,9 +626,9 @@ export class DocWorkerApi {
           altSessionId: req.altSessionId,
         };
         if (err?.code === "ERR_STREAM_PREMATURE_CLOSE") {
-          log.warn("Client closed archive download stream before completion", meta);
+          log.rawWarn("Client closed archive download stream before completion", meta);
         } else {
-          log.error("Error while packing attachment archive", meta, err);
+          log.rawError(`Error while packing attachment archive: ${err.stack ?? err.message}`, meta);
         }
       }
       res.end();
