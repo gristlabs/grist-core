@@ -17,6 +17,7 @@ import {ActionSummary} from 'app/common/ActionSummary';
 import {
   AclResources,
   AclTableDescription,
+  ApplyProposalResult,
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
@@ -28,6 +29,7 @@ import {
   ImportResult,
   ISuggestionWithValue,
   MergeOptions,
+  PatchLog,
   PermissionDataWithExtraUsers,
   QueryResult,
   ServerQuery,
@@ -54,6 +56,11 @@ import {
 import {DocData} from 'app/common/DocData';
 import {getDataLimitInfo, getDataLimitRatio, getSeverity} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
+import {
+  DocState,
+  DocStateComparison,
+  removeMetadataChangesFromDetails
+} from 'app/common/DocState';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
   DataLimitInfo,
@@ -87,9 +94,7 @@ import {
   AttachmentTransferStatus,
   CreatableArchiveFormats,
   DocReplacementOptions,
-  DocState,
-  DocStateComparison,
-  NEW_DOCUMENT_CODE
+  NEW_DOCUMENT_CODE,
 } from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
@@ -164,6 +169,7 @@ import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} fro
 import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
 import {OnDemandActions} from 'app/server/lib/OnDemandActions';
+import {Patch} from 'app/server/lib/Patch';
 import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
@@ -896,6 +902,50 @@ export class ActiveDoc extends EventEmitter {
   public generateImportDiff(_docSession: DocSession, hiddenTableId: string, transformRule: TransformRule,
                             mergeOptions: MergeOptions): Promise<DocStateComparison> {
     return this._activeDocImport.generateImportDiff(hiddenTableId, transformRule, mergeOptions);
+  }
+
+  /**
+   * Apply a proposal to the document. The proposal is applied as a set of linked action groups
+   * for ease of undo, meaning each action group has a linkId refering to the previous one, and
+   * a otherId set to the first (or root) action group.
+   */
+  public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
+    dismiss?: boolean,
+  }): Promise<ApplyProposalResult> {
+    if (!await this.isOwner(docSession)) {
+      // For now, only owners can use this method.
+      throw new ApiError('Only owners can apply proposals', 400);
+    }
+    const urlId = this.docName;
+    const proposal = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
+    if (!proposal) {
+      throw new ApiError('Proposal not found', 404);
+    }
+    const origDetails = proposal.comparison.comparison?.details;
+    if (!origDetails) {
+      // This shouldn't happen.
+      throw new ApiError('Proposal details not found', 500);
+    }
+    let result: PatchLog = {changes: [], applied: false};
+    if (!options?.dismiss) {
+      const patch = new Patch(this, docSession);
+      const {details} = removeMetadataChangesFromDetails(origDetails);
+      result = await patch.applyChanges(details);
+      if (result.applied) {
+        await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
+          status: 'applied'
+        });
+      }
+    } else {
+      await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
+        status: 'dismissed'
+      });
+    }
+    const proposalUpdated = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
+    return {
+      proposal: proposalUpdated,
+      log: result
+    };
   }
 
   /**

@@ -457,7 +457,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     const {tmpDir, cleanupCallback} = await createTmpDir({});
     // Any name will do for the single file in tmpDir, but note that fileName may not be valid.
     const destPath = path.join(tmpDir, 'upload-content');
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const dest = fse.createWriteStream(destPath, {autoClose: true});
       response.body.on('error', reject);
       dest.on('error', reject);

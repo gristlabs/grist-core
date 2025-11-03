@@ -13,7 +13,9 @@ The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open 
 Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
 and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
-> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
+> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/). 
+>
+> To keep up-to-date with everything that's going on, you can [sign up for Grist's monthly newsletter](https://www.getgrist.com/newsletter/).
 
 https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
@@ -243,8 +245,8 @@ You may instead file an issue so someone else can add it.
 To build Grist from source, follow these steps:
 
     yarn install
-    yarn run build
-    yarn run install:python
+    yarn install:python
+    yarn build
     yarn start
     # Grist will be available at http://localhost:8484/
 
@@ -269,11 +271,10 @@ up, at the same level as the Grist repo. If that is a problem for you,
 just move everything into a subdirectory first.
 
     yarn install
-    ./buildtools/checkout-ext-directory.sh grist-ee
-    yarn install --cwd ext --modules-folder ../../node_modules/
-    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn build
-    yarn run install:python
-    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn start
+    yarn install:ee
+    yarn install:python
+    yarn build
+    yarn start
     # Grist will be available at http://localhost:8484/
 
 The enterprise code will by default not be used. You need to explicitly enable
@@ -383,7 +384,9 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins |
 | GRIST_EXTERNAL_ATTACHMENTS_MODE | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well. |
+| GRIST_ENABLE_SERVICE_ACCOUNTS | enables the `service accounts` feature. This feature allows users to create special service accounts that they can manage and to whom they can grant restricted access to chosen resources. Useful as a way to get fine-grained api keys for use with third party automations. Unset by default |
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
+| GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
 | GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
 | GRIST_HOST | hostname to use when listening on a port. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
@@ -392,6 +395,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication. |
 | GRIST_INCLUDE_CUSTOM_SCRIPT_URL | if set, will load the referenced URL in a `<script>` tag on all app pages. |
 | GRIST_INST_DIR | path to Grist instance configuration files, for Grist server. |
+| GRIST_KEEP_ALIVE_TIMEOUT_MS | if set, override nodes's server.keepAliveTimeout flag. |
 | GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false. |
 | GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone |
 | GRIST_MAX_NEW_USER_INVITES_PER_ORG | if set, limits the number of invites to new users per org. Once exceeded, additional invites are blocked until invited users log in for the first time or are uninvited
@@ -403,6 +407,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ORG_IN_PATH | if true, encode org in path rather than domain |
 | GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all. |
 | ~GRIST_PROXY_AUTH_HEADER~ | Deprecated, and interpreted as a synonym for GRIST_FORWARD_AUTH_HEADER. |
+| GRIST_REQUEST_TIMEOUT_MS | if set, override nodes's server.requestTimeout flag. |
 | GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer |
 | GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy) |
 | GRIST_SERVERS | the types of server to setup. Comma separated values which may contain "home", "docs", static" and/or "app". Defaults to "home,docs,static". |

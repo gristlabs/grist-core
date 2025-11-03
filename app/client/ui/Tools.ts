@@ -30,7 +30,8 @@ import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
-import {Disposable, dom, makeTestId, Observable, observable, styled} from 'grainjs';
+import {Computed, computed, Disposable, dom, makeTestId,
+        Observable, observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
 
 const testId = makeTestId('test-tools-');
@@ -40,6 +41,14 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const docPageModel = gristDoc.docPageModel;
   const isDocOwner = isOwner(docPageModel.currentDoc.get());
   const isOverridden = Boolean(docPageModel.userOverride.get());
+  const canMakeProposal = Computed.create(owner, (use) => {
+    return use(docPageModel.isFork) && !use(docPageModel.isBareFork) && !use(docPageModel.isPrefork) &&
+        !use(docPageModel.isSnapshot);
+  });
+  // If we are on a fork, currentDoc options are actually for the trunk.
+  const trunkAcceptsProposals = computed((use) => {
+    return use(docPageModel.currentDoc)?.options?.proposedChanges?.acceptProposals;
+  });
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
     canViewAccessRules.set((isDocOwner && !isOverridden) ||
@@ -88,30 +97,33 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'data'),
       cssPageLink(
         cssPageIcon('Database'),
-        cssLinkText(t("Raw Data")),
+        cssLinkText(t("Raw data")),
         testId('raw'),
         urlState().setLinkUrl({docPage: 'data'})
       )
     ),
     cssPageEntry(
-      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document History")), testId('log'),
+      cssPageButton(cssPageIcon('Log'), cssLinkText(t("Document history")), testId('log'),
         dom.on('click', () => gristDoc.showTool('docHistory')))
     ),
-    dom.maybe(docPageModel.isFork, () => {
+    dom.maybe(
+      trunkAcceptsProposals, () => {
       return cssPageEntry(
-        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'proposals'),
+        cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'suggestions'),
         cssPageLink(
-          cssPageIcon('EyeShow'),
-          cssLinkText(t("Proposed Changes")),
+          cssPageIcon('MobileChat'),
+          dom.domComputed(canMakeProposal, (proposable) => {
+            return cssLinkText(proposable ? t("Suggest Changes") : t("Suggestions"));
+          }),
           testId('proposals'),
-          urlState().setLinkUrl({docPage: 'proposals'})
+          urlState().setLinkUrl({docPage: 'suggestions'})
         )
       );
     }),
     cssPageEntry(
       cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),
-        cssLinkText(t("Code View")),
+        cssLinkText(t("Code view")),
         urlState().setLinkUrl({docPage: 'code'})
       ),
       testId('code'),

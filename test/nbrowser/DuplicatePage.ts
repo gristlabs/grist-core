@@ -149,7 +149,7 @@ describe('DuplicatePage', async function() {
         .matches(":checked");
     const futureSelected = () =>
       driver
-        .findContent(".test-filter-menu-summary label", /Future Values/)
+        .findContent(".test-filter-menu-summary label", /Future values/)
         .find("input")
         .matches(":checked");
     const apply = () => driver.find(".test-filter-menu-apply-btn").click();

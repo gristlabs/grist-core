@@ -386,7 +386,7 @@ describe('DateRangeFilter', function() {
       driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText())
     );
     assert.equal(await fu.getViewType(), 'Default');
-    assert.deepEqual(await getSummaries(), ['Future Values']);
+    assert.deepEqual(await getSummaries(), ['Future values']);
     await fu.findBound('min').click();
     assert.equal(await fu.getViewType(), 'Calendar');
     assert.deepEqual(await getSummaries(), []);
@@ -418,7 +418,7 @@ describe('DateRangeFilter', function() {
       // click Last week
       await driver.findContent('.test-filter-menu-presets-links button', 'More').click();
       await gu.findOpenMenu();
-      await driver.findContent('.grist-floating-menu li', 'Last Week').click();
+      await driver.findContent('.grist-floating-menu li', 'Last week').click();
 
       // check min bounds shows '1st day of last week'
       assert.equal(await fu.getBoundText('min'), '1st day of last week');

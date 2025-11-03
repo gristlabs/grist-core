@@ -19,8 +19,8 @@ import {openFilePicker} from 'app/client/ui/FileDialog';
 import {buildNotificationsConfig} from 'app/client/ui/Notifications';
 import {hoverTooltip, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
-import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
-import {colors, mediaSmall, theme} from 'app/client/ui2018/cssVars';
+import {cssRadioCheckboxOptions, labeledSquareCheckbox, radioCheckboxOption} from 'app/client/ui2018/checkbox';
+import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
@@ -62,6 +62,11 @@ export class DocSettingsPage extends Disposable {
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
   private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  private _acceptProposals = Observable.create(
+    this,
+    Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals)
+  );
+  private _working: Observable<boolean> = Observable.create(this, false);
 
   constructor(private _gristDoc: GristDoc) {
     super();
@@ -72,12 +77,13 @@ export class DocSettingsPage extends Disposable {
     const isTimingOn = this._gristDoc.isTimingOn;
     const isDocOwner = isOwner(docPageModel.currentDoc.get());
     const isDocEditor = isOwnerOrEditor(docPageModel.currentDoc.get());
+    const isFork = docPageModel.currentDoc.get()?.isFork;
 
     return cssContainer({tabIndex: '-1'},
-      dom.create(AdminSection, t('Document Settings'), [
+      dom.create(AdminSection, t('Document settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
-          name: t('Time Zone'),
+          name: t('Time zone'),
           description: t('Default for DateTime columns'),
           value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), (val) => this._timezone.saveOnly(val)),
         }),
@@ -112,11 +118,44 @@ export class DocSettingsPage extends Disposable {
           ),
           disabled: isDocOwner ? false : t('Only available to document owners'),
         }),
+        !isFork ? dom.create(AdminSectionItem, {
+          id: 'acceptProposals',
+          name: [t('Suggestions'), betaTag(t('experiment'))],
+          description: withInfoTooltip(
+            t('Allow others to suggest changes'),
+            'suggestions'
+          ),
+          value: labeledSquareCheckbox(
+            this._acceptProposals,
+            t("Enable suggestions"),
+            dom.on('click', async (elem) => {
+              this._working.set(true);
+              try {
+                const docId = docPageModel.currentDocId.get();
+                if (!docId) {
+                  // Should never happen, don't bother translating.
+                  reportError(new Error('Document not found'));
+                  return;
+                }
+                const acceptProposals = !this._acceptProposals.get();
+                await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
+                window.location.reload();
+              } catch(e) {
+                reportError(e);
+              } finally {
+                this._working.set(false);
+              }
+            }),
+            dom.prop('disabled', this._working),
+            testId('accept-proposals'),
+          ),
+          disabled: isDocOwner ? false : t('Only available to document owners'),
+        }) : null,
       ]),
 
       dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
 
-      dom.create(AdminSection, t('Data Engine'), [
+      dom.create(AdminSection, t('Data engine'), [
         dom.create(AdminSectionItem, {
           id: 'timings',
           name: t('Formula timer'),
@@ -200,7 +239,7 @@ document is first opened, or when a document responds to changes.'
         }),
         dom.create(AdminSectionItem, {
           id: 'api-console',
-          name: t('API Console'),
+          name: t('API console'),
           description: t('Try API calls from the browser'),
           value: cssSmallLinkButtonSettings(t('API console'), {
             target: '_blank',
@@ -965,4 +1004,11 @@ const cssLoadingSpinner = styled(loadingSpinner, `
       --loader-bg: #adadad;
     }
   }
+`);
+
+export const betaTag = styled('span', `
+  text-transform: uppercase;
+  vertical-align: super;
+  font-size: ${vars.xsmallFontSize};
+  color: ${theme.accentText};
 `);

@@ -43,14 +43,14 @@ describe("AccessRulesAttrs", function() {
     ]);
 
     // Add rules for TableFoo.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
     let ruleSet = findDefaultRuleSet(/TableFoo/);
 
     // Add a rule that only allows reading row with "foo" in it (all lowercase).
-    await enterRulePart(ruleSet, 1, '$SomeText == "foo"', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeText == "foo"', 'Allow all');
     await ruleSet.find('.test-rule-extra-add .test-rule-add').click();
-    await enterRulePart(ruleSet, 2, null, 'Deny All');
+    await enterRulePart(ruleSet, 2, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 
@@ -61,7 +61,7 @@ describe("AccessRulesAttrs", function() {
 
     // Now try a rule that lowercases the text value.
     ruleSet = findDefaultRuleSet(/TableFoo/);
-    await enterRulePart(ruleSet, 1, '$SomeText.lower() == "foo"', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeText.lower() == "foo"', 'Allow all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords('TableFoo'), [
@@ -71,7 +71,7 @@ describe("AccessRulesAttrs", function() {
 
     // Try uppercase, with no matches.
     ruleSet = findDefaultRuleSet(/TableFoo/);
-    await enterRulePart(ruleSet, 1, '$SomeText.upper() == "foo"', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeText.upper() == "foo"', 'Allow all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
     assert.deepEqual(await api.getDocAPI(docId).getRecords('TableFoo'), []);
@@ -120,17 +120,17 @@ describe("AccessRulesAttrs", function() {
     const ruleSet = findDefaultRuleSet(/TableFoo/);
 
     // Invalid
-    await enterRulePart(ruleSet, 1, '$SomeText.lowercase() == user.Email.uper()', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeText.lowercase() == user.Email.uper()', 'Allow all');
     await checkError(ruleSet, 1, /Not a function: 'rec.SomeText.lowercase'/);
 
-    await enterRulePart(ruleSet, 1, '$SomeText.lower() == user.Email.uper()', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeText.lower() == user.Email.uper()', 'Allow all');
     await checkError(ruleSet, 1, /Not a function: 'user.Email.uper'/);
 
-    await enterRulePart(ruleSet, 1, '$SomeDate.lower() == user.Email.uper()', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeDate.lower() == user.Email.uper()', 'Allow all');
     await checkError(ruleSet, 1, /Not a function: 'rec.SomeDate.lower'/);
 
     // Valid
-    await enterRulePart(ruleSet, 1, '$SomeText.lower() == user.Email.upper()', 'Allow All');
+    await enterRulePart(ruleSet, 1, '$SomeText.lower() == user.Email.upper()', 'Allow all');
     await checkError(ruleSet, 1, null);
   });
 
@@ -151,13 +151,13 @@ describe("AccessRulesAttrs", function() {
     }
 
     // While this column is Text, we can use "lower()" method, and everything works.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /TableFoo/, 3000).click();
     ruleSet = findDefaultRuleSet(/TableFoo/);
     // This rule won't match anything, which is fine, we are only interested in its validity.
     await enterRulePart(ruleSet, 1, 'newRec.OtherText.lower() == "blah"', {U: 'deny', C: 'deny'});
     await ruleSet.find('.test-rule-extra-add .test-rule-add').click();
-    await enterRulePart(ruleSet, 2, null, 'Allow All');
+    await enterRulePart(ruleSet, 2, null, 'Allow all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 

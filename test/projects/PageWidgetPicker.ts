@@ -78,27 +78,27 @@ describe('PageWidgetPicker', () => {
 
     // check `Group by` panel is not visible
     assert.deepEqual(await driver.findAll('.test-wselect-heading', (e) => e.getText()),
-      ['Select Widget', 'Select Data', '']);
+      ['Select widget', 'Select data', '']);
 
     // clicking pivot icon should show 'Group by'
     await driver.findContent('.test-wselect-table', /History/).find('.test-wselect-pivot').doClick();
     assert.deepEqual(await driver.findAll('.test-wselect-heading', (e) => e.getText()),
-      ['Select Widget', 'Select Data', 'Group by']);
+      ['Select widget', 'Select data', 'Group by']);
 
     // clicking icon again should hide
     await driver.findContent('.test-wselect-table', /History/).find('.test-wselect-pivot').doClick();
     assert.deepEqual(await driver.findAll('.test-wselect-heading', (e) => e.getText()),
-      ['Select Widget', 'Select Data', '']);
+      ['Select widget', 'Select data', '']);
 
     // let's show it again
     await driver.findContent('.test-wselect-table', /History/).find('.test-wselect-pivot').doClick();
     assert.deepEqual(await driver.findAll('.test-wselect-heading', (e) => e.getText()),
-      ['Select Widget', 'Select Data', 'Group by']);
+      ['Select widget', 'Select data', 'Group by']);
 
     // clicking another table should hide
     await driver.findContent('.test-wselect-table', /Companies/).doClick();
     assert.deepEqual(await driver.findAll('.test-wselect-heading', (e) => e.getText()),
-      ['Select Widget', 'Select Data', '']);
+      ['Select widget', 'Select data', '']);
 
   });
 

@@ -505,19 +505,19 @@ function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: 
   return [
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addNewPage(val).catch(reportError),
-                                     {isNewPage: true, buttonLabel: t('Add Page')}),
-      menuIcon("Page"), t("Add Page"), testId('dp-add-new-page'),
+                                     {isNewPage: true, buttonLabel: t('Add page')}),
+      menuIcon("Page"), t("Add page"), testId('dp-add-new-page'),
       dom.cls('disabled', isReadonly)
     ),
     menuItem(
       (elem) => openPageWidgetPicker(elem, gristDoc, (val) => gristDoc.addWidgetToPage(val).catch(reportError),
                                      {isNewPage: false, selectBy}),
-      menuIcon("Widget"), t("Add Widget to Page"), testId('dp-add-widget-to-page'),
+      menuIcon("Widget"), t("Add widget to page"), testId('dp-add-widget-to-page'),
       // disable for readonly doc and all special views
       dom.cls('disabled', (use) => typeof use(gristDoc.activeViewId) !== 'number' || isReadonly),
     ),
     menuItem(() => gristDoc.addEmptyTable().catch(reportError),
-      menuIcon("TypeTable"), t("Add Empty Table"), testId('dp-empty-table'),
+      menuIcon("TypeTable"), t("Add empty table"), testId('dp-empty-table'),
       dom.cls('disabled', isReadonly)
     ),
     menuDivider(),
@@ -544,6 +544,9 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
   const isTutorialTrunk = isTutorial && !isFork && mode !== 'default';
   const isTutorialFork = isTutorial && isFork;
 
+  const acceptProposals = doc.options?.proposedChanges?.acceptProposals;
+  const shouldSuggest = Boolean(!canEdit(doc.access) && !isFork && acceptProposals);
+
   let openMode = mode;
   if (!openMode) {
     if (isFork || isTutorialTrunk || isTutorialFork) {
@@ -552,8 +555,10 @@ function buildDocInfo(doc: Document, mode: OpenDocMode | undefined): DocInfo {
       // mode. Since the document's 'openMode' has no effect, don't bother trying
       // to set it here, as it'll potentially be confusing for other code reading it.
       openMode = 'default';
-    } else if (!isFork && type === DOCTYPE_TEMPLATE) {
+    } else if (!isFork && (type === DOCTYPE_TEMPLATE || shouldSuggest)) {
       // Templates should always open in fork mode by default.
+      // A doc soliciting suggestions should also open in fork mode
+      // when user doesn't have write access.
       openMode = 'fork';
     } else {
       // Try to use the document's 'openMode' if it's set.

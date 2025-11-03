@@ -45,7 +45,7 @@ import {getTelemetryWidgetTypeFromVS, getWidgetTypes} from "app/client/ui/widget
 import {ariaTabs} from 'app/client/ui2018/ariaTabs';
 import {basicButton, primaryButton} from 'app/client/ui2018/buttons';
 import {buttonSelect} from 'app/client/ui2018/buttonSelect';
-import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {cssLabel as cssCheckboxLabel, labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {icon} from 'app/client/ui2018/icons';
@@ -448,9 +448,9 @@ export class RightPanel extends Disposable {
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
           dom.attr('data-text', t("Widget")),
           testId('config-widget')),
-        cssSubTab(t("Sort & Filter"),
+        cssSubTab(t("Sort & filter"),
           this._subTabComponents.tab('sortAndFilter'),
-          dom.attr('data-text', t("Sort & Filter")),
+          dom.attr('data-text', t("Sort & filter")),
           testId('config-sortAndFilter')),
         cssSubTab(t("Data"),
           this._subTabComponents.tab('data'),
@@ -516,7 +516,7 @@ export class RightPanel extends Disposable {
       dom.maybe(
         (use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
         () => cssRow(
-          primaryButton(t("Change Widget"), this._createPageWidgetPicker()),
+          primaryButton(t("Change widget"), this._createPageWidgetPicker()),
           cssRow.cls('-top-space')
         ),
       ),
@@ -537,10 +537,10 @@ export class RightPanel extends Disposable {
         if (use(this._pageWidgetType) !== 'record') { return null; }
         return dom('div', {role: 'group', 'aria-labelledby': 'row-style-label'},
           cssSeparator(),
-          cssGroupLabel(t("ROW STYLE"), {id: 'row-style-label'}),
+          cssGroupLabel(t("Row style"), {id: 'row-style-label'}),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
-            dom.create(ViewPane.ConditionalStyle, t("Row Style"), activeSection, this._gristDoc)
+            dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc)
           ))
         );
       }),
@@ -855,7 +855,7 @@ export class RightPanel extends Disposable {
         ),
 
         dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
-          cssButtonRow(primaryButton(t("Edit Data Selection"), this._createPageWidgetPicker(),
+          cssButtonRow(primaryButton(t("Edit data selection"), this._createPageWidgetPicker(),
             testId('pwc-editDataSelection')),
             dom.maybe(
               use => Boolean(use(use(activeSection.table).summarySourceTable)),
@@ -880,7 +880,7 @@ export class RightPanel extends Disposable {
         cssLabel(t("SELECT BY")),
         cssRow(
           dom.update(
-            select(link, linkOptions, {defaultLabel: t("Select Widget")}),
+            select(link, linkOptions, {defaultLabel: t("Select widget")}),
             dom.on('click', () => {
               refreshTrigger.set(!refreshTrigger.get());
             })
@@ -1192,6 +1192,9 @@ const cssRow = styled('div', `
   }
   &-disabled {
     color: ${theme.disabledText};
+  }
+  & .${cssCheckboxLabel.className} {
+    flex-shrink: revert;  /* allow checkbox labels to wrap in right-panel rows */
   }
 `);
 

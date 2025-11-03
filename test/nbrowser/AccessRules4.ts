@@ -115,7 +115,7 @@ describe("AccessRules4", function() {
 
     // Add this table as an attribute.
     await driver.findWait('.test-tools-access-rules', 100).click();
-    await driver.findContentWait('button', /Add User Attributes/, 2000).click();
+    await driver.findContentWait('button', /Add user attributes/, 2000).click();
     const userAttrRule = await driver.find('.test-rule-userattr');
     await userAttrRule.find('.test-rule-userattr-name').click();
     await driver.sendKeys('Custom', Key.ENTER);
@@ -149,7 +149,7 @@ describe("AccessRules4", function() {
 
     // Make this document public.
     await driver.find('.test-tb-share').click();
-    await driver.findContentWait('.test-tb-share-option', /Manage Users/, 100).doClick();
+    await driver.findContentWait('.test-tb-share-option', /Manage users/, 100).doClick();
     await driver.findWait('.test-um-public-access', 3000).click();
     await driver.findContentWait('.test-um-public-option', 'On', 100).click();
     await gu.saveAcls();
@@ -173,7 +173,7 @@ describe("AccessRules4", function() {
 
     // Now make the public editor.
     await driver.find('.test-tb-share').click();
-    await driver.findContentWait('.test-tb-share-option', /Manage Users/, 100).doClick();
+    await driver.findContentWait('.test-tb-share-option', /Manage users/, 100).doClick();
     await driver.findWait('.test-um-public-member .test-um-member-role', 100).click();
     await driver.findContentWait('.test-um-role-option', /Editor/, 100).click();
     await gu.saveAcls();

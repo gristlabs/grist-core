@@ -491,7 +491,7 @@ const cssInfoTooltip = styled('div', `
   display: flex;
   align-items: center;
   column-gap: 8px;
-  font-weight: unset; // Don't want to inherit font settings in a tooltip
+  font-weight: unset; /* Don't want to inherit font settings in a tooltip */
 `);
 
 const cssTooltipCorner = styled('div', `

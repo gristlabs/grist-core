@@ -54,7 +54,9 @@ export type Tooltip =
   | 'uploadAttachments'
   | 'adminControls'
   | 'formFraming'
+  | 'formUrlValues'
   | 'rowHeight'
+  | 'suggestions'
   ;
 
 export type TooltipContentFunc = (...domArgs: DomElementArg[]) => DomContents;
@@ -239,9 +241,28 @@ and be careful when clicking embedded links. Report malicious forms to [{{mail}}
       }
     )),
   ),
+  formUrlValues: () => cssTooltipContent(
+    dom('div',
+      t("When checked, this field’s default value can be prefilled from the URL using query parameters.")),
+    dom('div', cssLink({href: commonUrls.helpFormUrlValues, target: "_blank"}, t('Learn more.'))),
+  ),
   rowHeight: (...args: DomElementArg[]) => cssTooltipContent(
     t('Set the maximum number of lines for multi-line text.'),
     ...args,
+  ),
+  suggestions: () => cssTooltipContent(
+    cssMarkdownSpan(
+      t(
+        "With suggestions, users make changes in a personal copy without \
+modifying the original document, then submit these suggestions \
+to be reviewed by the document owner prior to integration."
+      ) +
+      "\n\n" +
+      t(
+      "[Learn more.]({{link}})", {
+        link: commonUrls.helpSuggestions,
+      }
+    )),
   ),
 };
 
@@ -388,9 +409,9 @@ to determine who can see or edit which parts of your document.')),
   },
   addNew: {
     popupType: 'tip',
-    title: () => t('Add New'),
+    title: () => t('Add new'),
     content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Click the Add New button to create new documents or workspaces, or import data.')),
+      dom('div', t('Click the Add new button to create new documents or workspaces, or import data.')),
       ...args,
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],

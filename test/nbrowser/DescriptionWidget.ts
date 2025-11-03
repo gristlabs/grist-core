@@ -35,6 +35,19 @@ describe('DescriptionWidget', function() {
     await checkDescValueInWidgetTooltip("Table", newWidgetDesc);
   });
 
+  it('should support clearing description in right panel', async function() {
+    // Should support clearing the description after reload (there was a bug with that at one point).
+    await gu.reloadDoc();
+    assert.equal(await getDescriptionPreview().isPresent(), true);
+    await getDescriptionPreview().click();
+    await getDescriptionInput().sendKeys(Key.BACK_SPACE, Key.ENTER);
+    await gu.waitForServer();
+
+    assert.equal(await getDescriptionAddLink().isPresent(), true);
+    assert.equal(await getDescriptionPreview().isPresent(), false);
+    assert.equal(await getDescriptionInput().isPresent(), false);
+  });
+
   it('should support basic edition in widget popup', async () => {
     const widgetName = "Table";
     const newWidgetDescFirstLine = "First line of the description";

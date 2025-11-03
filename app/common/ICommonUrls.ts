@@ -12,6 +12,7 @@ export interface ICommonUrls {
   helpFilterButtons: string;
   helpLinkingWidgets: string;
   helpRawData: string;
+  helpSuggestions: string;
   helpUnderstandingReferenceColumns: string;
   helpTriggerFormulas: string;
   helpTryingOutChanges: string;
@@ -30,6 +31,7 @@ export interface ICommonUrls {
   helpSummaryFormulas: string;
   helpAdminControls: string;
   helpFiddleMode: string;
+  helpFormUrlValues: string;
 
   freeCoachingCall: string; // Link to the human help (example: email adress or meeting scheduling tool)
   contactSupport: string; // Link to contact support on error pages (example: email adress or online form).

@@ -42,7 +42,7 @@ describe('CardView', function() {
 
     // Reset linking.
     await driver.find('.test-right-select-by').click();
-    await driver.findContent('.test-select-menu li', /Select Widget/).click();
+    await driver.findContent('.test-select-menu li', /Select widget/).click();
     await gu.waitForServer();
 
     // Assert that the controls are still displayed.
@@ -64,7 +64,7 @@ describe('CardView', function() {
 
     // Reset linking and section type.
     await driver.find('.test-right-select-by').click();
-    await driver.findContent('.test-select-menu li', /Select Widget/).click();
+    await driver.findContent('.test-select-menu li', /Select widget/).click();
     await driver.find('.test-pwc-editDataSelection').click();
     await driver.findContentWait('.test-wselect-type', /Table/, 100).click();
     await driver.find('.test-wselect-addBtn').click();

@@ -24,7 +24,7 @@ const { ICommonUrls: ICommonUrlsChecker } = t.createCheckers(ICommonUrlsTI);
 
 export const SpecialDocPage = StringUnion(
   'code', 'acl', 'data', 'GristDocTour',
-  'proposals', 'settings', 'webhook', 'timing',
+  'settings', 'suggestions', 'webhook', 'timing',
 );
 type SpecialDocPage = typeof SpecialDocPage.type;
 export type IDocPage = number | SpecialDocPage;
@@ -119,6 +119,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpFilterButtons: "https://support.getgrist.com/search-sort-filter/#filter-buttons",
   helpLinkingWidgets: "https://support.getgrist.com/linking-widgets",
   helpRawData: "https://support.getgrist.com/raw-data",
+  helpSuggestions: "https://support.getgrist.com/sharing/#suggestions",
   helpUnderstandingReferenceColumns: "https://support.getgrist.com/col-refs/#understanding-reference-columns",
   helpTriggerFormulas: "https://support.getgrist.com/formulas/#trigger-formulas",
   helpTryingOutChanges: "https://support.getgrist.com/copying-docs/#trying-out-changes",
@@ -137,6 +138,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',
   helpSharing: 'https://support.getgrist.com/sharing',
+  helpFormUrlValues: 'https://support.getgrist.com/widget-form/#accept-value-from-url',
   freeCoachingCall: getFreeCoachingCallUrl(),
   contactSupport: getContactSupportUrl(),
   termsOfService: getTermsOfServiceUrl(),

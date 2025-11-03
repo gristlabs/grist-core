@@ -140,6 +140,7 @@ export class DocWorker {
       stopTiming:               activeDocMethod.bind(null, 'owners', 'stopTiming'),
       getAssistantState:        activeDocMethod.bind(null, 'owners', 'getAssistantState'),
       listActiveUserProfiles:   activeDocMethod.bind(null, null, 'listActiveUserProfiles'),
+      applyProposal:            activeDocMethod.bind(null, 'owners', 'applyProposal'),
     });
   }
 
