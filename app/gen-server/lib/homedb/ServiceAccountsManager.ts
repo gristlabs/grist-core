@@ -204,8 +204,11 @@ export class ServiceAccountsManager {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
-      serviceAccount.serviceUser = await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
-      return serviceAccount;
+      await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
+
+      const updatedServiceAccount = await this.getServiceAccount(serviceAccountId, manager);
+      this._assertExistingAndOwned(updatedServiceAccount, options.expectedOwnerId);
+      return updatedServiceAccount;
     });
   }
 

@@ -12,7 +12,7 @@ import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager
 import {TestServer} from 'test/gen-server/apiUtils';
 import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
-import {ServiceAccountCreationResponse} from 'app/common/ServiceAccountTypes';
+import {ServiceAccountApiResponse, ServiceAccountCreationResponse} from 'app/common/ServiceAccountTypes';
 
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import * as chai from 'chai';
@@ -2257,6 +2257,15 @@ describe('ApiServer', function() {
       expiresAt: "2042-07-21",
     };
 
+    const EXPECTED_SERVICE_ACCOUNT_KEYS = [
+          'id',
+          'login',
+          'label',
+          'description',
+          'expiresAt',
+          'hasValidKey',
+    ];
+
     async function createServiceAccount(body = SERVICE_ACCOUNT_BODY) {
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
@@ -2345,6 +2354,10 @@ describe('ApiServer', function() {
         const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
         assert.equal(resp.status, 200);
         assert.isArray(resp.data);
+        resp.data.forEach((service: ServiceAccountApiResponse) => {
+          assert.hasAllKeys(service, EXPECTED_SERVICE_ACCOUNT_KEYS);
+        });
+
         assert.lengthOf(resp.data, 2);
       });
 
@@ -2388,6 +2401,7 @@ describe('ApiServer', function() {
         };
         const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
         assert.equal(resp2.status, 200);
+        assert.isNull(resp2.data);
 
         const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         const expectedBody = {
@@ -2450,6 +2464,7 @@ describe('ApiServer', function() {
         assert.equal(resp2.status, 200);
         const resp3 = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp3.status, 200);
+        assert.isNull(resp3.data);
         const resp4 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp4.status, 404);
       });
@@ -2482,6 +2497,7 @@ describe('ApiServer', function() {
         const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/apikey`, {}, chimpy);
         const apiKeyAfter = resp.data.key;
         assert.equal(resp.status, 200);
+        assert.containsAllKeys(resp.data, EXPECTED_SERVICE_ACCOUNT_KEYS);
         assert.isNotEmpty(apiKeyAfter);
         assert.notEqual(apiKeyBefore, apiKeyAfter);
       });
@@ -2509,6 +2525,7 @@ describe('ApiServer', function() {
 
         const revokeAccess = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}/apikey`, chimpy);
         assert.equal(revokeAccess.status, 200);
+        assert.isNull(revokeAccess.data);
 
         const serviceAccountInfo = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(serviceAccountInfo.status, 200);
@@ -2538,7 +2555,7 @@ describe('ApiServer', function() {
         const delta = {
           "delta": {
             "users": {
-              [serviceUserLogin!]: "owners"
+              [serviceUserLogin]: "owners"
             }
           }
         };

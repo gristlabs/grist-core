@@ -12,8 +12,7 @@ interface ServiceAccountAllOptional {
 
 export interface ServiceAccountApiResponse {
   id: number;
-  key: string|null;
-  login: string|undefined;
+  login: string;
   label: string;
   description: string;
   expiresAt: string;
@@ -23,7 +22,7 @@ export interface ServiceAccountApiResponse {
 export interface ServiceAccountCreationResponse extends ServiceAccountApiResponse {
   id: number;
   key: string;
-  login: string|undefined;
+  login: string;
 }
 
 export type PatchServiceAccount = ServiceAccountAllOptional;
