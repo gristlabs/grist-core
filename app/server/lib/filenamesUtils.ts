@@ -7,5 +7,5 @@ export function filenameContentDisposition(disposition: string, filename: string
 }
 
 export function filenameStarredContentDisposition(disposition: string, filename: string){
-    return `${disposition}; filename*=UTF-8''${encodeURIComponent(removesNonASCII(filename))}`;
+    return `${disposition}; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }

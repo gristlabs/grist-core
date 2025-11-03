@@ -10,6 +10,6 @@ describe('filenamesUtils', function() {
 
   it('encodes sanitized filename with starred attachment', function() {
       const content = filenameStarredContentDisposition('attachment', 'sdf% èà_.pdf');
-      assert.equal(content, "attachment; filename*=UTF-8''sdf%20_.pdf");
+      assert.equal(content, "attachment; filename*=UTF-8''sdf%25%20%C3%A8%C3%A0_.pdf");
     });
 });
