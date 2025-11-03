@@ -2297,6 +2297,7 @@ describe('ApiServer', function() {
         const expectedData = {
           id: data.id,
           key: data.key,
+          login: data.login,
           label: SERVICE_ACCOUNT_BODY.label,
           description: SERVICE_ACCOUNT_BODY.description,
           expiresAt: new Date(SERVICE_ACCOUNT_BODY.expiresAt).toISOString(),
@@ -2362,7 +2363,7 @@ describe('ApiServer', function() {
 
     describe('Endpoint GET /api/service-accounts/{saId}', function() {
       it('is operational', async function() {
-        const {id: serviceId} = await createServiceAccount();
+        const {id: serviceId, login} = await createServiceAccount();
         const expectedBody = {
           ...SERVICE_ACCOUNT_BODY,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
@@ -2371,7 +2372,7 @@ describe('ApiServer', function() {
         const resp = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp.status, 200);
         assert.isObject(resp.data);
-        assert.deepEqual(resp.data, {id:serviceId, ...expectedBody});
+        assert.deepEqual(resp.data, {id:serviceId, login, ...expectedBody});
       });
 
       checkCommonErrors((saId, user) => axios.get(`${homeUrl}/api/service-accounts/${saId}`, user));
@@ -2380,7 +2381,7 @@ describe('ApiServer', function() {
     describe('Endpoint PATCH /api/service-accounts/{saId}', function() {
       it('is operational', async function() {
         const newDescription = "to an end";
-        const {id: serviceId} = await createServiceAccount();
+        const {id: serviceId, login} = await createServiceAccount();
 
         const patch = {
           description: newDescription
@@ -2392,6 +2393,7 @@ describe('ApiServer', function() {
         const expectedBody = {
           ...SERVICE_ACCOUNT_BODY,
           id: serviceId,
+          login,
           description: newDescription,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
           hasValidKey: true
@@ -2496,10 +2498,11 @@ describe('ApiServer', function() {
           description: "Doomed soon",
           expiresAt:"2042-10-10",
         };
-        const {id: serviceId} = await createServiceAccount(body);
+        const {id: serviceId, login} = await createServiceAccount(body);
         const expectedBody = {
           ...body,
           id: serviceId,
+          login,
           expiresAt: `${body.expiresAt}T00:00:00.000Z`,
           hasValidKey: false
         };
@@ -2522,12 +2525,8 @@ describe('ApiServer', function() {
       async function setupServiceAccountWithAccessTo(orgName: string, creationBody = SERVICE_ACCOUNT_BODY) {
         const oid = await dbManager.testGetId(orgName);
 
-        const {id: serviceId, key} = await createServiceAccount(creationBody);
+        const {id: serviceId, key, login: serviceUserLogin} = await createServiceAccount(creationBody);
         const serviceAccountReqConfig = requestConfigWithKey(key);
-
-        const serviceAccount = await dbManager.getServiceAccount(serviceId);
-        const serviceUser = await dbManager.getFullUser(serviceAccount!.serviceUser.id);
-        const serviceUserLogin = serviceUser.email;
 
         const checkChimpyAccess = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
         assert.equal(checkChimpyAccess.status, 200, `chimpy should list ${orgName} workspaces`);
@@ -2539,7 +2538,7 @@ describe('ApiServer', function() {
         const delta = {
           "delta": {
             "users": {
-              [serviceUserLogin]: "owners"
+              [serviceUserLogin!]: "owners"
             }
           }
         };

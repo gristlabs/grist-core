@@ -75,7 +75,7 @@ export class ServiceAccountsManager {
    *  - the information from the users table
    *  - the login information
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    */
   public async getServiceAccount(
     serviceAccountId: number,
@@ -146,7 +146,7 @@ export class ServiceAccountsManager {
   /**
    * Update a service account
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param props Properties to change to the service account.
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
@@ -169,7 +169,7 @@ export class ServiceAccountsManager {
   /**
    * Delete a service account
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
@@ -192,7 +192,7 @@ export class ServiceAccountsManager {
   /**
    * Creates the service account API key.
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
@@ -212,7 +212,7 @@ export class ServiceAccountsManager {
   /**
    * Deletes the API key of the service account
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
