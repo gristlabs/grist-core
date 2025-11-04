@@ -22,7 +22,7 @@ import {
   WebhookSummaryCollection,
   WebhookUpdate
 } from 'app/common/Triggers';
-import {addCurrentOrgToPath, getGristConfig} from 'app/common/urlUtils';
+import {addCurrentOrgToPath, appendBasePath, getGristConfig, stripBasePath} from 'app/common/urlUtils';
 import {StringUnion} from 'app/common/StringUnion';
 import {AttachmentStore, AttachmentStoreDesc} from 'app/plugin/DocApiTypes';
 import {AxiosProgressEvent} from 'axios';
@@ -1374,8 +1374,8 @@ export type PublicDocWorkerUrlInfo = {
 }
 
 export function getUrlFromPrefix(homeUrl: string, prefix: string) {
-  const url = new URL(homeUrl);
-  url.pathname = prefix + url.pathname;
+  const url = new URL(stripBasePath(homeUrl));
+  url.pathname = appendBasePath(prefix + url.pathname);
   return url.href;
 }
 

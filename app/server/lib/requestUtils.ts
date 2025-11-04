@@ -384,7 +384,10 @@ export interface RequestWithGristInfo extends Request {
 export function getOriginUrl(req: IncomingMessage) {
   const host = req.headers.host;
   const protocol = getEndUserProtocol(req);
-  return `${protocol}://${host}`;
+  const defaultPort = (protocol == 'https')? '443': '80';
+  const port = req.headers['x-forwarded-port'] || defaultPort;
+  const portPart = (port == defaultPort)? '' : `:${port}`;
+  return `${protocol}://${host}${portPart}`;
 }
 
 /**
