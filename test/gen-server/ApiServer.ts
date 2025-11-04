@@ -2274,22 +2274,13 @@ describe('ApiServer', function() {
       response: any,
       knownProperties: PostServiceAccount,
       options: {expectKey?: boolean} = {}) {
-      if (options.expectKey) {
-        assert.deepEqual(response, {
-          id: response.id,
-          login: response.login,
-          key: response.key,
-          hasValidKey: true,
-          ...knownProperties,
-        });
-      } else {
-        assert.deepEqual(response, {
-          id: response.id,
-          login: response.login,
-          hasValidKey: true,
-          ...knownProperties,
-        });
-      }
+      assert.deepEqual(response, {
+        id: response.id,
+        login: response.login,
+        hasValidKey: true,
+        ...(options.expectKey ? { key: response.key } : null),
+        ...knownProperties,
+      });
     }
 
     function bodyToExpectedProperties(body: PostServiceAccount){
@@ -2297,6 +2288,7 @@ describe('ApiServer', function() {
       expectedProperties.expiresAt += "T00:00:00.000Z";
       return expectedProperties;
     }
+
     function checkCommonErrors(
       makeRequest: (saId: number, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>
     ) {
