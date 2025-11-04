@@ -856,7 +856,7 @@ class RefRenderer extends BaseFieldRenderer {
   // This returns the reference rather than its label (e.g. '5' rather than 'Some Name').
   protected override getInitialValue() {
     const initialValue = super.getInitialValue();
-    const choice = initialValue && this._choices.find(([id, value]) => (value === initialValue));
+    const choice = initialValue && this._choices.find(([id, value]) => (String(value) === initialValue));
     return choice ? String(choice[0]) : null;
   }
 
