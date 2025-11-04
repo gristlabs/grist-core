@@ -12,7 +12,7 @@ const editWsAcls = stackWrapFunc(async function(wsName: string): Promise<void> {
   // to close before attempting to open the account menu.
   await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
   await gu.openWsDropdown(wsName);
-  await driver.find('.test-dm-workspace-access').click();
+  await driver.findWait('.test-dm-workspace-access', 1000).click();
   await driver.wait(() => driver.find('.test-um-members').isPresent(), 3000);
 });
 
@@ -23,14 +23,14 @@ const editDocAcls = stackWrapFunc(async function(docName: string): Promise<void>
   // to close before attempting to open the account menu.
   await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
   await gu.openDocDropdown(docName);
-  await driver.find('.test-dm-doc-access').click();
+  await driver.findWait('.test-dm-doc-access', 1000).click();
   await driver.wait(() => driver.find('.test-um-members').isPresent(), 3000);
 });
 
 // Opens the doc acl edit menu for the currently open doc via the Share menu.
 const editDocAclsShareMenu = stackWrapFunc(async function(): Promise<void> {
-  await driver.find('.test-tb-share').doClick();
-  await driver.findContent('.test-tb-share-option', /(Access Details)|(Manage Users)/).doClick();
+  await driver.findWait('.test-tb-share', 2000).doClick();
+  await driver.findContentWait('.test-tb-share-option', /(Access Details)|(Manage Users)/, 1000).doClick();
   await driver.wait(() => driver.find('.test-um-members').isPresent(), 3000);
 });
 
@@ -138,7 +138,7 @@ describe('UserManager', function() {
     await driver.get(`${server.getHost()}/o/fish`);
     await gu.waitForDocMenuToLoad();
     await driver.find('.test-user-icon').click();
-    await canEditAccess(driver.find('.test-dm-org-access'), false);
+    await canEditAccess(driver.findWait('.test-dm-org-access', 1000), false);
 
     // Charon should be able to remove themselves.
     await driver.sendKeys(Key.ESCAPE);
@@ -168,7 +168,7 @@ describe('UserManager', function() {
     await driver.get(`${server.getHost()}/o/fish`);
     await gu.waitForDocMenuToLoad();
     await driver.find('.test-user-icon').click();
-    await canEditAccess(driver.find('.test-dm-org-access'), true);
+    await canEditAccess(driver.findWait('.test-dm-org-access', 1000), true);
   });
 
   it('allows updating workspace permissions', async () => {
@@ -848,7 +848,7 @@ describe('UserManager', function() {
     // Make a document, and start editing shares.
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage users/).click();
+    await driver.findContentWait('.test-tb-share-option', /Manage users/, 1000).click();
 
 
     // Check that Open Access Rules is shown.
