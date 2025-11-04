@@ -12,7 +12,9 @@ import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager
 import {TestServer} from 'test/gen-server/apiUtils';
 import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
-import {ServiceAccountApiResponse, ServiceAccountCreationResponse} from 'app/common/ServiceAccountTypes';
+import {
+  PostServiceAccount, ServiceAccountApiResponse, ServiceAccountCreationResponse
+} from 'app/common/ServiceAccountTypes';
 
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import * as chai from 'chai';
@@ -2257,15 +2259,6 @@ describe('ApiServer', function() {
       expiresAt: "2042-07-21",
     };
 
-    const EXPECTED_SERVICE_ACCOUNT_KEYS = [
-          'id',
-          'login',
-          'label',
-          'description',
-          'expiresAt',
-          'hasValidKey',
-    ];
-
     async function createServiceAccount(body = SERVICE_ACCOUNT_BODY) {
       const resp = await axios.post(`${homeUrl}/api/service-accounts/`, body, chimpy);
       assert.equal(resp.status, 200);
@@ -2277,6 +2270,33 @@ describe('ApiServer', function() {
       return configForApiKey(key);
     }
 
+    function checkServiceAccount(
+      response: any,
+      knownProperties: PostServiceAccount,
+      options: {expectKey?: boolean} = {}) {
+      if (options.expectKey) {
+        assert.deepEqual(response, {
+          id: response.id,
+          login: response.login,
+          key: response.key,
+          hasValidKey: true,
+          ...knownProperties,
+        });
+      } else {
+        assert.deepEqual(response, {
+          id: response.id,
+          login: response.login,
+          hasValidKey: true,
+          ...knownProperties,
+        });
+      }
+    }
+
+    function bodyToExpectedProperties(body: PostServiceAccount){
+      const expectedProperties = {...body};
+      expectedProperties.expiresAt += "T00:00:00.000Z";
+      return expectedProperties;
+    }
     function checkCommonErrors(
       makeRequest: (saId: number, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>
     ) {
@@ -2303,16 +2323,13 @@ describe('ApiServer', function() {
       it('is operational', async function() {
         const data = await createServiceAccount();
 
-        const expectedData = {
-          id: data.id,
-          key: data.key,
-          login: data.login,
+        const knownProperties = {
           label: SERVICE_ACCOUNT_BODY.label,
           description: SERVICE_ACCOUNT_BODY.description,
           expiresAt: new Date(SERVICE_ACCOUNT_BODY.expiresAt).toISOString(),
           hasValidKey: true,
         };
-        assert.deepEqual(data, expectedData);
+        checkServiceAccount(data, knownProperties, {expectKey: true});
       });
 
       it('is rejected when requested by a service account', async function() {
@@ -2343,22 +2360,25 @@ describe('ApiServer', function() {
 
     describe('Endpoint GET /api/service-accounts', function() {
       it('is operational', async function() {
-        const body = SERVICE_ACCOUNT_BODY;
+        const body1 = SERVICE_ACCOUNT_BODY;
         const body2 = {
           label: "More service",
           description: "More robots",
           expiresAt:"2042-07-22",
         };
-        await createServiceAccount(body);
+        await createServiceAccount(body1);
         await createServiceAccount(body2);
         const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
         assert.equal(resp.status, 200);
-        assert.isArray(resp.data);
-        resp.data.forEach((service: ServiceAccountApiResponse) => {
-          assert.hasAllKeys(service, EXPECTED_SERVICE_ACCOUNT_KEYS);
-        });
+        const expectedProperties1 = bodyToExpectedProperties(body1);
+        const expectedProperties2 = bodyToExpectedProperties(body2);
+        const expectedProperties = [expectedProperties1, expectedProperties2];
 
+        assert.isArray(resp.data);
         assert.lengthOf(resp.data, 2);
+        resp.data.forEach((service: ServiceAccountApiResponse, i: number) => {
+          checkServiceAccount(service, expectedProperties[i], {expectKey: false});
+        });
       });
 
       it("returns 200 and a empty list when there is no service account", async function() {
@@ -2379,13 +2399,15 @@ describe('ApiServer', function() {
         const {id: serviceId, login} = await createServiceAccount();
         const expectedBody = {
           ...SERVICE_ACCOUNT_BODY,
+          login,
+          id: serviceId,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
           hasValidKey: true
         };
         const resp = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp.status, 200);
         assert.isObject(resp.data);
-        assert.deepEqual(resp.data, {id:serviceId, login, ...expectedBody});
+        assert.deepEqual(resp.data, expectedBody);
       });
 
       checkCommonErrors((saId, user) => axios.get(`${homeUrl}/api/service-accounts/${saId}`, user));
@@ -2497,7 +2519,8 @@ describe('ApiServer', function() {
         const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/apikey`, {}, chimpy);
         const apiKeyAfter = resp.data.key;
         assert.equal(resp.status, 200);
-        assert.containsAllKeys(resp.data, EXPECTED_SERVICE_ACCOUNT_KEYS);
+        const expectedProperties = bodyToExpectedProperties(body);
+        checkServiceAccount(resp.data, expectedProperties, {expectKey: true});
         assert.isNotEmpty(apiKeyAfter);
         assert.notEqual(apiKeyBefore, apiKeyAfter);
       });

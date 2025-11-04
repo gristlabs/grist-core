@@ -20,9 +20,7 @@ export interface ServiceAccountApiResponse {
 }
 
 export interface ServiceAccountCreationResponse extends ServiceAccountApiResponse {
-  id: number;
   key: string;
-  login: string;
 }
 
 export type PatchServiceAccount = ServiceAccountAllOptional;
