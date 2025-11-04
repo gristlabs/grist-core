@@ -75,7 +75,7 @@ export class ServiceAccountsManager {
    *  - the information from the users table
    *  - the login information
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    */
   public async getServiceAccount(
     serviceAccountId: number,
@@ -146,7 +146,7 @@ export class ServiceAccountsManager {
   /**
    * Update a service account
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param props Properties to change to the service account.
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
@@ -169,7 +169,7 @@ export class ServiceAccountsManager {
   /**
    * Delete a service account
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
@@ -192,7 +192,7 @@ export class ServiceAccountsManager {
   /**
    * Creates the service account API key.
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
@@ -204,15 +204,18 @@ export class ServiceAccountsManager {
     return await this._runInTransaction(options.transaction, async manager => {
       const serviceAccount = await this.getServiceAccount(serviceAccountId, manager);
       this._assertExistingAndOwned(serviceAccount, options.expectedOwnerId);
-      serviceAccount.serviceUser = await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
-      return serviceAccount;
+      await this._homeDb.createApiKey(serviceAccount.serviceUser.id, true, manager);
+
+      const updatedServiceAccount = await this.getServiceAccount(serviceAccountId, manager);
+      this._assertExistingAndOwned(updatedServiceAccount, options.expectedOwnerId);
+      return updatedServiceAccount;
     });
   }
 
   /**
    * Deletes the API key of the service account
    *
-   * @param serviceAccountLogin The service account email
+   * @param serviceAccountId The service account email
    * @param options
    * @param options.expectedOwnerId If passed, check the ownership of the service account before any change
    * @param options.transaction If passed, reuse this typeorm transaction
