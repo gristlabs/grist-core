@@ -97,7 +97,7 @@ export function stripBasePath(path: string, config: Partial<GristLoadConfig> | n
   if (config == null) {
     config = getGristConfig();
   }
-  const basePath = getGristConfig().basePath;
+  const basePath = config.basePath;
   if (!basePath) {
     return path;
   }
