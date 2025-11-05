@@ -175,6 +175,7 @@ import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/Expande
 import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
 import {OnDemandActions} from 'app/server/lib/OnDemandActions';
 import {Patch} from 'app/server/lib/Patch';
+import {isUntrustedRequestBehaviorSet} from 'app/server/lib/ProxyAgent';
 import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
@@ -337,6 +338,7 @@ export class ActiveDoc extends EventEmitter {
   private _afterShutdownCallback?: () => Promise<void>;
   private _doShutdown?: Promise<void>;
   private _intervals: Interval[] = [];
+  private _isUntrustedRequestBehaviorSet?: boolean;
 
   // Size of the last _rawPyCall() response in bytes.
   private _lastPyCallResponseSize: number|undefined;
@@ -1724,6 +1726,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
+    if (this._isUntrustedRequestBehaviorSet === undefined) {
+      this._isUntrustedRequestBehaviorSet = isUntrustedRequestBehaviorSet();
+    }
+    if (!this._isUntrustedRequestBehaviorSet) {
+      throw new Error('Cannot use fetchURL without explicit proxy configuration');
+    }
     return fetchURL(url, this.makeAccessId(docSession.userId), options);
   }
 
