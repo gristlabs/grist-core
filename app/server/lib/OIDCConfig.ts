@@ -104,21 +104,13 @@ class ErrorWithUserFriendlyMessage extends Error {
 }
 
 interface OIDCClientDiscoverParams {
-  issuerUrl: string,
-  clientId: string,
-  clientSecret: string,
-  extraMetadata: Partial<ClientMetadata>
+  issuerUrl: string;
+  clientId: string;
+  clientSecret: string;
+  extraMetadata: Partial<ClientMetadata>;
 }
 
 export class OIDCConfig {
-  /**
-   * Handy alias to create an OIDCConfig instance and initialize it.
-   */
-  public static async build(sendAppPage: SendAppPageFunction): Promise<OIDCConfig> {
-    const config = new OIDCConfig(sendAppPage);
-    await config.initOIDC();
-    return config;
-  }
 
   // Client is not actually initialized until first used. This prevents Grist from failing
   // to start when the OIDC IdP is offline. Always use _client to access this property.
@@ -155,11 +147,9 @@ export class OIDCConfig {
   private _protectionManager: ProtectionsManager;
   private _acrValues?: string;
 
-  protected constructor(
+  constructor(
     private _sendAppPage: SendAppPageFunction
-  ) {}
-
-  public async initOIDC(): Promise<void> {
+  ) {
     const section = appSettings.section('login').section('system').section('oidc');
     const spHost = section.flag('spHost').requireString({
       envVar: 'GRIST_OIDC_SP_HOST',
@@ -425,7 +415,7 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem | undefined
   if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = await OIDCConfig.build(gristServer.sendAppPage.bind(gristServer));
+      const config = new OIDCConfig(gristServer.sendAppPage.bind(gristServer));
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),
