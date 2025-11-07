@@ -52,7 +52,7 @@ describe("Fork", function() {
     await gu.waitForServer();
     await driver.findContentWait(
       '.test-notifier-toast-wrapper',
-      /Cannot fork a document that's already a fork.*Report a problem/s,
+      /Cannot fork a document that's already a fork/s,
       2000
     );
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '1');
@@ -371,11 +371,6 @@ describe("Fork", function() {
 
         assert.equal(await driver.findWait('.test-modal-dialog', 2000).isDisplayed(), true);
         assert.match(await driver.find('.test-modal-dialog').getText(), /Document fork not found/);
-
-        // Ensure the user has a way to report the problem (although including the report button in
-        // the modal might be better).
-        assert.match(await driver.find('.test-notifier-toast-wrapper').getText(),
-                     /Document fork not found.*Report a problem/s);
 
         // A new doc cannot be created either (because of access
         // mismatch - for forks of the doc used in these tests, user2

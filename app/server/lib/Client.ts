@@ -460,6 +460,9 @@ export class Client {
         if (err.details) {
           response.details = err.details;
         }
+        if (err.status) {
+          response.status = err.status;
+        }
         if (typeof code === 'string' && code === 'AUTH_NO_EDIT' && err.accessMode === 'fork') {
           response.shouldFork = true;
         }

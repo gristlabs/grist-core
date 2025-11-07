@@ -102,6 +102,7 @@ import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {Document} from 'app/gen-server/entity/Document';
 import {Share} from 'app/gen-server/entity/Share';
+import {Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
@@ -659,9 +660,10 @@ export class ActiveDoc extends EventEmitter {
                              params: AssistanceRequest): Promise<AssistanceResponse> {
     const dbManager = this._getHomeDbManagerOrFail();
     const userId = docSession.userId || dbManager.getAnonymousUserId();
-    const scope = {
+    const scope: Scope = {
       urlId: this.docName,
       userId,
+      org: docSession.org,
     };
     await dbManager.increaseUsage(scope, 'assistant', {delta: 1, dryRun: true});
 
