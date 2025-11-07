@@ -154,9 +154,9 @@ describe('UserManager2', function() {
           assert.equal(await driver.find('.test-modal-dialog').isPresent(), false);
         });
         await openUserManager();
-        const collaborator1 = await driver.findContentWait('.test-um-member', /1 of 2/, 2000)
+        let collaborator1 = await driver.findContentWait('.test-um-member', /1 of 2/, 2000)
           .find('.member-email').getText();
-        const collaborator2 = await driver.findContentWait('.test-um-member', /2 of 2/, 2000)
+        let collaborator2 = await driver.findContentWait('.test-um-member', /2 of 2/, 2000)
           .find('.member-email').getText();
         // Order of members appears to be a bit arbitrary.
         assert.sameMembers([collaborator1, collaborator2], ['zig@getgrist.com', 'zag@getgrist.com']);
@@ -167,6 +167,20 @@ describe('UserManager2', function() {
           const member = await findMember(collaborator2);
           assert.match(await member.getText(), /1 of 2 guests/);
         });
+
+        // Check that public access does not count towards guest limit (a bug previously counted it).
+        await driver.find('.test-um-public-access').click();
+        await gu.findOpenMenuItem('.test-um-public-option', 'On').click();
+        await driver.find('.test-um-member-new').find('input').click();
+        await driver.sendKeys("zod@getgrist.com", Key.ENTER);
+        await driver.findWait('.test-um-confirm', 3000).click();
+        await gu.waitForServer();
+        await openUserManager();
+        collaborator1 = await driver.findContentWait('.test-um-member', /1 of 2/, 2000)
+          .find('.member-email').getText();
+        collaborator2 = await driver.findContentWait('.test-um-member', /2 of 2/, 2000)
+          .find('.member-email').getText();
+        assert.sameMembers([collaborator1, collaborator2], ['zig@getgrist.com', 'zod@getgrist.com']);
       } finally {
         // Remove users we added.
         await api.updateOrgPermissions('current', {
