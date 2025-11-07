@@ -478,10 +478,12 @@ export class RightPanel extends Disposable {
     // refactored, but if not, should be made public.
     const viewConfigTab = this._createViewConfigTab(owner);
     const hasCustomMapping = Computed.create(owner, use => {
+      // We shouldn't get here if activeSection is disposed but some errors reported in the wild
+      // point to this being sometimes possible.
+      if (activeSection.isDisposed()) { return false; }
       const widgetType = use(this._pageWidgetType);
       const isCustom = widgetType === 'custom' || widgetType?.startsWith('custom.');
-      const hasColumnMapping = use(activeSection.columnsToMap);
-      return Boolean(isCustom && hasColumnMapping);
+      return Boolean(isCustom && use(activeSection.columnsToMap));
     });
 
     // build cursor position observable
