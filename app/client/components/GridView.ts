@@ -317,7 +317,7 @@ export default class GridView extends BaseView {
 
     //--------------------------------------------------
     // Set up DOM event handling.
-    onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', () => this.activateEditorAtCursor());
+    onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', (event) => this.activateEditorAtCursor({event}));
     if (!this.isPreview) {
       dom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu',
         (ev, elem) => this.onCellContextMenu(ev, elem as Element), {useCapture: true}

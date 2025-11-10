@@ -334,9 +334,9 @@ export default class BaseView extends Disposable {
    * Most commands with relatively hard or specific triggers should usually go in the normal list.
    */
   private static _commonCommands: {[key: string]: Function} & ThisType<BaseView> = {
-    input: function(init?: string) {
+    input: function(init?: string, event?: Event) {
       this.scrollToCursor(true).catch(reportError);
-      this.activateEditorAtCursor({init});
+      this.activateEditorAtCursor({init, event});
     },
     copyLink: function() { this.copyLink().catch(reportError); },
     filterByThisCellValue: function() { this.filterByThisCellValue(); },

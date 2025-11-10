@@ -496,7 +496,7 @@ describe("AttachmentsWidget", function () {
     ]);
   });
 
-  const checkClosing = stackWrapFunc(async function (
+  const checkClosing = async function (
     shouldSave: boolean,
     trigger: () => Promise<void>
   ) {
@@ -516,10 +516,12 @@ describe("AttachmentsWidget", function () {
     // Close using the given trigger. No actions should be emitted.
     await gu.userActionsCollect();
     await trigger();
+    await gu.waitAppFocus();
     await gu.userActionsVerify([]);
 
     // Open editor and delete a file.
     await driver.sendKeys(Key.ENTER);
+    await gu.waitAppFocus(false);
     await driver.findWait(".test-pw-attachment-content", 500);
     await driver.find(".test-pw-remove").click();
     await gu.waitForServer();
@@ -527,6 +529,7 @@ describe("AttachmentsWidget", function () {
     // Close using the given trigger.
     await gu.userActionsCollect();
     await trigger();
+    await gu.waitAppFocus();
     await gu.waitForServer();
 
     await ensureDialogIsClosed();
@@ -545,7 +548,7 @@ describe("AttachmentsWidget", function () {
       "grist.png",
     ]);
     await ensureDialogIsClosed();
-  });
+  };
 
   it("should not save on Escape", async function () {
     await checkClosing(false, () => driver.sendKeys(Key.ESCAPE));
@@ -642,6 +645,69 @@ describe("AttachmentsWidget", function () {
       "grist.png",
     ]);
   });
+
+  // Test that if we have a formula column that is attachment, it supports the same things as
+  // a readonly attachment column. Only when user types something or press F2/Enter it opens the formula
+  // editor
+  it("should show attachments editor for attachment formula column", async function () {
+    const revert = await gu.begin();
+    await gu.addNewPage('Table', 'Table1');
+    await gu.sendActions([
+      ...['B', 'C', 'D', 'E'].map(col => ['RemoveColumn', 'Table1', col]),
+      ['AddVisibleColumn', 'Table1', 'B', {
+        isFormula: true,
+        formula: "$A",
+        type: 'Attachments',
+      }],
+    ]);
+
+    // Open the second attachment in preview in column B.
+    const cell = gu.getCell({ col: 'B', rowNum: 2 });
+    await driver.withActions((a) =>
+      a.doubleClick(cell.find(".test-pw-thumbnail[title*=png]"))
+    );
+    assert.equal(
+      await driver.findWait(".test-pw-counter", 500).getText(),
+      "2 of 4"
+    );
+    assert.equal(await driver.find(".test-pw-name").value(), "grist.png");
+
+    // Make sure we don't see add or remove buttons
+    assert.isFalse(await driver.find(".test-pw-add").isPresent());
+    assert.isFalse(await driver.find(".test-pw-remove").isPresent());
+
+    // Close the preview
+    await driver.sendKeys(Key.ESCAPE);
+    await ensureDialogIsClosed();
+
+    // Now double click on the empty cell in row 4, we should see "No attachments" message
+    const emptyCell = gu.getCell({ col: 'B', rowNum: 4 });
+    await gu.dbClick(emptyCell);
+    assert.equal(await driver.findWait(".test-pw-attachment-content", 1000).getText(), "No attachments");
+    // Close the preview
+    await driver.sendKeys(Key.ESCAPE);
+    await ensureDialogIsClosed();
+
+    // Now press F2 to edit the formula
+    await gu.sendKeys(Key.F2);
+    await gu.checkFormulaEditor('$A');
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitAppFocus();
+
+    // Now do the same with Enter key
+    await gu.sendKeys(Key.ENTER);
+    await gu.checkFormulaEditor('$A');
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitAppFocus();
+
+    // Now the same with any key
+    await gu.sendKeys('hello');
+    await gu.checkFormulaEditor('hello');
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitAppFocus();
+
+    await revert();
+  });
 });
 
 async function ensureDialogIsClosed() {
@@ -650,5 +716,5 @@ async function ensureDialogIsClosed() {
       await driver.find(".test-pw-close").isPresent(),
       false
     );
-  });
+  }, 10000);
 }

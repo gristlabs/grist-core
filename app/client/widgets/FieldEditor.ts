@@ -28,7 +28,7 @@ export function saveWithoutEditor(
   editorCtor: IEditorConstructor,
   editRow: DataRowModel,
   field: ViewFieldRec,
-  options: {typedVal?: string, event?: KeyboardEvent|MouseEvent}
+  options: {typedVal?: string, event?: Event}
 ): boolean {
   const {typedVal, event} = options;
   // Never skip the editor if editing a formula. Also, check that skipEditor static function
@@ -83,6 +83,7 @@ export class FieldEditor extends Disposable {
   private _readonly = false;
   private _detached = Observable.create(this, false);
   private _detachedAt: CursorPos|null = null;
+  private _event?: Event;
 
   constructor(options: {
     gristDoc: GristDoc,
@@ -93,7 +94,8 @@ export class FieldEditor extends Disposable {
     editorCtor: IEditorConstructor,
     startVal?: string,
     state?: any,
-    readonly: boolean
+    readonly: boolean,
+    event?: Event
   }) {
     super();
     this._gristDoc = options.gristDoc;
@@ -103,6 +105,7 @@ export class FieldEditor extends Disposable {
     this._editorCtor = options.editorCtor;
     this._cellElem = options.cellElem;
     this._readonly = options.readonly;
+    this._event = options.event;
 
     const startVal = options.startVal;
     let offerToMakeFormula = false;
@@ -193,12 +196,23 @@ export class FieldEditor extends Disposable {
 
   // cursorPos refers to the position of the caret within the editor.
   public rebuildEditor(editValue: string|undefined, cursorPos: number, state?: any) {
-    const editorCtor: IEditorConstructor = this._isFormula ? FormulaEditor : this._editorCtor;
 
-    const column = this._field.column();
+    // Attachment column with a formula is different, it either uses FormulaEditor if user typed something or pressed
+    // enter, or AttachmentEditor if user clicked or dblclicked to edit. In later case we assume user wants to see
+    // attachments, not the formula.
+    if (this._field.column.peek().pureType.peek() === 'Attachments' && this._field.column().isRealFormula.peek()) {
+      if (this._event && (this._event.type === 'click' || this._event.type === 'dblclick')) {
+        this._isFormula = false;
+        this._readonly = true;
+      }
+    }
+
+    const editorCtor: IEditorConstructor = this._isFormula ? FormulaEditor : this._editorCtor;
     const cellCurrentValue = this._editRow.cells[this._field.colId()].peek();
     let cellValue: CellValue;
-    if (column.isFormula()) {
+
+    const column = this._field.column();
+    if (this._isFormula) {
       cellValue = column.formula();
     } else if (Array.isArray(cellCurrentValue) && cellCurrentValue[0] === 'C') {
       // This cell value is censored by access control rules

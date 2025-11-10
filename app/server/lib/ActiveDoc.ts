@@ -3361,7 +3361,7 @@ export class ActiveDoc extends EventEmitter {
     currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
     const futureSize = currentSize + uploadSizeBytes;
 
-    const productMaxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
+    const productMaxSize = this._product?.features?.baseMaxAttachmentsBytesPerDocument;
 
     if (options.checkProduct && productMaxSize !== undefined && futureSize > productMaxSize) {
       // TODO probably want a nicer error message here.
