@@ -16,7 +16,7 @@ import {
 } from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
-import {ChildProcess, fork, spawn, SpawnOptionsWithoutStdio} from 'child_process';
+import {ChildProcess, spawn, SpawnOptionsWithoutStdio} from 'child_process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -532,11 +532,13 @@ export class NSandboxCreator implements ISandboxCreator {
   private _flavor: string;
   private _spawner: SpawnFn;
   private _command?: string;
+  private _commandArgs: string[];
   private _preferredPythonVersion?: string;
 
   public constructor(options: {
     defaultFlavor: string,
     command?: string,
+    commandArgs?: string[],
     preferredPythonVersion?: string,
   }) {
     const flavor = options.defaultFlavor;
@@ -552,12 +554,16 @@ export class NSandboxCreator implements ISandboxCreator {
     }
     this._flavor = flavor;
     this._command = options.command;
+    this._commandArgs = options.commandArgs ?? [];
     this._preferredPythonVersion = options.preferredPythonVersion;
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
-    const args: string[] = [];
-    if (!options.entryPoint && options.comment) {
+    const args: string[] = this._command ? [...this._commandArgs] : [];
+    if (options.sandboxOptions?.args) {
+      args.push(...options.sandboxOptions.args);
+    }
+    if (!this._command && !options.entryPoint && options.comment) {
       // When using default entry point, we can add on a comment as an argument - it isn't
       // used, but will show up in `ps` output for the sandbox process.  Comment is intended
       // to be a document name/id.
@@ -566,7 +572,6 @@ export class NSandboxCreator implements ISandboxCreator {
     const translatedOptions: ISandboxOptions = {
       minimalPipeMode: true,
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
-      args,
       logCalls: options.logCalls,
       logMeta: {flavor: this._flavor, command: this._command,
                 entryPoint: options.entryPoint || '(default)',
@@ -577,6 +582,7 @@ export class NSandboxCreator implements ISandboxCreator {
       useGristEntrypoint: true,
       importDir: options.importMount,
       ...options.sandboxOptions,
+      args: args,
     };
     return new NSandbox(translatedOptions, this._spawner);
   }
@@ -659,8 +665,14 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     }
   };
   const base = getUnpackedAppRoot();
-  const child = fork(path.join(base, 'sandbox', 'pyodide', 'pipe.js'),
-                     {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+  const scriptPath = path.join(base, 'sandbox', 'pyodide', 'pipe.js');
+  const command = options.command ?? process.execPath;
+  const commandArgs = options.args ?? process.execArgv;
+  const child = spawn(
+    command,
+    [...commandArgs, scriptPath],
+    {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions}
+  );
   return {
     name: 'pyodide',
     child,
@@ -1066,6 +1078,35 @@ function findPython(command: string|undefined): string {
   throw new Error('Cannot find Python');
 }
 
+function getCommandFromEnv(pythonVersion?: string) {
+  return process.env['GRIST_SANDBOX' + (pythonVersion || '')] ||
+    process.env['GRIST_SANDBOX'];
+}
+
+function getCommandArgEnvVar(index: number): string {
+  return `GRIST_SANDBOX_ARG_${index.toFixed(0)}`
+}
+
+function getCommandArgsFromEnv() {
+  const args: string[] = [];
+  let counter = 1;
+  let foundArg = false;
+  do {
+    const envVar = getCommandArgEnvVar(counter);
+    const value = process.env[envVar];
+
+    if (value !== undefined) {
+      foundArg = true;
+      args.push(value);
+      counter += 1;
+    } else {
+      foundArg = false;
+    }
+  } while (foundArg);
+
+  return args;
+}
+
 /**
  * Create a sandbox. The defaultFlavorSpec is a guide to which sandbox
  * to create, based on the desired python version. Examples:
@@ -1089,8 +1130,8 @@ export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreati
     if (preferredPythonVersion === version || version === '*' || !preferredPythonVersion) {
       const creator = new NSandboxCreator({
         defaultFlavor: flavor,
-        command: process.env['GRIST_SANDBOX' + (preferredPythonVersion||'')] ||
-          process.env['GRIST_SANDBOX'],
+        command: getCommandFromEnv(preferredPythonVersion),
+        commandArgs: getCommandArgsFromEnv(),
         preferredPythonVersion,
       });
       return creator.create(options);
