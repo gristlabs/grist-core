@@ -1,7 +1,7 @@
 import { swatches } from 'app/client/ui2018/ColorPalette';
 import { addToRepl, assert, driver, Key, stackWrapFunc, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 const black = '#000000';
 const white = '#FFFFFF';
@@ -358,6 +358,8 @@ describe("ColorSelect", function() {
       // click the hex value
       await driver.findWait('.test-text-hex', 100).click();
 
+      await waitForSelection('.test-text-hex');
+
       // start typing '#'
       await driver.sendKeys('#');
 
@@ -376,6 +378,8 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
+      await waitForSelection('.test-text-hex');
+
 
       // type in #FF00FF and press enter
       await driver.sendKeys(pink, Key.ENTER);
@@ -398,6 +402,9 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
+
+      // Wait for focus
+      await waitForSelection('.test-text-hex');
 
       // type in #0000FF
       await driver.sendKeys(red);
@@ -432,6 +439,7 @@ describe("ColorSelect", function() {
 
       // click the hex value
       await driver.find('.test-text-hex').click();
+      await waitForSelection('.test-text-hex');
 
       // start typing '#FF'
       await driver.sendKeys('#FF');
@@ -439,7 +447,7 @@ describe("ColorSelect", function() {
       // check the hex value changed
       assert.equal(await driver.find('.test-text-hex').value(), '#FF');
 
-      // click button to update. We cannot send ctrl+U here, becauses it does cause picker to close
+      // click button to update. We cannot send ctrl+U here, because it does cause picker to close
       // here.
       await driver.executeScript('triggerUpdate()');
 
@@ -487,4 +495,22 @@ async function clickUnderline() {
 }
 async function clickStrikethrough() {
   await driver.find('.test-font-option-FontStrikethrough').click();
+}
+
+/**
+ * Waits until all text in the given input element is selected and the element has focus.
+ * @param inputSelector Selector for the input element to check selection on.
+ */
+async function waitForSelection(inputSelector: string) {
+  await gu.waitToPass(async () => {
+    assert.isTrue(await driver.find(inputSelector).hasFocus());
+    const allSelected = await driver.executeScript(() => {
+      const innerSelector = arguments[0];
+      const el = document.querySelector(innerSelector) as HTMLInputElement;
+      const sel = { start: el.selectionStart, end: el.selectionEnd };
+      const textLen = el.value.length;
+      return sel.start === 0 && sel.end === textLen;
+    }, inputSelector);
+    assert.isTrue(allSelected, 'Expected all text to be selected in the text input');
+  });
 }

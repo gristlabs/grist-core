@@ -1,10 +1,10 @@
 import { assert, driver } from 'mocha-webdriver';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import * as fu from 'test/projects/filterUtils';
 
 function findItem(val: string) {
-  return driver.findContent('.fixture-stored-menu label', val);
+  return driver.findContent('.fixture-stored-menu label .test-filter-menu-value', val).findClosest('label');
 }
 
 function isSelected(val: string) {

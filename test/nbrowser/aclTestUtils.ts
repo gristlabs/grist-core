@@ -9,7 +9,7 @@ namespace gristUtils {
    * Find .test-rule-table element for the given tableId.
    */
   export function findTable(tableId: RegExp|'*'): WebElement {
-    const header = driver.findContent('.test-rule-table-header', tableId === '*' ? 'Default Rules' : tableId);
+    const header = driver.findContent('.test-rule-table-header', tableId === '*' ? 'Default rules' : tableId);
     return header.findClosest('.test-rule-table');
   }
 
@@ -17,7 +17,7 @@ namespace gristUtils {
    * Wait for .test-rule-table element for the given tableId.
    */
   export function findTableWait(tableId: RegExp|'*'): WebElement {
-    const header = driver.findContentWait('.test-rule-table-header', tableId === '*' ? 'Default Rules' : tableId, 100);
+    const header = driver.findContentWait('.test-rule-table-header', tableId === '*' ? 'Default rules' : tableId, 100);
     return header.findClosest('.test-rule-table');
   }
 
@@ -25,7 +25,7 @@ namespace gristUtils {
    * Remove any rules within a .test-rule-table element, by hitting the trash buttons.
    */
   export async function removeTable(tableId: RegExp|'*'): Promise<void> {
-    const header = driver.findContent('.test-rule-table-header', tableId === '*' ? 'Default Rules' : tableId);
+    const header = driver.findContent('.test-rule-table-header', tableId === '*' ? 'Default rules' : tableId);
     if (await header.isPresent()) {
       const table = header.findClosest('.test-rule-table');
       await removeRules(table);

@@ -1,15 +1,17 @@
 import {makeT} from 'app/client/lib/localization';
+import {getLoginUrl, getSignupUrl} from 'app/client/lib/urlUtils';
 import {AppModel} from 'app/client/models/AppModel';
-import {getLoginUrl, getMainOrgUrl, getSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {getMainOrgUrl, urlState} from 'app/client/models/gristUrlState';
 import {AppHeader} from 'app/client/ui/AppHeader';
 import {leftPanelBasic} from 'app/client/ui/LeftPanelCommon';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {createTopBarHome} from 'app/client/ui/TopBar';
 import {bigBasicButtonLink, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {theme, vars} from 'app/client/ui2018/cssVars';
+import {cssLink} from 'app/client/ui2018/links';
 import {commonUrls, getPageTitleSuffix} from 'app/common/gristUrls';
 import {getGristConfig} from 'app/common/urlUtils';
-import {dom, DomElementArg, makeTestId, observable, styled} from 'grainjs';
+import {dom, DomContents, DomElementArg, makeTestId, observable, styled} from 'grainjs';
 
 const testId = makeTestId('test-');
 
@@ -22,7 +24,7 @@ function signInAgainButton() {
 }
 
 export function createErrPage(appModel: AppModel) {
-  const {errMessage, errPage, errTargetUrl} = getGristConfig();
+  const {errMessage, errDetails, errPage, errTargetUrl} = getGristConfig();
   if (errTargetUrl) {
     // In case the error page was reached via a redirect (typically during sign-in),
     // replace the current URL with the target URL, so that the user can retry their
@@ -34,6 +36,7 @@ export function createErrPage(appModel: AppModel) {
     errPage === 'access-denied' ? createForbiddenPage(appModel, errMessage) :
     errPage === 'account-deleted' ? createAccountDeletedPage(appModel) :
     errPage === 'signin-failed' ? createSigninFailedPage(appModel, errMessage) :
+    errPage === 'unsubscribed' ? createUnsubscribedPage(appModel, errMessage, errDetails) :
     createOtherErrorPage(appModel, errMessage);
 }
 
@@ -91,6 +94,114 @@ export function createAccountDeletedPage(appModel: AppModel) {
     ))
   ]);
 }
+
+export function createUnsubscribedPage(
+  appModel: AppModel,
+  errMessage: string|undefined,
+  errDetails: Record<string, string|undefined> | undefined
+) {
+  document.title = t("Unsubscribed{{suffix}}", {suffix: getPageTitleSuffix(getGristConfig())});
+  const docUrl = errDetails?.docUrl;
+
+  if (errMessage) {
+    return pagePanelsError(appModel, t("We could not unsubscribe you"), [
+      cssErrorText(
+        cssErrorText.cls('-narrow'),
+        t('There was an error'), ': ', addPeriod(errMessage)
+      ),
+      docUrl && cssErrorText(
+        cssErrorText.cls('-narrow'),
+        addPeriod(
+          t('You can still unsubscribe from this document by updating your preferences in the document settings')
+        )
+      ),
+      docUrl && cssButtonWrap(bigBasicButtonLink(t("Manage settings"), {href: `${docUrl}/p/settings`})),
+      cssContactSupportDiv(
+        t('Need Help?'), ' ', cssLink(
+          t("Contact support"), {href: commonUrls.contactSupport}
+        )
+      ),
+    ]);
+  }
+
+
+  // Extract details from errDetails
+  const docName = errDetails?.docName || t('this document');
+  const notification = errDetails?.notification;
+  const mode = errDetails?.mode;
+  const email = errDetails?.email;
+
+  let message: DomContents;
+  let description: DomContents;
+  if (notification === 'docChanges') {
+    message = t(
+      "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.",
+      {
+        changes: dom('b', t('changes')),
+        docName: dom('b', docName),
+        email: dom('b', email || t('your email')),
+      }
+    );
+
+    description = t(
+      "You have been unsubscribed from notifications about changes to {{docName}}. You can update " +
+      "your preferences anytime in the document settings.",
+      {
+        docName: dom('b', docName),
+      }
+    );
+  } else if (mode === 'full') {
+    message = t(
+      "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.",
+      {
+        comments: dom('b', t('comments')),
+        docName: dom('b', docName),
+        email: dom('b', email || t('your email')),
+      }
+    );
+
+    description = t(
+      "You have been unsubscribed from notifications about any comments in {{docName}}, including mentions " +
+      "of you and replies to your comments. You can update your preferences anytime in the document settings.",
+      {
+        docName: dom('b', docName),
+      }
+    );
+  } else {
+    message = t(
+      "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.",
+      {
+        comments: dom('b', t('comments')),
+        docName: dom('b', docName),
+        email: dom('b', email || t('your email')),
+      }
+    );
+
+    description = t(
+      "You have been unsubscribed from notifications about comments in {{docName}}, " +
+      "except for mentions of you and replies to your comments. You can update your " +
+      "preferences anytime in the document settings.",
+      {
+        docName: dom('b', docName),
+      }
+    );
+  }
+
+  return pagePanelsError(appModel, t("You are unsubscribed"), [
+    cssErrorText(
+      cssErrorText.cls('-narrow'),
+      dom('p', message),
+      description && dom('p', description),
+    ),
+    cssButtonWrap(bigBasicButtonLink(t("Manage settings"), {href: `${docUrl}/p/settings`})),
+    cssContactSupportDiv(
+      t('Need Help?'), ' ', cssLink(
+        t("Contact support"), {href: commonUrls.contactSupport}
+      )
+    ),
+  ]);
+}
+
 
 /**
  * Creates a "Page not found" page.
@@ -199,4 +310,8 @@ const cssErrorText = styled('div', `
 
 const cssButtonWrap = styled('div', `
   margin-bottom: 8px;
+`);
+
+const cssContactSupportDiv = styled('div', `
+  margin-top: 24px;
 `);

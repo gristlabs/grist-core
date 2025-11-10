@@ -1,6 +1,5 @@
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
-import {Cursor} from 'app/client/components/Cursor';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {
   CommandAPI,
@@ -17,23 +16,18 @@ import {
 } from 'app/client/components/WidgetFrame';
 import {CustomSectionElement, ViewProcess} from 'app/client/lib/CustomSectionElement';
 import {makeT} from 'app/client/lib/localization';
-import {Disposable} from 'app/client/lib/dispose';
 import dom from 'app/client/lib/dom';
 import {makeTestId} from 'app/client/lib/domUtils';
 import * as kd from 'app/client/lib/koDom';
-import DataTableModel from 'app/client/models/DataTableModel';
 import {ViewSectionRec} from 'app/client/models/DocModel';
 import {CustomViewSectionDef} from 'app/client/models/entities/ViewSectionRec';
 import {UserError} from 'app/client/models/errors';
-import {SortedRowSet} from 'app/client/models/rowset';
 import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 import {AccessLevel} from 'app/common/CustomWidget';
 import {defaultLocale} from 'app/common/gutil';
 import {PluginInstance} from 'app/common/PluginInstance';
-import {Events as BackboneEvents} from 'backbone';
 import {dom as grains} from 'grainjs';
 import * as ko from 'knockout';
-import defaults = require('lodash/defaults');
 
 const t = makeT('CustomView');
 const testId = makeTestId('test-custom-widget-');
@@ -58,9 +52,24 @@ export interface CustomViewSettings {
  * the view config tab in the side pane. In "plugin" mode, shows notification if either the plugin
  * of the section could not be found.
  */
-export class CustomView extends Disposable {
+export class CustomView extends BaseView {
 
-  private static _commands = {
+  // Commands enabled only when the custom view is the actually user-focused region.
+  private static _focusedCommands = {
+    async viewAsCard(event: Event) {
+      if (event instanceof KeyboardEvent) {
+        // Ignore the keyboard shortcut if pressed; it's disabled at this time for custom widgets.
+        return;
+      }
+
+      (this as unknown as BaseView).viewSelectedRecordAsCard();
+
+      // Move focus back to the app, so that keyboard shortcuts work in the popup.
+      document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
+    },
+  };
+  // Commands enabled when the view is the active section, even when user focuses another region.
+  private static _commands: {[key: string]: Function} & ThisType<CustomView> = {
     async openWidgetConfiguration(this: CustomView) {
       if (!this.isDisposed() && !this._frame?.isDisposed()) {
         try {
@@ -80,23 +89,12 @@ export class CustomView extends Disposable {
         return;
       }
 
-      (this as unknown as BaseView).viewSelectedRecordAsCard();
+      this.viewSelectedRecordAsCard();
 
       // Move focus back to the app, so that keyboard shortcuts work in the popup.
       document.querySelector<HTMLElement>('textarea.copypaste.mousetrap')?.focus();
     },
   };
-  /**
-   * The HTMLElement embedding the content.
-   */
-  public viewPane: HTMLElement;
-
-  // viewSection, sortedRows, tableModel, gristDoc, and cursor are inherited from BaseView
-  protected viewSection: ViewSectionRec;
-  protected sortedRows: SortedRowSet;
-  protected tableModel: DataTableModel;
-  protected gristDoc: GristDoc;
-  protected cursor: Cursor;
 
   protected customDef: CustomViewSectionDef;
 
@@ -112,12 +110,12 @@ export class CustomView extends Disposable {
   private _hasAclHiddenColumns: ko.Computed<boolean>;
   private _unmappedColumns: ko.Computed<string[]>;
 
-  public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    BaseView.call(this as any, gristDoc, viewSectionModel, { 'addNewRow': true });
+  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
+    super(gristDoc, viewSectionModel, { 'addNewRow': true });
 
     this.customDef = this.viewSection.customDef;
 
-    this.autoDisposeCallback(() => {
+    this.onDispose(() => {
       if (this._customSection) {
         this._customSection.dispose();
       }
@@ -129,7 +127,8 @@ export class CustomView extends Disposable {
 
     this.autoDispose(this.customDef.pluginId.subscribe(this._updatePluginInstance, this));
     this.autoDispose(this.customDef.sectionId.subscribe(this._updateCustomSection, this));
-    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasRegionFocus));
+    this.autoDispose(commands.createGroup(CustomView._commands, this, this.viewSection.hasFocus));
+    this.autoDispose(commands.createGroup(CustomView._focusedCommands, this, this.viewSection.hasRegionFocus));
 
     this._unmappedColumns = this.autoDispose(ko.pureComputed(() => {
       const columns = this.viewSection.columnsToMap();
@@ -158,7 +157,8 @@ export class CustomView extends Disposable {
       return rowIds.some(r => redactedColumns.includes(r));
     }));
 
-    this.viewPane = this.autoDispose(this._buildDom());
+    this.viewPane = this._buildDom();
+    this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
     this._updatePluginInstance();
   }
 
@@ -210,7 +210,7 @@ export class CustomView extends Disposable {
     }
   }
 
-  private _buildDom() {
+  private _buildDom(): HTMLElement {
     const {mode, url, access, renderAfterReady, widgetDef, widgetId, pluginId} = this.customDef;
     const showPlugin = ko.pureComputed(() => this.customDef.mode() === "plugin");
     const showAfterReady = () => {
@@ -322,7 +322,7 @@ export class CustomView extends Disposable {
       configure: (frame) => {
         this._frame = frame;
         // Need to cast myself to a BaseView
-        const view = this as unknown as BaseView;
+        const view: BaseView = this;
         frame.exposeAPI(
           "GristDocAPI",
           new GristDocAPIImpl(this.gristDoc),
@@ -375,10 +375,6 @@ export class CustomView extends Disposable {
     return grains.update(widgetFrame.buildDom(), dom.autoDispose(widgetFrame));
   }
 }
-
-// Getting an ES6 class to work with old-style multiple base classes takes a little hacking. Credits: ./ChartView.ts
-defaults(CustomView.prototype, BaseView.prototype);
-Object.assign(CustomView.prototype, BackboneEvents);
 
 
 // helper to build the notification's frame.

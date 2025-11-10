@@ -1,8 +1,8 @@
 import {ANONYMOUS_USER_EMAIL, EVERYONE_EMAIL, UserAPI} from 'app/common/UserAPI';
 import {GristClient, openClient} from 'test/server/gristClient';
 import {TestServer} from 'test/gen-server/apiUtils';
-import {isUserPresenceDisabled, SETTING_ENABLE_USER_PRESENCE} from 'app/server/lib/DocClients';
 import {assert} from 'chai';
+import {zipObject} from 'lodash';
 import * as sinon from 'sinon';
 
 const TEST_ORG = "userpresence";
@@ -39,7 +39,6 @@ describe('UserPresence', function() {
   let wsId: number;
   const sandbox = sinon.createSandbox();
   let clients: GristClient[] = [];
-  let oldUserPresenceSetting: boolean;
 
   async function openTrackedClient(...args: Parameters<typeof openClient>) {
     const client = await openClient(...args);
@@ -65,9 +64,6 @@ describe('UserPresence', function() {
   }
 
   before(async function () {
-    oldUserPresenceSetting = isUserPresenceDisabled();
-    SETTING_ENABLE_USER_PRESENCE.set(true);
-
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
@@ -93,7 +89,6 @@ describe('UserPresence', function() {
     const api = await home.createHomeApi('chimpy', 'docs');
     await api.deleteOrg(TEST_ORG);
     await home.stop();
-    SETTING_ENABLE_USER_PRESENCE.set(oldUserPresenceSetting);
   });
 
   afterEach(async function () {
@@ -135,29 +130,99 @@ describe('UserPresence', function() {
     },
   ];
 
-  joiningTestCases.forEach(testCase =>
-    it(`sends the correct update messages: ${testCase.name}`, async function () {
-      const observerClient = await testCase.makeObserverClient();
-      const joiningClient = await testCase.makeJoinerClient();
-      await observerClient.openDocOnConnect(docId);
-      await joiningClient.openDocOnConnect(docId);
+  const publicEmails = [EVERYONE_EMAIL, ANONYMOUS_USER_EMAIL];
 
-      const joinMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
-      const expectedProfile = {...testCase.expectedProfile, id: joinMessage.data.profile.id};
-      assert.deepStrictEqual(joinMessage.data.profile, expectedProfile);
+  // everyone@getgrist.com and anon@getgrist.com need testing separately, as they both provide
+  // public access to a doc, and in both cases public users should show as anonymous
+  publicEmails.forEach(currentPublicEmail => {
+    const _newPermissions = zipObject(
+        publicEmails,
+        publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null)
+    );
 
-      await closeClient(joiningClient);
+    describe(`shows the correct profile details - public email ${currentPublicEmail}`, async function() {
+      before(async function () {
+        await owner.updateDocPermissions(docId, {
+          users: _newPermissions,
+        });
+      });
 
-      const sessionEndMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
-      assert.equal(sessionEndMessage.data.id, joinMessage.data.id, "id of session ended doesn't match start");
-    })
-  );
+      joiningTestCases.forEach(testCase =>
+        it(testCase.name, async function () {
+          const observerClient = await testCase.makeObserverClient();
+          const joiningClient = await testCase.makeJoinerClient();
+          await observerClient.openDocOnConnect(docId);
+          await joiningClient.openDocOnConnect(docId);
+
+          const joinMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+          const expectedProfile = {...testCase.expectedProfile, id: joinMessage.data.profile.id};
+          assert.deepStrictEqual(joinMessage.data.profile, expectedProfile);
+
+          await closeClient(joiningClient);
+
+          const sessionEndMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+          assert.equal(sessionEndMessage.data.id, joinMessage.data.id, "id of session ended doesn't match start");
+        })
+      );
+    });
+  });
+
+  describe("multiple user connections should only show once on the client", async function () {
+    const testCombinations = [
+      {
+        name: "editor and owner",
+        makeObserverClient: () => getWebsocket(editor),
+        makeJoinerClient: () => getWebsocket(owner),
+      },
+      {
+        name: "editor and a logged-in public user",
+        makeObserverClient: () => getWebsocket(editor),
+        makeJoinerClient: () => openTrackedClientForUser(Users.loggedInPublic.email),
+      },
+      // Testing with logged out users won't work here, as these clients don't have a consistent
+      // session id to track.
+    ];
+
+    testCombinations.forEach((testCase) => {
+      it(`only shows 1 message for multiple clients: ${testCase.name}`, async function () {
+        const observerClient = await testCase.makeObserverClient();
+        const otherClients = await Promise.all([
+          testCase.makeJoinerClient(),
+          testCase.makeJoinerClient(),
+          testCase.makeJoinerClient(),
+          testCase.makeJoinerClient(),
+        ]);
+
+        await observerClient.openDocOnConnect(docId);
+        await Promise.all(otherClients.map(client => client.openDocOnConnect(docId)));
+
+        const firstMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+        // First message should be the one showing a user is present
+        assert(firstMessage.data.profile != undefined, "connect message not received first");
+
+        await Promise.all(otherClients.map(closeClient));
+
+        const secondMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+        // Second message should be a disconnect - there should only have been 1 present message for all clients.
+        assert(secondMessage.data.profile == null, "received unexpected user presence update");
+
+        // Connect one more client to trigger a connection message.
+        const finalClient = await testCase.makeJoinerClient();
+        await finalClient.openDocOnConnect(docId);
+
+        const finalMessage = await waitForDocUserPresenceUpdateMessage(observerClient);
+        // Third message should be the reconnect - i.e. only one disconnection message should have been sent.
+        assert(finalMessage.data.profile != null, "received unexpected user presence disconnect");
+      });
+    });
+  });
 
   describe("users without the correct permissions can't see other users", async function () {
     before(async () => {
       await owner.updateDocPermissions(docId, {
         users: {
           [Users.loggedInPublic.email]: 'viewers',
+          [ANONYMOUS_USER_EMAIL]: null,
           // Make all public users editors to show that no public users can see others.
           [EVERYONE_EMAIL]: 'editors',
         }

@@ -5,6 +5,7 @@
  */
 import * as commands from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {kbFocusHighlighterClass} from 'app/client/components/KeyboardFocusHighlighter';
 import {FocusLayer} from 'app/client/lib/FocusLayer';
 import {makeT} from 'app/client/lib/localization';
 import {stripLinks} from 'app/client/lib/markdown';
@@ -26,6 +27,7 @@ import {cssLabel as cssCheckboxLabel, cssCheckboxSquare,
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem} from 'app/client/ui2018/menus';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {cssDeleteButton, cssDeleteIcon, cssToken as cssTokenTokenBase} from 'app/client/widgets/ChoiceListEditor';
 import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
 import {choiceToken} from 'app/client/widgets/ChoiceToken';
@@ -126,6 +128,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
     },
 
     dom.cls(menuCssClass),
+    dom.cls(kbFocusHighlighterClass),
     dom.autoDispose(filterListener),
     // Save or cancel on disposal, which should always happen as part of closing.
     dom.onDispose(() => cancel ? doCancel() : doSave()),
@@ -218,7 +221,11 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         searchInput = cssSearch(
           searchValueObs, { onInput: true },
           testId('search-input'),
-          { type: 'search', placeholder: t('Search values') },
+          {
+            type: 'search',
+            placeholder: t('Search values'),
+            'aria-label': t('Search values'),
+          },
           dom.onKeyDown({
             Enter: () => {
               if (searchValueObs.get()) {
@@ -234,12 +241,22 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             }
           })
         ),
-        dom.maybe(searchValueObs, () => cssSearchIcon(
-          'CrossSmall', testId('search-close'),
+        dom.maybe(searchValueObs, () => cssCloseIcon(
+          icon('CrossSmall'),
+          {'aria-label': t('Clear search')},
+          testId('search-close'),
           dom.on('click', () => {
             searchValueObs.set('');
             searchInput.focus();
           }),
+          // We need to register the keydown event here to prevent triggering the one registered
+          // on the parent when pressing Enter on the clear button.
+          dom.onKeyDown({
+            Enter: () => {
+              searchValueObs.set('');
+              searchInput.focus();
+            }
+          })
         )),
       ),
       cssMenuDivider(),
@@ -254,23 +271,26 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           const state = use(columnFilter.state);
           return [
             cssSelectAll(
-              dom.text(searchValue ? t('All Shown') : t('All')),
-              dom.prop('disabled', isEquivalentFilter(state, allSpec)),
-              dom.on('click', () => columnFilter.setState(allSpec)),
+              dom.text(searchValue ? t('All shown') : t('All')),
+              dom.attr('aria-disabled', isEquivalentFilter(state, allSpec) ? 'true' : 'false'),
+              dom.on('click', () => !isEquivalentFilter(state, allSpec) && columnFilter.setState(allSpec)),
               testId('bulk-action'),
             ),
             cssDotSeparator('•'),
             cssSelectAll(
-              searchValue ? t('All Except') : t('None'),
-              dom.prop('disabled', isEquivalentFilter(state, noneSpec)),
-              dom.on('click', () => columnFilter.setState(noneSpec)),
+              searchValue ? t('All except') : t('None'),
+              dom.attr('aria-disabled', isEquivalentFilter(state, noneSpec) ? 'true' : 'false'),
+              dom.on('click', () => !isEquivalentFilter(state, noneSpec) && columnFilter.setState(noneSpec)),
               testId('bulk-action'),
             )
           ];
         }),
-        cssSortIcon(
-          'Sort',
-          cssSortIcon.cls('-active', isSortedByCount),
+        cssSortIconButton(
+          cssSortIcon('Sort', cssSortIcon.cls('-active', isSortedByCount)),
+          dom.attr('aria-label', use => use(isSortedByCount)
+            ? t('Sort alphabetically (current: sorted by number of occurrences)')
+            : t('Sort by number of occurrences (current: sorted alphabetically)')
+          ),
           dom.on('click', () => isSortedByCount.set(!isSortedByCount.get())),
         )
       ),
@@ -288,9 +308,10 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                 (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
                 dom.style('position', 'relative'),
               ),
-              renderValue(key, value),
+              dom('span', renderValue(key, value), testId('value')),
+              cssItemCount(value.count.toLocaleString(), testId('count'))
             ),
-            cssItemCount(value.count.toLocaleString(), testId('count')))
+          )
         ))) // Include comma separator
       ),
     ];
@@ -315,14 +336,14 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               buildSummary(t("Other Matching"), valuesBeyondLimit, false, model),
               buildSummary(t("Other Non-Matching"), otherValues, true, model),
             ] : [
-              buildSummary(t("Other Values"), concat(otherValues, valuesBeyondLimit), false, model),
-              buildSummary(t("Future Values"), [], true, model),
+              buildSummary(t("Other values"), concat(otherValues, valuesBeyondLimit), false, model),
+              buildSummary(t("Future values"), [], true, model),
             ];
           } else {
             return anyOtherValues ? [
               buildSummary(t('Others'), otherValues, true, model)
             ] : [
-              buildSummary(t("Future Values"), [], true, model)
+              buildSummary(t("Future values"), [], true, model)
             ];
           }
         }),
@@ -352,6 +373,10 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
             cssPinButton(
               icon('PinTilted'),
               cssPinButton.cls('-pinned', model.filterInfo.isPinned),
+              dom.attr('aria-label', use => use(model.filterInfo.isPinned)
+                ? t('Unpin filter')
+                : t('Pin filter'),
+              ),
               dom.on('click', () => filterInfo.pinned(!filterInfo.pinned())),
               gristDoc.behavioralPromptsManager.attachPopup('filterButtons', {
                 popupOptions: {
@@ -1008,6 +1033,7 @@ const cssSearch = styled(input, `
   padding: 0px;
   border: none;
   outline: none;
+  outline-offset: 3px;
 
   &::placeholder {
     color: ${theme.inputPlaceholderFg};
@@ -1019,21 +1045,28 @@ const cssSearchIcon = styled(icon, `
   margin-left: auto;
   margin-right: 4px;
 `);
+const cssCloseIcon = styled(unstyledButton, `
+  --icon-color: ${theme.lightText};
+  flex-shrink: 0;
+`);
 const cssNoResults = styled(cssMenuItem, `
   font-style: italic;
   color: ${theme.lightText};
   justify-content: center;
 `);
-const cssSortIcon = styled(icon, `
+const cssSortIconBase = `
   --icon-color: ${theme.controlSecondaryFg};
   margin-left: auto;
   &-active {
     --icon-color: ${theme.controlFg}
   }
-`);
+`;
+const cssSortIcon = styled(icon, cssSortIconBase);
+const cssSortIconButton = styled(unstyledButton, cssSortIconBase);
 const cssLabel = styled(cssCheckboxLabel, `
   align-items: center;
   font-weight: initial;   /* negate bootstrap */
+  flex-grow: 1;
 `);
 const cssToken = styled('div', `
   margin-left: 8px;

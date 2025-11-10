@@ -368,7 +368,6 @@ export class GristWebDriverUtils {
       await this.setWindowDimensions(width, height);
     });
     after(async () => {
-      if (noCleanup) { return; }
       await this.setWindowDimensions(oldDimensions.width, oldDimensions.height);
     });
   }

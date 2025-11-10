@@ -22,10 +22,10 @@ const BLACKLISTED_SUBDOMAINS = new Set([
   'google', 'apple', 'microsoft', 'ms', 'facebook', 'fb', 'twitter', 'youtube', 'yt',
 
   // updates for new special domains
-  'current', 'staging', 'prod', 'login', 'login-dev',
+  'current', 'staging', 'prod', 'login', 'login-dev', 'login-s',
 
   // some domains that look suspicious
-  '1ogin', '1ogin-dev'
+  '1ogin', '1ogin-dev', '1ogin-s'
 ]);
 
 /**

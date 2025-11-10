@@ -3,6 +3,7 @@ import {ApiError, LimitType} from 'app/common/ApiError';
 import {mapGetOrSet, mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {ConfigKey, ConfigValue} from 'app/common/Config';
 import {getDataLimitInfo} from 'app/common/DocLimits';
+import {DocStateComparison} from 'app/common/DocState';
 import {createEmptyOrgUsageSummary, DocumentUsage, OrgUsageSummary} from 'app/common/DocUsage';
 import {normalizeEmail} from 'app/common/emails';
 import {
@@ -18,9 +19,10 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {checkSubdomainValidity} from 'app/common/orgNameUtils';
 import {DocPrefs, FullDocPrefs} from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
-import {StringUnion} from 'app/common/StringUnion';
+import {UserType} from 'app/common/User';
 import {
   ANONYMOUS_USER_EMAIL,
+  Proposal as ApiProposal,
   DocumentProperties,
   EVERYONE_EMAIL,
   getRealAccess,
@@ -31,9 +33,10 @@ import {
   PermissionData,
   PermissionDelta,
   PREVIEWER_EMAIL,
+  ProposalStatus,
   UserAccessData,
   UserOptions,
-  WorkspaceProperties
+  WorkspaceProperties,
 } from 'app/common/UserAPI';
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
 import {Alias} from 'app/gen-server/entity/Alias';
@@ -52,7 +55,9 @@ import {
   personalFreeFeatures,
   Product
 } from 'app/gen-server/entity/Product';
+import {Proposal} from 'app/gen-server/entity/Proposal';
 import {Secret} from 'app/gen-server/entity/Secret';
+import {ServiceAccount} from 'app/gen-server/entity/ServiceAccount';
 import {Share} from 'app/gen-server/entity/Share';
 import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
@@ -65,16 +70,19 @@ import {
   DocumentAccessChanges,
   GetUserOptions,
   GroupWithMembersDescriptor,
+  HomeDBAuth,
   NonGuestGroup,
   OrgAccessChanges,
   PreviousAndCurrent,
   QueryResult,
   Resource,
   RoleGroupDescriptor,
+  ServiceAccountProperties,
   UserProfileChange,
   WorkspaceAccessChanges
 } from 'app/gen-server/lib/homedb/Interfaces';
 import {SUPPORT_EMAIL, UsersManager} from 'app/gen-server/lib/homedb/UsersManager';
+import {ServiceAccountsManager} from 'app/gen-server/lib/homedb/ServiceAccountsManager';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {scrubUserFromOrg} from 'app/gen-server/lib/scrubUserFromOrg';
 import {applyPatch, maybePrepareStatement} from 'app/gen-server/lib/TypeORMPatches';
@@ -91,7 +99,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {getOrCreateConnection} from 'app/server/lib/dbUtils';
 import {StorageCoordinator} from 'app/server/lib/GristServer';
 import {makeId} from 'app/server/lib/idUtils';
-import {EmptyNotifier, INotifier} from 'app/server/lib/INotifier';
+import {EmitNotifier, INotifier} from 'app/server/lib/INotifier';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
 import {IPubSubManager} from 'app/server/lib/PubSubManager';
@@ -112,7 +120,6 @@ import {
 } from 'typeorm';
 import {v4 as uuidv4} from 'uuid';
 
-
 // Support transactions in Sqlite in async code.  This is a monkey patch, affecting
 // the prototypes of various TypeORM classes.
 // TODO: remove this patch if the issue is ever accepted as a problem in TypeORM and
@@ -120,20 +127,6 @@ import {v4 as uuidv4} from 'uuid';
 applyPatch();
 
 export { SUPPORT_EMAIL };
-export const NotifierEvents = StringUnion(
-  'addUser',
-  'userChange',
-  'firstLogin',
-  'addBillingManager',
-  'teamCreator',
-  'trialPeriodEndingSoon',
-  'trialingSubscription',
-  'scheduledCall',
-  'twoFactorStatusChanged',
-  'docNotification',
-);
-
-export type NotifierEvent = typeof NotifierEvents.type;
 
 export const Deps = {
   defaultMaxNewUserInvitesPerOrg: {
@@ -288,11 +281,13 @@ export type BillingOptions = Partial<Pick<BillingAccount,
  * HomeDBManager handles interaction between the ApiServer and the Home database,
  * encapsulating the typeorm logic.
  */
-export class HomeDBManager {
+export class HomeDBManager implements HomeDBAuth {
   public caches: HomeDBCaches|null;
-
   private _usersManager = new UsersManager(this, this.runInTransaction.bind(this));
   private _groupsManager = new GroupsManager(this._usersManager, this.runInTransaction.bind(this));
+  private _serviceAccountsManager = new ServiceAccountsManager(
+    this, this.runInTransaction.bind(this)
+  );
   private _connection: DataSource;
   private _exampleWorkspaceId: number;
   private _exampleOrgId: number;
@@ -309,7 +304,7 @@ export class HomeDBManager {
 
   public constructor(
     public storageCoordinator?: StorageCoordinator,
-    private _notifier: INotifier = EmptyNotifier,
+    private _notifier: INotifier = new EmitNotifier(),
     pubSubManager?: IPubSubManager,
   ) {
     this.caches = pubSubManager ? new HomeDBCaches(this, pubSubManager) : null;
@@ -464,6 +459,10 @@ export class HomeDBManager {
     return this._usersManager.getFullUser(userId);
   }
 
+  public async getUserAndEnsureUnsubscribeKey(userId: number) {
+    return this._usersManager.getUserAndEnsureUnsubscribeKey(userId);
+  }
+
   /**
    * @see UsersManager.prototype.makeFullUser
    */
@@ -506,8 +505,8 @@ export class HomeDBManager {
   /**
    * @see UsersManager.prototype.getUserByLogin
    */
-  public async getUserByLogin(email: string, options: GetUserOptions = {}): Promise<User> {
-    return this._usersManager.getUserByLogin(email, options);
+  public async getUserByLogin(email: string, options: GetUserOptions = {}, type: UserType = 'login'): Promise<User> {
+    return this._usersManager.getUserByLogin(email, options, type);
   }
 
   /**
@@ -1051,7 +1050,20 @@ export class HomeDBManager {
       }
       qb = this._addIsSupportWorkspace(userId, qb, 'orgs', 'workspaces');
       qb = this._addFeatures(qb);  // add features to determine whether we've gone readonly
-      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb));
+
+      // We need to check if the current user is disabled or not. In
+      // order to avoid another DB round trip, we piggyback with an
+      // unconditional table join here.
+      //
+      // Note that we only run this check here because this method is
+      // used for websocket communication. There's no danger currently
+      // in other HomeDB methods of leaking access to disabled users,
+      // so we keep this unusual join localised here, in order to
+      // minimise the cost of the DB query.
+      qb = qb.leftJoin(User, 'users', 'users.id = :userId', {userId});
+      qb = qb.addSelect('users.disabled_at', 'users_disabled_at');
+
+      const docs = this.unwrapQueryResult<Document[]>(await this._verifyAclPermissions(qb, {checkDisabledUser: true}));
       if (docs.length === 0) { throw new ApiError('document not found', 404); }
       if (docs.length > 1) { throw new ApiError('ambiguous document request', 400); }
       doc = docs[0];
@@ -1858,7 +1870,10 @@ export class HomeDBManager {
   public async updateDocument(
     scope: DocScope,
     props: Partial<DocumentProperties>,
-    transaction?: EntityManager
+    transaction?: EntityManager,
+    options?: {
+      allowSpecialPermit?: boolean,
+    }
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
     const notifications: Array<() => Promise<void>> = [];
     const markPermissions = Permissions.SCHEMA_EDIT;
@@ -1868,11 +1883,13 @@ export class HomeDBManager {
       if (forkId) {
         query = this._fork(scope, {
           manager,
+          allowSpecialPermit: options?.allowSpecialPermit,
         });
       } else {
         query = this._doc(scope, {
           manager,
           markPermissions,
+          allowSpecialPermit: options?.allowSpecialPermit,
         });
       }
       const queryResult = await verifyEntity(query);
@@ -2583,25 +2600,7 @@ export class HomeDBManager {
     const notifications: Array<() => Promise<void>> = [];
     const result = await this._connection.transaction(async manager => {
       // Get the doc
-      const docQuery = this._doc(scope, {
-        manager,
-        markPermissions: Permissions.OWNER
-      })
-      .leftJoinAndSelect('docs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'doc_groups')
-      .leftJoinAndSelect('doc_groups.memberUsers', 'doc_users')
-      .leftJoinAndSelect('workspaces.aclRules', 'workspace_acl_rules')
-      .leftJoinAndSelect('workspace_acl_rules.group', 'workspace_groups')
-      .leftJoinAndSelect('workspace_groups.memberUsers', 'workspace_users')
-      .leftJoinAndSelect('orgs.aclRules', 'org_acl_rules')
-      .leftJoinAndSelect('org_acl_rules.group', 'org_groups')
-      .leftJoinAndSelect('org_groups.memberUsers', 'org_users');
-      const docQueryResult = await verifyEntity(docQuery);
-      if (docQueryResult.status !== 200) {
-        // If the query for the doc failed, return the failure result.
-        return docQueryResult;
-      }
-      const doc = getDocResult(docQueryResult);
+      const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -3412,6 +3411,110 @@ export class HomeDBManager {
     return new Map<number|null, DocPrefs>(records.map(r => [r.userId, r.prefs]));
   }
 
+  public setProposal(options: {
+    srcDocId: string,
+    destDocId: string,
+    comparison: DocStateComparison
+    retracted?: boolean
+  }) {
+    return this._connection.transaction(async manager => {
+      const maxRow = await manager.createQueryBuilder()
+        .from(Proposal, 'proposals')
+        .select("MAX(proposals.short_id)", "max")
+        .where("proposals.dest_doc_id = :docId", { docId: options.destDocId })
+        .getRawOne<{ max: number }>();
+      const shortId = (maxRow?.max || 0) + 1;
+      const status: ProposalStatus = options?.retracted ? { status: 'retracted' } : {};
+      await manager.createQueryBuilder()
+        .insert()
+        .into(Proposal, ['srcDocId', 'destDocId', 'comparison', 'shortId', 'status', 'updatedAt', 'appliedAt'])
+        .values({
+          srcDocId: options.srcDocId,
+          destDocId: options.destDocId,
+          comparison: {comparison: options.comparison},
+          status,
+          appliedAt: null,
+          shortId,
+        })
+        .orUpdate(['comparison', 'status', 'updated_at', 'applied_at'], ['src_doc_id', 'dest_doc_id'])
+        .execute();
+      this.unwrapQueryResult(await this.updateDocument({
+        urlId: options.destDocId,
+        userId: this.getPreviewerUserId(),
+        specialPermit: {
+          docId: options.destDocId,
+        }
+      }, {
+        options: {
+          proposedChanges: {
+            mayHaveProposals: true,
+          },
+        },
+      }, manager, {
+        allowSpecialPermit: true,
+      }));
+      const proposal = await manager.createQueryBuilder()
+        .from(Proposal, 'proposals')
+        .select('proposals')
+        .where("proposals.dest_doc_id = :destDocId", { destDocId: options.destDocId })
+        .andWhere("proposals.src_doc_id = :srcDocId", { srcDocId: options.srcDocId })
+        .getOneOrFail();
+      return this._normalizeQueryResults(proposal);
+    });
+  }
+
+  public async updateProposalStatus(destDocId: string, shortId: number,
+                              status: ProposalStatus) {
+    const timestamp = new Date();
+    const result = await this._connection.createQueryBuilder()
+      .update(Proposal)
+      .set({
+        status,
+        updatedAt: timestamp,
+        ...(status.status === 'applied') ? {
+          appliedAt: timestamp
+        } : {}
+      })
+      .where('shortId = :shortId', {shortId})
+      .andWhere('destDocId = :destDocId', {destDocId})
+      .execute();
+    return result;
+  }
+
+  public async getProposals(options: {
+    srcDocId?: string,
+    destDocId?: string,
+    shortId?: number,
+  }): Promise<ApiProposal[]> {
+    const result = await this._connection.createQueryBuilder()
+      .select('proposals')
+      .from(Proposal, 'proposals')
+      .leftJoinAndSelect('proposals.srcDoc', 'src_doc')
+      .leftJoinAndSelect('src_doc.creator', 'src_creator')
+      .leftJoinAndSelect('src_creator.logins', 'src_logins')
+      .leftJoinAndSelect('proposals.destDoc', 'dest_doc')
+      .leftJoinAndSelect('dest_doc.creator', 'dest_creator')
+      .leftJoinAndSelect('dest_creator.logins', 'dest_logins')
+      .where(options)
+      .orderBy('proposals.short_id', 'DESC')
+      .getMany();
+    return this._normalizeQueryResults(result);
+  }
+
+  public async getProposal(destDocId: string, shortId: number,
+                           transaction?: EntityManager): Promise<ApiProposal> {
+    const result = await (transaction || this._connection).createQueryBuilder()
+      .select('proposals')
+      .from(Proposal, 'proposals')
+      .leftJoinAndSelect('proposals.srcDoc', 'src_doc')
+      .leftJoinAndSelect('src_doc.creator', 'src_creator')
+      .leftJoinAndSelect('src_creator.logins', 'src_logins')
+      .where('proposals.shortId = :shortId', {shortId})
+      .andWhere('proposals.destDocId = :destDocId', {destDocId})
+      .getOne();
+    return this._normalizeQueryResults(result);
+  }
+
   /**
    * Run an operation in an existing transaction if available, otherwise create
    * a new transaction for it.
@@ -3430,6 +3533,72 @@ export class HomeDBManager {
   // Convenient helpers for database utilities that depend on _dbType.
   public makeJsonArray(content: string): string { return makeJsonArray(this._dbType, content); }
   public readJson(selection: any) { return readJson(this._dbType, selection); }
+
+  // This method is implemented for test purpose only
+  // Using it outside of tests context will lead to partial db
+  // destruction
+  public async testDeleteAllServiceAccounts() {
+    return this._serviceAccountsManager.testDeleteAllServiceAccounts();
+  }
+
+  public async createServiceAccount(
+    ownerId: number,
+    props?: ServiceAccountProperties
+  ) {
+    return this._serviceAccountsManager.createServiceAccount(ownerId, props);
+  }
+
+  public async getOwnedServiceAccounts(ownerId: number) {
+    return this._serviceAccountsManager.getOwnedServiceAccounts(ownerId);
+  }
+
+  public assertServiceAccountExistingAndOwned(
+    serviceAccount: ServiceAccount|null, expectedOwnerId: number
+  ): asserts serviceAccount is ServiceAccount {
+    return this._serviceAccountsManager.assertServiceAccountExistingAndOwned(serviceAccount, expectedOwnerId);
+  }
+
+  public async getServiceAccount(serviceId: number) {
+    return this._serviceAccountsManager.getServiceAccount(serviceId);
+  }
+
+  public async getServiceAccountWithOwner(serviceId: number) {
+    return this._serviceAccountsManager.getServiceAccountWithOwner(serviceId);
+  }
+
+  public async getServiceAccountByLoginWithOwner(login: string) {
+    return this._serviceAccountsManager.getServiceAccountByLoginWithOwner(login);
+  }
+
+  public async updateServiceAccount(
+    serviceId: number, partial: Partial<ServiceAccount>, options: { expectedOwnerId?: number } = {}
+  ) {
+    return this._serviceAccountsManager.updateServiceAccount(serviceId, partial, options);
+  }
+
+  public async deleteServiceAccount(serviceId: number, options: { expectedOwnerId?: number } = {}){
+    return this._serviceAccountsManager.deleteServiceAccount(serviceId, options);
+  }
+
+  public async createServiceAccountApiKey(serviceId: number, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.createServiceAccountApiKey(serviceId, options);
+  }
+
+  public async deleteServiceAccountApiKey(serviceId: number, options: {expectedOwnerId?: number} = {}) {
+    return this._serviceAccountsManager.deleteServiceAccountApiKey(serviceId, options);
+  }
+
+  public async getApiKey(userId: number) {
+    return this._usersManager.getApiKey(userId);
+  }
+
+  public async createApiKey(userId: number, force: boolean, transaction?: EntityManager) {
+    return this._usersManager.createApiKey(userId, force, transaction);
+  }
+
+  public async deleteApiKey(userId: number, transaction?: EntityManager) {
+    return this._usersManager.deleteApiKey(userId, transaction);
+  }
 
   private async _doGetDocPrefs(scope: DocScope, manager: EntityManager): Promise<[Document, FullDocPrefs]> {
     const {urlId: docId, userId} = scope;
@@ -4453,6 +4622,8 @@ export class HomeDBManager {
       scope?: Scope,
       // If permissions have been marked, check them
       markedPermissions?: boolean,
+      // Requires having `users_disabled_at` in the query result
+      checkDisabledUser?: boolean,
     } = {}
   ): Promise<QueryResult<T[]>> {
     if (Deps.usePreparedStatements) {
@@ -4462,6 +4633,23 @@ export class HomeDBManager {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
+
+    if (options.checkDisabledUser) {
+      if (results.raw.some(entry => entry.users_disabled_at === undefined)) {
+        throw new Error('checkDisabledUser requested but users_disabled_at is undefined');
+      }
+
+      // Disabled users shouldn't be able to even log in, but if they
+      // got this far (for example they have an existing websocket
+      // connexion), they shouldn't be able to have any document
+      // access.
+      if (results.raw.some(entry => entry.users_disabled_at !== null)) {
+        return {
+          status: 403,
+          errMessage: "access denied",
+        };
+      }
+    }
     if (options.markedPermissions) {
       if (!results.raw.every(entry => entry.is_permitted)) {
         return {
@@ -4986,20 +5174,25 @@ export class HomeDBManager {
                                transaction?: EntityManager): Promise<Document> {
     return await this.runInTransaction(transaction, async manager => {
 
-      const docQuery = this._doc(scope, {manager, markPermissions})
-      // Join the doc's ACL rules and groups/users so we can edit them.
+      const docQuery = this._doc(scope, {manager, markPermissions});
+      const queryResult = await verifyEntity(docQuery);
+      this.checkQueryResult(queryResult);
+      const doc = getDocResult(queryResult);
+
+      // Retrieve the doc's ACL rules and groups/users so we can edit them.
+      // We do this as a separate query to avoid repeating the document
+      // row (which can be particulary costly since the main document
+      // query contains some non-trivial subqueries and postgres
+      // will re-execute them for each repeated document row).
+      const aclQuery = this._docs(manager)
+      .where({ id: doc.id })
       .leftJoinAndSelect('docs.aclRules', 'acl_rules')
       .leftJoinAndSelect('acl_rules.group', 'doc_groups')
       .leftJoinAndSelect('doc_groups.memberUsers', 'doc_group_users')
       .leftJoinAndSelect('doc_groups.memberGroups', 'doc_group_groups')
-      .leftJoinAndSelect('doc_group_users.logins', 'doc_user_logins')
-      // Join the workspace so we know what should be inherited.  We will join
-      // the workspace member groups/users as a separate query, since
-      // SQL results are flattened, and multiplying the number of rows we have already
-      // by the number of workspace users could get excessive.
-      .leftJoinAndSelect('docs.workspace', 'workspace');
-      const queryResult = await verifyEntity(docQuery);
-      const doc: Document = this.unwrapQueryResult(queryResult);
+      .leftJoinAndSelect('doc_group_users.logins', 'doc_user_logins');
+      const aclDoc: Document = (await aclQuery.getOne())!;
+      doc.aclRules = aclDoc.aclRules;
 
       // Load the workspace's member groups/users.
       const workspaceQuery = this._workspace(scope, doc.workspace.id, {manager})

@@ -9,7 +9,8 @@ import { User } from "app/gen-server/entity/User";
 import { Workspace } from "app/gen-server/entity/Workspace";
 
 import { EntityManager } from "typeorm";
-import { GroupTypes } from "./GroupsManager";
+import { GroupTypes } from "app/gen-server/lib/homedb/GroupsManager";
+import { ServiceAccount } from 'app/gen-server/entity/ServiceAccount';
 
 export interface QueryResult<T> {
   status: number;
@@ -31,6 +32,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
+  disabledAt?: Date|null;
   options?: Partial<UserOptions>;
 }
 
@@ -88,6 +90,8 @@ interface AccessChanges {
   >;
 }
 
+export type ServiceAccountProperties = Partial<Pick<ServiceAccount, 'label' | 'description' | 'expiresAt'>>;
+
 // Identifies a request to access a document. This combination of values is also used for caching
 // DocAuthResult for DOC_AUTH_CACHE_TTL.  Other request scope information is passed along.
 export interface DocAuthKey {
@@ -119,6 +123,7 @@ export interface HomeDBAuth {
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
   getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
+  getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount|null>;
   makeFullUser(user: User): FullUser;
 }
 

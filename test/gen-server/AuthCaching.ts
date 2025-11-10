@@ -1,5 +1,6 @@
 import {delay} from 'app/common/delay';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {Deps} from 'app/server/lib/DocClients';
 import {FlexServer} from 'app/server/lib/FlexServer';
 import log from 'app/server/lib/log';
 import {MergedServer} from 'app/server/MergedServer';
@@ -50,8 +51,6 @@ describe('AuthCaching', function() {
     setUpDB();
     await createInitialDb();
     process.env.GRIST_DATA_DIR = testDocDir;
-    // Disables user presence features which cause additional cache hits / misses.
-    process.env.GRIST_ENABLE_USER_PRESENCE = 'false';
 
     const homeMS = await MergedServer.create(0, ['home'],
       {logToConsole: false, externalStorage: false});
@@ -79,10 +78,13 @@ describe('AuthCaching', function() {
     assert.equal(resp.status, 200);
   });
 
+  beforeEach(function() {
+    // Disables user presence features which cause additional cache hits / misses.
+    sandbox.stub(Deps, "ENABLE_USER_PRESENCE").value(false);
+  });
+
   after(async function() {
     delete process.env.GRIST_DATA_DIR;
-    delete process.env.GRIST_ENABLE_USER_PRESENCE;
-    sandbox.restore();
     await testUtils.captureLog('warn', async () => {
       await docsServer.close();
       await homeServer.close();

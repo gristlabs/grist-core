@@ -88,9 +88,8 @@ export class ChoiceTextBox extends NTextBox {
     ];
   }
 
-  public buildTransformConfigDom(gristDoc: GristDoc) {
+  public buildTransformConfigDom() {
     return [
-      super.buildConfigDom(gristDoc),
       this.buildChoicesConfigDom(),
     ];
   }

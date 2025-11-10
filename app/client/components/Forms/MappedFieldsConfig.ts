@@ -6,6 +6,8 @@ import {squareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
+import {visuallyHiddenStyles} from 'app/client/ui2018/visuallyHidden';
 import {Computed, Disposable, dom, fromKo, makeTestId, Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 
@@ -66,64 +68,76 @@ export class MappedFieldsConfig extends Disposable {
     };
 
     return [
-      cssHeader(
-        cssFieldListHeader(dom.text(t("Mapped"))),
-        selectAllLabel(
-          dom.on('click', () => {
-            mappedColumns.get().forEach((col) => col.selected.set(true));
-          }),
-          dom.show(/* any mapped columns */ use => use(mappedColumns).length > 0),
+      dom('div', {role: 'group', 'aria-labelledby': 'mapped-fields-label'},
+        cssHeader(
+          cssFieldListHeader(
+            dom.text(t("Mapped")),
+            {id: 'mapped-fields-label'},
+          ),
+          selectAllLabel(
+            dom.on('click', () => {
+              mappedColumns.get().forEach((col) => col.selected.set(true));
+            }),
+            dom.show(/* any mapped columns */ use => use(mappedColumns).length > 0),
+            {"aria-describedby": 'mapped-fields-label'},
+          ),
+        ),
+        dom('div',
+          testId('visible-fields'),
+          dom.forEach(mappedColumns, (field) => {
+            return this._buildMappedField(field);
+          })
+        ),
+        dom.maybe(anyMappedSelected, () =>
+          cssRow(
+            primaryButton(
+              dom.text(t("Unmap fields")),
+              dom.on('click', unMapSelected),
+              testId('visible-hide'),
+            ),
+            basicButton(
+              t("Clear"),
+              dom.on('click', () => mappedColumns.get().forEach((col) => col.selected.set(false))),
+              testId('visible-clear')
+            ),
+            testId('visible-batch-buttons')
+          ),
         ),
       ),
-      dom('div',
-        testId('visible-fields'),
-        dom.forEach(mappedColumns, (field) => {
-          return this._buildMappedField(field);
-        })
-      ),
-      dom.maybe(anyMappedSelected, () =>
-        cssRow(
-          primaryButton(
-            dom.text(t("Unmap fields")),
-            dom.on('click', unMapSelected),
-            testId('visible-hide'),
+      dom('div', {role: 'group', 'aria-labelledby': 'unmapped-fields-label'},
+        cssHeader(
+          cssFieldListHeader(
+            dom.text(t("Unmapped")),
+            {id: 'unmapped-fields-label'},
           ),
-          basicButton(
-            t("Clear"),
-            dom.on('click', () => mappedColumns.get().forEach((col) => col.selected.set(false))),
-            testId('visible-clear')
+          selectAllLabel(
+            dom.on('click', () => {
+              unmappedColumns.get().forEach((col) => col.selected.set(true));
+            }),
+            dom.show(/* any unmapped columns */ use => use(unmappedColumns).length > 0),
+            {"aria-describedby": 'unmapped-fields-label'},
           ),
-          testId('visible-batch-buttons')
         ),
-      ),
-      cssHeader(
-        cssFieldListHeader(t("Unmapped")),
-        selectAllLabel(
-          dom.on('click', () => {
-            unmappedColumns.get().forEach((col) => col.selected.set(true));
-          }),
-          dom.show(/* any unmapped columns */ use => use(unmappedColumns).length > 0),
+        dom('div',
+          testId('hidden-fields'),
+          dom.forEach(unmappedColumns, (field) => {
+            return this._buildUnmappedField(field);
+          })
         ),
-      ),
-      dom('div',
-        testId('hidden-fields'),
-        dom.forEach(unmappedColumns, (field) => {
-          return this._buildUnmappedField(field);
-        })
-      ),
-      dom.maybe(anyUnmappedSelected, () =>
-        cssRow(
-          primaryButton(
-            dom.text(t("Map fields")),
-            dom.on('click', mapSelected),
-            testId('hidden-show'),
+        dom.maybe(anyUnmappedSelected, () =>
+          cssRow(
+            primaryButton(
+              dom.text(t("Map fields")),
+              dom.on('click', mapSelected),
+              testId('hidden-show'),
+            ),
+            basicButton(
+              t("Clear"),
+              dom.on('click', () => unmappedColumns.get().forEach((col) => col.selected.set(false))),
+              testId('hidden-clear')
+            ),
+            testId('visible-batch-buttons')
           ),
-          basicButton(
-            t("Clear"),
-            dom.on('click', () => unmappedColumns.get().forEach((col) => col.selected.set(false))),
-            testId('hidden-clear')
-          ),
-          testId('visible-batch-buttons')
         ),
       ),
     ];
@@ -146,13 +160,18 @@ export class MappedFieldsConfig extends Disposable {
       cssSimpleDragger(),
       cssFieldEntry(
         cssFieldLabel(dom.text(column.label)),
-        cssHideIcon('EyeShow',
+        cssHideIconButton(
+          icon('EyeShow'),
           testId('hide'),
           dom.on('click', () => {
             allCommands.showColumns.run([column.colId.peek()]);
           }),
+          dom.attr('aria-label', (use) => t("Unmap {{label}}", {label: use(column.label)})),
         ),
-        cssSquareCheckbox(props.selected),
+        cssSquareCheckbox(
+          props.selected,
+          dom.attr('aria-label', (use) => t("Unmap {{label}} (batch mode)", {label: use(column.label)})),
+        ),
       ),
     );
   }
@@ -167,13 +186,18 @@ export class MappedFieldsConfig extends Disposable {
       ),
       cssFieldEntry(
         cssFieldLabel(dom.text(column.label)),
-        cssHideIcon('EyeHide',
+        cssHideIconButton(
+          icon('EyeHide'),
           testId('hide'),
+          dom.attr('aria-label', (use) => t("Hide {{label}}", {label: use(column.label)})),
           dom.on('click', () => {
             allCommands.hideFields.run([column.colId.peek()]);
           }),
         ),
-        cssSquareCheckbox(props.selected),
+        cssSquareCheckbox(
+          props.selected,
+          dom.attr('aria-label', (use) => t("Hide {{label}} (batch mode)", {label: use(column.label)})),
+        ),
       ),
     );
   }
@@ -183,12 +207,12 @@ function selectAllLabel(...args: any[]) {
   return cssControlLabel(
     testId('select-all'),
     icon('Tick'),
-    dom('span', t("Select All")),
+    dom('span', t("Select all")),
     ...args
   );
 }
 
-const cssControlLabel = styled('div', `
+const cssControlLabel = styled(unstyledButton, `
   --icon-color: ${theme.controlFg};
   color: ${theme.controlFg};
   cursor: pointer;
@@ -229,14 +253,13 @@ const cssSimpleDragger = styled(cssDragger, `
   }
 `);
 
-const cssHideIcon = styled(icon, `
+const cssHideIconButton = styled(unstyledButton, `
   --icon-color: ${theme.lightText};
-  display: none;
-  cursor: pointer;
+  line-height: 1;
   flex: none;
   margin-right: 8px;
-  .${cssFieldEntry.className}:hover & {
-    display: block;
+  &:not(:focus, :focus-within, .${cssFieldEntry.className}:hover &) {
+    ${visuallyHiddenStyles}
   }
 `);
 
@@ -257,7 +280,6 @@ const cssFieldListHeader = styled('span', `
 const cssRow = styled('div', `
   display: flex;
   margin: 16px;
-  overflow: hidden;
   --icon-color: ${theme.lightText};
   & > .${cssButton.className} {
     margin-right: 8px;

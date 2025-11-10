@@ -34,7 +34,7 @@ import {IGristUrlState} from "app/common/gristUrls";
 import {urlState} from "app/client/models/gristUrlState";
 import {delay} from "app/common/delay";
 import {reportError} from "app/client/models/errors";
-import {cssBigIcon, cssCloseButton} from "./ExampleCard";
+import {cssBigIcon, cssCloseButton} from "app/client/ui/ExampleCard";
 
 const t = makeT('OnBoardingPopups');
 
@@ -143,6 +143,10 @@ class OnBoardingPopupsCtl extends Disposable {
   public async start() {
     this._showOverlay();
     await this._move(0);
+    if (this.isDisposed()) {
+      return;
+    }
+
     Mousetrap.setPaused(true);
     this.onDispose(() => {
       Mousetrap.setPaused(false);

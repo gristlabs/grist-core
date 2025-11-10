@@ -1,4 +1,9 @@
+import {makeT} from 'app/client/lib/localization';
+
+const t = makeT('commandList');
+
 export type CommandName =
+  | 'accessibility'
   | 'shortcuts'
   | 'help'
   | 'undo'
@@ -8,6 +13,7 @@ export type CommandName =
   | 'find'
   | 'findNext'
   | 'findPrev'
+  | 'closeSearchBar'
   | 'historyBack'
   | 'historyForward'
   | 'reloadPlugins'
@@ -73,6 +79,7 @@ export type CommandName =
   | 'editLabel'
   | 'editLayout'
   | 'historyPrevious'
+  | 'toggleCheckbox'
   | 'historyNext'
   | 'makeFormula'
   | 'unmakeFormula'
@@ -127,7 +134,7 @@ export type CommandName =
 export interface CommandDef {
   name: CommandName;
   keys: string[];
-  desc: string | null;
+  desc: (() => string) | null;
   bindKeys?: boolean;
   /**
    * When true, the command is always enabled, even in form inputs.
@@ -151,21 +158,26 @@ export const groups: CommendGroupDef[] = [{
   group: 'General',
   commands: [
     {
+      name: 'accessibility',
+      keys: ['F4'],
+      desc: () => t('Show accessibility options')
+    },
+    {
       name: 'shortcuts',
       keys: ['F1', 'Mod+/'],
-      desc: 'Display shortcuts pane'
+      desc: () => t('Display shortcuts pane')
     }, {
       name: 'help',
       keys: [],
-      desc: 'Display Grist documentation'
+      desc: () => t('Display Grist documentation')
     }, {
       name: 'undo',
       keys: ['Mod+z'],
-      desc: 'Undo last action'
+      desc: () => t('Undo last action')
     }, {
       name: 'redo',
       keys: ['Mod+Shift+Z', 'Ctrl+y' ],
-      desc: 'Redo last action'
+      desc: () => t('Redo last action')
     }, {
       name: 'accept',
       keys: ['Enter'],
@@ -177,15 +189,20 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'find',
       keys: ['Mod+f'],
-      desc: 'Find',
+      desc: () => t('Find'),
     }, {
       name: 'findNext',
       keys: ['Mod+g'],
-      desc: 'Find next occurrence',
+      desc: () => t('Find next occurrence'),
     }, {
       name: 'findPrev',
       keys: ['Mod+Shift+G'],
-      desc: 'Find previous occurrence',
+      desc: () => t('Find previous occurrence'),
+    }, {
+      name: 'closeSearchBar',
+      keys: ['Mod+Enter'],
+      desc: () => t('When in the search bar, close it and focus the current match'),
+      alwaysOn: true,
     }, {
       // Without this, when focus in on Clipboard, this shortcut would only move the cursor.
       name: 'historyBack',
@@ -214,92 +231,87 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'docTabOpen',
       keys: [],
-      desc: 'Shortcut to open document tab'
+      desc: () => t('Shortcut to open document tab')
     },
     {
       name: 'viewTabOpen',
       keys: [],
-      desc: 'Shortcut to open view tab'
+      desc: () => t('Shortcut to open view tab')
     },
     {
       name: 'viewTabFocus',
       keys: [],
-      desc: 'Shortcut to focus view tab if creator panel is open'
+      desc: () => t('Shortcut to focus view tab if creator panel is open')
     },
     {
       name: 'fieldTabOpen',
       keys: [],
-      desc: 'Shortcut to open field tab'
+      desc: () => t('Shortcut to open field tab')
     },
     {
       name: 'sortFilterTabOpen',
       keys: [],
-      desc: 'Shortcut to sort & filter tab'
+      desc: () => t('Shortcut to sort & filter tab')
     },
     {
       name: 'sortFilterMenuOpen',
       keys: [],
-      desc: 'Shortcut to open sort & filter menu'
+      desc: () => t('Shortcut to open sort & filter menu')
     },
     {
       name: 'dataSelectionTabOpen',
       keys: [],
-      desc: 'Shortcut to data selection tab'
+      desc: () => t('Shortcut to data selection tab')
     },
     {
       name: 'printSection',
       keys: [],
-      desc: 'Print currently selected page widget',
+      desc: () => t('Print currently selected page widget'),
     },
     {
       name: 'showRawData',
       keys: [],
-      desc: 'Show raw data widget for table of currently selected page widget',
+      desc: () => t('Show raw data widget for table of currently selected page widget'),
     },
     {
       name: 'openWidgetConfiguration',
       keys: [],
-      desc: 'Open Custom widget configuration screen',
+      desc: () => t('Open Custom widget configuration screen'),
     },
     {
       name: 'expandSection',
       keys: [],
-      desc: 'Maximize the active section',
+      desc: () => t('Maximize the active section'),
     },
     {
       name: 'leftPanelOpen',
       keys: [],
-      desc: 'Shortcut to open the left panel',
+      desc: () => t('Shortcut to open the left panel'),
     },
     {
       name: 'rightPanelOpen',
       keys: [],
-      desc: 'Shortcut to open the right panel',
+      desc: () => t('Shortcut to open the right panel'),
     },
     {
       name: 'activateAssistant',
       keys: [],
-      desc: 'Activate assistant',
-    },
-    {
-      name: 'viewAsCard',
-      keys: ['Space'],
-      desc: 'Show the record card widget of the selected record',
+      desc: () => t('Activate assistant'),
     },
     {
       name: 'showPopup',
       keys:[],
-      desc: 'showing a behavioral popup'
+      desc: () => t('showing a behavioral popup')
     },
     {
       name: 'createForm',
       keys: [],
-      desc: 'Creates form for active table',
+      desc: () => t('Creates form for active table'),
     },
     {
       name: 'insertField',
       keys: [],
-      desc: 'Insert new column in default location',
+      desc: () => t('Insert new column in default location'),
     }
   ]
 }, {
@@ -308,92 +320,96 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'cursorDown',
       keys: ['Down'],
-      desc: 'Move downward to next record or field'
+      desc: () => t('Move downward to next record or field')
     }, {
       name: 'cursorUp',
       keys: ['Up'],
-      desc: 'Move upward to previous record or field'
+      desc: () => t('Move upward to previous record or field')
     }, {
       name: 'cursorRight',
       keys: ['Right'],
-      desc: 'Move right to the next field'
+      desc: () => t('Move right to the next field')
     }, {
       name: 'cursorLeft',
       keys: ['Left'],
-      desc: 'Move left to the previous field'
+      desc: () => t('Move left to the previous field')
     }, {
       name: 'nextField',
       keys: ['Tab'],
-      desc: 'Move to the next field, saving changes if editing a value'
+      desc: () => t('Move to the next field, saving changes if editing a value')
     }, {
       name: 'prevField',
       keys: ['Shift+Tab'],
-      desc: 'Move to the previous field, saving changes if editing a value'
+      desc: () => t('Move to the previous field, saving changes if editing a value')
     }, {
       name: 'pageDown',
       keys: ['PageDown'],
-      desc: 'Move down one page of records, or to next record in a card list'
+      desc: () => t('Move down one page of records, or to next record in a card list')
     }, {
       name: 'pageUp',
       keys: ['PageUp'],
-      desc: 'Move up one page of records, or to previous record in a card list'
+      desc: () => t('Move up one page of records, or to previous record in a card list')
     }, {
       name: 'moveToFirstRecord',
       keys: ['Mod+Up'],
-      desc: 'Move up to the first record',
+      desc: () => t('Move up to the first record'),
     }, {
       name: 'moveToLastRecord',
       keys: ['Mod+Down'],
-      desc: 'Move down to the last record',
+      desc: () => t('Move down to the last record'),
     }, {
       name: 'moveToFirstField',
       keys: ['Home'],
-      desc: 'Move to the first field or the beginning of a row'
+      desc: () => t('Move to the first field or the beginning of a row')
     }, {
       name: 'moveToLastField',
       keys: ['End'],
-      desc: 'Move to the last field or the end of a row'
+      desc: () => t('Move to the last field or the end of a row')
     }, {
       // no longer used
       name: 'skipDown',
       keys: [],
-      desc: 'Move downward five records'
+      desc: () => t('Move downward five records')
     }, {
       // no longer used
       name: 'skipUp',
       keys: [],
-      desc: 'Move upward five records'
+      desc: () => t('Move upward five records')
     }, {
       name: 'setCursor',
       keys: [],
-      desc: 'Moves the cursor to the correct location'
+      desc: () => t('Moves the cursor to the correct location')
     }, {
       name: 'openDocumentList',
       keys: [],
-      desc: 'Opens document list'
+      desc: () => t('Opens document list')
     }, {
       name: 'nextPage',
       keys: ['Alt+Down'],
-      desc: 'Open next page'
+      desc: () => t('Open next page')
     }, {
       name: 'prevPage',
       keys: ['Alt+Up'],
-      desc: 'Open previous page'
+      desc: () => t('Open previous page')
     }, {
       name: 'nextRegion',
       keys: ['Mod+o'],
-      desc: 'Focus next page panel or widget',
+      desc: () => t('Focus next page panel or widget'),
       alwaysOn: true,
     }, {
       name: 'prevRegion',
       keys: ['Mod+Shift+O'],
-      desc: 'Focus previous page panel or widget',
+      desc: () => t('Focus previous page panel or widget'),
       alwaysOn: true,
     }, {
       name: 'creatorPanel',
       keys: ['Mod+Alt+o'],
-      desc: 'Toggle creator panel keyboard focus',
+      desc: () => t('Toggle creator panel keyboard focus'),
       alwaysOn: true,
+    }, {
+      name: 'viewAsCard',
+      keys: ['Space'],
+      desc: () => t('Show the record card widget of the selected record'),
     }
   ],
 }, {
@@ -402,47 +418,47 @@ export const groups: CommendGroupDef[] = [{
     {
      name: 'shiftDown',
      keys: ['Shift+Down'],
-     desc: 'Adds the element below the cursor to the selected range'
+     desc: () => t('Adds the element below the cursor to the selected range')
     }, {
      name: 'shiftUp',
      keys: ['Shift+Up'],
-     desc: 'Adds the element above the cursor to the selected range'
+     desc: () => t('Adds the element above the cursor to the selected range')
     }, {
      name: 'shiftRight',
      keys: ['Shift+Right'],
-     desc: 'Adds the element to the right of the cursor to the selected range'
+     desc: () => t('Adds the element to the right of the cursor to the selected range')
     }, {
      name: 'shiftLeft',
      keys: ['Shift+Left'],
-     desc: 'Adds the element to the left of the cursor to the selected range'
+     desc: () => t('Adds the element to the left of the cursor to the selected range')
     }, {
       name: 'ctrlShiftDown',
       keys: ['Mod+Shift+Down'],
-      desc: 'Adds all elements below the cursor to the selected range'
+      desc: () => t('Adds all elements below the cursor to the selected range')
     }, {
       name: 'ctrlShiftUp',
       keys: ['Mod+Shift+Up'],
-      desc: 'Adds all elements above the cursor to the selected range'
+      desc: () => t('Adds all elements above the cursor to the selected range')
     }, {
       name: 'ctrlShiftRight',
       keys: ['Mod+Shift+Right'],
-      desc: 'Adds all elements to the right of the cursor to the selected range'
+      desc: () => t('Adds all elements to the right of the cursor to the selected range')
     }, {
       name: 'ctrlShiftLeft',
       keys: ['Mod+Shift+Left'],
-      desc: 'Adds all elements to the left of the cursor to the selected range'
+      desc: () => t('Adds all elements to the left of the cursor to the selected range')
     }, {
       name: 'selectAll',
       keys: ['Mod+A'],
-      desc: 'Selects all currently displayed cells'
+      desc: () => t('Selects all currently displayed cells')
     }, {
       name: 'copyLink',
       keys: ['Mod+Shift+A'],
-      desc: 'Copy anchor link'
+      desc: () => t('Copy anchor link')
     }, {
       name: 'clearCopySelection',
       keys: [],
-      desc: 'Clears the current copy selection, if any'
+      desc: () => t('Clears the current copy selection, if any')
     }
   ],
 }, {
@@ -451,74 +467,79 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'editField',
       keys: ['Enter', 'F2'],
-      desc: 'Start editing the currently-selected cell'
+      desc: () => t('Start editing the currently-selected cell')
     }, {
       name: 'fieldEditSave',
       keys: ['Enter'],
-      desc: 'Finish editing a cell, saving the value'
+      desc: () => t('Finish editing a cell, saving the value')
+    }, {
+      // This only gets its own command so it can be listed as separate keyboard shortcut.
+      name: 'toggleCheckbox',
+      keys: ['Enter'],
+      desc: () => t('Toggle the currently selected checkbox or switch cell')
     }, {
       name: 'detachEditor',
       keys: [],
-      desc: 'Detach active editor'
+      desc: () => t('Detach active editor')
     }, {
       name: 'fieldEditSaveHere',
       keys: [],
-      desc: 'Finish editing a cell and save without moving to next record',
+      desc: () => t('Finish editing a cell and save without moving to next record'),
     }, {
       name: 'fieldEditCancel',
       keys: ['Escape'],
-      desc: 'Discard changes to a cell value'
+      desc: () => t('Discard changes to a cell value')
     }, {
       name: 'copy',
       keys: [],
-      desc: 'Copy current selection to clipboard'
+      desc: () => t('Copy current selection to clipboard')
     }, {
       name: 'cut',
       keys: [],
-      desc: 'Cut current selection to clipboard'
+      desc: () => t('Cut current selection to clipboard')
     }, {
       name: 'paste',
       keys: [],
-      desc: 'Paste clipboard contents at cursor',
+      desc: () => t('Paste clipboard contents at cursor'),
     }, {
       name: 'contextMenuCopy',
       keys: ['Mod+C'],
-      desc: 'Copy current selection to clipboard',
+      desc: () => t('Copy current selection to clipboard'),
       bindKeys: false,
     }, {
       name: 'contextMenuCopyWithHeaders',
       keys: [],
-      desc: 'Copy current selection to clipboard including headers',
+      desc: () => t('Copy current selection to clipboard including headers'),
     }, {
       name: 'contextMenuCut',
       keys: ['Mod+X'],
-      desc: 'Cut current selection to clipboard',
+      desc: () => t('Cut current selection to clipboard'),
       bindKeys: false,
     }, {
       name: 'contextMenuPaste',
       keys: ['Mod+V'],
-      desc: 'Paste clipboard contents at cursor',
+      desc: () => t('Paste clipboard contents at cursor'),
       bindKeys: false,
     }, {
       name: 'fillSelectionDown',
       keys: ['Mod+D'],
-      desc: 'Fills current selection with the contents of the top row in the selection'
+      desc: () => t('Fills current selection with the contents of the top row in the selection')
     }, {
       name: 'clearValues',
       keys: ['Backspace', 'Del'],
-      desc: 'Clears the currently selected cells'
+      desc: () => t('Clears the currently selected cells')
     }, {
       name: 'input',
       keys: [],
-      desc: 'Enter text into currently-selected cell and start editing'
+      desc: () => t('Enter text into currently-selected cell and start editing')
     }, {
       name: 'editLabel',
       keys: [],
-      desc: 'Edit label of the currently-selected field'
+      desc: () => t('Edit label of the currently-selected field')
     }, {
       name: 'editLayout',
       keys: [],
-      desc: 'Edit record layout'
+      desc: () => t('Edit record layout')
     }, {
       name: 'historyPrevious',
       keys: ['Up'],
@@ -530,7 +551,7 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'makeFormula',
       keys: ["="],
-      desc: 'When typed at the start of a cell, make this a formula column',
+      desc: () => t('When typed at the start of a cell, make this a formula column'),
     }, {
       name: 'unmakeFormula',
       keys: ['Backspace'],
@@ -538,11 +559,11 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'insertCurrentDate',
       keys: ['Mod+;'],
-      desc: 'Insert the current date',
+      desc: () => t('Insert the current date'),
     }, {
       name: 'insertCurrentDateTime',
       keys: ['Mod+Shift+;'],
-      desc: 'Insert the current date and time',
+      desc: () => t('Insert the current date and time'),
     }, {
       name: 'datepickerFocus',
       keys: ['Up', 'Down'],
@@ -550,7 +571,7 @@ export const groups: CommendGroupDef[] = [{
     }, {
       name: 'openDiscussion',
       keys: ['Mod+Alt+M'],
-      desc: 'Comment',
+      desc: () => t('Open comment thread'),
     }
   ],
 }, {
@@ -559,91 +580,91 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'insertRecordBefore',
       keys: ['Mod+Shift+Enter'],
-      desc: 'Insert a new record, before the currently selected one in an unsorted table'
+      desc: () => t('Insert a new record, before the currently selected one in an unsorted table')
     }, {
       name: 'insertRecordAfter',
       keys: ['Mod+Enter'],
-      desc: 'Insert a new record, after the currently selected one in an unsorted table',
-    }, {
-      name: 'deleteRecords',
-      keys: ['Mod+Del', 'Mod+Backspace'],
-      desc: 'Delete the currently selected record'
-    }, {
-      name: 'insertFieldBefore',
-      keys: ['Alt+Shift+='],
-      desc: 'Insert a new column, before the currently selected one'
-    }, {
-      name: 'insertFieldAfter',
-      keys: ['Alt+='],
-      desc: 'Insert a new column, after the currently selected one'
-    }, {
-      name: 'makeHeadersFromRow',
-      keys: ['Mod+Shift+H'],
-      desc: 'Use currently selected line as table headers'
-    }, {
-      name: 'renameField',
-      keys: ['Ctrl+m'],
-      desc: 'Rename the currently selected column'
-    }, {
-      name: 'hideFields',
-      keys: ['Alt+Shift+-'],
-      desc: 'Hide currently selected columns'
-    }, {
-      name: 'hideCardFields',
-      keys: [],
-      desc: 'Hide currently selected fields'
-    }, {
-      name: 'toggleFreeze',
-      keys: [],
-      desc: 'Freeze or unfreeze selected columns'
-    }, {
-      name: 'deleteFields',
-      keys: ['Alt+-'],
-      desc: 'Delete the currently selected columns'
-    }, {
-      name: 'clearColumns',
-      keys: [],
-      desc: 'Clear the selected columns'
-    }, {
-      name: 'convertFormulasToData',
-      keys: [],
-      desc: 'Convert the selected columns from formula to data'
-    }, {
-      name: 'addSection',
-      keys: [],
-      desc: 'Add a new viewsection to the currently active view'
-    }, {
-      name: 'deleteSection',
-      keys: [],
-      desc: 'Delete the currently active viewsection'
-    }, {
-      name: 'duplicateSection',
-      keys: [],
-      desc: 'Duplicate the currently active viewsection'
-    }, {
-      name: 'collapseSection',
-      keys: [],
-      desc: 'Collapse the currently active viewsection'
-    }, {
-      name: 'restoreSection',
-      keys: [],
-      desc: 'Expand collapsed viewsection'
-    }, {
-      name: 'deleteCollapsedSection',
-      keys: [],
-      desc: 'Delete collapsed viewsection'
+      desc: () => t('Insert a new record, after the currently selected one in an unsorted table'),
     }, {
       name: 'duplicateRows',
       keys: ['Mod+Shift+d'],
-      desc: 'Duplicate selected rows'
+      desc: () => t('Duplicate the currently selected record(s)'),
+    }, {
+      name: 'deleteRecords',
+      keys: ['Mod+Backspace', 'Mod+Del'],
+      desc: () => t('Delete the currently selected record(s)')
+    }, {
+      name: 'insertFieldBefore',
+      keys: ['Alt+Shift+='],
+      desc: () => t('Insert a new column, before the currently selected one')
+    }, {
+      name: 'insertFieldAfter',
+      keys: ['Alt+='],
+      desc: () => t('Insert a new column, after the currently selected one')
+    }, {
+      name: 'makeHeadersFromRow',
+      keys: ['Mod+Shift+H'],
+      desc: () => t('Use the currently selected row as table headers')
+    }, {
+      name: 'renameField',
+      keys: ['Ctrl+m'],
+      desc: () => t('Rename the currently selected column')
+    }, {
+      name: 'hideFields',
+      keys: ['Alt+Shift+-'],
+      desc: () => t('Hide the currently selected columns')
+    }, {
+      name: 'hideCardFields',
+      keys: [],
+      desc: () => t('Hide the currently selected fields')
+    }, {
+      name: 'toggleFreeze',
+      keys: [],
+      desc: () => t('Freeze or unfreeze selected columns')
+    }, {
+      name: 'deleteFields',
+      keys: ['Alt+-'],
+      desc: () => t('Delete the currently selected columns')
+    }, {
+      name: 'clearColumns',
+      keys: [],
+      desc: () => t('Clear the selected columns')
+    }, {
+      name: 'convertFormulasToData',
+      keys: [],
+      desc: () => t('Convert the selected columns from formula to data')
+    }, {
+      name: 'addSection',
+      keys: [],
+      desc: () => t('Add a new viewsection to the currently active view')
+    }, {
+      name: 'deleteSection',
+      keys: [],
+      desc: () => t('Delete the currently active viewsection')
+    }, {
+      name: 'duplicateSection',
+      keys: [],
+      desc: () => t('Duplicate the currently active viewsection')
+    }, {
+      name: 'collapseSection',
+      keys: [],
+      desc: () => t('Collapse the currently active viewsection')
+    }, {
+      name: 'restoreSection',
+      keys: [],
+      desc: () => t('Expand collapsed viewsection')
+    }, {
+      name: 'deleteCollapsedSection',
+      keys: [],
+      desc: () => t('Delete collapsed viewsection')
     }, {
       name: 'showColumns',
       keys: [],
-      desc: 'Show hidden columns'
+      desc: () => t('Show hidden columns')
     }, {
       name: 'pushUndoAction',
       keys: [],
-      desc: 'Push an undo action'
+      desc: () => t('Push an undo action')
     }
   ],
 }, {
@@ -652,19 +673,19 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'sortAsc',
       keys: [],
-      desc: 'Sort the view data by the currently selected field in ascending order'
+      desc: () => t('Sort the view data by the currently selected field in ascending order')
     }, {
       name: 'sortDesc',
       keys: [],
-      desc: 'Sort the view data by the currently selected field in descending order'
+      desc: () => t('Sort the view data by the currently selected field in descending order')
     }, {
       name: 'addSortAsc',
       keys: [],
-      desc: 'Adds the currently selected column(ascending) to the current view\'s sort spec'
+      desc: () => t('Adds the currently selected column(ascending) to the current view\'s sort spec')
     }, {
       name: 'addSortDesc',
       keys: [],
-      desc: 'Adds the currently selected column(descending) to the current view\'s sort spec'
+      desc: () => t('Adds the currently selected column(descending) to the current view\'s sort spec')
     },
 
   ],
@@ -674,7 +695,7 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'filterByThisCellValue',
       keys: [],
-      desc: `Filter this column by just this cell's value`,
+      desc: () => t("Filter this column by just this cell's value"),
     },
   ]
 }, {
@@ -683,27 +704,27 @@ export const groups: CommendGroupDef[] = [{
     {
       name: 'enterLinkMode',
       keys: [],
-      desc: 'Enters section linking mode in the current view'
+      desc: () => t('Enters section linking mode in the current view')
     }, {
       name: 'exitLinkMode',
       keys: [],
-      desc: 'Exits section linking mode in the current view'
+      desc: () => t('Exits section linking mode in the current view')
     }, {
       name: 'saveLinks',
       keys: [],
-      desc: 'Saves the sections links in the current view'
+      desc: () => t('Saves the sections links in the current view')
     }, {
       name: 'revertLinks',
       keys: [],
-      desc: 'Reverts the sections links to the saved links the current view'
+      desc: () => t('Reverts the sections links to the saved links the current view')
     }, {
       name: 'clearLinks',
       keys: [],
-      desc: 'Clears the section links in the current view'
+      desc: () => t('Clears the section links in the current view')
     }, {
       name: 'clearSectionLinks',
       keys: [],
-      desc: 'Clears the section links in the current viewsection'
+      desc: () => t('Clears the section links in the current viewsection')
     }
   ],
 }, {

@@ -1,4 +1,4 @@
-import { DocState } from 'app/common/UserAPI';
+import { DocState } from 'app/common/DocState';
 import { HashUtil } from 'app/server/lib/HashUtil';
 import { assert } from 'chai';
 

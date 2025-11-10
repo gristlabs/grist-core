@@ -23,8 +23,8 @@ import fetch, {Response as FetchResponse} from 'node-fetch';
 import stream from 'node:stream';
 import * as path from 'path';
 import * as tmp from 'tmp';
-import {IDocWorkerMap} from './DocWorkerMap';
-import {getDocWorkerInfoOrSelfPrefix} from './DocWorkerUtils';
+import {IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
+import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
 
 // After some time of inactivity, clean up the upload. We give an hour, which seems generous,
 // except that if one is toying with import options, and leaves the upload in an open browser idle
@@ -407,9 +407,13 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
   const [tmpDir, tmpCleanup]: [string, CleanupCB] = await fromCallback(
     (cb: any) => tmp.dir(fullOptions, cb), {multiArgs: true});
 
+  // The `tmp` library sometimes forcibly resolves the path,
+  // doing it here makes it predictable behaviour and resistant to library behaviour changes.
+  const realTmpDir = await fse.realpath(tmpDir);
+
   async function cleanupCallback() {
     // Using fs-extra is better because it's asynchronous.
-    await fse.remove(tmpDir);
+    await fse.remove(realTmpDir);
     try {
       // Still call the original callback, so that `tmp` module doesn't keep remembering about
       // this directory and doesn't try to delete it again on exit.
@@ -418,7 +422,7 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
       // OK if it fails because the dir is already removed.
     }
   }
-  return {tmpDir, cleanupCallback};
+  return {tmpDir: realTmpDir, cleanupCallback};
 }
 
 /**
@@ -457,7 +461,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     const {tmpDir, cleanupCallback} = await createTmpDir({});
     // Any name will do for the single file in tmpDir, but note that fileName may not be valid.
     const destPath = path.join(tmpDir, 'upload-content');
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const dest = fse.createWriteStream(destPath, {autoClose: true});
       response.body.on('error', reject);
       dest.on('error', reject);
@@ -490,7 +494,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
 export async function fetchDoc(
   server: GristServer,
   docWorkerMap: IDocWorkerMap,
-  docId: string,
+  urlId: string,
   req: Request,
   accessId: string|null,
   template: boolean
@@ -498,6 +502,8 @@ export async function fetchDoc(
   // Prepare headers that preserve credentials of current user.
   const headers = getTransitiveHeaders(req, { includeOrigin: false });
 
+  // Resolve urlId to the full docId needed to find the right doc worker.
+  const docId = (await server.getHomeDBManager().getRawDocById(urlId)).id;
   // Find the doc worker responsible for the document we wish to copy.
   // The backend needs to be well configured for this to work.
   const { selfPrefix, docWorker } = await getDocWorkerInfoOrSelfPrefix(docId, docWorkerMap, server.getTag());

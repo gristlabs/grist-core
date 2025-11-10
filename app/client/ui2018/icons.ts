@@ -51,7 +51,8 @@
 
 import { theme } from 'app/client/ui2018/cssVars';
 import { dom, DomElementArg, styled } from 'grainjs';
-import { IconName } from './IconList';
+import { IconName } from 'app/client/ui2018/IconList';
+import { unstyledButton } from 'app/client/ui2018/unstyled';
 
 /**
  * Defaults for all icons.
@@ -118,7 +119,7 @@ export const cssIconSpanBackground = styled(cssIconSpan, `
 /**
  * Container box for an icon to serve as a button..
  */
-export const cssIconButton = styled('div', `
+export const cssIconButton = styled(unstyledButton, `
   flex: none;
   height: 24px;
   width: 24px;
@@ -126,6 +127,7 @@ export const cssIconButton = styled('div', `
   border-radius: 3px;
   line-height: 0px;
   cursor: default;
+  outline-offset: -2px;
   --icon-color: ${theme.controlSecondaryFg};
   &:hover, &.weasel-popup-open {
     background-color: ${theme.controlSecondaryHoverBg};

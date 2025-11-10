@@ -1,5 +1,5 @@
 import { assert, driver, Key } from "mocha-webdriver";
-import { server, setupTestSuite } from "./testUtils";
+import { server, setupTestSuite } from "test/projects/testUtils";
 
 describe('PagesComponent', function() {
   setupTestSuite();
@@ -11,7 +11,7 @@ describe('PagesComponent', function() {
   });
 
   function findPage(name: RegExp) {
-    return driver.findContent('.test-treeview-label', name);
+    return driver.findContentWait('.test-treeview-label', name, 100);
   }
 
   async function beginRenaming(name: RegExp) {
@@ -28,7 +28,9 @@ describe('PagesComponent', function() {
     await beginRenaming(/Interactions/);
 
     // click on the right part of the text input
-    await driver.find('.test-docpage-editor').mouseMove({x: 100}).click();
+    await driver.find('.test-docpage-editor').click();
+
+    await driver.sendKeys(Key.END);  // move to the end
 
     // enter 'Renamed'
     await driver.sendKeys('Renamed', Key.ENTER);

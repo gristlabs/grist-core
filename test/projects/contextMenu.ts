@@ -1,4 +1,4 @@
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 import { addToRepl, assert, driver, Key } from 'mocha-webdriver';
 import { waitToPass } from 'test/nbrowser/gristUtils';
 import * as gu from 'test/nbrowser/gristUtils';
@@ -58,7 +58,7 @@ describe('contextMenu', function() {
     await contextMenu();
 
     // check action worked
-    await driver.findContent('.grist-floating-menu li', 'Reset').click();
+    await driver.findContentWait('.grist-floating-menu li', 'Reset', 100).click();
     assert.deepEqual(
       await driver.findAll('.test-logs', e => e.getText()),
       []
@@ -74,7 +74,7 @@ describe('contextMenu', function() {
     await driver.sendKeys(Key.ESCAPE);
 
     // check menu is closed
-    assert.equal(await driver.find('.grist-floating-menu').isPresent(), false);
+    await gu.waitForMenuToClose();
   });
 
   it('should support arrow navigation', async function() {

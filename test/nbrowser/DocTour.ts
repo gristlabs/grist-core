@@ -215,7 +215,7 @@ describe('DocTour', function () {
     const docId = (await session.tempDoc(cleanup, 'doctour.grist', {load: false})).id;
 
     // Load the doc with an anchor link containing an easter egg ("rr" instead of "r").
-    await session.loadDoc(`/doc/${docId}/doctour/p1/?#a1.s1.rr1.c2`);
+    await session.loadDoc(`/doc/${docId}/doctour/p/1#a1.s1.rr1.c2`);
 
     // Check that the doc tour isn't shown on doc load.
     await checkTourNotPresent();
@@ -230,6 +230,22 @@ describe('DocTour', function () {
     // Stop playing the easter egg.
     await driver.find('.test-gristdoc-stop-rick-rowing').click();
     await gu.assertIsRickRowing(false);
+
+    // Check that tours can still be started manually.
+    await driver.find('.test-tools-doctour').click();
+    await checkDocTourPresent();
+  });
+
+  it('should not show doctour if opening an anchor link', async () => {
+    // Create a doc with a tour on a personal site.
+    const session = await gu.session().user('user1').personalSite.login({showTips: true});
+    const docId = (await session.tempDoc(cleanup, 'doctour.grist', {load: false})).id;
+
+    // Load the doc with an anchor link.
+    await session.loadDoc(`/doc/${docId}/doctour/p/1#a1.s1.r1.c2`);
+
+    // Check that the doc tour isn't shown on doc load.
+    await checkTourNotPresent();
 
     // Check that tours can still be started manually.
     await driver.find('.test-tools-doctour').click();

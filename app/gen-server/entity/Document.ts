@@ -5,11 +5,12 @@ import {DocumentOptions, DocumentProperties, documentPropertyKeys, DocumentType,
         NEW_DOCUMENT_CODE} from "app/common/UserAPI";
 import {nativeValues} from 'app/gen-server/lib/values';
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn} from "typeorm";
-import {AclRuleDoc} from "./AclRule";
-import {Alias} from "./Alias";
-import {Resource} from "./Resource";
-import {Secret} from "./Secret";
-import {Workspace} from "./Workspace";
+import {AclRuleDoc} from "app/gen-server/entity/AclRule";
+import {Alias} from "app/gen-server/entity/Alias";
+import {Resource} from "app/gen-server/entity/Resource";
+import {Secret} from "app/gen-server/entity/Secret";
+import {User} from "app/gen-server/entity/User";
+import {Workspace} from "app/gen-server/entity/Workspace";
 
 // Acceptable ids for use in document urls.
 const urlIdRegex = /^[-a-z0-9]+$/i;
@@ -78,6 +79,10 @@ export class Document extends Resource {
 
   @Column({name: 'created_by', type: 'integer', nullable: true})
   public createdBy: number|null;
+
+  @ManyToOne(_type => User)
+  @JoinColumn({name: 'created_by'})
+  public creator: User;
 
   @Column({name: 'trunk_id', type: 'text', nullable: true})
   public trunkId: string|null;
@@ -149,6 +154,22 @@ export class Document extends Resource {
             this.options.appearance = this.options.appearance || {};
             if (props.options.appearance.icon !== undefined) {
               this.options.appearance.icon = props.options.appearance.icon;
+            }
+          }
+        }
+        if (props.options.proposedChanges !== undefined) {
+          if (props.options.proposedChanges === null) {
+            this.options.proposedChanges = null;
+          } else {
+            this.options.proposedChanges = this.options.proposedChanges || {};
+            // Merge individual properties, once there are more than one, following
+            // the example of appearance and tutorial above.
+            // TODO: add a helper? Seems a common pattern now.
+            if (props.options.proposedChanges.mayHaveProposals !== undefined) {
+              this.options.proposedChanges.mayHaveProposals = props.options.proposedChanges.mayHaveProposals;
+            }
+            if (props.options.proposedChanges.acceptProposals !== undefined) {
+              this.options.proposedChanges.acceptProposals = props.options.proposedChanges.acceptProposals;
             }
           }
         }

@@ -1,7 +1,7 @@
 import { CellValue, CellVersions } from 'app/common/DocActions';
 import { GristObjCode, GristType } from 'app/plugin/GristData';
 import isString = require('lodash/isString');
-import { removePrefix } from "./gutil";
+import { removePrefix } from "app/common/gutil";
 
 // tslint:disable:object-literal-key-quotes
 

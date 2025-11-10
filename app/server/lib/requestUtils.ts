@@ -28,7 +28,7 @@ export const TEST_HTTPS_OFFSET = process.env.GRIST_TEST_HTTPS_OFFSET ?
 const INTERNAL_FIELDS = new Set([
   'apiKey', 'billingAccountId', 'firstLoginAt', 'lastConnectionAt', 'filteredOut', 'ownerId', 'gracePeriodStart',
   'stripeCustomerId', 'stripeSubscriptionId', 'stripeProductId', 'userId', 'isFirstTimeUser', 'allowGoogleLogin',
-  'authSubject', 'usage', 'createdBy'
+  'authSubject', 'usage', 'createdBy', 'unsubscribeKey', 'disabledAt',
 ]);
 
 /**
@@ -360,6 +360,8 @@ export function optBooleanParam(p: any, name: string): boolean|undefined {
 
 export function booleanParam(p: any, name: string): boolean {
   if (typeof p === 'boolean') { return p; }
+  if (gutil.isAffirmative(p)) { return true; }
+  if (String(p) === 'false') { return false; }
   throw new ApiError(`${name} parameter should be a boolean: ${p}`, 400);
 }
 

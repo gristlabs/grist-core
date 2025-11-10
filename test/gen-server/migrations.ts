@@ -6,6 +6,7 @@ import {Permissions} from 'app/gen-server/lib/Permissions';
 import {assert} from 'chai';
 import {addSeedData, createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
 import {EnvironmentSnapshot} from 'test/server/testUtils';
+import {withSqliteForeignKeyConstraintDisabled} from "app/server/lib/dbUtils";
 
 import {Initial1536634251710 as Initial} from 'app/gen-server/migration/1536634251710-Initial';
 import {Login1539031763952 as Login} from 'app/gen-server/migration/1539031763952-Login';
@@ -56,7 +57,11 @@ import {GroupUsersCreatedAt1749454162428
   as GroupUsersCreatedAt} from 'app/gen-server/migration/1749454162428-GroupUsersCreatedAt';
 import {GroupTypes1753088213255
         as GroupTypes} from 'app/gen-server/migration/1753088213255-GroupTypes';
-import { withSqliteForeignKeyConstraintDisabled } from "app/server/lib/dbUtils";
+import {UserUnsubscribeKey1756799894986 as UserUnsubscribeKey}
+        from 'app/gen-server/migration/1756799894986-UserUnsubscribeKey';
+import {UserDisabledAt1754077317821
+ as UserDisabledAt } from 'app/gen-server/migration/1754077317821-UserDisabledAt';
+import {ServiceAccounts1756918816559 as ServiceAccounts} from 'app/gen-server/migration/1756918816559-ServiceAccounts';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -67,7 +72,8 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     DocumentUsage, Activations, UserConnectId, UserUUID, UserUniqueRefUUID,
                     Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
                     UserLastConnection, ActivationEnabled, Configs, LoginsEmailsIndex, GracePeriod,
-                    UserCreatedAt, DocPref, GroupUsersCreatedAt, GroupTypes];
+                    UserCreatedAt, DocPref, GroupUsersCreatedAt, GroupTypes, UserUnsubscribeKey,
+                    UserDisabledAt, ServiceAccounts];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {

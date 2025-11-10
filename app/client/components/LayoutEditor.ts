@@ -49,7 +49,7 @@ import {Disposable, emptyNode} from 'app/client/lib/dispose';
 import {Delay} from 'app/client/lib/Delay';
 import dom from 'app/client/lib/dom';
 import koDom from 'app/client/lib/koDom';
-import {ContentBox, Layout, LayoutBox} from './Layout';
+import {ContentBox, Layout, LayoutBox} from 'app/client/components/Layout';
 import * as ko from 'knockout';
 import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
 
@@ -57,6 +57,8 @@ import {get as getBrowserGlobals} from 'app/client/lib/browserGlobals';
  * Use the browser globals in a way that allows replacing them with mocks in tests.
  */
 const G = getBrowserGlobals('document', 'window', '$');
+
+type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 
 //----------------------------------------------------------------------
 
@@ -102,7 +104,7 @@ class Floater extends Disposable implements ContentBox {
   public dom: HTMLElement;
   public mouseOffsetX: number;
   public mouseOffsetY: number;
-  public lastMouseEvent: MouseEvent | null;
+  public lastMouseEvent: JQMouseEvent | null;
 
   public create(fillWindow?: boolean) {
     this.leafId = observable<LeafId|null>(null);
@@ -121,7 +123,7 @@ class Floater extends Disposable implements ContentBox {
     this.mouseOffsetY = 0;
     this.lastMouseEvent = null;
   }
-  public onInitialMouseMove(mouseEvent: MouseEvent, sourceBox: ContentBox) {
+  public onInitialMouseMove(mouseEvent: JQMouseEvent, sourceBox: ContentBox) {
     const rect = sourceBox.dom!.getBoundingClientRect();
     this.dom.style.width = rect.width + 'px';
     this.dom.style.height = rect.height + 'px';
@@ -141,7 +143,7 @@ class Floater extends Disposable implements ContentBox {
   public onMouseUp() {
     this.lastMouseEvent = null;
   }
-  public onMouseMove(mouseEvent: MouseEvent) {
+  public onMouseMove(mouseEvent: JQMouseEvent) {
     this.lastMouseEvent = mouseEvent;
     this.dom.style.left = (mouseEvent.clientX - this.mouseOffsetX) + 'px';
     this.dom.style.top = (mouseEvent.clientY - this.mouseOffsetY) + 'px';
@@ -203,7 +205,7 @@ class DropOverlay extends Disposable {
    * If the mouse is over a region of affinity, returns the affinity as an 0-3 integer (see
    * AFFINITY_NAMES above). Otherwise, returns -1.
    */
-  public getAffinity(mouseEvent: MouseEvent) {
+  public getAffinity(mouseEvent: JQMouseEvent) {
     const rect = this.overlayRect!;
     const x = mouseEvent.clientX - rect.left, y = mouseEvent.clientY - rect.top;
     const top = getFrac(y, this.hBorder!), down = getFrac(rect.height - y, this.hBorder!);
@@ -411,9 +413,9 @@ export class LayoutEditor extends Disposable {
   public trashDelay: Delay;
   public originalBox: LayoutBox|null;
   public targetBox: LayoutBox|null;
-  public boundMouseDown: (ev: MouseEvent, el: HTMLElement) => void;
-  public boundMouseMove: (ev: MouseEvent, el: HTMLElement) => void;
-  public boundMouseUp: (ev: MouseEvent, el: HTMLElement) => void;
+  public boundMouseDown: (ev: JQMouseEvent, el: HTMLElement) => void;
+  public boundMouseMove: (ev: JQMouseEvent, el: HTMLElement) => void;
+  public boundMouseUp: (ev: JQMouseEvent, el: HTMLElement) => void;
   public initialMouseDown: boolean;
   public lastTriggered: string;
 
@@ -453,7 +455,7 @@ export class LayoutEditor extends Disposable {
     });
 
     const self = this;
-    this.boundMouseDown = function(this: HTMLElement, ev: MouseEvent) {
+    this.boundMouseDown = function(this: HTMLElement, ev: JQMouseEvent) {
       return self.handleMouseDown(ev, this);
     };
     this.boundMouseMove = this.handleMouseMove.bind(this);
@@ -491,13 +493,13 @@ export class LayoutEditor extends Disposable {
   public makeResizable(box: LayoutBox) {
     // Do not add resizable if:
     // Box already resizable, box is not vertically resizable, box is last in it`s group.
-    if (G.$(box.dom).resizable('instance') || (box.isHBox() && !this.layout.fillWindow) ||
+    if (G.$(box.dom!).resizable('instance') || (box.isHBox() && !this.layout.fillWindow) ||
       box.isLastChild()) {
       return;
     }
     const helperObj = new HelperBox({box});
     const isWidth = box.isVBox();
-    G.$(box.dom).resizable({
+    G.$(box.dom!).resizable({
       handles: isWidth ? 'e' : 's',
       start: this.onResizeStart.bind(this, helperObj, isWidth),
       resize: this.onResizeMove.bind(this, helperObj, isWidth),
@@ -505,12 +507,12 @@ export class LayoutEditor extends Disposable {
     });
   }
   public unmakeResizable(box: LayoutBox) {
-    if (G.$(box.dom).resizable("instance")) {
+    if (G.$(box.dom!).resizable("instance")) {
       // Resizable widget is set for this box.
-      G.$(box.dom).resizable('destroy');
+      G.$(box.dom!).resizable('destroy');
     }
   }
-  public onResizeStart(helperObj: HelperBox, isWidth: boolean, event: MouseEvent, ui: JqueryUI) {
+  public onResizeStart(helperObj: HelperBox, isWidth: boolean, event: JQMouseEvent, ui: JqueryUI) {
     this.triggerUserEditStart();
     const size = isWidth ? ui.originalSize.width : ui.originalSize.height;
     helperObj.scalePerFlexUnit = size / (helperObj.box.flexSize() || 1);
@@ -523,7 +525,7 @@ export class LayoutEditor extends Disposable {
     helperObj.sumAll = allSiblings.reduce(adder, 0);
     helperObj.sumNext = helperObj.sumAll - helperObj.sumPrev;
   }
-  public onResizeMove(helperObj: HelperBox, isWidth: boolean, event: MouseEvent, ui: JqueryUI) {
+  public onResizeMove(helperObj: HelperBox, isWidth: boolean, event: JQMouseEvent, ui: JqueryUI) {
     const sizePx = isWidth ? ui.size.width : ui.size.height;
     let newSize = sizePx / helperObj.scalePerFlexUnit;
 
@@ -551,7 +553,7 @@ export class LayoutEditor extends Disposable {
       this.layout.trigger('layoutResized');
     }
   }
-  public handleMouseDown(event: MouseEvent, elem: HTMLElement) {
+  public handleMouseDown(event: JQMouseEvent, elem: HTMLElement) {
     const target = (event.target as HTMLElement);
     if (event.button !== 0 || target?.classList.contains('ui-resizable-handle')) {
       return;
@@ -566,7 +568,7 @@ export class LayoutEditor extends Disposable {
     }
   }
   // Exposed for tests
-  public dragInNewBox(event: MouseEvent, leafId: number) {
+  public dragInNewBox(event: JQMouseEvent, leafId: number) {
     const box = this.layout.buildLayoutBox({leaf: leafId});
 
     // Place this box into a measuring div.
@@ -574,13 +576,13 @@ export class LayoutEditor extends Disposable {
 
     this.handleMouseDown(event, box.dom!);
   }
-  public startDragBox(event: MouseEvent, box: LayoutBox) {
+  public startDragBox(event: JQMouseEvent, box: LayoutBox) {
     this.triggerUserEditStart();
     this.targetBox = box;
     this.floater.onInitialMouseMove(event, box);
     this.trigger('dragStart', this.originalBox);
   }
-  public handleMouseUp(event: MouseEvent) {
+  public handleMouseUp(event: JQMouseEvent) {
     G.$(G.window).off('mousemove', this.boundMouseMove);
     G.$(G.window).off('mouseup', this.boundMouseUp);
 
@@ -648,7 +650,7 @@ export class LayoutEditor extends Disposable {
     ));
     this.onInsertBox(noop).catch(noop);
   }
-  public handleMouseMove(event: MouseEvent) {
+  public handleMouseMove(event: JQMouseEvent) {
     // Make sure the grabbed box still exists
     if (!this.originalBox || this.originalBox?.isDisposed()) {
       return;
@@ -681,7 +683,7 @@ export class LayoutEditor extends Disposable {
     this.updateTargets(event);
   }
 
-  public updateTargets(event: MouseEvent) {
+  public updateTargets(event: JQMouseEvent) {
     if (this.transitionPromise.isPending()) {
       // Don't attempt to do any repositioning while another reposition is happening.
       return;
@@ -822,7 +824,7 @@ function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string|DOMRect
   // Force the layout engine to compute the current state of the layoutBox.dom element before
   // applying the transition. This follows the recommendation here, and seems to work:
   // https://timtaubert.de/blog/2012/09/css-transitions-for-dynamically-created-dom-elements/
-  pick(G.window.getComputedStyle(layoutBox.dom), 'height', 'width');
+  pick(G.window.getComputedStyle(layoutBox.dom!), 'height', 'width');
 
   // Start the transition.
   layoutBox.dom!.classList.add('layout_editor_resize_transition');

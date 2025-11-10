@@ -1,5 +1,5 @@
 import {CellValue, TableDataAction} from 'app/common/DocActions';
-import {TableData} from 'app/common/TableData';
+import {MetaTableData, TableData} from 'app/common/TableData';
 import {assert} from 'chai';
 import {unzip, zipObject} from 'lodash';
 
@@ -119,6 +119,39 @@ describe('TableData', function() {
     assert.equal(t.findMatchingRowId({statex: 'MA'}), 0);
     assert.equal(t.findMatchingRowId({id: 7}), 7);
     assert.equal(t.findMatchingRowId({}), 1);
+  });
+
+  it('should support findRow and findRecord', function() {
+    const t = new TableData('Foo', sampleData, {city: 'Text', state: 'Text', amount: 'Numeric', bool: 'Bool'});
+    t.dispatchAction(["UpdateRecord", "Foo", 4, {city: 'BOSTON'}]);
+    verifyTableData(t, ["id", "city", "state", "amount", "bool"], [
+      [1, 'New York', 'NY', 5, true],
+      [4, 'BOSTON', 'MA', 4, true],
+      [5, 'Boston', 'MA', "NA", false],
+      [7, 'Seattle', 'WA', 2, false],
+    ]);
+    assert.equal(t.findRow('city', 'Boston'), 5);
+    assert.equal(t.findRow('city', 'Nowhere'), 0);
+    assert.equal(t.findRow('id', 4), 4);
+    assert.equal(t.findRow('id', 44), 0);
+    assert.include([4, 5], t.findRow('state', 'MA'));
+
+    assert.deepEqual(t.findRecord('city', 'Boston'), {id: 5, city: 'Boston', state: 'MA', amount: "NA", bool: false});
+    assert.deepEqual(t.findRecord('city', 'Nowhere'), undefined);
+    assert.deepEqual(t.findRecord('id', 4), {id: 4, city: 'BOSTON', state: 'MA', amount: 4, bool: true});
+    assert.deepEqual(t.findRecord('id', 44), undefined);
+    assert.deepEqual(t.findRecord('state', 'MA')?.state, 'MA');
+    assert.include([4, 5], t.findRecord('state', 'MA')?.id);
+
+    // Test also these methods for the MetaTableData class.
+    const sampleTableData: TableDataAction = ["TableData", "_grist_Tables", [2, 1], {tableId: ['Foo', 'Bar']}];
+    const meta = new MetaTableData('_grist_Tables', sampleTableData, {tableId: 'Text'});
+    assert.equal(meta.findRow('tableId', 'Bar'), 1);
+    assert.equal(meta.findRow('id', 2), 2);
+    assert.equal(meta.findRow('tableId', 'Baz'), 0);
+    assert.deepEqual(meta.findRecord('tableId', 'Bar'), {id: 1, tableId: 'Bar'} as any);
+    assert.deepEqual(meta.findRecord('id', 2), {id: 2, tableId: 'Foo'} as any);
+    assert.deepEqual(meta.findRecord('tableId', 'Baz'), undefined);
   });
 
   it('should allow getRowPropFunc to be used before loadData', function() {

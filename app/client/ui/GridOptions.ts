@@ -1,10 +1,10 @@
 import { makeT } from 'app/client/lib/localization';
 import { ViewSectionRec } from "app/client/models/DocModel";
 import { KoSaveableObservable, setSaveValue } from "app/client/models/modelUtil";
-import { cssLabel, cssRow } from "app/client/ui/RightPanelStyles";
-import { squareCheckbox } from "app/client/ui2018/checkbox";
+import { cssGroupLabel, cssRow } from "app/client/ui/RightPanelStyles";
+import { labeledSquareCheckbox } from "app/client/ui2018/checkbox";
 import { testId } from "app/client/ui2018/cssVars";
-import { Computed, Disposable, dom, IDisposableOwner, styled } from "grainjs";
+import { Computed, Disposable, dom, IDisposableOwner } from "grainjs";
 
 const t = makeT('GridOptions');
 
@@ -19,30 +19,37 @@ export class GridOptions extends Disposable {
 
   public buildDom() {
     const section = this._section;
-    return [
-      cssLabel(t("Grid Options")),
+    return dom('div',
+      {role: 'group', 'aria-labelledby': 'grid-options-label'},
+      cssGroupLabel(t("Grid Options"), {id: 'grid-options-label'}),
       dom('div', [
         cssRow(
-          checkbox(setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines'))),
-          t("Vertical Gridlines"),
+          labeledSquareCheckbox(
+            setSaveValueFromKo(this, section.optionsObj.prop('verticalGridlines')),
+            t("Vertical gridlines"),
+          ),
           testId('v-grid-button')
         ),
 
         cssRow(
-          checkbox(setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines'))),
-          t("Horizontal Gridlines"),
+          labeledSquareCheckbox(
+            setSaveValueFromKo(this, section.optionsObj.prop('horizontalGridlines')),
+            t("Horizontal gridlines"),
+          ),
           testId('h-grid-button')
         ),
 
         cssRow(
-          checkbox(setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes'))),
-          t("Zebra Stripes"),
+          labeledSquareCheckbox(
+            setSaveValueFromKo(this, section.optionsObj.prop('zebraStripes')),
+            t("Zebra stripes"),
+          ),
           testId('zebra-stripe-button')
         ),
 
         testId('grid-options')
       ]),
-    ];
+    );
   }
 
 }
@@ -57,7 +64,3 @@ function setSaveValueFromKo(owner: IDisposableOwner, obs: KoSaveableObservable<b
   });
   return ret;
 }
-
-const checkbox = styled(squareCheckbox, `
-  margin-right: 8px;
-`);

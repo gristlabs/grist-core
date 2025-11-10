@@ -1,5 +1,5 @@
 import { assert, driver, Key, until } from 'mocha-webdriver';
-import { server, setupTestSuite } from './testUtils';
+import { server, setupTestSuite } from 'test/projects/testUtils';
 
 describe('ColumnFilterMenu', function() {
   setupTestSuite();
@@ -55,14 +55,16 @@ describe('ColumnFilterMenu', function() {
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action', (e) => e.getText()), ['All', 'None']);
 
     // Check only `All` is disabled
-    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()),
+    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
       ['All']);
 
     // Deselect apples
     await driver.findContent('.test-filter-menu-list label', /Apples/).click();
 
     // Check that there is no disabled
-    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()), []);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()), []
+    );
 
     // Click 'Select all'
     await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
@@ -71,7 +73,7 @@ describe('ColumnFilterMenu', function() {
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
 
     // Check that 'All' is disabled
-    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()),
+    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
       ['All']);
 
     // Click 'Select none', check that filter gets switched to inclusion
@@ -79,7 +81,7 @@ describe('ColumnFilterMenu', function() {
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({included: []}));
 
     // Check that only 'None' is disabled
-    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()),
+    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
                      ['None']);
 
     // Verify that no values are display
@@ -89,7 +91,9 @@ describe('ColumnFilterMenu', function() {
     await driver.findContent('.test-filter-menu-list label', /Apples/).click();
 
     // Check that there is no disabled
-    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()), []);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()), []
+    );
 
     // Verify that it's the only value included
     assert.deepEqual(await driver.find('.fixture-json').getText(), JSON.stringify({included: ['Apples']}));
@@ -97,7 +101,7 @@ describe('ColumnFilterMenu', function() {
 
     // Select all, check values
     await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
-    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()),
+    assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
                      ['All']);
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
     assert.equal(await driver.find('.fixture-all-values').getText(),
@@ -106,14 +110,14 @@ describe('ColumnFilterMenu', function() {
 
   it('should offer a working `Future Values` option', async () => {
     // Check `Future Values` is present
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).isPresent(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).isPresent(),
                  true, 'Future Values not present');
 
     // Check all values are selected
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
 
     // Check `Future Values` is selected
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                  true, 'Future values should be selected');
 
     // Uncheck `Apple`
@@ -124,7 +128,7 @@ describe('ColumnFilterMenu', function() {
                  JSON.stringify({excluded: ['Apples']}), 'Spec not correct');
 
     // Uncheck the `Future Values` checkbox
-    await driver.findContent('.test-filter-menu-summary', /Future Values/).find('label').click();
+    await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
 
     // check the filter spec is now an inclusion filter all values but 'Apple'
     const spec = JSON.parse(await driver.find('.fixture-json').getText());
@@ -132,17 +136,17 @@ describe('ColumnFilterMenu', function() {
     assert.equal(spec.included.length, 16, 'filter should have 16 excluded values');
 
     // Check `Future Values` is unselected
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                  false);
 
     // Check again the `Future Values`
-    await driver.findContent('.test-filter-menu-summary', /Future Values/).find('label').click();
+    await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
 
     // Check the filter spec is now an inclusion filter with only 'Apple' in it
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: ['Apples']}));
 
     // Check `Future Values` is selected
-    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+    assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                  true);
   });
 
@@ -252,7 +256,7 @@ describe('ColumnFilterMenu', function() {
   it('should filter items by search value', async () => {
     // Check that all items are displayed in the list
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
-    assert.lengthOf(await driver.findAll('.test-filter-menu-list label'), 17);
+    assert.lengthOf(await driver.findAll('.test-filter-menu-list .test-filter-menu-value'), 17);
 
     // Enter 'App'
     const searchInput = await driver.find('.test-filter-menu-search-input');
@@ -262,7 +266,7 @@ describe('ColumnFilterMenu', function() {
     assert.equal(await searchInput.value(), 'App');
 
     // Check that only Apples and Knapples are in the list
-    const elems = await driver.findAll('.test-filter-menu-list label');
+    const elems = await driver.findAll('.test-filter-menu-list .test-filter-menu-value');
     assert.lengthOf(elems, 2);
     assert.deepEqual(await Promise.all(elems.map(el => el.getText())), ['Apples', 'Knapples']);
 
@@ -292,7 +296,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('Oranges');
 
     // check only one matching value
-    assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Oranges']);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Oranges']
+    );
 
     // check 'Oranges' count is 14
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-count', (e) => e.getText()),
@@ -313,7 +319,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // check Apples and Knapples are visible
-    assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Apples', 'Knapples']);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Apples', 'Knapples']
+    );
 
     // check Others is checked
     assert.isTrue(await driver.findContent('.test-filter-menu-summary', /Others/).find('input').isSelected());
@@ -339,7 +347,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // check Apples and Knapples are visible
-    assert.deepEqual(await driver.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Apples', 'Knapples']);
+    assert.deepEqual(
+      await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Apples', 'Knapples']
+    );
 
     // check others is checked
     assert.isTrue(await driver.findContent('.test-filter-menu-summary', /Others/).find('input').isSelected());
@@ -409,7 +419,9 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // check values are filtered
-    assert.deepEqual(await menu.findAll('.test-filter-menu-list label', (e) => e.getText()), ['Apples', 'Knapples']);
+    assert.deepEqual(
+      await menu.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()), ['Apples', 'Knapples']
+    );
   });
 
   it('should properly escape search and filter menu', async () => {
@@ -445,19 +457,19 @@ describe('ColumnFilterMenu', function() {
     await driver.wait(until.stalenessOf(menu));
   });
 
-  it('should update selection properly when clicking `All Shown`', async () => {
+  it('should update selection properly when clicking `All shown`', async () => {
     // search for App
     await driver.find('.test-filter-menu-search-input').click();
     await driver.sendKeys('App');
 
-    // check All Shown and All Except are visible
+    // check All shown and All Except are visible
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-bulk-action', (e) => e.getText()),
-      ['All Shown', 'All Except']
+      ['All shown', 'All except']
     );
 
-    // click All Shown
-    await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
+    // click All shown
+    await driver.findContent('.test-filter-menu-bulk-action', /All shown/).click();
 
     // send Escape to clear the search box
     await driver.sendKeys(Key.ESCAPE);
@@ -471,8 +483,8 @@ describe('ColumnFilterMenu', function() {
 
     // check App Shown is disabled
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()),
-      ['All Shown']
+      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
+      ['All shown']
     );
   });
 
@@ -482,7 +494,7 @@ describe('ColumnFilterMenu', function() {
     await driver.sendKeys('App');
 
     // click App Except
-    await driver.findContent('.test-filter-menu-bulk-action', /All Except/).click();
+    await driver.findContent('.test-filter-menu-bulk-action', /All except/).click();
 
     // send Escape to clear the search box
     await driver.sendKeys(Key.ESCAPE);
@@ -496,8 +508,8 @@ describe('ColumnFilterMenu', function() {
 
     // check App Except is disabled
     assert.deepEqual(
-      await driver.findAll('.test-filter-menu-bulk-action:disabled', (e) => e.getText()),
-      ['All Except']
+      await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', (e) => e.getText()),
+      ['All except']
     );
   });
 

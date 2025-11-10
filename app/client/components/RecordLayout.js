@@ -85,7 +85,6 @@ function RecordLayout(options) {
 }
 dispose.makeDisposable(RecordLayout);
 
-
 RecordLayout.prototype.resizeCallback = function() {
   // Note that while editing layout, scrolly is hidden, and resizeCallback is unhelpful. We rely
   // on explicit resizing when isEditLayout is reset.

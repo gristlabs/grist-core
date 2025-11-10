@@ -17,6 +17,7 @@ import {ActionSummary} from 'app/common/ActionSummary';
 import {
   AclResources,
   AclTableDescription,
+  ApplyProposalResult,
   ApplyUAExtendedOptions,
   ApplyUAOptions,
   ApplyUAResult,
@@ -28,6 +29,7 @@ import {
   ImportResult,
   ISuggestionWithValue,
   MergeOptions,
+  PatchLog,
   PermissionDataWithExtraUsers,
   QueryResult,
   ServerQuery,
@@ -54,6 +56,11 @@ import {
 import {DocData} from 'app/common/DocData';
 import {getDataLimitInfo, getDataLimitRatio, getSeverity} from 'app/common/DocLimits';
 import {DocSnapshots} from 'app/common/DocSnapshot';
+import {
+  DocState,
+  DocStateComparison,
+  removeMetadataChangesFromDetails
+} from 'app/common/DocState';
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {
   DataLimitInfo,
@@ -87,9 +94,7 @@ import {
   AttachmentTransferStatus,
   CreatableArchiveFormats,
   DocReplacementOptions,
-  DocState,
-  DocStateComparison,
-  NEW_DOCUMENT_CODE
+  NEW_DOCUMENT_CODE,
 } from 'app/common/UserAPI';
 import {convertFromColumn} from 'app/common/ValueConverter';
 import {guessColInfo} from 'app/common/ValueGuesser';
@@ -139,6 +144,7 @@ import {shortDesc} from 'app/server/lib/shortDesc';
 import {TableMetadataLoader} from 'app/server/lib/TableMetadataLoader';
 import {DocTriggers} from 'app/server/lib/Triggers';
 import {fetchURL, FileUploadInfo, globalUploadSet, UploadInfo} from 'app/server/lib/uploads';
+import {UserPresence} from 'app/server/lib/UserPresence';
 import assert from 'assert';
 import {Mutex} from 'async-mutex';
 import * as bluebird from 'bluebird';
@@ -151,19 +157,20 @@ import fetch from 'node-fetch';
 import stream from 'node:stream';
 import path from 'path';
 
-import {ActionHistory} from './ActionHistory';
-import {ActionHistoryImpl} from './ActionHistoryImpl';
-import {ActiveDocImport, FileImportOptions} from './ActiveDocImport';
-import {AttachmentFileManager, MismatchedFileHashError} from './AttachmentFileManager';
-import {IAttachmentStoreProvider} from './AttachmentStoreProvider';
-import {DocClients} from './DocClients';
-import {DocPluginManager} from './DocPluginManager';
-import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from './DocSession';
-import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from './DocStorage';
-import {expandQuery, getFormulaErrorForExpandQuery} from './ExpandedQuery';
-import {GranularAccess, GranularAccessForBundle} from './GranularAccess';
-import {OnDemandActions} from './OnDemandActions';
-import {findOrAddAllEnvelope, Sharing} from './Sharing';
+import {ActionHistory} from 'app/server/lib/ActionHistory';
+import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
+import {ActiveDocImport, FileImportOptions} from 'app/server/lib/ActiveDocImport';
+import {AttachmentFileManager, MismatchedFileHashError} from 'app/server/lib/AttachmentFileManager';
+import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {DocClients} from 'app/server/lib/DocClients';
+import {DocPluginManager} from 'app/server/lib/DocPluginManager';
+import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
+import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from 'app/server/lib/DocStorage';
+import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/ExpandedQuery';
+import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
+import {OnDemandActions} from 'app/server/lib/OnDemandActions';
+import {Patch} from 'app/server/lib/Patch';
+import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
 import flatten = require('lodash/flatten');
@@ -281,6 +288,7 @@ export class ActiveDoc extends EventEmitter {
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
   private _tableMetadataLoader: TableMetadataLoader;
+  private _userPresence: UserPresence;
   /**
    * If set, changes to this document should not propagate to outside world
    */
@@ -423,6 +431,7 @@ export class ActiveDoc extends EventEmitter {
     }
     this.docStorage = new DocStorage(_docManager.storageManager, _docName);
     this.docClients = new DocClients(this);
+    this._userPresence = new UserPresence(this.docClients);
     this._triggers = new DocTriggers(this);
     this._requests = new DocRequests(this);
     this._actionHistory = new ActionHistoryImpl(this.docStorage);
@@ -620,7 +629,8 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Adds a client of this doc to the list of connected clients.
    * @param client: The client object maintaining the websocket connection.
-   * @param docSessionPrecursor: The incomplete docSession, to be filled in and turned into real DocSession.
+   * @param docSessionPrecursor: The incomplete docSession, to be filled in and turned into real
+   *   DocSession.
    * @returns docSession
    */
   public addClient(client: Client, docSessionPrecursor: DocSessionPrecursor): DocSession {
@@ -635,7 +645,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
-    return this.docClients.listVisibleUserProfiles(docSession);
+    return this._userPresence.listVisibleUserProfiles(docSession);
   }
 
   /**
@@ -647,14 +657,16 @@ export class ActiveDoc extends EventEmitter {
    *
    * @param [options] Options to customize the shutdown process.
    * @param [options.beforeShutdown] A function to call before shutdown.
-   * NOTE: If a shutdown is already in progress, this callback will be ignored (it would be too late, obviously).
-   * In other words, the first call to this function determines the `beforeShutdown` callback to use
+   * NOTE: If a shutdown is already in progress, this callback will be ignored (it would be too
+   *   late, obviously). In other words, the first call to this function determines the
+   *   `beforeShutdown` callback to use
    * (or none if not provided).
    *
    * @param [options.afterShutdown] A function to call after shutdown.
    * NOTE: Unlike `beforeShutdown`, providing an `afterShutdown` callback will set or overwrite
    * the callback to be called after the shutdown, **even if** it is already in progress.
-   * In other words, the last call to this function determines the `afterShutdown` callback to use when provided.
+   * In other words, the last call to this function determines the `afterShutdown` callback to use
+   *   when provided.
    */
   public async shutdown(options: {
     beforeShutdown?: () => Promise<void>,
@@ -855,9 +867,9 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Finishes import files, creates the new tables, and cleans up temporary hidden tables and uploads.
-   * Param `prevTableIds` is an array of hiddenTableIds as received from previous `importFiles`
-   * call, or empty if there was no previous call.
+   * Finishes import files, creates the new tables, and cleans up temporary hidden tables and
+   * uploads. Param `prevTableIds` is an array of hiddenTableIds as received from previous
+   * `importFiles` call, or empty if there was no previous call.
    */
   public finishImportFiles(docSession: DocSession, dataSource: DataSourceTransformed,
                            prevTableIds: string[], importOptions: ImportOptions): Promise<ImportResult> {
@@ -890,6 +902,50 @@ export class ActiveDoc extends EventEmitter {
   public generateImportDiff(_docSession: DocSession, hiddenTableId: string, transformRule: TransformRule,
                             mergeOptions: MergeOptions): Promise<DocStateComparison> {
     return this._activeDocImport.generateImportDiff(hiddenTableId, transformRule, mergeOptions);
+  }
+
+  /**
+   * Apply a proposal to the document. The proposal is applied as a set of linked action groups
+   * for ease of undo, meaning each action group has a linkId refering to the previous one, and
+   * a otherId set to the first (or root) action group.
+   */
+  public async applyProposal(docSession: OptDocSession, proposalId: number, options?: {
+    dismiss?: boolean,
+  }): Promise<ApplyProposalResult> {
+    if (!await this.isOwner(docSession)) {
+      // For now, only owners can use this method.
+      throw new ApiError('Only owners can apply proposals', 400);
+    }
+    const urlId = this.docName;
+    const proposal = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
+    if (!proposal) {
+      throw new ApiError('Proposal not found', 404);
+    }
+    const origDetails = proposal.comparison.comparison?.details;
+    if (!origDetails) {
+      // This shouldn't happen.
+      throw new ApiError('Proposal details not found', 500);
+    }
+    let result: PatchLog = {changes: [], applied: false};
+    if (!options?.dismiss) {
+      const patch = new Patch(this, docSession);
+      const {details} = removeMetadataChangesFromDetails(origDetails);
+      result = await patch.applyChanges(details);
+      if (result.applied) {
+        await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
+          status: 'applied'
+        });
+      }
+    } else {
+      await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
+        status: 'dismissed'
+      });
+    }
+    const proposalUpdated = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);
+    return {
+      proposal: proposalUpdated,
+      log: result
+    };
   }
 
   /**
@@ -926,8 +982,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * This function saves attachments from a given upload and creates an entry for them in the database.
-   * It returns the list of rowIds for the rows created in the _grist_Attachments table.
+   * This function saves attachments from a given upload and creates an entry for them in the
+   * database. It returns the list of rowIds for the rows created in the _grist_Attachments table.
    */
   public async addAttachments(docSession: OptDocSession, uploadId: number): Promise<number[]> {
     const userId = docSession.userId;
@@ -1243,8 +1299,8 @@ export class ActiveDoc extends EventEmitter {
    * Fetches data according to the given query, which includes tableId and filters (see Query in
    * app/common/ActiveDocAPI.ts). The data is fetched from the data engine for regular tables, or
    * from the DocStorage directly for onDemand tables.
-   * @param {Boolean} waitForFormulas: If true, wait for all data to be loaded/calculated.  If false,
-   * special "pending" values may be returned.
+   * @param {Boolean} waitForFormulas: If true, wait for all data to be loaded/calculated.  If
+   *   false, special "pending" values may be returned.
    */
   public async fetchQuery(docSession: OptDocSession, query: ServerQuery,
                           waitForFormulas: boolean = false): Promise<TableFetchResult> {
@@ -1396,6 +1452,9 @@ export class ActiveDoc extends EventEmitter {
     tableId: string,
     includeHidden = false): Promise<RecordWithStringId[]> {
     const metaTables = await this.fetchMetaTables(docSession);
+    if (tableId.startsWith('_grist_')) {
+      throw new Error('getTableCols not available for meta tables');
+    }
     const tableRef = tableIdToRef(metaTables, tableId);
     const [, , colRefs, columnData] = metaTables._grist_Tables_column;
 
@@ -1955,10 +2014,10 @@ export class ActiveDoc extends EventEmitter {
    * Check which attachments in the _grist_Attachments metadata are actually used,
    * i.e. referenced by some cell in an Attachments type column.
    * Set timeDeleted to the current time on newly unused attachments,
-   * 'soft deleting' them so that they get cleaned up automatically from _gristsys_Files after enough time has passed.
-   * Set timeDeleted to null on used attachments that were previously soft deleted,
-   * so that undo can 'undelete' attachments.
-   * Returns true if any changes were made, i.e. some row(s) of _grist_Attachments were updated.
+   * 'soft deleting' them so that they get cleaned up automatically from _gristsys_Files after
+   * enough time has passed. Set timeDeleted to null on used attachments that were previously soft
+   * deleted, so that undo can 'undelete' attachments. Returns true if any changes were made, i.e.
+   * some row(s) of _grist_Attachments were updated.
    */
   public async updateUsedAttachmentsIfNeeded() {
     const changes = await this.docStorage.scanAttachmentsForUsageChanges();
@@ -1976,10 +2035,12 @@ export class ActiveDoc extends EventEmitter {
 
   /**
    * Delete unused attachments from _grist_Attachments and gristsys_Files.
-   * @param expiredOnly: if true, only delete attachments that were soft-deleted sufficiently long ago.
-   * @param options.syncUsageToDatabase: if true, schedule an update to the usage column of the docs table, if
-   * any unused attachments were soft-deleted. defaults to true.
-   * @param options.broadcastUsageToClients: if true, broadcast updated doc usage to all clients, if
+   * @param expiredOnly: if true, only delete attachments that were soft-deleted sufficiently long
+   *   ago.
+   * @param options.syncUsageToDatabase: if true, schedule an update to the usage column of the
+   *   docs table, if any unused attachments were soft-deleted. defaults to true.
+   * @param options.broadcastUsageToClients: if true, broadcast updated doc usage to all clients,
+   *   if
    * any unused attachments were soft-deleted. defaults to true.
    */
   public async removeUnusedAttachments(expiredOnly: boolean, options?: UpdateUsageOptions) {
@@ -2122,8 +2183,9 @@ export class ActiveDoc extends EventEmitter {
   /**
    * Send a message to clients connected to the document that something
    * webhook-related has happened (a change in configuration, a delivery,
-   * or an error). It passes information about the type of event (currently data being updated in some way
-   * or an OverflowError, i.e., too many events waiting to be sent). More data may be added when necessary.
+   * or an error). It passes information about the type of event (currently data being updated in
+   * some way or an OverflowError, i.e., too many events waiting to be sent). More data may be
+   * added when necessary.
    */
   public async sendWebhookNotification(type: WebhookMessageType = WebhookMessageType.Update) {
     await this.docClients.broadcastDocMessage(null, 'docChatter', {
@@ -2327,8 +2389,8 @@ export class ActiveDoc extends EventEmitter {
    * @param {Array} actions - The user actions to apply.
    * @param {String} options.desc - Description of the action which overrides the default client
    *  description if provided. Should be used to describe bundled actions.
-   * @param {Int} options.otherId - Action number for the original useraction to which this undo/redo
-   *  action applies.
+   * @param {Int} options.otherId - Action number for the original useraction to which this
+   *   undo/redo action applies.
    * @param {Boolean} options.linkId - ActionNumber of the previous action in an undo/redo bundle.
    * @returns {Promise} Promise that's resolved when all actions are applied successfully to {
    *    actionNum: number of the action that got recorded
@@ -3224,7 +3286,8 @@ export class ActiveDoc extends EventEmitter {
   }
 
   /**
-   * Throw an error if the provided upload would exceed the total attachment filesize limit for this document.
+   * Throw an error if the provided upload would exceed the total attachment filesize limit for
+   * this document.
    */
   private async _assertUploadInfoSizeBelowLimit(upload: UploadInfo) {
     // Minor flaw: while we don't double-count existing duplicate files in the total size,

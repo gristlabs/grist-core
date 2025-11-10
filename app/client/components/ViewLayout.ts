@@ -4,10 +4,10 @@ import {ChartView} from 'app/client/components/ChartView';
 import * as commands from 'app/client/components/commands';
 import {CustomCalendarView} from "app/client/components/CustomCalendarView";
 import {CustomView} from 'app/client/components/CustomView';
-import * as DetailView from 'app/client/components/DetailView';
+import DetailView from 'app/client/components/DetailView';
 import {buildDuplicateWidgetModal} from 'app/client/components/duplicateWidget';
 import {FormView} from 'app/client/components/Forms/FormView';
-import * as GridView from 'app/client/components/GridView';
+import GridView from 'app/client/components/GridView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {Layout} from 'app/client/components/Layout';
 import {LayoutEditor} from 'app/client/components/LayoutEditor';
@@ -80,7 +80,7 @@ export class ViewSectionHelper extends Disposable {
       const Cons = getInstanceConstructor(use(vs.parentKey));
       this._instance.clear();
       if (table.getRowId()) {
-        this._instance.autoDispose(Cons.create(gristDoc, vs));
+        this._instance.autoDispose(Cons.create(null, gristDoc, vs));
       }
       vs.viewInstance(this._instance.get());
     }));
@@ -201,16 +201,24 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       printSection: () => { printViewSection(this.layout, this.viewModel.activeSection()).catch(reportError); },
       sortFilterMenuOpen: (sectionId?: number) => { this._openSortFilterMenu(sectionId); },
       expandSection: () => { this._expandSection(); },
+    };
+    // Register the cancel command only when necessary to prevent collapsing with other common "escape" usages.
+    // See commit message for detailed description of why it's important to deal with that this way, instead of simply
+    // testing whether this.maximized.get() is null in a cancel command registered through the commandGroup object.
+    const whenMaximizedCommandGroup = {
       cancel: () => {
-        if (this.maximized.get()) {
-          this.maximized.set(null);
-        }
+        this.maximized.set(null);
       }
     };
     this.autoDispose(commands.createGroup(
       commandGroup,
       this,
       ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in')
+    ));
+    this.autoDispose(commands.createGroup(
+      whenMaximizedCommandGroup,
+      this,
+      ko.pureComputed(() => this.viewModel.focusedRegionState() === 'in' && this.layout.maximizedLeaf() !== null)
     ));
 
     this.maximized = fromKo(this.layout.maximizedLeaf) as any;
@@ -273,6 +281,15 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     }
   }
 
+  /**
+   * Returns the full layout spec, including collapsed sections.
+   */
+  public getFullLayoutSpec() {
+    const specs = this.layout.getLayoutSpec();
+    specs.collapsed = this.viewModel.activeCollapsedSections.peek().map((leaf)=> ({leaf}));
+    return specs;
+  }
+
   public saveLayoutSpec(specs?: BoxSpec) {
     this._savePending.set(false);
     // Cancel the automatic delay.
@@ -280,10 +297,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     if (!this.layout) { return Promise.resolve(); }
     // Only save layout changes when the document isn't read-only.
     if (!this.gristDoc.isReadonly.get()) {
-      if (!specs) {
-        specs = this.layout.getLayoutSpec();
-        specs.collapsed = this.viewModel.activeCollapsedSections.peek().map((leaf)=> ({leaf}));
-      }
+      specs ??= this.getFullLayoutSpec();
       return this.viewModel.layoutSpecObj.setAndSave(specs).catch(reportError);
     }
     this._onResize();
@@ -450,7 +464,7 @@ function widgetRemovalPrompt(tableName: string): Promise<PromptAction> {
                 `Keep data and delete widget. Table will remain available in {{rawDataLink}}`,
                 {
                   rawDataLink: cssLink(
-                    t('raw data page'),
+                    t('Raw Data page'),
                     urlState().setHref({docPage: 'data'}),
                     {target: '_blank'},
                   )

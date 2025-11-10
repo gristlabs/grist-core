@@ -138,18 +138,18 @@ describe("ActionSummary", function() {
       ["RemoveRecord", "Frogs", 2],
     ]);
     const sum = await summarizeLastAction(doc);
-    const tabularDiffs = asTabularDiffs(sum);
+    const tabularDiffs = asTabularDiffs(sum, {});
     assert.sameDeepMembers(tabularDiffs.Frogs.header,
                            ['species', 'color', 'place']);
     assert.lengthOf(tabularDiffs.Frogs.cells, 3);
-    const rowTypes = tabularDiffs.Frogs.cells.map(row => row[0]);
+    const rowTypes = tabularDiffs.Frogs.cells.map(row => row.type);
     assert.sameDeepMembers(rowTypes, ['+', '-', '→']);
     const colsList = tabularDiffs.Frogs.header.map((name, idx) => [name, idx] as [string, number]);
     const cols = new Map<string, number>(colsList);
-    const rows = keyBy(tabularDiffs.Frogs.cells, row => row[0]);
-    assert.deepEqual(rows['+'][2][cols.get('species')!], [null, ['gretons']]);
-    assert.deepEqual(rows['→'][2][cols.get('place')!], [['Alaskers'], ['Alaska']]);
-    assert.deepEqual(rows['-'][2][cols.get('species')!], [['parrots'], null]);
+    const rows = keyBy(tabularDiffs.Frogs.cells, row => row.type);
+    assert.deepEqual(rows['+'].cellDeltas[cols.get('species')!], [null, ['gretons']]);
+    assert.deepEqual(rows['→'].cellDeltas[cols.get('place')!], [['Alaskers'], ['Alaska']]);
+    assert.deepEqual(rows['-'].cellDeltas[cols.get('species')!], [['parrots'], null]);
   });
 
   it ('produces reasonable tabular diffs of simple bulk actions', async function() {
@@ -171,11 +171,11 @@ describe("ActionSummary", function() {
       }]
     ]);
     const sum = await summarizeLastAction(doc);
-    const tabularDiffs = asTabularDiffs(sum);
+    const tabularDiffs = asTabularDiffs(sum, {});
     assert.sameDeepMembers(tabularDiffs.Frogs.header,
                            ['species', 'color', 'place']);
     assert(tabularDiffs.Frogs.cells.length < ids.length);
-    const rowTypes = tabularDiffs.Frogs.cells.map(row => row[0]);
+    const rowTypes = tabularDiffs.Frogs.cells.map(row => row.type);
     assert.equal(rowTypes.length - 1, rowTypes.filter(label => label === '+').length);
     assert.equal(1, rowTypes.filter(label => label === '...').length);
   });
@@ -197,11 +197,11 @@ describe("ActionSummary", function() {
         }
       }
     };
-    const tabularDiffs = asTabularDiffs(sum);
+    const tabularDiffs = asTabularDiffs(sum, {});
     assert.lengthOf(tabularDiffs.Duck.cells, 2);
     assert.sameDeepMembers(tabularDiffs.Duck.cells,
-                           [["-", 1, [[["yellow"], null]]],
-                            ["+", 1, [[null, ["red"]]]]]);
+                           [{type: "-", rowId: 1, cellDeltas: [[["yellow"], null]]},
+                            {type: "+", rowId: 1, cellDeltas: [[null, ["red"]]]}]);
   });
 
   it ('summarizes ReplaceTableData actions', async function() {

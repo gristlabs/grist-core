@@ -203,6 +203,15 @@ export async function addRequestUser(
       if (!user) {
         return res.status(401).send('Bad request: invalid API key');
       }
+      if (user.type === "service") {
+        const serviceAccount = (await dbManager.getServiceAccountByLoginWithOwner(user.loginEmail as string))!;
+        if (serviceAccount.owner.disabledAt) {
+          return res.status(403).send('Owner account is disabled');
+        }
+        if (!serviceAccount.isActive()) {
+          return res.status(401).send('Service Account has expired');
+        }
+      }
       if (user.id === dbManager.getAnonymousUserId()) {
         // We forbid the anonymous user to present an api key.  That saves us
         // having to think through the consequences of authorized access to the
@@ -223,9 +232,12 @@ export async function addRequestUser(
     if (!bootKey || bootKey !== reqBootKey) {
       return res.status(401).send('Bad request: invalid Boot key');
     }
-    const userId = dbManager.getSupportUserId();
-    const user = await dbManager.getUser(userId);
-    setRequestUser(mreq, dbManager, user!);
+    const admin = options.gristServer.getInstallAdmin();
+    const user = await admin.getAdminUser();
+    if (!user) {
+      return res.status(500).send('No admin user available');
+    }
+    setRequestUser(mreq, dbManager, user);
     authDone = true;
   }
 
@@ -392,7 +404,27 @@ export async function addRequestUser(
     }
   }
 
-  // If no userId has been found yet, fall back on anonymous.
+  // Disabled users get no rights, not even public pages. Almost
+  // everything is forbidden once you've been disabled. You'll have to
+  // log out to see resources available to the anonymous user (except
+  // for session GET requests, as noted below)
+  if (mreq.user?.disabledAt) {
+    // In order to let a disabled user know that they're logged in and
+    // to let them log out, we'll grant them GET access to these two
+    // endpoints. Otherwise the 403 error page on the client side can't
+    // get an active user and thinks the user isn't logged in at all,
+    // which can be more confusing than necessary.
+    const isSessionGetRequest = (
+      ['/session/access/active', '/session/access/all'].includes(mreq.url)
+        && mreq.method === 'GET'
+    );
+
+    if (!isSessionGetRequest) {
+      throw new ApiError('User is disabled', 403);
+    }
+  }
+
+  // If no userId has been found yet fall back on anonymous.
   if (!mreq.userId) {
     setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
   }

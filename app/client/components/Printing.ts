@@ -1,3 +1,4 @@
+import BaseView from 'app/client/components/BaseView';
 import {CustomView} from 'app/client/components/CustomView';
 import {DataRowModel} from 'app/client/models/DataRowModel';
 import DataTableModel from 'app/client/models/DataTableModel';
@@ -6,6 +7,14 @@ import {prefersColorSchemeDark, prefersColorSchemeDarkObs} from 'app/client/ui20
 import {dom} from 'grainjs';
 
 type RowId = number|'new';
+
+function getViewSectionContent(viewInstance: BaseView|null) {
+  const sectionElem = viewInstance?.viewPane?.closest('.viewsection_content');
+  if (!sectionElem) {
+    throw new Error("No page widget to print");
+  }
+  return sectionElem;
+}
 
 /**
  * Print the specified viewSection (aka page widget). We use the existing view instance rather
@@ -21,10 +30,7 @@ type RowId = number|'new';
  */
 export async function printViewSection(layout: any, viewSection: ViewSectionRec) {
   const viewInstance = viewSection.viewInstance.peek();
-  const sectionElem = viewInstance?.viewPane?.closest('.viewsection_content');
-  if (!sectionElem) {
-    throw new Error("No page widget to print");
-  }
+  const sectionElem = getViewSectionContent(viewInstance);
   if (viewInstance instanceof CustomView) {
     try {
       await viewInstance.triggerPrint();

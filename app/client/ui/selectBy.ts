@@ -38,7 +38,7 @@ export const NoLink = linkId({
 });
 
 const NoLinkOption: IOptionFull<string> = {
-  label: "Select Widget",
+  label: "Select widget",
   value: NoLink
 };
 

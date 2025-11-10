@@ -71,7 +71,7 @@ const testId = makeTestId('test-importer-');
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
 type CreatePreviewFunc = (vs: ViewSectionRec) => GridView;
-type GridView = IDisposable & {viewPane: HTMLElement, sortedRows: SortedRowSet, listenTo: (...args: any[]) => void};
+type GridView = IDisposable & {viewPane: HTMLElement, sortedRows: SortedRowSet};
 const TABLE_MAPPING = 1;
 const COLUMN_MAPPING = 2;
 type ViewType = typeof TABLE_MAPPING | typeof COLUMN_MAPPING;

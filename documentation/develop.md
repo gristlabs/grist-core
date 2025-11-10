@@ -110,6 +110,139 @@ $ yarn start:debug
 
 And start using your nodejs debugger client (like the Chrome Devtools). See https://nodejs.org/en/docs/guides/debugging-getting-started#inspector-clients
 
+
+## Coding Rules
+
+Most of the coding rules are already enforced by the Eslint tool. You can run it using the `yarn lint:ci` command 
+and you may `yarn lint:fix` to make eslint try to fix them for you.
+
+There are still few rules that are not yet configured in Eslint (we plan to add them):
+
+### Regarding the imports
+- The import should be gathered by these blocks following this order:
+  - The modules of the projects
+  - The contribs and the native libraries (ideally the later prefixed with `node:`);
+  - Separate the blocks with a new line
+```ts
+// ✅ Good
+import {
+  ExternalStorage,
+  joinKeySegments,
+} from 'app/server/lib/ExternalStorage';
+import {MemoryWritableStream} from 'app/server/utils/streams';
+
+import * as fse from 'fs-extra';
+import * as stream from 'node:stream';
+import * as path from 'path';
+
+// ❌ Bad
+import {
+  ExternalStorage,
+  joinKeySegments,
+} from 'app/server/lib/ExternalStorage';
+import * as path from 'path';
+import * as fse from 'fs-extra';
+import * as stream from 'node:stream';
+import {MemoryWritableStream} from 'app/server/utils/streams';
+
+```
+- Their paths should be absolute (ie. start with `app/`, `test/`, ... and not with `./`) and should not contain the extension:
+
+```ts
+// ✅ Good
+import {Sessions} from 'app/server/lib/Sessions';
+import {TcpForwarder} from 'test/server/tcpForwarder';
+import * as testUtils from 'test/server/testUtils';
+
+// ❌ Bad
+import {Sessions} from '../../app/server/lib/Sessions'
+import {TcpForwarder} from './tcpForwarder';
+import * as testUtils from 'test/server/testUtils.ts';
+```
+
+
+- They should be alphabetically sorted by the order of the import path within their blocks:
+```ts
+// ✅ Good
+
+import {
+  ExternalStorage,
+  joinKeySegments,
+} from 'app/server/lib/ExternalStorage';
+import {drainWhenSettled, MemoryWritableStream} from 'app/server/utils/streams';
+
+// ❌ Bad (`app/server/utils` comes after `apps/server/lib`)
+
+import {drainWhenSettled, MemoryWritableStream} from 'app/server/utils/streams';
+import {
+  ExternalStorage,
+  joinKeySegments,
+} from 'app/server/lib/ExternalStorage';
+```
+
+### Spacing
+
+```ts
+// ✅ Good :
+// - no space after the function name (`foo`)
+// - one space before the opening curly brace (`{`);
+// - no space before the colon (`:`)
+// - one space after the colon (`:`)
+// - one space around the equal (`=`) sign
+
+function foo(varName: Type) {
+  const myOtherVar = varName;
+}
+
+// ❌ Bad
+function foo (varName :Type){
+  const myOtherVar=varName;
+}
+```
+
+### Strings
+
+```ts
+import {makeT, t} from 'app/client/lib/localization';
+
+const t = makeT('MyModule');
+
+// ✅ Good :
+// - Following local rules: either choose simple quotes or double quotes
+// - use the `t()` function (client-side) or `req.t()` function (server-side) for the texts that will be displayed to the user and therefore needs localization
+// - pass arguments to the `t()` function, does not use concatenation for the localizers
+// - does not concatenate nor use the template strings for the `t()` function, but do as below
+// - consistency of the use of type of quotes locally (`"` or `'`) within a same function, except for concatenation where template strings are allowed
+
+function foo() {
+  const str1 = "foo";
+  const str2 = "bar";
+  const shortLocalizedStr = t("Lorem Ipsum");
+  const result = someFunction();
+  // Passing arguments
+  const localizedStrWithPlaceholder = t("Your response: {{result}}", {result});
+  // Because we use i18next-scanner to collect the translated strings, we have to
+  // use either simple or double quotes and end lines with backslashes (`\`) to insert a new line.
+  // Unfortunately this library does not support template strings nor concatenation.
+  // See: https://github.com/i18next/i18next-scanner/issues/35
+  const localizedStr = t("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. \
+Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. \
+Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.");
+}
+
+// ❌ Bad
+function foo() {
+  const str1 = 'foo';
+  const str2 = "bar";
+  const localizedStrWithPlaceholder = t("Your response: " + someFunction());
+  // These concatenations will cause our tool to collect string miss this translation key.
+  const localizedStr = t("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. " +
+    "Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. " +
+    "Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.");
+}
+```
+
+
 ## Run tests
 
 You may run the tests using one of these commands:

@@ -229,7 +229,7 @@ class SaveCopyModal extends Disposable {
           testId('copy-dest-name'))
       ),
       cssField(
-        cssLabel(t("As Template")),
+        cssLabel(t("As template")),
         cssCheckbox(this._asTemplate, t("Include the structure without any of the data."),
           testId('save-as-template'))
       ),
@@ -327,9 +327,9 @@ class SaveCopyModal extends Disposable {
 
 type DownloadOption = 'full' | 'nohistory' | 'template';
 
-export function downloadDocModal(doc: Document, pageModel: DocPageModel) {
+export function downloadDocModal(doc: Document, appModel: AppModel) {
   return modal((ctl, owner) => {
-    const docApi = pageModel.appModel.api.getDocAPI(doc.id);
+    const docApi = appModel.api.getDocAPI(doc.id);
     const selected = Observable.create<DownloadOption>(owner, 'full');
 
     const attachmentStatusObs = Observable.create<DocAttachmentsLocation | undefined | 'unknown'>(owner, undefined);

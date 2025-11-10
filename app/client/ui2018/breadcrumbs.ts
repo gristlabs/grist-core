@@ -91,6 +91,7 @@ export function docBreadcrumbs(
     docNameSave: (val: string) => Promise<void>,
     pageNameSave: (val: string) => Promise<void>,
     cancelRecoveryMode: () => Promise<void>,
+    proposeChanges?: () => Promise<void>,
     isDocNameReadOnly?: BindableValue<boolean>,
     isPageNameReadOnly?: BindableValue<boolean>,
     isFork: Observable<boolean>,
@@ -102,6 +103,8 @@ export function docBreadcrumbs(
     isPublic?: Observable<boolean>,
     isTemplate?: Observable<boolean>,
     isAnonymous?: boolean,
+    isProposable?: Observable<boolean>,
+    isReadonly?: Observable<boolean>,
   }
   ): Element {
     const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
@@ -145,7 +148,11 @@ export function docBreadcrumbs(
           return cssTag(t("snapshot"), testId('snapshot-tag'));
         }
         if (use(options.isFork) && !use(options.isTutorialFork)) {
-          return cssTag(t("unsaved"), testId('unsaved-tag'));
+          if (options.isProposable && use(options.isProposable)) {
+            return cssTag(t("suggesting"), testId('proposing-changes-tag'));
+          } else {
+            return cssTag(t("unsaved"), testId('unsaved-tag'));
+          }
         }
         if (use(options.isRecoveryMode)) {
           return cssAlertTag(t("recovery mode"),
@@ -154,8 +161,26 @@ export function docBreadcrumbs(
                              testId('recovery-mode-tag'));
         }
         if (use(options.isFiddle)) {
-          return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
+          if (options.isProposable && use(options.isProposable)) {
+            return cssTag(t("suggesting"), tooltip({title: t(`You may make edits,
+but they will not affect the original document.
+You can propose them as suggestions.`)}), testId('fiddle-tag'));
+          } else {
+            return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
 not affect the original document.`)}), testId('fiddle-tag'));
+          }
+        }
+        if (options.isProposable && use(options.isProposable)) {
+          if (options.isReadonly && use(options.isReadonly)) {
+            return cssAlertTag('',
+                               dom('a', dom.on('click', () => options.proposeChanges?.()),
+                                   'suggesting ', icon('Pencil')),
+                               testId('propose-changes-tag'));
+          } else {
+            return cssTag(t("editing"), tooltip({
+              title: 'Editing directly. Work on a copy if you want to propose changes.'
+            }), testId('direct-tag'));
+          }
         }
       }),
       separator(' / ',

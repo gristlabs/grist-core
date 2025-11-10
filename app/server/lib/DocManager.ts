@@ -33,9 +33,9 @@ import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
 import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import log from 'app/server/lib/log';
-import {ActiveDoc} from './ActiveDoc';
-import {PluginManager} from './PluginManager';
-import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from './uploads';
+import {ActiveDoc} from 'app/server/lib/ActiveDoc';
+import {PluginManager} from 'app/server/lib/PluginManager';
+import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from 'app/server/lib/uploads';
 import isDeepEqual = require('lodash/isEqual')
 import merge = require('lodash/merge');
 import noop = require('lodash/noop');
@@ -53,11 +53,15 @@ export const RECOVERY_CACHE_TTL = 30000; // 30 seconds
 // How long to remember the timing mode of a document.
 export const TIMING_ON_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
+export interface IMemoryLoadEstimator {
+  getTotalMemoryUsedMB(): number;
+}
+
 /**
  * DocManager keeps track of "active" Grist documents, i.e. those loaded
  * in-memory, with clients connected to them.
  */
-export class DocManager extends EventEmitter {
+export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   /**
    * Maps docName to promise for ActiveDoc object. Most of the time the promise
    * will be long since resolved, with the resulting document cached.

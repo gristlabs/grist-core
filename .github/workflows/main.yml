@@ -30,6 +30,7 @@ jobs:
           - ':nbrowser-^[M-N]:'
           - ':nbrowser-^[O-R]:'
           - ':nbrowser-^[^A-R]:'
+          - ':projects:'
         include:
           - tests: ':lint:python:client:common:smoke:'
             node-version: 22.x
@@ -84,7 +85,7 @@ jobs:
         run: yarn run build
 
       - name: Install Google Chrome and chromedriver
-        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:')
+        if: contains(matrix.tests, ':nbrowser-') || contains(matrix.tests, ':smoke:') || contains(matrix.tests, ':stubs:') || contains(matrix.tests, ':projects:')
         run: buildtools/install_chrome_for_tests.sh -y
 
       - name: Run smoke test
@@ -195,6 +196,16 @@ jobs:
           GVISOR_EXTRA_DIRS: /opt
           TESTDIR: ${{ runner.temp }}/test-logs
 
+      - name: Run projects tests
+        if: contains(matrix.tests, ':projects:')
+        run: |
+          mkdir -p $MOCHA_WEBDRIVER_LOGDIR
+          yarn run test:projects
+        env:
+          MOCHA_WEBDRIVER_LOGDIR: ${{ runner.temp }}/test-logs/webdriver
+          TESTDIR: ${{ runner.temp }}/test-logs
+          MOCHA_WEBDRIVER_HEADLESS: 1
+
       - name: Prepare for saving artifact
         if: failure()
         run: |
@@ -215,9 +226,9 @@ jobs:
           path: ${{ runner.temp }}/test-logs  # only exists for webdriver tests
 
     services:
-      # https://github.com/bitnami/bitnami-docker-minio/issues/16
+      # https://github.com/bitnami/containers/issues/83267
       minio:
-        image: ${{ matrix.os == 'ubuntu-24.04' && 'bitnami/minio:2025.4.22' || '' }} 
+        image: ${{ matrix.os == 'ubuntu-24.04' && 'bitnamilegacy/minio:2025.4.22' || '' }} 
         env:
           MINIO_DEFAULT_BUCKETS: "grist-docs-test:public"
           MINIO_ROOT_USER: administrator

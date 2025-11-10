@@ -9,7 +9,6 @@ export const GristLight: ThemeTokens = {
 
   body: '#262633',
   emphasis: tokens.black,
-  secondary: '#929299',
   veryLight: tokens.white,
 
   bg: tokens.white,
@@ -26,6 +25,9 @@ export const GristLight: ThemeTokens = {
   primaryDim: '#007548',
   primaryEmphasis: '#b1ffe2',
   primaryTranslucent: 'rgba(22, 179, 120, 0.5)',
+
+  secondary: '#929299',
+  secondaryMuted: '#777777',
 
   controlBorderRadius: '4px',
 
@@ -132,8 +134,6 @@ export const GristLight: ThemeTokens = {
     /* Right Panel */
     rightPanelTabButtonHoverBg: tokens.primaryMuted,
     rightPanelSubtabFg: '#707070',
-    rightPanelToggleButtonDisabledFg: tokens.white,
-    rightPanelToggleButtonDisabledBg: tokens.decorationSecondary,
     rightPanelFieldSettingsBg: tokens.decorationSecondary,
     rightPanelFieldSettingsButtonBg: 'lightgrey',
 
@@ -203,7 +203,7 @@ export const GristLight: ThemeTokens = {
     menuToggleActiveFg: tokens.primaryDim,
 
     /* Button Groups */
-    buttonGroupBgHover: tokens.decoration,
+    buttonGroupBgHover: tokens.bgSecondary,
     buttonGroupBorderHover: tokens.hover,
 
     /* Cells */

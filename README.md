@@ -13,9 +13,11 @@ The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open 
 Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
 and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
-> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
+> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/). 
+>
+> To keep up-to-date with everything that's going on, you can [sign up for Grist's monthly newsletter](https://www.getgrist.com/newsletter/).
 
-https://user-images.githubusercontent.com/118367/151245587-892e50a6-41f5-4b74-9786-fe3566f6b1fb.mp4
+https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
 ## Features in `grist-core`
 
@@ -105,7 +107,7 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
 	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
 	- For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
-  * Document Change and Comment Notifications (2025)
+  * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
 	- People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 
@@ -243,8 +245,8 @@ You may instead file an issue so someone else can add it.
 To build Grist from source, follow these steps:
 
     yarn install
-    yarn run build
-    yarn run install:python
+    yarn install:python
+    yarn build
     yarn start
     # Grist will be available at http://localhost:8484/
 
@@ -261,6 +263,22 @@ environment variable.
 These sandboxing methods have been written for our own use at Grist Labs and
 may need tweaking to work in your own environment - pull requests
 very welcome here!
+
+If you wish to include Grist Labs enterprise extensions in your build,
+the steps are as follows. Note that this will add non-OSS code to your
+build. It will also place a directory called `node_modules` one level
+up, at the same level as the Grist repo. If that is a problem for you,
+just move everything into a subdirectory first.
+
+    yarn install
+    yarn install:ee
+    yarn install:python
+    yarn build
+    yarn start
+    # Grist will be available at http://localhost:8484/
+
+The enterprise code will by default not be used. You need to explicitly enable
+it in the [Admin Panel](https://support.getgrist.com/self-managed/#how-do-i-enable-grist-enterprise).
 
 ## Logins
 
@@ -358,6 +376,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ATTACHMENT_THRESHOLD_MB | attachment storage limit per document beyond which Grist will recommend external storage (if available). Defaults to 50MB. |
 | GRIST_BACKUP_DELAY_SECS | wait this long after a doc change before making a backup |
 | GRIST_BOOT_KEY | if set, offer diagnostics at /boot/GRIST_BOOT_KEY |
+| GRIST_BROADCAST_TIMEOUT_MS | Set the maximum time a web client has to accept a broadcast message about a document before being disconnected (default: 1 minute). |
 | GRIST_DATA_DIR | Directory in which to store documents. Defaults to `docs/` relative to the Grist application directory. In Grist's default Docker image, its default value is /persist/docs so that it will be used as a mounted volume. |
 | GRIST_DEFAULT_EMAIL | if set, login as this user if no other credentials presented |
 | GRIST_DEFAULT_PRODUCT | if set, this controls enabled features and limits of new sites. See names of PRODUCTS in Product.ts. |
@@ -365,7 +384,9 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins |
 | GRIST_EXTERNAL_ATTACHMENTS_MODE | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well. |
+| GRIST_ENABLE_SERVICE_ACCOUNTS | enables the `service accounts` feature. This feature allows users to create special service accounts that they can manage and to whom they can grant restricted access to chosen resources. Useful as a way to get fine-grained api keys for use with third party automations. Unset by default |
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
+| GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
 | GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |
 | GRIST_HOST | hostname to use when listening on a port. |
 | GRIST_PROXY_FOR_UNTRUSTED_URLS | Full URL of proxy for delivering webhook payloads. Default value is `direct` for delivering payloads without proxying. |
@@ -374,6 +395,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_IGNORE_SESSION | if set, Grist will not use a session for authentication. |
 | GRIST_INCLUDE_CUSTOM_SCRIPT_URL | if set, will load the referenced URL in a `<script>` tag on all app pages. |
 | GRIST_INST_DIR | path to Grist instance configuration files, for Grist server. |
+| GRIST_KEEP_ALIVE_TIMEOUT_MS | if set, override nodes's server.keepAliveTimeout flag. |
 | GRIST_LIST_PUBLIC_SITES | if set to true, sites shared with the public will be listed for anonymous users. Defaults to false. |
 | GRIST_MANAGED_WORKERS | if set, Grist can assume that if a url targeted at a doc worker returns a 404, that worker is gone |
 | GRIST_MAX_NEW_USER_INVITES_PER_ORG | if set, limits the number of invites to new users per org. Once exceeded, additional invites are blocked until invited users log in for the first time or are uninvited
@@ -386,6 +408,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_ORG_IN_PATH | if true, encode org in path rather than domain |
 | GRIST_PAGE_TITLE_SUFFIX | a string to append to the end of the `<title>` in HTML documents. Defaults to `" - Grist"`. Set to `_blank` for no suffix at all. |
 | ~GRIST_PROXY_AUTH_HEADER~ | Deprecated, and interpreted as a synonym for GRIST_FORWARD_AUTH_HEADER. |
+| GRIST_REQUEST_TIMEOUT_MS | if set, override nodes's server.requestTimeout flag. |
 | GRIST_ROUTER_URL | optional url for an api that allows servers to be (un)registered with a load balancer |
 | GRIST_SERVE_SAME_ORIGIN | set to "true" to access home server and doc workers on the same protocol-host-port as the top-level page, same as for custom domains (careful, host header should be trustworthy) |
 | GRIST_SERVERS | the types of server to setup. Comma separated values which may contain "home", "docs", static" and/or "app". Defaults to "home,docs,static". |
@@ -432,7 +455,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_FEATURE_FORM_FRAMING | optional. Configures a border around a rendered form that is added for security reasons; Can be set to: `border` or `minimal`. Defaults to `border`. |
 | GRIST_TRUTHY_VALUES | optional. Comma-separated list of extra words that should be considered as truthy by the data engine beyond english defaults. Ex: "oui,ja,si" |
 | GRIST_FALSY_VALUES | optional. Comma-separated list of extra words that should be considered as falsy by the data engine beyond english defaults. Ex: "non,nein,no" |
-| GRIST_ENABLE_USER_PRESENCE | optional, disabled by default. If set to 'false', disables all user presence features. |
+| GRIST_ENABLE_USER_PRESENCE | optional, enabled by default. If set to 'false', disables all user presence features. |
 #### AI Formula Assistant related variables (all optional):
 
 Variable | Purpose

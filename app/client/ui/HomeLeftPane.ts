@@ -11,6 +11,7 @@ import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {stretchedLink} from 'app/client/ui2018/stretchedLink';
 import {
+  createAccessibilityTools,
   createHelpTools,
   cssHomeTools,
   cssLeftPanel,
@@ -67,7 +68,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
       cssPageEntry(
         cssPageEntry.cls('-selected', (use) => use(home.currentPage) === "all"),
         cssPageLink(cssPageIcon('Home'),
-          cssLinkText(t("All Documents")),
+          cssLinkText(t("All documents")),
           urlState().setLinkUrl({ws: undefined, homePage: undefined}),
           testId('dm-all-docs'),
         ),
@@ -176,6 +177,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           ) : null
         ),
         createHelpTools(home.app),
+        createAccessibilityTools(),
         (commonUrls.termsOfService ?
           cssPageEntry(
             cssPageLink(cssPageIcon('Memo'), cssLinkText(t("Terms of service")),
@@ -195,11 +197,11 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
   const needUpgrade = home.app.currentFeatures?.maxWorkspacesPerOrg === 1;
 
   return [
-    menuItem(() => newDocMethods.createDocAndOpen(home), menuIcon('Page'), t("Create Empty Document"),
+    menuItem(() => newDocMethods.createDocAndOpen(home), menuIcon('Page'), t("Create empty document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-new-doc")
     ),
-    menuItem(() => newDocMethods.importDocAndOpen(home), menuIcon('Import'), t("Import Document"),
+    menuItem(() => newDocMethods.importDocAndOpen(home), menuIcon('Import'), t("Import document"),
       dom.cls('disabled', !home.newDocWorkspace.get()),
       testId("dm-import")
     ),
@@ -214,7 +216,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     ])),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
-    upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("Create Workspace"),
+    upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("Create workspace"),
              dom.cls('disabled', (use) => !roles.canEdit(orgAccess) || !use(home.available)),
              testId("dm-new-workspace")
     ),
@@ -270,7 +272,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
     // should formally be documented and defined in `Features`, with this check updated
     // to look there instead.
     home.app.isPersonal ? null : upgradableMenuItem(needUpgrade, manageWorkspaceUsers,
-      roles.canEditAccess(ws.access) ? t("Manage Users") : t("Access Details"),
+      roles.canEditAccess(ws.access) ? t("Manage users") : t("Access Details"),
       testId('dm-workspace-access')),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];

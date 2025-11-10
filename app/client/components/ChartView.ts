@@ -3,17 +3,14 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
         uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
-import {Disposable} from 'app/client/lib/dispose';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
-import DataTableModel from 'app/client/models/DataTableModel';
 import {ColumnRec, ViewFieldRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {reportError} from 'app/client/models/errors';
 import {KoSaveableObservable, ObjObservable, setSaveValue} from 'app/client/models/modelUtil';
-import {SortedRowSet} from 'app/client/models/rowset';
 import {ChartOptions, ViewSectionOptions} from 'app/client/models/entities/ViewSectionRec';
 import {IPageWidget, toPageWidget} from 'app/client/ui/PageWidgetPicker';
-import {cssLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
+import {cssGroupLabel, cssRow, cssSeparator} from 'app/client/ui/RightPanelStyles';
 import {cssFieldEntry, cssFieldLabel, IField, VisibleFieldsConfig } from 'app/client/ui/VisibleFieldsConfig';
 import {IconName} from 'app/client/ui2018/IconList';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
@@ -22,17 +19,16 @@ import {gristThemeObs} from 'app/client/ui2018/theme';
 import {cssDragger} from 'app/client/ui2018/draggableList';
 import {icon} from 'app/client/ui2018/icons';
 import {IOptionFull, linkSelect, menu, menuItem, menuText, select} from 'app/client/ui2018/menus';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {nativeCompare, unwrap} from 'app/common/gutil';
 import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
-import {Events as BackboneEvents} from 'backbone';
 import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
         IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
 import * as ko from 'knockout';
 import clamp = require('lodash/clamp');
 import debounce = require('lodash/debounce');
-import defaults = require('lodash/defaults');
 import defaultsDeep = require('lodash/defaultsDeep');
 import isNumber = require('lodash/isNumber');
 import merge = require('lodash/merge');
@@ -118,7 +114,7 @@ function getSeriesName(series: Series, haveMultiple: boolean) {
 type Data = Partial<PlotlyPlotData>;
 
 // The output of a ChartFunc. Normally it just returns one or more Data[] series, but sometimes it
-// includes layout information: e.g. a "Scatter Plot" returns a Layout with axis labels.
+// includes layout information: e.g. a "Scatter plot" returns a Layout with axis labels.
 interface PlotData {
   data: Data[];
   layout?: Partial<Layout>;
@@ -161,15 +157,7 @@ const LIST_TYPES = ['ChoiceList', 'RefList'];
 /**
  * ChartView component displays created charts.
  */
-export class ChartView extends Disposable {
-  public viewPane: Element;
-
-  // These elements are defined in BaseView, from which we inherit with some hackery.
-  protected viewSection: ViewSectionRec;
-  protected sortedRows: SortedRowSet;
-  protected tableModel: DataTableModel;
-  protected gristDoc: GristDoc;
-
+export class ChartView extends BaseView {
   private _chartType: ko.Observable<string>;
   private _options: ObjObservable<ViewSectionOptions>;
   private _chartDom: HTMLElement;
@@ -181,15 +169,14 @@ export class ChartView extends Disposable {
   // peek section's sort spec
   private get _sortSpec() { return this.viewSection.activeSortSpec.peek(); }
 
-  public create(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    BaseView.call(this as any, gristDoc, viewSectionModel);
-
-    this._chartDom = this.autoDispose(this.buildDom());
-
-    this._resize = this.autoDispose(Delay.untilAnimationFrame(this._resizeChart, this));
+  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
+    super(gristDoc, viewSectionModel);
 
     // Note that .viewPane is used by ViewLayout to insert the actual DOM into the document.
-    this.viewPane = this._chartDom;
+    this._chartDom = this.viewPane = this.buildDom();
+    this.onDispose(() => { dom.domDispose(this.viewPane); this.viewPane.remove(); });
+
+    this._resize = this.autoDispose(Delay.untilAnimationFrame(this._resizeChart, this));
 
     this._chartType = this.viewSection.chartTypeDef;
     this._options = this.viewSection.optionsObj;
@@ -224,20 +211,18 @@ export class ChartView extends Disposable {
     Plotly.relayout(this._chartDom, {}).catch(reportError);
   }
 
-  protected onTableLoaded() {
-    (BaseView.prototype as any).onTableLoaded.call(this);
-    this._update();
+  public onResize() {
+    this._resize();
   }
 
-  protected onResize() {
-    this._resize();
+  protected onTableLoaded() {
+    super.onTableLoaded();
+    this._update();
   }
 
   protected buildDom() {
     return dom('div.chart_container', testId('container'));
   }
-
-  private listenTo(...args: any[]): void { /* replaced by Backbone */ }
 
   private async _updateView() {
     if (this.isDisposed()) { return; }
@@ -379,6 +364,18 @@ export class ChartView extends Disposable {
     const {colors} = gristThemeObs().get();
     const {chartBg, chartLegendBg, chartFg, chartXAxis, chartYAxis} = colors.components;
     return {
+      colorway: [
+        '#2b78ae',
+        '#fe945b',
+        '#3a936e',
+        '#d34141',
+        '#8563cc',
+        '#8c564b',
+        '#db7fbf',
+        '#7f7f7f',
+        '#b3b42b',
+        '#28b4d3',
+      ],
       paper_bgcolor: typeof chartBg === 'string' ? chartBg : chartBg.getRawValue(),
       plot_bgcolor: typeof chartBg === 'string' ? chartBg : chartBg.getRawValue(),
       xaxis: {
@@ -462,10 +459,6 @@ function extractErrorBars(series: Series[], options: ChartOptions): Map<Series, 
   }
   return result;
 }
-
-// Getting an ES6 class to work with old-style multiple base classes takes a little hacking.
-defaults(ChartView.prototype, BaseView.prototype);
-Object.assign(ChartView.prototype, BackboneEvents);
 
 /**
  * The grainjs component for side-pane configuration options for a Chart section.
@@ -591,13 +584,13 @@ export class ChartConfig extends GrainJSDisposable {
     return [
       cssRow(
         select(this._chartType, [
-          {value: 'bar',          label: t('Bar Chart'),         icon: 'ChartBar'   },
-          {value: 'pie',          label: t('Pie Chart'),         icon: 'ChartPie'   },
-          {value: 'donut',        label: t('Donut Chart'),       icon: 'ChartDonut' },
-          {value: 'area',         label: t('Area Chart'),        icon: 'ChartArea'  },
-          {value: 'line',         label: t('Line Chart'),        icon: 'ChartLine'  },
-          {value: 'scatter',      label: t('Scatter Plot'),      icon: 'ChartLine'  },
-          {value: 'kaplan_meier', label: t('Kaplan-Meier Plot'), icon: 'ChartKaplan'},
+          {value: 'bar',          label: t('Bar chart'),         icon: 'ChartBar'   },
+          {value: 'pie',          label: t('Pie chart'),         icon: 'ChartPie'   },
+          {value: 'donut',        label: t('Donut chart'),       icon: 'ChartDonut' },
+          {value: 'area',         label: t('Area chart'),        icon: 'ChartArea'  },
+          {value: 'line',         label: t('Line chart'),        icon: 'ChartLine'  },
+          {value: 'scatter',      label: t('Scatter plot'),      icon: 'ChartLine'  },
+          {value: 'kaplan_meier', label: t('Kaplan-Meier plot'), icon: 'ChartKaplan'},
         ]),
         testId("type"),
       ),
@@ -617,12 +610,12 @@ export class ChartConfig extends GrainJSDisposable {
       ]),
       dom.maybeOwned((use) => use(this._section.chartTypeDef) === 'donut', (owner) => [
         cssSlideRow(
-          t('Hole Size'),
+          t('Hole size'),
           Computed.create(owner, (use) => use(this._optionsObj.prop('donutHoleSize')) ?? DONUT_DEFAULT_HOLE_SIZE),
           (val: number) => this._optionsObj.prop('donutHoleSize').saveOnly(val),
           testId('option')
         ),
-        cssCheckboxRow(t('Show Total'), this._optionsObj.prop('showTotal')),
+        cssCheckboxRow(t('Show total'), this._optionsObj.prop('showTotal')),
         dom.maybe(this._optionsObj.prop('showTotal'), () => (
           cssNumberWithSpinnerRow(
             t('Text Size'),
@@ -658,54 +651,60 @@ export class ChartConfig extends GrainJSDisposable {
 
       cssSeparator(),
 
-      dom.maybe(this._groupData, () => [
-        cssLabel(t('Split Series')),
-        cssRow(
-          select(this._groupDataColId, this._groupDataOptions),
-          testId('group-by-column'),
-        ),
-        cssHintRow(t("Create separate series for each value of the selected column.")),
-      ]),
+      dom.maybe(this._groupData, () =>
+        dom('div', {role: 'group', 'aria-labelledby': 'chart-split-series-label'},
+          cssGroupLabel(t('Split Series'), {id: 'chart-split-series-label'}),
+          cssRow(
+            select(this._groupDataColId, this._groupDataOptions),
+            testId('group-by-column'),
+          ),
+          cssHintRow(t("Create separate series for each value of the selected column.")),
+        )
+      ),
 
       // TODO: user should select x axis before widget reach page
-      cssLabel(dom.text(this._firstFieldLabel), testId('first-field-label')),
-      cssRow(
-        select(
-          this._xAxis, this._columnsOptions,
-          { defaultLabel: t("Pick a column") }
+      dom('div', {role: 'group', 'aria-labelledby': 'chart-first-field-label'},
+        cssGroupLabel(dom.text(this._firstFieldLabel), testId('first-field-label'), {id: 'chart-first-field-label'}),
+        cssRow(
+          select(
+            this._xAxis, this._columnsOptions,
+            { defaultLabel: t("Pick a column") }
+          ),
+          testId('x-axis'),
         ),
-        testId('x-axis'),
+        cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
       ),
-      cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
 
-      cssLabel(t('SERIES')),
-      this._buildYAxis(),
-      cssRow(
-        cssAddYAxis(
-          cssAddIcon('Plus'), t('Add Series'),
-          menu(() => {
-            const hiddenColumns = this._section.hiddenColumns.peek();
-            const filterFunc = this._isCompatibleSeries.bind(this);
-            const nonNumericCount = hiddenColumns.filter((col) => !filterFunc(col)).length;
-            return [
-              ...hiddenColumns
-                .filter((col) => filterFunc(col))
-                .map((col) => menuItem(
-                  () => this._configFieldsHelper.addField(col),
-                  col.label.peek(),
-                )),
-              nonNumericCount ? menuText(
-                `${nonNumericCount} ` + (
-                  nonNumericCount > 1 ?
-                    t(`non-numeric columns are not shown`) :
-                    t(`non-numeric column is not shown`)
-                ),
-                testId('yseries-picker-message'),
-              ) : null,
-            ];
-          }),
-          testId('add-y-axis'),
-        )
+      dom('div', {role: 'group', 'aria-labelledby': 'chart-series-label'},
+        cssGroupLabel(t('SERIES'), {id: 'chart-series-label'}),
+        this._buildYAxis(),
+        cssRow(
+          cssAddYAxis(
+            cssAddIcon('Plus'), t('Add series'),
+            menu(() => {
+              const hiddenColumns = this._section.hiddenColumns.peek();
+              const filterFunc = this._isCompatibleSeries.bind(this);
+              const nonNumericCount = hiddenColumns.filter((col) => !filterFunc(col)).length;
+              return [
+                ...hiddenColumns
+                  .filter((col) => filterFunc(col))
+                  .map((col) => menuItem(
+                    () => this._configFieldsHelper.addField(col),
+                    col.label.peek(),
+                  )),
+                nonNumericCount ? menuText(
+                  `${nonNumericCount} ` + (
+                    nonNumericCount > 1 ?
+                      t(`non-numeric columns are not shown`) :
+                      t(`non-numeric column is not shown`)
+                  ),
+                  testId('yseries-picker-message'),
+                ) : null,
+              ];
+            }),
+            testId('add-y-axis'),
+          )
+        ),
       ),
 
     ];
@@ -829,7 +828,7 @@ export class ChartConfig extends GrainJSDisposable {
     return cssFieldEntry(
       cssFieldLabel(dom.text(col.label)),
       cssRemoveIcon(
-        t('Remove'),
+        'Remove',
         dom.on('click', () => this._configFieldsHelper.removeField(col)),
         testId('ref-select-remove'),
       ),
@@ -1303,7 +1302,7 @@ const cssAddIcon = styled(icon, `
   margin-right: 4px;
 `);
 
-const cssAddYAxis = styled('div', `
+const cssAddYAxis = styled(unstyledButton, `
   display: flex;
   cursor: pointer;
   color: ${theme.controlFg};

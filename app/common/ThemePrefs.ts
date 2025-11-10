@@ -1,4 +1,4 @@
-import { CssCustomProp } from './CssCustomProp';
+import { CssCustomProp } from 'app/common/CssCustomProp';
 
 export interface ThemePrefs {
   appearance: ThemeAppearance;
@@ -65,7 +65,6 @@ type Token = string | CssCustomProp;
 export const tokensCssMapping = {
   body: 'body',
   emphasis: 'emphasis',
-  secondary: 'secondary',
   veryLight: 'very-light',
 
   bg: 'bg-default', // names don't match here to prevent conflicting with internal --grist-theme-bg var
@@ -82,6 +81,9 @@ export const tokensCssMapping = {
   primaryDim: 'primary-dim',
   primaryEmphasis: 'primary-emphasis',
   primaryTranslucent: 'primary-translucent',
+
+  secondary: 'secondary',
+  secondaryMuted: 'secondary-muted',
 
   white: 'white',
   black: 'black',
@@ -328,10 +330,6 @@ export const componentsCssMapping = {
   rightPanelSubtabSelectedUnderline: 'right-panel-subtab-selected-underline',
   rightPanelSubtabHoverFg: 'right-panel-subtab-hover-fg',
   rightPanelDisabledOverlay: 'right-panel-disabled-overlay',
-  rightPanelToggleButtonEnabledFg: 'right-panel-toggle-button-enabled-fg',
-  rightPanelToggleButtonEnabledBg: 'right-panel-toggle-button-enabled-bg',
-  rightPanelToggleButtonDisabledFg: 'right-panel-toggle-button-disabled-fg',
-  rightPanelToggleButtonDisabledBg: 'right-panel-toggle-button-disabled-bg',
   rightPanelFieldSettingsBg: 'right-panel-field-settings-bg',
   rightPanelFieldSettingsButtonBg: 'right-panel-field-settings-button-bg',
   rightPanelCustomWidgetButtonFg: 'right-panel-custom-widget-button-fg',
@@ -452,6 +450,7 @@ export const componentsCssMapping = {
   infoButtonActiveFg: 'info-button-active-fg',
   buttonGroupFg: 'button-group-fg',
   buttonGroupLightFg: 'button-group-light-fg',
+  buttonGroupLightBg: 'button-group-light-bg',
   buttonGroupBg: 'button-group-bg',
   buttonGroupBgHover: 'button-group-bg-hover',
   buttonGroupIcon: 'button-group-icon',
@@ -459,6 +458,7 @@ export const componentsCssMapping = {
   buttonGroupBorderHover: 'button-group-border-hover',
   buttonGroupSelectedFg: 'button-group-selected-fg',
   buttonGroupLightSelectedFg: 'button-group-light-selected-fg',
+  buttonGroupLightSelectedBg: 'button-group-light-selected-bg',
   buttonGroupSelectedBg: 'button-group-selected-bg',
   buttonGroupSelectedBorder: 'button-group-selected-border',
   accessRulesTableHeaderFg: 'access-rules-table-header-fg',
@@ -586,7 +586,6 @@ export const componentsCssMapping = {
   textButtonHoverBg: 'text-button-hover-bg',
   textButtonHoverBorder: 'text-button-hover-border',
   kbFocusHighlight: 'kb-focus-highlight',
-  userListRemainingUsersBg: 'user-list-remaining-users-bg',
 } as const;
 
 export const tokens = Object.fromEntries(
@@ -743,11 +742,6 @@ export interface SpecificThemeTokens {
   emphasis: Token;
 
   /**
-   * secondary, less visually pronounced text
-   */
-  secondary: Token;
-
-  /**
    * text that is always light, whatever the current appearance (light or dark theme)
    */
   veryLight: Token;
@@ -811,6 +805,17 @@ export interface SpecificThemeTokens {
    * primary color with around 50% opacity
    */
   primaryTranslucent: Token;
+
+  /**
+   * secondary color, used on elements like less visually pronounced
+   * text and non-primary or disabled controls
+   */
+  secondary: Token;
+
+  /**
+   * alternative secondary color, mostly used on hover effects
+   */
+  secondaryMuted: Token;
 
   controlBorderRadius: Token;
 
@@ -886,8 +891,6 @@ export interface SpecificThemeTokens {
     pageInitialsEmojiOutline: Token;
     pageInitialsEmojiBg: Token;
     rightPanelTabButtonHoverBg: Token;
-    rightPanelToggleButtonDisabledFg: Token;
-    rightPanelToggleButtonDisabledBg: Token;
     rightPanelFieldSettingsBg: Token;
     rightPanelFieldSettingsButtonBg: Token;
     documentHistorySnapshotBorder: Token;
@@ -1165,8 +1168,6 @@ export interface BaseThemeTokens {
     rightPanelSubtabSelectedFg: Token;
     rightPanelSubtabSelectedUnderline: Token;
     rightPanelDisabledOverlay: Token;
-    rightPanelToggleButtonEnabledFg: Token;
-    rightPanelToggleButtonEnabledBg: Token;
     rightPanelCustomWidgetButtonFg: Token;
     rightPanelCustomWidgetButtonBg: Token;
     documentHistorySnapshotFg: Token;
@@ -1251,10 +1252,12 @@ export interface BaseThemeTokens {
     buttonGroupBg: Token;
     buttonGroupFg: Token;
     buttonGroupLightFg: Token;
+    buttonGroupLightBg: Token;
     buttonGroupIcon: Token;
     buttonGroupBorder: Token;
     buttonGroupSelectedFg: Token;
     buttonGroupLightSelectedFg: Token;
+    buttonGroupLightSelectedBg: Token;
     buttonGroupSelectedBg: Token;
     buttonGroupSelectedBorder: Token;
     accessRulesTableHeaderFg: Token;
@@ -1316,7 +1319,6 @@ export interface BaseThemeTokens {
     textButtonHoverBg: Token;
     textButtonHoverBorder: Token;
     kbFocusHighlight: Token;
-    userListRemainingUsersBg: Token;
     switchInactiveSlider: Token;
     switchInactivePill: Token;
     switchActiveSlider: Token;

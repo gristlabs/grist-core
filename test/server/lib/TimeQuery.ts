@@ -1,7 +1,8 @@
 import {summarizeAction} from 'app/common/ActionSummarizer';
 import {ActionSummary} from 'app/common/ActionSummary';
+import {TimeCursor, TimeLayout, TimeQuery} from 'app/common/TimeQuery';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {TimeCursor, TimeLayout, TimeQuery} from 'app/server/lib/TimeQuery';
+import {SQLiteTimeData} from 'app/server/lib/TimeQuery';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {assert} from 'test/server/testUtils';
@@ -23,7 +24,7 @@ describe("TimeQuery", function() {
   it ('can view state of table in past', async function() {
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     const db = doc.docStorage;
-    const cursor = new TimeCursor(db);
+    const cursor = new TimeCursor(new SQLiteTimeData(db));
 
     // We'll be interested in viewing the state of table "Fish", column "age".
     const fish = new TimeQuery(cursor, 'Fish', ['age']);
@@ -65,7 +66,7 @@ describe("TimeQuery", function() {
   it ('can track column order and user-facing table name', async function() {
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     const db = doc.docStorage;
-    const cursor = new TimeCursor(db);
+    const cursor = new TimeCursor(new SQLiteTimeData(db));
     const layout = new TimeLayout(cursor);
     const session = docTools.createFakeSession();
 
@@ -114,4 +115,108 @@ describe("TimeQuery", function() {
                   /could not find/);
   });
 
+  it ('can handle renames', async function() {
+    this.timeout(10000);
+
+    const doc: ActiveDoc = await docTools.createDoc('test.grist');
+    const db = doc.docStorage;
+    const cursor = new TimeCursor(new SQLiteTimeData(db));
+    const session = docTools.createFakeSession();
+
+    // Create a table with three columns. In this test, we will rename
+    // the table and a column and make sure the renames don't affect
+    // querying information prior to those changes.
+    await doc.applyUserActions(session, [
+      ["AddTable", "Fish", [{id: "age"}, {id: "species"}, {id: "color"}]],
+      ["AddRecord", "Fish", null, {age: "11", species: "flounder", color: "blue"}],
+      ["AddRecord", "Fish", null, {age: "22", species: "bounder", color: "red"}],
+    ]);
+    await doc.applyUserActions(session, [
+      ["RenameTable", "Fish", "Fish2"]
+    ]);
+    cursor.append(await summarizeLastAction(doc));
+    const query = new TimeQuery(cursor, 'Fish', ['species']);
+    const expectedResult = [
+      { id: 1, species: 'flounder' },
+      { id: 2, species: 'bounder' }
+    ];
+    let result = await query.update();
+    assert.deepEqual(result, expectedResult);
+
+    await doc.applyUserActions(session, [
+      ["RenameColumn", "Fish2", "species", "species2"]
+    ]);
+    cursor.append(await summarizeLastAction(doc));
+    result = await query.update();
+    assert.deepEqual(result, expectedResult);
+
+    await doc.applyUserActions(session, [
+      ["RenameColumn", "Fish2", "color", "color2"],
+      ["RenameColumn", "Fish2", "species2", "color"],
+    ]);
+    cursor.append(await summarizeLastAction(doc));
+    result = await query.update();
+    assert.deepEqual(result, expectedResult);
+
+    await doc.applyUserActions(session, [
+      ["AddTable", "Fish", [{id: "species"}]],
+      ["AddRecord", "Fish", null, {species: "tadpole"}],
+    ]);
+    cursor.append(await summarizeLastAction(doc));
+    result = await query.update();
+    assert.deepEqual(result, expectedResult);
+
+    await doc.applyUserActions(session, [
+      ["UpdateRecord", "Fish2", 1, {color: "whale"}]
+    ]);
+    cursor.append(await summarizeLastAction(doc));
+    result = await query.update();
+    assert.deepEqual(result, expectedResult);
+
+    // Double check that we've actually made all the changes we think we have.
+    assert.deepEqual(await doc.fetchQuery(session, {tableId: 'Fish2', filters: {}}), {
+      "tableData": [
+        "TableData",
+        "Fish2",
+        [ 1, 2 ],
+        {
+          "manualSort": [
+            1,
+            2
+          ],
+          "age": [
+            "11",
+            "22"
+          ],
+          "color2": [
+            "blue",
+            "red"
+          ],
+          "color": [
+            "whale",
+            "bounder"
+          ]
+        }
+      ]
+    });
+
+    query.reset('Fish', '*');
+    result = await query.update();
+    assert.deepEqual(result, [
+      {
+        id: 1,
+        manualSort: 1,
+        age: '11',
+        species: 'flounder',
+        color: 'blue'
+      },
+      {
+        id: 2,
+        manualSort: 2,
+        age: '22',
+        species: 'bounder',
+        color: 'red'
+      }
+    ]);
+  });
 });

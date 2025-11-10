@@ -1,7 +1,7 @@
 import {dom, input, makeTestId, observable, styled} from 'grainjs';
 import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
 import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
-import {buildMentionTextBox, CommentText} from 'app/client/widgets/MentionTextBox';
+import {buildMentionTextBox, CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {PermissionData} from 'app/common/UserAPI';
 
 const testId = makeTestId('test-');
@@ -26,9 +26,9 @@ function setupTest() {
 }
 
 function buildDom(init: string) {
-  const text = observable(new CommentText(init));
+  const text = observable(new CommentWithMentions(init));
   const rawHtml = observable('');
-  const access: PermissionData = {
+  const data: PermissionData = {
     users: [
       {name: 'Alice', id: 1, ref: 'alice', email: '', access: 'editors'},
       {name: 'Bob', id: 2, ref: 'bob', email: '', access: 'editors'},
@@ -36,6 +36,18 @@ function buildDom(init: string) {
       {name: 'Dave', id: 4, ref: 'dave', email: '', access: 'editors'},
     ]
   };
+
+  const access = observable<PermissionData|null>(data);
+
+  // Exposed for debugging purposes.
+  (window as any).loadData = () => {
+    access.set(data);
+  };
+
+  (window as any).clearData = () => {
+    access.set(null);
+  };
+
   return [
     dom('div.box',
       buildMentionTextBox(
@@ -43,7 +55,14 @@ function buildDom(init: string) {
         access,
         testId('input'),
         dom.on('input', (_, el) => rawHtml.set(el.innerHTML)),
-      )
+      ),
+      dom('button', 'Load', dom.on('click', () => { access.set(data); })),
+      dom('button', 'Clear', dom.on('click', () => { access.set(null); })),
+      dom('button', 'Load after', dom.on('click', () => {
+        setTimeout(() => {
+          access.set(data);
+        }, 5000);
+      })),
     ),
     dom('div.box wide',
       dom('div', 'Markdown'),

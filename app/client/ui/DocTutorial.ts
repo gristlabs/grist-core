@@ -2,7 +2,8 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import {makeT} from 'app/client/lib/localization';
 import {sessionStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
-import {getWelcomeHomeUrl, urlState} from 'app/client/models/gristUrlState';
+import {getWelcomeHomeUrl} from 'app/client/lib/urlUtils';
+import {urlState} from 'app/client/models/gristUrlState';
 import {renderer} from 'app/client/ui/DocTutorialRenderer';
 import {cssPopupBody, FLOATING_POPUP_TOOLTIP_KEY, FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
 import {sanitizeTutorialHTML} from 'app/client/ui/sanitizeHTML';
@@ -108,6 +109,7 @@ export class DocTutorial extends Disposable {
       minimizable: true,
       stopClickPropagationOnMove: true,
       args: this._buildPopupArgs(),
+      testId,
     });
     popup.showPopup();
   }
@@ -203,7 +205,6 @@ export class DocTutorial extends Disposable {
   private _buildPopupArgs() {
     return [
       dom.cls('doc-tutorial-popup'),
-      testId('popup'),
       // Pre-fetch images from all slides and store them in a hidden div.
       dom.maybe(this._slides, slides =>
         dom('div',

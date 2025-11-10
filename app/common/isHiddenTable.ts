@@ -26,3 +26,10 @@ export function isTableCensored(tablesData: TableData, tableRef: UIRowId): boole
   const tableId = tablesData.getValue(tableRef, 'tableId');
   return !tableId;
 }
+
+/**
+ * Returns whether this is a metadata table, as opposed to a user table.
+ */
+export function isMetadataTable(tableId: string): boolean {
+  return tableId.startsWith('_grist');
+}

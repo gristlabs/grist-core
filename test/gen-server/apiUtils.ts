@@ -1,4 +1,3 @@
-import {delay} from 'app/common/delay';
 import {Role} from 'app/common/roles';
 import {UserAPIImpl, UserProfile} from 'app/common/UserAPI';
 import {AclRule, AclRuleDoc, AclRuleOrg, AclRuleWs} from 'app/gen-server/entity/AclRule';
@@ -20,7 +19,7 @@ import FormData from 'form-data';
 import fetch from 'node-fetch';
 import * as path from 'path';
 import {createInitialDb, removeConnection, setUpDB} from 'test/gen-server/seed';
-import {setPlan} from 'test/gen-server/testUtils';
+import {setPlan, waitForAllNotifications} from 'test/gen-server/testUtils';
 import {fixturesRoot} from 'test/server/testUtils';
 import {isAffirmative} from 'app/common/gutil';
 
@@ -43,8 +42,8 @@ export class TestServer {
     await createInitialDb(undefined, seedData ? true : 'migrateOnly');
     const mergedServer = await MergedServer.create(0, servers, {logToConsole: isAffirmative(process.env.DEBUG),
                                                       externalStorage, ...options});
-    await mergedServer.run();
     this.server = mergedServer.flexServer;
+    await mergedServer.run();
     this.serverUrl = this.server.getOwnUrl();
     this.dbManager = this.server.getHomeDBManager();
     this.defaultSession = new TestSession(this.server);
@@ -58,10 +57,7 @@ export class TestServer {
     // and node-sqlite3 has become fussier about this, and in regular tests
     // we substitute sqlite for postgres.
     if (this.server.hasNotifier()) {
-      for (let i = 0; i < 30; i++) {
-        if (!this.server.testPending) { break; }
-        await delay(100);
-      }
+      await waitForAllNotifications(this.server, 3000);
     }
     await removeConnection();
   }

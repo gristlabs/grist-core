@@ -9,7 +9,8 @@ import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { domAsync } from "app/client/lib/domAsync";
 import { makeT } from "app/client/lib/localization";
 import { sessionStorageBoolObs } from "app/client/lib/localStorageObs";
-import { constructUrl, getLoginOrSignupUrl, urlState } from "app/client/models/gristUrlState";
+import { getLoginOrSignupUrl } from "app/client/lib/urlUtils";
+import { constructUrl, urlState } from "app/client/models/gristUrlState";
 import { showEnterpriseToggle } from "app/client/ui/ActivationPage";
 import { buildCodeHighlighter } from "app/client/ui/CodeHighlight";
 import { autoGrow } from "app/client/ui/forms";
@@ -23,7 +24,7 @@ import { cssLink, gristIconLink } from "app/client/ui2018/links";
 import { loadingDots } from "app/client/ui2018/loaders";
 import { MinimalActionGroup } from "app/common/ActionGroup";
 import { ApiError } from "app/common/ApiError";
-import { AssistanceResponse, DeveloperPromptVersion } from "app/common/Assistance";
+import { AssistanceResponse } from "app/common/Assistance";
 import { AsyncCreate } from "app/common/AsyncCreate";
 import { DocAction } from "app/common/DocActions";
 import { isFreePlan } from "app/common/Features";
@@ -57,10 +58,6 @@ interface AssistantOptions {
   history: Observable<ChatHistory>;
   gristDoc: GristDoc;
   parentHeightPx?: Observable<number>;
-  /**
-   * Defaults to `false`.
-   */
-  focusOnOpen?: boolean;
   onSend(message: string): Promise<AssistanceResponse>;
   buildIntroMessage(...args: DomElementArg[]): DomContents;
   /**
@@ -167,16 +164,12 @@ export class Assistant extends Disposable {
     }
   }
 
-  public scrollToBottom(options: { smooth?: boolean } = {}) {
+  public scrollToBottom(options: { smooth?: boolean; sync?: boolean } = {}) {
     this._conversation.scrollDown(options);
   }
 
   public get conversationId() {
     return this._conversation.id.get();
-  }
-
-  public get developerPromptVersion() {
-    return this._conversation.developerPromptVersion;
   }
 
   public get conversationLength() {
@@ -327,11 +320,6 @@ export class Assistant extends Disposable {
           }
         })
       ),
-      () => {
-        if (this._options.focusOnOpen) {
-          setTimeout(() => this.focus(), 0);
-        }
-      }
     );
 
     return (this._inputWrapper = cssHContainer(
@@ -515,7 +503,6 @@ class AssistantConversation extends Disposable {
   public suggestedFormulas: Computed<string[]>;
   public lastSuggestedFormula: Computed<string | null>;
   public thinking: Observable<boolean>;
-  public developerPromptVersion: DeveloperPromptVersion;
 
   private _history = this._options.history;
   private _gristDoc = this._options.gristDoc;
@@ -551,27 +538,17 @@ class AssistantConversation extends Disposable {
     this.id = Observable.create(this, conversationId);
     this.autoDispose(
       this.id.addListener((newId) => {
-        this.developerPromptVersion = "default";
-
         // If a new conversation id was generated (e.g. on Clear Conversation), save it.
         this._history.set({
-          ...this._history.get(),
           conversationId: newId,
           messages: [],
           state: undefined,
-          developerPromptVersion: this.developerPromptVersion,
+          developerPromptVersion: "default",
         });
         this.allMessages.set([]);
         this.newMessages.set([]);
       })
     );
-
-    let developerPromptVersion = this._history.get().developerPromptVersion;
-    if (!developerPromptVersion) {
-      developerPromptVersion = "default";
-      this._history.set({ ...this._history.get(), developerPromptVersion });
-    }
-    this.developerPromptVersion = developerPromptVersion;
 
     // Create observable array of messages that is connected to the ChatHistory.
     this.allMessages = this.autoDispose(obsArray(this._history.get().messages));
@@ -638,16 +615,19 @@ class AssistantConversation extends Disposable {
     this.id.set(uuidv4());
   }
 
-  public scrollDown(options: { smooth?: boolean; } = {}) {
+  public scrollDown(options: { smooth?: boolean; sync?: boolean } = {}) {
     if (!this._element) { return; }
 
-    const { smooth = true } = options;
-    setTimeout(() => {
-      this._element.scroll({
-        top: 99999,
-        behavior: smooth ? "smooth" : "auto",
-      });
-    }, 0);
+    const { smooth = true, sync = false } = options;
+    const scrollToOptions: ScrollToOptions = {
+      top: 99999,
+      behavior: smooth ? "smooth" : "auto",
+    };
+    if (sync) {
+      this._element.scroll(scrollToOptions);
+    } else {
+      setTimeout(() => this._element.scroll(scrollToOptions), 0);
+    }
   }
 
   public buildDom() {

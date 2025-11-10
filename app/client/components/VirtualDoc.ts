@@ -92,6 +92,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public fieldEditorHolder: Holder<IDisposable> = Holder.create(this);
   public activeEditor = Observable.create(this, null);
   public currentView = Observable.create(this, null);
+  public latestActionState = Observable.create(this, null);
   public cursorPosition = Observable.create(this, undefined);
   public userOrgPrefs = Observable.create(this, {});
   public behavioralPromptsManager: BehavioralPromptsManager;
@@ -108,9 +109,9 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
 
     // Find or create a reference to the App object. It is mostly used to trigger events and to access
     // Comm object by on demand tables.
-    if ((window as any).gristApp) {
+    if (window.gristApp) {
       // If we have gristApp, we use directly.
-      this.app = (window as any).gristApp as App;
+      this.app = window.gristApp as App;
     } else {
       // Otherwise, we create a new InMemoryApp, suitable for tests.
       this.app = this.autoDispose(new InMemoryApp(appModel.topAppModel));

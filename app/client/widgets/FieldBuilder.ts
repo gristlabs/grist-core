@@ -28,7 +28,7 @@ import {buildErrorDom} from 'app/client/widgets/ErrorDom';
 import {FieldEditor, saveWithoutEditor} from 'app/client/widgets/FieldEditor';
 import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
 import {openFormulaEditor} from 'app/client/widgets/FormulaEditor';
-import {CommentText} from 'app/client/widgets/MentionTextBox';
+import {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {NewAbstractWidget} from 'app/client/widgets/NewAbstractWidget';
 import {IEditorConstructor} from 'app/client/widgets/NewBaseEditor';
 import * as UserType from 'app/client/widgets/UserType';
@@ -90,6 +90,12 @@ function buildFontOptions(
     const styleFlag = style?.[optionName] || builder.field[optionName]();
     return styleFlag;
   })).onlyNotifyUnequal();
+}
+
+export interface BuildEditorOptions {
+  init?: string;
+  state?: unknown;
+  event?: KeyboardEvent | MouseEvent
 }
 
 /**
@@ -476,7 +482,7 @@ export class FieldBuilder extends Disposable {
                  }
                }),
                cssRow(
-                 textButton(t('Apply Formula to Data'),
+                 textButton(t('Apply formula to data'),
                  dom.on('click', () => transformButton(true)),
                  kd.hide(this._isTransformingFormula),
                  kd.boolAttr('disabled', () =>
@@ -736,11 +742,7 @@ export class FieldBuilder extends Disposable {
     };
   }
 
-  public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: {
-    init?: string,
-    state?: any
-    event?: KeyboardEvent | MouseEvent
-  }) {
+  public buildEditorDom(editRow: DataRowModel, mainRowModel: DataRowModel, options: BuildEditorOptions) {
     // If the user attempts to edit a value during transform, finalize (i.e. cancel or execute)
     // the transform.
     if (this.columnTransform) {
@@ -811,7 +813,7 @@ export class FieldBuilder extends Disposable {
   public buildDiscussionPopup(
     editRow: DataRowModel,
     mainRowModel: DataRowModel,
-    text: CommentText|null
+    text: CommentWithMentions|null
   ) {
     const holder = this.gristDoc.fieldEditorHolder;
     const cellElem: Element = this._rowMap.get(mainRowModel)!;

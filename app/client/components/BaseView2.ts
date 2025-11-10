@@ -3,15 +3,21 @@
  */
 
 import {GristDoc} from 'app/client/components/GristDoc';
-import {getDocIdHash, RichPasteObject} from 'app/client/lib/tableUtil';
+import {getDocIdHash, PasteData} from 'app/client/lib/tableUtil';
+import {uploadFiles} from 'app/client/lib/uploads';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
+import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
 import {UserAction} from 'app/common/DocActions';
 import {isFullReferencingType} from 'app/common/gristTypes';
+import {getSetMapValue} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
-import {BulkColValues} from 'app/plugin/GristData';
-import {ViewSectionRec} from "app/client/models/entities/ViewSectionRec";
+import {BulkColValues, CellValue, GristObjCode} from 'app/plugin/GristData';
 import omit = require('lodash/omit');
 import pick = require('lodash/pick');
+
+function isFileList(value: unknown): value is File[] {
+  return Array.isArray(value) && value.every(item => (item instanceof File));
+}
 
 /**
  * Given a 2-d paste column-oriented paste data and target cols, transform the data to omit
@@ -22,11 +28,15 @@ import pick = require('lodash/pick');
  * `fields` are the target fields being pasted into.
  */
 export async function parsePasteForView(
-  data: Array<string | RichPasteObject>[], fields: ViewFieldRec[], gristDoc: GristDoc
+  data: PasteData, fields: ViewFieldRec[], gristDoc: GristDoc
 ): Promise<BulkColValues> {
   const result: BulkColValues = {};
   const actions: UserAction[] = [];
   const thisDocIdHash = getDocIdHash();
+
+  // If we have pasted-in files, they can go into Attachments-type columns. We collect the tasks
+  // to upload them, and perform after going through the paste data.
+  const uploadTasks: Array<{colId: string, valueIndex: number, fileList: File[]}> = [];
 
   data.forEach((col, idx) => {
     const field = fields[idx];
@@ -34,10 +44,15 @@ export async function parsePasteForView(
     if (!colRec || colRec.isRealFormula() || colRec.disableEditData()) {
       return;
     }
+    if (isFileList(col[0]) && colRec.type.peek() !== 'Attachments') {
+      // If you attempt to paste files into a non-Attachments column, ignore rather than paste
+      // empty values.
+      return;
+    }
 
     const parser = field.createValueParser() || (x => x);
     let typeMatches = false;
-    if (col[0] && typeof col[0] === "object") {
+    if (col[0] && typeof col[0] === "object" && !isFileList(col[0])) {
       const {colType, docIdHash, colRef} = col[0];
       const targetType = colRec.type();
       const docIdMatches = docIdHash === thisDocIdHash;
@@ -67,10 +82,15 @@ export async function parsePasteForView(
       }
     }
 
-    result[colRec.colId()] = col.map(v => {
+    const colId = colRec.colId.peek();
+    result[colId] = col.map((v, valueIndex) => {
       if (v) {
         if (typeof v === "string") {
           return parser(v);
+        }
+        if (isFileList(v)) {
+          uploadTasks.push({colId, valueIndex, fileList: v});
+          return null;
         }
         if (typeMatches && v.hasOwnProperty('rawValue')) {
           return v.rawValue;
@@ -82,6 +102,24 @@ export async function parsePasteForView(
       return v;
     });
   });
+
+  // Replace any file values going into an Attachments column with upload results.
+  // We cache uploads on the **array of files**, because the entire array value may be duplicated
+  // in the input data when pasting into multiple rows.
+  const uploads = new Map<File[], Promise<CellValue>>();
+  for (const {colId, valueIndex, fileList} of uploadTasks) {
+    const value = await getSetMapValue(uploads, fileList, async (): Promise<CellValue> => {
+      const uploadResult = await uploadFiles(fileList,
+        {docWorkerUrl: gristDoc.docComm.docWorkerUrl, sizeLimit: 'attachment'});
+
+      if (!uploadResult) { return null; }
+
+      // Upload the attachments.
+      const attRowIds = await gristDoc.docComm.addAttachments(uploadResult.uploadId);
+      return [GristObjCode.List, ...attRowIds];
+    });
+    result[colId][valueIndex] = value;
+  }
 
   if (actions.length) {
     await gristDoc.docData.sendActions(actions);

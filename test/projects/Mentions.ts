@@ -1,6 +1,6 @@
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
-import {server, setupTestSuite} from './testUtils';
+import {server, setupTestSuite} from 'test/projects/testUtils';
 
 
 describe("Mentions", function() {
@@ -184,6 +184,40 @@ describe("Mentions", function() {
     assert.equal(await getInput().getText(), 'a  ');
     assert.equal(await getOutput().getText(), 'a');
   });
+
+  it('shows loading information', async function() {
+    await clearData();
+    await click();
+    await type('Hello @');
+    await gu.findOpenMenu();
+
+    // Make sure it reports back that it is not ready.
+    assert.isFalse(await driver.find('.test-mention-textbox-ready').isPresent());
+    // And it shows loading state.
+    assert.isTrue(await driver.find('.test-mention-textbox-loading').isDisplayed());
+    // Try to click it, it should not do anything.
+    await driver.find('.test-mention-textbox-loading').click();
+    // Make sure we still have menu.
+    await gu.findOpenMenu();
+
+    // And editor still has @.
+    assert.equal(await getInput().getText(), 'Hello @\n...loading');
+
+    // Now load the data, simulating a delay.
+    await loadData();
+
+    // Wait for the loading to finish.
+    await gu.waitToPass(async () => {
+      assert.isFalse(await driver.find('.test-mention-textbox-loading').isPresent());
+      assert.isTrue(await driver.find('.test-mention-textbox-ready').isDisplayed());
+    });
+
+    // We now should see full list of users.
+    const items = await driver.findAll('.test-mention-textbox-acitem', e => e.getText());
+    assert.deepEqual(items.map(s => s.substring(2)), ['Alice', 'Bob', 'Charlie', 'Dave']);
+    await gu.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
+  });
 });
 
 async function click() {
@@ -216,4 +250,16 @@ function clickItem(item: string) {
 
 async function clear() {
   await gu.clearInput();
+}
+
+async function clearData() {
+  await driver.executeScript(() => {
+    (window as any).clearData();
+  });
+}
+
+async function loadData() {
+  await driver.executeScript(() => {
+    (window as any).loadData();
+  });
 }

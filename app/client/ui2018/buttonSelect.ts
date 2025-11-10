@@ -1,13 +1,17 @@
+import {hoverTooltip} from 'app/client/ui/tooltips';
 import {colors, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {IconName} from 'app/client/ui2018/IconList';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {isColorDark} from 'app/common/gutil';
+import {components} from 'app/common/ThemePrefs';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
 import debounce = require('lodash/debounce');
 
 export interface ISelectorOptionFull<T> {
   value: T;
   label?: string;
+  tooltip?: string;
   icon?: IconName;
 }
 
@@ -112,7 +116,11 @@ export function makeButtonSelect<T>(
     dom.forEach(optionArray, (option: ISelectorOption<T>) => {
       const value = getOptionValue(option);
       const label = getOptionLabel(option);
+      const tooltip = isFullOption(option) && option.tooltip;
+      const screenReaderLabel = !label && tooltip;
       return cssSelectorBtn(
+        tooltip ? hoverTooltip(tooltip) : null,
+        screenReaderLabel ? {"aria-label": screenReaderLabel} : null,
         cssSelectorBtn.cls('-selected', (use) => use(obs) === value),
         dom.on('click', () => onClick(value)),
         isFullOption(option) && option.icon ? icon(option.icon) : null,
@@ -151,13 +159,17 @@ export const cssButtonSelect = styled('div', `
     opacity: 0.4;
     pointer-events: none;
   }
+
+  &:not(&-light) {
+    background-color: ${theme.inputBg};
+    padding: 3px;
+    gap: 4px;
+    border: 1px solid ${theme.buttonGroupBorder};
+    border-radius: ${vars.controlBorderRadius};
+  }
 `);
 
-const cssSelectorBtn = styled('div', `
-  /* Resets */
-  position: relative;
-  outline: none;
-  border-style: none;
+const cssSelectorBtn = styled(unstyledButton, `
   display: flex;
   align-items: center;
   justify-content: center;
@@ -171,24 +183,19 @@ const cssSelectorBtn = styled('div', `
   min-width: 32px;
   white-space: nowrap;
   padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: ${vars.controlBorderRadius};
 
   background-color: ${theme.buttonGroupBg};
-  border: 1px solid ${theme.buttonGroupBorder};
   --icon-color: ${theme.buttonGroupIcon};
 
   margin-left: -1px;
 
   cursor: pointer;
+  outline-offset: -2px;
 
   &:first-child {
-    border-top-left-radius: ${vars.controlBorderRadius};
-    border-bottom-left-radius: ${vars.controlBorderRadius};
     margin-left: 0;
-  }
-
-  &:last-child {
-    border-top-right-radius: ${vars.controlBorderRadius};
-    border-bottom-right-radius: ${vars.controlBorderRadius};
   }
 
   &:hover:not(&-selected) {
@@ -199,30 +206,36 @@ const cssSelectorBtn = styled('div', `
 
   &-selected {
     color: ${theme.buttonGroupSelectedFg};
-    --icon-color: ${theme.buttonGroupSelectedFg};
+    --icon-color: ${theme.buttonGroupSelectedBorder};
     border: 1px solid ${theme.buttonGroupSelectedBorder};
     background-color: ${theme.buttonGroupSelectedBg};
     z-index: 10;  /* Update z-index so selected borders take precedent */
   }
 
   /* Styles when container includes cssButtonSelect.cls('-light') */
+  .${cssButtonSelect.className}-light {
+    gap: 4px;
+  }
+
+  .${cssButtonSelect.className}-light > &:hover:not(&-selected) {
+    background: ${components.buttonGroupLightBg};
+  }
+
   .${cssButtonSelect.className}-light > & {
-    border: none;
+    border: 1px solid transparent;
     border-radius: ${vars.controlBorderRadius};
     margin-left: 0px;
-    padding: 8px;
+    padding: 5px;
+    min-width: 28px;
     color: ${theme.buttonGroupLightFg};
     --icon-color: ${theme.buttonGroupLightFg};
   }
+
   .${cssButtonSelect.className}-light > &-selected {
-    border: none;
+    border-color: ${theme.buttonGroupLightSelectedFg};
     color: ${theme.buttonGroupLightSelectedFg};
     --icon-color: ${theme.buttonGroupLightSelectedFg};
-    background-color: initial;
-  }
-  .${cssButtonSelect.className}-light > &:hover {
-    border: none;
-    background-color: ${theme.hover};
+    background-color: ${components.buttonGroupLightSelectedBg};
   }
 `);
 

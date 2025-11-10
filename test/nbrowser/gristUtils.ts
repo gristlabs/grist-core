@@ -15,11 +15,12 @@ import * as PluginApi from 'app/plugin/grist-plugin-api';
 import { BaseAPI } from 'app/common/BaseAPI';
 import {csvDecodeRow} from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
+import { DocStateComparison } from 'app/common/DocState';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
 import { TestState } from 'app/common/TestState';
-import { Organization as APIOrganization, DocStateComparison,
+import { Organization as APIOrganization,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
 import { Organization } from 'app/gen-server/entity/Organization';
 import { Product } from 'app/gen-server/entity/Product';
@@ -499,13 +500,16 @@ export async function getCardCount(): Promise<number> {
  * Return the .column-name element for the specified column, which may be specified by full name
  * or index, and may include a section (or will use the active section by default).
  */
-export function getColumnHeader(colOrColOptions: string|IColHeader): WebElementPromise {
+export function getColumnHeader(colOrColOptions: string|IColHeader, opts = {waitMs: 0}): WebElementPromise {
   const colOptions = typeof colOrColOptions === 'string' ? {col: colOrColOptions} : colOrColOptions;
   const {col, section} = colOptions;
   const sectionElem = section ? getSection(section) : driver.findWait('.active_section', 4000);
   return new WebElementPromise(driver, typeof col === 'number' ?
     sectionElem.find(`.column_name:nth-child(${col + 1})`) :
-    sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col)).findClosest('.column_name'));
+    (opts?.waitMs ?
+      sectionElem.findContentWait('.column_name .test-column-title-text', exactMatch(col), opts.waitMs) :
+      sectionElem.findContent('.column_name .test-column-title-text', exactMatch(col))
+    ).findClosest('.column_name'));
 }
 
 export function getSelectedColumn() {
@@ -1104,6 +1108,13 @@ export async function waitAppFocus(yesNo: boolean = true): Promise<void> {
 }
 
 /**
+ * trigger the keyboard shortcut to keyboard-focus in/out the creator panel
+ */
+export async function toggleCreatorPanelFocus() {
+  await sendKeys(Key.chord(await modKey(), Key.ALT, 'o'));
+}
+
+/**
  * Wait for the focus to be on the first element matching given selector.
  */
 export async function waitForFocus(selector: string, yesNo: boolean = true, waitMs: number = 1000): Promise<void> {
@@ -1309,7 +1320,7 @@ export type WidgetType = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom';
 
 export async function changeWidget(type: WidgetType) {
   await openWidgetPanel();
-  await driver.findContent('.test-right-panel button', /Change Widget/).click();
+  await driver.findContent('.test-right-panel button', /Change widget/).click();
   await selectWidget(type);
   await waitForServer();
 }
@@ -1638,7 +1649,19 @@ export async function search(what: string) {
 
 export async function toggleSearchAll() {
   await closeTooltip();
-  await driver.find('.test-tb-search-option-all-pages').click();
+  const searchAllSelector = '.test-tb-search-option-all-pages';
+  if (!await driver.find(searchAllSelector).isDisplayed()) {
+    await openSearch();
+  }
+  await driver.find(searchAllSelector).click();
+}
+
+export async function openSearch() {
+  await waitToPass(async () => {
+    await searchIsClosed();
+    await driver.find('.test-tb-search-icon').doClick();
+    await waitToPass(searchIsOpened, 500);
+  }, 1500);
 }
 
 export async function closeSearch() {
@@ -1711,7 +1734,7 @@ export async function renameRawTable(tableId: string, newName?: string, newDescr
     .findClosest('.test-raw-data-table')
     .find('.test-raw-data-table-menu')
     .click();
-  await findOpenMenuItem('li', 'Rename Table').click();
+  await findOpenMenuItem('li', 'Rename table').click();
   if (newName !== undefined) {
     const input = await driver.findWait(".test-widget-title-table-name-input", 100);
     await input.doClear();
@@ -2597,8 +2620,9 @@ export async function clickAway() {
 /**
  * Opens the header color picker.
  */
-export function openHeaderColorPicker() {
-  return driver.find('.test-header-color-select .test-color-select').click();
+export async function openHeaderColorPicker() {
+  await driver.find('.test-header-color-select .test-color-select').click();
+  await findOpenMenu();
 }
 
 export async function assertHeaderTextColor(col: string|WebElement, color: string) {
@@ -2858,7 +2882,7 @@ export function addSamplesForSuite(includeTutorial = false) {
 
 export async function openDocumentSettings() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu a', 'Document Settings').click();
+  await driver.findContent('.grist-floating-menu a', 'Document settings').click();
   await waitForUrl(/settings/, 5000);
 }
 
@@ -3075,27 +3099,40 @@ export async function getEnabledOptions(): Promise<SortOption[]> {
  * logs, named using the test name, before opening the new tab, and before and after closing it.
  */
 export async function onNewTab(action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
+  return onNewTabForUrl('about:blank', action, options);
+}
+
+/**
+ * Opens the given URL in a new tab, runs action() on that tab, and closes it after.
+ *
+ * See onNewTab for documentation of options.
+ */
+export async function onNewTabForUrl(url: string, action: () => Promise<void>, options?: {test?: Mocha.Runnable}) {
   const currentTab = await driver.getWindowHandle();
-  await driver.executeScript("window.open('about:blank', '_blank')");
+  await driver.executeScript((urlArg: string) => { window.open(urlArg, '_blank'); }, url);
   const tabs = await driver.getAllWindowHandles();
   const newTab = tabs[tabs.length - 1];
   const test = options?.test;
+  let failed = false;
   if (test) { await fetchScreenshotAndLogs(test); }
   await driver.switchTo().window(newTab);
   try {
     await action();
   } catch (e) {
-    console.warn("onNewTab cleaning up tab after error", e);
+    console.warn("onNewTab error", e);
+    failed = true;
     throw e;
   } finally {
     if (test) { await fetchScreenshotAndLogs(test); }
     const newCurrentTab = await driver.getWindowHandle();
-    if (newCurrentTab === newTab) {
+    if (newCurrentTab !== newTab) {
+      console.log("onNewTab not cleaning up because is not on expected tab");
+    } else if (failed && process.env.NO_CLEANUP) {
+      console.log("onNewTab not cleaning up because failed with NO_CLEANUP set");
+    } else {
       await driver.close();
       await driver.switchTo().window(currentTab);
       console.log("onNewTab returned to original tab");
-    } else {
-      console.log("onNewTab not cleaning up because is not on expected tab");
     }
     if (test) { await fetchScreenshotAndLogs(test); }
   }
@@ -3229,10 +3266,10 @@ const filterController = {
     return this;
   },
   async labels() {
-    return await driver.findAll('.test-filter-menu-list label', el => el.getText());
+    return await driver.findAll('.test-filter-menu-list .test-filter-menu-value', el => el.getText());
   },
   async allShown() {
-    await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
+    await driver.findContent('.test-filter-menu-bulk-action', /All shown/).click();
   }
 };
 
@@ -3334,8 +3371,8 @@ export async function getFilterMenuState(): Promise<FilterMenuValue[]> {
   const items = await driver.findAll('.test-filter-menu-list > *');
   return await Promise.all(items.map(async item => {
     const checked = (await item.find('input').getAttribute('checked')) === null ? false : true;
-    const value = await item.find('label').getText();
-    const count = parseInt(await item.find('label + div').getText(), 10);
+    const value = await item.find('.test-filter-menu-value').getText();
+    const count = parseInt(await item.find('.test-filter-menu-count').getText(), 10);
     return {checked, value, count};
   }));
 }

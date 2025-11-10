@@ -130,14 +130,14 @@ export class CellStyle extends Disposable {
           );
         }),
       ),
-      dom.create(ConditionalStyle, t("Cell Style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect))
+      dom.create(ConditionalStyle, t("Cell style"), this._field, this._gristDoc, fromKo(this._field.config.multiselect))
     ];
   }
 }
 
 const cssLine = styled('div', `
   display: flex;
-  margin: 16px 16px 12px 16px;
+  margin: 16px 16px 8px 16px;
   justify-content: space-between;
   align-items: baseline;
 `);

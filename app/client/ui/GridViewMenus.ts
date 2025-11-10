@@ -3,6 +3,7 @@ import {GristDoc} from 'app/client/components/GristDoc';
 import GridView from 'app/client/components/GridView';
 import {makeT} from 'app/client/lib/localization';
 import {ColumnRec} from "app/client/models/entities/ColumnRec";
+import {buildDateHelpersMenuItems} from 'app/client/ui/GridViewMenusDateHelpers';
 import {ViewFieldRec} from 'app/client/models/entities/ViewFieldRec';
 import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {isNarrowScreen, testId, theme, vars} from 'app/client/ui2018/cssVars';
@@ -27,7 +28,7 @@ import {isFullReferencingType, isListType, RecalcWhen} from "app/common/gristTyp
 import {Sort} from 'app/common/SortSpec';
 import {dom, DomElementArg, styled} from 'grainjs';
 import * as weasel from 'popweasel';
-import * as commands from "../components/commands";
+import * as commands from "app/client/components/commands";
 import isEqual = require('lodash/isEqual');
 
 const t = makeT('GridViewMenus');
@@ -200,6 +201,7 @@ function buildShortcutsMenuItems(gridView: GridView, index?: number) {
     buildTimestampMenuItems(gridView, index),
     buildAuthorshipMenuItems(gridView, index),
     buildDetectDuplicatesMenuItems(gridView, index),
+    buildDateHelpersMenuItems(gridView, index),
     buildUUIDMenuItem(gridView, index),
   ];
 }
@@ -704,7 +706,7 @@ export interface IMultiColumnContextMenu {
   isFormula: boolean|'mixed';
   columnIndices: number[];
   totalColumnCount: number;
-  disableFrozenMenu: boolean;
+  disableFrozenMenu?: boolean;
 }
 
 interface IColumnContextMenu extends IMultiColumnContextMenu {

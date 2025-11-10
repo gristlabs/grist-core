@@ -30,7 +30,6 @@ import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { Doom } from "app/gen-server/lib/Doom";
 import {
   HomeDBManager,
-  NotifierEvents,
   UserChange,
 } from "app/gen-server/lib/homedb/HomeDBManager";
 import { Housekeeper } from "app/gen-server/lib/Housekeeper";
@@ -97,13 +96,10 @@ import { IAuditLogger } from "app/server/lib/IAuditLogger";
 import { IBilling } from "app/server/lib/IBilling";
 import { IDocNotificationManager } from "app/server/lib/IDocNotificationManager";
 import { IDocStorageManager } from "app/server/lib/IDocStorageManager";
-import {
-  EmptyNotifier,
-  INotifier,
-  TestSendGridExtensions,
-} from "app/server/lib/INotifier";
+import { EmitNotifier, INotifier } from "app/server/lib/INotifier";
 import { InstallAdmin } from "app/server/lib/InstallAdmin";
 import log, { logAsJson } from "app/server/lib/log";
+import { disableCache } from "app/server/lib/middleware";
 import { IPermitStore } from "app/server/lib/Permit";
 import {
   getAppPathTo,
@@ -163,7 +159,6 @@ import {
 } from "app/server/lib/WidgetRepository";
 import { setupLocale } from "app/server/localization";
 import axios from "axios";
-import EventEmitter from "events";
 import express from "express";
 import * as fse from "fs-extra";
 import * as http from "http";
@@ -249,7 +244,6 @@ export class FlexServer implements GristServer {
   private _docWorkerMap: IDocWorkerMap;
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _widgetRepository: IWidgetRepository;
-  private _notifier: INotifier;
   private _docNotificationManager: IDocNotificationManager | undefined | false =
     false;
   private _pubSubManager: IPubSubManager = createPubSubManager(
@@ -302,8 +296,7 @@ export class FlexServer implements GristServer {
   private _updateManager: UpdateManager;
   private _sandboxInfo: SandboxInfo;
   private _jobs?: GristJobs;
-  private _emitNotifier = new EmitNotifier();
-  private _testPendingNotifications: number = 0;
+  private _emitNotifier: EmitNotifier = new EmitNotifier();
   private _latestVersionAvailable?: LatestVersionAvailable;
 
   constructor(
@@ -603,12 +596,13 @@ export class FlexServer implements GristServer {
   }
 
   public hasNotifier(): boolean {
-    return Boolean(this._notifier) && this._notifier !== EmptyNotifier;
+    return !this._emitNotifier.isEmpty();
   }
 
   public getNotifier(): INotifier {
-    // Check that our internal notifier implementation is in place.
-    if (!this._notifier) {
+    // We only warn if we are in a server that doesn't configure notifiers (i.e. not a home
+    // server). But actually having a working notifier isn't required.
+    if (!this._has("notifier")) {
       throw new Error("no notifier available");
     }
     // Expose a wrapper around it that emits actions.
@@ -737,11 +731,6 @@ export class FlexServer implements GristServer {
     // If docWorkerRegistered=1 query parameter is included, status will include the status of the
     // doc worker registration in Redis.
     this.app.get("/status(/hooks)?", async (req, res) => {
-      log.rawDebug(`Healthcheck[${req.method}]:`, {
-        host: req.get("host"),
-        path: req.path,
-        query: req.query,
-      });
       const checks = new Map<string, Promise<boolean> | boolean>();
       const timeout = optIntegerParam(req.query.timeout, "timeout") || 10_000;
 
@@ -797,18 +786,34 @@ export class FlexServer implements GristServer {
       }
       let extra = "";
       let ok = true;
+      let statuses: string[] = [];
       // If we had any extra check, collect their status to report them.
       if (checks.size > 0) {
         const results = await Promise.all(checks.values());
         ok = ok && results.every((r) => r === true);
-        const notes = Array.from(
+        statuses = Array.from(
           checks.keys(),
           (key, i) => `${key} ${results[i] ? "ok" : "not ok"}`
         );
-        extra = ` (${notes.join(", ")})`;
+        extra = ` (${statuses.join(", ")})`;
       }
 
-      if (this._healthy && ok) {
+      const overallOk = ok && this._healthy;
+
+      if (this._healthCheckCounter % 100 === 0 || !overallOk) {
+        log.rawDebug(`Healthcheck result`, {
+          host: req.get("host"),
+          path: req.path,
+          query: req.query,
+          ok,
+          statuses,
+          healthy: this._healthy,
+          overallOk,
+          previousSuccessfulChecks: this._healthCheckCounter,
+        });
+      }
+
+      if (overallOk) {
         this._healthCheckCounter++;
         res.status(200).send(`Grist ${this.name} is alive${extra}.`);
       } else {
@@ -1256,7 +1261,7 @@ export class FlexServer implements GristServer {
     // API endpoints need req.userId and need to support requests from different subdomains.
     this.app.use("/api", this._userIdMiddleware);
     this.app.use("/api", this._trustOriginsMiddleware);
-    this.app.use("/api", noCaching);
+    this.app.use("/api", disableCache);
   }
 
   /**
@@ -1382,6 +1387,7 @@ export class FlexServer implements GristServer {
     }
     this._emitNotifier.removeAllListeners();
     this._dbManager?.clearCaches();
+    this._installAdmin?.clearCaches();
     if (this.server) {
       this.server.close();
     }
@@ -2041,10 +2047,11 @@ export class FlexServer implements GristServer {
         docManager
       );
       if (this._docWorkerLoadTracker) {
-        await this._docWorkerMap.setWorkerLoad(
-          this.worker,
-          this._docWorkerLoadTracker.getLoad()
-        );
+        // Get the initial load value. If this call fails, the server will crash.
+        // This is meant to check whether the admin has correctly configured
+        // how to measure it.
+        const initialLoadValue = await this._docWorkerLoadTracker.getLoad();
+        await this._docWorkerMap.setWorkerLoad(this.worker, initialLoadValue);
         this._docWorkerLoadTracker.start();
       }
       this._comm.registerMethods({
@@ -2588,22 +2595,10 @@ export class FlexServer implements GristServer {
     // and all that is needed is a refactor to pass that info along.  But there is also the
     // case of notification(s) from stripe.  May need to associate a preferred base domain
     // with org/user and persist that?
-    this._notifier = this.create.Notifier(this._dbManager, this);
-    for (const method of NotifierEvents.values) {
-      this._emitNotifier.on(method, async (...args) => {
-        this._testPendingNotifications++;
-        try {
-          await (this._notifier[method] as any)(...args);
-        } catch (e) {
-          // Catch error since as an event handler we can't return one.
-          log.error("Notifier failed:", e);
-        } finally {
-          this._testPendingNotifications--;
-        }
-      });
+    const primaryNotifier = this.create.Notifier(this._dbManager, this);
+    if (primaryNotifier) {
+      this._emitNotifier.setPrimaryNotifier(primaryNotifier);
     }
-    this._emitNotifier.sendGridExtensions =
-      this._notifier.testSendGridExtensions?.();
 
     // For doc notifications, if we are a home server, initialize endpoints and job handling.
     this.getDocNotificationManager()?.initHomeServer(this.app);
@@ -2617,11 +2612,6 @@ export class FlexServer implements GristServer {
     if (this._assistant?.version === 2) {
       this._assistant?.addEndpoints?.(this.app);
     }
-  }
-
-  // for test purposes, check if any notifications are in progress
-  public get testPending(): boolean {
-    return this._testPendingNotifications > 0;
   }
 
   public getGristConfig(): GristLoadConfig {
@@ -3261,7 +3251,7 @@ export class FlexServer implements GristServer {
 
   private _createServers() {
     // Start the app.
-    const server = configServer(http.createServer(this.app));
+    const server = logServer(http.createServer(getServerFlags(), this.app));
     let httpsServer;
     if (TEST_HTTPS_OFFSET) {
       const certFile = process.env.GRIST_TEST_SSL_CERT;
@@ -3278,9 +3268,10 @@ export class FlexServer implements GristServer {
       }
       log.debug(`https support: reading cert from ${certFile}`);
       log.debug(`https support: reading private key from ${privateKeyFile}`);
-      httpsServer = configServer(
+      httpsServer = logServer(
         https.createServer(
           {
+            ...getServerFlags(),
             key: fse.readFileSync(privateKeyFile, "utf8"),
             cert: fse.readFileSync(certFile, "utf8"),
           },
@@ -3538,34 +3529,89 @@ export class FlexServer implements GristServer {
 }
 
 /**
- * Returns the passed-in server, with some options adjusted. Specifically, removes the default
- * socket timeout.
+ * Set flags on the server, related to timeouts.
+ * Note if you try to set very long timeouts, e.g. for a gnarly
+ * import, you may run into browser limits. In firefox a relevant
+ * configuration variable is network.http.response.timeout -
+ * if you set that high, and set the flags here high, and
+ * set everything right in your reverse proxy, you should
+ * be able to have very long imports. (Clearly, it would be
+ * better if long imports were made using a mechanism that
+ * isn't just a single http request)
  */
-function configServer<T extends https.Server | http.Server>(server: T): T {
-  // Remove the socket timeout, which causes node to close socket for long-running requests
-  // (like imports), triggering browser retry. (The default is 2 min; removed starting node v13.)
-  // See also https://nodejs.org/docs/latest-v10.x/api/http.html#http_server_settimeout_msecs_callback.)
-  server.setTimeout(0);
+function getServerFlags(): https.ServerOptions {
+  const flags: https.ServerOptions = {};
 
-  // The server's keepAlive timeout should be longer than the load-balancer's. Otherwise LB will
-  // produce occasional 502 errors when it sends a request to node just as node closes a
-  // connection. See https://adamcrowder.net/posts/node-express-api-and-aws-alb-502/.
-  const lbTimeoutSec = 300;
+  // We used to set the socket timeout to 0, but that has been
+  // the default now since Node 13.
 
-  // Ensure all inactive connections are terminated by the ALB, by setting this a few seconds
-  // higher than the ALB idle timeout
-  server.keepAliveTimeout = (lbTimeoutSec + 5) * 1000;
+  // The default timeouts that follow have a convoluted history.
+  // Basically, Grist Labs had a SaaS with a load balancer
+  // configured to have a 5 min idle timeout. It starts there.
 
-  // Ensure the headersTimeout is set higher than the keepAliveTimeout due to this nodejs
-  // regression bug: https://github.com/nodejs/node/issues/27363
-  server.headersTimeout = (lbTimeoutSec + 6) * 1000;
+  // Then, there was a complicated issue:
+  //   https://adamcrowder.net/posts/node-express-api-and-aws-alb-502/
+  // which meant that the Grist server's keepAlive timeout should be
+  // longer than the load-balancer's. Otherwise it would produce occasional
+  // 502 errors when it sends a request to node just as node closes a
+  // connection.
+  // So keepAliveTimeout was set to 5*60+5 seconds.
 
+  // Then, there was another complicated issue:
+  //   https://github.com/nodejs/node/issues/27363
+  // which meant that the headersTimeout should be set higher than
+  // the keepAliveTimeout.
+  // So headersTimeout was set to 5*60+6 seconds.
+
+  // Node 18 introduced a requestTimeout that defaults to 5 minutes.
+  // That timeout is supposed to be longer than or same as headersTimeout.
+  // So requestTimeout is set to 5*60+6 seconds.
+
+  // Long story short, it is good to have these timeouts be longish
+  // so imports don't get interrupted too early (but Grist should
+  // probably change how long uploads are done).
+
+  const requestTimeoutMs = appSettings
+    .section("server")
+    .flag("requestTimeoutMs")
+    .requireInt({
+      envVar: "GRIST_REQUEST_TIMEOUT_MS",
+      defaultValue: 306000,
+    });
+  flags.requestTimeout = requestTimeoutMs;
+
+  const headersTimeoutMs = appSettings
+    .section("server")
+    .flag("headersTimeoutMs")
+    .requireInt({
+      envVar: "GRIST_HEADERS_TIMEOUT_MS",
+      defaultValue: 306000,
+    });
+  flags.headersTimeout = headersTimeoutMs;
+
+  // Likewise keepAlive
+  const keepAliveTimeoutMs = appSettings
+    .section("server")
+    .flag("keepAliveTimeoutMs")
+    .requireInt({
+      envVar: "GRIST_KEEP_ALIVE_TIMEOUT_MS",
+      defaultValue: 305000,
+    });
+  flags.keepAliveTimeout = keepAliveTimeoutMs;
+
+  return flags;
+}
+
+/**
+ * log some properties of the server.
+ */
+function logServer<T extends https.Server | http.Server>(server: T): T {
   log.info(
-    "Server timeouts: keepAliveTimeout %s headersTimeout %s",
+    "Server timeouts: requestTimeout %s keepAliveTimeout %s headersTimeout %s",
+    server.requestTimeout,
     server.keepAliveTimeout,
     server.headersTimeout
   );
-
   return server;
 }
 
@@ -3617,16 +3663,6 @@ function trustOriginHandler(
   }
 }
 
-// Set Cache-Control header to "no-cache"
-function noCaching(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  res.header("Cache-Control", "no-cache");
-  next();
-}
-
 // Methods that Electron app relies on.
 export interface ElectronServerMethods {
   onDocOpen(cb: (filePath: string) => void): void;
@@ -3641,57 +3677,3 @@ const serveAnyOrigin: serveStatic.ServeStaticOptions = {
     res.setHeader("Access-Control-Allow-Origin", "*");
   },
 };
-
-/**
- *
- * Handle events that should result in notifications to users via
- * transactional emails (or future generalizations). Currently
- * handled by simply emitting them and hooking them up to a
- * sendgrid-based implementation (see FlexServer.addNotifier).
- * Some of the events are also distributed internally via
- * FlexServer.onUserChange and FlexServer.onStreamingDestinationsChange.
- * This might be a good point to replace some of this activity with
- * a job queue and queue workers. In particular, processing of
- * FlexServer.onUserChange could do with moving to a queue since
- * it may require communication with external billing software and
- * should be robust to delays and failures there. More generally,
- * if notications are subject to delays and failures and we wish to
- * be robust, a job queue would be a good idea for all of this.
- *
- * Although the interface this class implements is async, it is
- * best if the implementation remains fast and reliable. Any delays
- * here will impact API calls. Calls to place something in Redis
- * may be acceptable.
- */
-export class EmitNotifier extends EventEmitter implements INotifier {
-  public sendGridExtensions?: TestSendGridExtensions;
-
-  public addUser = this._wrapEvent("addUser");
-  public addBillingManager = this._wrapEvent("addBillingManager");
-  public firstLogin = this._wrapEvent("firstLogin");
-  public teamCreator = this._wrapEvent("teamCreator");
-  public userChange = this._wrapEvent("userChange");
-  public trialPeriodEndingSoon = this._wrapEvent("trialPeriodEndingSoon");
-  public trialingSubscription = this._wrapEvent("trialingSubscription");
-  public scheduledCall = this._wrapEvent("scheduledCall");
-  public streamingDestinationsChange = this._wrapEvent(
-    "streamingDestinationsChange"
-  );
-  public twoFactorStatusChanged = this._wrapEvent("twoFactorStatusChanged");
-  public docNotification = this._wrapEvent("docNotification");
-
-  // Pass on deleteUser in the same way
-  public deleteUser = this._wrapEvent("deleteUser");
-
-  public testSendGridExtensions() {
-    return this.sendGridExtensions;
-  }
-
-  private _wrapEvent<Name extends keyof INotifier>(
-    eventName: Name
-  ): INotifier[Name] {
-    return (async (...args: any[]) => {
-      this.emit(eventName, ...args);
-    }) as INotifier[Name];
-  }
-}

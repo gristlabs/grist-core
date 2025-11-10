@@ -13,7 +13,7 @@ import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { GetUserOptions, NonGuestGroup, Resource } from 'app/gen-server/lib/homedb/Interfaces';
 import { SUPPORT_EMAIL, UsersManager } from 'app/gen-server/lib/homedb/UsersManager';
 import { updateDb } from 'app/server/lib/dbUtils';
-import { EmitNotifier } from 'app/server/lib/FlexServer';
+import { EmitNotifier } from 'app/server/lib/INotifier';
 import { MergedServer } from 'app/server/MergedServer';
 import { createTestDir, EnvironmentSnapshot } from 'test/server/testUtils';
 import { createInitialDb, removeConnection, setUpDB } from 'test/gen-server/seed';
@@ -465,6 +465,7 @@ describe('UsersManager', function () {
           locale: someUserLocale,
           prefs: prefWithoutOrg.prefs,
           firstLoginAt: null,
+          disabledAt: null,
         });
       });
 
@@ -757,6 +758,19 @@ describe('UsersManager', function () {
       it('should not create organizations for non-login emails', async function () {
         const user = await db.getUserByLogin(EVERYONE_EMAIL);
         assert.notExists(user.personalOrg);
+      });
+
+      it('should force the creation of service users with emails having an ".invalid" tld', async function () {
+        disableLoggingLevel('debug');
+        const legitEmail = ensureUnique('legit@serviceaccounts.invalid');
+        const legitPromise = db.getUserByLogin(legitEmail, {}, 'service');
+        await assert.isFulfilled(legitPromise);
+
+        const nonLegitEmail = ensureUnique('nonlegit@serviceaccounts.com');
+        const nonLegitPromise = db.getUserByLogin(nonLegitEmail, {}, 'service');
+        await assert.isRejected(nonLegitPromise,
+          "Users of type service must have email like XXXXXX@serviceaccounts.invalid");
+
       });
 
       it('should not update user information when no profile is passed', async function () {

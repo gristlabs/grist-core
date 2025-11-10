@@ -1,15 +1,17 @@
 import {reportError} from 'app/client/models/errors';
 import {ApiError} from 'app/common/ApiError';
 import {BaseAPI} from 'app/common/BaseAPI';
+import {MaybePromise} from 'app/plugin/gutil';
 import {dom, Observable} from 'grainjs';
+import noop from 'lodash/noop';
 
 interface SubmitOptions<T> {
-  pending: Observable<boolean>;
+  pending?: Observable<boolean>;
   disabled?: Observable<boolean>;
   onSubmit?: (
     fields: { [key: string]: string },
     form: HTMLFormElement
-  ) => Promise<T>;
+  ) => MaybePromise<T>;
   onSuccess?: (v: T) => void;
   onError?: (e: unknown) => void;
 }
@@ -29,23 +31,25 @@ export function handleSubmit<T>(
     pending,
     disabled,
     onSubmit = submitForm,
-    onSuccess = () => {
-      /* noop */
-    },
+    onSuccess = noop,
     onError = (e) => reportError(e as string | Error),
   } = options;
   return dom.on('submit', async (e, form) => {
     e.preventDefault();
-    try {
-      if (pending.get() || disabled?.get()) {
-        return;
-      }
+    if (pending?.get() || disabled?.get()) {
+      return;
+    }
 
-      pending.set(true);
-      const result = await onSubmit(formDataToObj(form), form).finally(() => pending.set(false));
+    pending?.set(true);
+    try {
+      const result = await onSubmit(formDataToObj(form), form);
       onSuccess(result);
     } catch (err) {
       onError(err);
+    } finally {
+      if (pending && !pending.isDisposed()) {
+        pending.set(false);
+      }
     }
   });
 }
@@ -74,13 +78,12 @@ async function submitForm(fields: { [key: string]: string }, form: HTMLFormEleme
 }
 
 /**
- * Sets the error details on `errObs` if `err` is a 4XX error (except 401). Otherwise, reports the
+ * Sets the error details on `errObs` if `err` is a 4XX error. Otherwise, reports the
  * error via the Notifier instance.
  */
 export function handleFormError(err: unknown, errObs: Observable<string|null>) {
   if (
     err instanceof ApiError &&
-    err.status !== 401 &&
     err.status >= 400 &&
     err.status < 500
   ) {

@@ -1,5 +1,5 @@
 import {ClientScope} from 'app/client/components/ClientScope';
-import * as Clipboard from 'app/client/components/Clipboard';
+import {Clipboard} from 'app/client/components/Clipboard';
 import {RegionFocusSwitcher} from 'app/client/components/RegionFocusSwitcher';
 import {KeyboardFocusHighlighter} from 'app/client/components/KeyboardFocusHighlighter';
 import {Comm} from 'app/client/components/Comm';
@@ -14,6 +14,7 @@ import {reportError, TopAppModel, TopAppModelImpl} from 'app/client/models/AppMo
 import {DocPageModel} from 'app/client/models/DocPageModel';
 import {setUpErrorHandling} from 'app/client/models/errors';
 import {createAppUI} from 'app/client/ui/AppUI';
+import {openAccessibilityModal} from 'app/client/ui/OpenAccessibilityModal';
 import {addViewportTag} from 'app/client/ui/viewport';
 import {attachCssRootVars} from 'app/client/ui2018/cssVars';
 import {attachTheme} from 'app/client/ui2018/theme';
@@ -84,7 +85,7 @@ export class AppImpl extends DisposableWithEvents implements App {
     KeyboardFocusHighlighter.create(this);
 
     if (isDesktop()) {
-      this.autoDispose(Clipboard.create(this));
+      Clipboard.create(this, this);
     } else {
       // On mobile, we do not want to keep focus on a special textarea (which would cause unwanted
       // scrolling and showing of mobile keyboard). But we still rely on 'clipboard_focus' and
@@ -126,7 +127,7 @@ export class AppImpl extends DisposableWithEvents implements App {
                 dom.forEach(cmds, (cmd) =>
                   dom('tr',
                     dom('td', commands.allCommands[cmd.name]!.getKeysDom()),
-                    dom('td', cmd.desc)
+                    dom('td', cmd.desc?.() ?? '')
                   )
                 )
               ) : null;
@@ -137,8 +138,8 @@ export class AppImpl extends DisposableWithEvents implements App {
     this.onDispose(() => { dom.domDispose(helpDiv); helpDiv.remove(); });
 
     this.autoDispose(commands.createGroup({
-      help() { G.window.open('help', '_blank').focus(); },
       shortcuts() { isHelpPaneVisible(true); },
+      accessibility() { openAccessibilityModal(this.topAppModel.appObs); },
       historyBack() { G.window.history.back(); },
       historyForward() { G.window.history.forward(); },
     }, this, true));

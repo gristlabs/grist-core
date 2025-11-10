@@ -1,5 +1,6 @@
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {numericSpinner} from 'app/client/widgets/NumericSpinner';
 import {styled} from 'grainjs';
 
@@ -8,12 +9,17 @@ export const cssIcon = styled(icon, `
   --icon-color: ${theme.lightText};
 `);
 
-export const cssLabel = styled('div', `
+const cssLabelBase = `
+  display: block;
   color: ${theme.text};
   text-transform: uppercase;
-  margin: 16px 16px 12px 16px;
+  margin: 16px 16px 8px 16px;
   font-size: ${vars.xsmallFontSize};
-`);
+`;
+
+export const cssLabel = styled('label', cssLabelBase);
+
+export const cssGroupLabel = styled('div', cssLabelBase);
 
 export const cssLabelText = styled('span', `
   color: ${theme.text};
@@ -47,10 +53,11 @@ export const cssRowWrapped = styled(cssRow, `
   row-gap: 5px;
 `);
 
-export const cssSortFilterColumn = styled('div', `
+export const cssSortFilterColumn = styled(unstyledButton, `
   cursor: pointer;
   display: flex;
   flex-grow: 1;
+  text-align: left;
   align-items: center;
   color: ${theme.text};
   background-color: ${theme.hover};
@@ -82,11 +89,12 @@ export const cssSaveButtonsRow = styled('div', `
   margin: 16px 16px 12px 16px;
 `);
 
-export const cssPinButton = styled('div', `
+export const cssPinButton = styled(unstyledButton, `
   cursor: pointer;
   --icon-color: ${theme.controlSecondaryFg};
   border-radius: ${vars.controlBorderRadius};
   padding: 3px;
+  outline-offset: 2px;
 
   &-pinned {
     background-color: ${theme.controlPrimaryBg};
@@ -105,7 +113,6 @@ export const cssNumericSpinner = styled(numericSpinner, `
 export const cssFieldFormula = styled('div', `
   flex: auto;
   cursor: pointer;
-  margin-top: 4px;
   padding-left: 24px;
   --icon-color: ${theme.accentIcon};
 

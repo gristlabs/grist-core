@@ -15,16 +15,16 @@
     },
     "FieldConfig": {
         "Clear and reset": "Очистити та скинути",
-        "Empty Columns_one": "Пустий стовпець",
+        "Empty columns_one": "Пустий стовпець",
         "Make into data column": "Перетворити в стовпець даних",
         "COLUMN LABEL AND ID": "НАЗВА ТА ІДЕНТИФІКАТОР СТОВПЦЯ",
         "Clear and make into formula": "Очистити та перетворити у формулу",
-        "Data Columns_one": "Стовпець даних",
-        "Data Columns_other": "Стовпці даних",
-        "Empty Columns_other": "Пусті стовпці",
+        "Data columns_one": "Стовпець даних",
+        "Data columns_other": "Стовпці даних",
+        "Empty columns_other": "Пусті стовпці",
         "Enter formula": "Введіть формулу",
-        "Formula Columns_one": "Стовпець формули",
-        "Formula Columns_other": "Стовпці формул",
+        "Formula columns_one": "Стовпець формули",
+        "Formula columns_other": "Стовпці формул",
         "Mixed Behavior": "Змішане поводження",
         "Set formula": "Задайте формулу",
         "Set trigger formula": "Задайте трігерну формулу",
@@ -43,25 +43,25 @@
         "Using separate settings": "Використання окремих налаштувань"
     },
     "ShareMenu": {
-        "Manage Users": "Керувати користувачами",
+        "Manage users": "Керувати користувачами",
         "Unsaved": "Не збережено",
         "Access Details": "Параметри доступу",
-        "Back to Current": "Повернутися до поточного",
+        "Back to current": "Повернутися до поточного",
         "Compare to {{termToUse}}": "Порівняти з {{termToUse}}",
         "Current Version": "Поточна версія",
         "Download": "Завантажити",
-        "Duplicate Document": "Дублювати документ",
+        "Duplicate document": "Дублювати документ",
         "Edit without affecting the original": "Редагувати, не змінюючи оригінал",
         "Export CSV": "Експорт CSV",
         "Export XLSX": "Експорт XLSX",
         "Original": "Оригінал",
         "Replace {{termToUse}}...": "Замінити {{termToUse}}…",
         "Return to {{termToUse}}": "Повернутися до {{termToUse}}",
-        "Save Copy": "Зберегти копію",
+        "Save copy": "Зберегти копію",
         "Save Document": "Зберегти документ",
         "Send to Google Drive": "Надіслати на Google Drive",
         "Show in folder": "Показати в папці",
-        "Work on a Copy": "Працювати над копією",
+        "Work on a copy": "Працювати над копією",
         "Download...": "Завантажити...",
         "Share": "Поділитися",
         "Comma Separated Values (.csv)": "Значення, розділені комами (.csv)",
@@ -81,7 +81,7 @@
         "Replacing the original requires editing rights on the original document.": "Для заміни оригіналу потрібні права на редагування оригінального документа.",
         "Sign up": "Зареєструватися",
         "The original version of this document will be updated.": "Оригінальна версія цього документа буде оновлена.",
-        "As Template": "Як шаблон",
+        "As template": "Як шаблон",
         "Cancel": "Скасувати",
         "Enter document name": "Введіть ім'я документа",
         "Name": "Ім'я",
@@ -113,12 +113,17 @@
         "Attachments are external and not included in this download. If uploading the document to a separate Grist installation, you will also need to {{downloadLink}} separately. ": "Вкладення є зовнішніми та не включені до цього завантаження. Якщо ви завантажуєте документ до окремої інсталяції Grist, вам також потрібно буде окремо {{downloadLink}}. "
     },
     "SortConfig": {
-        "Add Column": "Додати стовпеця",
+        "Add column": "Додати стовпеця",
         "Empty values last": "Порожні значення йдуть останніми",
         "Natural sort": "Природне сортування",
-        "Update Data": "Оновити дані",
+        "Update data": "Оновити дані",
         "Use choice position": "Використовувати позицію вибору",
-        "Search Columns": "Стовпці пошуку"
+        "Search Columns": "Стовпці пошуку",
+        "Remove sort setting - {{- columnName }} column": "Вилучити налаштування сортування – стовпець {{- columnName }}",
+        "Sort in ascending order (current: descending)": "Сортувати за зростанням (поточний: спадання)",
+        "Sort in descending order (current: ascending)": "Сортувати за спаданням (поточний: за зростанням)",
+        "Sort options - {{- columnName }} column": "Параметри сортування – стовпець {{- columnName }}",
+        "{{- columnName }} column": "{{- columnName }} Стовпець"
     },
     "SortFilterConfig": {
         "Save": "Зберегти",
@@ -128,13 +133,17 @@
         "Update Sort & Filter settings": "Оновити параметри сортування та фільтрування"
     },
     "GridOptions": {
-        "Horizontal Gridlines": "Горизонтальні лінії сітки",
+        "Horizontal gridlines": "Горизонтальні лінії сітки",
         "Grid Options": "Параметри сітки",
-        "Vertical Gridlines": "Вертикальні лінії сітки",
-        "Zebra Stripes": "Смужки зебри"
+        "Vertical gridlines": "Вертикальні лінії сітки",
+        "Zebra stripes": "Смужки зебри"
     },
     "FilterConfig": {
-        "Add Column": "Додати стовпеця"
+        "Add column": "Додати стовпець",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Фільтр закріплення – стовпець {{- columnName}} (поточний: відкріплений)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Відкріпити фільтр – стовпець {{- columnName}} (поточний: закріплений)",
+        "remove filter - {{- columnName}} column": "вилучити фільтр – стовпець {{- columnName}}",
+        "{{- columnName }} column filters": "{{- columnName }} фільтри стовпців"
     },
     "FilterBar": {
         "SearchColumns": "Стовпці пошуку",
@@ -146,7 +155,7 @@
         "Freeze {{count}} more columns_one": "Закріпити ще один стовпець",
         "Reset {{count}} columns_other": "Скинути {{count}} стовпців",
         "Sort": "Сортувати",
-        "Add Column": "Додати стовпеця",
+        "Add column": "Додати стовпець",
         "Add to sort": "Додати до сортування",
         "Clear values": "Очистити значення",
         "Convert formula to data": "Перетворити формулу в дані",
@@ -193,7 +202,6 @@
         "Adding duplicates column": "Додавання дублікатів стовпця",
         "Add column with type": "Додати стовпець із типом",
         "Add formula column": "Додати стовпець формули",
-        "Add column": "Додати стовпець",
         "Created at": "Створено в",
         "Created by": "Створено",
         "Detect duplicates in...": "Виявлення дублікатів у...",
@@ -217,7 +225,7 @@
         "Appearance ": "Оформлення "
     },
     "HomeIntro": {
-        "Create Empty Document": "Створити пустий документ",
+        "Create empty document": "Створити пустий документ",
         "Get started by creating your first Grist document.": "Почніть із створення свого першого документа Grist.",
         "Get started by inviting your team and creating your first Grist document.": "Почніть роботу, запросивши свою команду та створивши свій перший документ Grist.",
         "Visit our {{link}} to learn more.": "Відвідайте наш сайт {{link}}, щоб дізнатися більше.",
@@ -225,7 +233,7 @@
         "Browse Templates": "Переглянути шаблони",
         "Get started by exploring templates, or creating your first Grist document.": "Почніть із вивчення шаблонів або створення свого першого документа Grist.",
         "Help Center": "Центр допомоги",
-        "Import Document": "Імпортувати документ",
+        "Import document": "Імпортувати документ",
         "Interested in using Grist outside of your team? Visit your free ": "Ви зацікавлені у використанні Grist за межами вашої команди? Відвідайте свій безкоштовний ",
         "Invite Team Members": "Запросити членів команди",
         "Sign up": "Зареєструватися",
@@ -272,11 +280,13 @@
         "Clear": "Очистити",
         "Cannot drop items into Hidden Fields": "Неможливо перенести елементи у приховані поля",
         "Hidden Fields cannot be reordered": "Приховані поля не можна перевпорядкувати",
-        "Select All": "Виділити всі",
+        "Select all": "Виділити всі",
         "Show {{label}}": "Показати {{label}}",
         "Visible {{label}}": "Видимі {{label}}",
         "Hide {{label}}": "Приховати {{label}}",
-        "Hidden {{label}}": "Приховані {{label}}"
+        "Hidden {{label}}": "Приховані {{label}}",
+        "Hide {{label}} (batch mode)": "Приховати {{label}} (пакетний режим)",
+        "Show {{label}} (batch mode)": "Показати {{label}} (пакетний режим)"
     },
     "TriggerFormulas": {
         "Apply to new records": "Застосувати до нових записів",
@@ -307,21 +317,21 @@
         "Each Y series is followed by a series for the length of error bars.": "За кожною серією Y слідує серія для довжини стовпців помилок.",
         "Each Y series is followed by two series, for top and bottom error bars.": "За кожною серією Y слідують дві серії - для верхніх та нижніх стовпців помилок.",
         "LABEL": "Назва",
-        "Bar Chart": "Діаграма стовпчиків",
-        "Pie Chart": "Графік \"пирога\"",
-        "Donut Chart": "Діаграма \"Пончика\"",
-        "Area Chart": "Діаграма області",
-        "Line Chart": "Діаграма лінії",
-        "Scatter Plot": "Діаграма розсіювання",
-        "Kaplan-Meier Plot": "Діаграма Каплана-Майєра",
+        "Bar chart": "Діаграма стовпчиків",
+        "Pie chart": "Графік \"пирога\"",
+        "Donut chart": "Діаграма \"Пончика\"",
+        "Area chart": "Діаграма області",
+        "Line chart": "Діаграма лінії",
+        "Scatter plot": "Діаграма розсіювання",
+        "Kaplan-Meier plot": "Діаграма Каплана-Майєра",
         "Split series": "Розділення серій",
         "Invert Y-axis": "Інвертувати вісь Y",
         "Orientation": "Орієнтація",
         "Vertical": "Вертикальний",
         "Horizontal": "Горизонтальний",
         "Log scale Y-axis": "Шкала журналу Y-ось",
-        "Hole Size": "Розмір отвору",
-        "Show Total": "Показати все",
+        "Hole size": "Розмір отвору",
+        "Show total": "Показати все",
         "Text Size": "Розмір тексту",
         "Connect gaps": "З'єднати щілини",
         "Show markers": "Показати маркери",
@@ -334,7 +344,7 @@
         "X-AXIS": "Вісь X",
         "Aggregate values": "Сукупні значення",
         "SERIES": "Серії",
-        "Add Series": "Додати серії",
+        "Add series": "Додати серії",
         "non-numeric columns are not shown": "нецифрові стовпці не показані",
         "non-numeric column is not shown": "нецифровий стовпець не показан",
         "selected new x-axis": "вибрана нова вісь x",
@@ -345,19 +355,24 @@
         "Max": "Максимум",
         "Search": "Пошук",
         "Min": "Мінімум",
-        "All Except": "Все, крім",
-        "All Shown": "Все показане",
+        "All except": "Все, крім",
+        "All shown": "Все показане",
         "Filter by Range": "Фільтрувати по діапазону",
         "Start": "Початок",
         "End": "Кінець",
         "Other Matching": "Інші співпадіння",
         "Other Non-Matching": "Інші неспівпадіння",
-        "Future Values": "Майбутні значення",
+        "Future values": "Майбутні значення",
         "None": "Ні",
-        "Other Values": "Інші значення",
+        "Other values": "Інші значення",
         "Others": "Інші",
         "Search values": "Пошук значень",
-        "No matching values": "Немає співпадаючих значень"
+        "No matching values": "Немає співпадаючих значень",
+        "Clear search": "Очистити пошук",
+        "Pin filter": "Фільтр Pin",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Сортувати за алфавітом (поточне: відсортовано за кількістю входжень)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Сортувати за кількістю входжень (поточне: відсортовано в алфавітному порядку)",
+        "Unpin filter": "Відкріпити фільтр"
     },
     "CustomSectionConfig": {
         "Pick a {{columnType}} column": "Виберіть {{columnType}} стовпець",
@@ -385,7 +400,8 @@
         "Last updated:": "Востаннє оновлено:",
         "Missing description and author information.": "Відсутній опис та інформація про автора.",
         "Reject": "Відхилити'",
-        "Widget": "Віджет"
+        "Widget": "Віджет",
+        "Change custom widget": "Змінити власний віджет"
     },
     "ACUserManager": {
         "Invite new member": "Запросити нового користувача",
@@ -393,15 +409,15 @@
         "We'll email an invite to {{email}}": "Ми надішлемо запрошення на адресу {{email}}"
     },
     "AccessRules": {
-        "Add Column Rule": "Додати правило стовпця",
-        "Add Table Rules": "Додати правила таблиці",
-        "Add User Attributes": "Додати атрибути користувача",
+        "Add column rule": "Додати правило стовпця",
+        "Add table rules": "Додати правила таблиці",
+        "Add user attributes": "Додати атрибути користувача",
         "Attribute name": "Назва атрибута",
         "Checking...": "Перевірка…",
         "Attribute to Look Up": "Атрибут для пошуку",
         "Condition": "Умова",
-        "Default Rules": "Правила за замовчуванням",
-        "Delete Table Rules": "Видалити правила таблиці",
+        "Default rules": "Правила за замовчуванням",
+        "Delete table rules": "Видалити правила таблиці",
         "Enter Condition": "Введіть умову",
         "Everyone Else": "Всі інші",
         "Invalid": "Недійсний",
@@ -416,10 +432,10 @@
         "Lookup Table": "Пошукова таблиця",
         "Lookup Column": "Стовпець пошуку",
         "Saved": "Збережено",
-        "Special Rules": "Особливі правила",
+        "Special rules": "Особливі правила",
         "Type message to display when this rule blocks an action…": "Введіть повідомлення…",
         "User Attributes": "Атрибути користувача",
-        "View As": "Переглянути як",
+        "View as": "Переглянути як",
         "Permission to edit document structure": "Дозвіл на редагування структури документа",
         "Add Default Rule": "Додати правило за замовчуванням",
         "Allow everyone to view Access Rules.": "Дозволити всім переглядати правила доступу.",
@@ -430,19 +446,19 @@
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
         "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. ",
-        "Add Table-wide Rule": "Додати загальностолове правило"
+        "Add table-wide rule": "Додати правило таблиці"
     },
     "AccountPage": {
         "API": "API",
         "API Key": "API Ключ",
         "Account settings": "Налаштування облікового запису",
         "Allow signing in to this account with Google": "Дозволити вхід в обліковий запис за допомогою Google",
-        "Change Password": "Змінити пароль",
+        "Change password": "Змінити пароль",
         "Email": "Електронна пошта",
         "Name": "Ім'я",
-        "Login Method": "Спосіб входу в систему",
+        "Login method": "Спосіб входу в систему",
         "Names only allow letters, numbers and certain special characters": "Імена мають містити тільки букви, цифри та певні спеціальні символи",
-        "Password & Security": "Пароль та безпека",
+        "Password & security": "Пароль та безпека",
         "Save": "Зберегти",
         "Theme": "Тема",
         "Two-factor authentication": "Двофакторна аутентифікація",
@@ -453,25 +469,24 @@
     "AccountWidget": {
         "Access Details": "Відомості про доступ",
         "Accounts": "Облікові записи",
-        "Add Account": "Додати обліковий запис",
-        "Manage Team": "Керувати командою",
+        "Add account": "Додати обліковий запис",
+        "Manage team": "Керувати командою",
         "Pricing": "Тарифи",
-        "Profile Settings": "Налаштування профілю",
-        "Sign Out": "Вийти з системи",
+        "Profile settings": "Налаштування профілю",
+        "Sign out": "Вийти з системи",
         "Sign in": "Увійти в систему",
         "Toggle Mobile Mode": "Переключити в мобільний режим",
-        "Document Settings": "Параметри документа",
+        "Document settings": "Параметри документа",
         "Switch Accounts": "Змінити обліковий запис",
         "Activation": "Активація",
         "Support Grist": "Підтримати Grist",
         "Upgrade Plan": "Оновити План",
         "Use This Template": "Використати цей шаблон",
-        "Billing Account": "Рахунок оплати",
-        "Sign In": "Увійти в систему",
-        "Sign Up": "Зареєструватися"
+        "Billing account": "Рахунок оплати",
+        "Sign up": "Зареєструватися"
     },
     "ViewAsDropdown": {
-        "View As": "Переглянути як",
+        "View as": "Переглянути як",
         "Users from table": "Користувачі з таблиці",
         "Example Users": "Приклади користувачів"
     },
@@ -480,7 +495,9 @@
         "Table {{tableId}} was subsequently removed in action #{{actionNum}}": "Таблиця {{tableId}} згодом була видалена під час події #{{actionNum}}",
         "This row was subsequently removed in action {{action.actionNum}}": "Ця строка згодом була видалена під час події {{action.actionNum}}",
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Колонка {{colId}} згодом була видалена під час події #{{action.actionNum}}",
-        "All tables": "Всі таблиці"
+        "All tables": "Всі таблиці",
+        "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Колонку {{colId}} згодом було видалено в дії №{{actionNum}}",
+        "This row was subsequently removed in action {{actionNum}}": "Цей рядок згодом було вилучено в рамках дії {{actionNum}}"
     },
     "ApiKey": {
         "Click to show": "Натисніть, щоб показати",
@@ -493,7 +510,7 @@
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Ви збираєтеся видалити ключ API. Всі майбутні запити, які використовують цей ключ API, будуть відхилені. Ви впевнені, що хочете його видалити?"
     },
     "AddNewButton": {
-        "Add New": "Додати нове"
+        "Add new": "Додати нове"
     },
     "App": {
         "Description": "Опис",
@@ -502,13 +519,13 @@
         "Translators: please translate this only when your language is ready to be offered to users": "Перекладачі: будь ласка, перекладайте це тільки тоді, коли ваша мова буде готова для користувачів"
     },
     "AppHeader": {
-        "Home Page": "Домашня сторінка",
+        "Home page": "Домашня сторінка",
         "Legacy": "Застаріла версія",
         "Personal Site": "Особистий сайт",
         "Team Site": "Сайт команди",
         "Grist Templates": "Шаблони від Grist",
-        "Billing Account": "Розрахунковий рахунок",
-        "Manage Team": "Керувати командою",
+        "Billing account": "Розрахунковий рахунок",
+        "Manage team": "Керувати командою",
         "{{ organizationName }} - Back to home": "{{ organizationName }} - Назад додому",
         "{{- organizationName }} - Back to home": "{{- organizationName }} - Назад додому"
     },
@@ -546,30 +563,30 @@
     "DataTables": {
         "Click to copy": "Натисніть для копіювання",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Видалити дані {{formattedTableName}} та видалити їх з усіх сторінок?",
-        "Duplicate Table": "Дублювати таблицю",
+        "Duplicate table": "Дублювати таблицю",
         "Raw Data Tables": "Таблиці необроблених даних",
         "Table ID copied to clipboard": "Ідентифікатор таблиці скопійовано в буфер",
         "You do not have edit access to this document": "У вас немає доступу до редагування цього документа",
-        "Edit Record Card": "Редагувати картку запису",
+        "Edit record card": "Редагувати картку запису",
         "Record Card": "Картка запису",
         "Record Card Disabled": "Карта запису вимкнена",
-        "Remove Table": "Вилучити таблицю",
-        "Rename Table": "Перейменувати таблицю",
+        "Remove table": "Вилучити таблицю",
+        "Rename table": "Перейменувати таблицю",
         "{{action}} Record Card": "{{action}} Картка запису"
     },
     "DocHistory": {
         "Activity": "Активність",
         "Beta": "Бета",
-        "Compare to Current": "Порівняти з поточним",
-        "Compare to Previous": "Порівняти з попереднім",
-        "Open Snapshot": "Відкрити знімок",
+        "Compare to current": "Порівняти з поточним",
+        "Compare to previous": "Порівняти з попереднім",
+        "Open snapshot": "Відкрити знімок",
         "Snapshots": "Знімки",
         "Snapshots are unavailable.": "Знімки недоступні.",
         "Only owners have access to snapshots for documents with access rules.": "Доступ до знімків для документів з правилами доступу мають тільки власники."
     },
     "DocMenu": {
         "Access Details": "Параметри доступу",
-        "All Documents": "Всі документи",
+        "All documents": "Всі документи",
         "By Date Modified": "По даті редагування",
         "By Name": "По імені",
         "Current workspace": "Поточний робочий простір",
@@ -584,7 +601,7 @@
         "Examples & Templates": "Приклади та шаблони",
         "Examples and Templates": "Приклади та шаблони",
         "Featured": "Рекомендовані",
-        "Manage Users": "Керувати користувачами",
+        "Manage users": "Керувати користувачами",
         "More Examples and Templates": "Більше прикладів та шаблонів",
         "Move": "Перемістити",
         "Move {{name}} to workspace": "Перемістити {{name}} в робочий простір",
@@ -610,12 +627,14 @@
         "Any documents created in this site will appear here.": "Будь-які документи, створені на цьому сайті, з'являться тут.",
         "Create my first document": "Створіть мій перший документ",
         "You have read-only access to this site. Currently there are no documents.": "Ви маєте доступ лише для читання на цей сайт. Наразі документів немає.",
-        "personal site": "персональний сайт"
+        "personal site": "персональний сайт",
+        "Grid view": "Сітковий вигляд",
+        "List view": "Список"
     },
     "DocPageModel": {
-        "Add Empty Table": "Додати порожню таблицю",
-        "Add Page": "Додати сторінку",
-        "Add Widget to Page": "Додати віджет до сторінки",
+        "Add empty table": "Додати порожню таблицю",
+        "Add page": "Додати сторінку",
+        "Add widget to page": "Додати віджет до сторінки",
         "Document owners can attempt to recover the document. [{{error}}]": "Власники документа можуть спробувати відновити документ. [{{error}}]",
         "Error accessing document": "Помилка доступу до документа",
         "Reload": "Перезавантаження",
@@ -628,7 +647,7 @@
     "DocumentSettings": {
         "Time Zone:": "Часовий пояс:",
         "Currency:": "Валюта:",
-        "Document Settings": "Параметри документу",
+        "Document settings": "Параметри документу",
         "Local currency ({{currency}})": "Місцева валюта ({{currency}})",
         "Locale:": "Регіон:",
         "Save": "Зберегти",
@@ -640,15 +659,14 @@
         "Engine (experimental {{span}} change at own risk):": "Обчислювальна система (експериментальна версія {{span}} змінюйте на власний ризик):",
         "Manage Webhooks": "Керування веб-хуками",
         "Webhooks": "Веб-хуки",
-        "API Console": "Консоль API",
-        "API URL copied to clipboard": "URL API скопійовано в буфер обміну",
         "API console": "Консоль API'",
+        "API URL copied to clipboard": "URL API скопійовано в буфер обміну",
         "API documentation.": "Документація API.",
         "Base doc URL: {{docApiUrl}}": "URL-адреса базового документа: {{docApiUrl}}",
         "Coming soon": "Скоро",
         "Copy to clipboard": "Копіювати в буфер обміну",
         "Currency": "Валюта",
-        "Data Engine": "Механізм даних",
+        "Data engine": "Механізм даних",
         "Default for DateTime columns": "Типові для стовпців DateTime",
         "Document ID": "Ідентифікатор документа",
         "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Ідентифікатор документа для використання щоразу, коли REST API вимагає {{docId}}. Див. {{apiURL}}",
@@ -664,7 +682,7 @@
         "Python": "Пайтон",
         "Python version used": "Використана версія Python",
         "Reload": "Перезавантаження",
-        "Time Zone": "Часовий пояс",
+        "Time zone": "Часовий пояс",
         "Try API calls from the browser": "Спробуйте виклики API з браузера",
         "python2 (legacy)": "python2 (legacy версія)",
         "python3 (recommended)": "python3 (рекомендовано)",
@@ -724,10 +742,10 @@
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Не вдається створити огляд документа на основі даних цього документа. Переконайтеся, що існує таблиця з назвою GristDocTour зі стовпцями Title, Body, Placement і Location."
     },
     "DocumentUsage": {
-        "Data Size": "Розмір даних",
+        "Data size": "Розмір даних",
         "For higher limits, ": "Для збільшення лімітів, ",
         "Rows": "Рядки",
-        "Attachments Size": "Розмір вкладених файлів",
+        "Size of attachments": "Розмір вкладених файлів",
         "Contact the site owner to upgrade the plan to raise limits.": "Зв'яжіться з власником сайту, щоб оновити тариф та збільшити ліміти.",
         "Usage": "Використання",
         "start your 30-day free trial of the Pro plan.": "розпочніть свою 30-денну безкоштовну пробну версію тарифу Pro.",
@@ -752,21 +770,21 @@
     },
     "HomeLeftPane": {
         "Delete": "Видалити",
-        "Create Empty Document": "Створити пустий документ",
-        "All Documents": "Всі документи",
+        "Create empty document": "Створити пустий документ",
+        "All documents": "Всі документи",
         "Access Details": "Відомості про доступ",
-        "Manage Users": "Керувати користувачами",
+        "Manage users": "Керувати користувачами",
         "Delete {{workspace}} and all included documents?": "Видалити {{workspace}} та всі включені документи?",
-        "Create Workspace": "Створити робочій простір",
+        "Create workspace": "Створити робочій простір",
         "Examples & Templates": "Шаблони",
-        "Import Document": "Імпортувати документ",
+        "Import document": "Імпортувати документ",
         "Trash": "Кошик",
         "Workspace will be moved to Trash.": "Робочий простір буде переміщено до кошика.",
         "Rename": "Перейменувати",
         "Workspaces": "Робочій простір",
         "Tutorial": "Туторіал",
         "Terms of service": "Умови надання послуг",
-        "Grist Resources": "Ресурси зерна",
+        "Grist Resources": "Ресурси Grist",
         "context menu - {{- workspaceName }}": "контекстне меню - {{- workspaceName }}"
     },
     "Importer": {
@@ -787,10 +805,14 @@
         "Skip Table on Import": "Пропустити таблицю при імпорті",
         "Import from file": "Імпорт з файлу",
         "{{count}} unmatched field in import_other": "{{count}} невідповідних полів при імпорті",
-        "Source column": "Вихідний стовпець"
+        "Source column": "Вихідний стовпець",
+        "Import options": "Параметри імпорту",
+        "Cancel": "Скасувати",
+        "Import": "Імпорт"
     },
     "LeftPanelCommon": {
-        "Help Center": "Центр допомоги"
+        "Help Center": "Центр допомоги",
+        "Accessibility": "Доступність"
     },
     "OnBoardingPopups": {
         "Finish": "Завершити",
@@ -803,11 +825,11 @@
         "YouTube video player": "Відеоплеєр YouTube"
     },
     "PageWidgetPicker": {
-        "Add to Page": "Додати на сторінку",
+        "Add to page": "Додати на сторінку",
         "Building {{- label}} widget": "Створення {{- label}} віджету",
         "Group by": "Групувати за",
-        "Select Data": "Виберіть дані",
-        "Select Widget": "Виберіть віджет"
+        "Select data": "Виберіть дані",
+        "Select widget": "Виберіть віджет"
     },
     "Pages": {
         "Delete": "Видалити",
@@ -819,9 +841,9 @@
         "Document pages": "Сторінки документа"
     },
     "PermissionsWidget": {
-        "Read Only": "Тільки для читання",
-        "Allow All": "Дозволити все",
-        "Deny All": "Відхилити все"
+        "Read only": "Тільки для читання",
+        "Allow all": "Дозволити все",
+        "Deny all": "Відхилити все"
     },
     "PluginScreen": {
         "Import failed: ": "Помилка імпорту: "
@@ -830,41 +852,40 @@
         "Updating record layout.": "Оновлення макета запису."
     },
     "RecordLayoutEditor": {
-        "Add Field": "Додати поле",
-        "Create New Field": "Створити нове поле",
+        "Add field": "Додати поле",
+        "Create new field": "Створити нове поле",
         "Show field {{- label}}": "Показати поле {{- label}}",
-        "Save Layout": "Зберегти макет",
+        "Save layout": "Зберегти макет",
         "Cancel": "Відмінити"
     },
     "RefSelect": {
-        "Add Column": "Додати стовпеця",
+        "Add column": "Додати стовпеця",
         "No columns to add": "Немає стовпців для додавання"
     },
     "RightPanel": {
         "CHART TYPE": "ТИП ДІАГРАМИ",
         "COLUMN TYPE": "ТИП СТОВПЦЯ",
         "CUSTOM": "НЕСТАНДАРТНИЙ",
-        "Change Widget": "Змінити віджет",
-        "Columns_one": "Стовпець",
-        "Columns_other": "Стовпці",
+        "Change widget": "Змінити віджет",
+        "columns_one": "Стовпець",
+        "columns_other": "Стовпці",
         "DATA TABLE": "ТАБЛИЦЯ ДАНИХ",
         "DATA TABLE NAME": "ІМ'Я ТАБЛИЦІ ДАНИХ",
         "Data": "Дані",
         "Detach": "Від'єднати",
-        "Edit Data Selection": "Редагувати вибір даних",
-        "Fields_one": "Поле",
-        "Fields_other": "Поля",
+        "Edit data selection": "Редагувати вибір даних",
+        "fields_one": "Поле",
+        "fields_other": "Поля",
         "GROUPED BY": "ЗГРУПУВАНО ЗА",
-        "ROW STYLE": "СТИЛЬ РЯДКА",
-        "Row Style": "Стиль рядка",
+        "Row style": "Стиль рядка",
         "SELECT BY": "ВИБРАТИ ЗА",
         "SELECTOR FOR": "СЕЛЕКТОР ДЛЯ",
         "SOURCE DATA": "ВИХІДНІ ДАНІ",
         "Save": "Зберегти",
-        "Select Widget": "Виберіть віджет",
-        "Series_one": "Серії",
-        "Series_other": "Серії",
-        "Sort & Filter": "Порядок та фільтр",
+        "Select widget": "Виберіть віджет",
+        "series_one": "Серії",
+        "series_other": "Серії",
+        "Sort & filter": "Порядок та фільтр",
         "TRANSFORM": "ПЕРЕТВОРИТИ",
         "Theme": "Тема",
         "WIDGET TITLE": "НАЗВА ВІДЖЕТА",
@@ -892,7 +913,8 @@
         "No field selected": "Поле не вибрано",
         "Select a field in the form widget to configure.": "Виберіть поле у віджеті форми для налаштування.",
         "Submit": "Надіслати",
-        "Thank you! Your response has been recorded.": "Дякуємо! Вашу відповідь записано."
+        "Thank you! Your response has been recorded.": "Дякуємо! Вашу відповідь записано.",
+        "Chart options": "Параметри діаграми"
     },
     "RowContextMenu": {
         "Copy anchor link": "Скопіювати якірне посилання",
@@ -914,34 +936,34 @@
     },
     "Tools": {
         "Access Rules": "Правила доступу",
-        "Code View": "Перегляд коду",
+        "Code view": "Перегляд коду",
         "Delete": "Видалити",
-        "Raw Data": "Вихідні дані",
+        "Raw data": "Вихідні дані",
         "Delete document tour?": "Видалити огляд документа?",
-        "Document History": "Історія документа",
+        "Document history": "Історія документа",
         "How-to Tutorial": "Навчальний посібник",
         "Return to viewing as yourself": "Повернутись до перегляду від свого імені",
         "TOOLS": "ІНСТРУМЕНТИ",
         "Tour of this Document": "Огляд цього документа",
         "Validate Data": "Перевірити дані",
         "Settings": "Налаштування",
-        "API Console": "Консоль API",
+        "API console": "Консоль API",
         "context menu - Access Rules": "контекстне меню - Правила доступу",
         "Delete document tour": "Видалити огляд документа",
-        "Preview the tutorial": "Попередній перегляд посібника"
+        "Preview the tutorial": "Попередній перегляд посібника",
+        "Proposed Changes": "Запропоновані зміни"
     },
     "TopBar": {
-        "Manage Team": "Керувати командою",
         "Manage team": "Керування командою"
     },
     "UserManagerModel": {
         "Editor": "Редактор",
-        "In Full": "Повністю",
+        "In full": "Повністю",
         "No Default Access": "Немає доступу за замовчуванням",
         "None": "Ні",
         "Owner": "Власник",
-        "View & Edit": "Перегляд та редагування",
-        "View Only": "Лише перегляд",
+        "View & edit": "Перегляд та редагування",
+        "View only": "Лише перегляд",
         "Viewer": "Глядач"
     },
     "ValidationPanel": {
@@ -959,7 +981,7 @@
         "Big tables may be marked as \"on-demand\" to avoid loading them into the data engine.": "Великі таблиці можуть бути позначені «на вимогу», щоб уникнути їх завантаження в систему даних.",
         "Blocks": "Блоки",
         "Compact": "Компактний",
-        "Edit Card Layout": "Редагувати розмітку картки",
+        "Edit card layout": "Редагувати розмітку картки",
         "Form": "Форма",
         "Plugin: ": "Плагін: ",
         "Section: ": "Секція: ",
@@ -969,14 +991,14 @@
         "⚠️ Deprecated Feature": "⚠️ Застаріла функція"
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Розширені порядок та фільтр",
+        "Advanced sort & filter": "Розширені порядок та фільтр",
         "Copy anchor link": "Скопіювати якірне посилання",
         "Data selection": "Вибір даних",
         "Delete record": "Видалити запис",
         "Delete widget": "Видалити віджет",
         "Download as CSV": "Завантажити як CSV",
         "Download as XLSX": "Завантажити як XLSX",
-        "Edit Card Layout": "Редагувати розмітку картки",
+        "Edit card layout": "Редагувати розмітку картки",
         "Open configuration": "Відкрита конфігурація",
         "Print widget": "Роздрукувати віджет",
         "Show raw data": "Показати вихідні дані",
@@ -1051,7 +1073,20 @@
         "Form not found": "Форму не знайдено",
         "Powered by": "Працює на",
         "Failed to log in.{{separator}}Please try again or contact support.": "Не вдалося ввійти.{{separator}}Будь ласка, спробуйте ще раз або зверніться до служби підтримки.",
-        "Sign-in failed{{suffix}}": "Не вдалося ввійти{{suffix}}"
+        "Sign-in failed{{suffix}}": "Не вдалося ввійти{{suffix}}",
+        "Manage settings": "Керування налаштуваннями",
+        "Need Help?": "Потрібна допомога?",
+        "There was an error": "Сталася помилка",
+        "Unsubscribed{{suffix}}": "Скасовано підписку{{suffix}}",
+        "We could not unsubscribe you": "Нам не вдалося скасувати вашу підписку",
+        "You are unsubscribed": "Ви скасували підписку",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Ви все ще можете відмовитися від підписки на цей документ, оновивши свої налаштування в налаштуваннях документа",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Ви більше не отримуватимете сповіщення електронною поштою про {{changes}} у {{docName}} на адресу {{email}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Ви більше не отримуватимете сповіщення електронною поштою про {{comments}} у {{docName}} на адресу {{email}}.",
+        "changes": "зміни",
+        "comments": "коментарі",
+        "this document": "цей документ",
+        "your email": "ваша електронна адреса"
     },
     "menus": {
         "* Workspaces are available on team plans. ": "* Робочі простори доступні в командних тарифах. ",
@@ -1085,7 +1120,7 @@
         "Dismiss": "Відхилити",
         "Don't ask again.": "Не питай більше.",
         "Don't show again.": "Більше не показуй.",
-        "Don't show tips": "Не показувати чайові",
+        "Don't show tips": "Не показувати підказки",
         "Undo to restore": "Скасувати для відновлення",
         "Got it": "Зрозуміло",
         "Don't show again": "Більше не показувати",
@@ -1093,7 +1128,7 @@
         "Confirm": "Підтвердити"
     },
     "pages": {
-        "Duplicate Page": "Дублювати сторінку",
+        "Duplicate page": "Дублювати сторінку",
         "Remove": "Вилучити",
         "Rename": "Перейменувати",
         "You do not have edit access to this document": "Ви не маєте права на редагування цього документа",
@@ -1109,14 +1144,15 @@
         "Find Previous ": "Знайти попереднє ",
         "Search in document": "Пошук у документі",
         "No results": "Немає результатів",
-        "Search": "Пошук"
+        "Search": "Пошук",
+        "Close search bar": "Закрити рядок пошуку"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Надсилання файлу на Google Диск"
     },
     "ACLUsers": {
         "Example Users": "Приклади користувачів",
-        "View As": "Переглянути як",
+        "View as": "Переглянути як",
         "Users from table": "Користувачі з таблиці",
         "Other users from table": "Інші користувачі з таблиці",
         "Shared users": "Спільні користувачі"
@@ -1141,7 +1177,7 @@
         "Default cell style": "Стиль клітинки за замовчуванням",
         "Mixed style": "Змішаний стиль",
         "Open row styles": "Відкрити стилі рядків",
-        "Cell Style": "Стиль клітинки",
+        "Cell style": "Стиль клітинки",
         "HEADER STYLE": "СТИЛЬ ЗАГОЛОВКА",
         "Header Style": "Стиль Заголовка",
         "Default header style": "Стиль заголовка за замовчуванням"
@@ -1163,7 +1199,7 @@
     "ConditionalStyle": {
         "Add another rule": "Додайте інше правило",
         "Error in style rule": "Помилка в правилі стилю",
-        "Row Style": "Стиль рядка",
+        "Row style": "Стиль рядка",
         "Rule must return True or False": "Правило має повертати True або False",
         "Add conditional style": "Додайте умовний стиль",
         "Conditional Style": "Умовний стиль",
@@ -1202,10 +1238,14 @@
         "Mixed format": "Змішаний формат",
         "Mixed types": "Змішані типи",
         "Use separate field settings for {{colId}}": "Використати окремі налаштування поля для {{colId}}",
-        "Apply Formula to Data": "Застосувати формулу до даних",
+        "Apply formula to data": "Застосувати формулу до даних",
         "Revert field settings for {{colId}} to common": "Змінити налаштування поля для {{colId}} на загальні",
         "Save field settings for {{colId}} as common": "Зберегти налаштування поля для {{colId}} як загальні",
-        "Changing column type": "Зміна типу стовпця"
+        "Changing column type": "Зміна типу стовпця",
+        "Common": "Звичайний'",
+        "Separate": "Окремі",
+        "Field in {{count}} views_one": "Поле в одному вигляді",
+        "Field in {{count}} views_other": "Поле в {{count}} переглядах"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Неможливо зберегти відредаговану клітинку",
@@ -1234,7 +1274,7 @@
         "Spinner": "Спіннер",
         "Text": "Текст",
         "max": "макс.",
-        "min": "хв"
+        "min": "мін."
     },
     "Reference": {
         "CELL FORMAT": "ФОРМАТ КЛІТИНКИ",
@@ -1242,7 +1282,7 @@
         "SHOW COLUMN": "ПОКАЗАТИ СТОВПЕЦЬ"
     },
     "WelcomeTour": {
-        "Add New": "Додати нове",
+        "Add new": "Додати нове",
         "Building up": "Створюйте",
         "Configuring your document": "Налаштування вашого документа",
         "Customizing columns": "Налаштування стовпців",
@@ -1265,7 +1305,8 @@
         "Set formatting options, formulas, or column types, such as dates, choices, or attachments. ": "Встановити параметри форматування, формули або типи стовпців, наприклад - дати, варіанти або вкладені файли. ",
         "Use the Share button ({{share}}) to share the document or export data.": "Використовуйте кнопку \"Поділитись\" ({{share}}), щоб поділитись документом або експортувати дані.",
         "Use {{helpCenter}} for documentation or questions.": "Знайдіть технічну документацію чи відповіді на запитання у {{helpCenter}}.",
-        "convert to card view, select data, and more.": "перетворити в представлення картки, вибрати дані, та інші можливості."
+        "convert to card view, select data, and more.": "перетворити в представлення картки, вибрати дані, та інші можливості.",
+        "AI Assistant": "Помічник зі штучним інтелектом"
     },
     "EditorTooltip": {
         "Convert column to formula": "Перетворити стовпець у формулу"
@@ -1275,7 +1316,7 @@
     },
     "GristTooltips": {
         "Apply conditional formatting to rows based on formulas.": "Застосовувати умовне форматування рядків на основі формул.",
-        "Click the Add New button to create new documents or workspaces, or import data.": "Натисніть кнопку \"Додати\", щоб створити нові документи, робочі області або імпортувати дані.",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Натисніть кнопку \"Додати\", щоб створити нові документи, робочі області або імпортувати дані.",
         "Editing Card Layout": "Редагування розмітки картки",
         "Learn more.": "Дізнайтесь більше.",
         "Linking Widgets": "Зв'язування віджетів",
@@ -1298,7 +1339,7 @@
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Використовуйте іконку 𝚺 для створення зведених (або pivot) таблиць, для підсумків, або проміжних результатів.",
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Застосувати умовне форматування до клітинок у цьому стовпці, якщо виконуються умови формули.",
         "Cells in a reference column always identify an {{entire}} record in that table, but you may select which column from that record to show.": "Клітинки в довідковому стовпці завжди ідентифікують запис {{entire}} у цій таблиці, але ви можете вибрати, який саме стовпець з цього запису показувати.",
-        "Add New": "Додати нове",
+        "Add new": "Додати нове",
         "Click on “Open row styles” to apply conditional formatting to rows.": "Натисніть \"Відкрити стилі рядків\", щоб застосувати умовне форматування до рядків.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Натискання {{EyeHideIcon}} у кожній клітинці робить поле прихованим, але не видалає його.",
         "Link your new widget to an existing widget on this page.": "Зв'яжіть свій новий віджет з існуючим віджетом на цій сторінці.",
@@ -1350,7 +1391,10 @@
         "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Це дозволяє додавати вкладення, яких немає на зовнішньому сховищі, наприклад, в імпортованому документі. Сюди можна завантажувати лише архіви вкладень .tar, завантажені з Grist.",
         "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "Розумійте, змінюйте та працюйте зі своїми даними й формулами за допомогою нового ШІ-помічника Grist!",
         "This form is created by a Grist user, and is not endorsed by Grist Labs. Do not submit passwords through this form, and be careful with links in it. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Цю форму створив користувач Grist і не схвалює Grist Labs. Не надсилайте паролі через цю форму та будьте обережні з посиланнями в ній. Повідомляйте про шкідливі форми на адресу [{{mail}}](mailto:{{mail}}).",
-        "Set the maximum number of lines for multi-line text.": "Встановіть максимальну кількість рядків для багаторядкового тексту."
+        "Set the maximum number of lines for multi-line text.": "Встановіть максимальну кількість рядків для багаторядкового тексту.",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ця форма створена користувачем Grist і не схвалена компанією Grist Labs, Inc. або будь-якою іншою стороною, що надає цю послугу. Для вашої безпеки не надсилайте паролі через цю форму та будьте обережні, натискаючи на вбудовані посилання. Про зловмисні форми повідомляйте за адресою [{{mail}}](mailto:{{mail}}).",
+        "Comments are here!": "Коментарі тут!",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Ви можете додавати коментарі до комірок, відповідати на ланцюжки коментарів та згадувати співавторів за допомогою @."
     },
     "DescriptionConfig": {
         "DESCRIPTION": "ОПИС"
@@ -1366,7 +1410,7 @@
     },
     "PagePanels": {
         "Close Creator Panel": "Закрити панель автора",
-        "Open Creator Panel": "Відкрити панель творця",
+        "Open creator panel": "Відкрити панель творця",
         "Creator panel (right panel)": "Панель творця (права панель)",
         "Document header": "Заголовок документа",
         "Main content": "Основний зміст",
@@ -1391,8 +1435,8 @@
         "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "Команда меню {{action}} недоступна в цьому браузері. Ви все ще можете виконати {{action}} за допомогою комбінації клавіш {{shortcut}}."
     },
     "WebhookPage": {
-        "Clear Queue": "Очистити чергу",
-        "Webhook Settings": "Налаштування вебхука",
+        "Clear queue": "Очистити чергу",
+        "Webhook settings": "Налаштування вебхука",
         "Cleared webhook queue.": "Очищено чергу вебхуків.",
         "Columns to check when update (separated by ;)": "Стовпці для перевірки під час оновлення (розділені ;)",
         "Enabled": "Увімкнено",
@@ -1405,7 +1449,7 @@
         "Status": "Статус",
         "URL": "URL-адреса",
         "Webhook Id": "Ідентифікатор вебхука",
-        "Table": "Стіл",
+        "Table": "Таблиця",
         "Filter for changes in these columns (semicolon-separated ids)": "Фільтрувати зміни в цих стовпцях (ідентифікатори, розділені крапкою з комою)",
         "Header Authorization": "Авторизація заголовка",
         "Webhooks Unavailable In Unsaved Document Copies": "Вебхуки недоступні в незбережених копіях документів"
@@ -1430,8 +1474,8 @@
         "AI Assistant": "Помічник зі штучним інтелектом",
         "Apply": "Застосувати",
         "Cancel": "Скасувати",
-        "Clear Conversation": "Очистити розмову",
-        "Code View": "Перегляд коду",
+        "Clear conversation": "Очистити розмову",
+        "Code view": "Перегляд коду",
         "Hi, I'm the Grist Formula AI Assistant.": "Привіт, я помічник зі штучного інтелекту Grist Formula.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Я можу допомогти лише з формулами. Я не можу створювати таблиці, стовпці та подання, а також писати правила доступу.",
         "Learn more": "Дізнатися більше",
@@ -1470,7 +1514,7 @@
         "Close": "Закрити",
         "Collaborator": "Співробітник",
         "Confirm": "Підтвердити",
-        "Copy Link": "Копіювати Посилання",
+        "Copy link": "Копіювати Посилання",
         "Create a team to share with more people": "Створіть команду, щоб ділитися інформацією з більшою кількістю людей",
         "Grist support": "підтримка Grist",
         "Guest": "Гість",
@@ -1484,7 +1528,6 @@
         "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Після того, як ви скасували власний доступ,           ви не зможете його відновити без допомоги когось іншого,                хто має достатній доступ до {{name}}.",
         "Open Access Rules": "Правила відкритого доступу",
         "Outside collaborator": "Зовнішній співробітник",
-        "Public Access": "Публічний доступ",
         "Public access": "Публічний доступу",
         "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Публічний доступ успадковано від {{parent}}. Щоб видалити, встановіть для опції «Успадкувати доступ» значення «Немає».",
         "Public access: ": "Публічний доступ: ",
@@ -1514,7 +1557,8 @@
         "Search all tables": "Пошук у всіх таблицях"
     },
     "searchDropdown": {
-        "Search": "Пошук"
+        "Search": "Пошук",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Показано {{displayedCount}} з {{totalCount}} елементів. Шукайте більше."
     },
     "SupportGristNudge": {
         "Close": "Закрити",
@@ -1630,7 +1674,7 @@
         "Clear": "Очистити",
         "Map fields": "Поля карти",
         "Mapped": "Нанесено на карту",
-        "Select All": "Вибрати все",
+        "Select all": "Вибрати все",
         "Unmap fields": "Скасувати зіставлення полів",
         "Unmapped": "Не нанесено на карту"
     },
@@ -1680,7 +1724,7 @@
     "DateRangeOptions": {
         "Last 30 days": "Останні 30 днів",
         "Last 7 days": "Останні 7 днів",
-        "Last Week": "Минулого тижня",
+        "Last week": "Минулого тижня",
         "Next 7 days": "Наступні 7 днів",
         "This month": "Цього місяця",
         "This week": "Цього тижня",
@@ -1691,9 +1735,13 @@
         "Clear": "Очистити",
         "Map fields": "Поля карти",
         "Mapped": "Нанесено на карту",
-        "Select All": "Вибрати все",
+        "Select all": "Вибрати все",
         "Unmap fields": "Скасувати зіставлення полів",
-        "Unmapped": "Не нанесено на карту"
+        "Unmapped": "Не нанесено на карту",
+        "Hide {{label}}": "Приховати {{label}}",
+        "Hide {{label}} (batch mode)": "Приховати {{label}} (пакетний режим)",
+        "Unmap {{label}}": "Зняти з карти {{label}}",
+        "Unmap {{label}} (batch mode)": "Розв'язати зіставлення {{label}} (пакетний режим)"
     },
     "Section": {
         "Insert section above": "Вставити розділ вище",
@@ -1826,7 +1874,8 @@
         "Search": "Пошук",
         "Select...": "Виберіть...",
         "Submit": "Надіслати",
-        "Submitting…": "Надсилання…"
+        "Submitting…": "Надсилання…",
+        "Clear selection for: {{-inputLabel}}": "Очистити вибір для: {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Calendar": "Календар",
@@ -1912,25 +1961,25 @@
         "Delete data and this widget.": "Видалити дані та цей віджет.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Зберегти дані та видалити віджет. Таблиця залишатиметься доступною в {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "Таблиця {{tableName}} більше не буде видимою",
-        "raw data page": "сторінка необроблених даних"
+        "Raw Data page": "сторінка необроблених даних"
     },
     "AdminPanelName": {
         "Admin Panel": "Панель адміністратора"
     },
     "CustomWidgetGallery": {
         "(Missing info)": "(Відсутня інформація)",
-        "Add Widget": "Додати віджет",
+        "Add widget": "Додати віджет",
         "Add Your Own Widget": "Додайте свій власний віджет",
         "Add a widget from outside this gallery.": "Додайте віджет ззовні цієї галереї.",
         "Cancel": "Скасувати",
-        "Change Widget": "Змінити віджет",
-        "Choose Custom Widget": "Виберіть власний віджет",
+        "Change widget": "Змінити віджет",
+        "Choose custom widget": "Виберіть власний віджет",
         "Community Widget": "Віджет спільноти",
         "Custom URL": "Користувацька URL-адреса",
         "Developer:": "Розробник:",
         "Grist Widget": "Віджет Grist",
         "Last updated:": "Останнє оновлення:",
-        "Learn more about Custom Widgets": "Дізнайтеся більше про користувацькі віджети",
+        "Learn more about custom widgets": "Дізнайтеся більше про користувацькі віджети",
         "No matching widgets": "Немає відповідних віджетів",
         "Search": "Пошук",
         "Widget URL": "URL-адреса віджета"
@@ -1998,7 +2047,7 @@
         "Reassign to new {{sourceTable}} records.": "Перепризначити новим записам {{sourceTable}}.",
         "Reassign to {{sourceTable}} record {{sourceName}}.": "Перепризначити запису {{sourceTable}} для запису {{sourceName}}.",
         "Record already assigned_one": "Запис уже призначено",
-        "Record already assigned_other": "Запис уже призначено",
+        "Record already assigned_other": "Записи вже призначені",
         "{{targetTable}} record {{targetName}} is already assigned to {{sourceTable}} record          {{oldSourceName}}.": "Запис {{targetTable}} {{targetName}} вже призначено запису {{sourceTable}} {{oldSourceName}}."
     },
     "AuditLogStreamingConfig": {
@@ -2058,7 +2107,8 @@
         "Unpin": "Відкріпити",
         "Workspace": "Робочий простір",
         "context menu - {{- documentName }}": "контекстне меню - {{- documentName }}",
-        "Documents list": "Список документів"
+        "Documents list": "Список документів",
+        "Download document...": "Завантажити документ..."
     },
     "RenameDocModal": {
         "Choose color": "Виберіть колір",
@@ -2070,12 +2120,12 @@
         "Reset icon": "Значок скидання"
     },
     "RightPanelUtils": {
-        "Columns_one": "Колонки",
-        "Columns_other": "Колонки",
-        "Fields_one": "Поля",
-        "Fields_other": "Поля",
-        "Series_one": "Серія",
-        "Series_other": "Серія"
+        "columns_one": "Стовпець",
+        "columns_other": "Колонки",
+        "fields_one": "Поле",
+        "fields_other": "Поля",
+        "series_one": "Серія",
+        "series_other": "Серія"
     },
     "userTrustsCustomWidget": {
         "Be careful with unknown custom widgets": "Будьте обережні з невідомими користувацькими віджетами",
@@ -2181,7 +2231,8 @@
     "RowHeightConfig": {
         "Expand all rows to this height": "Розгорнути всі рядки до цієї висоти",
         "Max height": "Максимальна висота",
-        "Max row height": "Максимальна висота рядка"
+        "Max row height": "Максимальна висота рядка",
+        "Change": "Зміна"
     },
     "TreeViewComponent": {
         "Collapse": "Згорнути'",
@@ -2197,6 +2248,180 @@
         "Grist has a small built-in health check often used when running it as a container.": "Grist має невелику вбудовану перевірку справності, яка часто використовується під час запуску його як контейнера.",
         "Requests arriving to Grist should have an accurate Host header. This is essential when GRIST_SERVE_SAME_ORIGIN is set.": "Запити, що надходять до Grist, повинні мати точний заголовок Host. Це важливо, коли встановлено GRIST_SERVE_SAME_ORIGIN.",
         "This boot page should not be too easy to access. Either turn it off when configuration is ok (by unsetting GRIST_BOOT_KEY) or make GRIST_BOOT_KEY long and cryptographically secure.": "Ця сторінка завантаження не повинна бути надто легкодоступною. Або вимкніть її, коли конфігурація влаштована (скинувши GRIST_BOOT_KEY), або зробіть GRIST_BOOT_KEY довгим та криптографічно захищеним.",
-        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Для роботи вебсокетних з'єднань потрібен HTTP 1.1 та можливість передавати кілька додаткових заголовків. Іноді зворотний проксі-сервер може перешкоджати цим вимогам."
+        "Websocket connections need HTTP 1.1 and the ability to pass a few extra headers in order to work. Sometimes a reverse proxy can interfere with these requirements.": "Для роботи вебсокетних з'єднань потрібен HTTP 1.1 та можливість передавати кілька додаткових заголовків. Іноді зворотний проксі-сервер може перешкоджати цим вимогам.",
+        "It is good practice not to run Grist as the root user.": "Не рекомендується запускати Grist від імені користувача root.",
+        "The main page of Grist should be available.": "Головна сторінка Grist має бути доступна."
+    },
+    "ChoiceListEntry": {
+        "+{{count}} more_one": "+{{count}} більше",
+        "+{{count}} more_other": "+{{count}} більше",
+        "Edit": "Редагувати",
+        "No choices configured": "Немає налаштованих варіантів",
+        "Reset": "Скинути",
+        "Cancel": "Скасувати",
+        "Save": "Зберегти"
+    },
+    "FormulaTransform": {
+        "Apply": "Застосувати",
+        "Cancel": "Скасувати",
+        "Preview": "Попередній перегляд"
+    },
+    "ParseOptions": {
+        "Close": "Закрити",
+        "Update preview": "Попередній перегляд оновлення",
+        "Convert quoted fields": "Конвертувати поля в лапках",
+        "Escape character": "Символ Escape",
+        "Field separator": "Роздільник полів",
+        "First row contains headers": "Перший рядок містить заголовки",
+        "Line terminator": "Термінатор лінії",
+        "Number of rows": "Кількість рядків",
+        "Quote character": "Цитата персонажа",
+        "Quotes in fields are doubled": "Лапки в полях подвоюються",
+        "Skip leading whitespace": "Пропустити початкові пробіли",
+        "Start with row": "Почати з рядка",
+        "Character encoding. See [the supported codecs]({{link}})": "Кодування символів. Див. [підтримувані кодеки]({{link}})"
+    },
+    "OpenAccessibilityModal": {
+        " or ": " або ",
+        "\"Regions\" are what we call the different parts of the user interface:": "«Регіонами» ми називаємо різні частини інтерфейсу користувача:",
+        "Accessibility": "Доступність",
+        "Close": "Закрити",
+        "Finally, the right panel – or the creator panel – is only available through its own shortcut and is not included in the next and previous region cycle.": "Зрештою, права панель – або панель творця – доступна лише через власний ярлик і не включена до наступного та попереднього циклу регіонів.",
+        "Focus on other parts of the user interface using the following shortcuts:": "Зосередьтеся на інших частинах інтерфейсу користувача за допомогою таких комбінацій клавіш:",
+        "High contrast theme": "Тема високої контрастності",
+        "Keyboard navigation": "Навігація по клавіатурі",
+        "On a document page, keyboard navigation is first locked on the current widget.": "На сторінці документа навігація за допомогою клавіатури спочатку блокується на поточному віджеті.",
+        "On document pages, each [widget]({{supportPageUrl}}) is a region that can receive focus.": "На сторінках документа кожен [віджет]({{supportPageUrl}}) – це область, на яку може перевести фокус.",
+        "On non-document pages, the main content area is a region.": "На сторінках, що не є документами, основною областю вмісту є регіон.",
+        "Other important keyboard shortcuts": "Інші важливі комбінації клавіш",
+        "The left panel, home of the main navigation.": "Ліва панель, де розташована основна панель навігації.",
+        "The top panel, or the document header.": "Верхня панель або заголовок документа.",
+        "To see other available themes, go to your {{profileSettingsLink}}.": "Щоб переглянути інші доступні теми, перейдіть до свого {{profileSettingsLink}}.",
+        "Use the high contrast theme (light appearance)": "Використовуйте тему високої контрастності (світлий вигляд)",
+        "You are currently **not using** the high contrast theme.": "Ви зараз **не використовуєте** тему високої контрастності.",
+        "You are currently using the high contrast theme.": "Ви зараз використовуєте тему високої контрастності.",
+        "profile settings": "налаштування профілю",
+        "{{accessibilityModal}} Show the accessibility options (this modal)": "{{accessibilityModal}} Показати параметри доступності (це модальне вікно)",
+        "{{creatorPanelShortcut}} Focus to and from the creator panel": "{{creatorPanelShortcut}} Фокус на панель творця та назад",
+        "{{nextRegionShortcut}} Focus on the next region": "{{nextRegionShortcut}} Перейти до наступного регіону",
+        "{{prevRegionShortcut}} Focus on the previous region": "{{prevRegionShortcut}} Фокус на попередньому регіоні",
+        "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Показати повний список комбінацій клавіш"
+    },
+    "ProposedChangesPage": {
+        "Proposed Changes": "Запропоновані зміни",
+        "Replace original": "Замінити оригінал",
+        "This is a list of changes relative to the original document.": "Це список змін порівняно з оригінальним документом."
+    },
+    "commandList": {
+        "Show accessibility options": "Показати параметри доступності",
+        "Activate assistant": "Активувати помічника",
+        "Add a new viewsection to the currently active view": "Додати новий розділ перегляду до поточного активного перегляду",
+        "Adds all elements above the cursor to the selected range": "Додає всі елементи над курсором до вибраного діапазону",
+        "Adds all elements below the cursor to the selected range": "Додає всі елементи під курсором до вибраного",
+        "Adds all elements to the left of the cursor to the selected range": "Додає всі елементи ліворуч від курсора до вибраного діапазону",
+        "Adds all elements to the right of the cursor to the selected range": "Додає всі елементи праворуч від курсора до вибраного діапазону",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Додає поточний вибраний стовпець (за зростанням) до специфікації сортування поточного перегляду",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Додає поточний вибраний стовпець (за спаданням) до специфікації сортування поточного перегляду",
+        "Adds the element above the cursor to the selected range": "Додає елемент над курсором до вибраного діапазону",
+        "Adds the element below the cursor to the selected range": "Додає елемент під курсором до вибраного діапазону",
+        "Adds the element to the left of the cursor to the selected range": "Додає елемент ліворуч від курсора до вибраного діапазону",
+        "Adds the element to the right of the cursor to the selected range": "Додає елемент праворуч від курсора до вибраного діапазону",
+        "Clear the selected columns": "Очистити вибрані стовпці",
+        "Clears the current copy selection, if any": "Очищає поточний вибір копії, якщо такий є",
+        "Clears the currently selected cells": "Очищає вибрані клітинки",
+        "Clears the section links in the current view": "Очищає посилання розділів у поточному поданні",
+        "Clears the section links in the current viewsection": "Очищає посилання розділів у поточному розділі перегляду",
+        "Collapse the currently active viewsection": "Згорнути поточну активну секцію перегляду",
+        "Convert the selected columns from formula to data": "Перетворити вибрані стовпці з формули на дані",
+        "Copy anchor link": "Копіювати посилання-якоря",
+        "Copy current selection to clipboard": "Копіювати поточний вибір у буфер обміну",
+        "Copy current selection to clipboard including headers": "Копіювати поточний вибір у буфер обміну, включаючи заголовки",
+        "Creates form for active table": "Створює форму для активної таблиці",
+        "Cut current selection to clipboard": "Вирізати поточний вибір у буфер обміну",
+        "Delete collapsed viewsection": "Видалити згорнутий розділ перегляду",
+        "Delete the currently active viewsection": "Видалити поточну активну секцію перегляду",
+        "Delete the currently selected columns": "Видалити вибрані стовпці",
+        "Delete the currently selected record(s)": "Видалити вибрані записи",
+        "Detach active editor": "Від’єднати активний редактор",
+        "Discard changes to a cell value": "Скасувати зміни значення клітинки",
+        "Display Grist documentation": "Документація про відображення Grist",
+        "Display shortcuts pane": "Відображення панелі швидких команд",
+        "Duplicate the currently active viewsection": "Дублювати поточну активну секцію перегляду",
+        "Duplicate the currently selected record(s)": "Дублювати вибрані записи",
+        "Edit label of the currently-selected field": "Редагувати підпис вибраного поля",
+        "Edit record layout": "Редагувати макет запису",
+        "Enter text into currently-selected cell and start editing": "Введіть текст у вибрану клітинку та розпочніть редагування",
+        "Enters section linking mode in the current view": "Вводить режим зв'язування розділів у поточному поданні",
+        "Exits section linking mode in the current view": "Вихід із режиму зв'язування розділів у поточному поданні",
+        "Expand collapsed viewsection": "Розгорнути згорнутий розділ перегляду",
+        "Fills current selection with the contents of the top row in the selection": "Заповнює поточний вибір вмістом верхнього рядка у виділенні",
+        "Find": "Знайти",
+        "Find next occurrence": "Знайти наступний екземпляр",
+        "Find previous occurrence": "Знайти попереднє входження",
+        "Finish editing a cell and save without moving to next record": "Завершити редагування комірки та зберегти зміни без переходу до наступного запису",
+        "Finish editing a cell, saving the value": "Завершити редагування клітинки, зберігаючи значення",
+        "Focus next page panel or widget": "Фокус на наступній сторінці панелі або віджета",
+        "Focus previous page panel or widget": "Фокус на попередній панелі сторінки або віджеті",
+        "Freeze or unfreeze selected columns": "Заморозити або розморозити вибрані стовпці",
+        "Hide the currently selected columns": "Приховати вибрані стовпці",
+        "Hide the currently selected fields": "Приховати вибрані поля",
+        "Insert a new column, after the currently selected one": "Вставити новий стовпець після поточного вибраного",
+        "Insert a new column, before the currently selected one": "Вставити новий стовпець перед поточним вибраним",
+        "Insert a new record, after the currently selected one in an unsorted table": "Вставити новий запис після поточного вибраного в невідсортовану таблицю",
+        "Insert a new record, before the currently selected one in an unsorted table": "Вставити новий запис перед поточним вибраним у невідсортованій таблиці",
+        "Insert new column in default location": "Вставити новий стовпець у місце за замовчуванням",
+        "Insert the current date": "Вставте поточну дату",
+        "Insert the current date and time": "Вставити поточну дату та час",
+        "Maximize the active section": "Максимізувати активний розділ",
+        "Move down one page of records, or to next record in a card list": "Перейти на одну сторінку записів вниз або до наступного запису у списку карток",
+        "Move down to the last record": "Перейти до останнього запису",
+        "Move downward five records": "Перемістити вниз на п'ять записів",
+        "Move downward to next record or field": "Перейти вниз до наступного запису або поля",
+        "Move left to the previous field": "Перейти ліворуч до попереднього поля",
+        "Move right to the next field": "Перейти праворуч до наступного поля",
+        "Move to the first field or the beginning of a row": "Перехід до першого поля або початку рядка",
+        "Move to the last field or the end of a row": "Перехід до останнього поля або кінця рядка",
+        "Move to the next field, saving changes if editing a value": "Перейти до наступного поля, зберігаючи зміни, якщо значення редагується",
+        "Move to the previous field, saving changes if editing a value": "Перейти до попереднього поля, зберігаючи зміни, якщо значення редагується",
+        "Move up one page of records, or to previous record in a card list": "Перейти на одну сторінку записів угору або до попереднього запису у списку карток",
+        "Move up to the first record": "Перейти до першого запису",
+        "Move upward five records": "Перемістити на п'ять записів угору",
+        "Move upward to previous record or field": "Перейти вгору до попереднього запису або поля",
+        "Moves the cursor to the correct location": "Переміщує курсор у потрібне місце",
+        "Open Custom widget configuration screen": "Відкрити екран налаштування власного віджета",
+        "Open comment thread": "Відкрити ланцюжок коментарів",
+        "Open next page": "Відкрити наступну сторінку",
+        "Open previous page": "Відкрити попередню сторінку",
+        "Opens document list": "Відкриває список документів",
+        "Paste clipboard contents at cursor": "Вставити вміст буфера обміну в місце курсора",
+        "Print currently selected page widget": "Віджет друку поточної вибраної сторінки",
+        "Push an undo action": "Скасувати дію",
+        "Redo last action": "Повторити останню дію",
+        "Rename the currently selected column": "Перейменувати вибраний стовпець",
+        "Reverts the sections links to the saved links the current view": "Повертає посилання розділів до збережених посилань поточного перегляду",
+        "Saves the sections links in the current view": "Зберігає посилання розділів у поточному поданні",
+        "Selects all currently displayed cells": "Вибирає всі відображені на даний момент клітинки",
+        "Shortcut to data selection tab": "Ярлик до вкладки вибору даних",
+        "Shortcut to focus view tab if creator panel is open": "Ярлик для переходу на вкладку перегляду, якщо відкрито панель автора",
+        "Shortcut to open document tab": "Ярлик для відкриття вкладки документа",
+        "Shortcut to open field tab": "Ярлик для відкриття вкладки поля",
+        "Shortcut to open sort & filter menu": "Ярлик для відкриття меню сортування та фільтрації",
+        "Shortcut to open the left panel": "Швидкий доступ для відкриття лівої панелі",
+        "Shortcut to open the right panel": "Швидкий доступ для відкриття правої панелі",
+        "Shortcut to open view tab": "Ярлик для відкриття вкладки «Вигляд»",
+        "Shortcut to sort & filter tab": "Ярлик до вкладки сортування та фільтрації",
+        "Show hidden columns": "Показати приховані стовпці",
+        "Show raw data widget for table of currently selected page widget": "Віджет показу необроблених даних для таблиці віджета поточної вибраної сторінки",
+        "Show the record card widget of the selected record": "Показати віджет картки запису вибраного запису",
+        "Sort the view data by the currently selected field in ascending order": "Сортувати дані перегляду за вибраним полем у порядку зростання",
+        "Sort the view data by the currently selected field in descending order": "Сортувати дані перегляду за вибраним полем у порядку спадання",
+        "Start editing the currently-selected cell": "Почати редагування поточної вибраної комірки",
+        "Toggle creator panel keyboard focus": "Перемикання фокусу клавіатури панелі творця",
+        "Toggle the currently selected checkbox or switch cell": "Перемикання вибраного прапорця або перемикання клітинки",
+        "Undo last action": "Скасувати останню дію",
+        "Use the currently selected row as table headers": "Використовувати поточний вибраний рядок як заголовки таблиці",
+        "When in the search bar, close it and focus the current match": "У рядку пошуку закрити його та виділити поточний збіг",
+        "When typed at the start of a cell, make this a formula column": "Якщо ввести на початку комірки, зробити цей стовпець формулою",
+        "showing a behavioral popup": "показ поведінкового спливаючого вікна"
     }
 }

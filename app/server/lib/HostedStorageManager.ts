@@ -25,7 +25,7 @@ import {LogMethods} from "app/server/lib/LogMethods";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import {v4 as uuidv4} from 'uuid';
-import {OpenMode, SQLiteDB} from './SQLiteDB';
+import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import {Features} from "app/common/Features";
 
 // Check for a valid document id.

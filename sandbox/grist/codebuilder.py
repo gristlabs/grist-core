@@ -1,7 +1,6 @@
 import ast
 import contextlib
 import itertools
-import linecache
 import logging
 import re
 from os.path import commonprefix
@@ -32,12 +31,62 @@ class GristSyntaxError(SyntaxError):
   """
 
 
-def make_formula_body(formula, default_value, assoc_value=None):
+# Matches newlines that are followed by a non-empty line.
+indent_line_re = re.compile(r'^(?=.*\S)', re.M)
+
+def _indent(body, indent):
+  """Indents all lines in body (which should be a textbuilder.Builder), except empty ones."""
+  patches = textbuilder.make_regexp_patches(body.get_text(), indent_line_re, indent)
+  return textbuilder.Replacer(body, patches)
+
+def _count_leading_spaces(text):
+  return len(text) - len(text.lstrip(' '))
+
+
+def make_formula_body(formula, default_value, assoc_value=None, indent=''):
   """
   Given a formula, returns a textbuilder.Builder object suitable to be the body of a function,
   with the formula transformed to replace `$foo` with `rec.foo`, and to insert `return` if
   appropriate. Assoc_value is associated with textbuilder.Text() to be returned by map_back_patch.
   """
+  formula_body = _do_make_formula_body(formula, default_value, assoc_value=assoc_value)
+  indented_formula_body = _indent(formula_body, indent=indent)
+
+  if indent and getattr(formula_body, 'have_multiline_strings', None):
+    # Here we fix multi-line strings, i.e. triple-quoted string literals with actual newlines in
+    # them, which should not have gotten indented. It's easier to indent wholesale above, then
+    # unindent only the parts that we can positively identify as multi-line strings in the AST.
+
+    # The "have_multiline_strings" attribute is an optimization, to skip all this work when we
+    # never had a multiline string in the first place. (There is a noticeable slowdown to tests
+    # if we apply the re-parsing below to _all_ formula.)
+
+    # Add a dummy function definition, to enable parsing the already-indented body.
+    dummy_def = 'def f():\n'
+    builder = textbuilder.Combiner([dummy_def, indented_formula_body])
+
+    # Always include a removal of the dummy function definition we added.
+    unindent_patches = []
+    unindent_patches.append(textbuilder.Patch(0, len(dummy_def), dummy_def, ''))
+
+    atok = asttokens.ASTText(builder.get_text())
+    for node in ast.walk(atok.tree):
+      if isinstance(node, (ast.Constant, ast.JoinedStr)) and "\n" in atok.get_text(node):
+        # We have a constant or f-string that spans multiple lines. If so, revert its indentation.
+        start, end = atok.get_text_range(node)
+        indented_text = atok.get_text(node)
+        unindented_text = indented_text.replace('\n' + indent, '\n')
+        unindent_patches.append(textbuilder.Patch(start, end, indented_text, unindented_text))
+
+    return textbuilder.Replacer(builder, unindent_patches)
+  else:
+    return indented_formula_body
+
+
+
+def _do_make_formula_body(formula, default_value, assoc_value=None):
+  # For documentation, see make_formula_body above.
+
   if isinstance(formula, bytes):
     formula = formula.decode('utf8')
 
@@ -75,7 +124,11 @@ def make_formula_body(formula, default_value, assoc_value=None):
   # Once we have a tree, go through it and create a subset of the dollar patches that are actually
   # relevant. E.g. this is where we'll skip the "$foo" patches that appear in strings or comments.
   patches = []
+  have_multiline_strings = False
   for node in ast.walk(tree):
+    if isinstance(node, (ast.Constant, ast.JoinedStr)) and "\n" in atok.get_text(node):
+      have_multiline_strings = True
+
     if isinstance(node, ast.Name) and node.id.startswith('DOLLAR'):
       startpos = atok.get_text_range(node)[0]
       input_pos = tmp_formula.map_back_offset(startpos)
@@ -120,6 +173,10 @@ def make_formula_body(formula, default_value, assoc_value=None):
 
   # Apply the new set of patches to the original formula to get the real output.
   final_formula = textbuilder.Replacer(formula_builder_text, patches)
+
+  # Somewhat hackily pass back an optimization hint for whether this formula needs to unindent
+  # multiline strings.
+  final_formula.have_multiline_strings = have_multiline_strings
 
   # Try parsing again before returning it just in case we have new syntax errors. These are
   # possible in cases when a single token ('DOLLARfoo') is valid but an expression ('rec.foo') is
@@ -250,7 +307,7 @@ def use_inferences(*inference_tips):
     astroid.MANAGER.unregister_transform(*args)
 
 
-class InferenceTip(object):
+class InferenceTip:
   """
   Base class for inference tips. A derived class can implement the filter() and infer() class
   methods, and then register() will put that inference helper into use.
@@ -281,8 +338,9 @@ class InferReferenceColumn(InferenceTip):
   @classmethod
   def infer(cls, node, context=None):
     table_id = node.args[0].value
-    table_class = next(node.root().igetattr(table_id))
-    yield astroid.bases.Instance(table_class)
+    table_class = next(node.root().igetattr(table_id), None)
+    if table_class:
+      yield astroid.bases.Instance(table_class)
 
 
 def _get_formula_type(function_node):
@@ -559,6 +617,6 @@ def save_to_linecache(source_code):
   """
   Makes source code available to friendly-traceback and traceback formatting in general.
   """
-  import friendly_traceback.source_cache    # pylint: disable=import-error
+  import friendly_traceback.source_cache    # pylint: disable=import-error,import-outside-toplevel
 
   friendly_traceback.source_cache.cache.add(code_filename, source_code)

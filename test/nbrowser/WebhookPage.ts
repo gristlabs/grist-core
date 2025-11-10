@@ -193,7 +193,7 @@ describe('WebhookPage', function () {
       assert.match(await getField(1, 'Status'), /numWaiting..1/);
     });
     await setField(1, 'URL', `http://${host}/api/docs/${doc.id}/tables/Table2/records?flat=1`);
-    await driver.findContent('button', /Clear Queue/).click();
+    await driver.findContent('button', /Clear queue/).click();
     await gu.waitForServer();
     await gu.waitToPass(async () => {
       assert.match(await getField(1, 'Status'), /numWaiting..0/);
@@ -328,7 +328,7 @@ async function openWebhookPage() {
 }
 
 async function waitForWebhookPage() {
-  await driver.findContentWait('button', /Clear Queue/, 3000);
+  await driver.findContentWait('button', /Clear queue/, 3000);
   // No section, so no easy utility for setting focus. Click on a random cell.
   await gu.getDetailCell({col: 'Webhook Id', rowNum: 1}).click();
 }

@@ -12,8 +12,8 @@ export const NONE = '';
 export type ElemType = 'row' | 'col' | 'cell' | '';
 
 interface GridView extends BaseView {
-  domToRowModel(elem: Element, elemType: ElemType): DataRowModel;
-  domToColModel(elem: Element, elemType: ElemType): DataRowModel;
+  domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
+  domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
 }
 
 export class CellSelector extends Disposable {
@@ -83,11 +83,11 @@ export class CellSelector extends Disposable {
     const col = this.view.domToColModel(elem, handlerName);
     switch (handlerName) {
       case ROW:
-        return this.containsRow(row._index()!);
+        return this.containsRow(row!._index()!);
       case COL:
-        return this.containsCol(col._index()!);
+        return this.containsCol(col!._index()!);
       case CELL:
-        return this.containsCell(row._index()!, col._index()!);
+        return this.containsCell(row!._index()!, col!._index()!);
       default:
         console.error('Given element is not a row, cell or column');
         return false;

@@ -4,26 +4,30 @@ import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {GristServer} from 'app/server/lib/GristServer';
+import {EmitNotifier} from 'app/server/lib/INotifier';
+
 import {AxiosRequestConfig} from 'axios';
 import {delay} from 'bluebird';
 
+export function configForApiKey(apiKey?: string): AxiosRequestConfig {
+  return {
+    responseType: 'json',
+    validateStatus: (status: number) => true,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      ...(apiKey ? {Authorization: `Bearer ${apiKey}`} : {})
+    }
+  };
+}
 /**
  * Returns an AxiosRequestConfig, that identifies the user with `username` on a server running
  * against a database using `test/gen-server/seed.ts`. Also tells axios not to raise exception on
  * failed request.
  */
 export function configForUser(username: string): AxiosRequestConfig {
-  const config: AxiosRequestConfig = {
-    responseType: 'json',
-    validateStatus: (status: number) => true,
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-    }
-  };
-  if (username !== 'Anonymous') {
-    config.headers!.Authorization = 'Bearer api_key_for_' + username.toLowerCase();
-  }
-  return config;
+  const apiKey = username !== 'Anonymous' ? `api_key_for_${username.toLowerCase()}` : undefined;
+
+  return configForApiKey(apiKey);
 }
 
 /**
@@ -84,7 +88,7 @@ export function getGristConfig(page: string): Partial<GristLoadConfig> {
 export async function waitForAllNotifications(gristServer: GristServer, maxWait: number = 1000) {
   const start = Date.now();
   while (Date.now() - start < maxWait) {
-    if (!gristServer.testPending) { return; }
+    if ((gristServer.getNotifier() as EmitNotifier).testPendingNotifications() === 0) { return; }
     await delay(1);
   }
   throw new Error('waitForAllNotifications timed out');

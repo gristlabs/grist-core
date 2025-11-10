@@ -4,6 +4,7 @@ import {loadSearch} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocPageModel} from 'app/client/models/DocPageModel';
+import {urlState} from 'app/client/models/gristUrlState';
 import {workspaceName} from 'app/client/models/WorkspaceInfo';
 import {AccountWidget} from 'app/client/ui/AccountWidget';
 import {buildActiveUserList} from 'app/client/ui/ActiveUserList';
@@ -109,12 +110,21 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
           isPublic: Computed.create(owner, doc, (use, _doc) => Boolean(_doc && _doc.public)),
           isTemplate: pageModel.isTemplate,
           isAnonymous,
+          isProposable: Computed.create(
+            owner, gristDoc.docPageModel.currentDoc,
+            (_use, currentDoc) => Boolean(currentDoc?.options?.proposedChanges?.acceptProposals)
+          ),
+          isReadonly: pageModel.isReadonly,
+          proposeChanges: async () => {
+            const {urlId} = await gristDoc.docComm.fork();
+            await urlState().pushUrl({doc: urlId});
+          },
         }),
         dom.hide(use => use(isSearchOpen) && use(isNarrowScreenObs())),
       )
     ),
     cssFlexSpace(),
-    dom.maybe(pageModel.gristDoc, (gristDoc) => buildActiveUserList(gristDoc.userPresenceModel)),
+    dom.maybe(pageModel.gristDoc, (gristDoc) => buildActiveUserList(owner, gristDoc.userPresenceModel)),
     // Don't show useless undo/redo buttons for sample docs, to leave more space for "Make copy".
     dom.maybe(pageModel.undoState, (state) => [
       topBarUndoBtn('Undo',
@@ -135,7 +145,10 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
     ]),
     dom.domComputed((use) => {
       const model = use(searchModelObs);
-      return model && use(moduleObs)?.searchBar(model, makeTestId('test-tb-search-'));
+      return model && use(moduleObs)?.searchBar(
+        model, makeTestId('test-tb-search-'),
+        pageModel.gristDoc.get()?.regionFocusSwitcher,
+      );
     }),
     dom.maybe(use => !(use(pageModel.isTemplate) && isAnonymous), () => [
       buildShareMenuButton(pageModel),
@@ -154,11 +167,6 @@ function buildShowDiscussionButton(gristDoc: GristDoc) {
   return cssHoverCircle({ style: `margin: 5px; position: relative;` },
     cssTopBarBtn('Chat', dom.cls('tour-share-icon')),
     hoverTooltip('Comments', {key: 'topBarBtnTooltip'}),
-    gristDoc.behavioralPromptsManager.attachPopup('comments', {
-      popupOptions: {
-        placement: 'bottom-end',
-      },
-    }),
     testId('open-discussion'),
     dom.on('click', () => {
       gristDoc.showTool('discussion');

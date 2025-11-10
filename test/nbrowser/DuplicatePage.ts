@@ -135,7 +135,9 @@ describe('DuplicatePage', async function() {
     const selectedFilters = async () =>
       (
         await driver.findAll(".test-filter-menu-list label",
-          async (e) => (await e.find("input").matches(":checked")) ? (await e.getText()) : "")
+          async (e) => (await e.find("input").matches(":checked"))
+            ? (await e.find(".test-filter-menu-value").getText())
+            : "")
       ).filter(x=>x);
     const selectColumn = (name: string) => driver.findContent('.grist-floating-menu li', name).click();
     const clickNone = () => driver.findContent('.test-filter-menu-bulk-action', /None/).click();
@@ -147,7 +149,7 @@ describe('DuplicatePage', async function() {
         .matches(":checked");
     const futureSelected = () =>
       driver
-        .findContent(".test-filter-menu-summary label", /Future Values/)
+        .findContent(".test-filter-menu-summary label", /Future values/)
         .find("input")
         .matches(":checked");
     const apply = () => driver.find(".test-filter-menu-apply-btn").click();

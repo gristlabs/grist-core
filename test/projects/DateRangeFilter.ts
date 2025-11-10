@@ -1,7 +1,7 @@
 import range from "lodash/range";
 import { addToRepl, assert, driver, Key } from "mocha-webdriver";
 import moment from "moment";
-import { server, setupTestSuite } from "./testUtils";
+import { server, setupTestSuite } from "test/projects/testUtils";
 import * as gu from "test/nbrowser/gristUtils";
 import * as fu from "test/projects/filterUtils";
 
@@ -288,37 +288,51 @@ describe('DateRangeFilter', function() {
     await fu.findBound('max').click();
     assert.equal(await fu.isOptionsVisible(), true);
     await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
   });
 
   it('should show relative dates options when value changes', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await fu.pickDateInCurrentMonth('18');
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
+    await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
   });
 
   it('should show relative dates when selected bound changes', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE);
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await driver.sendKeys(Key.TAB);
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
   });
 
   it('should toggle relative dates on click', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
     await fu.findBound('min').click();
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
   });
 
   it('should show relative dates options when pressing Enter while the options are closed', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     await driver.sendKeys(Key.ESCAPE); // Escape to close
+    await gu.waitForMenuToClose();
     assert.equal(await fu.isOptionsVisible(), false);
     await driver.sendKeys(Key.ENTER); // Enter to reopen
+    await gu.findOpenMenu();
     assert.equal(await fu.isOptionsVisible(), true);
     assert.equal(await fu.getSelected(), 'min');
   });
@@ -331,6 +345,7 @@ describe('DateRangeFilter', function() {
 
   it('should have working keyboard navigation after picking date from calendar', async function() {
     await fu.findBound('min').click();
+    await gu.findOpenMenu();
     assert.deepEqual(await fu.getSelectedOption(), []);
     await fu.pickDateInCurrentMonth('18');
     assert.deepEqual(await fu.getSelectedOption(), ['2022-09-18']);
@@ -371,7 +386,7 @@ describe('DateRangeFilter', function() {
       driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText())
     );
     assert.equal(await fu.getViewType(), 'Default');
-    assert.deepEqual(await getSummaries(), ['Future Values']);
+    assert.deepEqual(await getSummaries(), ['Future values']);
     await fu.findBound('min').click();
     assert.equal(await fu.getViewType(), 'Calendar');
     assert.deepEqual(await getSummaries(), []);
@@ -392,6 +407,8 @@ describe('DateRangeFilter', function() {
       // click Today
       await driver.findContent('.test-filter-menu-presets-links button', 'Today').click();
 
+      await gu.findOpenMenu();
+
       // check min bounds shows 'today'
       assert.equal(await fu.getBoundText('min'), 'Today');
 
@@ -400,7 +417,8 @@ describe('DateRangeFilter', function() {
 
       // click Last week
       await driver.findContent('.test-filter-menu-presets-links button', 'More').click();
-      await driver.findContent('.grist-floating-menu li', 'Last Week').click();
+      await gu.findOpenMenu();
+      await driver.findContent('.grist-floating-menu li', 'Last week').click();
 
       // check min bounds shows '1st day of last week'
       assert.equal(await fu.getBoundText('min'), '1st day of last week');

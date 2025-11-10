@@ -91,11 +91,11 @@ describe('SectionFilter', function() {
 
       // Put the filter into the "inclusion" state, with nothing selected initially.
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-bulk-action:not(:disabled)', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', (e) => e.getText()),
         ['None']);
       await driver.findContent('.test-filter-menu-bulk-action', /None/).click();
       assert.deepEqual(
-        await driver.findAll('.test-filter-menu-bulk-action:not(:disabled)', (e) => e.getText()),
+        await driver.findAll('.test-filter-menu-bulk-action:not([aria-disabled="true"])', (e) => e.getText()),
         ['All']);
 
       // Include only "Apples".
@@ -233,7 +233,7 @@ describe('SectionFilter', function() {
         { checked: true, value: 'Bar', count: 1},
         { checked: true, value: 'Foo', count: 1}
       ]);
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /Bar/).click();
       assert.deepEqual(await gu.getVisibleGridCells(0, [1, 2, 3, 4, 5, 6, 7]),
         ['Foo', '1', '2.0', '2016-01-01', '5+6', '', undefined]);
@@ -255,7 +255,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '6.00', count: 1},
         { checked: true, value: '7.00', count: 1},
       ]);
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /7/).click();
       await menu.findContent('label', /foo/).click();
       assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4, 5, 6]),
@@ -277,7 +277,7 @@ describe('SectionFilter', function() {
         { checked: true, value: '2019-06-05', count: 1},
         { checked: true, value: '2019-06-07', count: 1},
       ]);
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /2019-06-05/).click();
       await menu.findContent('label', /bar/).click();
       assert.deepEqual(await gu.getVisibleGridCells(2, [1, 2, 3, 4, 5, 6]),
@@ -293,10 +293,10 @@ describe('SectionFilter', function() {
         { checked: true, value: '2019-06-07', count: 1}
       ]);
       assert.deepEqual(
-        await menu.findAll('.test-filter-menu-list label', (e) => e.getText()),
+        await menu.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
         ['2019-06-07']
       );
-      await menu.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
+      await menu.findContent('.test-filter-menu-bulk-action', /All shown/).click();
       assert.deepEqual(
         await gu.getVisibleGridCells(2, [1, 2]),
         ['2019-06-07', '']
@@ -341,7 +341,7 @@ describe('SectionFilter', function() {
         { checked: true, value: 'carol', count: 1},
       ]);
 
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /#Invalid Ref: denis/).click();
       await menu.findContent('label', /bob/).click();
 
@@ -387,7 +387,7 @@ describe('SectionFilter', function() {
 
       assert.deepEqual(boldFonts, ['Foo']);
 
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /Bar/).click();
       await menu.findContent('label', /Baz/).click();
 
@@ -415,7 +415,7 @@ describe('SectionFilter', function() {
         { checked: true, value: 'D', count: 0},
       ]);
 
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /#TypeError/).click();
       await menu.findContent('label', /25\.0/).click();
       await menu.findContent('label', /36\.0/).click();
@@ -495,7 +495,7 @@ describe('SectionFilter', function() {
         { checked: true, value: 'carol', count: 2 }
       ]);
 
-      await menu.findContent('label', /^$/).click();
+      await menu.findContent('label .test-filter-menu-value', /^$/).click();
       await menu.findContent('label', /bob/).click();
       await menu.findContent('label', /#Invalid RefList: \[u'0'\]/).click();
 

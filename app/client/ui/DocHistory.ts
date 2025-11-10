@@ -110,9 +110,9 @@ export class DocHistory extends Disposable implements IDomComponent {
             ),
             cssMenuDots(icon('Dots'),
               menu(() => [
-                  menuItemLink(setLink(snapshot), t("Open Snapshot")),
-                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to Current")),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to Previous")),
+                  menuItemLink(setLink(snapshot), t("Open snapshot")),
+                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
+                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
                 ],
                 {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className}
               ),

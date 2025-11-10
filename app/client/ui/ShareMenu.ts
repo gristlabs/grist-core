@@ -1,10 +1,11 @@
 import {hooks} from 'app/client/Hooks';
 import {loadUserManager} from 'app/client/lib/imports';
 import {makeT} from 'app/client/lib/localization';
+import {getLoginOrSignupUrl} from 'app/client/lib/urlUtils';
 import {AppModel, reportError} from 'app/client/models/AppModel';
 import {DocInfo, DocPageModel} from 'app/client/models/DocPageModel';
 import {reportWarning} from 'app/client/models/errors';
-import {docUrl, getLoginOrSignupUrl, urlState} from 'app/client/models/gristUrlState';
+import {docUrl, urlState} from 'app/client/models/gristUrlState';
 import {
   downloadAttachmentsModal,
   downloadDocModal,
@@ -34,7 +35,7 @@ import {cssMenuItem, MenuCreateFunc} from 'popweasel';
 
 const t = makeT('ShareMenu');
 
-function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
+export function buildOriginalUrlId(urlId: string, isSnapshot: boolean): string {
   const parts = parseUrlId(urlId);
   return isSnapshot ? buildUrlId({...parts, snapshotId: undefined}) : parts.trunkId;
 }
@@ -48,45 +49,60 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
   // to render its contents, but we handle by merely skipping such content if gristDoc is not yet
   // available (a user quick enough to open the menu in this state would have to re-open it).
   return dom.maybe(pageModel.currentDoc, (doc) => {
+    const isProposable = Boolean(doc.options?.proposedChanges?.acceptProposals);
     const saveCopy = () => handleSaveCopy({pageModel, doc, modalTitle: t("Save Document")});
     if (doc.isSnapshot) {
       const backToCurrent = () => urlState().pushUrl({doc: buildOriginalUrlId(doc.id, true)});
-      return shareButton(t("Back to Current"), () => [
+      return shareButton(t("Back to current"), () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
         menuOriginal(doc, pageModel, {isSnapshot: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: backToCurrent});
     } else if (doc.isTutorialFork) {
-      return shareButton(t("Save Copy"), () => [
-        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+      return shareButton(t("Save copy"), () => [
+        menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
         menuOriginal(doc, pageModel, {isTutorialFork: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
-    } else if (doc.isPreFork || doc.isBareFork) {
+    } else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
       // A new unsaved document, or a fiddle, or a public example.
-      const saveActionTitle = doc.isBareFork ? t("Save Document") : t("Save Copy");
+      const saveActionTitle =
+          doc.isBareFork ? t("Save Document") :
+          isProposable ? t("Suggest Changes") : t("Save copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
-      // For forks, the main actions are "Replace Original" and "Save Copy". When "Replace
+      if (isProposable) {
+        return shareButton(t("Suggest Changes"), () => [
+          menuManageUsers(doc, pageModel),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
+          menuOriginal(doc, pageModel),
+          menuExports(doc, pageModel),
+        ], {buttonAction: async () => {
+          await urlState().pushUrl({
+            docPage: 'suggestions'
+          });
+        }});
+      }
+      // For forks, the main actions are "Replace Original" and "Save copy". When "Replace
       // Original" is unavailable (for samples, forks of public docs, etc), we'll consider "Save
       // Copy" primary and keep it as an action button on top. Otherwise, show a tag without a
       // default action; click opens the menu where the user can choose.
       if (!roles.canEdit(doc.trunkAccess || null)) {
-        return shareButton(t("Save Copy"), () => [
+        return shareButton(t("Save copy"), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ], {buttonAction: saveCopy});
       } else {
         return shareButton(t("Unsaved"), () => [
           menuManageUsers(doc, pageModel),
-          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save Copy")}),
+          menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ]);
@@ -94,8 +110,8 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
     } else {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
-        menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate Document")}),
-        menuWorkOnCopy(pageModel),
+        menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate document")}),
+        menuWorkOnCopy(pageModel, {suggestChanges: isProposable}),
         menuExports(doc, pageModel),
       ]);
     }
@@ -167,7 +183,7 @@ async function handleSaveCopy(options: {
 function menuManageUsers(doc: DocInfo, pageModel: DocPageModel) {
   return [
     menuItem(() => manageUsers(doc, pageModel),
-      roles.canEditAccess(doc.access) ? t("Manage Users") : t("Access Details"),
+      roles.canEditAccess(doc.access) ? t("Manage users") : t("Access Details"),
       dom.cls('disabled', doc.isFork),
       testId('tb-share-option')
     ),
@@ -194,7 +210,7 @@ interface MenuOriginalOptions {
  */
 function menuOriginal(doc: Document, pageModel: DocPageModel, options: MenuOriginalOptions = {}) {
   const {isSnapshot = false, isTutorialFork = false} = options;
-  const termToUse = isSnapshot ? t("Current Version") : t("Original");
+  const termToUse = isSnapshot ? t("current version") : t("original");
   const origUrlId = buildOriginalUrlId(doc.id, isSnapshot);
   const originalUrl = urlState().makeUrl({doc: origUrlId});
 
@@ -253,7 +269,9 @@ function menuSaveCopy(options: {
 }
 
 // Renders "Work on a Copy" menu item.
-function menuWorkOnCopy(pageModel: DocPageModel) {
+function menuWorkOnCopy(pageModel: DocPageModel, options?: {
+  suggestChanges?: boolean
+}) {
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
@@ -262,8 +280,9 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
     await urlState().pushUrl({doc: urlId});
   };
 
+  const label = options?.suggestChanges ? t("Suggest Changes") : t("Work on a copy");
   return [
-    menuItem(makeUnsavedCopy, t("Work on a Copy"), testId('work-on-copy')),
+    menuItem(makeUnsavedCopy, label, testId('work-on-copy')),
     menuText(
       withInfoTooltip(
         t("Edit without affecting the original"),
@@ -278,7 +297,7 @@ function menuWorkOnCopy(pageModel: DocPageModel) {
  * The part of the menu with "Download" and "Export as..." items.
  */
 function menuExports(doc: Document, pageModel: DocPageModel) {
-  const isElectron = (window as any).isRunningUnderElectron;
+  const isElectron = window.isRunningUnderElectron;
   const gristDoc = pageModel.gristDoc.get();
   if (!gristDoc) { return null; }
 
@@ -304,7 +323,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
-        menuItem(() => downloadDocModal(doc, pageModel),
+        menuItem(() => downloadDocModal(doc, pageModel.appModel),
         menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
     ),
     menuItem(

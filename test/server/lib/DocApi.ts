@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
+import {DocState} from 'app/common/DocState';
 import {SHARE_KEY_PREFIX} from 'app/common/gristUrls';
 import {arrayRepeat} from 'app/common/gutil';
 import {WebhookSummary} from 'app/common/Triggers';
-import {DocAPI, DocState, UserAPIImpl} from 'app/common/UserAPI';
+import {DocAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {AddOrUpdateRecord, Record as ApiRecord, ColumnsPut, RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import {Deps} from 'app/server/lib/ActiveDoc';
@@ -1711,35 +1712,46 @@ function testDocApi(settings: {
       });
   });
 
-  it("POST /docs/{did}/tables/{tid}/data/delete deletes records", async function () {
-    let resp = await axios.post(
-      `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data/delete`,
-      [3, 4, 5, 6],
-      chimpy,
-    );
-    assert.equal(resp.status, 200);
-    assert.deepEqual(resp.data, null);
-    resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
-    assert.deepEqual(resp.data, {
-      id: [1, 2],
-      A: ['Santa', 'Bob'],
-      B: ["1", "11"],
-      manualSort: [1, 2]
-    });
+  for(const {desc, url} of [
+    {
+      desc: 'POST /docs/{did}/tables/{tid}/data/delete deletes records',
+      url: 'tables/Foo/data/delete'
+    },
+    {
+      desc: 'POST /docs/{did}/tables/{tid}/records/delete deletes records',
+      url: 'tables/Foo/records/delete'
+    }
+  ]) {
+    it(desc, async function () {
+      let resp = await axios.post(
+        `${serverUrl}/api/docs/${docIds.TestDoc}/${url}`,
+        [3, 4, 5, 6],
+        chimpy,
+      );
+      assert.equal(resp.status, 200);
+      assert.deepEqual(resp.data, null);
+      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
+      assert.deepEqual(resp.data, {
+        id: [1, 2],
+        A: ['Santa', 'Bob'],
+        B: ["1", "11"],
+        manualSort: [1, 2]
+      });
 
-    // restore rows
-    await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
-      A: ['Alice', 'Felix'],
-      B: [2, 22]
-    }, chimpy);
-    resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
-    assert.deepEqual(resp.data, {
-      id: [1, 2, 3, 4],
-      A: ['Santa', 'Bob', 'Alice', 'Felix'],
-      B: ["1", "11", "2", "22"],
-      manualSort: [1, 2, 3, 4]
+      // restore rows
+      await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
+        A: ['Alice', 'Felix'],
+        B: [2, 22]
+      }, chimpy);
+      resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, chimpy);
+      assert.deepEqual(resp.data, {
+        id: [1, 2, 3, 4],
+        A: ['Santa', 'Bob', 'Alice', 'Felix'],
+        B: ["1", "11", "2", "22"],
+        manualSort: [1, 2, 3, 4]
+      });
     });
-  });
+  }
 
   function checkError(status: number, test: RegExp | object, resp: AxiosResponse, message?: string) {
     assert.equal(resp.status, status);
