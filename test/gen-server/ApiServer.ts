@@ -12,7 +12,9 @@ import {HomeDBManager, UserChange} from 'app/gen-server/lib/homedb/HomeDBManager
 import {TestServer} from 'test/gen-server/apiUtils';
 import {testGetPreparedStatementCount, testResetPreparedStatements} from 'app/gen-server/lib/TypeORMPatches';
 import {TEAM_FREE_PLAN} from 'app/common/Features';
-import {ServiceAccountCreationResponse} from 'app/common/ServiceAccountTypes';
+import {
+  PostServiceAccount, ServiceAccountApiResponse, ServiceAccountCreationResponse
+} from 'app/common/ServiceAccountTypes';
 
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import * as chai from 'chai';
@@ -2268,6 +2270,25 @@ describe('ApiServer', function() {
       return configForApiKey(key);
     }
 
+    function checkServiceAccount(
+      response: any,
+      knownProperties: PostServiceAccount,
+      options: {expectKey?: boolean} = {}) {
+      assert.deepEqual(response, {
+        id: response.id,
+        login: response.login,
+        hasValidKey: true,
+        ...(options.expectKey ? { key: response.key } : null),
+        ...knownProperties,
+      });
+    }
+
+    function bodyToExpectedProperties(body: PostServiceAccount){
+      const expectedProperties = {...body};
+      expectedProperties.expiresAt += "T00:00:00.000Z";
+      return expectedProperties;
+    }
+
     function checkCommonErrors(
       makeRequest: (saId: number, user: AxiosRequestConfig<any>) => Promise<AxiosResponse>
     ) {
@@ -2294,15 +2315,13 @@ describe('ApiServer', function() {
       it('is operational', async function() {
         const data = await createServiceAccount();
 
-        const expectedData = {
-          id: data.id,
-          key: data.key,
+        const knownProperties = {
           label: SERVICE_ACCOUNT_BODY.label,
           description: SERVICE_ACCOUNT_BODY.description,
           expiresAt: new Date(SERVICE_ACCOUNT_BODY.expiresAt).toISOString(),
           hasValidKey: true,
         };
-        assert.deepEqual(data, expectedData);
+        checkServiceAccount(data, knownProperties, {expectKey: true});
       });
 
       it('is rejected when requested by a service account', async function() {
@@ -2333,18 +2352,25 @@ describe('ApiServer', function() {
 
     describe('Endpoint GET /api/service-accounts', function() {
       it('is operational', async function() {
-        const body = SERVICE_ACCOUNT_BODY;
+        const body1 = SERVICE_ACCOUNT_BODY;
         const body2 = {
           label: "More service",
           description: "More robots",
           expiresAt:"2042-07-22",
         };
-        await createServiceAccount(body);
+        await createServiceAccount(body1);
         await createServiceAccount(body2);
         const resp = await axios.get(`${homeUrl}/api/service-accounts/`, chimpy);
         assert.equal(resp.status, 200);
+        const expectedProperties1 = bodyToExpectedProperties(body1);
+        const expectedProperties2 = bodyToExpectedProperties(body2);
+        const expectedProperties = [expectedProperties1, expectedProperties2];
+
         assert.isArray(resp.data);
         assert.lengthOf(resp.data, 2);
+        resp.data.forEach((service: ServiceAccountApiResponse, i: number) => {
+          checkServiceAccount(service, expectedProperties[i], {expectKey: false});
+        });
       });
 
       it("returns 200 and a empty list when there is no service account", async function() {
@@ -2362,16 +2388,18 @@ describe('ApiServer', function() {
 
     describe('Endpoint GET /api/service-accounts/{saId}', function() {
       it('is operational', async function() {
-        const {id: serviceId} = await createServiceAccount();
+        const {id: serviceId, login} = await createServiceAccount();
         const expectedBody = {
           ...SERVICE_ACCOUNT_BODY,
+          login,
+          id: serviceId,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
           hasValidKey: true
         };
         const resp = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp.status, 200);
         assert.isObject(resp.data);
-        assert.deepEqual(resp.data, {id:serviceId, ...expectedBody});
+        assert.deepEqual(resp.data, expectedBody);
       });
 
       checkCommonErrors((saId, user) => axios.get(`${homeUrl}/api/service-accounts/${saId}`, user));
@@ -2380,18 +2408,20 @@ describe('ApiServer', function() {
     describe('Endpoint PATCH /api/service-accounts/{saId}', function() {
       it('is operational', async function() {
         const newDescription = "to an end";
-        const {id: serviceId} = await createServiceAccount();
+        const {id: serviceId, login} = await createServiceAccount();
 
         const patch = {
           description: newDescription
         };
         const resp2 = await axios.patch(`${homeUrl}/api/service-accounts/${serviceId}`, patch, chimpy);
         assert.equal(resp2.status, 200);
+        assert.isNull(resp2.data);
 
         const resp3 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         const expectedBody = {
           ...SERVICE_ACCOUNT_BODY,
           id: serviceId,
+          login,
           description: newDescription,
           expiresAt: `${SERVICE_ACCOUNT_BODY.expiresAt}T00:00:00.000Z`,
           hasValidKey: true
@@ -2448,6 +2478,7 @@ describe('ApiServer', function() {
         assert.equal(resp2.status, 200);
         const resp3 = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp3.status, 200);
+        assert.isNull(resp3.data);
         const resp4 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(resp4.status, 404);
       });
@@ -2480,6 +2511,8 @@ describe('ApiServer', function() {
         const resp = await axios.post(`${homeUrl}/api/service-accounts/${serviceId}/apikey`, {}, chimpy);
         const apiKeyAfter = resp.data.key;
         assert.equal(resp.status, 200);
+        const expectedProperties = bodyToExpectedProperties(body);
+        checkServiceAccount(resp.data, expectedProperties, {expectKey: true});
         assert.isNotEmpty(apiKeyAfter);
         assert.notEqual(apiKeyBefore, apiKeyAfter);
       });
@@ -2496,16 +2529,18 @@ describe('ApiServer', function() {
           description: "Doomed soon",
           expiresAt:"2042-10-10",
         };
-        const {id: serviceId} = await createServiceAccount(body);
+        const {id: serviceId, login} = await createServiceAccount(body);
         const expectedBody = {
           ...body,
           id: serviceId,
+          login,
           expiresAt: `${body.expiresAt}T00:00:00.000Z`,
           hasValidKey: false
         };
 
         const revokeAccess = await axios.delete(`${homeUrl}/api/service-accounts/${serviceId}/apikey`, chimpy);
         assert.equal(revokeAccess.status, 200);
+        assert.isNull(revokeAccess.data);
 
         const serviceAccountInfo = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
         assert.equal(serviceAccountInfo.status, 200);
@@ -2522,12 +2557,8 @@ describe('ApiServer', function() {
       async function setupServiceAccountWithAccessTo(orgName: string, creationBody = SERVICE_ACCOUNT_BODY) {
         const oid = await dbManager.testGetId(orgName);
 
-        const {id: serviceId, key} = await createServiceAccount(creationBody);
+        const {id: serviceId, key, login: serviceUserLogin} = await createServiceAccount(creationBody);
         const serviceAccountReqConfig = requestConfigWithKey(key);
-
-        const serviceAccount = await dbManager.getServiceAccount(serviceId);
-        const serviceUser = await dbManager.getFullUser(serviceAccount!.serviceUser.id);
-        const serviceUserLogin = serviceUser.email;
 
         const checkChimpyAccess = await axios.get(`${homeUrl}/api/orgs/${oid}/workspaces`, chimpy);
         assert.equal(checkChimpyAccess.status, 200, `chimpy should list ${orgName} workspaces`);

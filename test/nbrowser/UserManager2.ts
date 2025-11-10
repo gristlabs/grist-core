@@ -354,7 +354,7 @@ describe('UserManager2', function() {
       // this button wasn't shown to the user. Error was caused by server which was trying to
       // get shared users from not persisted document).
       await driver.findContentWait('button', 'View as', 3000).click();
-      await driver.findContentWait('.test-acl-user-item', 'viewer@example.com', 100).click();
+      await driver.findContentWait('.test-acl-user-item', 'viewer@example.com', 1000).click();
       await gu.isAlertShown().then(v => v ? gu.acceptAlert() : Promise.resolve());
       await gu.waitForUrl(/aclAsUser/);
       await gu.waitForDocToLoad();
@@ -497,7 +497,7 @@ async function openAccessDetails() {
 
 async function openManageUsers() {
   await driver.findWait('.test-tb-share', 2000).click();
-  await driver.findContent('.test-tb-share-option', /Manage users/).click();
+  await driver.findContentWait('.test-tb-share-option', /Manage users/, 2000).click();
   await driver.findWait('.test-um-header', 2000);
 }
 

@@ -653,6 +653,7 @@ export class ApiServer {
         );
         const resp: SATypes.ServiceAccountCreationResponse = {
           id: serviceAccount.id,
+          login: serviceAccount.serviceUser.loginEmail!,
           key: serviceAccount.serviceUser.apiKey!,
           label: serviceAccount.label,
           description: serviceAccount.description,
@@ -672,6 +673,7 @@ export class ApiServer {
           const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
           return {
             id: serviceAccount.id,
+            login: serviceAccount.serviceUser.loginEmail!,
             label: serviceAccount.label,
             description: serviceAccount.description,
             expiresAt: serviceAccount.expiresAt.toISOString(),
@@ -691,6 +693,7 @@ export class ApiServer {
         const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
         const resp: Partial<SATypes.ServiceAccountApiResponse> = {
           id: serviceAccount.id,
+          login: serviceAccount.serviceUser.loginEmail!,
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
@@ -719,7 +722,7 @@ export class ApiServer {
           if (!resp) {
             throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
           }
-          return sendOkReply(req, res, resp);
+          return sendOkReply(req, res);
         })
       );
 
@@ -732,7 +735,7 @@ export class ApiServer {
         if (resp === null) {
           throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
         }
-        return sendOkReply(req, res, resp);
+        return sendOkReply(req, res);
       }));
 
       // POST /service-accounts/:said/apikey
@@ -749,9 +752,10 @@ export class ApiServer {
             404
           );
         }
-        const resp: SATypes.ServiceAccountApiResponse = {
+        const resp: SATypes.ServiceAccountCreationResponse = {
           id: serviceAccount.id,
-          key: serviceAccount.serviceUser.apiKey,
+          key: serviceAccount.serviceUser.apiKey!,
+          login: serviceAccount.serviceUser.loginEmail!,
           label: serviceAccount.label,
           description: serviceAccount.description,
           expiresAt: serviceAccount.expiresAt.toISOString(),
