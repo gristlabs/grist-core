@@ -35,14 +35,14 @@ export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionI
 
       const options: PageSelectOption[] = views.map(view => {
         const isActivePage = view.getRowId() === activeView;
-        const suffix = isActivePage ? " (Active)" : "";
+        const suffix = isActivePage ? (" (" + t('Active') + ")") : "";
         return {
           label: `${view.name()}${suffix}`,
           value: view.getRowId(),
           isActivePage: isActivePage,
         };
       });
-      options.push({ label: 'Create new page', value: 0, isActivePage: false, icon: "Plus" });
+      options.push({ label: t('Create new page'), value: 0, isActivePage: false, icon: "Plus" });
       return options;
     }));
 
