@@ -43,6 +43,7 @@ type SandboxMethod = (...args: any[]) => any;
 export interface ISandboxOptions {
   command?: string;       // External program or container to call to run the sandbox.
   args: string[];         // The arguments to pass to the python process.
+  comment?: string;        // an argument to add in command line when possible, so it shows in `ps`
 
   preferredPythonVersion?: string;  // Mandatory for gvisor; ignored by other methods.
 
@@ -563,12 +564,6 @@ export class NSandboxCreator implements ISandboxCreator {
     if (options.sandboxOptions?.args) {
       args.push(...options.sandboxOptions.args);
     }
-    if (!this._command && !options.entryPoint && options.comment) {
-      // When using default entry point, we can add on a comment as an argument - it isn't
-      // used, but will show up in `ps` output for the sandbox process.  Comment is intended
-      // to be a document name/id.
-      args.push(options.comment);
-    }
     const translatedOptions: ISandboxOptions = {
       minimalPipeMode: true,
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
@@ -615,7 +610,8 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
  * been installed globally.
  */
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs, importDir} = options;
+  const {args, importDir} = options;
+  const pythonArgs = [...args, options.comment ?? ""];
   const paths = getAbsolutePaths(options);
   if (options.useGristEntrypoint !== false) {
     pythonArgs.unshift(paths.main);
@@ -660,6 +656,8 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     env: {
       PYTHONPATH: paths.engine,
       IMPORTDIR: options.importDir,
+      // If running in electron, forces the child process to behave as plain Node.js (no Chromium or browser)
+      ELECTRON_RUN_AS_NODE: "1",
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
     }
@@ -667,10 +665,9 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   const base = getUnpackedAppRoot();
   const scriptPath = path.join(base, 'sandbox', 'pyodide', 'pipe.js');
   const command = options.command ?? process.execPath;
-  const commandArgs = options.args ?? process.execArgv;
   const child = spawn(
     command,
-    [...commandArgs, scriptPath],
+    [...options.args, scriptPath],
     {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions}
   );
   return {
