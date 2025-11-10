@@ -16,7 +16,7 @@ import {
 } from 'app/server/lib/SandboxControl';
 import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import * as shutdown from 'app/server/lib/shutdown';
-import {ChildProcess, spawn, SpawnOptionsWithoutStdio} from 'child_process';
+import {ChildProcess, fork, spawn, SpawnOptionsWithoutStdio} from 'child_process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -42,7 +42,8 @@ type SandboxMethod = (...args: any[]) => any;
  */
 export interface ISandboxOptions {
   command?: string;       // External program or container to call to run the sandbox.
-  args: string[];         // The arguments to pass to the python process.
+  args: string[];         // The arguments to passed first to the sandbox process.
+  appendArgs?: string[];    // Extra arguments that get appended to the end of sandbox command, after anything else
   comment?: string;        // an argument to add in command line when possible, so it shows in `ps`
 
   preferredPythonVersion?: string;  // Mandatory for gvisor; ignored by other methods.
@@ -534,12 +535,14 @@ export class NSandboxCreator implements ISandboxCreator {
   private _spawner: SpawnFn;
   private _command?: string;
   private _commandArgs: string[];
+  private _commandAppendArgs?: string[];
   private _preferredPythonVersion?: string;
 
   public constructor(options: {
     defaultFlavor: string,
     command?: string,
     commandArgs?: string[],
+    commandAppendArgs?: string[],
     preferredPythonVersion?: string,
   }) {
     const flavor = options.defaultFlavor;
@@ -556,6 +559,7 @@ export class NSandboxCreator implements ISandboxCreator {
     this._flavor = flavor;
     this._command = options.command;
     this._commandArgs = options.commandArgs ?? [];
+    this._commandAppendArgs = options.commandAppendArgs;
     this._preferredPythonVersion = options.preferredPythonVersion;
   }
 
@@ -563,6 +567,10 @@ export class NSandboxCreator implements ISandboxCreator {
     const args: string[] = this._command ? [...this._commandArgs] : [];
     if (options.sandboxOptions?.args) {
       args.push(...options.sandboxOptions.args);
+    }
+    const appendArgs: string[] = this._commandAppendArgs ?? [];
+    if (options.sandboxOptions?.appendArgs) {
+      args.push(...options.sandboxOptions.appendArgs);
     }
     const translatedOptions: ISandboxOptions = {
       minimalPipeMode: true,
@@ -577,7 +585,8 @@ export class NSandboxCreator implements ISandboxCreator {
       useGristEntrypoint: true,
       importDir: options.importMount,
       ...options.sandboxOptions,
-      args: args,
+      args,
+      appendArgs,
     };
     return new NSandbox(translatedOptions, this._spawner);
   }
@@ -611,11 +620,19 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
  */
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
   const {args, importDir} = options;
-  const pythonArgs = [...args, options.comment ?? ""];
   const paths = getAbsolutePaths(options);
+
+  const pythonArgs = [...args];
   if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift(paths.main);
+    pythonArgs.push(paths.main);
   }
+  if (options.comment) {
+    pythonArgs.push(options.comment);
+  }
+  if (options.appendArgs) {
+    pythonArgs.push(...options.appendArgs);
+  }
+
   const spawnOptions = {
     stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
     env: {
@@ -664,12 +681,35 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   };
   const base = getUnpackedAppRoot();
   const scriptPath = path.join(base, 'sandbox', 'pyodide', 'pipe.js');
-  const command = options.command ?? process.execPath;
-  const child = spawn(
-    command,
-    [...options.args, scriptPath],
-    {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions}
-  );
+  const cwd = path.join(process.cwd(), 'sandbox');
+
+  let child: ChildProcess;
+
+  if (options.command) {
+    const args = [...options.args, scriptPath, ...(options.appendArgs ?? [])];
+    log.rawDebug("Launching Pyodide sandbox via spawn", {
+      command: options.command,
+      args,
+      cwd,
+      spawnOptions,
+    });
+    child = spawn(
+      options.command,
+      args,
+      {cwd, ...spawnOptions}
+    );
+  } else {
+    log.rawDebug("Launching Pyodide sandbox via fork", {
+      scriptPath,
+      cwd,
+      spawnOptions,
+    });
+    child = fork(
+      scriptPath,
+      {cwd, ...spawnOptions}
+    );
+  }
+
   return {
     name: 'pyodide',
     child,
@@ -1080,28 +1120,13 @@ function getCommandFromEnv(pythonVersion?: string) {
     process.env['GRIST_SANDBOX'];
 }
 
-function getCommandArgEnvVar(index: number): string {
-  return `GRIST_SANDBOX_ARG_${index.toFixed(0)}`
-}
-
 function getCommandArgsFromEnv() {
-  const args: string[] = [];
-  let counter = 1;
-  let foundArg = false;
-  do {
-    const envVar = getCommandArgEnvVar(counter);
-    const value = process.env[envVar];
-
-    if (value !== undefined) {
-      foundArg = true;
-      args.push(value);
-      counter += 1;
-    } else {
-      foundArg = false;
-    }
-  } while (foundArg);
-
-  return args;
+  const argsString = process.env['GRIST_SANDBOX_ARGS'];
+  const extraArgsString = process.env['GRIST_SANDBOX_APPEND_ARGS'];
+  return {
+    args: argsString ? argsString.split(" ") : [],
+    extraArgs: extraArgsString ? extraArgsString.split(" ") : [],
+  };
 }
 
 /**
@@ -1125,10 +1150,12 @@ export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreati
     const flavor = parts[parts.length - 1];
     const version = parts.length === 2 ? parts[0] : '*';
     if (preferredPythonVersion === version || version === '*' || !preferredPythonVersion) {
+      const args = getCommandArgsFromEnv();
       const creator = new NSandboxCreator({
         defaultFlavor: flavor,
         command: getCommandFromEnv(preferredPythonVersion),
-        commandArgs: getCommandArgsFromEnv(),
+        commandArgs: args.args,
+        commandAppendArgs: args.extraArgs,
         preferredPythonVersion,
       });
       return creator.create(options);
