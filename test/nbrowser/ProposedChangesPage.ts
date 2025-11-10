@@ -150,64 +150,27 @@ describe('ProposedChangesPage', function() {
   });
 
   it('can make and apply multiple proposed changes', async function() {
-    // Load a test document.
-    const session = await gu.session().teamSite.login();
-    const doc = await session.tempDoc(cleanup, 'Hello.grist');
-
-    // Turn on feature.
-    const api = session.createHomeApi();
-    await api.updateDoc(doc.id, {
-      options: {
-        proposedChanges: {
-          acceptProposals: true
-        }
-      }
-    });
-    await api.applyUserActions(doc.id, [
-      ['AddTable', 'Life', [{id: 'A', type: 'Int'}, {id: 'B', type: 'Text'}]],
-      ['AddRecord', 'Life', 1, {A: 10, B: 'Fish'}],
-      ['AddRecord', 'Life', 2, {A: 20, B: 'Primate'}],
-    ]);
-
-    await gu.openPage('Life');
+    const {doc, api} = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
-    // Work on a copy.
-    async function workOnCopy() {
-      await driver.get(url);
-      if (await gu.isAlertShown()) { await gu.acceptAlert(); }
-      await gu.waitForDocToLoad();
-      await driver.findWait('.test-tb-share', 2000).click();
-      await driver.findWait('.test-work-on-copy', 2000).click();
-      await gu.waitForServer();
-      await gu.openPage('Life');
-    }
-    await workOnCopy();
+    await workOnCopy(url);
 
     // Make a change.
     await gu.getCell('B', 1).click();
     await gu.waitAppFocus();
     await gu.enterCell('Bird');
 
-    // Propose the change.
-    async function proposeChange() {
-      assert.equal(await driver.find('.test-tools-proposals').getText(),
-                   'Suggest Changes');
-      await driver.find('.test-tools-proposals').click();
-      await driver.findWait('.test-proposals-propose', 2000).click();
-      await gu.waitForServer();
-    }
     await proposeChange();
 
     // Work on another copy and propose a different change.
-    await workOnCopy();
+    await workOnCopy(url);
     await gu.getCell('B', 2).click();
     await gu.waitAppFocus();
     await gu.enterCell('Mammal');
     await proposeChange();
 
     // Work on another copy and propose a different change.
-    await workOnCopy();
+    await workOnCopy(url);
     await gu.getCell('B', 3).click();
     await gu.waitAppFocus();
     await gu.enterCell('SpaceDuck');
@@ -259,4 +222,118 @@ describe('ProposedChangesPage', function() {
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Life')).B,
                      [ 'Bird', 'Mammal', 'SpaceDuck' ]);
   });
+
+  it('can apply a proposed change after a trunk change', async function() {
+    const {api, doc} = await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+
+    // Make a change.
+    await gu.getCell('B', 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('Bird');
+
+    await proposeChange();
+
+    // Click on the "original document".
+    await driver.findContentWait('span', /original document/, 2000).click();
+
+    // There should be exactly one proposal.
+    await driver.findWait('.test-proposals-header', 2000);
+    assert.lengthOf(await driver.findAll('.test-proposals-header'), 1);
+
+    // Make sure the expected change is shown.
+    await driver.findWait('.action_log_table', 2000);
+    assert.lengthOf(await driver.findAll('.action_log_table'), 1);
+    assert.equal(
+      await driver.find('.action_log_table tr:first-of-type').getText(),
+      'B'
+    );
+    assert.equal(
+      await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
+      '→\nFishBird'
+    );
+
+    // Change column and table name.
+    await api.applyUserActions(doc.id, [
+      ['RenameColumn', 'Life', 'B', 'BB'],
+    ]);
+    await api.applyUserActions(doc.id, [
+      ['RenameTable', 'Life', 'Vie'],
+    ]);
+
+    // Check that expanding context works (at least, that it does something).
+    assert.equal(await driver.find('.action_log_table button').getText(), '>');
+    await driver.find('.action_log_table button').click();
+    await gu.waitToPass(async () => {
+      assert.equal(await driver.find('.action_log_table button').getText(), '<');
+    }, 2000);
+    assert.equal(
+      await driver.findContentWait('.action_log_table tr:first-of-type', /id/, 2000).getText(),
+      'id A BB'
+    );
+    assert.equal(
+      await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
+      '→ 1 10\nFishBird'
+    );
+
+    // Apply and check that it has an effect.
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
+                     [ 'Fish', 'Primate' ]);
+    await driver.find('.test-proposals-patch')
+      .find('.test-proposals-apply').click();
+    await gu.waitForServer();
+    assert.match(
+      await driver.findContent('.test-proposals-header', /#1/).getText(),
+      /Accepted/
+    );
+    assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
+                     [ 'Bird', 'Primate' ]);
+  });
+
+  async function makeLifeDoc() {
+    // Load a test document.
+    const session = await gu.session().teamSite.login();
+    const doc = await session.tempDoc(cleanup, 'Hello.grist');
+
+    // Turn on feature.
+    const api = session.createHomeApi();
+    await api.updateDoc(doc.id, {
+      options: {
+        proposedChanges: {
+          acceptProposals: true
+        }
+      }
+    });
+
+    await api.applyUserActions(doc.id, [
+      ['AddTable', 'Life', [{id: 'A', type: 'Int'}, {id: 'B', type: 'Text'}]],
+      ['AddRecord', 'Life', 1, {A: 10, B: 'Fish'}],
+      ['AddRecord', 'Life', 2, {A: 20, B: 'Primate'}],
+    ]);
+
+    await gu.openPage('Life');
+    return {session, doc, api};
+  }
+
+  // Work on a copy.
+  async function workOnCopy(url: string) {
+    await driver.get(url);
+    if (await gu.isAlertShown()) { await gu.acceptAlert(); }
+    await gu.waitForDocToLoad();
+    await driver.findWait('.test-tb-share', 2000).click();
+    await driver.findWait('.test-work-on-copy', 2000).click();
+    await gu.waitForServer();
+    await gu.openPage('Life');
+  }
+
+  // Propose a change.
+  async function proposeChange() {
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes');
+    await driver.find('.test-tools-proposals').click();
+    await driver.findWait('.test-proposals-propose', 2000).click();
+    await gu.waitForServer();
+  }
 });

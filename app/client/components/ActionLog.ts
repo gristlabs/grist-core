@@ -12,8 +12,11 @@ import {ClientTimeData} from 'app/client/models/TimeQuery';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ActionGroup} from 'app/common/ActionGroup';
-import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
-        LabelDelta} from 'app/common/ActionSummary';
+import {concatenateSummaryPair} from 'app/common/ActionSummarizer';
+import {
+  ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
+  LabelDelta
+} from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
@@ -92,6 +95,23 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
 
   public buildDom() {
     return this._buildLogDom();
+  }
+
+  /**
+   * Figure out what has changed in the document after the given
+   * action (and not including it).
+   */
+  public async getChangesSince(actionNum: number): Promise<ActionSummary> {
+    await this._loadActionSummaries();
+    const stack = this.displayStack.all();
+    let summary = createEmptyActionSummary();
+    for (const item of stack) {
+      if (item.actionNum <= actionNum) {
+        break;
+      }
+      summary = concatenateSummaryPair(item.actionSummary, summary);
+    }
+    return summary;
   }
 
   /**
@@ -450,6 +470,8 @@ export abstract class ActionLogPart {
 
   private async _setContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
     const result = await this.getContext();
+    // table may have changed name
+    tableId = Object.keys(result || {})[0] || tableId;
     if (result) {
       contextObs({...context, [tableId]: result[tableId]});
     }

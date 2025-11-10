@@ -478,3 +478,117 @@ export function concatenateSummaries(sums: ActionSummary[]): ActionSummary {
   }
   return result;
 }
+
+export function getRenames(ref: ActionSummary|TableDelta) {
+  if ('tableRenames' in ref) {
+    return ref.tableRenames;
+  } else {
+    return ref.columnRenames;
+  }
+}
+
+export function getDeltas<T extends ActionSummary|TableDelta>(ref: T) {
+  if ('tableRenames' in ref) {
+    return ref.tableDeltas;
+  } else {
+    return ref.columnDeltas;
+  }
+}
+
+interface RebasePlan {
+  dead: Set<string>;
+  rename: Map<string, string>;
+  refBack: Map<string, string|null>;
+  targetBack: Map<string, string|null>;
+  targetForward: Map<string, string|null>;
+  refForward: Map<string|null, string|null>;
+  updatedRenames: LabelDelta[];
+}
+
+/**
+ * For the ref and target, assumed to start from the same ancestor,
+ * figure out the following changes in the ref that can be applied
+ * to the target:
+ *   - Any renaming of items.
+ *   - Any deletion of items.
+ * Return items to delete and rename, in the naming scheme of the
+ * target.
+ */
+export function planRebase(ref: ActionSummary|TableDelta,
+                           target: ActionSummary|TableDelta): RebasePlan {
+  const dead = new Set<string>();
+  const rename = new Map<string, string>();
+  const targetNames = new Map<string, string|null>();
+  const refBack = new Map<string, string|null>();
+  const targetBack = new Map<string, string|null>();
+  const refForward = new Map<string|null, string|null>();
+  for (const [oldId, newId] of getRenames(target)) {
+    if (oldId) {
+      targetNames.set(oldId, newId);
+    }
+    if (newId) {
+      targetBack.set(newId, oldId);
+    }
+  }
+  for (const [oldId, newId] of getRenames(ref)) {
+    if (newId) {
+      refBack.set(newId, oldId);
+    }
+    if (oldId) {
+      refForward.set(oldId, newId);
+    }
+  }
+
+  const targetDeltas = getDeltas(target);
+
+  for (const [oldId, newId] of getRenames(ref)) {
+    if (oldId && !newId) {
+      dead.add(targetNames.get(oldId) || oldId);
+    }
+    if (!oldId && newId && targetDeltas[newId]) {
+      dead.add(newId);
+    }
+    if (oldId && newId && !targetNames.get(oldId)) {
+      rename.set(oldId, newId);
+    }
+  }
+  const updatedRenames: LabelDelta[] = getRenames(target)
+    .filter(([oldId, _]) => !oldId || refForward.get(oldId) !== null)
+    .filter(([oldId, newId]) => oldId || !newId || !refBack.get(newId))
+    .map(([oldId, newId]) => [refForward.get(oldId) || oldId, newId]);
+
+  return {
+    dead,
+    rename,
+    targetBack,
+    refBack,
+    targetForward: targetNames,
+    refForward,
+    updatedRenames,
+  };
+}
+
+/**
+ * Applies table and column renames that are present in the `ref`
+ * summary to the target summary.
+ */
+export function rebaseSummary(ref: ActionSummary, target: ActionSummary) {
+  const plan = planRebase(ref, target);
+  const empty = createEmptyTableDelta();
+  for (const key of Object.keys(target.tableDeltas)) {
+    const ancestorName = plan.targetBack.get(key) || key;
+    const afterTargetName = plan.targetForward.get(ancestorName) || ancestorName;
+    const afterRefName = plan.refForward.get(ancestorName) || ancestorName;
+    const afterTarget = target.tableDeltas[afterTargetName] ?? empty;
+    const afterRef = ref.tableDeltas[afterRefName] ?? empty;
+    rebaseTable(afterRef, afterTarget);
+  }
+  renameAndDelete(target.tableDeltas, plan.dead, plan.rename);
+  target.tableRenames = plan.updatedRenames;
+}
+
+export function rebaseTable(ref: TableDelta, target: TableDelta) {
+  const plan = planRebase(ref, target);
+  renameAndDelete(target.columnDeltas, plan.dead, plan.rename);
+  target.columnRenames = plan.updatedRenames;
+}

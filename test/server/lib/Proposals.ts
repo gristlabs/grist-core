@@ -1,4 +1,4 @@
-import { DocAPI, UserAPI} from 'app/common/UserAPI';
+import {DocAPI, UserAPI} from 'app/common/UserAPI';
 import {assert} from 'chai';
 import {TestServer} from 'test/gen-server/apiUtils';
 import {createTmpDir} from 'test/server/docTools';

@@ -1,3 +1,4 @@
+import {ActionLog} from 'app/client/components/ActionLog';
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 import {ClientScope} from 'app/client/components/ClientScope';
@@ -538,6 +539,9 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   }
   public async sendTableAction() {}
   public async sendTableActions() {}
+  public getActionLog(): ActionLog {
+    throw new Error('no ActionLog available');
+  }
 }
 
 /**
