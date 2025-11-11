@@ -385,7 +385,7 @@ export class UsersManager {
    * Find some users by their emails. Don't create the users if they don't already exist.
    */
   public async getExistingUsersByLogin(
-    emails: string[], 
+    emails: string[],
     options: GetExistingUserOptions = {}
   ): Promise<User[]> {
     if (emails.length === 0){
@@ -632,6 +632,13 @@ export class UsersManager {
     await this._maybeCreateSpecialUserId({
       email: SUPPORT_EMAIL,
       name: "Support"
+    });
+    const installAdminEmail = appSettings.section('access').flag('installAdminEmail').requireString({
+      envVar: 'GRIST_DEFAULT_EMAIL',
+    });
+    await this._maybeCreateSpecialUserId({
+      email: installAdminEmail,
+      name: "Admin"
     });
   }
 
