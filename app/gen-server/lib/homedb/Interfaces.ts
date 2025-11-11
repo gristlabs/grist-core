@@ -130,6 +130,7 @@ export interface HomeDBAuth {
   getExistingUserByLogin(email: string, options?: GetExistingUserOptions): Promise<User|undefined>;
   getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
   getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount|null>;
+  updateUserOptions(userId: number, props: Partial<UserOptions>): Promise<void>;
   makeFullUser(user: User): FullUser;
 }
 
