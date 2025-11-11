@@ -29,6 +29,11 @@ export interface GetUserOptions {
   userOptions?: UserOptions;
 }
 
+export interface GetExistingUserOptions {
+  manager?: EntityManager;
+  withOrgs?: boolean;
+}
+
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
@@ -122,6 +127,7 @@ export interface HomeDBAuth {
   getUserByKey(apiKey: string): Promise<User|undefined>;
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
+  getExistingUserByLogin(email: string, options?: GetExistingUserOptions): Promise<User|undefined>;
   getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
   getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount|null>;
   makeFullUser(user: User): FullUser;
