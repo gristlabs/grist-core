@@ -271,7 +271,7 @@ async function getAuthSession(
     return AuthSession.unauthenticated();
   }
   const user = profile?.email ? await dbManager.getExistingUserByLogin(profile.email, {withOrgs: true}) : dbManager.getAnonymousUser();
-  if(!user) throw Error('Unrecognized user')
+  if(!user) { throw Error('Unrecognized user'); }
   const fullUser = dbManager.makeFullUser(user);
   return AuthSession.fromUser(fullUser, scopedSession.org, scopedSession.getAltSessionId());
 }
