@@ -166,6 +166,7 @@ export async function addRequestUser(
   options: {
     gristServer: GristServer,
     skipSession?: boolean,
+    createUserAuto?: boolean,
     overrideProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
   },
   req: Request, res: Response, next: NextFunction

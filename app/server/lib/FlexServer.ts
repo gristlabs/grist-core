@@ -909,6 +909,10 @@ export class FlexServer implements GristServer {
       const skipSession = appSettings.section('login').flag('skipSession').readBool({
         envVar: 'GRIST_IGNORE_SESSION',
       });
+      const createUserAuto = appSettings.section('login').flag('createUserAuto').readBool({
+        envVar: 'GRIST_AUTO_USER',
+        defaultValue: true,
+      });
       // Middleware to redirect landing pages to preferred host
       this._redirectToHostMiddleware = this._hosts.redirectHost;
       // Middleware to add the userId to the express request object.
@@ -918,6 +922,7 @@ export class FlexServer implements GristServer {
           overrideProfile: this._loginMiddleware.overrideProfile?.bind(this._loginMiddleware),
             // Set this to false to stop Grist using a cookie for authentication purposes.
           skipSession,
+          createUserAuto,
           gristServer: this,
         }
       ));
