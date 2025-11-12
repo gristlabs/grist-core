@@ -20,6 +20,7 @@ import {waitForIt} from 'test/server/wait';
 import { assert } from "chai";
 import * as stream from "node:stream";
 import * as sinon from "sinon";
+import { IAttachmentVirusScanProvider } from "app/server/lib/AttachmentVirusScanProvider";
 
 // Minimum features of doc storage that are needed to make AttachmentFileManager work.
 type IMinimalDocStorage = Pick<DocStorage,
@@ -86,6 +87,7 @@ class DocStorageFake implements IMinimalDocStorage {
 const defaultTestDocName = "1234";
 const defaultTestFileContent = "Some content";
 const defaultTestFileBuffer = Buffer.from(defaultTestFileContent);
+const defaultVirusScanProviders: IAttachmentVirusScanProvider[] = [];
 
 function createDocStorageFake(docName: string): DocStorage {
   return new DocStorageFake(docName) as unknown as DocStorage;
@@ -167,6 +169,7 @@ describe("AttachmentFileManager", function() {
     defaultManager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       defaultDocInfo,
     );
     defaultStoreId = defaultProvider.listAllStoreIds()[0];
@@ -184,6 +187,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: "Unimportant", trunkId: null  },
     );
 
@@ -230,6 +234,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       undefined,
     );
 
@@ -242,6 +247,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: "Unimportant", trunkId: null  },
     );
 
@@ -252,6 +258,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: "Unimportant", trunkId: null  },
     );
 
@@ -265,6 +272,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: "Unimportant", trunkId: null  },
     );
 
@@ -280,6 +288,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: docId, trunkId: null  },
     );
 
@@ -314,6 +323,7 @@ describe("AttachmentFileManager", function() {
       const alternateManager = new AttachmentFileManager(
         defaultDocStorageFake,
         new AttachmentStoreProvider([], 'TEST-INSTALLATION-UUID'),
+        defaultVirusScanProviders,
         defaultDocInfo,
       );
 
@@ -330,6 +340,7 @@ describe("AttachmentFileManager", function() {
       manager = new AttachmentFileManager(
         defaultDocStorageFake,
         defaultProvider,
+        defaultVirusScanProviders,
         defaultDocInfo,
       );
       defaultStoreId = defaultProvider.listAllStoreIds()[0];
@@ -355,6 +366,7 @@ describe("AttachmentFileManager", function() {
       const alternateManager = new AttachmentFileManager(
         defaultDocStorageFake,
         alternateProvider,
+        defaultVirusScanProviders,
         defaultDocInfo,
       );
 
@@ -466,6 +478,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: docId, trunkId: null  },
     );
 
@@ -488,6 +501,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: docId, trunkId: null  },
     );
 
@@ -502,6 +516,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: docId, trunkId: null  },
     );
 
@@ -520,6 +535,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: docId, trunkId: null  },
     );
 
@@ -548,6 +564,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       { id: docId, trunkId: null  },
     );
 
@@ -573,6 +590,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       docInfo,
     );
 
@@ -615,6 +633,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       docInfo,
     );
 
@@ -635,6 +654,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       docInfo,
     );
 
@@ -662,6 +682,7 @@ describe("AttachmentFileManager", function() {
     const manager = new AttachmentFileManager(
       defaultDocStorageFake,
       defaultProvider,
+      defaultVirusScanProviders,
       docInfo,
     );
 

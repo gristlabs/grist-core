@@ -162,6 +162,7 @@ import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {ActiveDocImport, FileImportOptions} from 'app/server/lib/ActiveDocImport';
 import {AttachmentFileManager, MismatchedFileHashError} from 'app/server/lib/AttachmentFileManager';
 import {IAttachmentStoreProvider} from 'app/server/lib/AttachmentStoreProvider';
+import {IAttachmentVirusScanProvider} from 'app/server/lib/AttachmentVirusScanProvider';
 import {DocClients} from 'app/server/lib/DocClients';
 import {DocPluginManager} from 'app/server/lib/DocPluginManager';
 import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';
@@ -351,7 +352,8 @@ export class ActiveDoc extends EventEmitter {
     private readonly _docManager: DocManager,
     private _docName: string,
     private _attachmentStoreProvider?: IAttachmentStoreProvider,
-    private _options?: ActiveDocOptions
+    _virusScanProviders?: IAttachmentVirusScanProvider[],
+    private _options?: ActiveDocOptions,
   ) {
     super();
     const { trunkId, forkId, snapshotId } = parseUrlId(_docName);
@@ -455,6 +457,7 @@ export class ActiveDoc extends EventEmitter {
     this._attachmentFileManager = new AttachmentFileManager(
       this.docStorage,
       _attachmentStoreProvider,
+      _virusScanProviders,
       forkId ? { id: forkId, trunkId, } : { id: trunkId, trunkId: undefined },
       (extraBytes: number) => this._assertAttachmentSizeBelowLimit(extraBytes, {
         checkInternal: true,
