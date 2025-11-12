@@ -191,6 +191,11 @@ export class Client {
   public interruptConnection() {
     if (this._websocket) {
       this._websocket.removeAllListeners();
+      // It is important to keep an onerror handler, since otherwise
+      // errors bring down the server.
+      this._websocket.onerror = (err: Error) => {
+        this._log.warn(null, "Error after interruption", err);
+      };
       this._websocket.terminate();  // close() is inadequate when ws routed via loadbalancer
       this._websocket = null;
     }
