@@ -1,7 +1,7 @@
 import { ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction} from 'app/common/ActionSummarizer';
 import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta} from 'app/common/ActionSummary';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {keyBy} from 'lodash';
+import { cloneDeep, keyBy} from 'lodash';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {assert} from 'test/server/testUtils';
@@ -344,7 +344,7 @@ describe("ActionSummary", function() {
         "Pajamas": makeTableDelta('Pajamas'),
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -395,7 +395,7 @@ describe("ActionSummary", function() {
         }
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -465,7 +465,7 @@ describe("ActionSummary", function() {
         }
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -491,7 +491,7 @@ describe("ActionSummary", function() {
                       [['Friends_', 'Friends']],
                       [['Performances', 'Performances2']],
                       [['Performances2', 'Performances']]]);
-    const sum = concatenateSummaries(sums);
+    const sum = concatenateSummariesCleanly(sums);
     // at the end of history, we have three tables
     assert.deepEqual(sum.tableRenames,
                      [[null, 'Films'],
@@ -587,7 +587,7 @@ describe("ActionSummary", function() {
         }
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -870,3 +870,12 @@ describe("ActionSummary", function() {
     });
   });
 });
+
+function concatenateSummariesCleanly(args: ActionSummary[]) {
+  const argsCopy = cloneDeep(args);
+  const result = concatenateSummaries(args);
+  for (let i = 0; i < args.length; i++) {
+    assert.deepEqual(args[i], argsCopy[i]);
+  }
+  return result;
+}

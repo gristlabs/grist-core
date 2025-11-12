@@ -5,6 +5,7 @@ import {DocAction} from 'app/common/DocActions';
 import * as Action from 'app/common/DocActions';
 import {arrayExtend} from 'app/common/gutil';
 import {CellDelta} from 'app/common/TabularDiff';
+import clone = require('lodash/clone');
 import fromPairs = require('lodash/fromPairs');
 import keyBy = require('lodash/keyBy');
 import sortBy = require('lodash/sortBy');
@@ -313,21 +314,30 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
  * @param entries: a dictionary of nested data - TableDeltas for tables, ColumnDeltas for columns.
  * @param dead: a set of keys to remove from the dictionary.
  * @param rename: changes of names to apply to the dictionary.
+ *
+ * entries may be modified, and if so will be shallow-copied.
  */
-function renameAndDelete<T>(entries: {[name: string]: T}, dead: Set<string>,
+function renameAndDelete<T>(entries: CopyOnWrite<{[name: string]: T}>, dead: Set<string>,
                             rename: Map<string, string>) {
+  if (!(dead.size || rename.size)) {
+    return;
+  }
+  entries.write();
+  const entriesCopy = entries.read();
   // Remove all entries marked as dead.
-  for (const key of dead) { delete entries[key]; }
+  for (const key of dead) { delete entriesCopy[key]; }
   // Move all entries that are going to be renamed out to a cache temporarily.
   const cache: {[name: string]: any} = {};
   for (const key of rename.keys()) {
-    if (entries[key]) {
-      cache[key] = entries[key];
-      delete entries[key];
+    if (entriesCopy[key]) {
+      cache[key] = entriesCopy[key];
+      delete entriesCopy[key];
     }
   }
   // Move all renamed entries back in with their new names.
-  for (const [key, val] of rename.entries()) { if (cache[key]) { entries[val] = cache[key]; } }
+  for (const [key, val] of rename.entries()) {
+    if (cache[key]) { entriesCopy[val] = cache[key]; }
+  }
 }
 
 /**
@@ -339,23 +349,29 @@ function renameAndDelete<T>(entries: {[name: string]: T}, dead: Set<string>,
  * @param entries2: test second dictionary of nested data keyed on the names
  * @param mergeEntry: a function to apply any further corrections needed to the entries
  *
+ * entries2 may be modified, and if so it will be copied.
  */
 function mergeNames<T>(names: NameMerge,
                        entries1: {[name: string]: T},
-                       entries2: {[name: string]: T},
-                       mergeEntry: (e1: T, e2: T) => T): {[name: string]: T} {
+                       entries2: CopyOnWrite<{[name: string]: T}>,
+                       mergeEntry: (e1: T, e2: CopyOnWrite<T>) => T): {[name: string]: T} {
+  const entries1Wrapper = copyOnWrite(entries1);
   // Update the keys of the entries1 and entries2 dictionaries to be consistent.
-  renameAndDelete(entries1, names.dead1, names.rename1);
+  renameAndDelete(entries1Wrapper, names.dead1, names.rename1);
   renameAndDelete(entries2, names.dead2, names.rename2);
 
   // Prepare the composition of the two dictionaries.
-  const entries = entries2;                   // Start with the second dictionary.
-  for (const key of Object.keys(entries1)) {  // Add material from the first.
-    const e1 = entries1[key];
-    if (!entries[key]) { entries[key] = e1;  continue; }  // No overlap - just add and move on.
-    entries[key] = mergeEntry(e1, entries[key]);          // Recursive merge if overlap.
+  const entries = entries2;                // Start with the second dictionary.
+  for (const key of Object.keys(entries1Wrapper.read())) {  // Add material from the first.
+    const e1 = entries1Wrapper.read()[key];
+    if (!entries.read()[key]) { entries.write()[key] = e1;  continue; }  // No overlap - just add and move on.
+    const e2cow = copyOnWrite(entries.read()[key]);
+    const result = mergeEntry(e1, e2cow);
+    if (e2cow.hasWrite()) {
+      entries.write()[key] = result;          // Recursive merge if overlap.
+    }
   }
-  return entries;
+  return entries.read();
 }
 
 /**
@@ -393,20 +409,28 @@ function bulkCellFor(rc: RowChange|undefined): CellDelta|undefined {
  * @param present2: affected rows in part 2
  * @param e1: cached cell values for the column in part 1
  * @param e2: cached cell values for the column in part 2
+ *
+ * e2 may be modified, and will be copied if so.
  */
 function mergeColumn(present1: RowChanges, present2: RowChanges,
-                     e1: ColumnDelta, e2: ColumnDelta): ColumnDelta {
+                     e1: ColumnDelta, e2: CopyOnWrite<ColumnDelta>): ColumnDelta {
   for (const key of (Object.keys(present1) as unknown as number[])) {
     let v1 = e1[key];
-    let v2 = e2[key];
+    let v2 = e2.read()[key];
     if (!v1 && !v2) { continue; }
+    if (present1[key].added && present2[key]?.removed) {
+      delete e2.write()[key];
+      continue;
+    }
     v1 = v1 || bulkCellFor(present1[key]);
     v2 = v2 || bulkCellFor(present2[key]);
-    if (!v2)    { e2[key] = e1[key]; continue; }
-    if (!v1[1]) { continue; }  // Deleted row.
-    e2[key] = [v1[0], v2[1]];  // Change is from initial value in e1 to final value in e2.
+    if (!v2)    { e2.write()[key] = e1[key]; continue; }
+    if (!v1[1]) {
+      continue;
+    }  // Deleted row.
+    e2.write()[key] = [v1[0], v2[1]];  // Change is from initial value in e1 to final value in e2.
   }
-  return e2;
+  return e2.read();
 }
 
 
@@ -433,35 +457,57 @@ function getRowChanges(e: TableDelta): RowChanges {
  * Merge changes that apply to a particular table.  For updating addRows and removeRows, care is
  * needed, since it is fine to remove and add the same rowId within a single summary -- this is just
  * rowId reuse.  It needs to be tracked so we know lifetime of rows though.
+ *
+ * e2 may be modified, and is copied if so.
  */
-function mergeTable(e1: TableDelta,  e2: TableDelta): TableDelta {
+function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
   // First, sort out any changes to names of columns.
-  const names = planNameMerge(e1.columnRenames, e2.columnRenames);
-  mergeNames(names, e1.columnDeltas, e2.columnDeltas,
+  const names = planNameMerge(e1.columnRenames, e2.read().columnRenames);
+  const columnDeltasCow = copyOnWrite(e2.read().columnDeltas);
+  mergeNames(names, e1.columnDeltas, columnDeltasCow,
              mergeColumn.bind(null,
                               getRowChanges(e1),
-                              getRowChanges(e2)));
-  e2.columnRenames = names.merge;
+                              getRowChanges(e2.read())));
+  if (columnDeltasCow.hasWrite()) {
+    e2.write();
+    e2.read().columnDeltas = columnDeltasCow.read();
+  }
+  const columnRenames = names.merge;
   // All the columnar data is now merged.  What remains is to merge the summary lists of rowIds
   // that we maintain.
   const addRows1 = new Set(e1.addRows);       // Non-transient rows we have clearly added.
-  const removeRows2 = new Set(e2.removeRows); // Non-transient rows we have clearly removed.
+  const removeRows2 = new Set(e2.read().removeRows); // Non-transient rows we have clearly removed.
   const transients = e1.addRows.filter(x => removeRows2.has(x));
-  e2.addRows = uniqueAndSorted([...e2.addRows, ...e1.addRows.filter(x => !removeRows2.has(x))]);
-  e2.removeRows = uniqueAndSorted([...e2.removeRows.filter(x => !addRows1.has(x)), ...e1.removeRows]);
-  e2.updateRows = uniqueAndSorted([...e1.updateRows.filter(x => !removeRows2.has(x)),
-                                   ...e2.updateRows.filter(x => !addRows1.has(x))]);
+  const addRows = uniqueAndSorted([...e2.read().addRows, ...e1.addRows.filter(x => !removeRows2.has(x))]);
+  const removeRows = uniqueAndSorted([...e2.read().removeRows.filter(x => !addRows1.has(x)), ...e1.removeRows]);
+  const updateRows = uniqueAndSorted([...e1.updateRows.filter(x => !removeRows2.has(x)),
+                                      ...e2.read().updateRows.filter(x => !addRows1.has(x))]);
   // Remove all traces of transients (rows that were created and destroyed) from history.
-  for (const cols of values(e2.columnDeltas)) {
-    for (const key of transients) { delete cols[key]; }
+  if (transients.length) {
+    for (const [key, columnDelta] of Object.entries(e2.read().columnDeltas)) {
+      const updatedColumnDelta = copyOnWrite(columnDelta);
+      for (const key of transients) {
+        delete updatedColumnDelta.write()[key];
+      }
+      if (updatedColumnDelta.hasWrite()) {
+        e2.write().columnDeltas[key] = updatedColumnDelta.read();
+      }
+    }
   }
-  return e2;
+  // We unconditionally write at this level.
+  Object.assign(e2.write(), {
+    columnRenames,
+    addRows,
+    removeRows,
+    updateRows,
+  });
+  return e2.read();
 }
 
 /** Finally, merge a pair of summaries. */
 export function concatenateSummaryPair(sum1: ActionSummary, sum2: ActionSummary): ActionSummary {
   const names = planNameMerge(sum1.tableRenames, sum2.tableRenames);
-  const rowChanges = mergeNames(names, sum1.tableDeltas, sum2.tableDeltas, mergeTable);
+  const rowChanges = mergeNames(names, sum1.tableDeltas, copyOnWrite(sum2.tableDeltas), mergeTable);
   const sum: ActionSummary = {
     tableRenames: names.merge,
     tableDeltas: rowChanges
@@ -583,12 +629,43 @@ export function rebaseSummary(ref: ActionSummary, target: ActionSummary) {
     const afterRef = ref.tableDeltas[afterRefName] ?? empty;
     rebaseTable(afterRef, afterTarget);
   }
-  renameAndDelete(target.tableDeltas, plan.dead, plan.rename);
+  const deltas = copyOnWrite(target.tableDeltas);
+  renameAndDelete(deltas, plan.dead, plan.rename);
+  target.tableDeltas = deltas.read();
   target.tableRenames = plan.updatedRenames;
 }
 
 export function rebaseTable(ref: TableDelta, target: TableDelta) {
   const plan = planRebase(ref, target);
-  renameAndDelete(target.columnDeltas, plan.dead, plan.rename);
+  const deltas = copyOnWrite(target.columnDeltas);
+  renameAndDelete(deltas, plan.dead, plan.rename);
+  target.columnDeltas = deltas.read();
   target.columnRenames = plan.updatedRenames;
+}
+
+/**
+ * Wrapper to facilitate making a shallow copy of an
+ * object if we find we need to edit it.
+ */
+export function copyOnWrite<T>(item: T): CopyOnWrite<T> {
+  let maybeCopiedItem: T|undefined;
+  return {
+    read() { return maybeCopiedItem || item; },
+    write() {
+      if (!maybeCopiedItem) {
+        // make a shallow clone
+        maybeCopiedItem = clone(item);
+      }
+      return maybeCopiedItem;
+    },
+    hasWrite() {
+      return maybeCopiedItem !== undefined;
+    },
+  };
+}
+
+export interface CopyOnWrite<T> {
+  read(): T;
+  write(): T;
+  hasWrite(): boolean;
 }
