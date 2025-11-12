@@ -687,23 +687,14 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
 
   if (options.command) {
     const args = [...options.args, scriptPath, ...(options.appendArgs ?? [])];
-    log.rawDebug("Launching Pyodide sandbox via spawn", {
-      command: options.command,
-      args,
-      cwd,
-      spawnOptions,
-    });
+    log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
     child = spawn(
       options.command,
       args,
       {cwd, ...spawnOptions}
     );
   } else {
-    log.rawDebug("Launching Pyodide sandbox via fork", {
-      scriptPath,
-      cwd,
-      spawnOptions,
-    });
+    log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
       {cwd, ...spawnOptions}
