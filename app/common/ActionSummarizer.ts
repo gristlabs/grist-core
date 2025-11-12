@@ -484,13 +484,13 @@ function mergeTable(e1: TableDelta,  e2: CopyOnWrite<TableDelta>): TableDelta {
                                       ...e2.read().updateRows.filter(x => !addRows1.has(x))]);
   // Remove all traces of transients (rows that were created and destroyed) from history.
   if (transients.length) {
-    for (const [key, columnDelta] of Object.entries(e2.read().columnDeltas)) {
+    for (const [colId, columnDelta] of Object.entries(e2.read().columnDeltas)) {
       const updatedColumnDelta = copyOnWrite(columnDelta);
-      for (const key of transients) {
-        delete updatedColumnDelta.write()[key];
+      for (const rowId of transients) {
+        delete updatedColumnDelta.write()[rowId];
       }
       if (updatedColumnDelta.hasWrite()) {
-        e2.write().columnDeltas[key] = updatedColumnDelta.read();
+        e2.write().columnDeltas[colId] = updatedColumnDelta.read();
       }
     }
   }
