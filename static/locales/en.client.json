@@ -1849,7 +1849,12 @@
         "default": "default",
         "more...": "more...",
         "no authentication": "no authentication",
-        "unavailable": "unavailable"
+        "unavailable": "unavailable",
+        "Admin account not found": "Admin account not found",
+        "Administrative accounts": "Administrative accounts",
+        "The users with administrative accounts": "The users with administrative accounts",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "no admin accounts"
     },
     "Columns": {
         "Remove Column": "Remove Column"
