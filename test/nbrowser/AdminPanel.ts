@@ -200,7 +200,7 @@ describe('AdminPanel', function() {
     const names = await adminAccounts.findAll('.test-admin-panel-admin-account-name');
     assert.equal(names.length, 1);
 
-    assert.equal(await names[0].getText(), 'You');
+    assert.equal(await names[0].getText(), gu.session().name);
   });
 
   it('should show sandbox', async function() {
@@ -405,7 +405,12 @@ describe('AdminPanel', function() {
   });
 
   it('should show no admins if `GRIST_DEFAULT_EMAIL` is unset', async function() {
-    delete process.env.GRIST_DEFAULT_EMAIL;
+    // If the env var is unset, core and SaaS handle the situation
+    // differently. Core will supply a hardcoded default of you@example.com.
+    //
+    // For the purpose of this test, let's instead set it to the empty
+    // string.
+    process.env.GRIST_DEFAULT_EMAIL='';
     await server.restart(true);
     await driver.get(`${server.getHost()}/admin?boot-key=zig`);
     await gu.waitForAdminPanel();
