@@ -924,6 +924,7 @@ export class FlexServer implements GristServer {
           skipSession,
           createUserAuto,
           gristServer: this,
+          clearSession: this._clearSession.bind(this),
         }
       ));
       this._trustOriginsMiddleware = expressWrap(trustOriginHandler);
@@ -2632,21 +2633,28 @@ export class FlexServer implements GristServer {
    */
   private _logoutMiddleware() {
     const sessionClearMiddleware = expressWrap(async (req, resp, next) => {
-      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
-      // Clear session so that user needs to log in again at the next request.
-      // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
-      // Express-session will save these changes.
-      const expressSession = (req as RequestWithLogin).session;
-      if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
-      await scopedSession.clearScopedSession(req);
-      // TODO: limit cache clearing to specific user.
-      this._sessions.clearCacheIfNeeded();
+      this._clearSession(req as RequestWithLogin)
       next();
     });
     const pluggedMiddleware = this._loginMiddleware.getLogoutMiddleware ?
       this._loginMiddleware.getLogoutMiddleware() :
       [];
     return [...pluggedMiddleware, sessionClearMiddleware];
+  }
+
+  /**
+   * Clears the user information from the session for logout requests
+   */
+  private async _clearSession(req: RequestWithLogin) {
+      const scopedSession = this._sessions.getOrCreateSessionFromRequest(req);
+      // Clear session so that user needs to log in again at the next request.
+      // SAML logout in theory uses userSession, so clear it AFTER we compute the URL.
+      // Express-session will save these changes.
+      const expressSession = req.session;
+      if (expressSession) { expressSession.users = []; expressSession.orgToUser = {}; }
+      await scopedSession.clearScopedSession(req);
+      // TODO: limit cache clearing to specific user.
+      this._sessions.clearCacheIfNeeded();
   }
 
   /**
