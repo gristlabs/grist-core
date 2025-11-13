@@ -574,10 +574,14 @@ describe('limits', function() {
     };
 
     const sendAndAssert = async ({fulfilled}: {fulfilled: boolean}) => {
+      const version = home.server.getAssistant()?.version;
       const response = docApi.getAssistance({
         conversationId: 'id',
         text: 'text',
-        context: {},
+        context: (version === 1) ? {
+          tableId: '',
+          colId: '',
+        } : {},
       });
       if (fulfilled) {
         await assert.isFulfilled(response);
