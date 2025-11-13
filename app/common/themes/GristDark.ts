@@ -135,7 +135,7 @@ export const GristDark: ThemeTokens = {
     controlPrimaryBg: tokens.primaryDim,
     controlHoverFg: tokens.primaryEmphasis,
     controlSecondaryDisabledFg: tokens.decorationSecondary,
-    controlSecondaryHoverBg: tokens.decorationSecondary,
+    controlSecondaryHoverBg: '#41414e',
     controlDisabledFg: tokens.secondary,
     controlDisabledBg: tokens.decoration,
     controlBorder: `1px solid ${tokens.primary}`,
@@ -167,8 +167,6 @@ export const GristDark: ThemeTokens = {
     rightPanelTabSelectedIcon: '#16b378',
     rightPanelTabButtonHoverBg: '#0a5438',
     rightPanelSubtabSelectedUnderline: tokens.primaryMuted,
-    rightPanelToggleButtonDisabledFg: tokens.bgEmphasis,
-    rightPanelToggleButtonDisabledBg: tokens.bg,
     rightPanelFieldSettingsBg: '#404150',
     rightPanelFieldSettingsButtonBg: tokens.bgEmphasis,
     rightPanelCustomWidgetButtonBg: tokens.decorationSecondary,
@@ -251,7 +249,7 @@ export const GristDark: ThemeTokens = {
     menuToggleActiveFg: tokens.primaryEmphasis,
 
     /* Button Groups */
-    buttonGroupBgHover: 'rgba(111,111,125,0.25)',
+    buttonGroupBgHover: '#41414e',
     buttonGroupBorderHover: tokens.bgEmphasis,
 
     /* Access Rules */

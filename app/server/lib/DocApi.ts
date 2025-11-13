@@ -618,6 +618,16 @@ export class DocWorkerApi {
         // Sending headers then resetting the connection shows as 'Download failed', regardless of the
         // 'download' attribute being set.
         res.destroy(err);
+        const meta = {
+          docId: activeDoc.doc?.id,
+          archiveFormat,
+          altSessionId: req.altSessionId,
+        };
+        if (err?.code === "ERR_STREAM_PREMATURE_CLOSE") {
+          log.rawWarn("Client closed archive download stream before completion", meta);
+        } else {
+          log.rawError(`Error while packing attachment archive: ${err.stack ?? err.message}`, meta);
+        }
       }
       res.end();
     }));

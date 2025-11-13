@@ -52,9 +52,9 @@ describe('ColumnFilterMenu2', function() {
     });
 
     it('should group values beyond', async () => {
-      // check `Other Values` is present
+      // check `Other values` is present
       assert.deepEqual(await driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText()),
-                       ['Other Values (14)', 'Future Values']);
+                       ['Other values (14)', 'Future values']);
 
       // check there are actually 17 unique values in total (where 17 is 14 unique other values
       // added to the 3 the number of values shown);
@@ -63,8 +63,8 @@ describe('ColumnFilterMenu2', function() {
         (await parseAllValues()).length
       );
 
-      // check `Other Values` is checked
-      assert.equal(await driver.findContent('.test-filter-menu-summary', /Other Values/).find('input').isSelected(),
+      // check `Other values` is checked
+      assert.equal(await driver.findContent('.test-filter-menu-summary', /Other values/).find('input').isSelected(),
                    true);
 
       // check 'Date', 'Figs' and 'Rhubarb' are not shown
@@ -72,18 +72,18 @@ describe('ColumnFilterMenu2', function() {
         await driver.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
         ['Dates', 'Figs', 'Rhubarb']);
 
-      // click 'Other Values'
-      await driver.findContent('.test-filter-menu-summary', /Other Values/).find('label').click();
+      // click 'Other values'
+      await driver.findContent('.test-filter-menu-summary', /Other values/).find('label').click();
 
-      // check 'Other Values' is unchecked
-      assert.equal(await driver.findContent('.test-filter-menu-summary', /Other Values/).find('input').isSelected(),
+      // check 'Other values' is unchecked
+      assert.equal(await driver.findContent('.test-filter-menu-summary', /Other values/).find('input').isSelected(),
                    false);
 
       // check 'Date', 'Figs' and 'Rhubarb' are excluded
       assert.includeMembers((await parseFilterState()).excluded, ['Dates', 'Figs', 'Rhubarb']);
     });
 
-    it('should maintain selection across shown item when clicking `Other Values`', async () => {
+    it('should maintain selection across shown item when clicking `Other values`', async () => {
       // unselect Apple
       await driver.findContent('.test-filter-menu-list label', /Apple/).click();
 
@@ -91,8 +91,8 @@ describe('ColumnFilterMenu2', function() {
       assert.equal(await driver.findContent('.test-filter-menu-list label', /Apple/).find('input').isSelected(),
                    false);
 
-      // Click 'Other Values'
-      await driver.findContent('.test-filter-menu-summary', /Other Values/).find('label').click();
+      // Click 'Other values'
+      await driver.findContent('.test-filter-menu-summary', /Other values/).find('label').click();
 
       // Check Apple is still not included
       assert.equal(await driver.findContent('.test-filter-menu-list label', /Apple/).find('input').isSelected(),
@@ -101,17 +101,17 @@ describe('ColumnFilterMenu2', function() {
 
     it('should also have a working `Future Values`', async () => {
       // check Future Values is checked
-      assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+      assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                    true);
 
       // check filter is an exclusion filter
       assert.deepEqual(Object.keys(await parseFilterState()), ['excluded']);
 
       // Click Future Values
-      await driver.findContent('.test-filter-menu-summary', /Future Values/).find('label').click();
+      await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
 
       // check Future values is unchecked
-      assert.equal(await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').isSelected(),
+      assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
                    false);
 
       // Check filter is an inclusion filter

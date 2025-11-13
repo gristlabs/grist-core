@@ -281,11 +281,11 @@ describe('ChartView1', function() {
   it('should be able to render different types of charts', async function() {
     const chartDom = await driver.find('.test-chart-container');
 
-    await selectChartType('Pie Chart');
+    await selectChartType('Pie chart');
     let data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'pie');
     assert.equal(await driver.find('.test-chart-first-field-label').getText(), 'LABEL');
-    await selectChartType('Line Chart');
+    await selectChartType('Line chart');
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'scatter');
     // Make sure we are not grouping (which would produce names like "1 · value")
@@ -293,27 +293,27 @@ describe('ChartView1', function() {
     assert.equal(data[1].name, 'value');
     assert.equal(await driver.find('.test-chart-first-field-label').getText(), 'X-AXIS');
 
-    await selectChartType('Area Chart');
+    await selectChartType('Area chart');
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'scatter');
     assert.deepEqual(data[0].line!.shape, 'spline');
     assert.deepEqual(data[0].fill, 'tozeroy');
-    assert.equal(await driver.find('.test-chart-type').getText(), 'Area Chart');
+    assert.equal(await driver.find('.test-chart-type').getText(), 'Area chart');
 
     // Make sure first field of scatter plot is marked label, not x-axis.
-    await selectChartType('Scatter Plot');
+    await selectChartType('Scatter plot');
     assert.equal(await driver.find('.test-chart-first-field-label').getText(), 'LABEL');
 
     // Make sure first field of Kaplan-Meier plot is marked label, not x-axis.
-    await selectChartType('Kaplan-Meier Plot');
+    await selectChartType('Kaplan-Meier plot');
     assert.equal(await driver.find('.test-chart-first-field-label').getText(), 'LABEL');
 
-    // Return to Area Chart.
-    await selectChartType('Area Chart');
+    // Return to Area chart.
+    await selectChartType('Area chart');
   });
 
   it('should render pie charts with a single series, or counts', async function() {
-    await selectChartType('Pie Chart');
+    await selectChartType('Pie chart');
 
     // select 'person' for x axis
     await selectXAxis('person');
@@ -352,12 +352,12 @@ describe('ChartView1', function() {
     });
 
     // check chart type
-    assert.equal(await driver.find('.test-chart-type').getText(), 'Area Chart');
+    assert.equal(await driver.find('.test-chart-type').getText(), 'Area chart');
   });
 
   it('should support Y-axis options', async function() {
     const chartDom = await driver.find('.test-chart-container');
-    await selectChartType('Bar Chart');
+    await selectChartType('Bar chart');
     checkAxisRange(await getChartData(chartDom), 0.5, 61.5, 0, 57);
 
     await driver.findContent('label', /Invert Y-axis/).find('input').click();
@@ -376,14 +376,14 @@ describe('ChartView1', function() {
       yaxis: ['largeValue', 'value']
     });
     // check chart type
-    assert.equal(await driver.find('.test-chart-type').getText(), 'Area Chart');
+    assert.equal(await driver.find('.test-chart-type').getText(), 'Area chart');
   });
 
   it('should be able to render multiseries line charts', async function() {
     const chartDom = await driver.find('.test-chart-container');
 
     // switch type to line chart
-    await selectChartType('Line Chart');
+    await selectChartType('Line chart');
 
     // pick 'largeValue' as the x axis
     await selectXAxis('largeValue');
@@ -435,13 +435,13 @@ describe('ChartView1', function() {
       yaxis: ['largeValue', 'value'],
     });
     // check chart type
-    assert.equal(await driver.find('.test-chart-type').getText(), 'Area Chart');
+    assert.equal(await driver.find('.test-chart-type').getText(), 'Area chart');
   });
 
   it('should get options for SPLIT SERIES and X AXIS in sync when table changes', async function() {
 
     // click change widget
-    await driver.findContent('button', 'Change Widget').click();
+    await driver.findContent('button', 'Change widget').click();
 
     // click sum symbol
     await driver.findContent('.test-wselect-table', 'People').click();
@@ -507,7 +507,7 @@ describe('ChartView1', function() {
   it('should disabled split series option for pie charts', async function() {
 
     // start with line chart type
-    await selectChartType('Line Chart');
+    await selectChartType('Line chart');
 
     // check the split series option is present
     assert.equal(await driver.findContent('label', /Split series/).isPresent(), true);
@@ -528,7 +528,7 @@ describe('ChartView1', function() {
     });
 
     // select pie chart type
-    await selectChartType('Pie Chart');
+    await selectChartType('Pie chart');
 
     // check that the split series option is not present
     assert.equal(await driver.findContent('label', /Split series/).isPresent(), false);
@@ -540,7 +540,7 @@ describe('ChartView1', function() {
       xaxis: 'label',
       yaxis: ['largeValue', 'value'],
     });
-    assert.equal(await driver.find('.test-chart-type').getText(), 'Pie Chart');
+    assert.equal(await driver.find('.test-chart-type').getText(), 'Pie chart');
 
     // undo
     await gu.undo(2);
@@ -549,7 +549,7 @@ describe('ChartView1', function() {
       xaxis: 'label',
       yaxis: ['largeValue', 'value'],
     });
-    assert.equal(await driver.find('.test-chart-type').getText(), 'Line Chart');
+    assert.equal(await driver.find('.test-chart-type').getText(), 'Line chart');
   });
 
   it('should render dates properly on X-axis', async function() {
@@ -604,7 +604,7 @@ describe('ChartView1', function() {
 
   it('should support error bars', async function() {
     // We start with a line chart with MyDate on X-axis, and two series: largeValue and value.
-    await selectChartType('Line Chart');
+    await selectChartType('Line chart');
     await checkAxisConfig({xaxis: 'MyDate', yaxis: ['largeValue', 'value']});
 
     // Symmetric error bars should leave only the largeValue series, with 'value' for error bars.
@@ -642,7 +642,7 @@ describe('ChartView1', function() {
     assert.lengthOf(data, 1);
 
     // Should work also for bar charts
-    await selectChartType('Bar Chart');
+    await selectChartType('Bar chart');
     data = (await getChartData(chartDom)).data;
     assert.deepEqual(data[0].type, 'bar');
     assert.deepEqual(data[0].y, [22, 33, 11, 44, 22, 55]);
@@ -760,7 +760,7 @@ describe('ChartView1', function() {
     await gu.findOpenMenuItem('li', 'Widget options').click();
 
     // open the page widget picker
-    await driver.findContent('.test-right-panel button', 'Change Widget').click();
+    await driver.findContent('.test-right-panel button', 'Change widget').click();
 
     // click the summarize button
     await driver.findContent('.test-wselect-table', 'ChartData').find('.test-wselect-pivot').click();
@@ -796,7 +796,7 @@ describe('ChartView1', function() {
     // Add a chart of this data, and configure it first to just show X and Y1, Y2 series.
     await gu.addNewSection(/Chart/, /ChartData-Sort_Test/);
     await gu.toggleSidePanel('right', 'open');
-    await selectChartType('Line Chart');
+    await selectChartType('Line chart');
 
     // Show series X, Y1, Y2, grouped by Group.
     await selectXAxis('X');

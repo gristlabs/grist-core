@@ -296,7 +296,7 @@ describe('SectionFilter', function() {
         await menu.findAll('.test-filter-menu-list .test-filter-menu-value', (e) => e.getText()),
         ['2019-06-07']
       );
-      await menu.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
+      await menu.findContent('.test-filter-menu-bulk-action', /All shown/).click();
       assert.deepEqual(
         await gu.getVisibleGridCells(2, [1, 2]),
         ['2019-06-07', '']

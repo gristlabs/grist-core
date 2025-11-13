@@ -1,4 +1,5 @@
 import {UserOptions, UserProfile} from 'app/common/UserAPI';
+import {UserType} from 'app/common/User';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {makeId} from 'app/server/lib/idUtils';
 import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
@@ -8,9 +9,12 @@ import {Group} from "app/gen-server/entity/Group";
 import {Login} from "app/gen-server/entity/Login";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Pref} from 'app/gen-server/entity/Pref';
+import {ServiceAccount} from 'app/gen-server/entity/ServiceAccount';
 
 @Entity({name: 'users'})
 export class User extends BaseEntity {
+  public static readonly LOGIN_TYPE: UserType = 'login';
+  public static readonly SERVICE_TYPE: UserType = 'service';
 
   @PrimaryGeneratedColumn()
   public id: number;
@@ -61,6 +65,8 @@ export class User extends BaseEntity {
   @Column({name: 'connect_id', type: String, nullable: true})
   public connectId: string | null;
 
+  @OneToOne(() => ServiceAccount, sa => sa.serviceUser)
+  public serviceAccount?: ServiceAccount;
   /**
    * Unique reference for this user. Primarily used as an ownership key in a cell metadata (comments).
    */
@@ -73,6 +79,12 @@ export class User extends BaseEntity {
   // A random public key that can be used to manage document preferences without authentication.
   @Column({name: 'unsubscribe_key', type: String, nullable: true})
   public unsubscribeKey: string|null;
+
+  @Column({name: 'type', type: String, enum: [User.LOGIN_TYPE, User.SERVICE_TYPE], default: User.LOGIN_TYPE,
+    // Must be null for migrations testing purpose
+    nullable: true,
+  })
+  public type: UserType;
 
   @BeforeInsert()
   public async beforeInsert() {

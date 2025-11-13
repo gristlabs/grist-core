@@ -161,7 +161,7 @@ describe('BehavioralPrompts', function() {
       await session.tempNewDoc(cleanup, 'BehavioralPromptsAddNew');
       await driver.find('.test-bc-workspace').click();
       await gu.waitForDocMenuToLoad();
-      await assertPromptTitle('Add New');
+      await assertPromptTitle('Add new');
     });
 
     it('should not be shown on the Trash page', async function() {
@@ -178,13 +178,13 @@ describe('BehavioralPrompts', function() {
       await gu.waitForServer();
       await assertPromptTitle(null);
       await gu.loadDocMenu('/');
-      await assertPromptTitle('Add New');
+      await assertPromptTitle('Add new');
     });
 
     it('should only be shown once on each visit', async function() {
       // Navigate to the home page for the first time; the tip should be shown.
       await gu.loadDocMenu('/');
-      await assertPromptTitle('Add New');
+      await assertPromptTitle('Add new');
 
       // Switch to a different page; the tip should no longer be shown.
       await driver.findContent('.test-dm-workspace', /Home/).click();
@@ -194,7 +194,7 @@ describe('BehavioralPrompts', function() {
       // Reload the page; the tip should be shown again.
       await driver.navigate().refresh();
       await gu.waitForDocMenuToLoad();
-      await assertPromptTitle('Add New');
+      await assertPromptTitle('Add new');
     });
   });
 

@@ -80,10 +80,10 @@ export class DocSettingsPage extends Disposable {
     const isFork = docPageModel.currentDoc.get()?.isFork;
 
     return cssContainer({tabIndex: '-1'},
-      dom.create(AdminSection, t('Document Settings'), [
+      dom.create(AdminSection, t('Document settings'), [
         dom.create(AdminSectionItem, {
           id: 'timezone',
-          name: t('Time Zone'),
+          name: t('Time zone'),
           description: t('Default for DateTime columns'),
           value: dom.create(cssTZAutoComplete, moment, fromKo(this._timezone), (val) => this._timezone.saveOnly(val)),
         }),
@@ -155,7 +155,7 @@ export class DocSettingsPage extends Disposable {
 
       dom.create(buildNotificationsConfig, this._gristDoc.docApi, docPageModel.currentDoc.get()),
 
-      dom.create(AdminSection, t('Data Engine'), [
+      dom.create(AdminSection, t('Data engine'), [
         dom.create(AdminSectionItem, {
           id: 'timings',
           name: t('Formula timer'),
@@ -239,7 +239,7 @@ document is first opened, or when a document responds to changes.'
         }),
         dom.create(AdminSectionItem, {
           id: 'api-console',
-          name: t('API Console'),
+          name: t('API console'),
           description: t('Try API calls from the browser'),
           value: cssSmallLinkButtonSettings(t('API console'), {
             target: '_blank',

@@ -157,7 +157,7 @@ and is subject to change and withdrawal.`,
           isReadOnly ? [
             dom('p', 'Would you like to suggest some changes?'),
             bigPrimaryButton(
-              t("Work on a Copy"),
+              t("Work on a copy"),
               dom.on('click', async () => {
                 const {urlId} = await this.gristDoc.docComm.fork();
                 await urlState().pushUrl({doc: urlId});

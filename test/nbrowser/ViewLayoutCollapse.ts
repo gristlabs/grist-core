@@ -36,7 +36,7 @@ describe("ViewLayoutCollapse", function() {
     await gu.openWidgetPanel('widget');
 
     // Try to change the widget type.
-    await driver.findContent('.test-right-panel button', /Change Widget/).click();
+    await driver.findContent('.test-right-panel button', /Change widget/).click();
 
     // Click the summary icon next to the table name.
     await driver.findContentWait('.test-wselect-table', /Table1/, 50).find('.test-wselect-pivot').doClick();

@@ -65,13 +65,13 @@ export function permissionsWidget(
           null
         ),
         // If the set matches any recognized pattern, mark that item with a tick (checkmark).
-        cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow All"),
+        cssMenuItem(() => setPermissions(allowAll), tick(isEqual(pset.get(), allowAll)), t("Allow all"),
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny All"),
+        cssMenuItem(() => setPermissions(denyAll), tick(isEqual(pset.get(), denyAll)), t("Deny all"),
           dom.cls('disabled', options.disabled)
         ),
-        cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read Only"),
+        cssMenuItem(() => setPermissions(readOnly), tick(isEqual(pset.get(), readOnly)), t("Read only"),
           dom.cls('disabled', options.disabled)
         ),
         cssMenuItem(() => setPermissions(empty),

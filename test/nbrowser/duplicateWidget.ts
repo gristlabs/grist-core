@@ -140,7 +140,7 @@ describe("duplicateWidget", function() {
       assert.equal(await gu.getCurrentPageName(), newPageName);
       await renameLastWidget('Widget 4');
       // Ensure the 'select by' was cleared, as it was only valid on the same page.
-      assert.equal(await gu.selectedBy(), 'Select Widget');
+      assert.equal(await gu.selectedBy(), 'Select widget');
     });
 
     it('can duplicate the widget to a new page', async function() {

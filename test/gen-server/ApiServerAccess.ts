@@ -1,6 +1,5 @@
 import {Role} from 'app/common/roles';
 import {getRealAccess, PermissionData, PermissionDelta, UserAPI} from 'app/common/UserAPI';
-import {Deps} from 'app/gen-server/ApiServer';
 import {Organization} from 'app/gen-server/entity/Organization';
 import {Product} from 'app/gen-server/entity/Product';
 import {User} from 'app/gen-server/entity/User';
@@ -2267,45 +2266,6 @@ describe('ApiServerAccess', function() {
        });
     });
 
-    describe('generates a unique key', function() {
-      let apiKeyGenerator: sinon.SinonStub;
-      let apiKeyGeneratorReturns: string[];
-
-      before(function() {
-        apiKeyGenerator = sinon.stub(Deps, 'apiKeyGenerator');
-        apiKeyGenerator.callsFake(() => apiKeyGeneratorReturns.shift()!);
-      });
-
-      after(function() {
-        apiKeyGenerator.restore();
-      });
-
-      it('retries until the generated key is unique', async function() {
-        apiKeyGeneratorReturns = ['api_key_for_charon', 'santa1'];
-        resp = await axios.post(`${homeUrl}/api/profile/apikey`, {force: true}, kiwi);
-        assert.equal(resp.status, 200);
-        assert.equal(resp.data, 'santa1');
-        assert.equal(apiKeyGenerator.callCount, 2);
-        apiKeyGenerator.resetHistory();
-        kiwi.headers = {Authorization: 'Bearer ' + resp.data};
-
-        apiKeyGeneratorReturns = ['api_key_for_charon', 'api_key_for_charon', 'santa2'];
-        resp = await axios.post(`${homeUrl}/api/profile/apikey`, {force: true}, kiwi);
-        assert.equal(resp.status, 200);
-        assert.equal(resp.data, 'santa2');
-        assert.equal(apiKeyGenerator.callCount, 3);
-        apiKeyGenerator.resetHistory();
-        kiwi.headers = {Authorization: 'Bearer ' + resp.data};
-
-        // after 5 attempts throws
-        apiKeyGeneratorReturns = ['api_key_for_charon', 'api_key_for_charon', 'api_key_for_charon',
-          'api_key_for_charon', 'api_key_for_charon', 'santa3'];
-        resp = await axios.post(`${homeUrl}/api/profile/apikey`, {force: true}, kiwi);
-        assert.equal(resp.status, 500);
-        assert.deepEqual(resp.data, {error: 'Could not generate a valid api key.'});
-      });
-
-    });
   });
 });
 

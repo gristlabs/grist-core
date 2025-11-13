@@ -183,7 +183,7 @@ ViewConfigTab.prototype._buildLayoutDom = function() {
     const layoutEditorObs = ko.computed(() => view && view.recordLayout && view.recordLayout.layoutEditor());
     return cssRow({style: 'margin-top: 16px;'},
       kd.maybe(layoutEditorObs, (editor) => editor.buildFinishButtons()),
-      primaryButton(t("Edit Card Layout"),
+      primaryButton(t("Edit card layout"),
         dom.autoDispose(layoutEditorObs),
         dom.on('click', () => commands.allCommands.editLayout.run()),
         grainjsDom.hide(layoutEditorObs),

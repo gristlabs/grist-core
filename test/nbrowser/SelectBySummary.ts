@@ -187,10 +187,10 @@ describe('SelectBySummary', function() {
     await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
 
     // Deny all access to Table1.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /Table1/, 3000).click();
     const ruleSet = findDefaultRuleSet(/Table1/);
-    await enterRulePart(ruleSet, 1, null, 'Deny All');
+    await enterRulePart(ruleSet, 1, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 
