@@ -993,7 +993,7 @@ export async function importFileDialog(filePath: string): Promise<void> {
 export async function importUrlDialog(url: string): Promise<void> {
   await driver.wait(() => driver.find('.test-dp-add-new').isDisplayed(), 3000);
   await driver.findWait('.test-dp-add-new', 1000).doClick();
-  await driver.findContent('.test-dp-import-option', /Import from URL/i).doClick();
+  await driver.findContentWait('.test-dp-import-option', /Import from URL/i, 2000).doClick();
   await driver.findWait('.test-importer-dialog', 5000);
   await waitForServer();
   const iframe = driver.find('.test-importer-dialog').find('iframe');

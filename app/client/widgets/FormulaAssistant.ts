@@ -534,7 +534,7 @@ async function askAI(grist: GristDoc, options: {
   const {column, description, conversationId, state} = options;
   const tableId = column.table.peek().tableId.peek();
   const colId = column.colId.peek();
-  return await grist.docApi.getAssistance({
+  return await grist.docComm.getAssistance({
     conversationId,
     context: {tableId, colId},
     text: description,

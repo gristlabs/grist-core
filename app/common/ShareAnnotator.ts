@@ -1,6 +1,13 @@
 import { Features } from 'app/common/Features';
 import { normalizeEmail } from 'app/common/emails';
-import { PermissionData, PermissionDelta } from 'app/common/UserAPI';
+import {
+  ANONYMOUS_USER_EMAIL,
+  EVERYONE_EMAIL,
+  PermissionData,
+  PermissionDelta,
+  PREVIEWER_EMAIL,
+} from 'app/common/UserAPI';
+import omitBy from 'lodash/omitBy';
 
 /**
  * Mark that the share is share number #at of a maximum of #top. The #at values
@@ -31,6 +38,15 @@ export interface ShareAnnotations {
 export interface ShareAnnotatorOptions {
   supportEmail?: string;   // Known email address of the support user (e.g. support@getgrist.com).
 }
+
+/**
+ * Emails not counted towards collaborator limits.
+ */
+const EXCLUDED_EMAILS = new Set([
+  PREVIEWER_EMAIL,
+  EVERYONE_EMAIL,
+  ANONYMOUS_USER_EMAIL,
+]);
 
 /**
  * Helper for annotating users mentioned in a proposed change of shares, given the
@@ -79,16 +95,23 @@ export class ShareAnnotator {
       }
       return annotation;
     };
+    const users = Object.entries(
+      omitBy(
+        change?.users||{},
+        (_v, k) => EXCLUDED_EMAILS.has(k)
+      )
+    );
     const removed = new Set(
-      Object.entries(change?.users||{}).filter(([, v]) => v === null)
+      users.filter(([, v]) => v === null)
         .map(([k, ]) => normalizeEmail(k)));
     for (const user of this._state.users) {
+      if (EXCLUDED_EMAILS.has(user.email)) { continue; }
       if (removed.has(user.email)) { continue; }
       if (!user.isMember && !user.access) { continue; }
       annotations.users.set(user.email, makeAnnotation(user));
     }
     const tweaks = new Set(
-      Object.entries(change?.users||{}).filter(([, v]) => v !== null)
+      users.filter(([, v]) => v !== null)
         .map(([k, ]) => normalizeEmail(k)));
     for (const email of tweaks) {
       const annotation = annotations.users.get(email) || makeAnnotation({

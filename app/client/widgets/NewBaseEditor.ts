@@ -66,7 +66,7 @@ export abstract class NewBaseEditor extends Disposable {
   public static skipEditor(
     typedVal: string|undefined,
     origVal: CellValue,
-    options?: {event?: KeyboardEvent|MouseEvent}
+    options?: {event?: Event}
   ): CellValue|undefined {
     return undefined;
   }

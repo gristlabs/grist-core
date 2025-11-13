@@ -126,7 +126,9 @@ export default class DetailView extends BaseView {
 
     // Double-clicking on a field also starts editing the field.
     this.autoDispose(dom.onMatchElem(this.viewPane, '.g_record_detail_el', 'dblclick', (event, elem) => {
-      this.activateEditorAtCursor();
+      this.activateEditorAtCursor({
+        event,
+      });
     }));
 
     // We authorize single click only on the value to avoid conflict with tooltip
@@ -140,7 +142,9 @@ export default class DetailView extends BaseView {
         && !isNarrowScreen()
         && this._canSingleClick(field)
       ) {
-        this.activateEditorAtCursor();
+        this.activateEditorAtCursor({
+          event,
+        });
       }
     }));
 

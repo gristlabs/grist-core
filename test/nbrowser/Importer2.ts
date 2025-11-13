@@ -26,6 +26,40 @@ describe('Importer2', function() {
 
   afterEach(() => gu.checkForErrors());
 
+  it('should close formula editor when switching sources or closing importer', async function() {
+    await gu.importFileDialog('./uploads/World-v0.xlsx');
+    assert.equal(await driver.findWait('.test-importer-preview', 5000).isPresent(), true);
+
+    // Double-click a preview cell to open the formula editor in the preview grid.
+    await gu.dbClick(await gu.getPreviewCell(0, 1));
+    await waitForFormulaEditor();
+
+    // Click away (on a configuration control) to remove focus and close the editor.
+    await driver.find('.test-importer-target-new-table').click();
+    await gu.waitForServer();
+    await waitForFormulaEditorToClose();
+
+    // Open the editor again in the preview grid.
+    await gu.dbClick(await gu.getPreviewCell(1, 1));
+    await waitForFormulaEditor();
+
+    // Switching source tables should also close any open editor.
+    await driver.findContent('.test-importer-source', /City/).click();
+    await gu.waitForServer();
+    await waitForFormulaEditorToClose();
+
+    // Re-open once more, then cancel the importer and verify cleanup on close.
+    await driver.findContent('.test-importer-source', /Table1/).click();
+    await gu.waitForServer();
+    await gu.dbClick(await gu.getPreviewCell(2, 2));
+    await waitForFormulaEditor();
+
+    // Cancel the import to verify that the formula editor is closed.
+    await driver.find('.test-modal-cancel').click();
+    await gu.waitAppFocus();
+    await waitForFormulaEditorToClose();
+  });
+
   it("should import new tables losslessly", async function() {
     // Import mixed_dates.csv into a new table
     await gu.importFileDialog('./uploads/mixed_dates.csv');
@@ -823,3 +857,13 @@ describe('Importer2', function() {
     });
   });
 });
+
+// Wait until the formula editor is open or closed.
+async function checkFormulaEditor(open: boolean, timeout: number = 2000): Promise<void> {
+  await gu.waitToPass(async () => {
+    assert.equal(await driver.find('.test-formula-editor').isPresent(), open);
+  }, timeout);
+}
+
+const waitForFormulaEditor = checkFormulaEditor.bind(null, true);
+const waitForFormulaEditorToClose = checkFormulaEditor.bind(null, false);

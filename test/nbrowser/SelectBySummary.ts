@@ -8,7 +8,7 @@ describe('SelectBySummary', function() {
   this.timeout(50000);
   const cleanup = setupTestSuite();
   let headers: Record<string, string>;
-  gu.bigScreen();
+  gu.bigScreen('big');
 
   before(async function() {
     const session = await gu.session().teamSite.login();
@@ -120,8 +120,10 @@ describe('SelectBySummary', function() {
 
       // Create new records with rownum = 99 and 100
       await gu.getCell({section: 'TABLE1', col: 'rownum', rowNum: 3}).click();
+      await gu.waitAppFocus();
       await gu.enterCell('99');
       await gu.enterCell('100');
+      await driver.sleep(100); // there is some setTimeout in Grist somewhere here.
 
       assert.deepEqual(
         await gu.getVisibleGridCells({
@@ -311,7 +313,8 @@ async function checkSelectingRecords(
       await driver.withActions(a => a.click(anchorCell.find('.test-tb-link')));
 
       // Check that navigation to the link target worked
-      assert.equal(await gu.getActiveSectionTitle(), "TABLE1");
+      await gu.waitToPass(async () =>
+        assert.equal(await gu.getActiveSectionTitle(), "TABLE1"));
       assert.equal(await gu.getActiveCell().getText(), String(rowNum));
 
       // Check that the link target is still filtered correctly by the link source,

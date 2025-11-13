@@ -41,6 +41,7 @@ export interface CommResponseError {
   details?: any;  // if set, error has extra details available. TODO - the treatment of
                   // details could do with some harmonisation between rest API and ws API,
                   // and between front-end and back-end types.
+  status?: number;  // if set, a REST API style code.
 }
 
 /**

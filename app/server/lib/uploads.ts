@@ -9,6 +9,7 @@ import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
 import {GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
 import {guessExt} from 'app/server/lib/guessExt';
 import log from 'app/server/lib/log';
+import {fetchUntrustedWithAgent} from 'app/server/lib/ProxyAgent';
 import {optStringParam} from 'app/server/lib/requestUtils';
 import {isPathWithin} from 'app/server/lib/serverUtils';
 import * as shutdown from 'app/server/lib/shutdown';
@@ -19,7 +20,7 @@ import {Application, Request, RequestHandler, Response} from 'express';
 import * as fse from 'fs-extra';
 import pick = require('lodash/pick');
 import * as multiparty from 'multiparty';
-import fetch, {Response as FetchResponse} from 'node-fetch';
+import {Response as FetchResponse} from 'node-fetch';
 import stream from 'node:stream';
 import * as path from 'path';
 import * as tmp from 'tmp';
@@ -32,7 +33,7 @@ import {getDocWorkerInfoOrSelfPrefix} from 'app/server/lib/DocWorkerUtils';
 const INACTIVITY_CLEANUP_MS = 60 * 60 * 1000;     // an hour, very generously.
 
 // A hook for dependency injection.
-export const Deps = {fetch, INACTIVITY_CLEANUP_MS};
+export const Deps = {fetch: fetchUntrustedWithAgent, INACTIVITY_CLEANUP_MS};
 
 // An optional UploadResult, with parameters.
 export interface FormResult {
