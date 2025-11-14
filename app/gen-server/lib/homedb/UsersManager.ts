@@ -23,7 +23,14 @@ import { User } from 'app/gen-server/entity/User';
 import { appSettings } from 'app/server/lib/AppSettings';
 import { HomeDBManager, PermissionDeltaAnalysis, Scope, UserIdDelta } from 'app/gen-server/lib/homedb/HomeDBManager';
 import {
-  AvailableUsers, GetExistingUserOptions, GetUserOptions, NonGuestGroup, QueryResult, Resource, RunInTransaction, UserProfileChange
+  AvailableUsers,
+  GetExistingUserOptions,
+  GetUserOptions,
+  NonGuestGroup,
+  QueryResult,
+  Resource,
+  RunInTransaction,
+  UserProfileChange,
 } from 'app/gen-server/lib/homedb/Interfaces';
 import { Permissions } from 'app/gen-server/lib/Permissions';
 import { Pref } from 'app/gen-server/entity/Pref';

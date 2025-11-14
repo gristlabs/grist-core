@@ -165,10 +165,10 @@ export async function addRequestUser(
   dbManager: HomeDBAuth, permitStore: IPermitStore,
   options: {
     gristServer: GristServer,
+    clearSession: (req: RequestWithLogin) => Promise<void>,
     skipSession?: boolean,
     createUserAuto?: boolean,
     overrideProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
-    clearSession: (req: RequestWithLogin) => Promise<void>,
   },
   req: Request, res: Response, next: NextFunction
 ) {
@@ -294,8 +294,8 @@ export async function addRequestUser(
         if (user) {
           setRequestUser(mreq, dbManager, user);
         } else {
-          options.clearSession(mreq)
-          throw new ApiError('unrecognized user 1', 403);
+          await options.clearSession(mreq);
+          throw new ApiError('Unrecognized user', 403);
         }
       }
     }
@@ -378,8 +378,8 @@ export async function addRequestUser(
           if(!options.createUserAuto) {
             user = await dbManager.getExistingUserByLogin(option.email, {withOrgs: true});
             if(!user) {
-              options.clearSession(mreq)
-              throw new ApiError('unrecognized user 2', 403);
+              await options.clearSession(mreq);
+              throw new ApiError('Unrecognized user', 403);
             }
             if(userOptions?.authSubject && userOptions.authSubject !== user.options?.authSubject) {
               await dbManager.updateUserOptions(user.id, userOptions);
@@ -419,9 +419,9 @@ export async function addRequestUser(
         let user: User|undefined;
         if(!options.createUserAuto) {
           user = await dbManager.getExistingUserByLogin(profile.email, {withOrgs: false});
-          if(!user) { 
-            options.clearSession(mreq)
-            throw new ApiError('unrecognized user 3', 403); 
+          if(!user) {
+            await options.clearSession(mreq);
+            throw new ApiError('Unrecognized user', 403);
           }
           if(userOptions?.authSubject && userOptions.authSubject !== user.options?.authSubject) {
             await dbManager.updateUserOptions(user.id, userOptions);
