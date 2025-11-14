@@ -10,7 +10,7 @@ import { rateLimit } from 'express-rate-limit';
 import { AbortController, AbortSignal } from 'node-abort-controller';
 import type * as express from "express";
 import fetch from "node-fetch";
-
+import * as semver from "semver";
 
 // URL to show to the client where the new version for docker based deployments can be found.
 const DOCKER_IMAGE_SITE = "https://hub.docker.com/r/gristlabs/grist";
@@ -27,6 +27,8 @@ const GOOD_RESULT_TTL = optIntegerParam(process.env.GRIST_TEST_UPDATE_CHECK_TTL,
 // We cache the bad result errors from external resources for a minute.
 const BAD_RESULT_TTL = optIntegerParam(process.env.GRIST_TEST_UPDATE_ERROR_TTL, '') ?? 60 * 1000; // 1m
 
+const OLDEST_RECOMMENDED_VERSION = process.env.GRIST_OLDEST_RECOMMENDED_VERSION;
+
 // A hook for tests to override the default values.
 export const Deps = {
   DOCKER_IMAGE_SITE,
@@ -35,6 +37,7 @@ export const Deps = {
   RETRY_TIMEOUT,
   GOOD_RESULT_TTL,
   BAD_RESULT_TTL,
+  OLDEST_RECOMMENDED_VERSION,
 };
 
 /**
@@ -121,12 +124,18 @@ export class UpdateManager {
         "deploymentType"
       ) as GristDeploymentType|undefined;
 
+      const currentVersion = optStringParam(
+        payload("currentVersion"),
+        "currentVersion"
+      );
+
       this._server
         .getTelemetry()
         .logEvent(req as RequestWithLogin, "checkedUpdateAPI", {
           full: {
             deploymentId,
-            deploymentType
+            deploymentType,
+            currentVersion,
           },
         });
 
@@ -149,6 +158,19 @@ export class UpdateManager {
         this._latestVersion.setWithCustomTTL(deploymentToCheck, Promise.resolve(resData), Deps.BAD_RESULT_TTL);
         throw resData;
       }
+      // Check if the version we're reporting is critical for the caller.
+      const oldestVersion = Deps.OLDEST_RECOMMENDED_VERSION;
+      if (currentVersion && oldestVersion) {
+        try {
+          resData.isCritical = semver.gt(oldestVersion, currentVersion);
+        } catch (e) {
+          throw new ApiError(
+            `/api/version got a bad version number ${currentVersion} (incomparable with ${oldestVersion})`,
+            400
+          );
+        }
+      }
+
       res.json(resData);
     }));
   }
@@ -197,6 +219,8 @@ export async function getLatestStableDockerVersion(signal: AbortSignal): Promise
     return {
       latestVersion: last.name,
       updatedAt: last.tag_last_pushed,
+      // Versions are not critical, upgrades are, so we'll set that
+      // later when we know the version the user is currently at.
       isCritical: false,
       updateURL: Deps.DOCKER_IMAGE_SITE
     };
