@@ -633,12 +633,13 @@ export class UsersManager {
       email: SUPPORT_EMAIL,
       name: "Support"
     });
-    const installAdminEmail = appSettings.section('access').flag('installAdminEmail').requireString({
+    const installAdminEmail = appSettings.section('access').flag('installAdminEmail').readString({
       envVar: 'GRIST_DEFAULT_EMAIL',
-    });
+      defaultValue: 'you@example.com',
+    })!;
     await this._maybeCreateSpecialUserId({
       email: installAdminEmail,
-      name: "Admin"
+      name: "You"
     });
   }
 
