@@ -2645,7 +2645,7 @@ export class FlexServer implements GristServer {
    */
   private _logoutMiddleware() {
     const sessionClearMiddleware = expressWrap(async (req, resp, next) => {
-      this._clearSession(req as RequestWithLogin)
+      await this._clearSession(req as RequestWithLogin);
       next();
     });
     const pluggedMiddleware = this._loginMiddleware.getLogoutMiddleware ?
