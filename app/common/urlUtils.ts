@@ -81,3 +81,26 @@ export function fetchFromHome(path: string, opts: RequestInit): Promise<Response
   const baseUrl = addCurrentOrgToPath(getGristConfig().homeUrl!);
   return window.fetch(`${baseUrl}${path}`, opts);
 }
+
+export function appendBasePath(path: string, config: Partial<GristLoadConfig> | null = null): string {
+  if (config == null) {
+    config = getGristConfig();
+  }
+  const basePath = config.basePath;
+  if (!basePath) {
+    return path;
+  }
+  return basePath + path;
+}
+
+export function stripBasePath(path: string, config: Partial<GristLoadConfig> | null = null): string {
+  if (config == null) {
+    config = getGristConfig();
+  }
+  const basePath = config.basePath;
+  if (!basePath) {
+    return path;
+  }
+
+  return path.startsWith(basePath)? path.substring(basePath.length) : path;
+}

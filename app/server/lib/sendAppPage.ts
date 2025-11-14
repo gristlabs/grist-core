@@ -138,6 +138,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     formFraming: GRIST_FEATURE_FORM_FRAMING as FormFraming,
     adminDefinedUrls: process.env.GRIST_CUSTOM_COMMON_URLS,
     userPresenceMaxUsers: getUserPresenceMaxUsers(),
+    basePath: process.env.GRIST_BASE_PATH,
     ...extra,
   };
 }
