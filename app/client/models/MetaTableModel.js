@@ -204,7 +204,7 @@ MetaTableModel.prototype._createRowSetModel = function(rowSource, sortColId) {
   var getter = this.tableData.getRowPropFunc(sortColId);
   var sortedRowSet = rowset.SortedRowSet.create(null, function(r1, r2) {
     return gutil.nativeCompare(getter(r1), getter(r2));
-  });
+  }, undefined);
   sortedRowSet.subscribeTo(rowSource);
 
   // When the returned value is disposed, dispose the underlying SortedRowSet too.
