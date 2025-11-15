@@ -365,7 +365,7 @@ export class PageWidgetSelect extends Disposable {
           testId('data'),
           header(t("Select data")),
           cssEntry(
-            cssIcon('TypeTable'), 'New Table',
+            cssIcon('TypeTable'), t('New Table'),
             // prevent the selection of 'New Table' if it is disabled
             dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
             this._behavioralPromptsManager.attachPopup('pageWidgetPicker', {
