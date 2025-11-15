@@ -1948,7 +1948,7 @@ export class DocWorkerApi {
   }): Promise<string> {
     const {documentName, workspaceId} = options;
     const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
-      name: documentName ?? 'Untitled document',
+      name: documentName ?? req.t('DocApi.UntitledDocument'),
     });
     if (status !== 200) {
       throw new ApiError(errMessage || 'unable to create document', status);
