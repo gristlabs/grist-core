@@ -144,7 +144,9 @@ export default class GridView extends BaseView {
     super(gristDoc, viewSectionModel, { isPreview, 'addNewRow': true });
 
     this.viewSection = viewSectionModel;
-    this.isReadonly = this.gristDoc.isReadonly.get() || this.viewSection.isVirtual();
+    this.isReadonly = this.gristDoc.isReadonly.get() ||
+                      this.viewSection.isVirtual() ||
+                      isPreview;
 
     //--------------------------------------------------
     // Observables local to this view
@@ -315,7 +317,7 @@ export default class GridView extends BaseView {
 
     //--------------------------------------------------
     // Set up DOM event handling.
-    onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', () => this.activateEditorAtCursor());
+    onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', (event) => this.activateEditorAtCursor({event}));
     if (!this.isPreview) {
       dom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu',
         (ev, elem) => this.onCellContextMenu(ev, elem as Element), {useCapture: true}
@@ -1353,7 +1355,7 @@ export default class GridView extends BaseView {
 
                 let filterTriggerCtl: PopupControl;
                 const isTooltip = ko.pureComputed(() =>
-                  this.editingFormula() &&
+                  this.editingFormula() && !this.isReadonly &&
                   ko.unwrap(this.hoverColumn) === field._index()
                 );
 
@@ -1619,7 +1621,7 @@ export default class GridView extends BaseView {
             });
 
             const isTooltip = ko.pureComputed(() =>
-              this.editingFormula() &&
+              this.editingFormula() && !this.isReadonly &&
               ko.unwrap(this.hoverColumn) === field._index()
             );
 

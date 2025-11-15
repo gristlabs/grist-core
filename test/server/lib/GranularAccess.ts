@@ -4303,6 +4303,34 @@ describe('GranularAccess', function() {
       [ 'AddRecord', 'Data1', 5, { A: '16', B: true, manualSort: 5 } ]
     ]);
   });
+
+  it('is respected by /compare', async function() {
+
+    // The /compare endpoint should work for anyone with full read access.
+    await freshDoc();
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Table2', [{id: 'A', type: 'Int'}, {id: 'B', type: 'Int'}]],
+    ]);
+    const states = (await owner.getDocAPI(docId).getStates()).states;
+    assert.lengthOf(states, 2);
+    const v0 = states[0].h;
+    const v1 = states[1].h;
+    await assert.isFulfilled(editor.getDocAPI(docId).compareVersion(v1, v0));
+    await assert.isFulfilled(editor.getDocAPI(docId).compareDoc(docId, {detail: true}));
+
+    // The /compare endpoint should fail for anyone without full read
+    // access, currently.
+    await owner.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table2', colIds: '*'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: '-R',
+      }],
+    ]);
+    await assert.isFulfilled(owner.getDocAPI(docId).compareVersion(v1, v0));
+    await assert.isFulfilled(owner.getDocAPI(docId).compareDoc(docId, {detail: true}));
+    await assert.isRejected(editor.getDocAPI(docId).compareVersion(v1, v0), /insufficient access/);
+    await assert.isRejected(editor.getDocAPI(docId).compareDoc(docId, {detail: true}), /insufficient access/);
+  });
 });
 
 async function closeClient(cli: GristClient) {

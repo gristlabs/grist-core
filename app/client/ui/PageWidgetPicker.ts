@@ -344,7 +344,7 @@ export class PageWidgetSelect extends Disposable {
       testId('container'),
       cssBody(
         cssPanel(
-          header(t("Select Widget")),
+          header(t("Select widget")),
           sectionTypes.map((value) => {
             const widgetInfo = getWidgetTypes(value);
             const disabled = computed(this._value.table,
@@ -363,9 +363,9 @@ export class PageWidgetSelect extends Disposable {
         ),
         cssPanel(
           testId('data'),
-          header(t("Select Data")),
+          header(t("Select data")),
           cssEntry(
-            cssIcon('TypeTable'), 'New Table',
+            cssIcon('TypeTable'), t('New Table'),
             // prevent the selection of 'New Table' if it is disabled
             dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
             this._behavioralPromptsManager.attachPopup('pageWidgetPicker', {
@@ -443,7 +443,7 @@ export class PageWidgetSelect extends Disposable {
           bigPrimaryButton(
             // TODO: The button's label of the page widget picker should read 'Close' instead when
             // there are no changes.
-            this._options.buttonLabel || t("Add to Page"),
+            this._options.buttonLabel || t("Add to page"),
             dom.prop('disabled', (use) => !isValidSelection(
               use(this._value.table),
               use(this._value.type),

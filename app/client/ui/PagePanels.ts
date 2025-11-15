@@ -311,7 +311,7 @@ export function pagePanels(page: PageContents) {
 
           (!right || right.hideOpener ? null :
             unstyledButton(
-              {'aria-label': right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')},
+              {'aria-label': right.panelOpen.get() ? t('Close Creator Panel') : t('Open creator panel')},
               dom.on('click', () => toggleObs(right.panelOpen)),
               cssPanelOpener(
                 'PanelLeft',
@@ -319,7 +319,7 @@ export function pagePanels(page: PageContents) {
                 testId('right-opener'),
                 dom.cls('tour-creator-panel'),
                 hoverTooltip(
-                  () => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open Creator Panel')),
+                  () => (right.panelOpen.get() ? t('Close Creator Panel') : t('Open creator panel')),
                   {key: 'topBarBtnTooltip'}
                 ),
                 cssHideForNarrowScreen.cls('')

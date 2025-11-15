@@ -72,14 +72,16 @@ export class AttachmentsWidget extends NewAbstractWidget {
 
       dom.cls('field_clip'),
       dragOverClass('attachment_drag_over'),
-      cssAttachmentIcon(
-        cssAttachmentIcon.cls('-hover', (use) => use(values).length > 0),
-        dom.on('click', async (ev) => {
-          stopEvent(ev);
-          await this._selectAndSave(row, cellValue);
-        }),
-        testId('attachment-icon'),
-      ),
+      dom.maybe(use => !use(use(this.field.column).isRealFormula), () => [
+        cssAttachmentIcon(
+          cssAttachmentIcon.cls('-hover', (use) => use(values).length > 0),
+          dom.on('click', async (ev) => {
+            stopEvent(ev);
+            await this._selectAndSave(row, cellValue);
+          }),
+          testId('attachment-icon'),
+        ),
+      ]),
       dom.maybe<number>(row.id, rowId => {
         return dom.forEach(values, (value: number) =>
           isNaN(value) ? null : this._buildAttachment(value, values, {
@@ -149,7 +151,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
       // Open editor as if with input, using it to tell it which of the attachments to show. We
       // pass in a 1-based index. Hitting a key opens the cell, and this approach allows an
       // accidental feature of opening e.g. second attachment by hitting "2".
-      dom.on('dblclick', () => commands.allCommands.input.run(String(allValues.get().indexOf(value) + 1))),
+      dom.on('dblclick', (ev) => commands.allCommands.input.run(String(allValues.get().indexOf(value) + 1), ev)),
       testId('pw-thumbnail'),
     );
   }

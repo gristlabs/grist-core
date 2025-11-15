@@ -18,7 +18,7 @@ class ScimUserController extends BaseController {
   }
 
   /**
-   * Gets a single user with the passed ID.
+   * Gets a single login user with the passed ID.
    *
    * @param resource The SCIMMY user resource performing the operation
    * @param context The request context
@@ -27,7 +27,7 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const user = await this.dbManager.getUser(id);
-      if (!user) {
+      if (!user || user.type !== 'login') {
         throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
       }
       return toSCIMMYUser(user);
@@ -35,14 +35,16 @@ class ScimUserController extends BaseController {
   }
 
   /**
-   * Gets all users or filters them based on the passed filter.
+   * Gets all login users or filters them based on the passed filter.
    *
    * @param resource The SCIMMY user resource performing the operation
    * @param context The request context
    */
   public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
-      const scimmyUsers = (await this.dbManager.getUsers()).map(user => toSCIMMYUser(user));
+      const scimmyUsers = (await this.dbManager.getUsers())
+                          .filter(user => user.type === 'login')
+                          .map(user => toSCIMMYUser(user));
       return this.maybeApplyFilter(scimmyUsers, resource.filter);
     });
   }
@@ -77,6 +79,10 @@ class ScimUserController extends BaseController {
       if (this.dbManager.getSpecialUserIds().includes(id)) {
         throw new SCIMMY.Types.Error(403, null!, 'System user modification not permitted.');
       }
+      const user = await this.dbManager.getUser(id);
+      if (user?.type !== 'login') {
+        throw new SCIMMY.Types.Error(404, null!, 'unable to find user to update');
+      }
       await this._checkEmailCanBeUsed(data.userName, id);
       const updatedUser = await this.dbManager.overwriteUser(id, toUserProfile(data));
       return toSCIMMYUser(updatedUser);
@@ -94,6 +100,10 @@ class ScimUserController extends BaseController {
       const id = this.getIdFromResource(resource);
       if (this.dbManager.getSpecialUserIds().includes(id)) {
         throw new SCIMMY.Types.Error(403, null!, 'System user deletion not permitted.');
+      }
+      const user = await this.dbManager.getUser(id);
+      if (user?.type !== 'login') {
+        throw new SCIMMY.Types.Error(404, null!, 'user not found');
       }
       const fakeScope: Scope = { userId: id };
       // FIXME: deleteUser should probably be rewritten to not require a scope. We should move

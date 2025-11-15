@@ -21,14 +21,14 @@ describe('AccountWidget', function() {
 
     // With an anonymous user, should see "Sign In" and "Sign Up", but NOT a user icon.
     await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=anon`);
-    assert.equal(await driver.find('.test-user-sign-in').getText(), 'Sign In');
-    assert.equal(await driver.find('.test-user-sign-up').getText(), 'Sign Up');
+    assert.equal(await driver.find('.test-user-sign-in').getText(), 'Sign in');
+    assert.equal(await driver.find('.test-user-sign-up').getText(), 'Sign up');
     assert.equal(await driver.find('.test-user-icon').isPresent(), false);
 
     // Same with a null user.
     await driver.get(`${server.getHost()}/DocMenu#org=${org}&user=null`);
-    assert.equal(await driver.find('.test-user-sign-in').getText(), 'Sign In');
-    assert.equal(await driver.find('.test-user-sign-up').getText(), 'Sign Up');
+    assert.equal(await driver.find('.test-user-sign-in').getText(), 'Sign in');
+    assert.equal(await driver.find('.test-user-sign-up').getText(), 'Sign up');
     assert.equal(await driver.find('.test-user-icon').isPresent(), false);
   });
 

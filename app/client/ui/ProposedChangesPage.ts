@@ -10,13 +10,14 @@ import { basicButton, bigBasicButton, bigPrimaryButton, primaryButton } from 'ap
 import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
 import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
+import { cssLink } from 'app/client/ui2018/links';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from 'app/common/DocState';
-import { buildUrlId, parseUrlId } from 'app/common/gristUrls';
+import { buildUrlId, commonUrls, parseUrlId } from 'app/common/gristUrls';
 import { isLongerThan } from 'app/common/gutil';
 import { Proposal } from 'app/common/UserAPI';
 import {
@@ -140,8 +141,15 @@ export class ProposedChangesTrunkPage extends Disposable {
             return [
               cssWarningMessage(
                 cssWarningIcon('Warning'),
-                `This is an experimental feature, with many limitations,
-and is subject to change and withdrawal.`
+                dom('div',
+                    `This is an experimental feature, with many limitations,
+and is subject to change and withdrawal.`,
+                    ' ',
+                    cssLink(t("Learn more"), {
+                      href: commonUrls.helpSuggestions,
+                      target: "_blank",
+                    }),
+                   ),
               ),
               dom('p', 'There are currently no suggestions.'),
             ];
@@ -149,7 +157,7 @@ and is subject to change and withdrawal.`
           isReadOnly ? [
             dom('p', 'Would you like to suggest some changes?'),
             bigPrimaryButton(
-              t("Work on a Copy"),
+              t("Work on a copy"),
               dom.on('click', async () => {
                 const {urlId} = await this.gristDoc.docComm.fork();
                 await urlState().pushUrl({doc: urlId});

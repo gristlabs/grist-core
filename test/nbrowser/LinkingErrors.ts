@@ -124,11 +124,11 @@ describe("LinkingErrors", function() {
   it("should unset linking setting when changing the data table for a widget", async function() {
     await gu.getCell({section: 'Moons', rowNum: 1, col: 'MoonName'}).click();
     await gu.openWidgetPanel();
-    await driver.findContent('.test-right-panel button', /Change Widget/).click();
+    await driver.findContent('.test-right-panel button', /Change widget/).click();
 
     assert.equal(await driver.find('.test-wselect-table-label[class*=-selected]').getText(), 'Moons');
     await driver.findContent('.test-wselect-table', /Planets/).click();
-    assert.match(await driver.find('.test-wselect-selectby').value(), /Select Widget/);
+    assert.match(await driver.find('.test-wselect-selectby').value(), /Select widget/);
 
     await driver.find('.test-wselect-addBtn').doClick();
     await gu.waitForServer();

@@ -214,7 +214,7 @@ export const Base: BaseThemeTokens = {
     controlSecondaryFg: tokens.secondary,
     controlSecondaryDisabledFg: tokens.decoration,
     controlSecondaryHoverFg: tokens.body,
-    controlSecondaryHoverBg: tokens.decoration,
+    controlSecondaryHoverBg: tokens.decorationSecondary,
 
     /* Checkboxes */
     checkboxBg: tokens.bg,
@@ -265,8 +265,6 @@ export const Base: BaseThemeTokens = {
     rightPanelSubtabSelectedFg: tokens.body,
     rightPanelSubtabSelectedUnderline: tokens.primary,
     rightPanelDisabledOverlay: tokens.bgSecondary,
-    rightPanelToggleButtonEnabledFg: tokens.white,
-    rightPanelToggleButtonEnabledBg: tokens.bgEmphasis,
     rightPanelCustomWidgetButtonFg: tokens.body,
     rightPanelCustomWidgetButtonBg: tokens.decoration,
 
@@ -390,17 +388,17 @@ export const Base: BaseThemeTokens = {
     infoButtonActiveFg: '#5c5c5c',
 
     /* Button Groups */
-    buttonGroupBg: 'transparent',
+    buttonGroupBg: tokens.bg,
     buttonGroupFg: tokens.body,
     buttonGroupLightBg: tokens.bgSecondary,
     buttonGroupLightFg: tokens.secondary,
     buttonGroupIcon: tokens.secondary,
     buttonGroupBorder: tokens.decoration,
-    buttonGroupSelectedFg: tokens.veryLight,
+    buttonGroupSelectedFg: tokens.body,
     buttonGroupLightSelectedFg: tokens.primary,
     buttonGroupLightSelectedBg: tokens.selectionOpaque,
-    buttonGroupSelectedBg: tokens.bgEmphasis,
-    buttonGroupSelectedBorder: tokens.bgEmphasis,
+    buttonGroupSelectedBg: tokens.selectionOpaque,
+    buttonGroupSelectedBorder: tokens.primary,
 
     /* Access Rules */
     accessRulesTableHeaderFg: tokens.body,

@@ -91,7 +91,7 @@ describe('ColumnFilterMenu', function() {
     // check `Other` summary is present
     assert.deepEqual(
       await driver.findAll('.test-filter-menu-summary', (e) => e.find('label').getText()),
-      ['Other Values (3,501)', 'Future Values']
+      ['Other values (3,501)', 'Future values']
     );
 
     // check counts add up
@@ -134,7 +134,7 @@ describe('ColumnFilterMenu', function() {
 
   });
 
-  it('should uncheck \'Other Values\' checkbox when user clicks \'None\'', async () => {
+  it('should uncheck \'Other values\' checkbox when user clicks \'None\'', async () => {
     // open the Name filter
     await gu.openColumnMenu('Name', 'Filter');
 
@@ -143,12 +143,12 @@ describe('ColumnFilterMenu', function() {
 
     // check Other values was propertly unchecked
     assert.equal(
-      await driver.findContent('.test-filter-menu-summary', /Other Values/).find('input').matches(':checked'),
+      await driver.findContent('.test-filter-menu-summary', /Other values/).find('input').matches(':checked'),
       false
     );
 
     assert.equal(
-      await driver.findContent('.test-filter-menu-summary', /Future Values/).find('input').matches(':checked'),
+      await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').matches(':checked'),
       false
     );
   });

@@ -1005,7 +1005,7 @@ export async function importFileDialog(filePath: string): Promise<void> {
 export async function importUrlDialog(url: string): Promise<void> {
   await driver.wait(() => driver.find('.test-dp-add-new').isDisplayed(), 3000);
   await driver.findWait('.test-dp-add-new', 1000).doClick();
-  await driver.findContent('.test-dp-import-option', /Import from URL/i).doClick();
+  await driver.findContentWait('.test-dp-import-option', /Import from URL/i, 2000).doClick();
   await driver.findWait('.test-importer-dialog', 5000);
   await waitForServer();
   const iframe = driver.find('.test-importer-dialog').find('iframe');
@@ -1332,7 +1332,7 @@ export type WidgetType = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom';
 
 export async function changeWidget(type: WidgetType) {
   await openWidgetPanel();
-  await driver.findContent('.test-right-panel button', /Change Widget/).click();
+  await driver.findContent('.test-right-panel button', /Change widget/).click();
   await selectWidget(type);
   await waitForServer();
 }
@@ -1746,7 +1746,7 @@ export async function renameRawTable(tableId: string, newName?: string, newDescr
     .findClosest('.test-raw-data-table')
     .find('.test-raw-data-table-menu')
     .click();
-  await findOpenMenuItem('li', 'Rename Table').click();
+  await findOpenMenuItem('li', 'Rename table').click();
   if (newName !== undefined) {
     const input = await driver.findWait(".test-widget-title-table-name-input", 100);
     await input.doClear();
@@ -2632,8 +2632,9 @@ export async function clickAway() {
 /**
  * Opens the header color picker.
  */
-export function openHeaderColorPicker() {
-  return driver.find('.test-header-color-select .test-color-select').click();
+export async function openHeaderColorPicker() {
+  await driver.find('.test-header-color-select .test-color-select').click();
+  await findOpenMenu();
 }
 
 export async function assertHeaderTextColor(col: string|WebElement, color: string) {
@@ -2893,7 +2894,7 @@ export function addSamplesForSuite(includeTutorial = false) {
 
 export async function openDocumentSettings() {
   await openAccountMenu();
-  await driver.findContent('.grist-floating-menu a', 'Document Settings').click();
+  await driver.findContent('.grist-floating-menu a', 'Document settings').click();
   await waitForUrl(/settings/, 5000);
 }
 
@@ -3280,7 +3281,7 @@ const filterController = {
     return await driver.findAll('.test-filter-menu-list .test-filter-menu-value', el => el.getText());
   },
   async allShown() {
-    await driver.findContent('.test-filter-menu-bulk-action', /All Shown/).click();
+    await driver.findContent('.test-filter-menu-bulk-action', /All shown/).click();
   }
 };
 

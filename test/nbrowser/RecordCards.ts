@@ -135,6 +135,8 @@ describe('RecordCards', function() {
          }],
        ]);
 
+       await gu.reloadDoc();
+
        await gu.getCell(0, 745).find('.test-ref-link-icon').click();
 
        assert.include(

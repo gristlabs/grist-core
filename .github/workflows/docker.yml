@@ -15,6 +15,7 @@ on:
 env:
   TAG: ${{ inputs.tag || 'stable' }}
   DOCKER_HUB_OWNER: ${{ vars.DOCKER_HUB_OWNER || github.repository_owner }}
+  PLATFORMS: ${{ vars.PLATFORMS || 'linux/amd64,linux/arm64/v8' }}
 
 jobs:
   push_to_registry:
@@ -92,7 +93,7 @@ jobs:
           context: .
           build-args: GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING=${{ matrix.image.name == 'grist-oss' && 'false' || 'true' }}
           push: true
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: ${{ env.PLATFORMS }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

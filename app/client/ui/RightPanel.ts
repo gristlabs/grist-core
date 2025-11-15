@@ -448,9 +448,9 @@ export class RightPanel extends Disposable {
           // the data-text attribute is necessary for a css trick to work (see cssSubTab)
           dom.attr('data-text', t("Widget")),
           testId('config-widget')),
-        cssSubTab(t("Sort & Filter"),
+        cssSubTab(t("Sort & filter"),
           this._subTabComponents.tab('sortAndFilter'),
-          dom.attr('data-text', t("Sort & Filter")),
+          dom.attr('data-text', t("Sort & filter")),
           testId('config-sortAndFilter')),
         cssSubTab(t("Data"),
           this._subTabComponents.tab('data'),
@@ -478,10 +478,12 @@ export class RightPanel extends Disposable {
     // refactored, but if not, should be made public.
     const viewConfigTab = this._createViewConfigTab(owner);
     const hasCustomMapping = Computed.create(owner, use => {
+      // We shouldn't get here if activeSection is disposed but some errors reported in the wild
+      // point to this being sometimes possible.
+      if (activeSection.isDisposed()) { return false; }
       const widgetType = use(this._pageWidgetType);
       const isCustom = widgetType === 'custom' || widgetType?.startsWith('custom.');
-      const hasColumnMapping = use(activeSection.columnsToMap);
-      return Boolean(isCustom && hasColumnMapping);
+      return Boolean(isCustom && use(activeSection.columnsToMap));
     });
 
     // build cursor position observable
@@ -516,7 +518,7 @@ export class RightPanel extends Disposable {
       dom.maybe(
         (use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard),
         () => cssRow(
-          primaryButton(t("Change Widget"), this._createPageWidgetPicker()),
+          primaryButton(t("Change widget"), this._createPageWidgetPicker()),
           cssRow.cls('-top-space')
         ),
       ),
@@ -537,10 +539,10 @@ export class RightPanel extends Disposable {
         if (use(this._pageWidgetType) !== 'record') { return null; }
         return dom('div', {role: 'group', 'aria-labelledby': 'row-style-label'},
           cssSeparator(),
-          cssGroupLabel(t("ROW STYLE"), {id: 'row-style-label'}),
+          cssGroupLabel(t("Row style"), {id: 'row-style-label'}),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
           domAsync(imports.loadViewPane().then(ViewPane =>
-            dom.create(ViewPane.ConditionalStyle, t("Row Style"), activeSection, this._gristDoc)
+            dom.create(ViewPane.ConditionalStyle, t("Row style"), activeSection, this._gristDoc)
           ))
         );
       }),
@@ -855,7 +857,7 @@ export class RightPanel extends Disposable {
         ),
 
         dom.maybe((use) => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
-          cssButtonRow(primaryButton(t("Edit Data Selection"), this._createPageWidgetPicker(),
+          cssButtonRow(primaryButton(t("Edit data selection"), this._createPageWidgetPicker(),
             testId('pwc-editDataSelection')),
             dom.maybe(
               use => Boolean(use(use(activeSection.table).summarySourceTable)),
@@ -880,7 +882,7 @@ export class RightPanel extends Disposable {
         cssLabel(t("SELECT BY")),
         cssRow(
           dom.update(
-            select(link, linkOptions, {defaultLabel: t("Select Widget")}),
+            select(link, linkOptions, {defaultLabel: t("Select widget")}),
             dom.on('click', () => {
               refreshTrigger.set(!refreshTrigger.get());
             })

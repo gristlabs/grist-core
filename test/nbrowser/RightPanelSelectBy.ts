@@ -50,7 +50,7 @@ describe('RightPanelSelectBy', function() {
 
   it('should allow to remove link', async function() {
     await gu.openSelectByForSection('PERFORMANCES DETAIL');
-    await gu.findOpenMenuItem('.test-select-row', /Select Widget/).click();
+    await gu.findOpenMenuItem('.test-select-row', /Select widget/).click();
     await gu.waitForServer();
 
     // Check that selections in 1st section are NOT mirrored by the 2nd section.

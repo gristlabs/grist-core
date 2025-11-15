@@ -138,6 +138,7 @@ export class DocWorker {
       getAssistantState:        activeDocMethod.bind(null, 'owners', 'getAssistantState'),
       listActiveUserProfiles:   activeDocMethod.bind(null, null, 'listActiveUserProfiles'),
       applyProposal:            activeDocMethod.bind(null, 'owners', 'applyProposal'),
+      getAssistance:            activeDocMethod.bind(null, 'viewers', 'getAssistance'),
     });
   }
 

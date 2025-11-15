@@ -15,7 +15,7 @@ describe('RecordLayout', function() {
     // Open creator panel.
     await gu.toggleSidePanel('right', 'open');
     // Change the widget to Card view.
-    await driver.findContent('button', 'Change Widget').click();
+    await driver.findContent('button', 'Change widget').click();
     await gu.selectWidget('Card');
     // Edit card layout.
     await driver.find('.test-vconfigtab-detail-edit-layout').click();
@@ -54,7 +54,8 @@ describe('RecordLayout', function() {
     await deleteBox(gu.getDetailCell({col: 'District', rowNum: 1}));
 
     // Check that 'District' field is now present in Add Field dropdown.
-    const addFieldBtn = await editLayoutMenu.findContent("button", 'Add Field');
+    await driver.sleep(100); // Sleep needed to avoid test flakiness.
+    const addFieldBtn = await editLayoutMenu.findContent("button", 'Add field');
     await addFieldBtn.click();
     await driver.findWait('.test-edit-layout-add-menu', 500);
     assert.equal(await driver.findContent('.test-edit-layout-add-menu li', /District/).isDisplayed(), true);
@@ -63,6 +64,7 @@ describe('RecordLayout', function() {
 
     // Find and delete 'Population' field.
     await deleteBox(gu.getDetailCell({col: 'Population', rowNum: 1}));
+    await driver.sleep(100); // Sleep needed to avoid test flakiness.
 
     // Check that 'Population' field is now present in Add Field dropdown.
     await addFieldBtn.click();
@@ -84,7 +86,11 @@ describe('RecordLayout', function() {
     editLayoutMenu = await editLayoutAndGetMenu();
 
     await deleteBox(gu.getDetailCell({col: 'District', rowNum: 1}));
+    await driver.sleep(100); // Sleep needed to avoid test flakiness.
+
     await deleteBox(gu.getDetailCell({col: 'Population', rowNum: 1}));
+    await driver.sleep(100); // Sleep needed to avoid test flakiness.
+
     await editLayoutMenu.findContent("button", /Save/).click();
     await gu.waitForServer(5000);
 
@@ -110,13 +116,13 @@ describe('RecordLayout', function() {
     await deleteBox(await gu.getDetailCell("Pop. '000", 1));
 
     // Re-add "Pop. '000" field to the bottom.
-    await editLayoutMenu.findContent('button', 'Add Field').click();
+    await editLayoutMenu.findContent('button', 'Add field').click();
     await driver.findContentWait('.test-edit-layout-add-menu li', /Pop. '000/, 500).click();
     await driver.wait(() => gu.getDetailCell("Pop. '000", 1).isPresent(), 2000);
 
     // Add 'District' field, and drag to be a new column on the left. This changes the layout
     // root, which is an important case to test (there used to be a bug in this case).
-    await editLayoutMenu.findContent('button', 'Add Field').click();
+    await editLayoutMenu.findContent('button', 'Add field').click();
     await driver.findContentWait('.test-edit-layout-add-menu li', /District/, 500).click();
     await driver.wait(() => gu.getDetailCell('District', 1).isPresent(), 2000);
     assert.deepEqual(await getFields(), ['Name', 'Country', "Pop. '000", 'District']);
@@ -125,8 +131,8 @@ describe('RecordLayout', function() {
     assert.deepEqual(await getFields(), ['District', 'Name', 'Country', "Pop. '000"]);
 
     // Add a new field below the District field.
-    await editLayoutMenu.findContent('button', 'Add Field').click();
-    await driver.findContentWait('.test-edit-layout-add-menu li', /Create New Field/, 500).click();
+    await editLayoutMenu.findContent('button', 'Add field').click();
+    await driver.findContentWait('.test-edit-layout-add-menu li', /Create new field/, 500).click();
     await driver.wait(() => gu.getDetailCell('New_Field', 1).isPresent(), 2000);
     assert.deepEqual(await getFields(), ['District', 'Name', 'Country', "Pop. '000", 'New_Field']);
     await dragInsertLayoutBox(gu.getDetailCell('New_Field', 1), gu.getDetailCell('District', 1), "bottom", -18);
@@ -196,10 +202,10 @@ describe('RecordLayout', function() {
     const editLayoutMenu = await editLayoutAndGetMenu();
 
     // Add a new field below the District field.
-    await editLayoutMenu.findContent('button', 'Add Field').click();
-    await driver.findContentWait('.test-edit-layout-add-menu li', /Create New Field/, 500).click();
-    await editLayoutMenu.findContent('button', 'Add Field').click();
-    await driver.findContentWait('.test-edit-layout-add-menu li', /Create New Field/, 500).click();
+    await editLayoutMenu.findContent('button', 'Add field').click();
+    await driver.findContentWait('.test-edit-layout-add-menu li', /Create new field/, 500).click();
+    await editLayoutMenu.findContent('button', 'Add field').click();
+    await driver.findContentWait('.test-edit-layout-add-menu li', /Create new field/, 500).click();
     await driver.wait(() => gu.getDetailCell('New_Field', 1).isPresent(), 2000);
     assert.deepEqual(await getFields(), ['A', 'Name', 'Country', "Pop. '000", 'New_Field', 'New_Field']);
 

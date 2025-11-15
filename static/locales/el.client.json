@@ -1,11 +1,11 @@
 {
     "ColumnFilterMenu": {
-        "All Except": "Όλα Εκτός Από",
+        "All except": "Όλα Εκτός Από",
         "Start": "Έναρξη",
         "All": "Όλα",
-        "All Shown": "Όλα Όσα Εμφανίζονται",
+        "All shown": "Όλα Όσα Εμφανίζονται",
         "Filter by Range": "Φιλτράρισμα κατά εύρος",
-        "Future Values": "Μελλοντικές Τιμές",
+        "Future values": "Μελλοντικές Τιμές",
         "No matching values": "Δεν υπάρχουν αντίστοιχες τιμές",
         "None": "Κανένα",
         "Min": "Ελάχ",
@@ -14,7 +14,7 @@
         "Other Matching": "Άλλη Αντιστοίχιση",
         "Others": "Άλλα",
         "Search": "Αναζήτηση",
-        "Other Values": "Άλλες Τιμές",
+        "Other values": "Άλλες Τιμές",
         "Search values": "Αναζήτηση τιμών",
         "Other Non-Matching": "Άλλα Μη Αντιστοιχιζόμενα",
         "Clear search": "Καθαρισμός αναζήτησης",
@@ -28,16 +28,16 @@
         "Saved": "Αποθηκεύτηκε",
         "Enter Condition": "Εισαγωγή συνθήκης",
         "User Attributes": "Χαρακτηριστικά χρήστη",
-        "Add Column Rule": "Προσθήκη Κανόνα Στήλης",
+        "Add column rule": "Προσθήκη Κανόνα Στήλης",
         "Add Default Rule": "Προσθήκη Προεπιλεγμένου Κανόνα",
-        "Add User Attributes": "Προσθήκη Χαρακτηριστικών Χρήστη",
+        "Add user attributes": "Προσθήκη Χαρακτηριστικών Χρήστη",
         "Allow everyone to view Access Rules.": "Να επιτρέπεται σε όλους η προβολή των Κανόνων Πρόσβασης.",
         "Attribute name": "Όνομα χαρακτηριστικού",
         "Attribute to Look Up": "Χαρακτηριστικό προς Αναζήτηση",
         "Checking...": "Ελεγχος…",
         "Condition": "Συνθήκη",
-        "Default Rules": "Προεπιλεγμένοι κανόνες",
-        "Delete Table Rules": "Διαγραφή Κανόνων Πίνακα",
+        "Default rules": "Προεπιλεγμένοι κανόνες",
+        "Delete table rules": "Διαγραφή Κανόνων Πίνακα",
         "Everyone": "Όλοι",
         "Everyone Else": "Όλοι οι άλλοι",
         "Invalid": "Άκυρο",
@@ -49,12 +49,12 @@
         "Remove {{- name }} user attribute": "Αφαίρεση του χαρακτηριστικού χρήστη {{- name }}",
         "Rules for table ": "Κανόνες για τον πίνακα ",
         "Save": "Αποθήκευση",
-        "Special Rules": "Ειδικοί Κανόνες",
-        "View As": "Προβολή ως",
+        "Special rules": "Ειδικοί Κανόνες",
+        "View as": "Προβολή ως",
         "Seed rules": "Κανόνες σποράς",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Κατά την προσθήκη κανόνων πίνακα, αυτόματη προσθήκη κανόνα για να παραχωρείται στον ΚΑΤΟΧΟ πλήρη πρόσβαση.",
-        "Add Table-wide Rule": "Προσθήκη κανόνα σε ολόκληρο τον πίνακα",
-        "Add Table Rules": "Προσθήκη Κανόνων Πίνακα",
+        "Add table-wide rule": "Προσθήκη κανόνα σε ολόκληρο τον πίνακα",
+        "Add table rules": "Προσθήκη Κανόνων Πίνακα",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Να επιτρέπεται σε όλους να αντιγράψουν ολόκληρο το έγγραφο ή να το δουν ολόκληρο σε λειτουργία βιολιού (fiddle mode).\nΧρήσιμο για παραδείγματα και πρότυπα, αλλά όχι για ευαίσθητα δεδομένα.",
         "Permission to view Access Rules": "Άδεια προβολής Κανόνων Πρόσβασης",
         "Reset": "Επαναφορά",
@@ -74,12 +74,12 @@
         "API Key": "Κλειδί API",
         "Account settings": "Ρυθμίσεις λογαριασμού",
         "Allow signing in to this account with Google": "Να επιτρέπεται η σύνδεση σε αυτόν τον λογαριασμό με την Google",
-        "Change Password": "Αλλαγή κωδικού πρόσβασης",
+        "Change password": "Αλλαγή κωδικού πρόσβασης",
         "Edit": "Επεξεργασία",
-        "Login Method": "Μέθοδος σύνδεσης",
+        "Login method": "Μέθοδος σύνδεσης",
         "Name": "Όνομα",
         "Names only allow letters, numbers and certain special characters": "Τα ονόματα επιτρέπουν μόνο γράμματα, αριθμούς και ορισμένους ειδικούς χαρακτήρες",
-        "Password & Security": "Κωδικός πρόσβασης και ασφάλεια",
+        "Password & security": "Κωδικός πρόσβασης και ασφάλεια",
         "Save": "Αποθήκευση",
         "Language": "Γλώσσα",
         "Theme": "Θέμα",
@@ -87,23 +87,22 @@
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "Ο έλεγχος ταυτότητας δύο παραγόντων είναι ένα επιπλέον επίπεδο ασφάλειας για τον λογαριασμό σας στο Grist, το οποίο έχει σχεδιαστεί για να διασφαλίζει ότι είστε το μόνο άτομο που μπορεί να έχει πρόσβαση στον λογαριασμό σας, ακόμα κι αν κάποιος γνωρίζει τον κωδικό πρόσβασής σας."
     },
     "AccountWidget": {
-        "Document Settings": "Ρυθμίσεις Εγγράφου",
+        "Document settings": "Ρυθμίσεις Εγγράφου",
         "Access Details": "Λεπτομέρειες Πρόσβασης",
         "Accounts": "Λογαριασμοί",
-        "Add Account": "Προσθήκη Λογαριασμού",
+        "Add account": "Προσθήκη Λογαριασμού",
         "Pricing": "Τιμολόγηση",
-        "Profile Settings": "Ρυθμίσεις Προφίλ",
+        "Profile settings": "Ρυθμίσεις Προφίλ",
         "Sign in": "Σύνδεση",
         "Switch Accounts": "Αλλαγή Λογαριασμών",
         "Toggle Mobile Mode": "Εναλλαγή Λειτουργίας Κινητού",
         "Activation": "Ενεργοποίηση",
-        "Billing Account": "Λογαριασμός Χρέωσης",
+        "Billing account": "Λογαριασμός Χρέωσης",
         "Upgrade Plan": "Αναβάθμιση Προγράμματος",
-        "Sign In": "Σύνδεση",
         "Use This Template": "Χρήση Αυτού Του Προτύπου",
-        "Sign Up": "Εγγραφή",
-        "Manage Team": "Διαχείριση Ομάδας",
-        "Sign Out": "Αποσύνδεση",
+        "Sign up": "Εγγραφή",
+        "Manage team": "Διαχείριση Ομάδας",
+        "Sign out": "Αποσύνδεση",
         "Support Grist": "Υποστήριξη Grist"
     },
     "ApiKey": {
@@ -119,7 +118,7 @@
     "ViewAsDropdown": {
         "Users from table": "Χρήστες από τον πίνακα",
         "Example Users": "Παραδείγματα χρηστών",
-        "View As": "Προβολή Ως"
+        "View as": "Προβολή Ως"
     },
     "ActionLog": {
         "Action Log failed to load": "Η φόρτωση του αρχείου καταγραφής ενεργειών απέτυχε",
@@ -131,7 +130,7 @@
         "This row was subsequently removed in action {{actionNum}}": "Αυτή η γραμμή αφαιρέθηκε στην συνέχεια στην ενέργεια {{actionNum}}"
     },
     "AddNewButton": {
-        "Add New": "Προσθήκη Νέου"
+        "Add new": "Προσθήκη Νέου"
     },
     "App": {
         "Key": "Κλειδί",
@@ -140,13 +139,13 @@
         "Description": "Περιγραφή"
     },
     "AppHeader": {
-        "Home Page": "Αρχική Σελίδα",
+        "Home page": "Αρχική Σελίδα",
         "Legacy": "Κληροδότημα (Legacy)",
         "Personal Site": "Προσωπική Ιστοσελίδα",
         "Team Site": "Ιστότοπος Oμάδας",
         "Grist Templates": "Πρότυπα Grist",
-        "Billing Account": "Λογαριασμός Χρέωσης",
-        "Manage Team": "Διαχείριση Ομάδας",
+        "Billing account": "Λογαριασμός Χρέωσης",
+        "Manage team": "Διαχείριση Ομάδας",
         "{{- organizationName }} - Back to home": "{{- organizationName }} - Επιστροφή στην αρχική"
     },
     "CellContextMenu": {
@@ -183,20 +182,20 @@
         "Create separate series for each value of the selected column.": "Δημιουργήστε ξεχωριστές σειρές για κάθε τιμή της επιλεγμένης στήλης.",
         "Each Y series is followed by a series for the length of error bars.": "Κάθε σειρά Y ακολουθείται από μια σειρά για το μήκος των γραμμών σφάλματος.",
         "LABEL": "ΕΤΙΚΕΤΑ",
-        "Bar Chart": "Γράφημα με Μπάρες",
-        "Pie Chart": "Γράφημα με Πίτες",
-        "Area Chart": "Χωρικό Γράφημα",
-        "Line Chart": "Γραμμικό Γράφημα",
-        "Scatter Plot": "Γράφημα Διασποράς",
-        "Kaplan-Meier Plot": "Γράφημα Kaplan-Meier",
+        "Bar chart": "Γράφημα με Μπάρες",
+        "Pie chart": "Γράφημα με Πίτες",
+        "Area chart": "Χωρικό Γράφημα",
+        "Line chart": "Γραμμικό Γράφημα",
+        "Scatter plot": "Γράφημα Διασποράς",
+        "Kaplan-Meier plot": "Γράφημα Kaplan-Meier",
         "Split series": "Διαχωρισμένη σειρά",
         "Invert Y-axis": "Αντιστροφή άξονα Y",
         "Orientation": "Προσανατολισμός",
         "Vertical": "Κάθετα",
         "Horizontal": "Οριζόντια",
         "Log scale Y-axis": "Λογαριθμική κλίμακα άξονα Y",
-        "Hole Size": "Μέγεθος τρύπας",
-        "Show Total": "Εμφάνιση Συνόλου",
+        "Hole size": "Μέγεθος τρύπας",
+        "Show total": "Εμφάνιση Συνόλου",
         "Text Size": "Μέγεθος Κειμένου",
         "Connect gaps": "Σύνδεση κενών",
         "Show markers": "Εμφάνιση δεικτών",
@@ -212,8 +211,8 @@
         "non-numeric column is not shown": "δεν εμφανίζεται μη-αριθμητική στήλη",
         "selected new x-axis": "επιλεγμένος νέος άξονας x",
         "Remove": "Αφαίρεση",
-        "Donut Chart": "Γράφημα με Ντόνατ",
-        "Add Series": "Προσθήκη Σειράς",
+        "Donut chart": "Γράφημα με Ντόνατ",
+        "Add series": "Προσθήκη Σειράς",
         "SERIES": "ΣΕΙΡΕΣ"
     },
     "CustomSectionConfig": {
@@ -248,30 +247,30 @@
     "DataTables": {
         "Click to copy": "Κάντε κλικ για αντιγραφή",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Διαγραφή δεδομένων {{formattedTableName}} και κατάργησή τους από όλες τις σελίδες;",
-        "Duplicate Table": "Δημιουργία διπλότυπου πίνακα",
+        "Duplicate table": "Δημιουργία διπλότυπου πίνακα",
         "Table ID copied to clipboard": "Το αναγνωριστικό πίνακα αντιγράφηκε στο πρόχειρο",
         "You do not have edit access to this document": "Δεν έχετε πρόσβαση επεξεργασίας σε αυτό το έγγραφο",
-        "Edit Record Card": "Επεξεργασία Κάρτας Εγγραφής",
+        "Edit record card": "Επεξεργασία Κάρτας Εγγραφής",
         "Record Card": "Κάρτα Εγγραφής",
         "Record Card Disabled": "Η κάρτα εγγραφής απενεργοποιήθηκε",
         "{{action}} Record Card": "{{action}} Κάρτα Εγγραφής",
-        "Rename Table": "Μετονομασία Πίνακα",
-        "Remove Table": "Αφαίρεση Πίνακα",
+        "Rename table": "Μετονομασία Πίνακα",
+        "Remove table": "Αφαίρεση Πίνακα",
         "Raw Data Tables": "Πίνακες Ακατέργαστων Δεδομένων"
     },
     "DocHistory": {
         "Activity": "Δραστηριότητα",
         "Beta": "Δοκιμαστική (Beta)",
-        "Open Snapshot": "Άνοιγμα Στιγμιότυπου",
+        "Open snapshot": "Άνοιγμα Στιγμιότυπου",
         "Snapshots": "Στιγμιότυπα",
         "Snapshots are unavailable.": "Τα στιγμιότυπα δεν είναι διαθέσιμα.",
-        "Compare to Current": "Σύγκριση με το Τρέχον",
-        "Compare to Previous": "Σύγκριση με το Προηγούμενο",
+        "Compare to current": "Σύγκριση με το Τρέχον",
+        "Compare to previous": "Σύγκριση με το Προηγούμενο",
         "Only owners have access to snapshots for documents with access rules.": "Μόνο οι κάτοχοι έχουν πρόσβαση σε στιγμιότυπα για έγγραφα με κανόνες πρόσβασης."
     },
     "DocMenu": {
         "Access Details": "Λεπτομέρειες Πρόσβασης",
-        "All Documents": "Όλα Τα Έγγραφα",
+        "All documents": "Όλα Τα Έγγραφα",
         "By Date Modified": "Κατά Ημερομηνία Τροποποίησης",
         "By Name": "Κατά Όνομα",
         "Delete": "Διαγραφή",
@@ -281,7 +280,7 @@
         "Examples & Templates": "Παραδείγματα & Πρότυπα",
         "Examples and Templates": "Παραδείγματα και Πρότυπα",
         "Featured": "Προτεινόμενα",
-        "Manage Users": "Διαχείριση Χρηστών",
+        "Manage users": "Διαχείριση Χρηστών",
         "More Examples and Templates": "Περισσότερα Παραδείγματα και Πρότυπα",
         "Move": "Μετακίνηση",
         "Move {{name}} to workspace": "Μετακίνηση του {{name}} στον χώρο εργασίας",
@@ -315,14 +314,14 @@
         "Trash is empty.": "Ο κάδος απορριμμάτων είναι άδειος."
     },
     "DocPageModel": {
-        "Add Empty Table": "Προσθήκη Κενού Πίνακα",
+        "Add empty table": "Προσθήκη Κενού Πίνακα",
         "Enter recovery mode": "Εισέλθετε σε λειτουργία ανάκτησης",
         "Error accessing document": "Σφάλμα πρόσβασης στο έγγραφο κατά την πρόσβαση σε αυτό",
         "Reload": "Επαναφόρτωση",
         "You do not have edit access to this document": "Δεν έχετε πρόσβαση επεξεργασίας σε αυτό το έγγραφο",
         "Sorry, access to this document has been denied. [{{error}}]": "Λυπούμαστε, η πρόσβαση σε αυτό το έγγραφο έχει απορριφθεί. [{{error}}]",
-        "Add Page": "Προσθήκη Σελίδας",
-        "Add Widget to Page": "Προσθήκη Γραφικού Στοιχείου (Widget) στην Σελίδα",
+        "Add page": "Προσθήκη Σελίδας",
+        "Add widget to page": "Προσθήκη Γραφικού Στοιχείου (Widget) στην Σελίδα",
         "Document owners can attempt to recover the document. [{{error}}]": "Οι κάτοχοι εγγράφων μπορούν να επιχειρήσουν να ανακτήσουν το έγγραφο. [{{error}}]",
         "You can try reloading the document, or using recovery mode. Recovery mode opens the document to be fully accessible to owners, and inaccessible to others. It also disables formulas. [{{error}}]": "Μπορείτε να δοκιμάσετε να επαναφορτώσετε το έγγραφο ή να χρησιμοποιήσετε τη λειτουργία ανάκτησης. Η λειτουργία ανάκτησης ανοίγει το έγγραφο ώστε να είναι πλήρως προσβάσιμο στους κατόχους και μη προσβάσιμο σε άλλους. Απενεργοποιεί επίσης τους τύπους. [{{error}}]",
         "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Παρακαλούμε επαναφορτώστε το έγγραφο και, εάν το σφάλμα επιμένει, επικοινωνήστε με τους κατόχους του εγγράφου για να επιχειρήσετε την ανάκτησή του. [{{error}}]"
@@ -333,7 +332,7 @@
     },
     "DocumentSettings": {
         "Currency:": "Νόμισμα:",
-        "Document Settings": "Ρυθμίσεις Εγγράφου",
+        "Document settings": "Ρυθμίσεις Εγγράφου",
         "Engine (experimental {{span}} change at own risk):": "Μηχανή (πειραματική αλλαγή {{span}} με δική σας ευθύνη):",
         "Local currency ({{currency}})": "Τοπικό νόμισμα ({{currency}})",
         "Locale:": "Τοπικές Ρυθμίσεις:",
@@ -348,7 +347,7 @@
         "API documentation.": "Τεκμηρίωση API.",
         "Coming soon": "Σύντομα διαθέσιμο",
         "Copy to clipboard": "Αντιγραφή στο πρόχειρο",
-        "API console": "κονσόλα API",
+        "API console": "Κονσόλα API",
         "Default for DateTime columns": "Προεπιλογή για στήλες Ημερομηνίας/Ώρας",
         "For currency columns": "Για στήλες νομισμάτων",
         "For number and date formats": "Για μορφές αριθμών και ημερομηνίας",
@@ -357,7 +356,7 @@
         "Hard reset of data engine": "Σκληρή επαναφορά της μηχανής δεδομένων",
         "Notify other services on doc changes": "Ειδοποίηση άλλων υπηρεσιών σχετικά με αλλαγές εγγράφων",
         "Python": "Python",
-        "Time Zone": "Ζώνη Ώρας",
+        "Time zone": "Ζώνη Ώρας",
         "python3 (recommended)": "python3 (συνιστάται)",
         "Cancel": "Ακύρωση",
         "Formula timer": "Χρονόμετρο φόρμουλας",
@@ -391,7 +390,6 @@
         "This document's ID (for API use):": "Αναγνωριστικό αυτού του εγγράφου (για χρήση API):",
         "Transfer in progress": "Μεταφορά σε εξέλιξη",
         "Force reload the document while timing formulas, and show the result.": "Αναγκαστική επαναφόρτωση του εγγράφου κατά τη χρονομέτρηση των τύπων και εμφάνιση του αποτελέσματος.",
-        "API Console": "Κονσόλα API",
         "Document ID": "Αναγνωριστικό εγγράφου",
         "Python version used": "Χρησιμοποιήθηκε έκδοση Python",
         "Save": "Αποθήκευση",
@@ -399,7 +397,7 @@
         "Currency": "Νόμισμα",
         "Locale": "Τοπική Ρύθμιση",
         "Manage webhooks": "Διαχείριση webhooks",
-        "Data Engine": "Μηχανή Δεδομένων",
+        "Data engine": "Μηχανή Δεδομένων",
         "Document ID to use whenever the REST API calls for {{docId}}. See {{apiURL}}": "Αναγνωριστικό εγγράφου που θα χρησιμοποιείται κάθε φορά που το REST API καλεί το {{docId}}. Δείτε {{apiURL}}",
         "Try API calls from the browser": "Δοκιμάστε κλήσεις API από το πρόγραμμα περιήγησης",
         "python2 (legacy)": "python2 (παλαιού τύπου)",
@@ -426,13 +424,13 @@
         "Document type": "Τύπος αρχείου"
     },
     "DocumentUsage": {
-        "Data Size": "Μέγεθος δεδομένων",
+        "Data size": "Μέγεθος δεδομένων",
         "For higher limits, ": "Για υψηλότερα όρια, ",
         "Rows": "Γραμμές",
         "Usage": "Χρήση",
         "start your 30-day free trial of the Pro plan.": "Ξεκινήστε τη δωρεάν δοκιμή 30 ημερών του προγράμματος Pro.",
         "Usage statistics are only available to users with full access to the document data.": "Τα στατιστικά στοιχεία χρήσης είναι διαθέσιμα μόνο σε χρήστες με πλήρη πρόσβαση στα δεδομένα του εγγράφου.",
-        "Attachments Size": "Μέγεθος Συνημμένων",
+        "Size of attachments": "Μέγεθος Συνημμένων",
         "Contact the site owner to upgrade the plan to raise limits.": "Επικοινωνήστε με τον κάτοχο του ιστότοπου για να αναβαθμίσετε το πρόγραμμα και να αυξήσετε τα όρια."
     },
     "Drafts": {
@@ -463,23 +461,23 @@
         "COLUMN BEHAVIOR": "ΣΥΜΠΕΡΙΦΟΡΑ ΣΤΗΛΗΣ",
         "COLUMN LABEL AND ID": "ΕΤΙΚΕΤΑ ΚΑΙ ΑΝΑΓΝΩΡΙΣΤΙΚΟ ΣΤΗΛΗΣ",
         "Convert to trigger formula": "Μετατροπή σε φόρμουλα ενεργοποίησης",
-        "Data Columns_one": "Στήλη δεδομένων",
-        "Data Columns_other": "Στήλες δεδομένων",
-        "Empty Columns_one": "Κενή Στήλη",
-        "Formula Columns_other": "Στήλες Φόρμουλας",
+        "Data columns_one": "Στήλη δεδομένων",
+        "Data columns_other": "Στήλες δεδομένων",
+        "Empty columns_one": "Κενή Στήλη",
+        "Formula columns_other": "Στήλες Φόρμουλας",
         "Make into data column": "Μετατροπή σε στήλη δεδομένων",
         "Set formula": "Ορισμός Φόρμουλας",
         "Set trigger formula": "Ορισμός φόρμουλας ενεργοποίησης",
         "DESCRIPTION": "ΠΕΡΙΓΡΑΦΗ",
         "Clear and make into formula": "Καθαρίστε και μετατρέψτε το σε φόρμουλα",
         "Convert column to data": "Μετατροπή στήλης σε δεδομένα",
-        "Formula Columns_one": "Στήλη Φόρμουλας",
+        "Formula columns_one": "Στήλη Φόρμουλας",
         "TRIGGER FORMULA": "ΦΟΡΜΟΥΛΑ ΕΝΕΡΓΟΠΟΙΗΣΗΣ",
         "Clear and reset": "Εκκαθάριση και επαναφορά",
         "Enter formula": "Εισαγωγή φόρμουλας",
         "Mixed Behavior": "Μικτή Συμπεριφορά",
         "Column options are limited in summary tables.": "Οι επιλογές στηλών είναι περιορισμένες στους συνοπτικούς πίνακες.",
-        "Empty Columns_other": "Κενές Στήλες"
+        "Empty columns_other": "Κενές Στήλες"
     },
     "FieldMenus": {
         "Use separate settings": "Χρησιμοποιήστε ξεχωριστές ρυθμίσεις",
@@ -493,13 +491,13 @@
         "SearchColumns": "Αναζήτηση στηλών"
     },
     "GridOptions": {
-        "Horizontal Gridlines": "Οριζόντιες Γραμμές Πλέγματος",
-        "Zebra Stripes": "Ρίγες Ζέβρας",
+        "Horizontal gridlines": "Οριζόντιες Γραμμές Πλέγματος",
+        "Zebra stripes": "Ρίγες Ζέβρας",
         "Grid Options": "Επιλογές Πλέγματος",
-        "Vertical Gridlines": "Κάθετες Γραμμές Πλέγματος"
+        "Vertical gridlines": "Κάθετες Γραμμές Πλέγματος"
     },
     "GridViewMenus": {
-        "Add Column": "Προσθήκη Στήλης",
+        "Add column": "Προσθήκη στήλης",
         "Add to sort": "Προσθήκη στην ταξινόμηση",
         "Clear values": "Καθαρισμός τιμών",
         "Column Options": "Επιλογές Στήλης",
@@ -557,7 +555,6 @@
         "Lookups": "Αναζητήσεις (Lookups)",
         "Adding UUID column": "Προσθήκη στήλης UUID",
         "UUID": "UUID",
-        "Add column": "Προσθήκη στήλης",
         "DateTime": "Ημερομηνία/Ώρα",
         "Reference": "Αναφορά",
         "Freeze {{count}} more columns_one": "Πάγωμα μίας ακόμη στήλης",
@@ -579,10 +576,10 @@
     },
     "HomeIntro": {
         "Any documents created in this site will appear here.": "Οποιαδήποτε έγγραφα δημιουργούνται σε αυτόν τον ιστότοπο θα εμφανίζονται εδώ.",
-        "Create Empty Document": "Δημιουργία Κενού Εγγράφου",
+        "Create empty document": "Δημιουργία Κενού Εγγράφου",
         "Get started by creating your first Grist document.": "Ξεκινήστε δημιουργώντας το πρώτο σας έγγραφο Grist.",
         "Help Center": "Κέντρο Βοήθειας",
-        "Import Document": "Εισαγωγή Εγγράφου",
+        "Import document": "Εισαγωγή Εγγράφου",
         "Invite Team Members": "Πρόσκληση Μελών Ομάδας",
         "Sign up": "Εγγραφή",
         "Sprouts Program": "Πρόγραμμα Sprouts",
@@ -608,13 +605,13 @@
     },
     "HomeLeftPane": {
         "Access Details": "Λεπτομέρειες Πρόσβασης",
-        "All Documents": "Όλα Τα Έγγραφα",
-        "Create Empty Document": "Δημιουργία Κενού Εγγράφου",
-        "Create Workspace": "Δημιουργία χώρου εργασίας",
+        "All documents": "Όλα Τα Έγγραφα",
+        "Create empty document": "Δημιουργία Κενού Εγγράφου",
+        "Create workspace": "Δημιουργία χώρου εργασίας",
         "Delete": "Διαγραφή",
         "Examples & Templates": "Πρότυπα",
-        "Import Document": "Εισαγωγή Εγγράφου",
-        "Manage Users": "Διαχείριση Χρηστών",
+        "Import document": "Εισαγωγή Εγγράφου",
+        "Manage users": "Διαχείριση Χρηστών",
         "Rename": "Μετονομασία",
         "Workspace will be moved to Trash.": "Ο χώρος εργασίας θα μετακινηθεί στον Κάδο Απορριμμάτων.",
         "Workspaces": "Χώροι εργασίας",
@@ -653,7 +650,7 @@
         "Accessibility": "Προσβασιμότητα"
     },
     "MakeCopyMenu": {
-        "As Template": "Ως Πρότυπο",
+        "As template": "Ως Πρότυπο",
         "Cancel": "Ακύρωση",
         "Enter document name": "Εισαγάγετε το όνομα του εγγράφου",
         "Name": "Όνομα",
@@ -716,9 +713,9 @@
     "PageWidgetPicker": {
         "Building {{- label}} widget": "Δημιουργία γραφικού στοιχείου (widget) {{- label}}",
         "Group by": "Ομαδοποίηση κατά",
-        "Select Widget": "Επιλογή Γραφικού Στοιχείου (widget)",
-        "Select Data": "Επιλογή Δεδομένων",
-        "Add to Page": "Προσθήκη στη Σελίδα"
+        "Select widget": "Επιλογή Γραφικού Στοιχείου (widget)",
+        "Select data": "Επιλογή Δεδομένων",
+        "Add to page": "Προσθήκη στη Σελίδα"
     },
     "Pages": {
         "Delete": "Διαγραφή",
@@ -726,13 +723,13 @@
         "The following tables will no longer be visible_other": "Οι παρακάτω πίνακες δεν θα είναι πλέον ορατοί",
         "The following tables will no longer be visible_one": "Ο παρακάτω πίνακας δεν θα είναι πλέον ορατός",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "Διατήρηση δεδομένων και διαγραφή σελίδας. Ο πίνακας θα παραμείνει διαθέσιμος στο {{rawDataLink}}",
-        "raw data page": "σελίδα ακατέργαστων δεδομένων",
+        "Raw Data page": "σελίδα ακατέργαστων δεδομένων",
         "Document pages": "Σελίδες εγγράφων"
     },
     "PermissionsWidget": {
-        "Allow All": "Επιτρέπονται Όλα",
-        "Deny All": "Απόρριψη όλων",
-        "Read Only": "Μόνο για ανάγνωση"
+        "Allow all": "Επιτρέπονται Όλα",
+        "Deny all": "Απόρριψη όλων",
+        "Read only": "Μόνο για ανάγνωση"
     },
     "PluginScreen": {
         "Import failed: ": "Η εισαγωγή απέτυχε: "
@@ -741,37 +738,36 @@
         "Updating record layout.": "Ενημέρωση διάταξης εγγραφής."
     },
     "RecordLayoutEditor": {
-        "Add Field": "Προσθήκη Πεδίου",
+        "Add field": "Προσθήκη Πεδίου",
         "Show field {{- label}}": "Προβολή πεδίου {{- label}}",
-        "Save Layout": "Αποθήκευση Διάταξης",
+        "Save layout": "Αποθήκευση Διάταξης",
         "Cancel": "Ακύρωση",
-        "Create New Field": "Δημιουργία Νέου Πεδίου"
+        "Create new field": "Δημιουργία Νέου Πεδίου"
     },
     "RefSelect": {
-        "Add Column": "Προσθήκη Στήλης",
+        "Add column": "Προσθήκη Στήλης",
         "No columns to add": "Δεν υπάρχουν στήλες για προσθήκη"
     },
     "RightPanel": {
         "COLUMN TYPE": "ΤΥΠΟΣ ΣΤΗΛΗΣ",
         "CUSTOM": "ΠΡΟΣΑΡΜΟΣΜΕΝΟ",
-        "Change Widget": "Αλλαγή Γραφικού Στοιχείου (Widget)",
-        "Columns_one": "Στήλη",
-        "Columns_other": "Στήλες",
+        "Change widget": "Αλλαγή Γραφικού Στοιχείου (Widget)",
+        "columns_one": "Στήλη",
+        "columns_other": "Στήλες",
         "Data": "Δεδομένα",
         "Detach": "Απόσπαση",
-        "Edit Data Selection": "Επεξεργασία Επιλογής Δεδομένων",
-        "Fields_one": "Πεδίο",
-        "Fields_other": "Πεδία",
+        "Edit data selection": "Επεξεργασία Επιλογής Δεδομένων",
+        "fields_one": "Πεδίο",
+        "fields_other": "Πεδία",
         "GROUPED BY": "ΟΜΑΔΟΠΟΙΗΜΕΝΟ ΚΑΤΑ",
-        "ROW STYLE": "ΣΤΥΛ ΣΕΙΡΑΣ",
-        "Row Style": "Στυλ Σειράς",
+        "Row style": "Στυλ Σειράς",
         "SELECT BY": "ΕΠΙΛΟΓΗ ΜΕ",
         "SELECTOR FOR": "ΕΠΙΛΟΓΕΑΣ ΓΙΑ",
         "SOURCE DATA": "ΠΗΓΗ ΔΕΔΟΜΕΝΩΝ",
         "Save": "Αποθήκευση",
-        "Select Widget": "Επιλογή Γραφικού Στοιχείου (widget)",
-        "Series_one": "Σειρές",
-        "Series_other": "Σειρές",
+        "Select widget": "Επιλογή Γραφικού Στοιχείου (widget)",
+        "series_one": "Σειρές",
+        "series_other": "Σειρές",
         "TRANSFORM": "ΜΕΤΑΣΧΗΜΑΤΙΖΩ",
         "Display button": "Κουμπί εμφάνισης",
         "Enter text": "Εισαγωγή κειμένου",
@@ -788,7 +784,7 @@
         "No field selected": "Δεν έχει επιλεγεί πεδίο",
         "DATA TABLE NAME": "ΟΝΟΜΑ ΠΙΝΑΚΑ ΔΕΔΟΜΕΝΩΝ",
         "Theme": "Θέμα",
-        "Sort & Filter": "Ταξινόμηση & Φιλτράρισμα",
+        "Sort & filter": "Ταξινόμηση & Φιλτράρισμα",
         "Configuration": "Διαμόρφωση",
         "Required field": "Υποχρεωτικό πεδίο",
         "Success text": "Κείμενο επιτυχίας",
@@ -822,15 +818,15 @@
     },
     "ShareMenu": {
         "Access Details": "Λεπτομέρειες Πρόσβασης",
-        "Back to Current": "Επιστροφή στο τρέχον",
+        "Back to current": "Επιστροφή στο τρέχον",
         "Compare to {{termToUse}}": "Σύγκριση με {{termToUse}}",
         "Current Version": "Τρέχουσα Εκδοση",
         "Download": "Λήψη",
-        "Duplicate Document": "Αντιγραφή Εγγράφου",
+        "Duplicate document": "Αντιγραφή Εγγράφου",
         "Edit without affecting the original": "Επεξεργασία χωρίς να επηρεαστεί το πρωτότυπο",
         "Export CSV": "Εξαγωγή CSV",
         "Export XLSX": "Εξαγωγή XLSX",
-        "Manage Users": "Διαχείριση Χρηστών",
+        "Manage users": "Διαχείριση Χρηστών",
         "Original": "Πρωτότυπο",
         "Replace {{termToUse}}...": "Αντικατάσταση {{termToUse}}…",
         "Save Document": "Αποθήκευση Εγγράφου",
@@ -843,21 +839,21 @@
         "Download document...": "Λήψη εγγράφου...",
         "Share": "Μοιράσου",
         "Comma Separated Values (.csv)": "Τιμές διαχωρισμένες με κόμμα (.csv)",
-        "Save Copy": "Αποθήκευση Αντιγράφου",
+        "Save copy": "Αποθήκευση Αντιγράφου",
         "DOO Separated Values (.dsv)": "Διαχωρισμένες τιμές DOO (.dsv)",
         "Return to {{termToUse}}": "Επιστροφή στο {{termToUse}}",
         "Unsaved": "Μη αποθηκευμένο",
         "Exporting is only available from document pages. Please select a document page and try again.": "Η εξαγωγή είναι διαθέσιμη μόνο από σελίδες εγγράφων. Επιλέξτε μια σελίδα εγγράφου και δοκιμάστε ξανά.",
-        "Work on a Copy": "Εργασία σε ένα Aντίγραφο",
+        "Work on a copy": "Εργασία σε ένα Aντίγραφο",
         "Download...": "Λήψη..."
     },
     "SortConfig": {
         "Natural sort": "Φυσική ταξινόμηση",
         "Search Columns": "Αναζήτηση στηλών",
-        "Add Column": "Προσθήκη Στήλης",
+        "Add column": "Προσθήκη Στήλης",
         "Empty values last": "Οι κενές τιμές τελευταίες",
         "Use choice position": "Χρήση θέσης επιλογής",
-        "Update Data": "Ενημέρωση Δεδομένων",
+        "Update data": "Ενημέρωση Δεδομένων",
         "Remove sort setting - {{- columnName }} column": "Κατάργηση ρύθμισης ταξινόμησης - στήλη {{- columnName }}",
         "Sort in ascending order (current: descending)": "Ταξινόμηση σε αύξουσα σειρά (τρέχουσα: φθίνουσα)",
         "Sort in descending order (current: ascending)": "Ταξινόμηση κατά φθίνουσα σειρά (τρέχουσα: αύξουσα)",
@@ -876,11 +872,11 @@
         "Switch appearance automatically to match system": "Αυτόματη αλλαγή εμφάνισης ώστε να ταιριάζει με το σύστημα"
     },
     "Tools": {
-        "API Console": "Κονσόλα API",
+        "API console": "Κονσόλα API",
         "How-to Tutorial": "Οδηγός Πως-Να",
-        "Document History": "Ιστορικό Εγγράφου",
+        "Document history": "Ιστορικό Εγγράφου",
         "Return to viewing as yourself": "Επιστροφή στην προβολή ως ο εαυτός σας",
-        "Raw Data": "Ακατέργαστα Δεδομένα",
+        "Raw data": "Ακατέργαστα Δεδομένα",
         "Access Rules": "Κανόνες Πρόσβασης",
         "Delete": "Διαγραφή",
         "TOOLS": "ΕΡΓΑΛΕΙΑ",
@@ -888,14 +884,13 @@
         "Validate Data": "Επικύρωση Δεδομένων",
         "Tour of this Document": "Περιήγηση σε αυτό το Εγγραφο",
         "Settings": "Ρυθμίσεις",
-        "Code View": "Προβολή Κώδικα",
+        "Code view": "Προβολή Κώδικα",
         "context menu - Access Rules": "μενού περιβάλλοντος - Κανόνες πρόσβασης",
         "Delete document tour": "Διαγραφή περιήγησης εγγράφου",
         "Preview the tutorial": "Προεπισκόπηση του οδηγού εκμάθησης",
         "Proposed Changes": "Προτεινόμενες αλλαγές"
     },
     "TopBar": {
-        "Manage Team": "Διαχείριση Ομάδας",
         "Manage team": "Διαχείριση ομάδας"
     },
     "TriggerFormulas": {
@@ -917,11 +912,11 @@
     },
     "UserManagerModel": {
         "Editor": "Συντάκτης",
-        "In Full": "Πλήρως",
+        "In full": "Πλήρως",
         "None": "Κανένα",
         "Owner": "Ιδιοκτήτης",
-        "View & Edit": "Προβολή & Επεξεργασία",
-        "View Only": "Μόνο Προβολή",
+        "View & edit": "Προβολή & Επεξεργασία",
+        "View only": "Μόνο Προβολή",
         "No Default Access": "Δεν Υπάρχει Προεπιλεγμένη Πρόσβαση",
         "Viewer": "Θεατής"
     },
@@ -938,7 +933,7 @@
     "ViewConfigTab": {
         "Advanced settings": "Προχωρημένες ρυθμίσεις",
         "Blocks": "Μπλοκ",
-        "Edit Card Layout": "Επεξεργασία Διάταξης Κάρτας",
+        "Edit card layout": "Επεξεργασία Διάταξης Κάρτας",
         "Form": "Φόρμα",
         "Make On-Demand": "Δημιουργία Κατ' Απαίτηση",
         "Plugin: ": "Πρόσθετο: ",
@@ -950,12 +945,12 @@
         "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Οι πίνακες κατ' απαίτηση έχουν καταργηθεί λόγω έλλειψης λειτουργικότητας και ζητημάτων χρηστικότητας."
     },
     "ViewLayoutMenu": {
-        "Advanced Sort & Filter": "Σύνθετη Ταξινόμηση & Φιλτράρισμα",
+        "Advanced sort & filter": "Σύνθετη Ταξινόμηση & Φιλτράρισμα",
         "Copy anchor link": "Αντιγραφή συνδέσμου αγκύρωσης",
         "Data selection": "Επιλογή δεδομένων",
         "Delete record": "Διαγραφή εγγραφής",
         "Download as CSV": "Λήψη ως CSV",
-        "Edit Card Layout": "Επεξεργασία Διάταξης Κάρτας",
+        "Edit card layout": "Επεξεργασία Διάταξης Κάρτας",
         "Print widget": "Γραφικό στοιχείο (widget) εκτύπωσης",
         "Show raw data": "Εμφάνιση ακατέργαστων δεδομένων",
         "Widget options": "Επιλογές γραφικού στοιχείου (widget)",
@@ -969,7 +964,7 @@
     },
     "VisibleFieldsConfig": {
         "Clear": "Καθαρισμός",
-        "Select All": "Επιλογή Ολων",
+        "Select all": "Επιλογή Ολων",
         "Visible {{label}}": "Ορατό {{label}}",
         "Hide {{label}}": "Απόκρυψη {{label}}",
         "Hidden {{label}}": "Κρυφό {{label}}",
@@ -1094,7 +1089,7 @@
     "pages": {
         "You do not have edit access to this document": "Δεν έχετε πρόσβαση επεξεργασίας σε αυτό το έγγραφο",
         "Rename": "Μετονομασία",
-        "Duplicate Page": "Διπλότυπη Σελίδα",
+        "Duplicate page": "Διπλότυπη Σελίδα",
         "Remove": "Αφαίρεση",
         "(default)": "(εξ' ορισμού)",
         "Collapse {{maybeDefault}}": "Σύμπτυξη {{maybeDefault}}",
@@ -1113,7 +1108,7 @@
     },
     "ACLUsers": {
         "Users from table": "Χρήστες από τον πίνακα",
-        "View As": "Προβολή Ως",
+        "View as": "Προβολή Ως",
         "Example Users": "Παραδείγματα χρηστών",
         "Other users from table": "Άλλοι χρήστες από τον πίνακα",
         "Shared users": "Κοινόχρηστοι χρήστες"
@@ -1127,7 +1122,7 @@
     },
     "CellStyle": {
         "CELL STYLE": "ΣΤΥΛ ΚΕΛΙΟΥ",
-        "Cell Style": "Στυλ Κελιού",
+        "Cell style": "Στυλ Κελιού",
         "Mixed style": "Μικτό στυλ",
         "Open row styles": "Άνοιγμα στυλ γραμμών",
         "Default header style": "Προεπιλεγμένο στυλ κεφαλίδας",
@@ -1148,7 +1143,7 @@
     },
     "ConditionalStyle": {
         "Add conditional style": "Προσθήκη στυλ υπό όρους",
-        "Row Style": "Στυλ Σειράς",
+        "Row style": "Στυλ Σειράς",
         "Conditional Style": "Στυλ Υπό Προϋποθέσεις",
         "IF...": "ΑΝ...",
         "Error in style rule": "Σφάλμα στον κανόνα στυλ",
@@ -1185,7 +1180,7 @@
         "Convert column to formula": "Μετατροπή στήλης σε φόρμουλα"
     },
     "FieldBuilder": {
-        "Apply Formula to Data": "Εφαρμογή φόρμουλας σε δεδομένα",
+        "Apply formula to data": "Εφαρμογή φόρμουλας σε δεδομένα",
         "CELL FORMAT": "ΜΟΡΦΗ ΚΕΛΙΟΥ",
         "Mixed types": "Μικτοί τύποι",
         "Revert field settings for {{colId}} to common": "Επαναφορά ρυθμίσεων πεδίου για {{colId}} σε κοινές",
@@ -1231,7 +1226,7 @@
         "Use the Share button ({{share}}) to share the document or export data.": "Χρησιμοποιήστε το κουμπί Κοινή χρήση/μοιράσου ({{share}}) για να μοιραστείτε το έγγραφο ή να εξαγάγετε δεδομένα.",
         "Reference": "Αναφορά",
         "Start with {{equal}} to enter a formula.": "Ξεκινήστε με {{equal}} για να εισαγάγετε μία φόρμουλα.",
-        "Add New": "Προσθήκη Νέου",
+        "Add new": "Προσθήκη Νέου",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Κάντε διπλό κλικ ή πατήστε {{enter}} σε ένα κελί για να το επεξεργαστείτε. ",
         "Editing Data": "Επεξεργασία δεδομένων",
         "Share": "Μοιράσου",
@@ -1247,7 +1242,7 @@
     },
     "GristTooltips": {
         "Apply conditional formatting to cells in this column when formula conditions are met.": "Εφαρμογή μορφοποίησης υπό όρους σε κελιά σε αυτήν τη στήλη όταν πληρούνται οι συνθήκες του τύπου.",
-        "Click the Add New button to create new documents or workspaces, or import data.": "Κάντε κλικ στο κουμπί Προσθήκη νέου για να δημιουργήσετε νέα έγγραφα ή χώρους εργασίας ή να εισαγάγετε δεδομένα.",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Κάντε κλικ στο κουμπί Προσθήκη νέου για να δημιουργήσετε νέα έγγραφα ή χώρους εργασίας ή να εισαγάγετε δεδομένα.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "Κάνοντας κλικ στο {{EyeHideIcon}} σε κάθε κελί, το πεδίο αποκρύπτεται από αυτήν την προβολή χωρίς να διαγραφεί.",
         "Editing Card Layout": "Επεξεργασία Διάταξης Κάρτας",
         "Formulas that trigger in certain cases, and store the calculated value as data.": "Φόρμουλες που ενεργοποιούνται σε ορισμένες περιπτώσεις και αποθηκεύουν την υπολογισμένη τιμή ως δεδομένα.",
@@ -1265,7 +1260,7 @@
         "relational": "σχεσιακό",
         "Access Rules": "Κανόνες Πρόσβασης",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Οι κανόνες πρόσβασης σάς δίνουν τη δυνατότητα να δημιουργείτε λεπτομερείς κανόνες για να καθορίζετε ποιος μπορεί να δει ή να επεξεργαστεί ποια μέρη του εγγράφου σας.",
-        "Add New": "Προσθήκη Νέου",
+        "Add new": "Προσθήκη Νέου",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Χρησιμοποιήστε το εικονίδιο 𝚺 για να δημιουργήσετε συνοπτικούς (ή συγκεντρωτικούς) πίνακες, για σύνολα ή μερικά σύνολα.",
         "Anchor Links": "Σύνδεσμοι Αγκύρωσης",
         "Calendar": "Ημερολόγιο",
@@ -1352,8 +1347,8 @@
         "Comment": "Σχόλιο"
     },
     "WebhookPage": {
-        "Clear Queue": "Εκκαθάριση ουράς",
-        "Webhook Settings": "Ρυθμίσεις Webhook",
+        "Clear queue": "Εκκαθάριση ουράς",
+        "Webhook settings": "Ρυθμίσεις Webhook",
         "Cleared webhook queue.": "Η ουρά webhook διαγράφηκε.",
         "Columns to check when update (separated by ;)": "Στήλες προς έλεγχο κατά την ενημέρωση (διαχωρισμένες με ;)",
         "Enabled": "Ενεργοποιημένο",
@@ -1393,8 +1388,8 @@
         "Tips": "Συμβουλές",
         "AI Assistant": "Βοηθός Τεχνητής Νοημοσύνης",
         "Cancel": "Ακύρωση",
-        "Clear Conversation": "Καθαρισμός Συνομιλίας",
-        "Code View": "Προβολή Κώδικα",
+        "Clear conversation": "Καθαρισμός Συνομιλίας",
+        "Code view": "Προβολή Κώδικα",
         "Hi, I'm the Grist Formula AI Assistant.": "Γεια σας, είμαι ο Βοηθός Τεχνητής Νοημοσύνης της Grist Formula.",
         "Press Enter to apply suggested formula.": "Πατήστε Enter για να εφαρμόσετε την προτεινόμενη φόρμουλα.",
         "Sign Up for Free": "Εγγραφείτε Δωρεάν",
@@ -1414,7 +1409,7 @@
     },
     "UserManager": {
         "Guest": "Επισκέπτης",
-        "Copy Link": "Αντιγραφή Συνδέσμου",
+        "Copy link": "Αντιγραφή Συνδέσμου",
         "Create a team to share with more people": "Δημιουργήστε μια ομάδα για κοινή χρήση με περισσότερα άτομα",
         "Grist support": "Υποστήριξη Grist",
         "No default access allows access to be granted to individual documents or workspaces, rather than the full team site.": "Δεν υπάρχει προεπιλεγμένη πρόσβαση που να επιτρέπει την παραχώρηση πρόσβασης σε μεμονωμένα έγγραφα ή χώρους εργασίας, αντί για ολόκληρη την τοποθεσία της ομάδας.",
@@ -1435,7 +1430,6 @@
         "On": "On",
         "Open Access Rules": "Κανόνες Ανοικτής Πρόσβασης",
         "Outside collaborator": "Εξωτερικός συνεργάτης",
-        "Public Access": "Δημόσια Πρόσβαση",
         "Public access": "Δημόσια πρόσβαση",
         "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "Δημόσια πρόσβαση που κληρονομήθηκε από {{parent}}. Για κατάργηση, ορίστε την επιλογή «Κληρονόμηση πρόσβασης» σε «Καμία».",
         "Public access: ": "Δημόσια πρόσβαση: ",
@@ -1524,7 +1518,7 @@
         "Map fields": "Αντιστοίχιση πεδίων",
         "Mapped": "Αντιστοιχισμένο",
         "Clear": "Καθαρισμός",
-        "Select All": "Επιλογή Ολων",
+        "Select all": "Επιλογή Ολων",
         "Unmap fields": "Κατάργηση αντιστοίχισης πεδίων",
         "Unmapped": "Μη αντιστοιχισμένο"
     },
@@ -1547,7 +1541,7 @@
         "Today": "Σήμερα",
         "Last 30 days": "Τελευταίες 30 ημέρες",
         "Last 7 days": "Τελευταίες 7 ημέρες",
-        "Last Week": "Την περασμένη εβδομάδα",
+        "Last week": "Την περασμένη εβδομάδα",
         "Next 7 days": "Επόμενες 7 ημέρες",
         "This month": "Αυτόν τον μήνα",
         "This week": "Αυτή την βδομάδα",
@@ -1558,7 +1552,7 @@
         "Unmapped": "Μη αντιστοιχισμένο",
         "Clear": "Καθαρισμός",
         "Map fields": "Αντιστοίχιση πεδίων",
-        "Select All": "Επιλογή Ολων",
+        "Select all": "Επιλογή Ολων",
         "Mapped": "Αντιστοιχισμένο",
         "Hide {{label}}": "Απόκρυψη {{label}}",
         "Hide {{label}} (batch mode)": "Απόκρυψη {{label}} (λειτουργία παρτίδας)",
@@ -1738,7 +1732,7 @@
         "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "Ένα κλειδί ενεργοποίησης χρησιμοποιείται για την εκτέλεση του Grist Enterprise μετά τη λήξη \nμιας δοκιμαστικής περιόδου 30 ημερών. Αποκτήστε ένα κλειδί ενεργοποίησης κάνοντας\n [εγγραφή στο Grist Enterprise] ({{signupLink}}). Δεν χρειάζεστε κλειδί ενεργοποίησης για να \nεκτελέσετε το Grist Core."
     },
     "ViewLayout": {
-        "raw data page": "σελίδα ακατέργαστων δεδομένων",
+        "Raw Data page": "σελίδα ακατέργαστων δεδομένων",
         "Delete": "Διαγραφή",
         "Delete data and this widget.": "Διαγραφή δεδομένων και αυτού του γραφικού στοιχείου (widget).",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Διατήρηση δεδομένων και διαγραφή γραφικού στοιχείου (widget). Ο πίνακας θα παραμείνει διαθέσιμος στο {{rawDataLink}}",
@@ -1747,14 +1741,14 @@
     "CustomWidgetGallery": {
         "Custom URL": "Προσαρμοσμένη διεύθυνση URL",
         "(Missing info)": "(Λείπουν πληροφορίες)",
-        "Add Widget": "Προσθήκη γραφικού στοιχείου (widget)",
+        "Add widget": "Προσθήκη γραφικού στοιχείου (widget)",
         "Add Your Own Widget": "Προσθέστε το δικό σας γραφικό στοιχείο (widget)",
         "Add a widget from outside this gallery.": "Προσθέστε ένα γραφικό στοιχείο εκτός αυτής της συλλογής (widget).",
         "Cancel": "Ακύρωση",
-        "Change Widget": "Αλλαγή Γραφικού Στοιχείου (Widget)",
-        "Choose Custom Widget": "Επιλογή Προσαρμοσμένου Γραφικού Συστατικού (Widget)",
+        "Change widget": "Αλλαγή Γραφικού Στοιχείου (Widget)",
+        "Choose custom widget": "Επιλογή Προσαρμοσμένου Γραφικού Συστατικού (Widget)",
         "Developer:": "Προγραμματιστής:",
-        "Learn more about Custom Widgets": "Μάθετε περισσότερα σχετικά με τα Προσαρμοσμένα Γραφικά Στοιχεία (Widgets)",
+        "Learn more about custom widgets": "Μάθετε περισσότερα σχετικά με τα Προσαρμοσμένα Γραφικά Στοιχεία (Widgets)",
         "Widget URL": "URL Γραφικού Στοιχείου (Widget)",
         "Community Widget": "Γραφικό Στοιχείο της Κοινότητας (Widget)",
         "No matching widgets": "Δεν υπάρχουν αντίστοιχα γραφικά στοιχεία (widgets)",
@@ -1812,12 +1806,12 @@
         "Download document...": "Λήψη εγγράφου..."
     },
     "RightPanelUtils": {
-        "Series_one": "Σειρές",
-        "Columns_one": "Στήλη",
-        "Columns_other": "Στήλες",
-        "Fields_one": "Πεδίο",
-        "Fields_other": "Πεδία",
-        "Series_other": "Σειρές"
+        "series_one": "Σειρές",
+        "columns_one": "Στήλη",
+        "columns_other": "Στήλες",
+        "fields_one": "Πεδίο",
+        "fields_other": "Πεδία",
+        "series_other": "Σειρές"
     },
     "userTrustsCustomWidget": {
         "Please review the following before adding a new custom widget.": "Παρακαλούμε ελέγξτε τα παρακάτω πριν προσθέσετε ένα νέο προσαρμοσμένο γραφικό στοιχείο (widget).",
@@ -2082,7 +2076,7 @@
         "Default cell style": "Προεπιλεγμένο στυλ κελιού"
     },
     "FilterConfig": {
-        "Add Column": "Προσθήκη Στήλης",
+        "Add column": "Προσθήκη Στήλης",
         "Pin filter - {{- columnName}} column (current: unpinned)": "Φίλτρο καρφιτσώματος - στήλη {{- columnName}} (τρέχουσα: ξεκαρφιτσωμένη)",
         "Unpin filter - {{- columnName}} column (current: pinned)": "Ξεκαρφίτσωμα φίλτρου - στήλη {{- columnName}} (τρέχουσα: καρφιτσωμένη)",
         "remove filter - {{- columnName}} column": "αφαίρεση φίλτρου - στήλη {{- columnName}}",
@@ -2150,7 +2144,7 @@
         "[link label] url": "[link label] URL"
     },
     "PagePanels": {
-        "Open Creator Panel": "Άνοιγμα Πίνακα Δημιουργού",
+        "Open creator panel": "Άνοιγμα Πίνακα Δημιουργού",
         "Close Creator Panel": "Κλείσιμο Πίνακα Δημιουργού",
         "Creator panel (right panel)": "Πίνακας δημιουργού (δεξιό πλαίσιο)",
         "Document header": "Κεφαλίδα εγγράφου",
@@ -2311,7 +2305,10 @@
     },
     "ProposedChangesPage": {
         "Proposed Changes": "Προτεινόμενες αλλαγές",
-        "Replace Original": "Αντικατάσταση πρωτοτύπου",
+        "Replace original": "Αντικατάσταση πρωτοτύπου",
         "This is a list of changes relative to the original document.": "Αυτή είναι μια λίστα αλλαγών σε σχέση με το αρχικό έγγραφο."
+    },
+    "commandList": {
+        "showing a behavioral popup": "εμφάνιση ενός αναδυόμενου παραθύρου συμπεριφοράς"
     }
 }

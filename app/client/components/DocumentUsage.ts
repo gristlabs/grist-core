@@ -81,7 +81,7 @@ export class DocumentUsage extends Disposable {
       // Invalid data size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
-        name: t("Data Size"),
+        name: t("Data size"),
         currentValue: typeof dataSize !== 'number' ? undefined : dataSize,
         maximumValue: maxValue ?? DEFAULT_MAX_DATA_SIZE,
         unit: 'MB',
@@ -103,7 +103,7 @@ export class DocumentUsage extends Disposable {
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
-        name: t("Attachments Size"),
+        name: t("Size of attachments"),
         currentValue: typeof attachmentsSize !== 'number' ? undefined : attachmentsSize,
         maximumValue: maxValue ?? DEFAULT_MAX_ATTACHMENTS_SIZE,
         unit: 'GB',

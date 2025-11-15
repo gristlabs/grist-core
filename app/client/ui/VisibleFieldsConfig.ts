@@ -227,7 +227,7 @@ export class VisibleFieldsConfig extends Disposable {
             () => (
               cssIconButton(
                 icon('Tick'),
-                t("Select All"),
+                t("Select all"),
                 {"aria-describedby": 'visible-fields-label'},
                 dom.on('click', () => this._setVisibleCheckboxes(fieldsDraggable, true)),
                 dom.prop('disabled', this._disabled),
@@ -279,7 +279,7 @@ export class VisibleFieldsConfig extends Disposable {
             () => (
               cssIconButton(
                 icon('Tick'),
-                t("Select All"),
+                t("Select all"),
                 {"aria-describedby": 'hidden-fields-label'},
                 dom.on('click', () => this._setHiddenCheckboxes(hiddenFieldsDraggable, true)),
                 dom.prop('disabled', this._disabled),

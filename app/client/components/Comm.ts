@@ -25,6 +25,7 @@
 import {GristWSConnection} from 'app/client/components/GristWSConnection';
 import * as dispose from 'app/client/lib/dispose';
 import * as log from 'app/client/lib/log';
+import {ApiError} from 'app/common/ApiError';
 import {CommRequest, CommResponse, CommResponseBase, CommResponseError, ValidEvent} from 'app/common/CommTypes';
 import {UserAction} from 'app/common/DocActions';
 import {DocListAPI, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
@@ -330,7 +331,11 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
             window.location.reload();
           }
           if (isCommResponseError(message)) {
-            const err: any = new Error(message.error);
+            let err: any = new Error(message.error);
+            if (message.status) {
+              // Change type of error to be consistent with REST API calls.
+              err = new ApiError(message.error, message.status, message.details);
+            }
             let code = '';
             if (message.errorCode) {
               code = ` [${message.errorCode}]`;

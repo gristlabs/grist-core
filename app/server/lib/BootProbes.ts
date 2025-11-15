@@ -63,6 +63,7 @@ export class BootProbes {
     this._probes.push(_authenticationProbe);
     this._probes.push(_webSocketsProbe);
     this._probes.push(_sessionSecretProbe);
+    this._probes.push(_admins);
     this._probeById = new Map(this._probes.map(p => [p.id, p]));
   }
 }
@@ -77,6 +78,25 @@ export interface Probe {
   description?: string;
   apply: (server: GristServer, req: express.Request) => Promise<BootProbeResult>;
 }
+
+const _admins: Probe = {
+  id: 'admins',
+  name: 'Currently defined install admins',
+  apply: async (server, req) => {
+    try {
+      const users = await server.getInstallAdmin().getAdminUsers(req);
+      return {
+        status: 'success',
+        details: {users}
+      };
+    } catch (e) {
+      return {
+        status: 'fault',
+        details: {error: String(e)},
+      };
+    }
+  }
+};
 
 const _homeUrlReachableProbe: Probe = {
   id: 'reachable',
