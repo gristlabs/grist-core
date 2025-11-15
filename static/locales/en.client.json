@@ -740,7 +740,8 @@
         "Building {{- label}} widget": "Building {{- label}} widget",
         "Group by": "Group by",
         "Select data": "Select data",
-        "Select widget": "Select widget"
+        "Select widget": "Select widget",
+        "New Table": "New Table"
     },
     "Pages": {
         "Delete": "Delete",
