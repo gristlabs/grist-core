@@ -431,7 +431,8 @@
         "Upload": "Importer",
         "Default": "Classique",
         "Default, template, or tutorial": "Classique, modèle ou tutoriel",
-        "Document type": "Type de document"
+        "Document type": "Type de document",
+        "Allow others to suggest changes": "Permettez aux autres de suggérer des changements"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont accessibles qu'aux utilisateurs ayant un accès complet aux données du document.",
