@@ -14,7 +14,7 @@ import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
         LabelDelta} from 'app/common/ActionSummary';
-import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
+import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
 import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
@@ -151,7 +151,10 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       ag,
       this
     );
-    return part.renderTabularDiffs(sum, txt, ag?.context);
+    return part.renderTabularDiffs(sum, {
+      txt,
+      contextObs: ag?.context
+    });
   }
 
   /**
@@ -288,7 +291,8 @@ export abstract class ActionLogPart {
    * @param {string} txt - a textual description of the action
    * @param {Observable} context - extra information about the action
    */
-  public renderTabularDiffs(sum: ActionSummary, txt?: string, contextObs?: ko.Observable<ActionContext>): HTMLElement {
+  public renderTabularDiffs(sum: ActionSummary, options: RenderTabularDiffOptions): HTMLElement {
+    const {txt, contextObs} = options;
     const editDom = koDom.scope(contextObs, (context: ActionContext) => {
       const act = asTabularDiffs(sum, {
         context,
@@ -298,6 +302,7 @@ export abstract class ActionLogPart {
         'div',
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
+        options.customRender?.(act),
         Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
           if (tdiff.cells.length === 0) { return dom('div'); }
           return dom(
@@ -690,4 +695,10 @@ interface DeletedObject {
   thisRow?: boolean;
   colId?: string;
   tableId?: string;
+}
+
+interface RenderTabularDiffOptions {
+  txt?: string;
+  contextObs?: ko.Observable<ActionContext>;
+  customRender?(diffs: TabularDiffs): DomContents;
 }
