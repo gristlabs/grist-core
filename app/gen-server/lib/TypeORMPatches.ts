@@ -347,7 +347,7 @@ export class PostgresQueryRunnerPatched extends PostgresQueryRunner {
 }
 
 export class PostgresDriverPatched extends PostgresDriver {
-  public createQueryRunner(mode: 'master' | 'slave'): QueryRunner {
+  public createQueryRunner(mode: 'master' | 'slave'): PostgresQueryRunner {
     return new PostgresQueryRunnerPatched(this, mode);
   }
 }
