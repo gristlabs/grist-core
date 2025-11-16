@@ -10,8 +10,6 @@ import startCase = require('lodash/startCase');
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
-import { TimeoutError } from 'selenium-webdriver/lib/error';
-
 import * as PluginApi from 'app/plugin/grist-plugin-api';
 import { BaseAPI } from 'app/common/BaseAPI';
 import {csvDecodeRow} from 'app/common/csvFormat';
@@ -631,17 +629,7 @@ export async function getCursorPosition(section?: WebElement|string) {
   return await retryOnStale(async () => {
     if (typeof section === 'string') { section = await getSection(section); }
     section = section ?? await driver.findWait('.active_section', 4000);
-    let cursor: WebElement;
-    // If there's no active cursor in the widget, this is sometimes a valid case, so return null
-    // instead of erroring. (e.g. a linked widget with the linked row filtered out)
-    try {
-      cursor = await section.findWait('.selected_cursor', 1000);
-    } catch (err) {
-      if (err instanceof TimeoutError) {
-        return null;
-      }
-      throw err;
-    }
+    const cursor = await section.findWait('.selected_cursor', 1000);
     // Query assuming the cursor is in a GridView and a DetailView, then use whichever query data
     // works out.
     const [colIndex, rowIndex, rowNum, colName] = await Promise.all([
@@ -667,6 +655,16 @@ export async function getCursorPosition(section?: WebElement|string) {
       return { rowNum: parseInt(gridRowNum, 10), col: colIndex };
     }
   });
+}
+
+export async function isCursorPresent(section?: WebElement|string,
+                                      type: "active" | "selected" = "selected"): Promise<boolean> {
+  if (typeof section === 'string') {
+    section = getSection(section);
+  } else {
+    section = section ?? driver.findWait('.active_section', 4000);
+  }
+  return section.find(type === 'active' ? 'active_cursor' : 'selected_cursor').isPresent();
 }
 
 /**

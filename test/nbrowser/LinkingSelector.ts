@@ -206,7 +206,7 @@ interface CursorSelectorInfo {
 }
 
 async function getCursorSelectorInfo(section: WebElement): Promise<CursorSelectorInfo> {
-  const hasActiveCursor = (await section.find('.active_cursor').isPresent());
+  const hasActiveCursor = await gu.isCursorPresent(section, 'active');
   return {
     linkSelector: await gu.getSelectorPosition(section).then(r => r ?? false),
     cursor: hasActiveCursor ? await gu.getCursorPosition(section) : null,

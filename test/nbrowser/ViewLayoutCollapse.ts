@@ -427,8 +427,8 @@ describe("ViewLayoutCollapse", function() {
     await gu.waitForAnchor();
 
     const cursor = await gu.getCursorPosition();
-    assert.equal(cursor?.rowNum, 12);
-    assert.equal(cursor?.col, 1);
+    assert.equal(cursor.rowNum, 12);
+    assert.equal(cursor.col, 1);
     assert.equal(await gu.getActiveCell().getText(), 'angel');
     assert.equal(await gu.getActiveSectionTitle(), 'INVESTMENTS');
     assert.match(await driver.getCurrentUrl(), /Investment-Research-smaller\/p\/1$/);

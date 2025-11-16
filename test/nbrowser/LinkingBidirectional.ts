@@ -269,8 +269,9 @@ interface CursorArrowInfo {
 // That function only gives the cursorPos if that section is actively selected (false otherwise), whereas this
 // function returns it always
 async function getCursorAndArrow(sectionName: string): Promise<CursorArrowInfo> {
+  const hasActiveCursor = await gu.isCursorPresent(sectionName);
   return {
     arrow: await gu.getArrowPosition(sectionName),
-    cursor: await gu.getCursorPosition(sectionName),
+    cursor: hasActiveCursor ? await gu.getCursorPosition(sectionName) : null,
   };
 }
