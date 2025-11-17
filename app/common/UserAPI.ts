@@ -603,10 +603,13 @@ export interface DocAPI {
 
   makeProposal(options?: {
     retracted?: boolean,
-  }): Promise<void>;
+  }): Promise<Proposal>;
   getProposals(options?: {
     outgoing?: boolean
   }): Promise<{proposals: Proposal[]}>;
+  applyProposal(proposalId: number): Promise<Proposal>;
+
+  applyUserActions(actions: UserAction[]): Promise<ApplyUAResult>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1320,9 +1323,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async makeProposal(options?: {
     retracted?: boolean,
   }) {
-    await this.requestJson(`${this._url}/propose`, {
+    return this.requestJson(`${this._url}/propose`, {
       method: 'POST',
       body: JSON.stringify(options || {}),
+    });
+  }
+
+  public async applyProposal(proposalId: number) {
+    return this.requestJson(`${this._url}/proposals/${proposalId}/apply`, {
+      method: 'POST',
+    });
+  }
+
+  public async applyUserActions(actions: UserAction[]): Promise<ApplyUAResult> {
+    return this.requestJson(`${this._url}/apply`, {
+      method: 'POST',
+      body: JSON.stringify(actions)
     });
   }
 
