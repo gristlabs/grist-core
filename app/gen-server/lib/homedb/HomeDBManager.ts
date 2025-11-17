@@ -3562,10 +3562,6 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.getServiceAccount(serviceId);
   }
 
-  public async getServiceAccountWithOwner(serviceId: number) {
-    return this._serviceAccountsManager.getServiceAccountWithOwner(serviceId);
-  }
-
   public async getServiceAccountByLoginWithOwner(login: string) {
     return this._serviceAccountsManager.getServiceAccountByLoginWithOwner(login);
   }
