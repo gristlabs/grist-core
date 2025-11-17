@@ -41,12 +41,18 @@ type SandboxMethod = (...args: any[]) => any;
  * in tests) which runs grist/main.py.
  */
 export interface ISandboxOptions {
-  command?: string;       // External program or container to call to run the sandbox.
-  args: string[];         // The arguments to passed first to the sandbox process.
-  appendArgs?: string[];    // Extra arguments that get appended to the end of sandbox command, after anything else
-  comment?: string;        // an argument to add in command line when possible, so it shows in `ps`
+  // External program or container to call to run the sandbox.
+  command?: string;
+  // The arguments to pass first to the sandbox process.
+  args: string[];
+  // Extra arguments that get appended to the end of sandbox command, after anything else
+  appendArgs?: string[];
+  // an argument to add to the command line when possible, that should be shown in the `ps` output
+  // for the sandbox process. Intended to be a document name or id
+  comment?: string;
 
-  preferredPythonVersion?: string;  // Mandatory for gvisor; ignored by other methods.
+  // Mandatory for gvisor; ignored by other methods.
+  preferredPythonVersion?: string;
 
   // TODO: update
   // ISandboxCreationOptions to talk about directories instead of
@@ -54,17 +60,23 @@ export interface ISandboxOptions {
   // mounts (e.g. for unsandboxed operation).
   importDir?: string;  // a directory containing data file(s) to import by plugins
 
-  minimalPipeMode?: boolean;     // Whether to use newer 3-pipe operation
-  deterministicMode?: boolean;   // Whether to override time + randomness
+  // Whether to use newer 3-pipe operation
+  minimalPipeMode?: boolean;
+  // Whether to override time + randomness
+  deterministicMode?: boolean;
 
-  exports?: {[name: string]: SandboxMethod}; // Functions made available to the sandboxed process.
-  logCalls?: boolean;     // (Not implemented) Whether to log all system calls from the python sandbox.
-  logTimes?: boolean;     // Whether to log time taken by calls to python sandbox.
-  logMeta?: log.ILogMeta; // Log metadata (e.g. including docId) to report in all log messages.
+  // Functions made available to the sandboxed process.
+  exports?: {[name: string]: SandboxMethod};
+  // (Not implemented) Whether to log all system calls from the python sandbox.
+  logCalls?: boolean;
+  // Whether to log time taken by calls to python sandbox.
+  logTimes?: boolean;
+  // Log metadata (e.g. including docId) to report in all log messages.
+  logMeta?: log.ILogMeta;
 
-  useGristEntrypoint?: boolean;  // Should be set for everything except tests, which
-                                 // may want to pass arguments to python directly.
-                                 // Now defaults to true.
+  // Should be set for everything except tests, which may want to pass arguments to python directly.
+  // Now defaults to true.
+  useGristEntrypoint?: boolean;
 }
 
 /**
