@@ -65,6 +65,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   private _pending: ActionGroupWithState[] = [];  // cache for actions that arrive while loading log
   private _loaded: boolean = false;               // flag set once log is loaded
   private _loading: ko.Observable<boolean>;  // flag set while log is loading
+  private _censored: ko.Observable<boolean>;
 
   /**
    * Create an ActionLog.
@@ -77,6 +78,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this.showAllTables = ko.observable(false);
     // We load the ActionLog lazily now, when it is first viewed.
     this._loading = ko.observable(false);
+    this._censored = ko.observable(false);
 
     this._gristDoc = options.gristDoc;
 
@@ -213,6 +215,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
         {tabIndex: '-1'},
+        dom.maybe(this._censored, () => {
+          return dom(
+            'p',
+            t('History blocked because of access rules.'),
+          );
+        }),
         dom('div',
           labeledSquareCheckbox(fromKo(this.showAllTables),
             t('All tables'),
@@ -250,7 +258,8 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     if (this._loaded || !this._gristDoc) { return; }
     this._loading(true);
     // Returned actions are ordered with earliest actions first.
-    const result = await this._gristDoc.docComm.getActionSummaries();
+    const {actions: result, censored} = await this._gristDoc.docComm.getActionSummaries();
+    this._censored(censored);
     this._loading(false);
     this._loaded = true;
     // Add the actions to our action log.

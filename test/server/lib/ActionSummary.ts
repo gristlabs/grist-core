@@ -253,7 +253,7 @@ describe("ActionSummary", function() {
     // so we check that diffs are generated for it.
     const doc = await docTools.loadFixtureDoc('Favorite_Films.grist');
     const session = docTools.createFakeSession();
-    const actions = await doc.getRecentActions(session, true);
+    const {actions} = await doc.getRecentActions(session, true);
     assert(Object.keys(actions[0].actionSummary.tableDeltas).length > 0, "some diff present");
 
     // Pick out a change where Captain America is replaced with Steve Rogers.
