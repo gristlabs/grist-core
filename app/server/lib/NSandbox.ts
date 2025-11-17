@@ -44,7 +44,9 @@ export interface ISandboxOptions {
   // External program or container to call to run the sandbox.
   command?: string;
   // The arguments to pass first to the sandbox process.
-  args: string[];
+  sandboxArgs: string[];
+  // The arguments to pass first to the sandbox process.
+  pythonArgs: string[];
   // Extra arguments that get appended to the end of sandbox command, after anything else
   appendArgs?: string[];
   // an argument to add to the command line when possible, that should be shown in the `ps` output
@@ -576,14 +578,15 @@ export class NSandboxCreator implements ISandboxCreator {
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
-    const args: string[] = this._command ? [...this._commandArgs] : [];
-    if (options.sandboxOptions?.args) {
-      args.push(...options.sandboxOptions.args);
-    }
-    const appendArgs: string[] = this._commandAppendArgs ?? [];
-    if (options.sandboxOptions?.appendArgs) {
-      args.push(...options.sandboxOptions.appendArgs);
-    }
+    const sandboxArgs: string[] = [
+      ...this._commandArgs,
+      ...(options.sandboxOptions?.sandboxArgs ?? [])
+    ];
+    const appendArgs: string[] = [
+      ...(this._commandAppendArgs ?? []),
+      ...(options.sandboxOptions?.appendArgs ?? []),
+    ];
+
     const translatedOptions: ISandboxOptions = {
       minimalPipeMode: true,
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
@@ -597,7 +600,8 @@ export class NSandboxCreator implements ISandboxCreator {
       useGristEntrypoint: true,
       importDir: options.importMount,
       ...options.sandboxOptions,
-      args,
+      pythonArgs: options.sandboxOptions?.pythonArgs ?? [],
+      sandboxArgs,
       appendArgs,
     };
     return new NSandbox(translatedOptions, this._spawner);
@@ -631,19 +635,17 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
  * been installed globally.
  */
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
-  const {args, importDir} = options;
+  const {sandboxArgs, pythonArgs, appendArgs, importDir} = options;
   const paths = getAbsolutePaths(options);
 
-  const pythonArgs = [...args];
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.push(paths.main);
-  }
-  if (options.comment) {
-    pythonArgs.push(options.comment);
-  }
-  if (options.appendArgs) {
-    pythonArgs.push(...options.appendArgs);
-  }
+  const commandArgs = [
+    // No sandbox here, so apply the sandbox args to Python instead of ignoring them.
+    ...sandboxArgs,
+    ...pythonArgs,
+    ...(options.useGristEntrypoint !== false ? [paths.main] : []),
+    ...(options.comment ? [options.comment] : []),
+    ...(appendArgs ?? []),
+  ];
 
   const spawnOptions = {
     stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
@@ -658,7 +660,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
     spawnOptions.stdio.push('pipe', 'pipe');
   }
   const command = findPython(options.command);
-  const child = adjustedSpawn(command, pythonArgs,
+  const child = adjustedSpawn(command, commandArgs,
                       {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {
     name: 'unsandboxed',
@@ -698,7 +700,14 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   let child: ChildProcess;
 
   if (options.command) {
-    const args = [...options.args, scriptPath, ...(options.appendArgs ?? [])];
+    const args = [
+      ...options.sandboxArgs,
+      // Ignore options.pythonArgs - no python process runs for pyodide
+      '--',
+      scriptPath,
+      ...(options.comment ? [options.comment] : []),
+      ...(options.appendArgs ?? [])
+    ];
     log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
     child = spawn(
       options.command,
@@ -740,7 +749,6 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
  * Be sure to read setup instructions in that directory.
  */
 function gvisor(options: ISandboxOptions): SandboxProcess {
-  const pythonArgs = options.args || [];
   let command = options.command;
   if (!command) {
     try {
@@ -759,15 +767,13 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
+  wrapperArgs.push(...options.sandboxArgs);
   wrapperArgs.addEnv('PYTHONPATH', paths.engine);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addMount(paths.sandboxDir);
   if (paths.importDir) {
     wrapperArgs.addMount(paths.importDir);
     wrapperArgs.addEnv('IMPORTDIR', paths.importDir);
-  }
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift(paths.main);
   }
   if (options.deterministicMode) {
     wrapperArgs.push('--faketime', FAKETIME);
@@ -782,6 +788,16 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     wrapperArgs.push('-s', path.join(venv, 'bin', 'python'));
   }
 
+  const pythonArgs = [
+    ...options.pythonArgs,
+    ...(options.useGristEntrypoint !== false ? [paths.main] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? []),
+  ];
+
   // For a regular sandbox not being used for importing, if GRIST_CHECKPOINT is set
   // try to restore from it. If GRIST_CHECKPOINT_MAKE is set, try to recreate the
   // checkpoint (this is an awkward place to do it, but avoids mismatches
@@ -793,14 +809,14 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
         adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
-                        `python3`, '--', ...pythonArgs]);
+                        `python3`, '--', ...pythonArgs, ...appendArgs]);
       // We don't want process control for this.
       return {name: 'gvisor', child, control: () => new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
     wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
   }
-  const child = adjustedSpawn(command, [...wrapperArgs.get(), `python3`, '--', ...pythonArgs]);
+  const child = adjustedSpawn(command, [...wrapperArgs.get(), `python3`, '--', ...pythonArgs, ...appendArgs]);
   const childPid = child.pid;
   if (!childPid) {
     throw new Error(`failed to spawn python3`);
@@ -839,27 +855,37 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
  * `sandbox/docker` for more.
  */
 function docker(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs, command} = options;
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift('grist/main.py');
-  }
+  const {command} = options;
   if (options.minimalPipeMode === false) {
     throw new Error("docker only supports 3-pipe operation (although runc has --preserve-file-descriptors)");
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '--env', mount: '-v'});
+  wrapperArgs.push(...options.sandboxArgs);
   if (paths.importDir) {
     wrapperArgs.addMount(`${paths.importDir}:/importdir:ro`);
   }
   wrapperArgs.addMount(`${paths.engine}:/grist:ro`);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addEnv('PYTHONPATH', 'grist:thirdparty');
-  const commandParts: string[] = ['python'];
-  if (options.deterministicMode) {
+
+  const commandParts = [
     // DETERMINISTIC_MODE is already set by getInsertedEnv().  We also take
     // responsibility here for running faketime around python.
-    commandParts.unshift('faketime', '-f', FAKETIME);
-  }
+    ...(options.deterministicMode ? ['faketime', '-f', FAKETIME] : []),
+    'python',
+  ];
+
+  const pythonArgs = [
+    ...options.pythonArgs,
+    ...(options.useGristEntrypoint !== false ? ['grist/main.py'] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? [])
+  ];
+
   const dockerPath = which.sync('docker');
   const child = spawn(dockerPath, [
     'run', '--rm', '-i', '--network', 'none',
@@ -867,6 +893,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     command || 'grist-docker-sandbox',  // this is the docker image to use
     ...commandParts,
     ...pythonArgs,
+    ...appendArgs,
   ]);
   log.rawDebug("cannot do process control via docker yet", {...options.logMeta});
   return {name: 'docker', child, control: () => new NoProcessControl(child)};
@@ -881,14 +908,11 @@ function docker(options: ISandboxOptions): SandboxProcess {
  * no obvious native sandboxing alternative.
  */
 function macSandboxExec(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs} = options;
   if (options.minimalPipeMode === false) {
     throw new Error("macSandboxExec flavor only supports 3-pipe operation");
   }
   const paths = getAbsolutePaths(options);
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift(paths.main);
-  }
+
   const env = {
     PYTHONPATH: paths.engine,
     IMPORTDIR: paths.importDir,
@@ -957,8 +981,19 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
     profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.importDir)}))`);
   }
 
+  const pythonArgs = [
+    ...options.pythonArgs,
+    ...(options.useGristEntrypoint !== false ? [paths.main] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? [])
+  ];
+
   const profileString = profile.join('\n');
-  const child = spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
+  const child = spawn('/usr/bin/sandbox-exec',
+                      [...options.sandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
                       {cwd, env});
   return {
     name: 'macSandboxExec',
