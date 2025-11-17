@@ -122,6 +122,24 @@ export class UndoStack extends dispose.Disposable {
     this.isDisabled.set(true);
   }
 
+  // Find the specified action in the action stack, and return
+  // its index. This is useful for counting how many actions
+  // are between some marked point and now, accounting for
+  // undos and redos.
+  public getUndoStackIndex(actionNum: number): number|null {
+    for (let i = this._pointer - 1; i >= 0; i--) {
+      const item = this._stack[i];
+      if (item.actionNum <= actionNum) { return i; }
+    }
+    return null;
+  }
+
+  // Compare an index computed by getUndoStackIndex with the
+  // current top of the action stack, giving a count of actions.
+  public compareStackIndex(index: number|null): number {
+    return Math.max(0, this._pointer - 1 - (index || 0));
+  }
+
   private async _sendAction(isUndo: boolean): Promise<void> {
     // Pick the action group to undo or redo.
     const ag = this._stack[isUndo ? this._pointer - 1 : this._pointer];

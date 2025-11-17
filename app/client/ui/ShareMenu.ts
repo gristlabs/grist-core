@@ -77,7 +77,11 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
       ], {buttonAction: saveCopy});
     } else if (doc.isFork) {
       if (isProposable) {
-        return shareButton(t("Suggest Changes"), () => [
+        return shareButton([
+          t("Suggest Changes"),
+          dom.maybe(pageModel.proposalNewChangesCount,
+                    (changes) => cssChangeCount(` (${changes})`)),
+        ], () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
           menuOriginal(doc, pageModel),
@@ -123,7 +127,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
  * portion can be an independent action button (when buttonAction is given), or simply a more
  * visible extension of the icon that opens the menu.
  */
-function shareButton(buttonText: string|null, menuCreateFunc: MenuCreateFunc,
+function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFunc,
                      options: {buttonAction?: () => void} = {},
 ) {
   if (!buttonText) {
@@ -470,4 +474,8 @@ const cssMenuIconLink = styled('a', `
 
 const cssMenuIcon = styled(icon, `
   display: block;
+`);
+
+const cssChangeCount = styled('span', `
+  font-weight: bold;
 `);

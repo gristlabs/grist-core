@@ -1390,10 +1390,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     }
     if (this.docComm.isActionFromThisDoc(message)) {
       const docActions = message.data.docActions;
-      this.latestActionState.set({
-        h: message.data.actionGroup.actionHash,
-        n: message.data.actionGroup.actionNum,
-      });
       for (let i = 0, len = docActions.length; i < len; i++) {
         console.log("GristDoc applying #%d", i, docActions[i]);
         this.docData.receiveAction(docActions[i]);
@@ -1414,6 +1410,11 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
           this._lastOwnActionGroup = actionGroup;
         }
       }
+      // Set latestActionState once we've processed the action.
+      this.latestActionState.set({
+        h: message.data.actionGroup.actionHash,
+        n: message.data.actionGroup.actionNum,
+      });
       if (schemaUpdated) {
         this.trigger('schemaUpdateAction', docActions);
       }
