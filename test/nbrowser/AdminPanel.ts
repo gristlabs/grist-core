@@ -200,7 +200,10 @@ describe('AdminPanel', function() {
     const names = await adminAccounts.findAll('.test-admin-panel-admin-account-name');
     assert.equal(names.length, 1);
 
-    assert.equal(await names[0].getText(), gu.session().name);
+    const emails = await adminAccounts.findAll('.test-admin-panel-admin-account-email');
+    assert.equal(names.length, 1);
+
+    assert.equal(await emails[0].getText(), gu.session().email);
   });
 
   it('should show sandbox', async function() {
