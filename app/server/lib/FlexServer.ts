@@ -70,7 +70,6 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import { createPubSubManager, IPubSubManager } from 'app/server/lib/PubSubManager';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
@@ -1054,7 +1053,7 @@ export class FlexServer implements GristServer {
     await this._telemetry.start();
 
     // Start up a monitor for memory and cpu usage.
-    this._processMonitorStop = ProcessMonitor.start(this._telemetry);
+    this._processMonitorStop = this.create.startProcessMonitor(this._telemetry);
   }
 
   public async close() {
