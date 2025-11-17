@@ -1,16 +1,17 @@
 import axios from "axios";
 import * as chai from "chai";
+import omit from 'lodash/omit';
 import * as sinon from 'sinon';
 
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 import { Defer, serveSomething, Serving } from "test/server/customUtil";
-import { Telemetry } from 'app/server/lib/Telemetry';
+import { ILogMeta, LogMethods } from 'app/server/lib/LogMethods';
 import { Deps } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { delay } from "app/common/delay";
 import { LatestVersion } from 'app/server/lib/UpdateManager';
-import { TelemetryEvent, TelemetryMetadataByLevel } from 'app/common/Telemetry';
+import { TelemetryEvent } from 'app/common/Telemetry';
 
 const assert = chai.assert;
 
@@ -24,7 +25,7 @@ const stop = async () => {
 let homeUrl: string;
 let dockerHub: Serving & { signal: () => Defer };
 let sandbox: sinon.SinonSandbox;
-const logMessages: [TelemetryEvent, TelemetryMetadataByLevel?][] = [];
+const logMessages: [TelemetryEvent, ILogMeta][] = [];
 
 const chimpy = configForUser("Chimpy");
 const headers = {
@@ -44,6 +45,7 @@ describe("UpdateChecks", function () {
 
     // Start the server with correct configuration.
     Object.assign(process.env, {
+      GRIST_TELEMETRY_LEVEL: "full",
       GRIST_TEST_SERVER_DEPLOYMENT_TYPE: "saas",
     });
     sandbox = sinon.createSandbox();
@@ -53,12 +55,11 @@ describe("UpdateChecks", function () {
     sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
     sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value('8.8.8');
-    sandbox.stub(Telemetry.prototype, 'logEvent').callsFake((_, name, meta) => {
+    sandbox.stub(LogMethods.prototype, 'rawLog').callsFake((_level, _info, name, meta) => {
       if (name !== 'checkedUpdateAPI') {
-        return Promise.resolve();
+        return;
       }
       logMessages.push([name, meta]);
-      return Promise.resolve();
     });
 
     await startInProcess(this);
@@ -227,12 +228,14 @@ describe("UpdateChecks", function () {
     assert.equal(logMessages.length, 1);
     const [name, meta] = logMessages[0];
     assert.equal(name, "checkedUpdateAPI");
-    assert.deepEqual(meta, {
-      full: {
-        deploymentId: installationId,
-        deploymentType,
-        currentVersion,
-      },
+    assert.deepEqual(omit(meta, "installationId"), {
+      deploymentId: installationId,
+      deploymentType,
+      currentVersion,
+      eventName: "checkedUpdateAPI",
+      eventCategory: "SelfHosted",
+      eventSource: "grist-saas",
+      isInternalUser: true,
     });
   });
 

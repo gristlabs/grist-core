@@ -1827,7 +1827,7 @@ export const TelemetryContracts: TelemetryContracts = {
   checkedUpdateAPI: {
     category: "SelfHosted",
     description: 'Triggered when the app checks for updates.',
-    minimumTelemetryLevel: Level.limited,
+    minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
     metadataContracts: {
       deploymentId: {
@@ -1836,6 +1836,10 @@ export const TelemetryContracts: TelemetryContracts = {
       },
       deploymentType: {
         description: 'The deployment type of the client.',
+        dataType: 'string',
+      },
+      currentVersion: {
+        description: 'The current version of the client.',
         dataType: 'string',
       },
     },
