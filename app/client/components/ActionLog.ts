@@ -22,6 +22,7 @@ import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
 import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
 import * as ko from 'knockout';
+import takeWhile = require('lodash/takeWhile');
 
 /**
  *
@@ -102,16 +103,8 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * action (and not including it).
    */
   public async getChangesSince(actionNum: number): Promise<ActionSummary> {
-    await this._loadActionSummaries();
-    const stack = this.displayStack.all();
-    let summary = createEmptyActionSummary();
-    for (const item of stack) {
-      if (item.actionNum <= actionNum) {
-        break;
-      }
-      summary = concatenateSummaryPair(item.actionSummary, summary);
-    }
-    return summary;
+    return takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
+      .reduce((summary, item) => concatenateSummaryPair(item.actionSummary, summary), createEmptyActionSummary());
   }
 
   /**

@@ -560,8 +560,8 @@ interface RebasePlan {
  * Return items to delete and rename, in the naming scheme of the
  * target.
  */
-export function planRebase(ref: ActionSummary|TableDelta,
-                           target: ActionSummary|TableDelta): RebasePlan {
+function planRebase(ref: ActionSummary|TableDelta,
+                    target: ActionSummary|TableDelta): RebasePlan {
   const dead = new Set<string>();
   const rename = new Map<string, string>();
   const targetNames = new Map<string, string|null>();
@@ -635,7 +635,7 @@ export function rebaseSummary(ref: ActionSummary, target: ActionSummary) {
   target.tableRenames = plan.updatedRenames;
 }
 
-export function rebaseTable(ref: TableDelta, target: TableDelta) {
+function rebaseTable(ref: TableDelta, target: TableDelta) {
   const plan = planRebase(ref, target);
   const deltas = copyOnWrite(target.columnDeltas);
   renameAndDelete(deltas, plan.dead, plan.rename);
@@ -647,7 +647,7 @@ export function rebaseTable(ref: TableDelta, target: TableDelta) {
  * Wrapper to facilitate making a shallow copy of an
  * object if we find we need to edit it.
  */
-export function copyOnWrite<T>(item: T): CopyOnWrite<T> {
+function copyOnWrite<T>(item: T): CopyOnWrite<T> {
   let maybeCopiedItem: T|undefined;
   return {
     read() { return maybeCopiedItem || item; },
@@ -664,7 +664,7 @@ export function copyOnWrite<T>(item: T): CopyOnWrite<T> {
   };
 }
 
-export interface CopyOnWrite<T> {
+interface CopyOnWrite<T> {
   read(): T;
   write(): T;
   hasWrite(): boolean;
