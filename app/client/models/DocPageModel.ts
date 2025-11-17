@@ -21,6 +21,7 @@ import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, OpenDocOptions, UserOverride} from 'app/common/DocListAPI';
+// import {DocState} from 'app/common/DocState';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Features, mergedFeatures, Product} from 'app/common/Features';
 import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
@@ -35,6 +36,7 @@ import {
   NEW_DOCUMENT_CODE,
   Organization,
   PermissionData,
+  Proposal,
   UserAPI,
   Workspace
 } from 'app/common/UserAPI';
@@ -100,6 +102,9 @@ export interface DocPageModel {
   isTemplate: Observable<boolean>;
   type: Observable<DocumentType>;
   importSources: ImportSource[];
+  currentProposal: Observable<Proposal|'empty'|null>;
+  //proposalIndexInActionStack: Observable<number|null>;
+  proposalNewChangesCount: Observable<number|'many'|null>;
 
   undoState: Observable<IUndoState|null>;          // See UndoStack for details.
 
@@ -112,6 +117,7 @@ export interface DocPageModel {
   renameDoc(value: string): Promise<void>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
   updateCurrentDocUsage(docUsage: FilteredDocUsageSummary): void;
+  refreshProposal(): Promise<Proposal|'empty'|undefined>;
   // Offer to open document in recovery mode, if user is owner, and report
   // the error that prompted the offer. If user is not owner, just flag that
   // document needs attention of an owner.
@@ -131,6 +137,9 @@ export interface ImportSource {
 
 
 export class DocPageModelImpl extends Disposable implements DocPageModel {
+  // Observable set to the instance of GristDoc once it's created.
+  public readonly gristDoc = Observable.create<GristDocImpl|null>(this, null);
+
   public readonly pageType = "doc";
 
   public readonly currentDoc = Observable.create<DocInfo|null>(this, null);
@@ -167,14 +176,34 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     (use, doc) => doc ? doc.isTemplate : false);
   public readonly type = Computed.create(this, this.currentDoc,
     (use, doc) => doc?.type ?? null);
+  public readonly currentProposal = Observable.create<Proposal|'empty'|null>(this, null);
+  /*
+  public readonly docActionState = Observable.create<DocState|null>(this, null);
+  public readonly proposalIndexInActionStack = Computed.create(
+    this, this.currentProposal, this.gristDoc, (_, proposal, gristDoc) => {
+      if (!gristDoc) { return null; }
+      if (proposal === 'empty') { return -1; }
+      const state = proposal?.comparison.comparison?.left;
+      if (!state) { return -1; }
+      return gristDoc.getUndoStack().getUndoStackIndex(state.n) ?? -1;
+    }
+  );
+
+  public readonly proposalNewChangesCount = Computed.create(
+    this, this.docActionState, this.proposalIndexInActionStack, (use, docState, index) => {
+      if (docState && index !== null) {
+        return this.gristDoc.get()?.getUndoStack().compareStackIndex(index) || null;
+      }
+      return null;
+    }
+    );
+    */
+  public readonly proposalNewChangesCount = Observable.create<number|'many'|null>(this, null);
 
   public readonly importSources: ImportSource[] = [];
 
   // Contains observables indicating whether undo/redo are disabled. See UndoStack for details.
   public readonly undoState: Observable<IUndoState|null> = Observable.create(this, null);
-
-  // Observable set to the instance of GristDoc once it's created.
-  public readonly gristDoc = Observable.create<GristDocImpl|null>(this, null);
 
   public readonly docUsers = Observable.create<PermissionData|null>(this, null);
 
@@ -215,6 +244,12 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   }
 
   public initialize() {
+    this.autoDispose(subscribe(this.currentDoc, this.gristDoc, (use, currentDoc, gristDoc) => {
+      if (!gristDoc || !currentDoc) { return; }
+      const acceptProposals = currentDoc?.options?.proposedChanges?.acceptProposals;
+      if (!acceptProposals || !currentDoc.isFork) { return null; }
+      this.refreshProposal().catch(reportError);
+    }));
     this.autoDispose(subscribe(urlState().state, (use, state) => {
       const urlId = state.doc;
       const urlOpenMode = state.mode;
@@ -267,6 +302,25 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     if (!existing || !isEqual(existing, data)) {
       this.docUsers.set(data);
     }
+  }
+
+  public async refreshProposal(): Promise<Proposal|'empty'|undefined> {
+    const gristDoc = this.gristDoc.get();
+    if (!gristDoc) { return; }
+    const urlId = gristDoc.docPageModel.currentDocId.get();
+    if (!urlId) { return; }
+    const proposals = await gristDoc.appModel.api.getDocAPI(urlId).getProposals({
+      outgoing: true
+    });
+    if (this.isDisposed()) { return; }
+    const proposal = (proposals.proposals[0] ?? 'empty') as Proposal|'empty';
+    this.currentProposal.set(proposal);
+    if (proposal === 'empty' || proposal.status.status === 'retracted') {
+      this.gristDoc.get()?.getActionCounter().setMark();
+    } else {
+      this.gristDoc.get()?.getActionCounter().setMark(proposal.comparison.comparison?.left);
+    }
+    return proposal;
   }
 
   public createLeftPane(leftPanelOpen: Observable<boolean>) {
@@ -488,6 +542,15 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
 
     // Move ownership of GristDoc to its final owner.
     this.gristDoc.autoDispose(flow.release(gristDoc));
+    // gristDoc.latestActionState
+    gristDoc.autoDispose(
+      subscribe(
+        gristDoc.getActionCounter().countFromMark,
+        (_, count) => {
+          this.proposalNewChangesCount.set(count);
+        })
+    );
+    this.proposalNewChangesCount.set(gristDoc.getActionCounter().countFromMark.get());
   }
 
   private _getDocKey(state: IGristUrlState) {

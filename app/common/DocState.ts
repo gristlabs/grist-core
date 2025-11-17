@@ -1,12 +1,8 @@
 import { ActionSummary, createEmptyActionSummary } from 'app/common/ActionSummary';
+// Because of -ti files, DocState needs to be in DocumentSettings.
+import { DocState } from 'app/common/DocumentSettings';
 
-/**
- * Information about a single document state.
- */
-export interface DocState {
-  n: number;  // a sequential identifier
-  h: string;  // a hash identifier
-}
+export type { DocState };
 
 /**
  * A list of document states.  Most recent is first.

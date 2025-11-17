@@ -1,3 +1,4 @@
+import {ActionCounter} from 'app/client/components/ActionCounter';
 import {ActionLog} from 'app/client/components/ActionLog';
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
@@ -477,6 +478,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
 
   public getUndoStack(): UndoStack {
     return new UndoStack(); // Return empty undo stack
+  }
+
+  public getActionCounter(): ActionCounter {
+    throw new Error('no action counter');
   }
 
   public async addEmptyTable(): Promise<void> {

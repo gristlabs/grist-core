@@ -77,7 +77,6 @@ export class UndoStack extends dispose.Disposable {
     }
     const otherIndex = ag.otherId ?
       this._stack.findIndex(a => a.actionNum === ag.otherId) : -1;
-
     if (ag.linkId) {
       // Link action. Add the action to the linkMap, but not to any stacks.
       setDefault(this._linkMap, ag.linkId, []).push(ag);
@@ -120,6 +119,24 @@ export class UndoStack extends dispose.Disposable {
 
   public disable(): void {
     this.isDisabled.set(true);
+  }
+
+  // Find the specified action in the action stack, and return
+  // its index. This is useful for counting how many actions
+  // are between some marked point and now, accounting for
+  // undos and redos.
+  public getUndoStackIndex(actionNum: number): number|null {
+    for (let i = this._pointer - 1; i >= 0; i--) {
+      const item = this._stack[i];
+      if (item.actionNum <= actionNum) { return i; }
+    }
+    return null;
+  }
+
+  // Compare an index computed by getUndoStackIndex with the
+  // current top of the action stack, giving a count of actions.
+  public compareStackIndex(index: number|null): number {
+    return Math.max(0, this._pointer - 1 - (index || 0));
   }
 
   private async _sendAction(isUndo: boolean): Promise<void> {

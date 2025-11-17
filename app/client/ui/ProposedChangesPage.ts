@@ -383,13 +383,13 @@ export class ProposedChangesForkPage extends Disposable {
   }
 
   public async update() {
-    const urlId = this.gristDoc.docPageModel.currentDocId.get();
-    if (!urlId) { return; }
-    const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
-      outgoing: true
-    });
+    const proposal = await this.gristDoc.docPageModel.refreshProposal();
     if (this.isDisposed()) { return; }
-    this._proposalObs.set(proposals.proposals[0] || null);
+    if (proposal === 'empty' || !proposal) {
+      this._proposalObs.set(null);
+      return;
+    }
+    this._proposalObs.set(proposal);
   }
 
   private _getProposalRelativeToCurrent() {
