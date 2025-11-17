@@ -133,28 +133,34 @@ describe('Proposals', function() {
       B: [100, 200],
     });
     await docApi.applyUserActions([
-      ['AddColumn', 'Table1', 'F',
-       {
+      // Add a real formula column
+      ['AddColumn', 'Table1', 'F', {
         type: 'Text',
         isFormula: true,
-        formula: '"quote " + str($A) + " unquote"'}
-      ],
+        formula: '"quote " + str($A) + " unquote"',
+      }],
+      // Add an empty column
+      ['AddColumn', 'Table1', 'E', {
+        type: 'Any',
+        isFormula: true,
+      }],
     ]);
     const forkResult = await docApi.fork();
     const forkApi = owner.getDocAPI(forkResult.urlId);
     await forkApi.updateRows('Table1', {
       id: [2],
       A: ['yy'],
+      E: [20],
     });
     await forkApi.addRows('Table1', {
       A: ['zz'],
     });
     const proposal = await forkApi.makeProposal();
     await docApi.applyProposal(proposal.shortId);
-    const query = 'select A, F from Table1 where id = 2 or id = 3';
+    const query = 'select A, E, F from Table1 where id = 2 or id = 3';
     assert.deepEqual((await docApi.sql(query)).records, [
-      { fields: { A: 'yy', F: "quote yy unquote" } },
-      { fields: { A: 'zz', F: "quote zz unquote" } },
+      { fields: { A: 'yy', E: 20, F: "quote yy unquote" } },
+      { fields: { A: 'zz', E: 0,  F: "quote zz unquote" } },
     ]);
   });
 });

@@ -198,7 +198,10 @@ export class Patch {
   }
 
   private _isFormula(tableId: string, colId: string): boolean {
-    return Boolean(this._getTableColumn(tableId, colId).isFormula);
+    const prop = this._getTableColumn(tableId, colId);
+    // Careful, isFormula set, with a blank formula, means
+    // an empty column.
+    return Boolean(prop.isFormula) && Boolean(prop.formula);
   }
 
   private _getTableColumn(tableId: string, colId: string) {
