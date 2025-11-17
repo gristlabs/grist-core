@@ -740,7 +740,8 @@
         "Building {{- label}} widget": "Building {{- label}} widget",
         "Group by": "Group by",
         "Select data": "Select data",
-        "Select widget": "Select widget"
+        "Select widget": "Select widget",
+        "New Table": "New Table"
     },
     "Pages": {
         "Delete": "Delete",
@@ -1849,7 +1850,12 @@
         "default": "default",
         "more...": "more...",
         "no authentication": "no authentication",
-        "unavailable": "unavailable"
+        "unavailable": "unavailable",
+        "Admin account not found": "Admin account not found",
+        "Administrative accounts": "Administrative accounts",
+        "The users with administrative accounts": "The users with administrative accounts",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "no admin accounts"
     },
     "Columns": {
         "Remove Column": "Remove Column"

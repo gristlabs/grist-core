@@ -6,5 +6,8 @@
         "Loading...": "加载中...",
         "og-description": "超越表格的现代开源电子表格",
         "og-title": "Grist，电子表格的革新之作"
+    },
+    "access": {
+        "docNoAccess": "您无权访问此文档。"
     }
 }
