@@ -59,11 +59,11 @@ export class Patch {
         if (delta.removeRows.length > 0) {
           changes.push(...await this._removeRows(tableId, delta));
         }
-        if (delta.updateRows.length > 0) {
-          changes.push(...await this._updateRows(tableId, delta));
-        }
         if (delta.addRows.length > 0) {
           changes.push(...await this._addRows(tableId, delta));
+        }
+        if (delta.updateRows.length > 0) {
+          changes.push(...await this._updateRows(tableId, delta));
         }
       }
     } catch (e) {
@@ -78,7 +78,9 @@ export class Patch {
 
   private async _updateRows(tableId: string, delta: TableDelta): Promise<PatchItem[]> {
     const changes: PatchItem[] = [];
-    const rows = delta.updateRows;
+    const addedRows = new Set(delta.addRows);
+    // Rows marked as added and updated, we handle with just adding.
+    const rows = delta.updateRows.filter(r => !addedRows.has(r));
     const columnDeltas = delta.columnDeltas;
     for (const row of rows) {
       for (const [colId, columnDelta] of Object.entries(columnDeltas)) {
