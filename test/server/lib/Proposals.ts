@@ -34,7 +34,6 @@ describe('Proposals', function() {
   });
 
   async function testApply(options: {
-    modifyBeforeFork?: (trunkApi: DocAPI) => Promise<void>,
     modifyAfterProposal?: (trunkApi: DocAPI, forkApi: DocAPI) => Promise<void>,
     testAfterApply?: (trunkApi: DocAPI, forkApi: DocAPI) => Promise<void>,
   }) {
@@ -44,7 +43,6 @@ describe('Proposals', function() {
       A: ['x', 'y'],
       B: [100, 200],
     });
-    await options.modifyBeforeFork?.(docApi);
     const forkResult = await docApi.fork();
     const forkApi = owner.getDocAPI(forkResult.urlId);
     await forkApi.updateRows('Table1', {
@@ -55,20 +53,18 @@ describe('Proposals', function() {
     assert.equal(proposal.shortId, 1);
     assert.equal(proposal.comparison.comparison?.summary, 'left');
     const changes = proposal.comparison.comparison?.details?.leftChanges;
-    if (!options.modifyBeforeFork) {
-      assert.deepEqual(changes, {
-        tableRenames: [],
-        tableDeltas: {
-          Table1: {
-            updateRows: [2],
-            removeRows: [],
-            addRows: [],
-            columnDeltas: { A: {2: [["y"], ["yy"]]} },
-            columnRenames: [],
-          }
+    assert.deepEqual(changes, {
+      tableRenames: [],
+      tableDeltas: {
+        Table1: {
+          updateRows: [2],
+          removeRows: [],
+          addRows: [],
+          columnDeltas: { A: {2: [["y"], ["yy"]]} },
+          columnRenames: [],
         }
-      });
-    }
+      }
+    });
     const query = 'select A from Table1 where id = 2';
     assert.deepEqual((await docApi.sql(query)).records, [
       { fields: { A: 'y' } }
