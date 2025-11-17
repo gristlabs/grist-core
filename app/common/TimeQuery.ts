@@ -1,7 +1,6 @@
 import {ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta} from 'app/common/ActionSummary';
 import {CellDelta} from 'app/common/TabularDiff';
 import {concatenateSummaries} from 'app/common/ActionSummarizer';
-import cloneDeep = require('lodash/cloneDeep');
 import keyBy = require('lodash/keyBy');
 import matches = require('lodash/matches');
 import sortBy = require('lodash/sortBy');
@@ -54,7 +53,7 @@ export class TimeCursor {
     // need to clone to avoid propagating that. Look to see if
     // a safe version of concatenation could be written to save
     // cloning.
-    this.summary = concatenateSummaries([this.summary, cloneDeep(nextSummary)]);
+    this.summary = concatenateSummaries([this.summary, nextSummary]);
   }
 }
 
