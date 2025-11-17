@@ -424,7 +424,7 @@ export class PageWidgetSelect extends Disposable {
           dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () =>
             withInfoTooltip(
               cssSelectBy(
-                cssSmallLabel('SELECT BY'),
+                cssSmallLabel(t('SELECT BY')),
                 dom.update(cssSelect(this._value.link, this._selectByOptions!),
                           testId('selectby'))
               ),

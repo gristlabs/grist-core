@@ -1,3 +1,4 @@
+import { makeT } from 'app/client/lib/localization';
 import { DocModel, ViewSectionRec } from 'app/client/models/DocModel';
 import { IPageWidget } from 'app/client/ui/PageWidgetPicker';
 import {
@@ -13,6 +14,8 @@ import {
 } from 'app/common/LinkNode';
 import { IOptionFull } from 'grainjs';
 import isEqual = require('lodash/isEqual');
+
+const t = makeT('selectBy');
 
 // some unicode characters
 const BLACK_CIRCLE = '\u2022';
@@ -37,10 +40,6 @@ export const NoLink = linkId({
   targetColRef: 0
 });
 
-const NoLinkOption: IOptionFull<string> = {
-  label: "Select widget",
-  value: NoLink
-};
 
 // Represents the differents way to reference to a section for linking
 type MaybeSection = ViewSectionRec|IPageWidget;
@@ -59,6 +58,11 @@ export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
     ? createNodesFromViewSections(docModel, [target])
     : createNodesFromPageWidget(docModel, target);
 
+
+  const NoLinkOption: IOptionFull<string> = {
+    label: t("Select widget"),
+    value: NoLink
+  };
   const options = [NoLinkOption];
   for (const srcNode of sourceNodes) {
     const validTargets = targetNodes.filter((tgt) => isValidLink(srcNode, tgt));
@@ -165,7 +169,7 @@ function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget):
   let tableExists = true;
   if (isSummary) {
     const summaryTable = docModel.tables.rowModels.find(
-      t => t?.summarySourceTable.peek() && isEqual(t.summarySourceColRefs.peek(), groupbyColumns));
+      tr  => tr?.summarySourceTable.peek() && isEqual(tr.summarySourceColRefs.peek(), groupbyColumns));
     if (summaryTable) {
       // The selected source table and groupby columns correspond to this existing summary table.
       table = summaryTable;
