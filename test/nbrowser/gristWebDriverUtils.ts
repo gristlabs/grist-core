@@ -375,7 +375,7 @@ export class GristWebDriverUtils {
   /**
    * Changes browser window dimensions to FullHd for a test suite.
    */
-  public bigScreen(size: 'big'|'medium' = 'big') {
+  public bigScreen(size: 'big'|'medium' = 'medium') {
     // Note that the default (small) is 1024x640.
     if (size === 'medium') {
       this.resizeWindowForSuite(1440, 900);

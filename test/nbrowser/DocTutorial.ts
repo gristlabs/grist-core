@@ -6,7 +6,7 @@ import {setupTestSuite} from 'test/nbrowser/testUtils';
 describe('DocTutorial', function () {
   this.timeout(60000);
 
-  gu.bigScreen();
+  gu.bigScreen('big');
 
   let api: UserAPI;
   let ownerSession: gu.Session;

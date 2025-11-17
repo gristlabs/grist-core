@@ -164,6 +164,7 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       // error rather than a bug. Using message as the key causes same-message notifications to
       // replace previous ones rather than accumulate.
       const options: Partial<INotifyOptions> = {key: (err as UserError).key || message};
+      options.memos = details?.memos;
       if (details && details.tips && details.tips.some(tip => tip.action === 'ask-for-help')) {
         options.actions = ['ask-for-help'];
       }

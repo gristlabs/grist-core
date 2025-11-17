@@ -8,7 +8,7 @@ import {ICustomWidget} from 'app/common/CustomWidget';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
         TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
-import {DocStateComparison} from 'app/common/DocState';
+import {DocStateComparison, DocStates} from 'app/common/DocState';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, Product} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
@@ -520,6 +520,7 @@ export interface DocAPI {
   // remove selected snapshots, or all snapshots that have "leaked" from inventory (should
   // be empty), or all but the current snapshot.
   removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past'): Promise<{snapshotIds: string[]}>;
+  getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
   // Compare two documents, optionally including details of the changes.
@@ -1108,6 +1109,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
       method: 'POST',
       body: JSON.stringify(body)
     });
+  }
+
+  public async getStates(): Promise<DocStates> {
+    return this.requestJson(`${this._url}/states`);
   }
 
   public async getUsersForViewAs(): Promise<PermissionDataWithExtraUsers> {

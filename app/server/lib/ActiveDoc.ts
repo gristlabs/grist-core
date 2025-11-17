@@ -89,6 +89,7 @@ import {MetaRowRecord, SingleCell} from 'app/common/TableData';
 import {TelemetryEvent, TelemetryMetadataByLevel} from 'app/common/Telemetry';
 import {FetchUrlOptions, UploadResult} from 'app/common/uploads';
 import {
+  ANONYMOUS_USER_EMAIL,
   Document as APIDocument,
   ArchiveUploadResult,
   AttachmentTransferStatus,
@@ -101,6 +102,7 @@ import {guessColInfo} from 'app/common/ValueGuesser';
 import {parseUserAction} from 'app/common/ValueParser';
 import {Document} from 'app/gen-server/entity/Document';
 import {Share} from 'app/gen-server/entity/Share';
+import {Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {RecordWithStringId} from 'app/plugin/DocApiTypes';
 import {ParseFileResult, ParseOptions} from 'app/plugin/FileParserAPI';
 import {AccessTokenOptions, AccessTokenResult, GristDocAPI, UIRowId} from 'app/plugin/GristAPI';
@@ -114,8 +116,11 @@ import {getAndRemoveAssistantStatePermit} from 'app/server/lib/AssistantStatePer
 import {
   AssistanceFormulaEvaluationResult,
   AssistanceSchemaPromptV1Context,
+  isAssistantV2,
 } from 'app/server/lib/IAssistant';
-import {AssistanceContextV1} from 'app/common/Assistance';
+import {
+  AssistanceContextV1, AssistanceRequest, AssistanceResponse, isAssistanceRequestV2
+} from 'app/common/Assistance';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -136,6 +141,7 @@ import {SandboxError} from 'app/server/lib/sandboxUtil';
 import {
   getDocSessionAccess,
   getDocSessionAccessOrNull,
+  getDocSessionShare,
   getDocSessionUsage,
   getLogMeta,
   RequestOrSession,
@@ -170,6 +176,7 @@ import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/Expande
 import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
 import {OnDemandActions} from 'app/server/lib/OnDemandActions';
 import {Patch} from 'app/server/lib/Patch';
+import {isUntrustedRequestBehaviorSet} from 'app/server/lib/ProxyAgent';
 import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
 import cloneDeep = require('lodash/cloneDeep');
@@ -332,6 +339,7 @@ export class ActiveDoc extends EventEmitter {
   private _afterShutdownCallback?: () => Promise<void>;
   private _doShutdown?: Promise<void>;
   private _intervals: Interval[] = [];
+  private _isUntrustedRequestBehaviorSet?: boolean;
 
   // Size of the last _rawPyCall() response in bytes.
   private _lastPyCallResponseSize: number|undefined;
@@ -646,6 +654,41 @@ export class ActiveDoc extends EventEmitter {
 
   public async listActiveUserProfiles(docSession: DocSession): Promise<VisibleUserProfile[]> {
     return this._userPresence.listVisibleUserProfiles(docSession);
+  }
+
+  public async getAssistance(docSession: OptDocSession,
+                             params: AssistanceRequest): Promise<AssistanceResponse> {
+    const dbManager = this._getHomeDbManagerOrFail();
+    const userId = docSession.userId || dbManager.getAnonymousUserId();
+    const scope: Scope = {
+      urlId: this.docName,
+      userId,
+      org: docSession.org,
+    };
+    await dbManager.increaseUsage(scope, 'assistant', {delta: 1, dryRun: true});
+
+    const assistant = this._server.getAssistant();
+    if (!assistant) {
+      throw new Error('Please set ASSISTANT_CHAT_COMPLETION_ENDPOINT OPENAI_API_KEY');
+    }
+
+    let result: AssistanceResponse;
+    if (isAssistantV2(assistant) && isAssistanceRequestV2(params)) {
+      result = await assistant.getAssistance(docSession, this, params);
+    } else if (!isAssistantV2(assistant) && !isAssistanceRequestV2(params)) {
+      // Same code, different types.
+      result = await assistant.getAssistance(docSession, this, params);
+    } else {
+      throw new ApiError('Wrong type of assistance request', 400);
+    }
+    const limit = await dbManager.increaseUsage(scope, 'assistant', {delta: 1});
+    return {
+      ...result,
+      limit: !limit ? undefined : {
+        usage: limit.usage,
+        limit: limit.limit,
+      },
+    };
   }
 
   /**
@@ -1685,6 +1728,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   public fetchURL(docSession: DocSession, url: string, options?: FetchUrlOptions): Promise<UploadResult> {
+    if (this._isUntrustedRequestBehaviorSet === undefined) {
+      this._isUntrustedRequestBehaviorSet = isUntrustedRequestBehaviorSet();
+    }
+    if (!this._isUntrustedRequestBehaviorSet) {
+      throw new Error('Cannot use fetchURL without explicit proxy configuration');
+    }
     return fetchURL(url, this.makeAccessId(docSession.userId), options);
   }
 
@@ -2595,7 +2644,12 @@ export class ActiveDoc extends EventEmitter {
   }
 
   private _makeInfo(docSession: OptDocSession, options: ApplyUAOptions = {}) {
-    const user = docSession.mode === 'system' ? 'grist' : (docSession.displayEmail || '');
+    const user =
+      docSession.mode === 'system' ? 'grist' :
+      // Anonymize user info for form submissions.
+      // Note: This is half-baked and doesn't account for other types of shares besides forms.
+      getDocSessionShare(docSession) ? ANONYMOUS_USER_EMAIL :
+      docSession.displayEmail || '';
     return {
       time: Date.now(),
       user,
@@ -3307,7 +3361,7 @@ export class ActiveDoc extends EventEmitter {
     currentSize = currentSize ?? await this._updateAttachmentsSize({syncUsageToDatabase: false});
     const futureSize = currentSize + uploadSizeBytes;
 
-    const productMaxSize = this._product?.features.baseMaxAttachmentsBytesPerDocument;
+    const productMaxSize = this._product?.features?.baseMaxAttachmentsBytesPerDocument;
 
     if (options.checkProduct && productMaxSize !== undefined && futureSize > productMaxSize) {
       // TODO probably want a nicer error message here.

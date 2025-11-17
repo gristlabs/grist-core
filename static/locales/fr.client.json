@@ -2312,5 +2312,20 @@
         "Proposed Changes": "Suggestions de modifications",
         "Replace Original": "Remplacer l'original",
         "This is a list of changes relative to the original document.": "Liste des modifications apportées par rapport au document original."
+    },
+    "commandList": {
+        "Show accessibility options": "Montrer les options d'accessibilité",
+        "Add a new viewsection to the currently active view": "Ajouter une nouvelle section de vue à la vue active",
+        "Adds all elements above the cursor to the selected range": "Ajoute tous les éléments au dessus du curseur à la sélection",
+        "Adds all elements below the cursor to the selected range": "Ajoute tous les éléments au dessous du curseur à la sélection",
+        "Adds all elements to the left of the cursor to the selected range": "Ajoute tous les éléments à gauche du curseur à la sélection",
+        "Adds all elements to the right of the cursor to the selected range": "Ajoute tous les éléments à droite du curseur à la sélection",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Ajoute la colonne sélectionnée(ordre croissant) aux spécifications de tri de la vue actuelle",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Ajoute la colonne sélectionnée(ordre décroissant) aux spécifications de tri de la vue actuelle",
+        "Adds the element above the cursor to the selected range": "Ajoute l'élément au dessus du curseur à la sélection",
+        "Adds the element below the cursor to the selected range": "Ajoute l'élément au dessous du curseur à la sélection",
+        "Adds the element to the left of the cursor to the selected range": "Ajoute l'élément à gauche du curseur à la sélection",
+        "Adds the element to the right of the cursor to the selected range": "Ajoute l'élément à droite du curseur à la sélection",
+        "Activate assistant": "Active l’assistant"
     }
 }

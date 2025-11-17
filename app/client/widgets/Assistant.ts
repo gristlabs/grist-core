@@ -3,7 +3,6 @@ import {
   buildBannerMessage,
   cssBannerLink,
 } from "app/client/components/Banner";
-import * as commands from 'app/client/components/commands';
 import { GristDoc } from "app/client/components/GristDoc";
 import { ChatHistory, ChatMessage } from "app/client/models/ChatHistory";
 import { domAsync } from "app/client/lib/domAsync";
@@ -22,7 +21,6 @@ import { gristThemeObs } from "app/client/ui2018/theme";
 import { icon } from "app/client/ui2018/icons";
 import { cssLink, gristIconLink } from "app/client/ui2018/links";
 import { loadingDots } from "app/client/ui2018/loaders";
-import { MinimalActionGroup } from "app/common/ActionGroup";
 import { ApiError } from "app/common/ApiError";
 import { AssistanceResponse } from "app/common/Assistance";
 import { AsyncCreate } from "app/common/AsyncCreate";
@@ -393,20 +391,6 @@ export class Assistant extends Disposable {
       this._numRemainingCredits.set(Math.max(limit.limit - limit.usage, 0));
     } else {
       this._numRemainingCredits.set(null);
-    }
-    if ("appliedActions" in response) {
-      for (const action of response.appliedActions ?? []) {
-        const actionGroup: MinimalActionGroup = {
-          actionNum: action.actionNum,
-          actionHash: action.actionHash as string,
-          fromSelf: true,
-          otherId: 0,
-          linkId: 0,
-          rowIdHint: 0,
-          isUndo: false,
-        };
-        commands.allCommands.pushUndoAction.run(actionGroup);
-      }
     }
     if ("suggestedFormula" in response) {
       suggestedFormula = response.suggestedFormula;
