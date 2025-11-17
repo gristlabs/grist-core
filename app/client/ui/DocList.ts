@@ -179,12 +179,12 @@ export class DocList extends Disposable {
                           testId("doc-name")
                         ),
                         cssDocBadges(
-                          !doc.isPinned
-                            ? null
-                            : cssPinIcon("Pin2", testId("doc-pinned")),
-                          !doc.public
-                            ? null
-                            : cssWorldIcon("World", testId("doc-public"))
+                          doc.isPinned
+                            ? cssPinIcon("Pin2", testId("doc-pinned"))
+                            : null,
+                          doc.public
+                            ? cssWorldIcon("World", testId("doc-public"))
+                            : null,
                         )
                       )
                     ),
@@ -276,7 +276,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     menuItem(
       () => showRenameDocModal({ home, doc }),
       t("Rename and set icon"),
-      dom.cls("disabled", !roles.isOwner(doc)),
+      dom.cls("disabled", doc.disabledAt !== undefined || !roles.isOwner(doc)),
       testId("rename-doc")
     ),
     menuItem(
@@ -289,7 +289,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       // Having ACL edit access on the doc means the user is also powerful enough to remove
       // the doc, so this is the only access check required to move the doc out of this workspace.
       // The user must also have edit access on the destination, however, for the move to work.
-      dom.cls("disabled", !roles.canEditAccess(doc.access)),
+      dom.cls("disabled", doc.disabledAt !== undefined || !roles.canEditAccess(doc.access)),
       testId("move-doc")
     ),
     menuItem(
@@ -317,6 +317,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
         menuItem(
           () => downloadDocModal(doc, home.app),
           menuIcon('Download'), t("Download document..."),
+          dom.cls("disabled", doc.disabledAt !== undefined),
           testId('tb-share-option'))
         ),
   ];
