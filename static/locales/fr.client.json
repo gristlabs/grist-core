@@ -1088,7 +1088,7 @@
         "comments": "commentaires",
         "this document": "ce document",
         "your email": "votre email",
-        "Unsubscribed{{suffix}}": "Désinscription{{suffix}}"
+        "Unsubscribed{{suffix}}": "Désabonné{{suffix}}"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
