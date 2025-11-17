@@ -45,7 +45,7 @@ export interface ISandboxOptions {
   command?: string;
   // The arguments to pass first to the sandbox process.
   sandboxArgs: string[];
-  // The arguments to pass first to the sandbox process.
+  // The arguments to pass first to the python process.
   pythonArgs: string[];
   // Extra arguments that get appended to the end of sandbox command, after anything else
   appendArgs?: string[];
