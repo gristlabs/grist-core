@@ -277,7 +277,8 @@
         "(customized)": "(індивідуальний)",
         "(empty)": "(порожній)",
         "(modified)": "(змінений)",
-        "Custom options": "Розширені параметри"
+        "Custom options": "Розширені параметри",
+        "Sort and filter": "Сортування та фільтрування"
     },
     "VisibleFieldsConfig": {
         "Clear": "Очистити",
@@ -836,7 +837,9 @@
         "Building {{- label}} widget": "Створення {{- label}} віджету",
         "Group by": "Групувати за",
         "Select data": "Виберіть дані",
-        "Select widget": "Виберіть віджет"
+        "Select widget": "Виберіть віджет",
+        "New Table": "Нова таблиця",
+        "SELECT BY": "ВИБРАТИ ЗА"
     },
     "Pages": {
         "Delete": "Видалити",
@@ -2514,5 +2517,8 @@
         "Year": "Рік",
         "Years since": "Років з того часу",
         "Years until": "Років до"
+    },
+    "selectBy": {
+        "Select widget": "Вибрати віджет"
     }
 }
