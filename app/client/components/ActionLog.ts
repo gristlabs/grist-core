@@ -12,13 +12,17 @@ import {ClientTimeData} from 'app/client/models/TimeQuery';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {ActionGroup} from 'app/common/ActionGroup';
-import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
-        LabelDelta} from 'app/common/ActionSummary';
+import {concatenateSummaryPair} from 'app/common/ActionSummarizer';
+import {
+  ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
+  LabelDelta
+} from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
 import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
 import * as ko from 'knockout';
+import takeWhile = require('lodash/takeWhile');
 
 /**
  *
@@ -92,6 +96,15 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
 
   public buildDom() {
     return this._buildLogDom();
+  }
+
+  /**
+   * Figure out what has changed in the document after the given
+   * action (and not including it).
+   */
+  public async getChangesSince(actionNum: number): Promise<ActionSummary> {
+    return takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
+      .reduce((summary, item) => concatenateSummaryPair(item.actionSummary, summary), createEmptyActionSummary());
   }
 
   /**
@@ -450,6 +463,8 @@ export abstract class ActionLogPart {
 
   private async _setContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
     const result = await this.getContext();
+    // table may have changed name
+    tableId = Object.keys(result || {})[0] || tableId;
     if (result) {
       contextObs({...context, [tableId]: result[tableId]});
     }

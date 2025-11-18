@@ -741,7 +741,8 @@
         "Group by": "Group by",
         "Select data": "Select data",
         "Select widget": "Select widget",
-        "New Table": "New Table"
+        "New Table": "New Table",
+        "SELECT BY": "SELECT BY"
     },
     "Pages": {
         "Delete": "Delete",
@@ -1006,7 +1007,8 @@
         "Revert": "Revert",
         "SORT": "SORT",
         "Save": "Save",
-        "Update Sort&Filter settings": "Update Sort&Filter settings"
+        "Update Sort&Filter settings": "Update Sort&Filter settings",
+        "Sort and filter": "Sort and filter"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "Cannot drop items into Hidden Fields",
@@ -2510,5 +2512,8 @@
         "Year": "Year",
         "Years since": "Years since",
         "Years until": "Years until"
+    },
+    "selectBy": {
+        "Select widget": "Select widget"
     }
 }

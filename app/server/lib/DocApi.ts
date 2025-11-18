@@ -1383,7 +1383,7 @@ export class DocWorkerApi {
       });
       const {states} = await this._getStates(docSession, activeDoc);
       res.json(
-        await this._getChanges(docSession, activeDoc, {
+        await getChanges(docSession, activeDoc, {
           states,
           leftHash,
           rightHash,
@@ -1409,13 +1409,13 @@ export class DocWorkerApi {
         docId2: comparisonUrlId,
         maxRows: null,
       });
-      await this._dbManager.setProposal({
+      const proposal = await this._dbManager.setProposal({
         srcDocId: parts.forkId,
         destDocId: parts.trunkId,
         comparison: comp,
         retracted
       });
-      res.json(comp);
+      res.json(proposal);
     }));
 
     /**
@@ -1457,7 +1457,7 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/proposals/:proposalId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
       const proposalId = integerParam(req.params.proposalId, 'proposalId');
       const docSession = docSessionFromRequest(req);
-      const changes = activeDoc.applyProposal(docSession, proposalId);
+      const changes = await activeDoc.applyProposal(docSession, proposalId);
       await sendReply(req, res, {data: {proposalId, changes}, status: 200});
     }));
 
@@ -2206,66 +2206,6 @@ export class DocWorkerApi {
     };
   }
 
-  /**
-   *
-   * Calculate changes between two document versions identified by leftHash and rightHash.
-   * If rightHash is the latest version of the document, the ActionSummary for it will
-   * contain a copy of updated and added rows.
-   *
-   * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
-   * be lifted, but is adequate for now).
-   *
-   */
-  private async _getChanges(
-    docSession: OptDocSession,
-    activeDoc: ActiveDoc,
-    options: {
-      states: DocState[];
-      leftHash: string;
-      rightHash: string;
-      maxRows?: number | null;
-    }
-  ): Promise<DocStateComparison> {
-    // The change calculation currently cannot factor in
-    // granular access rules, so we need broad read rights
-    // to execute it.
-    if (!await activeDoc.canCopyEverything(docSession)) {
-      throw new ApiError('insufficient access', 403);
-    }
-
-    const { states, leftHash, rightHash, maxRows } = options;
-    const finder = new HashUtil(states);
-    const leftOffset = finder.hashToOffset(leftHash);
-    const rightOffset = finder.hashToOffset(rightHash);
-    if (rightOffset > leftOffset) {
-      throw new Error('Comparisons currently require left to be an ancestor of right');
-    }
-    const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
-    // TODO: if in the future changes can be computed for someone
-    // with partial read access, then the call to getActions should
-    // be updated.
-    const actions = (await activeDoc.getActions(actionNums)).reverse();
-    let totalAction = createEmptyActionSummary();
-    for (const action of actions) {
-      if (!action) { continue; }
-      const summary = summarizeAction(action, {
-        maximumInlineRows: maxRows,
-      });
-      totalAction = concatenateSummaries([totalAction, summary]);
-    }
-    const result: DocStateComparison = {
-      left: states[leftOffset],
-      right: states[rightOffset],
-      parent: states[leftOffset],
-      summary: (leftOffset === rightOffset) ? 'same' : 'right',
-      details: {
-        leftChanges: {tableRenames: [], tableDeltas: {}},
-        rightChanges: totalAction
-      }
-    };
-    return result;
-  }
-
   private async _removeDoc(req: Request, res: Response, permanent: boolean): Promise<QueryResult<Document>> {
     const scope = getDocScope(req);
     const docId = getDocId(req);
@@ -2621,7 +2561,7 @@ export class DocWorkerApi {
     if (showDetails && parent) {
       // Calculate changes from the parent to the current version of this document.
       const leftChanges = (
-        await this._getChanges(docSession, activeDoc, {
+        await getChanges(docSession, activeDoc, {
           states,
           leftHash: parent.h,
           rightHash: "HEAD",
@@ -2921,4 +2861,62 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', filenameContentDisposition('attachment', filename + '.xlsx'));
   return streamXLSX(activeDoc, req, res, options);
+}
+
+
+/**
+ *
+ * Calculate changes between two document versions identified by leftHash and rightHash.
+ * If rightHash is the latest version of the document, the ActionSummary for it will
+ * contain a copy of updated and added rows.
+ *
+ * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
+ * be lifted, but is adequate for now).
+ *
+ */
+export async function getChanges(
+  docSession: OptDocSession,
+  activeDoc: ActiveDoc,
+  options: {
+    states: DocState[];
+    leftHash: string;
+    rightHash: string;
+    maxRows?: number | null;
+  }
+): Promise<DocStateComparison> {
+  // The change calculation currently cannot factor in
+  // granular access rules, so we need broad read rights
+  // to execute it.
+  if (!await activeDoc.canCopyEverything(docSession)) {
+    throw new ApiError('insufficient access', 403);
+  }
+
+  const { states, leftHash, rightHash, maxRows } = options;
+  const finder = new HashUtil(states);
+  const leftOffset = finder.hashToOffset(leftHash);
+  const rightOffset = finder.hashToOffset(rightHash);
+  if (rightOffset > leftOffset) {
+    throw new Error('Comparisons currently require left to be an ancestor of right');
+  }
+  const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
+  const actions = (await activeDoc.getActions(actionNums)).reverse();
+  let totalAction = createEmptyActionSummary();
+  for (const action of actions) {
+    if (!action) { continue; }
+    const summary = summarizeAction(action, {
+      maximumInlineRows: maxRows,
+    });
+    totalAction = concatenateSummaries([totalAction, summary]);
+  }
+  const result: DocStateComparison = {
+    left: states[leftOffset],
+    right: states[rightOffset],
+    parent: states[leftOffset],
+    summary: (leftOffset === rightOffset) ? 'same' : 'right',
+    details: {
+      leftChanges: {tableRenames: [], tableDeltas: {}},
+      rightChanges: totalAction
+    }
+  };
+  return result;
 }

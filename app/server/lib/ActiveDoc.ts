@@ -13,6 +13,7 @@ import {
   UserActionBundle
 } from 'app/common/ActionBundle';
 import {ActionGroup, MinimalActionGroup} from 'app/common/ActionGroup';
+import {rebaseSummary} from 'app/common/ActionSummarizer';
 import {ActionSummary} from 'app/common/ActionSummary';
 import {
   AclResources,
@@ -125,7 +126,7 @@ import {appSettings} from 'app/server/lib/AppSettings';
 import {AuditEventAction} from 'app/server/lib/AuditEvent';
 import {RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
-import {getMetaTables} from 'app/server/lib/DocApi';
+import {getChanges, getMetaTables} from 'app/server/lib/DocApi';
 import {DEFAULT_CACHE_TTL, DocManager} from 'app/server/lib/DocManager';
 import {GristServer} from 'app/server/lib/GristServer';
 import {AuditEventProperties} from 'app/server/lib/IAuditLogger';
@@ -964,11 +965,30 @@ export class ActiveDoc extends EventEmitter {
     if (!proposal) {
       throw new ApiError('Proposal not found', 404);
     }
+    // Proposal diffs are computed and stored some time in the past.
     const origDetails = proposal.comparison.comparison?.details;
     if (!origDetails) {
       // This shouldn't happen.
       throw new ApiError('Proposal details not found', 500);
     }
+
+    // The current document may have advanced since then. We should
+    // recompute the changes since the branch point and now.
+    const states = await this.getRecentStates(docSession);
+    const hash = proposal.comparison.comparison?.parent?.h;
+
+    if (hash) {
+      const changes = await getChanges(docSession, this, {
+        states,
+        rightHash: states[0].h,
+        leftHash: hash,
+      });
+      const rightChanges = changes.details?.rightChanges;
+      if (rightChanges) {
+        rebaseSummary(rightChanges, origDetails.leftChanges);
+      }
+    }
+
     let result: PatchLog = {changes: [], applied: false};
     if (!options?.dismiss) {
       const patch = new Patch(this, docSession);

@@ -88,7 +88,7 @@ export function viewSectionMenu(
           // Fill background when there are some filters. Ignore sort options.
           cssFilterIconWrapper.cls('-any', anyFilter),
           cssFilterIcon('Filter'),
-          hoverTooltip('Sort and filter', {key: 'sortFilterBtnTooltip'}),
+          hoverTooltip(t('Sort and filter'), {key: 'sortFilterBtnTooltip'}),
         ),
       ),
       // [Save] [Revert] buttons when there are unsaved options.

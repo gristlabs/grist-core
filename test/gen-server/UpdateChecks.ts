@@ -52,6 +52,7 @@ describe("UpdateChecks", function () {
     sandbox.stub(Deps, "GOOD_RESULT_TTL").value(500);
     sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
+    sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value('8.8.8');
     sandbox.stub(Telemetry.prototype, 'logEvent').callsFake((_, name, meta) => {
       if (name !== 'checkedUpdateAPI') {
         return Promise.resolve();
@@ -211,14 +212,16 @@ describe("UpdateChecks", function () {
     assert.match(resp.data.error, /timeout/);
   });
 
-  it("logs deploymentId and deploymentType", async function () {
+  it("logs deploymentId, deploymentType, and currentVersion", async function () {
     logMessages.length = 0;
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";
     const deploymentType = "test";
+    const currentVersion = "1.1.1";
     const resp = await axios.post(`${homeUrl}/api/version`, {
       installationId,
-      deploymentType
+      deploymentType,
+      currentVersion,
     }, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(logMessages.length, 1);
@@ -228,8 +231,42 @@ describe("UpdateChecks", function () {
       full: {
         deploymentId: installationId,
         deploymentType,
+        currentVersion,
       },
     });
+  });
+
+  it("sets isCritical correctly", async function() {
+    setEndpoint(dockerHub.url + "/tags");
+    const installationId = "randomInstallationId";
+    const deploymentType = "test";
+    async function testVersion(version: string, isCritical: boolean|'fail') {
+      const resp = await axios.post(`${homeUrl}/api/version`, {
+        installationId,
+        deploymentType,
+        currentVersion: version,
+      }, chimpy);
+      if (isCritical === 'fail') {
+        assert.equal(resp.status, 400);
+      } else {
+        assert.equal(resp.status, 200);
+        assert.equal(resp.data.isCritical, isCritical);
+      }
+    }
+    // we've set 8.8.8 as the oldest recommended version.
+    await testVersion('1.1.1', true);
+    await testVersion('v1.1.1', true);
+    await testVersion('7.1.1', true);
+    await testVersion('8.1.1', true);
+    await testVersion('8.8.7', true);
+    await testVersion('8.8.8', false);
+    await testVersion('8.8.10', false);
+    await testVersion('10.1.1', false);
+    await testVersion('v10.9.0', false);
+    await testVersion('11.1.1', false);
+    await testVersion('10', 'fail');
+    await testVersion('goose', 'fail');
+    await testVersion('', false);
   });
 });
 

@@ -431,7 +431,11 @@
         "Upload": "Importer",
         "Default": "Classique",
         "Default, template, or tutorial": "Classique, modèle ou tutoriel",
-        "Document type": "Type de document"
+        "Document type": "Type de document",
+        "Allow others to suggest changes": "Permettez aux autres de suggérer des changements",
+        "Enable suggestions": "Activer les suggestions",
+        "Suggestions": "Suggestions",
+        "experiment": "expérimentation"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont accessibles qu'aux utilisateurs ayant un accès complet aux données du document.",
@@ -863,7 +867,10 @@
         "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
         "Download document...": "Télécharger le document...",
         "Download attachments...": "Télécharger les PJ...",
-        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer."
+        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer.",
+        "Suggest Changes": "Suggérer des modifications",
+        "current version": "version actuelle",
+        "original": "original"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
@@ -910,7 +917,9 @@
         "context menu - Access Rules": "menu contextuel - Règles d'Accès",
         "Delete document tour": "Supprimer la visite de document",
         "Preview the tutorial": "Prévisualiser le tutoriel",
-        "Proposed Changes": "Suggestions de modifications"
+        "Proposed Changes": "Suggestions de modifications",
+        "Suggest Changes": "Suggérer des modifications",
+        "Suggestions": "Suggestions"
     },
     "TopBar": {
         "Manage team": "Gérer les équipes"
@@ -1031,7 +1040,10 @@
         "unsaved": "non enregistré",
         "recovery mode": "mode récupération",
         "override": "remplacer",
-        "fiddle": "bac à sable"
+        "fiddle": "bac à sable",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Vous pouvez apporter des modifications,\nmais elles n'affecteront pas le document original.\nVous pouvez les soumettre à titre de suggestions.",
+        "editing": "édition",
+        "suggesting": "suggestion"
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Notez que cette opération ne duplique pas les données, mais crée une autre page avec les mêmes données.",
@@ -1076,7 +1088,7 @@
         "comments": "commentaires",
         "this document": "ce document",
         "your email": "votre email",
-        "Unsubscribed{{suffix}}": "Désinscription{{suffix}}"
+        "Unsubscribed{{suffix}}": "Désabonné{{suffix}}"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1260,7 +1272,8 @@
         "Row style": "Style de ligne",
         "Rule must return True or False": "La règle doit retourner Vrai ou Faux",
         "Conditional Style": "Style conditionnel",
-        "IF...": "SI..."
+        "IF...": "SI...",
+        "Row Style": "Style de ligne"
     },
     "CurrencyPicker": {
         "Invalid currency": "Devise invalide"
@@ -1395,7 +1408,9 @@
         "Set the maximum number of lines for multi-line text.": "Définir le nombre maximum de lignes pour un texte multi-ligne.",
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par un utilisateur de Grist. Il n'est pas validé par Grist Labs ni aucune des parties fournissant ce service. Pour votre sécurité, ne fournissez pas vos mots de passe via ce formulaire, et faites attention quand vous cliquez sur des liens. Rapportez les formulaires malveillants à [{{mail}}](mailto:{{mail}}).",
         "Comments are here!": "Les commentaires sont ici !",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Vous pouvez-ajouter des commentaires aux cellules, répondre aux fils de commentaires, et @-mentionner les collaborateurs."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Vous pouvez-ajouter des commentaires aux cellules, répondre aux fils de commentaires, et @-mentionner les collaborateurs.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Lorsqu'il est coché, la valeur par défaut de ce champ peut-être préremplie à partir de l'URL en utilisant ses paramètres de requête.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Avec les suggestions, les utilisateurs font des modifications dans une copie personnelle sans modifier le document original, puis ils soumettent ces suggestions à la revue du propriétaire du document avant leur intégration."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1409,7 +1424,8 @@
         "Close": "Fermer"
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "DESCRIPTION"
+        "DESCRIPTION": "DESCRIPTION",
+        "Set description": "Mettre une description"
     },
     "PagePanels": {
         "Open creator panel": "Ouvrir le panneau de création",
@@ -1689,7 +1705,10 @@
         "Options Sort Order": "Option d'ordonnancement",
         "Vertical": "Verticale",
         "Radio": "Radio",
-        "Select": "Sélectionner"
+        "Select": "Sélectionner",
+        "Accept value from URL": "Accepter une valeur depuis l'URL",
+        "Hidden field": "Champ caché",
+        "URL parameter:\n{{colId}}=VALUE": "Paramètre d'URL :\n{{colId}}=VALEUR"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1818,7 +1837,14 @@
         "more...": "plus...",
         "no authentication": "pas d'authentification",
         "unavailable": "indisponible",
-        "default": "par défaut"
+        "default": "par défaut",
+        "{{count}} admin accounts_one": "{{count}} comptes d'administration",
+        "{{count}} admin accounts_other": "{{count}} comptes d'administration",
+        "Admin account not found": "Compte d'administration non trouvé",
+        "Administrative accounts": "Comptes d'administration",
+        "The users with administrative accounts": "Les utilisateurs avec un compte d'administration",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "pas de compte d'administration"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -2177,7 +2203,8 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Tapez DELETE si vous êtes sûr·e de vouloir supprimer.\nEn cas de doute sur l'effet de cette action,\nnous vous conseillons de ne pas poursuivre."
     },
     "MentionTextBox": {
-        "no access": "pas d'accès"
+        "no access": "pas d'accès",
+        "...loading": "...chargement en cours"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Une mise à jour critique de Grist est disponible.\nEnvisagez de passer à la version {{version}} dès que possible.",
@@ -2311,7 +2338,28 @@
     "ProposedChangesPage": {
         "Proposed Changes": "Suggestions de modifications",
         "Replace Original": "Remplacer l'original",
-        "This is a list of changes relative to the original document.": "Liste des modifications apportées par rapport au document original."
+        "This is a list of changes relative to the original document.": "Liste des modifications apportées par rapport au document original.",
+        "Replace original": "Replacer l'original",
+        "Accept": "Accepter",
+        "Accepted {{at}}.": "Accepté à {{at}}.",
+        "Dismiss": "Rejeter",
+        "Dismissed {{at}}.": "Rejeté à {{at}}.",
+        "Learn more": "En savoir plus",
+        "No changes found to suggest. Please make some edits.": "Aucune modification à suggérer. Veuillez apporter quelques modifications.",
+        "Retract Suggestion": "Retirer la suggestion",
+        "Retracted {{at}}.": "Retirée à {{at}}.",
+        "Suggest Change": "Suggérer une modification",
+        "Suggest Changes": "Suggérer des modifications",
+        "Suggestion made {{at}}.": "Suggestion faite à {{at}}.",
+        "Suggestions": "Suggestions",
+        "The original document isn't asking for proposed changes.": "Le document original ne demande pas de propositions de modifications.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "De nouvelles modifications n'ont pas encore été ajoutées aux suggestions.",
+        "This is a list of changes relative to the {{originalDocument}}.": "Voici une liste des modifications relative au {{originalDocument}}.",
+        "Update Suggestion": "Mettre à jour une suggestion",
+        "Work on a copy": "Travailler sur une copie",
+        "Your suggestions": "Vos suggestions",
+        "experiment": "expérimentation",
+        "original document": "document original"
     },
     "commandList": {
         "Show accessibility options": "Montrer les options d'accessibilité",
@@ -2326,6 +2374,147 @@
         "Adds the element below the cursor to the selected range": "Ajoute l'élément au dessous du curseur à la sélection",
         "Adds the element to the left of the cursor to the selected range": "Ajoute l'élément à gauche du curseur à la sélection",
         "Adds the element to the right of the cursor to the selected range": "Ajoute l'élément à droite du curseur à la sélection",
-        "Activate assistant": "Active l’assistant"
+        "Activate assistant": "Active l’assistant",
+        "Clear the selected columns": "Effacer les colonnes sélectionnées",
+        "Clears the current copy selection, if any": "Efface la sélection copiée, s'il y en a une",
+        "Clears the currently selected cells": "Efface les cellules sélectionnée",
+        "Clears the section links in the current view": "Efface les liens de section dans la vue courante",
+        "Clears the section links in the current viewsection": "Efface les liens de sections dans la section de vue courante",
+        "Collapse the currently active viewsection": "Replie la section de vue active",
+        "Convert the selected columns from formula to data": "Convertir les colonnes sélectionnées de formule à donnée",
+        "Copy anchor link": "Copier le lien d'ancrage",
+        "Copy current selection to clipboard": "Copie la sélection courante dans le presse-papier",
+        "Copy current selection to clipboard including headers": "Copie la sélection courante dans le presse-papier en incluant les entêtes",
+        "Creates form for active table": "Crée un formulaire pour la table active",
+        "Cut current selection to clipboard": "Couper la sélection courante dans le presse-papier",
+        "Delete collapsed viewsection": "Supprimer la section de vue repliée",
+        "Delete the currently active viewsection": "Supprimer la section de vue active",
+        "Delete the currently selected columns": "Supprimer les colonnes sélectionnées",
+        "Delete the currently selected record(s)": "Supprimer les enregistrements séléctionnés",
+        "Detach active editor": "Détacher l'éditeur actif",
+        "Discard changes to a cell value": "Annuler les modifications de valeur d'une cellule",
+        "Display Grist documentation": "Afficher la documentation de Grist",
+        "Display shortcuts pane": "Afficher le panneau des raccourcis",
+        "Duplicate the currently active viewsection": "Dupliquer la section de vue active",
+        "Duplicate the currently selected record(s)": "Dupliquer les enregistrements sélectionnés",
+        "Edit label of the currently-selected field": "Modifier le label du champ sélectionné",
+        "Edit record layout": "Modifier la mise en page de l'enregistrement",
+        "Enter text into currently-selected cell and start editing": "Saisir du texte dans la cellule courante et commencer à modifier",
+        "Expand collapsed viewsection": "Déplier la section de vue",
+        "Fills current selection with the contents of the top row in the selection": "Rempli la sélection courante avec le contenu du rang le plus haut dans la sélection",
+        "Find": "Rechercher",
+        "Find next occurrence": "Rechercher la prochaine occurrence",
+        "Find previous occurrence": "Rechercher l’occurrence précédente",
+        "Finish editing a cell and save without moving to next record": "Terminer de modifier une cellule et sauvegarder sans se déplacer sur l'enregistrement suivant",
+        "Finish editing a cell, saving the value": "Terminer de modifier une cellule, et sauvegarder la valeur",
+        "Focus next page panel or widget": "Placer le focus sur la prochaine page, panneau ou widget",
+        "Focus previous page panel or widget": "Placer le focus sur la page, panneau ou widget précédente",
+        "Freeze or unfreeze selected columns": "Figer ou défiger les colonnes sélectionnées",
+        "Hide the currently selected columns": "Masquer les colonnes sélectionnées",
+        "Hide the currently selected fields": "Masquer les champs sélectionnés",
+        "Insert a new column, after the currently selected one": "Insérer une nouvelle colonne après celle sélectionnée",
+        "Insert a new column, before the currently selected one": "Insérer une nouvelle colonne avant celle sélectionnée",
+        "Insert a new record, after the currently selected one in an unsorted table": "Insérer un nouvel enregistrement, après celui sélectionné, dans une table non triée",
+        "Insert a new record, before the currently selected one in an unsorted table": "Insérer un nouvel enregistrement, avant celui sélectionné, dans une table non triée",
+        "Insert new column in default location": "Insérer une nouvelle colonne à l'emplacement par défaut",
+        "Insert the current date": "Insérer la date du jour",
+        "Insert the current date and time": "Insérer la date du jour et l'heure",
+        "Maximize the active section": "Agrandir la section active",
+        "Move down one page of records, or to next record in a card list": "Descendre d'une page d'enregistrements ou vers le prochain enregistrement dans une liste de carte",
+        "Move down to the last record": "Descendre jusqu'au dernier enregistrement",
+        "Move downward five records": "Se déplacer de cinq enregistrements vers le bas",
+        "Move downward to next record or field": "Se déplacer au prochain enregistrement ou champ vers le bas",
+        "Move left to the previous field": "Se déplacer à gauche sur le champ précédent",
+        "Move right to the next field": "Se déplacer à droite sur le prochain champ",
+        "Move to the first field or the beginning of a row": "Se déplacer sur le premier champ ou au début d'une ligne",
+        "Move to the last field or the end of a row": "Se déplacer sur le dernier champ ou à la fin d'une ligne",
+        "Move to the next field, saving changes if editing a value": "Se déplacer vers le prochain champ, sauvegarder les changement si vous étiez en train de modifier une valeur",
+        "Move to the previous field, saving changes if editing a value": "Se déplacer vers le champ précédent, sauvegarder les changement si vous étiez en train de modifier une valeur",
+        "Move up one page of records, or to previous record in a card list": "Se déplacer vers le haut d'une page d'enregistrements, ou sur l'enregistrement précédent dans une liste de cartes",
+        "Enters section linking mode in the current view": "Entre dans la section des modes de liens dans la vue courante",
+        "Exits section linking mode in the current view": "Quitte la section des modes de liens dans la vue courante",
+        "Move up to the first record": "Se déplacer vers le premier enregistrement",
+        "Move upward five records": "Se déplacer vers le haut de cinq enregistrements",
+        "Move upward to previous record or field": "Se déplacer au précédent enregistrement ou champ vers le haut",
+        "Moves the cursor to the correct location": "Bouge le curseur au bon emplacement",
+        "Open Custom widget configuration screen": "Ouvrir l'écran de configuration de widget personnalisé",
+        "Open comment thread": "Ouvrir le fil de commentaires",
+        "Open next page": "Ouvrir la prochaine page",
+        "Open previous page": "Ouvrir la page précédente",
+        "Opens document list": "Ouvre la liste des documents",
+        "Paste clipboard contents at cursor": "Colle le contenu du presse-papier sous le curseur",
+        "Print currently selected page widget": "Afficher la page du widget sélectionné",
+        "Push an undo action": "Appuyer sur une action d'annulation",
+        "Redo last action": "Refaire la dernière action",
+        "Rename the currently selected column": "Renommer la colonne sélectionnée",
+        "Reverts the sections links to the saved links the current view": "Rétablit les liens des sections aux liens enregistrés dans la vue actuelle",
+        "Saves the sections links in the current view": "Sauve les liens de section dans la vue courante",
+        "Selects all currently displayed cells": "Sélectionne toutes les cellules visibles",
+        "Shortcut to data selection tab": "Raccourci vers l'onglet de sélection des données",
+        "Shortcut to focus view tab if creator panel is open": "Raccourci pour mettre le focus sur l'onglet de vue si le panneau de création est ouvert",
+        "Shortcut to open document tab": "Raccourci pour ouvrir l'onglet de document",
+        "Shortcut to open field tab": "Raccourci pour ouvrir l'onglet de champ",
+        "Shortcut to open sort & filter menu": "Raccourci pour ouvrir le menu \"trier et filtrer\"",
+        "Shortcut to open the left panel": "Raccourci pour ouvrir le panneau de gauche",
+        "Shortcut to open the right panel": "Raccourci pour ouvrir le panneau de droite",
+        "Shortcut to open view tab": "Raccourci pour ouvrir l'onglet de vue",
+        "Shortcut to sort & filter tab": "Raccourci pour l'onglet \"trier et filtrer\"",
+        "Show hidden columns": "Afficher les colonnes masquées",
+        "Show raw data widget for table of currently selected page widget": "Afficher le widget de données brutes pour la table de la page actuellement sélectionnée",
+        "Show the record card widget of the selected record": "Afficher le widget de carte pour l'enregistrement sélectionné",
+        "Sort the view data by the currently selected field in ascending order": "Trier les données de la vue par le champ sélectionné dans l'ordre croissant",
+        "Sort the view data by the currently selected field in descending order": "Trier les données de la vue par le champ sélectionné dans l'ordre décroissant",
+        "Start editing the currently-selected cell": "Commencer à modifier la cellule sélectionnée",
+        "Toggle creator panel keyboard focus": "Alterner le focus du panneau de création",
+        "Toggle the currently selected checkbox or switch cell": "Basculer les valeurs de la case à coché ou de l'interrupteur sélectionné",
+        "Undo last action": "Annuler la dernière action",
+        "Use the currently selected row as table headers": "Utiliser la ligne sélectionnée comme entêtes de table",
+        "When in the search bar, close it and focus the current match": "Quand on est dans la barre de recherche, la fermer et mettre le focus sur la correspondance actuelle",
+        "When typed at the start of a cell, make this a formula column": "Quand tapé au début d'une cellule, transformer celle-ci en colonne de formule",
+        "showing a behavioral popup": "affichage d'une fenêtre contextuelle comportementale",
+        "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement"
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "format 12-heures",
+        "24-hour format": "format 24-heures",
+        "AM": {
+            "PM": "Matin/Après-Midi"
+        },
+        "Calendar": "Calendrier",
+        "Date helpers…": "Aides de dates…",
+        "Day": "Jour",
+        "Day of month": "Jour du mois",
+        "Day of week": "Jour de la semaine",
+        "Day of week (abbrev)": "Jour de la semaine (abrégé)",
+        "Day of week (full)": "Jour de la semaine (plein)",
+        "Day of week (numeric)": "Jour de la semaine (numérique)",
+        "Days since": "Jours depuis",
+        "Days until": "Jours jusque",
+        "Default": "Par défaut",
+        "End of": "Fin",
+        "Full date": "Date complète",
+        "Full name with year": "Nom complet avec l'année",
+        "Hour": "Heure",
+        "Intervals": "Intervalles",
+        "Is weekend?": "Est-ce le weekend ?",
+        "Minute": "Minute",
+        "Month": "Mois",
+        "Months since": "Mois depuis",
+        "Months until": "Mois jusque",
+        "Name only": "Nom seulement",
+        "Number only": "Nombre seulement",
+        "Quarter": "Quart",
+        "Quick Picks": "Sélection rapide",
+        "Relative": "Relatif",
+        "Short with year": "Courte avec l'année",
+        "Sortable": "Triable",
+        "Start of": "Début",
+        "Time": "Heure",
+        "Time bucket": "Période de temps",
+        "Week": "Semaine",
+        "Week of year": "Semaine de l'année",
+        "Year": "Année",
+        "Years since": "Années depuis",
+        "Years until": "Années jusque"
     }
 }
