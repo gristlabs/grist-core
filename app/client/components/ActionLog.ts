@@ -17,7 +17,7 @@ import {
   ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
   LabelDelta
 } from 'app/common/ActionSummary';
-import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
+import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
 import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
