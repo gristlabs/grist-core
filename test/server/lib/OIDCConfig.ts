@@ -1,7 +1,7 @@
 import {RequestWithLogin} from "app/server/lib/Authorizer";
 import {SessionObj} from "app/server/lib/BrowserSession";
 import log from "app/server/lib/log";
-import {OIDCConfig} from "app/server/lib/OIDCConfig";
+import {OIDCBuilder} from "app/server/lib/OIDCConfig";
 import {agents, GristProxyAgent} from "app/server/lib/ProxyAgent";
 import {SendAppPageFunction} from "app/server/lib/sendAppPage";
 import {Sessions} from "app/server/lib/Sessions";
@@ -15,12 +15,16 @@ import Sinon from "sinon";
 
 const NOOPED_SEND_APP_PAGE: SendAppPageFunction = () => Promise.resolve();
 
-class OIDCConfigStubbed extends OIDCConfig {
+class OIDCConfigStubbed extends OIDCBuilder {
   public static async buildWithStub(client: Client = new ClientStub().asClient()) {
-    return this.build(NOOPED_SEND_APP_PAGE, client);
+    return this.build(NOOPED_SEND_APP_PAGE, undefined, client);
   }
-  public static async build(sendAppPage: SendAppPageFunction, clientStub?: Client): Promise<OIDCConfigStubbed> {
-    const result = new OIDCConfigStubbed(sendAppPage);
+  public static async build(
+    sendAppPage: SendAppPageFunction,
+    config?: any,
+    clientStub?: Client
+  ): Promise<OIDCConfigStubbed> {
+    const result = new OIDCConfigStubbed(sendAppPage, config);
     if (clientStub) {
       result._initClient = Sinon.spy(() => {
         result._client = clientStub!;
@@ -109,7 +113,7 @@ describe('OIDCConfig', () => {
       ]) {
         setEnvVars();
         delete process.env[envVar];
-        const promise = OIDCConfig.build(NOOPED_SEND_APP_PAGE);
+        const promise = OIDCConfigStubbed.build(NOOPED_SEND_APP_PAGE);
         await assert.isRejected(promise, `missing environment variable: ${envVar}`);
       }
     });
@@ -268,7 +272,7 @@ describe('OIDCConfig', () => {
   });
 
   describe('GRIST_OIDC_IDP_ENABLED_PROTECTIONS', () => {
-    async function checkRejection(promise: Promise<OIDCConfig>, actualValue: string) {
+    async function checkRejection(promise: Promise<OIDCBuilder>, actualValue: string) {
       return assert.isRejected(
         promise,
         `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: "${actualValue}". ` +
@@ -277,7 +281,7 @@ describe('OIDCConfig', () => {
     it('should reject when GRIST_OIDC_IDP_ENABLED_PROTECTIONS contains unsupported values', async () => {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'STATE,NONCE,PKCE,invalid';
-      const promise = OIDCConfig.build(NOOPED_SEND_APP_PAGE);
+      const promise = OIDCBuilder.build(NOOPED_SEND_APP_PAGE);
       await checkRejection(promise, 'invalid');
     });
 
@@ -773,7 +777,9 @@ describe('OIDCConfig', () => {
         const fakeParams = {
           state: FAKE_STATE,
         };
-        const config = await OIDCConfigStubbed.build(sendAppPageStub as SendAppPageFunction, clientStub.asClient());
+        const config = await OIDCConfigStubbed.build(
+          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient()
+        );
         const session = _.clone(ctx.session); // session is modified, so clone it
         const req = {
           session,
@@ -822,9 +828,11 @@ describe('OIDCConfig', () => {
     it('should log err.response when userinfo fails to parse response body', async () => {
       // See https://github.com/panva/node-openid-client/blob/47a549cb4e36ffe2ebfe2dc9d6b69a02643cc0a9/lib/client.js#L1293
       setEnvVars();
-      const clientStub = new ClientStub();
-      const sendAppPageStub = Sinon.stub().resolves();
-      const config = await OIDCConfigStubbed.build(sendAppPageStub, clientStub.asClient());
+        const clientStub = new ClientStub();
+        const sendAppPageStub = Sinon.stub().resolves();
+        const config = await OIDCConfigStubbed.build(
+          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient()
+        );
       const req = {
         session: DEFAULT_SESSION,
       } as unknown as express.Request;

@@ -91,7 +91,7 @@ export interface ICreate {
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 
-  getLoginSystem(): Promise<GristLoginSystem>;
+  getLoginSystem(dbManager: HomeDBManager): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
@@ -221,8 +221,8 @@ export class BaseCreate implements ICreate {
   public async createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin> {
     return new SimpleInstallAdmin(dbManager);
   }
-  public getLoginSystem(): Promise<GristLoginSystem> {
-    return getCoreLoginSystem();
+  public getLoginSystem(dbManager: HomeDBManager): Promise<GristLoginSystem> {
+    return getCoreLoginSystem(dbManager.getAppSettings());
   }
   public async createLocalDocStorageManager(...args: ConstructorParameters<typeof DocStorageManager>) {
     return new DocStorageManager(...args);
