@@ -2515,5 +2515,8 @@
     },
     "selectBy": {
         "Select widget": "Select widget"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Untitled document"
     }
 }
