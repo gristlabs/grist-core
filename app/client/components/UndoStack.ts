@@ -77,7 +77,6 @@ export class UndoStack extends dispose.Disposable {
     }
     const otherIndex = ag.otherId ?
       this._stack.findIndex(a => a.actionNum === ag.otherId) : -1;
-
     if (ag.linkId) {
       // Link action. Add the action to the linkMap, but not to any stacks.
       setDefault(this._linkMap, ag.linkId, []).push(ag);

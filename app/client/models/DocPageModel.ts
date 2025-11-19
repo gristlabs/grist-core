@@ -180,7 +180,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly docActionState = Observable.create<DocState|null>(this, null);
   public readonly proposalIndexInActionStack = Computed.create(
     this, this.currentProposal, this.gristDoc, (_, proposal, gristDoc) => {
-      if (proposal === 'empty' || !gristDoc) { return null; }
+      if (!gristDoc) { return null; }
+      if (proposal === 'empty') { return -1; }
       const state = proposal?.comparison.comparison?.left;
       if (!state) { return null; }
       return gristDoc.getUndoStack().getUndoStackIndex(state.n) ?? null;
@@ -189,7 +190,6 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public readonly proposalNewChangesCount = Computed.create(
     this, this.docActionState, this.proposalIndexInActionStack, (use, docState, index) => {
-      console.log("Thinking about pending changes count", docState, index);
       if (docState && index !== null) {
         return this.gristDoc.get()?.getUndoStack().compareStackIndex(index) || null;
       }
