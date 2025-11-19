@@ -22,10 +22,6 @@
   overflow: hidden;
 }
 
-.diff .viewsection_title {
-  display: none;
-}
-
 .viewsection_title, .viewsection_title_font {
   color: var(--grist-theme-text-light, var(--grist-color-slate));
   font-size: var(--grist-small-font-size);

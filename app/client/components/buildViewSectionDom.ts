@@ -65,6 +65,7 @@ export function buildViewSectionDom(options: {
   draggable?: boolean, /* defaults to true */
   // Should show green bar on the left (but preserves active-section class).
   focusable?: boolean, /* defaults to true */
+  headerVisible?: boolean, /* defaults to true, if title and filters are visible at all */
   tableNameHidden?: boolean,
   widgetNameHidden?: boolean,
   renamable?: boolean,
@@ -77,8 +78,9 @@ export function buildViewSectionDom(options: {
     viewModel,
     draggable = true,
     focusable = true,
+    headerVisible = true,
     tableNameHidden,
-    widgetNameHidden,
+    widgetNameHidden,    
   } = options;
 
   // Creating normal section dom
@@ -98,27 +100,29 @@ export function buildViewSectionDom(options: {
     dom.cls('active_section', vs.hasFocus),
     dom.cls('active_section--no-focus', (use) => !vs.isDisposed() && use(vs.hasFocus) && !use(vs.hasRegionFocus)),
     dom.cls('active_section--no-indicator', (use) => !focusable || (!vs.isDisposed() && !use(vs.hasVisibleFocus))),
-    dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
-      cssDragIcon('DragDrop',
-        dom.cls("viewsection_drag_indicator"),
-        // Makes element grabbable only if grist is not readonly.
-        dom.cls('layout_grabbable', (use) => !use(gristDoc.isReadonlyKo)),
-        !draggable ? dom.style("visibility", "hidden") : null
-      ),
-      dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
-        cssSigmaIcon('Pivot', testId('sigma'))),
-      buildWidgetTitle(
-        vs,
-        {tableNameHidden, widgetNameHidden, disabled: !renamable},
-        testId('viewsection-title'),
-        cssTestClick(testId("viewsection-blank")),
-      ),
-      viewInstance.buildTitleControls(),
-      dom('div.viewsection_buttons',
-        dom.create(viewSectionMenu, gristDoc, vs)
-      )
-     )),
-    dom.create(filterBar, gristDoc, vs),
+    !headerVisible ? null : [
+      dom.maybe<BaseView|null>((use) => use(vs.viewInstance), (viewInstance) => dom('div.viewsection_title.flexhbox',
+        cssDragIcon('DragDrop',
+          dom.cls("viewsection_drag_indicator"),
+          // Makes element grabbable only if grist is not readonly.
+          dom.cls('layout_grabbable', (use) => !use(gristDoc.isReadonlyKo)),
+          !draggable ? dom.style("visibility", "hidden") : null
+        ),
+        dom.maybe((use) => use(use(viewInstance.viewSection.table).summarySourceTable), () =>
+          cssSigmaIcon('Pivot', testId('sigma'))),
+        buildWidgetTitle(
+          vs,
+          {tableNameHidden, widgetNameHidden, disabled: !renamable},
+          testId('viewsection-title'),
+          cssTestClick(testId("viewsection-blank")),
+        ),
+        viewInstance.buildTitleControls(),
+        dom('div.viewsection_buttons',
+          dom.create(viewSectionMenu, gristDoc, vs)
+        )
+      )),
+      dom.create(filterBar, gristDoc, vs),
+    ],
     dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),

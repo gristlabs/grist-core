@@ -511,11 +511,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     .filter(c => !c.isDisposed())));
   this.columnsBehavior = ko.pureComputed(() => {
     const list = new Set(selectedColumns().map(c => c.behavior()));
-    return list.size === 1 ? list.values().next().value : 'mixed';
+    return list.size === 1 ? list.values().next().value! : 'mixed';
   });
   this.columnsType = ko.pureComputed(() => {
     const list = new Set(selectedColumns().map(c => c.type()));
-    return list.size === 1 ? list.values().next().value : 'mixed';
+    return list.size === 1 ? list.values().next().value! : 'mixed';
   });
   this.columnsAllIsFormula = ko.pureComputed(() => {
     return selectedColumns().every(c => c.isFormula());

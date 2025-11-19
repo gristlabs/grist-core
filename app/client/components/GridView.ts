@@ -1,4 +1,4 @@
-import BaseView from 'app/client/components/BaseView';
+import BaseView, {ViewOptions} from 'app/client/components/BaseView';
 import {parsePasteForView} from 'app/client/components/BaseView2';
 import * as selector from 'app/client/components/CellSelector';
 import {ElemType} from 'app/client/components/CellSelector';
@@ -56,7 +56,7 @@ import * as gutil from 'app/common/gutil';
 import {UIRowId} from 'app/plugin/GristAPI';
 
 import convert from 'color-convert';
-import {BindableValue, Computed, Disposable, Holder} from 'grainjs';
+import {BindableValue, bundleChanges, Computed, Disposable, Holder} from 'grainjs';
 import {dom, DomElementArg, DomElementMethod, subscribeElem} from 'grainjs';
 import ko from 'knockout';
 import debounce from 'lodash/debounce';
@@ -91,6 +91,13 @@ interface InsertColOptions {
 }
 
 type Direction = 'left'|'right'|'up'|'down';
+
+export interface GridViewOptions extends ViewOptions {
+  inline?: boolean;
+  maxWidth?: number;
+  maxHeight?: number;
+  isPreview?: boolean;
+}
 
 /**
  * GridView component implements the view of a grid of cells.
@@ -139,14 +146,18 @@ export default class GridView extends BaseView {
   protected colShadow: HTMLElement;
   protected rowLine: HTMLElement;
   protected rowShadow: HTMLElement;
+  private _rowHeights: number[] = [];
+  private _inline: boolean;
 
-  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, isPreview = false) {
-    super(gristDoc, viewSectionModel, { isPreview, 'addNewRow': true });
+  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, protected gridOptions?: GridViewOptions) {
+    super(gristDoc, viewSectionModel, gridOptions);
 
+    this.isPreview = gridOptions?.isPreview || false;
+    this._inline = gridOptions?.inline ?? false;
     this.viewSection = viewSectionModel;
     this.isReadonly = this.gristDoc.isReadonly.get() ||
                       this.viewSection.isVirtual() ||
-                      isPreview;
+                      this.isPreview;
 
     //--------------------------------------------------
     // Observables local to this view
@@ -168,11 +179,11 @@ export default class GridView extends BaseView {
     this.customCellMenu = identity;
     this.customRowMenu = identity;
 
-    if (!isPreview && !this.gristDoc.comparison) {
+    if (!this.isPreview && !this.gristDoc.comparison && !this._inline) {
       this.selectionSummary = SelectionSummary.create(this,
         this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
     }
-
+    
     this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
       const result = this.viewSection.viewFields().all().filter((field, index) => {
         // During column removal or restoring (with undo), some columns fields
@@ -213,7 +224,6 @@ export default class GridView extends BaseView {
       this._scrollColumnIntoView(idx);
     }));
 
-    this.isPreview = isPreview;
 
     // Some observables for the scroll markers that show that the view is cut off on a side.
     this.scrollShadow = {
@@ -475,6 +485,25 @@ export default class GridView extends BaseView {
     // Initialize scroll position.
     this.scrollPane.scrollLeft = this.viewSection.lastScrollPos.scrollLeft;
     this.scrolly.scrollToSavedPos(this.viewSection.lastScrollPos);
+
+    // Autowidth will be done in next tick after rows are rendered.
+    setTimeout(() => {
+      if (this.isDisposed()) { return; }
+      // Auto-size columns on initial load if enabled
+      if (this._rowHeights.length > 0 && this._inline) {
+        this.applyAutoWidth();
+        // Bubble event with dimension information
+        const totalHeight = this._rowHeights.reduce((sum, value) => sum + value, 0) + 2 + 23 /* for header */;
+        const fields = this.viewSection.viewFields().all();
+        const totalWidth = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0) + ROW_NUMBER_WIDTH + 6;
+        const targetHeight = this.gridOptions?.maxHeight ? Math.min(totalHeight, this.gridOptions.maxHeight) : totalHeight;
+        const targetWidth = this.gridOptions?.maxWidth ? Math.min(totalWidth, this.gridOptions.maxWidth) : totalWidth;
+        dom.update(this.viewPane, 
+          dom.style('width', `${targetWidth}px`),
+          dom.style('height', `${targetHeight}px`)
+        );
+      }
+    })
   }
 
   /**
@@ -1218,6 +1247,56 @@ export default class GridView extends BaseView {
     }
   }
 
+  public applyAutoHeight(heights?: number[]) {
+    if (!heights || heights.length === 0) { return; }
+    const viewPane = this.viewPane as HTMLElement | undefined;
+    if (!viewPane) { return; }
+    const total = heights.reduce((sum, value) => sum + value, 0) + 2;
+    const current = parseInt(viewPane.style.height.replace('px', '') || '0', 10) || 0;
+    if (total > current) {
+      viewPane.style.height = total + 'px';
+    }
+  }
+
+  public applyAutoWidth() {
+    const viewPane = this.viewPane as HTMLElement | undefined;
+    if (!viewPane) { return; }
+    const fields = this.viewSection.viewFields.peek().all();
+    if (!fields.length) { return; }
+    const clips = Array.from(viewPane.querySelectorAll<HTMLElement>('.field_clip'));
+    if (clips.length === 0) { return; }
+    // Very crude way of measuring widths of each column by measuring each cell content.
+    const widthsList = clips.map(elem => {
+      const range = document.createRange();
+      range.selectNodeContents(elem);
+      const rect = range.getBoundingClientRect();
+      return rect.width;
+    });
+
+    const numFields = fields.length;
+    const fieldWidths = new Map<number, number[]>();
+    for (let i = 0; i < widthsList.length; i++) {
+      const fieldIndex = i % numFields;
+      if (!fieldWidths.has(fieldIndex)) {
+        fieldWidths.set(fieldIndex, []);
+      }
+      fieldWidths.get(fieldIndex)!.push(widthsList[i]);
+    }
+
+    const fieldMaxWidths = new Map<number, number>();
+    for (const [fieldIndex, widths] of fieldWidths.entries()) {
+      const maxWidth = Math.ceil(widths.reduce((a, b) => Math.max(a, b), 0));
+      fieldMaxWidths.set(fieldIndex, maxWidth);
+    }
+
+    bundleChanges(() => {
+      fields.forEach((field, index) => {
+        const maxWidth = fieldMaxWidths.get(index) || 100;
+        field.width(maxWidth + 20);
+      });
+    });
+  }
+
   // ======================================================================================
   // DOM STUFF
 
@@ -1455,18 +1534,10 @@ export default class GridView extends BaseView {
           ) //end hbox
         ), // END COL HEADER BOX
 
-          koDomScrolly.scrolly(data, {
-            paddingBottom: 80, paddingRight: 28,
-            cb: (heights?: number[]) => {
-              if (heights) {
-                const total = [...heights].reduce((a, b) => a+b, 0) + 2;
-                const num = parseInt(this.viewPane.style.height.replace('px', '') || '0', 10);
-                if (total > (num || 0)) {
-                  this.viewPane.style.height = String(total) + "px";
-                }
-              }
-            }
-          }, renderRow.bind(this)),
+        koDomScrolly.scrolly(data, {
+          ...(this._inline ? {} : {paddingBottom: 80, paddingRight: 20}),
+          cb: this._onRenderedVisibleRows.bind(this)
+        }, renderRow.bind(this)),
 
         dom.maybe(this._isPrinting, () =>
           renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this))
@@ -1698,6 +1769,13 @@ export default class GridView extends BaseView {
   protected onLinkFilterChange() {
     super.onLinkFilterChange();
     this.clearSelection();
+  }
+
+  protected _onRenderedVisibleRows(heights?: number[]) {
+    // Store heights from scrolly for use in onTableLoaded
+    if (heights && heights.length > 0) {
+      this._rowHeights = heights;
+    }
   }
 
   protected onCellContextMenu(ev: Event, elem: Element) {

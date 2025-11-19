@@ -312,7 +312,7 @@ export abstract class ActionLogPart {
         order: this._naiveColumnOrder.bind(this),
       });
       return dom(
-        'div',
+        'div.tabular_diffs',
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
         options.customRender?.(act),
@@ -445,7 +445,7 @@ export abstract class ActionLogPart {
    * Show any table additions/removals/renames.
    */
   private _renderTableSchemaChanges(sum: ActionSummary) {
-    return dom('div',
+    return dom('div.table_schema_changes',
                sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
   }
 

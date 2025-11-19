@@ -558,14 +558,15 @@ function renderComparisonDetails(owner: Disposable, gristDoc: GristDoc, origDeta
       txt: "",
       contextObs: context,
       customRender(diffs) {
-        return makeTable(owner, gristDoc, diffs);
+        return makeTable(owner, gristDoc, diffs, origComparison);
       }
     }),
   ];
 }
 
-function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs) {
+function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs, origComparison?: DocStateComparison) {
   const doc = VirtualDoc.create(owner, gristDoc.appModel);
+  doc.comparison = origComparison ?? null;
   if (diffs) {
     const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
       const data: TableRecordValues = {records: []};
@@ -620,7 +621,8 @@ function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs) 
       return dom.create(VirtualSection, doc, {
         tableId: table,
         sectionId: 'list',
-        defaultWidth,
+        inline: true,
+        hideHeader: false,
       });
       // return dom('div', table);
     });
