@@ -2520,5 +2520,8 @@
     },
     "selectBy": {
         "Select widget": "Вибрати віджет"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Документ без назви"
     }
 }
