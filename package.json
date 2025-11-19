@@ -66,7 +66,7 @@
     "@types/http-proxy": "1.17.9",
     "@types/i18next-fs-backend": "1.1.2",
     "@types/image-size": "0.0.29",
-    "@types/js-yaml": "3.11.2",
+    "@types/js-yaml": "4.0.9",
     "@types/jsdom": "21.1.6",
     "@types/jsesc": "3.0.1",
     "@types/jsonwebtoken": "7.2.8",

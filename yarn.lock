@@ -1240,10 +1240,10 @@
   dependencies:
     "@types/sizzle" "*"
 
-"@types/js-yaml@3.11.2":
-  version "3.11.2"
-  resolved "https://registry.npmjs.org/@types/js-yaml/-/js-yaml-3.11.2.tgz"
-  integrity sha512-JRDtMPEqXrzfuYAdqbxLot1GvAr/QvicIZAnOAigZaj8xVMhuSJTg/xsv9E1TvyL+wujYhRLx9ZsQ0oFOSmwyA==
+"@types/js-yaml@4.0.9":
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/@types/js-yaml/-/js-yaml-4.0.9.tgz#cd82382c4f902fed9691a2ed79ec68c5898af4c2"
+  integrity sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==
 
 "@types/jsdom@21.1.6":
   version "21.1.6"
