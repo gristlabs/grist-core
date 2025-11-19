@@ -737,7 +737,9 @@
         "Select widget": "Choisir la vue",
         "Select data": "Choisir les données source",
         "Group by": "Grouper par",
-        "Add to page": "Ajouter à la Page"
+        "Add to page": "Ajouter à la Page",
+        "New Table": "Nouvelle Table",
+        "SELECT BY": "SÉLECTIONNÉ PAR"
     },
     "Pages": {
         "The following tables will no longer be visible_one": "La donnée source ne sera plus visible",
@@ -996,7 +998,8 @@
         "(empty)": "(vide)",
         "Custom options": "Options personnalisées",
         "SORT": "TRI",
-        "FILTER": "FILTRE"
+        "FILTER": "FILTRE",
+        "Sort and filter": "Trier et filtrer"
     },
     "VisibleFieldsConfig": {
         "Hidden Fields cannot be reordered": "Les champs masqués ne peuvent pas être réordonnés",
@@ -2516,5 +2519,11 @@
         "Year": "Année",
         "Years since": "Années depuis",
         "Years until": "Années jusque"
+    },
+    "selectBy": {
+        "Select widget": "Choisir un widget"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Document sans titre"
     }
 }
