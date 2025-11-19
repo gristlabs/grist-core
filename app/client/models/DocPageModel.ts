@@ -183,8 +183,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       if (!gristDoc) { return null; }
       if (proposal === 'empty') { return -1; }
       const state = proposal?.comparison.comparison?.left;
-      if (!state) { return null; }
-      return gristDoc.getUndoStack().getUndoStackIndex(state.n) ?? null;
+      if (!state) { return -1; }
+      return gristDoc.getUndoStack().getUndoStackIndex(state.n) ?? -1;
     }
   );
 
