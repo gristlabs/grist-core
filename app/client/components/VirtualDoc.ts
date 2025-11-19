@@ -659,6 +659,7 @@ export class VirtualSection extends Disposable {
     ViewSectionHelper.create(this, this._doc as any, viewSectionRec, {
       'record': {
         inline: this.props.inline,
+        addNewRow: false,
       } as GridViewOptions,
     });
 

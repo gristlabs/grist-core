@@ -26,7 +26,6 @@
   border-top: 1px solid var(--grist-theme-table-header-border, lightgrey);
 }
 
-
 .gridview_data_pane > .gridview_data_scroll {
   border-top: none;
 }
@@ -155,10 +154,6 @@
   background-color: var(--grist-theme-table-header-bg, var(--grist-color-light-grey)) !important;
 }
 
-/* .diff .gridview_header_backdrop_top {
-  background-color: transparent !important;
-} */
-
 .gridview_data_corner_overlay {
   width: 52px;
   height: calc(var(--gridview-header-height) + 1px); /* matches gridview_data_header height (+border) */
@@ -255,10 +250,6 @@
   border-bottom: 1px solid var(--grist-theme-table-header-border, lightgray);
   z-index: 10;
 }
-
-/* .diff .gridview_header_backdrop_top {
-  border-bottom: none;
-} */
 
 .gridview_data_pane > .scroll_shadow_top {
   top: var(--gridview-header-height);

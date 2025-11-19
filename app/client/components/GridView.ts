@@ -97,6 +97,7 @@ export interface GridViewOptions extends ViewOptions {
   maxWidth?: number;
   maxHeight?: number;
   isPreview?: boolean;
+  addNewRow?: boolean; // default true
 }
 
 /**
@@ -150,7 +151,7 @@ export default class GridView extends BaseView {
   private _inline: boolean;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, protected gridOptions?: GridViewOptions) {
-    super(gristDoc, viewSectionModel, gridOptions);
+    super(gristDoc, viewSectionModel, {...gridOptions, addNewRow: gridOptions?.addNewRow ?? true});
 
     this.isPreview = gridOptions?.isPreview || false;
     this._inline = gridOptions?.inline ?? false;
