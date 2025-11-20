@@ -13,6 +13,7 @@ import type {BoxSpec} from 'app/client/lib/BoxSpec';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import type {AppModel, TopAppModel} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
+import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
 import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel, DocPageModelImpl} from 'app/client/models/DocPageModel';
@@ -454,7 +455,12 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   // Rest of the methods are not implemented and not needed or used by virtual tables.
 
   public getTableModelMaybeWithDiff(tableId: string) {
-    return this.docModel.getTableModel(tableId);
+    const tableModel = this.getTableModel(tableId);
+    if (!this.comparison?.details) {
+      return tableModel;
+    }
+    // TODO: cache wrapped models and share between views.
+    return new DataTableModelWithDiff(tableModel, this.comparison.details);
   }
 
   public getTableModel(tableId: string) {

@@ -567,102 +567,37 @@ function renderComparisonDetails(owner: Disposable, gristDoc: GristDoc, origDeta
 function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs, origComparison?: DocStateComparison) {
   const doc = VirtualDoc.create(owner, gristDoc.appModel);
   doc.comparison = origComparison ?? null;
-  if (diffs) {
-    const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
-      const data: TableRecordValues = {records: []};
-      for (const row of tdiff.cells) {
-        const record: TableRecordValue = {
-          id: row.rowId,
-          fields: {},
-        };
-        for (const [idx, cell] of row.cellDeltas.entries()) {
-          let item;
-          if (cell === null) {
-            item = '...';
-          } else if (!Array.isArray(cell)) {
-            item = cell;
-          } else {
-            const [pre, post] = cell;
-            if (!pre && !post) {
-              item = '';
-            } else {
-              item = ['V', {
-                parent: pre?.[0],
-                remote: post?.[0],
-              }];
-            }
-          }
-          const colId = tdiff.header[idx];
-          record.fields[colId] = item as any;
-        }
-        data.records.push(record);
-      }
-      const tableRow = gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
-      const columnRows = gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
-      const types: Record<string, GristType> = Object.fromEntries(
-        columnRows.map(cr => [cr.colId(), cr.type() as GristType])
-      );
-      const defaultWidth = 200;
-      doc.addTable({
-        name: table,
-        tableId: table,
-        data: new ApiData(() => data),
-        format: new RecordsFormat(),
-        columns: tdiff.header.map(colId => {
-          return {
-            colId,
-            label: colId,
-            type: types[colId] || 'Any'
-          };
-        }),
-        defaultWidth,
-      });
-      doc.refreshTableData(table).catch(reportError);
-      return dom.create(VirtualSection, doc, {
-        tableId: table,
-        sectionId: 'list',
-        inline: true,
-        hideHeader: false,
-      });
-      // return dom('div', table);
-    });
-    return lst;
+  if (!diffs) {
+    return null;
   }
-  const data = {
-    records: [
-      {
-        id: 1,
-        fields: {
-          A: ['V', {
-            parent: 99,
-            remote: 98,
-            local: 97
-          }],
-        },
-      },
-      {
-        id: 2,
-        fields: {
-            A: 101,
-        },
-      }
-    ],
-  };
-  doc.addTable({
-    name: 'Users',
-    tableId: 'users',
-    data: new ApiData(() => data),
-    format: new RecordsFormat(),
-    columns: [{
-      colId: 'A',
-      type: 'Int',
-      label: 'A'
-    }],
+  doc.comparison = origComparison ?? null;
+  const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
+    const data = gristDoc.docData.getTable(table)!.getTableDataAction();
+    const tableRow = gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
+    const columnRows = gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
+    const types: Record<string, GristType> = Object.fromEntries(
+      columnRows.map(cr => [cr.colId(), cr.type() as GristType])
+    );
+    doc.addTable({
+      name: table,
+      tableId: table,
+      data: new ApiData(() => data),
+      columns: tdiff.header.map(colId => {
+        return {
+          colId,
+          label: colId,
+          type: types[colId] || 'Any'
+        };
+      }),
+    });
+    doc.refreshTableData(table).catch(reportError);
+    return dom.create(VirtualSection, doc, {
+      tableId: table,
+      sectionId: 'list',
+      inline: true,
+      hideHeader: false,
+    });
   });
-  doc.refreshTableData('users').catch(reportError);
-  return dom.create(VirtualSection, doc, {
-    tableId: 'users',
-    sectionId: 'list',
-  });
+  return lst;
 }
 
