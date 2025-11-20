@@ -45,7 +45,7 @@
         "Add table-wide rule": "Add table-wide rule",
         "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Access rules have changed. Click Reset to revert your changes and refresh the rules.",
         "All": "All",
-        "Column {{colId}} appears in multiple rules for table {{this.tableId}} that might be order-dependent. Try splitting rules up differently?": "Column {{colId}} appears in multiple rules for table {{this.tableId}} that might be order-dependent. Try splitting rules up differently?",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?",
         "Columns": "Columns",
         "Condition cannot be blank": "Condition cannot be blank",
         "Default resource missing in resource map": "Default resource missing in resource map",

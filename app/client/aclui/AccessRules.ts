@@ -842,7 +842,7 @@ class TableRules extends Disposable {
           // TODO: could be worth also flagging multiple rulesets with the same columns as
           // undesirable.
           throw new UserError(
-            t('Column {{colId}} appears in multiple rules for table {{this.tableId}} \
+            t('Column {{colId}} appears in multiple rules for table {{tableId}} \
 that might be order-dependent. Try splitting rules up differently?', {colId, tableId: this.tableId}
             )
           );
