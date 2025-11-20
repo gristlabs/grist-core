@@ -1,7 +1,7 @@
 import { ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
 import { cssBannerLink } from 'app/client/components/Banner';
 import { GristDoc } from 'app/client/components/GristDoc';
-import { ApiData, RecordsFormat, VirtualDoc, VirtualSection } from 'app/client/components/VirtualDoc';
+import { ApiData, VirtualDoc, VirtualSection } from 'app/client/components/VirtualDoc';
 import { makeT } from 'app/client/lib/localization';
 import { getTimeFromNow } from 'app/client/lib/timeUtils';
 import { urlState } from 'app/client/models/gristUrlState';
@@ -14,7 +14,6 @@ import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
 import { rebaseSummary } from 'app/common/ActionSummarizer';
-import { TableRecordValue, TableRecordValues } from 'app/common/DocActions';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
@@ -24,7 +23,6 @@ import { buildUrlId, commonUrls, parseUrlId } from 'app/common/gristUrls';
 import { isLongerThan } from 'app/common/gutil';
 import { TabularDiff, TabularDiffs } from 'app/common/TabularDiff';
 import { Proposal } from 'app/common/UserAPI';
-import { GristType } from 'app/plugin/GristData';
 import {
   Computed, Disposable, dom, makeTestId, MutableObsArray,
   obsArray, Observable, styled
@@ -115,6 +113,21 @@ export class ProposedChangesTrunkPage extends Disposable {
     this._proposals = proposals.proposals.filter(p => p.status.status !== 'retracted');
     this._proposalsObs.splice(0);
     this._proposalsObs.push(...this._proposals);
+    
+    // Fetch all tables that have changes in any proposal
+    const tablesToFetch = new Set<string>();
+    for (const proposal of this._proposals) {
+      const details = proposal.comparison.comparison?.details;
+      if (details?.leftChanges.tableDeltas) {
+        Object.keys(details.leftChanges.tableDeltas).forEach(tableId => tablesToFetch.add(tableId));
+      }
+    }
+    await Promise.all([...tablesToFetch].map(tableId => 
+      this.gristDoc.docData.fetchTable(tableId).catch(err => {
+        console.warn(`Failed to fetch table ${tableId}:`, err);
+      })
+    ));
+    
     return true;
   }
 
@@ -298,6 +311,18 @@ export class ProposedChangesForkPage extends Disposable {
     });
     if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
+    
+    // Fetch all tables that have changes
+    const details = comparison.details;
+    if (details?.leftChanges.tableDeltas) {
+      const tablesToFetch = Object.keys(details.leftChanges.tableDeltas);
+      await Promise.all(tablesToFetch.map(tableId => 
+        this.gristDoc.docData.fetchTable(tableId).catch(err => {
+          console.warn(`Failed to fetch table ${tableId}:`, err);
+        })
+      ));
+    }
+    
     return true;
   }
 
@@ -552,6 +577,7 @@ function renderComparisonDetails(owner: Disposable, gristDoc: GristDoc, origDeta
   // request. It is managed by ActionLogPart.
   // TODO: does this need ownership of some kind for disposal?
   const context = ko.observable({});
+
   return [
     leftHadMetadata ? dom('p', "(some changes we can't deal with yet were ignored)") : null,
     part.renderTabularDiffs(details.leftChanges, {
@@ -566,17 +592,17 @@ function renderComparisonDetails(owner: Disposable, gristDoc: GristDoc, origDeta
 
 function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs, origComparison?: DocStateComparison) {
   const doc = VirtualDoc.create(owner, gristDoc.appModel);
-  doc.comparison = origComparison ?? null;
+  debugger;
+  doc.comparison = origComparison ? (origComparison) : null;
   if (!diffs) {
     return null;
   }
-  doc.comparison = origComparison ?? null;
   const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
     const data = gristDoc.docData.getTable(table)!.getTableDataAction();
     const tableRow = gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
     const columnRows = gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
-    const types: Record<string, GristType> = Object.fromEntries(
-      columnRows.map(cr => [cr.colId(), cr.type() as GristType])
+    const types = Object.fromEntries(
+      columnRows.map(cr => [cr.colId(), cr])
     );
     doc.addTable({
       name: table,
@@ -586,7 +612,8 @@ function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs, 
         return {
           colId,
           label: colId,
-          type: types[colId] || 'Any'
+          type: (types[colId]?.pureType.peek() as any) || 'Any',
+          widgetOptions: types[colId]?.widgetOptionsJson.peek() as any
         };
       }),
     });

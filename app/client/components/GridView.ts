@@ -56,7 +56,7 @@ import * as gutil from 'app/common/gutil';
 import {UIRowId} from 'app/plugin/GristAPI';
 
 import convert from 'color-convert';
-import {BindableValue, bundleChanges, Computed, Disposable, Holder} from 'grainjs';
+import {BindableValue, bundleChanges, Computed, Disposable, Holder, Observable} from 'grainjs';
 import {dom, DomElementArg, DomElementMethod, subscribeElem} from 'grainjs';
 import ko from 'knockout';
 import debounce from 'lodash/debounce';
@@ -98,6 +98,8 @@ export interface GridViewOptions extends ViewOptions {
   maxHeight?: number;
   isPreview?: boolean;
   addNewRow?: boolean; // default true
+  rowMenu?: boolean; // default true
+  colMenu?: boolean; // default true
 }
 
 /**
@@ -494,15 +496,33 @@ export default class GridView extends BaseView {
       if (this._rowHeights.length > 0 && this._inline) {
         this.applyAutoWidth();
         // Bubble event with dimension information
+        const SPACE_FOR_SCROLLBAR = 22;
         const totalHeight = this._rowHeights.reduce((sum, value) => sum + value, 0) + 2 + 23 /* for header */;
-        const fields = this.viewSection.viewFields().all();
-        const totalWidth = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0) + ROW_NUMBER_WIDTH + 6;
         const targetHeight = this.gridOptions?.maxHeight ? Math.min(totalHeight, this.gridOptions.maxHeight) : totalHeight;
-        const targetWidth = this.gridOptions?.maxWidth ? Math.min(totalWidth, this.gridOptions.maxWidth) : totalWidth;
+        
+        const widthObs = Observable.create<number>(this, 0);
+        
+        const updateWidth = () => {
+          if (this.isDisposed()) { return; }
+          const fields = this.viewSection.viewFields().all();
+          const totalWidth = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0) + ROW_NUMBER_WIDTH + SPACE_FOR_SCROLLBAR;
+          const targetWidth = this.gridOptions?.maxWidth ? Math.min(totalWidth, this.gridOptions.maxWidth) : totalWidth;
+          widthObs.set(targetWidth);
+        };
+
+        updateWidth();
+
         dom.update(this.viewPane, 
-          dom.style('width', `${targetWidth}px`),
+          dom.style('width', use => `${use(widthObs)}px`),
           dom.style('height', `${targetHeight}px`)
         );
+
+        this.scrolly.scheduleUpdateSize();
+
+        const paneElem = this.viewPane.querySelector('.gridview_data_header') as HTMLElement;
+        const resizeObserver = new ResizeObserver(updateWidth);
+        resizeObserver.observe(paneElem);
+        this.onDispose(() => resizeObserver.disconnect()); 
       }
     })
   }
@@ -1497,7 +1517,7 @@ export default class GridView extends BaseView {
                     }),
                   ),
                   this._showTooltipOnHover(field, isTooltip),
-                  this.isPreview ? null : menuToggle(null,
+                  (this.isPreview || this.gridOptions?.colMenu === false) ? null : menuToggle(null,
                     dom.cls('g-column-main-menu'),
                     dom.cls('g-column-menu-btn'),
                     // Prevent mousedown on the dropdown triangle from initiating column drag.
@@ -1635,7 +1655,7 @@ export default class GridView extends BaseView {
             ev.preventDefault();
             ((ev.currentTarget as HTMLElement).querySelector('.menu_toggle') as HTMLElement)?.click();
           }),
-          this.isPreview ? null : menuToggle(null,
+          (this.isPreview || this.gridOptions?.rowMenu === false) ? null : menuToggle(null,
             dom.on('click',
               ev => this.maybeSelectRow((ev.currentTarget as HTMLElement).parentElement!, row.getRowId())),
             menu((ctx) => {
