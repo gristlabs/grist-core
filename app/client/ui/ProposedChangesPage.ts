@@ -14,6 +14,7 @@ import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
 import { rebaseSummary } from 'app/common/ActionSummarizer';
+import {TableDataAction, TableRecordValue, TableRecordValues} from 'app/common/DocActions';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
@@ -597,7 +598,31 @@ function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs, 
     return null;
   }
   const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
-    const data = gristDoc.docData.getTable(table)!.getTableDataAction();
+    const data: TableDataAction = ['TableData', table, [], {}];
+    for (const row of tdiff.cells) {
+      data[2].push(row.rowId);
+      for (const [idx, cell] of row.cellDeltas.entries()) {
+        let item;
+        if (cell === null) {
+          item = '...';
+        } else if (!Array.isArray(cell)) {
+          item = cell;
+        } else {
+          const [pre, post] = cell;
+          if (!pre && !post) {
+            item = '';
+          } else {
+            item = ['V', {
+              parent: pre?.[0],
+              remote: post?.[0],
+            }];
+          }
+        }
+        const colId = tdiff.header[idx];
+        data[3][colId] ??= [];
+        data[3][colId].push(item as any);
+      }
+    }
     const tableRow = gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
     const columnRows = gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
     const types = Object.fromEntries(
