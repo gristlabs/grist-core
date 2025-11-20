@@ -592,7 +592,6 @@ function renderComparisonDetails(owner: Disposable, gristDoc: GristDoc, origDeta
 
 function makeTable(owner: Disposable, gristDoc: GristDoc, diffs?: TabularDiffs, origComparison?: DocStateComparison) {
   const doc = VirtualDoc.create(owner, gristDoc.appModel);
-  debugger;
   doc.comparison = origComparison ? (origComparison) : null;
   if (!diffs) {
     return null;
