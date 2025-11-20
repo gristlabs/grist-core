@@ -158,7 +158,7 @@ describe('ColumnFilterMenu2', function() {
       );
       // Now filter by each label and check that it works.
 
-      for(const [nr, , strippedMarkdown] of data) {
+      for (const [nr, , strippedMarkdown] of data) {
         // Open the filter menu.
         const f = await gu.openColumnFilter('Marked');
 

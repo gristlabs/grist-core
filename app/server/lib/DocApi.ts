@@ -174,7 +174,7 @@ function validate(checker: Checker): RequestHandler {
 function validateCore(checker: Checker, req: Request, body: any) {
     try {
       checker.check(body);
-    } catch(err) {
+    } catch (err) {
       log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
       throw new ApiError('Invalid payload', 400, {userError: String(err)});
     }
@@ -609,7 +609,7 @@ export class DocWorkerApi {
 
       try {
         await archive.packInto(res, { endDestStream: false });
-      } catch(err) {
+      } catch (err) {
         // This only behaves sensibly if the 'download' attribute is on the <a> tag.
         // Otherwise you get a poor user experience, such as:
         // - No data written to the stream: open a new tab with a 500 error.
@@ -652,7 +652,7 @@ export class DocWorkerApi {
       // Await this here to ensure errors are thrown.
       try {
         res.json(await archivePromise);
-      } catch(err) {
+      } catch (err) {
         if (err instanceof Error && err.message === "Unexpected end of data") {
           throw new Error("File is not a valid .tar");
         }
@@ -1040,7 +1040,7 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhooks: Array<WebhookSubscription> = [];
-        for(const webhook of req.body.webhooks) {
+        for (const webhook of req.body.webhooks) {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
           registeredWebhooks.push(registeredWebhook);
         }

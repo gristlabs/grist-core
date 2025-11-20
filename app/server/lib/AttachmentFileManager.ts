@@ -626,7 +626,7 @@ export class AttachmentFileManager extends EventEmitter {
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<AttachmentFile> {
     try {
       return await store.download(this._getDocPoolId(), fileIdent);
-    } catch(e) {
+    } catch (e) {
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
   }

@@ -24,7 +24,7 @@ function setupTest() {
   });
 
   const resetBtn = () => dom('button', dom.on('click', () => {
-    while(logElem.firstChild) { logElem.firstChild.remove(); }
+    while (logElem.firstChild) { logElem.firstChild.remove(); }
   }), 'Reset', {style: 'width: 50px'}, testId('reset'));
 
   return cssTestBox(

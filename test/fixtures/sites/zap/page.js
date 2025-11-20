@@ -45,7 +45,7 @@ async function zap() {
         ]]).catch(problem);
       }
     }
-  } catch(err) {
+  } catch (err) {
     problem(err);
   }
   if (failures === 0) {

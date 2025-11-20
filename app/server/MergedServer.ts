@@ -221,7 +221,7 @@ export class MergedServer {
           this._extraWorkers.push(server);
         }
       }
-    } catch(e) {
+    } catch (e) {
       await this.close();
       throw e;
     }

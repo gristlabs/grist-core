@@ -23,7 +23,7 @@ export class ConfigBackendAPI {
       log.debug('config: received new configuration item', config);
 
       // Only one key is valid for now
-      if(config.edition !== undefined) {
+      if (config.edition !== undefined) {
         await getGlobalConfig().edition.set(config.edition);
 
         resp.send({ msg: 'ok' });

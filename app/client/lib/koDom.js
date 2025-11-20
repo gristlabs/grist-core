@@ -258,7 +258,7 @@ function cssClass(valueOrFunc) {
   var prevClass;
   return makeBinding(valueOrFunc, function(elem, value) {
     if (prevClass) {
-      for(const name of prevClass.split(' ')) {
+      for (const name of prevClass.split(' ')) {
         elem.classList.remove(name);
       }
     }
@@ -320,7 +320,7 @@ function doScrollChildIntoView(elem, index, sync) {
               scrolly.scrollRowIntoView(elem[indexKey]);
             }
             resolve();
-          } catch(err) {
+          } catch (err) {
             reject(err);
           } finally {
             // Clear the index, any subsequent async scrolls will be cancelled (on the if test above).

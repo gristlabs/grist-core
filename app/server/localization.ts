@@ -15,7 +15,7 @@ export function setupLocale(appRoot: string): i18n {
   const supportedNamespaces: Set<string> = new Set();
   const supportedLngs: Set<string> = new Set();
 
-  for(const fileName of readdirSync(localeDir)) {
+  for (const fileName of readdirSync(localeDir)) {
     const fullPath = path.join(localeDir, fileName);
     const isDirectory = lstatSync(fullPath).isDirectory();
     if (isDirectory) {
@@ -67,7 +67,7 @@ export function setupLocale(appRoot: string): i18n {
     envVar: 'GRIST_OFFER_ALL_LANGUAGES',
   });
   const shouldIgnoreLng = new Set<string>();
-  for(const [ns, lng, fullPath] of preload) {
+  for (const [ns, lng, fullPath] of preload) {
     const data = JSON.parse(readFileSync(fullPath, 'utf8'));
     // If the "Translators: please ..." key in "App" has not been translated,
     // ignore this language for this and later namespaces.

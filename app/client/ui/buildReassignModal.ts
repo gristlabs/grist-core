@@ -200,14 +200,14 @@ export async function buildReassignModal(options: {
   // We will go one by one for each action (either update or add), we will flat bulk actions
   // and simulate applying them to the data, to test if the following actions won't produce
   // conflicts.
-  for(const origAction of bulkToSingle(actions)) {
+  for (const origAction of bulkToSingle(actions)) {
     const action = structuredClone(origAction);
     if (action[0] === 'UpdateRecord' || action[0] === 'AddRecord') {
       const ownersTable = action[1]; // this is same for each action.
       const newOwnerId = action[2];
       newOwners.add(newOwnerId);
       const valuesInAction = action[3];
-      for(const colId of Object.keys(valuesInAction)) {
+      for (const colId of Object.keys(valuesInAction)) {
         // We are only interested in uqniue ref columns with reverse column.
         const petsCol = columnRec(ownersTable, colId);
         const ownerRevCol = petsCol.reverseColModel();
@@ -234,7 +234,7 @@ export async function buildReassignModal(options: {
           continue;
         }
         // Now find current owners of the pets that will be assigned to the new owner.
-        for(const pet of petsAfter) {
+        for (const pet of petsAfter) {
           // We will use data available in that other table (Pets). Notice that we assume, that
           // the reverse column (Owner in Pets) is Ref column.
           const oldOwner = getRow(petsTable, pet)?.[ownerRevCol.colId()] as number;
@@ -352,7 +352,7 @@ export async function buildReassignModal(options: {
  * flatten them to equivalent single actions.
  */
 function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
-  for(const a of actions) {
+  for (const a of actions) {
     if (a[0].startsWith('Bulk')) {
       const name = a[0].replace('Bulk', '') as 'AddRecord' | 'UpdateRecord';
       const rowIds = a[2] as number[];

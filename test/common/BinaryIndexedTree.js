@@ -157,22 +157,22 @@ describe("BinaryIndexedTree", function() {
 
       assert.equal(bit.getCumulativeValueRange(0, data1.length),
                    bit.getCumulativeValue(data1.length-1));
-      for(i = 1; i < 25; i++) {
+      for (i = 1; i < 25; i++) {
         assert.equal(bit.getCumulativeValueRange(i, 25),
                      cdata1[24] - cdata1[i-1]);
       }
-      for(i = 24; i >= 0; i-- ){
+      for (i = 24; i >= 0; i-- ){
         assert.equal(bit.getCumulativeValueRange(0, i+1), cdata1[i]);
       }
 
       bit.fillFromValues(data2);
       assert.equal(bit.getCumulativeValueRange(0, 64),
                    bit.getCumulativeValue(63));
-      for(i = 1; i < 64; i++) {
+      for (i = 1; i < 64; i++) {
         assert.equal(bit.getCumulativeValueRange(i, 64),
                      cdata2[63] - cdata2[i-1]);
       }
-      for(i = 63; i >= 0; i-- ){
+      for (i = 63; i >= 0; i-- ){
         assert.equal(bit.getCumulativeValueRange(0, i+1), cdata2[i]);
       }
 

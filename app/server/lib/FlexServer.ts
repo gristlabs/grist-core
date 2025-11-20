@@ -1918,7 +1918,7 @@ export class FlexServer implements GristServer {
   }
 
   public setReady(value: boolean) {
-    if(value) {
+    if (value) {
       log.debug('FlexServer is ready');
     } else {
       log.debug('FlexServer is no longer ready');
@@ -2100,7 +2100,7 @@ export class FlexServer implements GristServer {
 
     try {
       await this.getPubSubManager().publish(latestVersionChannel, JSON.stringify(latestVersionAvailable));
-    } catch(error) {
+    } catch (error) {
       log.error(`Error publishing latest version`, {error, latestVersionAvailable});
     }
   }

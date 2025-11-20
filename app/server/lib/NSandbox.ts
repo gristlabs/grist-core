@@ -696,7 +696,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
       // utility in sandbox/gvisor/run.py to run it.
       which.sync('runsc');
       command = 'sandbox/gvisor/run.py';
-    } catch(e) {
+    } catch (e) {
       // Otherwise, don't try any heroics, user will need to
       // explicitly set the command.
       throw new Error('runsc not found');

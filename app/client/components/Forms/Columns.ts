@@ -198,7 +198,7 @@ export class PlaceholderModel extends BoxModel {
 
         // Make sure that the dropped stuff is not our parent.
         if (droppedRef) {
-          for(const child of droppedRef.traverse()) {
+          for (const child of droppedRef.traverse()) {
             if (this === child) {
               return;
             }

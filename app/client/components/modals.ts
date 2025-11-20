@@ -279,7 +279,7 @@ function sideSelectorChunk(side: 'top'|'bottom'|'left'|'right') {
 
 function fadeInFromSide(side: 'top'|'bottom'|'left'|'right') {
   let startPosition: string;
-  switch(side) {
+  switch (side) {
     case 'top': {
       startPosition = '0px -25px';
       break;
@@ -288,7 +288,7 @@ function fadeInFromSide(side: 'top'|'bottom'|'left'|'right') {
       startPosition = '0px 25px';
       break;
     }
-    case'left': {
+    case 'left': {
       startPosition = '-25px 0px';
       break;
     }

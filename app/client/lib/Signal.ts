@@ -52,7 +52,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
     ...rest: string[]
   ) {
     const signal = Signal.create(owner, null);
-    for(const event of [first, ...rest]) {
+    for (const event of [first, ...rest]) {
       signal._emitter.listenTo(emitter, event, (value: any) => signal.emit(value));
     }
     return signal as Signal<T | null>;

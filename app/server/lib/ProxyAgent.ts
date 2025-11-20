@@ -92,7 +92,7 @@ export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: 
 
   try {
     return await fetch(requestUrl, {...options, agent});
-  } catch(e) {
+  } catch (e) {
     // Include info helpful for diagnosing issues (but not the potentially sensitive full requestUrl).
     log.rawWarn(`ProxyAgent error ${e}`,
       {proxy: agent.proxyUrl, reqProtocol: requestUrl.protocol, requestHost: requestUrl.origin});

@@ -206,7 +206,7 @@ export class OIDCConfig {
     let mreq;
     try {
       mreq = this._getRequestWithSession(req);
-    } catch(err) {
+    } catch (err) {
       log.warn("OIDCConfig callback:", err.message);
       return this._sendErrorPage(req, res);
     }

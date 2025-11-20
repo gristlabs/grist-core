@@ -123,6 +123,7 @@ module.exports = {
       'curly': ['warn', 'all'],
       'semi': ['warn', 'always'],
       'semi-spacing': 'warn',
+      "keyword-spacing": 'error'
     },
   }]
 }

@@ -157,7 +157,7 @@ const tb: string | number = undef(undefined, '2' as string | undefined, 3 as num
  * Use with typed result, so the typescript type checker can provide correct type.
  */
 export function undef<T extends Array<any>>(...list: T): Undef<T> {
-  for(const value of list) {
+  for (const value of list) {
     if (value !== undefined) { return value; }
   }
   return undefined as any;

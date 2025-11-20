@@ -53,7 +53,7 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
   return (req, res, next) => {
     try {
       checker.strictCheck(req.body);
-    } catch(err) {
+    } catch (err) {
       log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
       throw new ApiError('Invalid payload', 400, {userError: String(err)});
     }

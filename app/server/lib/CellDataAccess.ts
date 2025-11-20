@@ -73,13 +73,13 @@ export async function applyAndCheckActionsForCells(
   let postponed: Array<number> = [];
   // Now one by one apply all actions to the snapshot recording all changes
   // to the cell table.
-  for(const docAction of docActions) {
+  for (const docAction of docActions) {
     if (!isCellDataAction(docAction)) {
       docData.receiveAction(docAction);
       continue;
     }
     // Convert any bulk actions to normal actions
-    for(const single of getSingleAction(docAction)) {
+    for (const single of getSingleAction(docAction)) {
       const id = getRowIdsFromDocAction(single)[0];
       if (isAddRecord(single)) {
         // Apply this action, as it might not have full information yet.
@@ -148,7 +148,7 @@ export async function applyAndCheckActionsForCells(
   }
   // Now test every cell that was added before row (so we added it, but without
   // full information, like new rowId or tableId or colId).
-  for(const id of postponed) {
+  for (const id of postponed) {
     const cell = cellData.getCell(id);
     if (cell && !cellData.isAttached(cell)) {
       return fail();
@@ -279,7 +279,7 @@ export class CellData {
     const updatedCells: Set<number> = new Set();
     function applyCellAction(action: DataAction) {
       if (isSomeAddRecordAction(action)) {
-        for(const id of getRowIdsFromDocAction(action)) {
+        for (const id of getRowIdsFromDocAction(action)) {
           if (removedCells.has(id)) {
             removedCells.delete(id);
             updatedCells.add(id);
@@ -288,7 +288,7 @@ export class CellData {
           }
         }
       } else if (isRemoveRecord(action) || isBulkRemoveRecord(action)) {
-        for(const id of getRowIdsFromDocAction(action)) {
+        for (const id of getRowIdsFromDocAction(action)) {
           if (addedCells.has(id)) {
             addedCells.delete(id);
           } else {
@@ -297,7 +297,7 @@ export class CellData {
           }
         }
       } else {
-        for(const id of getRowIdsFromDocAction(action)) {
+        for (const id of getRowIdsFromDocAction(action)) {
           if (addedCells.has(id)) {
             // ignore
           } else {
@@ -311,7 +311,7 @@ export class CellData {
     // When some rows are updated, include all cells for that row. Keep track of table
     // renames.
     const updatedRows: Map<string, Set<number>> = new Map();
-    for(const action of actions) {
+    for (const action of actions) {
       if (action[0] === 'RenameTable') {
         updatedRows.set(action[2], updatedRows.get(action[1]) || new Set());
         continue;
@@ -332,14 +332,14 @@ export class CellData {
       if (isUpdateRecord(action) || isBulkUpdateRecord(action)) {
         if (getTableId(action).startsWith("_grist")) { continue; }
         // Updating a row, for us means that all metadata for this row should be refreshed.
-        for(const rowId of getRowIdsFromDocAction(action)) {
+        for (const rowId of getRowIdsFromDocAction(action)) {
           getSetMapValue(updatedRows, getTableId(action), () => new Set()).add(rowId);
         }
       }
     }
 
-    for(const [tableId, rowIds] of updatedRows) {
-      for(const {id} of this.readCells(tableId, rowIds)) {
+    for (const [tableId, rowIds] of updatedRows) {
+      for (const {id} of this.readCells(tableId, rowIds)) {
         if (addedCells.has(id) || updatedCells.has(id) || removedCells.has(id)) {
           // If we have this cell id in the list of added/updated/removed cells, ignore it.
         } else {
@@ -518,7 +518,7 @@ export class CellData {
         parentId: [],
       }
     ];
-    for(const cell of ids) {
+    for (const cell of ids) {
       const dataCell = this.getCellRecord(cell);
       if (!dataCell) { continue; }
       action[2].push(dataCell.id);
@@ -555,7 +555,7 @@ export class CellData {
         userRef: [],
       }
     ];
-    for(const cell of ids) {
+    for (const cell of ids) {
       const dataCell = this.getCellRecord(cell);
       if (!dataCell) { continue; }
       action[2].push(dataCell.id);

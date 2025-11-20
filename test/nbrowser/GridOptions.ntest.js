@@ -30,7 +30,7 @@ describe("GridOptions.ntest", function() {
     let row = await cell.findClosest('.record');
     const rowClasses = await row.classList();
     testClasses.forEach( (cls, i) => {
-      if(flags[i])  { assert.include(rowClasses, cls);}
+      if (flags[i])  { assert.include(rowClasses, cls);}
       else          { assert.notInclude(rowClasses, cls); }
     });
   }

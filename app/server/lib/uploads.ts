@@ -88,7 +88,7 @@ export function addUploadRoute(
         globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
       }
       res.status(200).send(JSON.stringify(uploadResult));
-    } catch(err) {
+    } catch (err) {
       if ((err as ApiError).status === 403) {
         res.status(403).json({error:'Insufficient access to document to copy it entirely'});
         return;
@@ -478,7 +478,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     log.debug(`done fetching url: ${url} to ${destPath}`);
     const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
     return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
-  } catch(err) {
+  } catch (err) {
     if (err?.code === "EPROTO" || // https vs http error
         err?.code === "ECONNREFUSED" || // server does not listen
         err?.code === "ENOTFOUND") { // could not resolve domain

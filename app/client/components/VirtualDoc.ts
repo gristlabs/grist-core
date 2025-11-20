@@ -279,7 +279,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     // Some column might be hidden with is an observable value. We will listen to it and hide/show columns as needed.
     if (table.columns) {
       const dynamicHidden = table.columns.filter(c => c.hidden && typeof c.hidden !== 'boolean');
-      for(const col of dynamicHidden) {
+      for (const col of dynamicHidden) {
         if (col.hidden === undefined) {
           continue;
         }
@@ -431,7 +431,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     const columns = tableData[3];
     return rowIds.map(rowId => {
       const record: RowRecord = {id: rowId};
-      for(const colId of Object.keys(columns)) {
+      for (const colId of Object.keys(columns)) {
         record[colId] = columns[colId][rowId];
       }
       return record;

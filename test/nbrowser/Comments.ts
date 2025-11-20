@@ -87,7 +87,7 @@ describe('Comments', function() {
     );
     assert.equal(await getEditor('edit').find('a.grist-mention').getText(), '@Chimpy');
     // Make sure we don't have h1, strong or em tags there.
-    for(const tag of ['h1', 'strong', 'em']) {
+    for (const tag of ['h1', 'strong', 'em']) {
       assert.isFalse(await getEditor('edit').find(tag).isPresent(), `Should not have ${tag} tag in the editor`);
     }
 
