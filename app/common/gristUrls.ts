@@ -979,6 +979,8 @@ export interface GristLoadConfig {
 
   // Maximum users to display for user presence features (e.g. active user list)
   userPresenceMaxUsers?: number;
+
+  warnBeforeSharingPublicly?: boolean;
 }
 
 export const Features = StringUnion(

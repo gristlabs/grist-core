@@ -1583,7 +1583,10 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.",
         "You are about to remove your own access to this {{resourceType}}": "You are about to remove your own access to this {{resourceType}}",
         "Inherit access: ": "Inherit access: ",
-        "Access overview": "Access overview"
+        "Access overview": "Access overview",
+        "Share it publicly": "Share it publicly",
+        "Verify your sensitive data before sharing publicly": "Verify your sensitive data before sharing publicly",
+        "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing.": "Your {{resourceType}} will be accessible to anyone with the link, whether shared directly or found through a search engine. \n Ensure that your {{resourceType}} does not contain sensitive data before sharing."
     },
     "SearchModel": {
         "Search all pages": "Search all pages",
