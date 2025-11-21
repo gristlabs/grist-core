@@ -222,7 +222,7 @@ describe('Sandbox', function () {
 
   describe('pyodide', function () {
     before(function () {
-      if (!(process.env.GRIST_SANDBOX_FLAVOR && process.env.GRIST_SANDBOX_FLAVOR === 'pyodide')) {
+      if (process.env.GRIST_SANDBOX_FLAVOR !== 'pyodide') {
         this.skip();
       }
     });
