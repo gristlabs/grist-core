@@ -4629,7 +4629,6 @@ export class HomeDBManager implements HomeDBAuth {
     const results = await (options.rawQueryBuilder ?
                            getRawAndEntities(options.rawQueryBuilder, queryBuilder) :
                            queryBuilder.getRawAndEntities());
-
     if (options.checkDisabledUser) {
       if (results.raw.some(entry => entry.users_disabled_at === undefined)) {
         throw new Error('checkDisabledUser requested but users_disabled_at is undefined');
@@ -5438,9 +5437,10 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
   try {
     const doc = await docPromise;
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
-    return {docId: doc.id, access: doc.access, removed, cachedDoc: doc};
+    const disabled = Boolean(doc.disabledAt);
+    return {docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc};
   } catch (error) {
-    return {docId: null, access: null, removed: null, error};
+    return {docId: null, access: null, removed: null, disabled: null, error};
   }
 }
 
