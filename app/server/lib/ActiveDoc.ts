@@ -175,6 +175,7 @@ import {DocSession, DocSessionPrecursor, makeExceptionalDocSession, OptDocSessio
 import {createAttachmentsIndex, DocStorage, REMOVE_UNUSED_ATTACHMENTS_DELAY} from 'app/server/lib/DocStorage';
 import {expandQuery, getFormulaErrorForExpandQuery} from 'app/server/lib/ExpandedQuery';
 import {GranularAccess, GranularAccessForBundle} from 'app/server/lib/GranularAccess';
+import {insightLogDecorate, insightLogEntry, insightLogWrap} from 'app/server/lib/InsightLog';
 import {OnDemandActions} from 'app/server/lib/OnDemandActions';
 import {Patch} from 'app/server/lib/Patch';
 import {isUntrustedRequestBehaviorSet} from 'app/server/lib/ProxyAgent';
@@ -248,6 +249,7 @@ interface UpdateUsageOptions {
   // Whether usage should be broadcast to all doc clients. Defaults to true.
   broadcastUsageToClients?: boolean;
 }
+
 
 /**
  * Represents an active document with the given name. The document isn't actually open until
@@ -814,12 +816,15 @@ export class ActiveDoc extends EventEmitter {
 
       await this._initDoc(docSession, docData);
 
-      this._initializationPromise = this._finishInitialization(docSession, docData, startTime).catch(async (err) => {
-        await this.docClients.broadcastDocMessage(null, 'docError', {
-          when: 'initialization',
-          message: String(err),
-        });
-      });
+      this._initializationPromise = insightLogWrap(
+        "ActiveDoc finishInitialization",
+        () => this._finishInitialization(docSession, docData, startTime).catch(async (err) => {
+          await this.docClients.broadcastDocMessage(null, 'docError', {
+            when: 'initialization',
+            message: String(err),
+          });
+        }),
+      );
     } catch (err) {
       const level = err.status === 404 ? "warn" : "error";
       this._log.log(level, docSession, "Failed to load document", err);
@@ -1318,6 +1323,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async waitForInitialization() {
     await this._initializationPromise;
+    insightLogEntry()?.mark("waitForInit");
   }
 
   // Check if user has rights to download this doc.
@@ -1575,6 +1581,7 @@ export class ActiveDoc extends EventEmitter {
    *                                          The array includes the retValue objects for each
    *                                          actionGroup.
    */
+  @insightLogDecorate("ActiveDoc")
   public async applyUserActions(docSession: OptDocSession, actions: UserAction[],
                                 unsanitizedOptions?: ApplyUAOptions): Promise<ApplyUAResult> {
     const options = sanitizeApplyUAOptions(unsanitizedOptions);
@@ -1592,6 +1599,7 @@ export class ActiveDoc extends EventEmitter {
    * @param options: As for applyUserActions.
    * @returns Promise of retValues, see applyUserActions.
    */
+  @insightLogDecorate("ActiveDoc")
   public async applyUserActionsById(docSession: OptDocSession,
                                     actionNums: number[],
                                     actionHashes: string[],
@@ -2216,7 +2224,6 @@ export class ActiveDoc extends EventEmitter {
   public async updateRowCount(rowCount: RowCounts, docSession: OptDocSession | null) {
     // Up-to-date row counts are included in every DocUserAction, so we can skip broadcasting here.
     await this._updateDocUsage({rowCount}, {broadcastUsageToClients: false});
-    log.rawInfo('Sandbox row count', {...this.getLogMeta(docSession), rowCount: rowCount.total});
     await this._checkDataLimitRatio();
 
     // Calculating data size is potentially expensive, so skip calculating it unless the
@@ -2467,12 +2474,13 @@ export class ActiveDoc extends EventEmitter {
    *    isModification: true if document was changed by one or more actions.
    * }
    */
+  @insightLogDecorate("ActiveDoc")
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
-                                    options: ApplyUAExtendedOptions = {}): Promise<ApplyUAResult> {
+                                    options: ApplyUAExtendedOptions = {}
+  ): Promise<ApplyUAResult> {
 
-    const client = docSession.client;
-    this._log.debug(docSession, "_applyUserActions(%s, %s)%s", client, shortDesc(actions),
-      options.parseStrings ? ' (will parse)' : '');
+    const insightLog = insightLogEntry();
+    insightLog?.addMeta({actionDesc: shortDesc(actions)});
 
     if (options.parseStrings) {
       actions = actions.map(ua => parseUserAction(ua, this.docData!));
@@ -2482,6 +2490,7 @@ export class ActiveDoc extends EventEmitter {
       actions = await this._granularAccess.prefilterUserActions(docSession, actions, options);
     }
     await this._granularAccess.checkUserActions(docSession, actions);
+    insightLog?.mark("accessRulesPreCheck");
 
     // Create the UserActionBundle.
     const action: UserActionBundle = {
@@ -2491,7 +2500,7 @@ export class ActiveDoc extends EventEmitter {
     };
 
     const result: ApplyUAResult = await this._sharing.addUserAction(docSession, action);
-    this._log.debug(docSession, "_applyUserActions returning %s", shortDesc(result));
+    insightLog?.addMeta({resultDesc: shortDesc(result)});
 
     if (result.isModification) {
       this._fetchCache.clear();  // This could be more nuanced.
@@ -2625,6 +2634,7 @@ export class ActiveDoc extends EventEmitter {
     assert(Array.isArray(actions), "`actions` parameter should be an array.");
     // Be careful not to sneak into user action queue before Calculate action, otherwise
     // there'll be a deadlock.
+    insightLogEntry()?.addMeta(this.getLogMeta(docSession));
     await this.waitForInitialization();
 
     if (
@@ -2938,8 +2948,12 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   private async _finishInitialization(docSession: OptDocSession, docData: DocData, startTime: number): Promise<void> {
     try {
+      const insightLog = insightLogEntry();
+      insightLog?.addMeta(this.getLogMeta(docSession));
+
       await this._tableMetadataLoader.wait();
       await this._tableMetadataLoader.clean();
+      insightLog?.mark("metadata");
 
       const tables = docData.getMetaTable('_grist_Tables');
       const skipLoadingUserTables = this._recoveryMode;
@@ -2956,6 +2970,7 @@ export class ActiveDoc extends EventEmitter {
           pendingTableNames.sort();   // Sort for a consistent order (affects DocRegressionTest)
           await this._loadTables(docSession, pendingTableNames);
         }
+        insightLog?.mark("userdata");
         const tableStats = await this._pyCall('get_table_stats');
         log.rawInfo("Loading complete, table statistics retrieved...", {
           ...this.getLogMeta(docSession),
@@ -2971,6 +2986,7 @@ export class ActiveDoc extends EventEmitter {
         if (this.isTimingOn) {
           await this._doStartTiming();
         }
+        insightLog?.mark("initialize");
 
         // Calculations are not associated specifically with the user opening the document.
         // TODO: be careful with which users can create formulas.
@@ -2984,11 +3000,9 @@ export class ActiveDoc extends EventEmitter {
       // took longer, scale it up proportionately.
       const closeTimeout = Math.max(loadMs, 1000) * Deps.ACTIVEDOC_TIMEOUT;
       this._inactivityTimer.setDelay(closeTimeout);
-      log.rawDebug('ActiveDoc load timing', {
-        ...this.getLogMeta(docSession),
-        loadMs,
-        closeTimeout,
-      });
+
+      insightLog?.addMeta({loadMs, closeTimeout});
+
       const docUsage = getDocSessionUsage(docSession);
       if (!docUsage) {
         // This looks be the first time this installation of Grist is touching

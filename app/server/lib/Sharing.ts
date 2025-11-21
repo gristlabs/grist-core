@@ -10,6 +10,7 @@ import {
 import {ApplyUAExtendedOptions, ApplyUAResult} from 'app/common/ActiveDocAPI';
 import {DocAction, getNumRows, SYSTEM_ACTIONS, UserAction} from 'app/common/DocActions';
 import {GranularAccessForBundle} from 'app/server/lib/GranularAccess';
+import {insightLogEntry} from 'app/server/lib/InsightLog';
 import log from 'app/server/lib/log';
 import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
@@ -75,6 +76,7 @@ export class Sharing {
       info.linkId = docSession.linkId;
     }
 
+    const insightLog = insightLogEntry();
     const {result, failure} =
       await this._modificationLock.runExclusive(() => this._applyActionsToDataEngine(docSession, userActions, options));
 
@@ -84,6 +86,7 @@ export class Sharing {
     }
 
     assert(result, "result should be defined if failure is not");
+
     const sandboxActionBundle = result.bundle;
     const accessControl = result.accessControl;
     const undo = getEnvContent(result.bundle.undo);
@@ -123,7 +126,6 @@ export class Sharing {
         parentActionHash: null,  // Gets set below by _actionHistory.recordNext...
       };
 
-      const altSessionId = client?.authSession.altSessionId;
       const logMeta = {
         actionNum,
         linkId: info.linkId,
@@ -131,10 +133,8 @@ export class Sharing {
         numDocActions: localActionBundle.stored.length,
         numRows: localActionBundle.stored.reduce((n, env) => n + getNumRows(env[1]), 0),
         ...(sandboxActionBundle.numBytes ? {numBytes: sandboxActionBundle.numBytes} : {}),
-        author: info.user,
-        ...(altSessionId ? {session: altSessionId}: {}),
       };
-      this._log.rawLog('debug', docSession, '_doApplyUserActions', logMeta);
+      insightLog?.addMeta(logMeta);
       if (LOG_ACTION_BUNDLE) {
         this._logActionBundle(`_doApplyUserActions`, localActionBundle);
       }
@@ -153,6 +153,7 @@ export class Sharing {
       // Apply the action to the database, and record in the action log.
       if (!trivial) {
         await this._activeDoc.docStorage.execTransaction(async () => {
+          insightLog?.mark("docStorageTxn");
           await this._activeDoc.applyStoredActionsToDocStorage(getEnvContent(localActionBundle.stored));
 
           // Before sharing is enabled, actions are immediately marked as "shared" (as if accepted
@@ -167,8 +168,10 @@ export class Sharing {
               getActionUndoInfo(localActionBundle, client.clientId, sandboxActionBundle.retValues));
           }
         });
+        insightLog?.mark("docStorage");
       }
       await this._activeDoc.processActionBundle(localActionBundle);
+      insightLog?.mark("processBundle");
 
       // Don't trigger webhooks for single Calculate actions, this causes a deadlock on document load.
       // See gh issue #799
@@ -183,9 +186,12 @@ export class Sharing {
         // This is a little risky, since it entangles us with home db
         // availability. But we aren't doing a lot...?
         await this._activeDoc.syncShares(makeExceptionalDocSession('system'));
+        insightLog?.mark("syncShares");
       }
 
+      insightLog?.addMeta({docRowCount: sandboxActionBundle.rowCount.total});
       await this._activeDoc.updateRowCount(sandboxActionBundle.rowCount, docSession);
+      insightLog?.mark("updateRowCount");
 
       // Broadcast the action to connected browsers.
       const actionGroup = asActionGroup(this._actionHistory, localActionBundle, {
@@ -195,8 +201,11 @@ export class Sharing {
       });
       actionGroup.actionSummary = actionSummary;
       await accessControl.appliedBundle();
+      insightLog?.mark("accessRulesApplied");
       await accessControl.sendDocUpdateForBundle(actionGroup, this._activeDoc.getDocUsageSummary());
+      insightLog?.mark("sendDocUpdate");
       await this._activeDoc.notifySubscribers(docSession, accessControl);
+      insightLog?.mark("notifySubscribers");
       // If the action was rejected, throw an exception, by this point data-engine should be in
       // sync with the database, and everyone should have the same view of the document.
       if (failure) {
@@ -214,6 +223,7 @@ export class Sharing {
     } finally {
       // Make sure the bundle is marked as complete, even if some miscellaneous error occurred.
       await accessControl.finishedBundle();
+      insightLog?.mark("accessRulesFinish");
     }
   }
 
@@ -232,13 +242,17 @@ export class Sharing {
     userActions: UserAction[],
     options: ApplyUAExtendedOptions|null): Promise<ApplyResult> {
     const applyResult = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
+    const insightLog = insightLogEntry();
+    insightLog?.mark("dataEngine");
     let accessControl = this._startGranularAccessForBundle(docSession, applyResult, userActions, options);
     try {
       // TODO: see if any of the code paths that have no docSession are relevant outside
       // of tests.
       await accessControl.canApplyBundle();
+      insightLog?.mark("accessRulesCheck");
       return { result : {bundle: applyResult, accessControl}};
     } catch (applyExc) {
+      insightLog?.mark("dataEngineReverting");
       try {
         // We can't apply those actions, so we need to revert them.
         const undoResult = await this._activeDoc.applyActionsToDataEngine(docSession, [
