@@ -581,11 +581,19 @@ export interface ResourceSummary {
   id: string|number;
 }
 
+interface AssertAccessOptions {
+  openMode?: OpenDocMode,
+  // Normally removed docs are disallowed all access. Setting this
+  // property to `true` will allow access to removed docs, in addition
+  // to whatever other access is already granted or denied.
+  allowRemoved?: boolean,
+  // As above, but for disabled docs, which are normally otherwise
+  // disallowed in all cases.
+  allowDisabled?: boolean,
+}
+
 export function assertAccess(
-  role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: {
-    openMode?: OpenDocMode,
-    allowRemoved?: boolean,
-  } = {}) {
+  role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
   const openMode = options.openMode || 'default';
   const details = {status: 403, accessMode: openMode};
   if (docAuth.error) {
