@@ -302,6 +302,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       }
     }
     this._setFocus();
+    ev.stopPropagation();
   }
 
   private _maybeSelectAllTokens(ev: KeyboardEvent) {

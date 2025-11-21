@@ -128,6 +128,10 @@ export class ReferenceListEditor extends NewBaseEditor {
       this.commandGroup.attach(),
     );
 
+    dom.update(this._dom,
+      dom.on('click', () => this._textInput.focus())
+    );
+
     // The referenced table has probably already been fetched (because there must already be a
     // Reference widget instantiated), but it's better to avoid this assumption.
     gristDoc.docData.fetchTable(this._utils.refTableId).then(() => {
@@ -298,6 +302,7 @@ const cssCellEditor = styled('div', `
   background-color: ${theme.cellEditorBg};
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
+  cursor: text;
 `);
 
 const cssTokenField = styled(tokenFieldStyles.cssTokenField, `
