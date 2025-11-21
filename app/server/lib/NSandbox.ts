@@ -44,10 +44,11 @@ export interface ISandboxOptions {
   // External program or container to call to run the sandbox.
   command?: string;
   // The arguments to pass first to the sandbox process.
-  sandboxArgs: string[];
+  testSandboxArgs: string[];
   // The arguments to pass first to the python process.
-  pythonArgs: string[];
-  // Extra arguments that get appended to the end of sandbox command, after anything else
+  testPythonArgs: string[];
+  // Extra arguments that get appended to the end of sandbox command, after anything else.
+  // Implemented only to enable workaround for a Grist desktop Flatpak sandbox issue
   appendArgs?: string[];
   // an argument to add to the command line when possible, that should be shown in the `ps` output
   // for the sandbox process. Intended to be a document name or id
@@ -580,7 +581,7 @@ export class NSandboxCreator implements ISandboxCreator {
   public create(options: ISandboxCreationOptions): ISandbox {
     const sandboxArgs: string[] = [
       ...this._commandArgs,
-      ...(options.sandboxOptions?.sandboxArgs ?? [])
+      ...(options.sandboxOptions?.testSandboxArgs ?? [])
     ];
     const appendArgs: string[] = [
       ...(this._commandAppendArgs ?? []),
@@ -600,8 +601,8 @@ export class NSandboxCreator implements ISandboxCreator {
       useGristEntrypoint: true,
       importDir: options.importMount,
       ...options.sandboxOptions,
-      pythonArgs: options.sandboxOptions?.pythonArgs ?? [],
-      sandboxArgs,
+      testPythonArgs: options.sandboxOptions?.testPythonArgs ?? [],
+      testSandboxArgs: sandboxArgs,
       appendArgs,
     };
     return new NSandbox(translatedOptions, this._spawner);
@@ -635,13 +636,13 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
  * been installed globally.
  */
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
-  const {sandboxArgs, pythonArgs, appendArgs, importDir} = options;
+  const {testSandboxArgs, testPythonArgs, appendArgs, importDir} = options;
   const paths = getAbsolutePaths(options);
 
   const commandArgs = [
     // No sandbox here, so apply the sandbox args to Python instead of ignoring them.
-    ...sandboxArgs,
-    ...pythonArgs,
+    ...testSandboxArgs,
+    ...testPythonArgs,
     ...(options.useGristEntrypoint !== false ? [paths.main] : []),
     ...(options.comment ? [options.comment] : []),
     ...(appendArgs ?? []),
@@ -701,7 +702,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
 
   if (options.command) {
     const args = [
-      ...options.sandboxArgs,
+      ...options.testSandboxArgs,
       // Ignore options.pythonArgs - no python process runs for pyodide
       '--',
       scriptPath,
@@ -767,7 +768,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
-  wrapperArgs.push(...options.sandboxArgs);
+  wrapperArgs.push(...options.testSandboxArgs);
   wrapperArgs.addEnv('PYTHONPATH', paths.engine);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addMount(paths.sandboxDir);
@@ -789,7 +790,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   }
 
   const pythonArgs = [
-    ...options.pythonArgs,
+    ...options.testPythonArgs,
     ...(options.useGristEntrypoint !== false ? [paths.main] : []),
   ];
 
@@ -861,7 +862,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '--env', mount: '-v'});
-  wrapperArgs.push(...options.sandboxArgs);
+  wrapperArgs.push(...options.testSandboxArgs);
   if (paths.importDir) {
     wrapperArgs.addMount(`${paths.importDir}:/importdir:ro`);
   }
@@ -877,7 +878,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
   ];
 
   const pythonArgs = [
-    ...options.pythonArgs,
+    ...options.testPythonArgs,
     ...(options.useGristEntrypoint !== false ? ['grist/main.py'] : []),
   ];
 
@@ -982,7 +983,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
   }
 
   const pythonArgs = [
-    ...options.pythonArgs,
+    ...options.testPythonArgs,
     ...(options.useGristEntrypoint !== false ? [paths.main] : []),
   ];
 
@@ -993,7 +994,7 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
 
   const profileString = profile.join('\n');
   const child = spawn('/usr/bin/sandbox-exec',
-                      [...options.sandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
+                      [...options.testSandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
                       {cwd, env});
   return {
     name: 'macSandboxExec',
@@ -1159,7 +1160,7 @@ function getCommandFromEnv(pythonVersion?: string) {
 }
 
 function getCommandArgsFromEnv() {
-  const argsString = process.env['GRIST_SANDBOX_ARGS'];
+  const argsString = process.env['GRIST_TEST_SANDBOX_ARGS'];
   const extraArgsString = process.env['GRIST_SANDBOX_APPEND_ARGS'];
   return {
     args: argsString ? argsString.split(" ") : [],
