@@ -130,7 +130,7 @@ describe('LinkingBidirectional', function() {
     // Classes1 and 3 should be on row3
     // Classes2 should have no cursor as the row doesn't exist in the section.
     assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: null, cursor: null});
+    await expectNoArrowNoCursor('Classes2');
     assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
   });
 
@@ -146,7 +146,7 @@ describe('LinkingBidirectional', function() {
 
     // Nothing should change after a refresh
     assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: null, cursor: null});
+    await expectNoArrowNoCursor('Classes2');
     assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
   });
 
@@ -160,7 +160,7 @@ describe('LinkingBidirectional', function() {
       await gu.waitForDocToLoad();
 
       assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
-      assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: null, cursor: null});
+      await expectNoArrowNoCursor('Classes2');
       assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
     });
 
@@ -173,7 +173,7 @@ describe('LinkingBidirectional', function() {
       await gu.waitForDocToLoad();
 
       assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
-      assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: null, cursor: null});
+      await expectNoArrowNoCursor('Classes2');
       assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 3,    cursor: {rowNum: 3, col: 0}});
     });
   });
@@ -208,7 +208,7 @@ describe('LinkingBidirectional', function() {
     // Classes1 and Classes3 should both have moved to the next row (previously rowNum3, but now is rowNum 2)
     // Classes2 has this row filtered out, so it should have no row selected (desynced from the others)
     assert.deepEqual(await getCursorAndArrow('Classes1'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
-    assert.deepEqual(await getCursorAndArrow('Classes2'), {arrow: null, cursor: null});
+    await expectNoArrowNoCursor('Classes2');
     assert.deepEqual(await getCursorAndArrow('Classes3'), {arrow: 2,    cursor: {rowNum: 2, col: 0}});
 
     // Undo the row-deletion
@@ -262,16 +262,20 @@ describe('LinkingBidirectional', function() {
 
 interface CursorArrowInfo {
   arrow: null | number;
-  cursor: {rowNum: number, col: number} | null;
+  cursor: {rowNum: number, col: number};
 }
 
 // NOTE: this differs from getCursorSelectorInfo in LinkingSelector.ts
 // That function only gives the cursorPos if that section is actively selected (false otherwise), whereas this
 // function returns it always
 async function getCursorAndArrow(sectionName: string): Promise<CursorArrowInfo> {
-  const hasActiveCursor = await gu.isCursorPresent(sectionName);
   return {
     arrow: await gu.getArrowPosition(sectionName),
-    cursor: hasActiveCursor ? await gu.getCursorPosition(sectionName) : null,
+    cursor: await gu.getCursorPosition(sectionName),
   };
+}
+
+async function expectNoArrowNoCursor(sectionName: string) {
+  assert.isFalse(await gu.isCursorPresent(sectionName));
+  assert.isNull(await gu.getArrowPosition(sectionName));
 }
