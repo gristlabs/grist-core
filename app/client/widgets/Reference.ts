@@ -143,7 +143,8 @@ export class Reference extends NTextBox {
       dom.cls('text_wrapping', this.wrapping),
       cssRefIcon('FieldReference',
         cssRefIcon.cls('-view-as-card', use =>
-          use(referenceId) !== 0 && use(formattedValue).hasRecordCard),
+          use(referenceId) !== 0 && use(formattedValue).hasRecordCard
+        ),
         dom.on('click', async (ev) => {
           stopEvent(ev);
 

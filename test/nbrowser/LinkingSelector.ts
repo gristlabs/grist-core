@@ -80,7 +80,7 @@ describe('LinkingSelector', function() {
     await gu.getCell('Start_Date', 2).click();
     // Make sure we know the second row is selected.
     assert.equal(await gu.getCell('Start_Date', 2).getText(), '2018-09-14');
-    assert.equal((await gu.getCursorPosition()).rowNum, 2);
+    assert.equal((await gu.getCursorPosition())?.rowNum, 2);
 
     // Make sure it was also updated in the card view.
     await gu.selectSectionByTitle('Card');
@@ -104,7 +104,7 @@ describe('LinkingSelector', function() {
     assert.equal(await gu.getCell('Start_Date', 1).getText(), '2018-09-13');
     assert.equal(await gu.getCell('Start_Date', 2).getText(), '2019-01-27');
     // And cursor was moved to the first row.
-    assert.equal((await gu.getCursorPosition()).rowNum, 1);
+    assert.equal((await gu.getCursorPosition())?.rowNum, 1);
     // Make sure the card view is updated.
     await gu.selectSectionByTitle('Card');
     assert.equal(await gu.getDetailCell('Start_Date', 1).getText(), '2018-09-13');
@@ -148,8 +148,8 @@ describe('LinkingSelector', function() {
       ['Brockie', 'Care', 'Alfonso', '']);
 
     // STUDENTS also has a selector row, but no active cursor.
-    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 1, cursor: false});
-    assert.deepEqual(await getCursorSelectorInfo(enrollments), {linkSelector: false, cursor: false});
+    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 1, cursor: null});
+    assert.deepEqual(await getCursorSelectorInfo(enrollments), {linkSelector: false, cursor: null});
 
     // Select a different Family
     await gu.getCell({section: families, rowNum: 3, col: 'First_Name'}).click();
@@ -159,7 +159,7 @@ describe('LinkingSelector', function() {
     // STUDENTS shows new values, has a new selector row
     assert.deepEqual(await gu.getVisibleGridCells({section: students, col: 'First_Name', rowNums: [1, 2, 3]}),
       ['Mordy', 'Noam', '']);
-    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 1, cursor: false});
+    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 1, cursor: null});
 
     // STUDENTS Card shows appropriate value
     assert.deepEqual(await gu.getVisibleDetailCells(
@@ -174,18 +174,18 @@ describe('LinkingSelector', function() {
       ['Noam', '663208']);
 
     // There is no longer a cursor in FAMILIES, but still a link-selector.
-    assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: false});
+    assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: null});
 
     // Enrollments is linked to the selected student, but still shows no cursor or selector.
-    assert.deepEqual(await getCursorSelectorInfo(enrollments), {linkSelector: false, cursor: false});
+    assert.deepEqual(await getCursorSelectorInfo(enrollments), {linkSelector: false, cursor: null});
     assert.deepEqual(await gu.getVisibleGridCells({section: enrollments, col: 'Class', rowNums: [1, 2, 3]}),
       ['2019F-Yoga', '2019S-Yoga', '']);
 
     // Click into an enrollment; it will become the only section with a cursor.
     await gu.getCell({section: enrollments, rowNum: 2, col: 'Status'}).click();
     assert.deepEqual(await getCursorSelectorInfo(enrollments), {linkSelector: false, cursor: {rowNum: 2, col: 2}});
-    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 2, cursor: false});
-    assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: false});
+    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 2, cursor: null});
+    assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: null});
   });
 
   it('should show correct state on reload after cursors are positioned', async function() {
@@ -194,21 +194,21 @@ describe('LinkingSelector', function() {
     const students = gu.getSection('STUDENTS');
     const enrollments = gu.getSection('ENROLLMENTS');
     assert.deepEqual(await getCursorSelectorInfo(enrollments), {linkSelector: false, cursor: {rowNum: 2, col: 2}});
-    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 2, cursor: false});
-    assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: false});
+    assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 2, cursor: null});
+    assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: null});
   });
 });
 
 
 interface CursorSelectorInfo {
   linkSelector: false | number;
-  cursor: false | {rowNum: number, col: number};
+  cursor: null | {rowNum: number, col: number};
 }
 
 async function getCursorSelectorInfo(section: WebElement): Promise<CursorSelectorInfo> {
-  const hasCursor = await section.find('.active_cursor').isPresent();
+  const hasActiveCursor = await gu.isCursorPresent(section, 'active');
   return {
     linkSelector: await gu.getSelectorPosition(section).then(r => r ?? false),
-    cursor: hasCursor && await gu.getCursorPosition(section),
+    cursor: hasActiveCursor ? await gu.getCursorPosition(section) : null,
   };
 }
