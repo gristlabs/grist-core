@@ -664,7 +664,7 @@ export async function isCursorPresent(section?: WebElement|string,
   } else {
     section = section ?? driver.findWait('.active_section', 4000);
   }
-  return section.find(type === 'active' ? 'active_cursor' : 'selected_cursor').isPresent();
+  return section.find(type === 'active' ? '.active_cursor' : '.selected_cursor').isPresent();
 }
 
 /**
