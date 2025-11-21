@@ -224,8 +224,8 @@ export class DocWorkerApi {
     const canEdit = expressWrap(this._assertAccess.bind(this, 'editors', false));
     const checkAnonymousCreation = expressWrap(this._checkAnonymousCreation.bind(this));
     const isOwner = expressWrap(this._assertAccess.bind(this, 'owners', false));
-    // check user can edit document, with soft-deleted documents being acceptable
-    const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
+    // check user can edit document, with soft-deleted and disabled documents being acceptable
+    const canEditMaybeRemovedOrDisabled = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
 
@@ -1159,7 +1159,7 @@ export class DocWorkerApi {
 
     // DELETE /api/docs/:docId
     // Delete the specified doc.
-    this._app.delete('/api/docs/:docId', canEditMaybeRemoved, throttled(async (req, res) => {
+    this._app.delete('/api/docs/:docId', canEditMaybeRemovedOrDisabled, throttled(async (req, res) => {
       const {data} = await this._removeDoc(req, res, true);
       if (data) { this._logDeleteDocumentEvents(req, data); }
     }));
@@ -1167,7 +1167,7 @@ export class DocWorkerApi {
     // POST /api/docs/:docId/remove
     // Soft-delete the specified doc.  If query parameter "permanent" is set,
     // delete permanently.
-    this._app.post('/api/docs/:docId/remove', canEditMaybeRemoved, throttled(async (req, res) => {
+    this._app.post('/api/docs/:docId/remove', canEditMaybeRemovedOrDisabled, throttled(async (req, res) => {
       const permanent = isParameterOn(req.query.permanent);
       const {data} = await this._removeDoc(req, res, permanent);
       if (data) {
@@ -2143,12 +2143,15 @@ export class DocWorkerApi {
     next();
   }
 
-  private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
+  private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemovedOrDisabled: boolean,
                               req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
-    allowRemoved = scope.showAll || scope.showRemoved || allowRemoved;
+    allowRemovedOrDisabled = scope.showAll || scope.showRemoved || allowRemovedOrDisabled;
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
-    if (role) { assertAccess(role, docAuth, {allowRemoved}); }
+    if (role) { assertAccess(role, docAuth, {
+      allowRemoved: allowRemovedOrDisabled,
+      allowDisabled: allowRemovedOrDisabled});
+    }
     next();
   }
 
