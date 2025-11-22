@@ -165,7 +165,9 @@ export async function addRequestUser(
   dbManager: HomeDBAuth, permitStore: IPermitStore,
   options: {
     gristServer: GristServer,
+    clearSession: (req: RequestWithLogin) => Promise<void>,
     skipSession?: boolean,
+    createUserAuto?: boolean,
     overrideProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
   },
   req: Request, res: Response, next: NextFunction
@@ -286,9 +288,14 @@ export async function addRequestUser(
       skipSession = true;
       if (candidateProfile) {
         profile = candidateProfile;
-        const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile});
+        const user = options.createUserAuto
+        ? await dbManager.getUserByLoginWithRetry(profile.email, {profile})
+        : await dbManager.getExistingUserByLogin(profile.email, {withOrgs: true});
         if (user) {
           setRequestUser(mreq, dbManager, user);
+        } else {
+          await options.clearSession(mreq);
+          throw new ApiError('Unrecognized user', 403);
         }
       }
     }
@@ -366,8 +373,21 @@ export async function addRequestUser(
             // if the user already has an authSubject set in the db.
             userOptions.authSubject = sessionUser.authSubject;
           }
+          let user: User|undefined;
           // In this special case of initially linking a profile, we need to look up the user's info.
-          const user = await dbManager.getUserByLogin(option.email, {userOptions});
+          if(!options.createUserAuto) {
+            user = await dbManager.getExistingUserByLogin(option.email, {withOrgs: true});
+            if(!user) {
+              await options.clearSession(mreq);
+              throw new ApiError('Unrecognized user', 403);
+            }
+            if(userOptions?.authSubject && userOptions.authSubject !== user.options?.authSubject) {
+              await dbManager.updateUserOptions(user.id, userOptions);
+            }
+          } else {
+            user = await dbManager.getUserByLogin(option.email, {userOptions});
+          }
+
           setRequestUser(mreq, dbManager, user);
         } else {
           // No profile has access to this org.  We could choose to
@@ -396,10 +416,21 @@ export async function addRequestUser(
           // if the user already has an authSubject set in the db.
           userOptions.authSubject = sessionUser.authSubject;
         }
-        const user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
-        if (user) {
-          setRequestUser(mreq, dbManager, user);
+        let user: User|undefined;
+        if(!options.createUserAuto) {
+          user = await dbManager.getExistingUserByLogin(profile.email, {withOrgs: false});
+          if(!user) {
+            await options.clearSession(mreq);
+            throw new ApiError('Unrecognized user', 403);
+          }
+          if(userOptions?.authSubject && userOptions.authSubject !== user.options?.authSubject) {
+            await dbManager.updateUserOptions(user.id, userOptions);
+          }
+        } else {
+          user = await dbManager.getUserByLoginWithRetry(profile.email, {profile, userOptions});
         }
+
+        setRequestUser(mreq, dbManager, user);
       }
     }
   }
