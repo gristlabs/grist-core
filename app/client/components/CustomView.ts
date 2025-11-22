@@ -74,7 +74,7 @@ export class CustomView extends BaseView {
       if (!this.isDisposed() && !this._frame?.isDisposed()) {
         try {
           await this._frame.editOptions();
-        } catch(err) {
+        } catch (err) {
           if (err.message === "Unknown interface") {
             throw new UserError("Custom widget doesn't expose configuration screen.");
           } else {

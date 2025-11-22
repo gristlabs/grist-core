@@ -70,7 +70,7 @@ async function setupDb() {
         userId: db.getPreviewerUserId(),
         includeSupport: false,
       }, org));
-    } catch(e) {
+    } catch (e) {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }

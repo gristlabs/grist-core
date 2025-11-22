@@ -32,7 +32,7 @@ function benchmarkSortedIndex(arr, keyFunc, cmp, options, msg) {
   // TODO: Write a library function that does this for loop stuff b/c its largely the same
   // across the 3 benchmark functions. This is kind of messy to abstract b/c of issues
   // with array sorting side effects and function context.
-  for(var p = 1; 2 * currArray.length <= arr.length; p++) {
+  for (var p = 1; 2 * currArray.length <= arr.length; p++) {
     log(['==========================================================']);
     currArray = sortedArr.slice(0, Math.pow(2, p));
     currSearchElems = arr.slice(0, Math.pow(2, p));
@@ -59,16 +59,16 @@ function benchmarkSortedIndex(arr, keyFunc, cmp, options, msg) {
 function benchmarkMultiCompareSort(arr, keys, cmps, asc, options, msg) {
   var elapsed;
   var compareFuncs = [], currArray = [];
-  for(var l = 0; l < keys.length; l++) {
+  for (var l = 0; l < keys.length; l++) {
     compareFuncs.push(gutil.multiCompareFunc(keys.slice(0, l+1), cmps.slice(0, l+1), asc.slice(0, l+1)));
   }
 
-  for(var p = 1; 2 * currArray.length <= arr.length; p++) {
+  for (var p = 1; 2 * currArray.length <= arr.length; p++) {
     currArray = arr.slice(0, Math.pow(2, p));
     log(['==========================================================']);
     log(['Sorting', currArray.length, 'elements averaged over', options.iters,
          'iterations |', msg]);
-    for(var i = 0; i < compareFuncs.length; i++) {
+    for (var i = 0; i < compareFuncs.length; i++) {
       elapsed = utils.time(Array.prototype.sort, currArray, [compareFuncs[i]], options);
       log([(i+1) + "-key compare sort took: ", elapsed, 'ms']);
     }

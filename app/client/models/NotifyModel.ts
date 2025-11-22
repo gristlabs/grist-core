@@ -94,7 +94,7 @@ export class Expirable extends Disposable {
    */
   public async expire(withoutDelay: boolean = false): Promise<void> {
     this.status.set('expiring');
-    if(!withoutDelay) {
+    if (!withoutDelay) {
       await delay(Expirable.fadeDelay);
     }
     if (!this.isDisposed()) {

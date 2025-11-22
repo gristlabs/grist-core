@@ -467,7 +467,7 @@ export class GranularAccess implements GranularAccessForBundle {
     try {
       await this.getCellValue(docSession, cell, docData);
       return true;
-    } catch(err) {
+    } catch (err) {
       if (err instanceof ErrorWithCode) { return false; }
       throw err;
     }
@@ -801,7 +801,7 @@ export class GranularAccess implements GranularAccessForBundle {
       const audienceMap = cellData.getAudience(newComments.map(r => r.id));
 
       const docComments: DocComment[] = [];
-      for(const commentRow of newComments) {
+      for (const commentRow of newComments) {
         const audience = audienceMap.get(commentRow.id) || [];
         const mentions = getMentions(commentRow.content);
         const docComment = makeDocComment(commentRow, audience, mentions);
@@ -1344,8 +1344,8 @@ export class GranularAccess implements GranularAccessForBundle {
   public async createSnapshotWithCells(docActions: DocAction[]) {
     const rows = new Map(getRelatedRows(docActions));
     const cellData = new CellData(this._docData);
-    for(const action of docActions) {
-      for(const cell of cellData.convertToCells(action)) {
+    for (const action of docActions) {
+      for (const cell of cellData.convertToCells(action)) {
         if (!rows.has(cell.tableId)) { rows.set(cell.tableId, new Set()); }
         rows.get(cell.tableId)?.add(cell.rowId);
       }
@@ -3006,7 +3006,7 @@ class CellAccessHelper {
       if (this._tableAccess.get(tableId)) {
         const rowIds = new Set(cells.filter(cell => cell.tableId === tableId).map(cell => cell.rowId));
         const rows = await this._getRows(tableId, rowIds);
-        for(const [idx, rowId] of rows[2].entries()) {
+        for (const [idx, rowId] of rows[2].entries()) {
           if (rowIds.has(rowId) === false) { continue; }
           const rec = new RecordView(rows, idx);
           const input: PredicateFormulaInput = {...this._inputs, rec, newRec: rec};

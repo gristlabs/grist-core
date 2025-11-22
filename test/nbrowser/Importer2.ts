@@ -289,13 +289,13 @@ describe('Importer2', function() {
     await gu.importFileDialog('./uploads/UploadedData1.csv,./uploads/UploadedData2.csv');
     await waitForDiffPreviewToLoad();
     // Make sure both previews are available
-    for(const source of await driver.findAll(".test-importer-source")) {
+    for (const source of await driver.findAll(".test-importer-source")) {
       await source.click();
       assert.isFalse(await driver.find(".test-importer-preview-overlay").isPresent());
     }
     const sources = await driver.findAll(".test-importer-source");
     // Skip both tables.
-     for(const source of sources) {
+     for (const source of sources) {
       await source.click();
       await gu.waitForServer();
       await driver.find('.test-importer-target-skip').click();
@@ -303,7 +303,7 @@ describe('Importer2', function() {
     }
     assert.equal(await driver.find('.test-modal-confirm').getAttribute('disabled'), 'true');
     // Make sure both previews are grayed out
-    for(const source of sources) {
+    for (const source of sources) {
       await source.click();
       assert.isTrue(await driver.find(".test-importer-preview-overlay").isPresent());
     }

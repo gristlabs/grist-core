@@ -15,7 +15,7 @@ export * from 'app/client/components/Forms/Columns';
 export * from 'app/client/components/Forms/Submit';
 
 export function defaultElement(type: FormLayoutNodeType): FormLayoutNode {
-  switch(type) {
+  switch (type) {
     case 'Columns': return Columns();
     case 'Placeholder': return Placeholder();
     case 'Separator': return Paragraph('---');

@@ -76,7 +76,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
 
 function notificationIcon(item: Notification) {
  let iconName: IconName|null = null;
-  switch(item.options.level) {
+  switch (item.options.level) {
     case "error":   iconName = "Warning"; break;
     case "warning": iconName = "Warning"; break;
     case "success": iconName = "TickSolid"; break;

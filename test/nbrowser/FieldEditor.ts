@@ -149,7 +149,7 @@ describe('FieldEditor', function() {
     // Scroll 2 rows, to hide the first row. By scrolling only two rows, the active row is still rendered.
     // Then scroll 150 (arbitrary big number) rows, which removes the active record from the
     // dom (replaces it with another). Actually it would be enough to scroll by 5 records only.
-    for(const rowCount of [2, 150]) {
+    for (const rowCount of [2, 150]) {
       it(`in a GridView scrolled by ${rowCount} rows `, async function() {
         await gu.getCell(0, 1, 'TABLE1').click();
         // Scroll

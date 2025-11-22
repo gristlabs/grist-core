@@ -457,7 +457,7 @@ export class DocTriggers {
     try {
       await this._redisClient?.rpushAsync(this._redisQueueKey, ...strings);
     }
-    catch(e){
+    catch (e){
       // It's very hard to test this with integration tests, because it requires a redis failure.
       // And it's not easy to simulate redis failure.
       // So on this point we have only unit test in core/test/server/utils/LogSanitizer.ts

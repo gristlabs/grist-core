@@ -374,7 +374,7 @@ export class FormView extends BaseView {
       try {
         const remoteShare = await this.gristDoc.docComm.getShare(use(share.linkId));
         return remoteShare ?? null;
-      } catch(ex) {
+      } catch (ex) {
         // TODO: for now ignore the error, but the UI should be updated to not show editor
         // for non owners.
         if (ex.code === 'AUTH_NO_OWNER') { return null; }
@@ -541,7 +541,7 @@ fields, such as reference and choice columns.'
       const pageShare = page.share();
       const serverShare = await this.gristDoc.docComm.getShare(pageShare.linkId());
       validShare = !!serverShare;
-      } catch(ex) {
+      } catch (ex) {
         // TODO: for now ignore the error, but the UI should be updated to not show editor
         if (ex.code === 'AUTH_NO_OWNER') {
           return;

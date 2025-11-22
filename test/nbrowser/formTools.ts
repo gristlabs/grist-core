@@ -140,7 +140,7 @@ export async function formSchema(): Promise<FormElement[]> {
   const topElement = await driver.find('.active_section .test-forms-content');
   const topElements = await topElement.findElements(By.css(':scope > .test-forms-element'));
   const list: FormElement[] = [];
-  for(const el of topElements) {
+  for (const el of topElements) {
     list.push(await inspect(el));
   }
   return list;
@@ -160,7 +160,7 @@ export async function formSchema(): Promise<FormElement[]> {
 
     if (await el.find('.test-forms-content').isPresent()) {
       const innerList = await el.find('.test-forms-content').findElements(By.css(':scope > .test-forms-element'));
-      for(const innerEl of innerList) {
+      for (const innerEl of innerList) {
         children.push(await inspect(innerEl));
       }
     }

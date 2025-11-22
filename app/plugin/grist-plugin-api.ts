@@ -321,7 +321,7 @@ export function mapColumnNames(data: any, options?: {
   }
   // For each widget column in mapping.
   // Keys are ordered for determinism in case of conflicts.
-  for(const widgetCol of Object.keys(options.mappings).sort()) {
+  for (const widgetCol of Object.keys(options.mappings).sort()) {
     // Get column from Grist.
     const gristCol = options.mappings[widgetCol];
     // Copy column as series (multiple values)

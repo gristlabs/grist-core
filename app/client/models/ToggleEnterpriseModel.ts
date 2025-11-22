@@ -72,7 +72,7 @@ export class ToggleEnterpriseModel extends Disposable {
     // Now wait about 30 seconds for the server to come back up, and
     // refresh the page.
     let maxTries = 30;
-    while(maxTries-- > 0) {
+    while (maxTries-- > 0) {
       try {
         await this._configAPI.healthcheck();
         // We're done, last step is to reload the page.

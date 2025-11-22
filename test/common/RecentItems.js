@@ -50,7 +50,7 @@ describe('RecentItems', function() {
          intialItems: simpleList,
       });
       assert.deepEqual(recentItems2.listItems(), ['foo', 'bar', 'baz']);
-      for(let i = 0; i < 30; i++) {
+      for (let i = 0; i < 30; i++) {
         recentItems2.addItems(simpleList);
       }
       assert.deepEqual(recentItems2.listItems(), ['foo', 'bar', 'baz']);

@@ -184,7 +184,7 @@ export function parseMetadata(meta: Record<string, string>): Record<string, any>
   const copy = { ...meta } as Record<string, any>;
   // Values are stored as strings in Stripe, so we need to parse them.
   // This format is not lossless but it is good enough for our purposes.
-  for(const key in copy) {
+  for (const key in copy) {
     // We support only booleans, integers, floats, empty strings are nulls.
     const value = copy[key];
     if (value === '') {

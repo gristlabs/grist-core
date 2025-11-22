@@ -162,7 +162,7 @@ AceEditor.prototype.adjustContentToWidth = function() {
   var characterWidth = this.editor.renderer.characterWidth;
   var contentWidth = this.editor.renderer.scroller.clientWidth;
 
-  if(contentWidth > 0) {
+  if (contentWidth > 0) {
     this.editor.getSession().setWrapLimit(parseInt(contentWidth/characterWidth, 10) - 1);
   }
 };

@@ -849,7 +849,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
     const row = await this.get(`SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?`, fileIdent);
-    if(!row) {
+    if (!row) {
       return null;
     }
 
@@ -1968,7 +1968,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // fails.
     try {
       await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
-    } catch(err) {
+    } catch (err) {
       // If UNIQUE constraint failed, this ident must already exist.
       if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
         return false;

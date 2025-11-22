@@ -900,7 +900,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const result: WidgetColumnMap = {};
     // Prepare map of existing column, will need this for translating colRefs to colIds.
     const colMap = new Map(this.columns().map(f => [f.id.peek(), f]));
-    for(const widgetCol of columnsToMap) {
+    for (const widgetCol of columnsToMap) {
       // Start with marking this column as not mapped.
       result[widgetCol.name] = widgetCol.allowMultiple ? [] : null;
       const mappedCol = mapping[widgetCol.name];

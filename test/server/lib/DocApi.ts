@@ -1712,7 +1712,7 @@ function testDocApi(settings: {
       });
   });
 
-  for(const {desc, url} of [
+  for (const {desc, url} of [
     {
       desc: 'POST /docs/{did}/tables/{tid}/data/delete deletes records',
       url: 'tables/Foo/data/delete'
@@ -3908,14 +3908,14 @@ function testDocApi(settings: {
     it("GET /docs/{did}/webhooks retrieves a list of webhooks", async function () {
       const registerResponse = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
-      try{
+      try {
       assert.equal(resp.status, 200);
       assert.isAtLeast(resp.data.webhooks.length, 1);
       assert.containsAllKeys(resp.data.webhooks[0], ['id', 'fields']);
       assert.containsAllKeys(resp.data.webhooks[0].fields,
         ['enabled', 'isReadyColumn', 'memo', 'name', 'tableId', 'eventTypes', 'url']);
       }
-      finally{
+      finally {
         //cleanup
         await deleteWebhookCheck(registerResponse.webhooks[0].id);
       }

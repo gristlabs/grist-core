@@ -646,7 +646,7 @@ describe('GridViewNewColumnMenu', function () {
     });
 
     // Now add each column and make sure it is added with a proper name.
-    for(const column of COLUMN_LABELS) {
+    for (const column of COLUMN_LABELS) {
       it(`should insert ${column} with a proper name and type from a Ref column`, async function () {
         const revert = await gu.begin();
         await clickAddColumn();
@@ -774,7 +774,7 @@ describe('GridViewNewColumnMenu', function () {
     });
 
     // Now test each aggregation.
-    for(const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
+    for (const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
       it(`should insert ${column} with a proper name and type from a RefList column`, async function () {
         const colId = column.replace(" ", "_");
 
@@ -789,7 +789,7 @@ describe('GridViewNewColumnMenu', function () {
         const suggestedFunctions =
           await driver.findAll('.test-new-columns-menu-lookup-submenu-function', (el) => el.getText());
 
-        switch(column) {
+        switch (column) {
           case "Age":
             assert.deepEqual(suggestedFunctions, ['sum', 'average', 'min', 'max']);
             break;
@@ -815,7 +815,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.equal(await gu.columnBehavior(), "Formula column");
 
         // And the formula should be correct.
-        switch(column) {
+        switch (column) {
           case "Age":
             await checkTypeAndFormula('Numeric', `SUM($Employees.${colId})`);
 
@@ -938,7 +938,7 @@ describe('GridViewNewColumnMenu', function () {
     });
 
     describe('reverse lookups from Ref column', function () {
-      for(const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
+      for (const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
         it(`should properly add reverse lookup for ${column}`, async function () {
           await clickAddColumn();
           await driver.findContentWait('.test-new-columns-menu-revlookup',
@@ -959,7 +959,7 @@ describe('GridViewNewColumnMenu', function () {
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
                                                 (el) => el.getText());
-          switch(column) {
+          switch (column) {
             case "Age":
               assert.deepEqual(functions, ['sum', 'average', 'min', 'max']);
               break;
@@ -974,7 +974,7 @@ describe('GridViewNewColumnMenu', function () {
 
           // Now add each function and make sure it is added with a proper name.
           await gu.sendKeys(Key.ESCAPE);
-          switch(column) {
+          switch (column) {
             case "Age":
               await addRevLookup('sum');
               await checkTypeAndFormula('Numeric', `SUM(Person.lookupRecords(Item=$id).Age)`);
@@ -1052,7 +1052,7 @@ describe('GridViewNewColumnMenu', function () {
     });
 
     describe('reverse lookups from RefList column', function () {
-      for(const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
+      for (const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
         it(`should properly add reverse lookup for ${column}`, async function () {
           await clickAddColumn();
           await driver.findContentWait(
@@ -1077,7 +1077,7 @@ describe('GridViewNewColumnMenu', function () {
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
                                                 (el) => el.getText());
-          switch(column) {
+          switch (column) {
             case "Age":
               assert.deepEqual(functions, ['sum', 'average', 'min', 'max']);
               break;
@@ -1092,7 +1092,7 @@ describe('GridViewNewColumnMenu', function () {
 
           // Now add each function and make sure it is added with a proper name.
           await gu.sendKeys(Key.ESCAPE);
-          switch(column) {
+          switch (column) {
             case "Age":
               await addRevLookup('sum');
               await checkTypeAndFormula('Numeric', `SUM(Person.lookupRecords(Items=CONTAINS($id)).Age)`);
