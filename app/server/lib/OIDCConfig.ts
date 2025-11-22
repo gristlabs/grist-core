@@ -103,17 +103,41 @@ class ErrorWithUserFriendlyMessage extends Error {
   }
 }
 
+interface OIDCClientDiscoverParams {
+  issuerUrl: string;
+  clientId: string;
+  clientSecret: string;
+  extraMetadata: Partial<ClientMetadata>;
+}
+
 export class OIDCConfig {
-  /**
-   * Handy alias to create an OIDCConfig instance and initialize it.
-   */
-  public static async build(sendAppPage: SendAppPageFunction): Promise<OIDCConfig> {
-    const config = new OIDCConfig(sendAppPage);
-    await config.initOIDC();
-    return config;
+
+  // Client is not actually initialized until first used. This prevents Grist from failing
+  // to start when the OIDC IdP is offline. Always use _client to access this property.
+  private _maybeClient: Client | null = null;
+  protected get _client(): Promise<Client> {
+    return (async() => {
+      if (this._maybeClient === null) {
+        const issuer = await Issuer.discover(this._clientInitParams.issuerUrl);
+        this._maybeClient = new issuer.Client({
+          client_id: this._clientInitParams.clientId,
+          client_secret: this._clientInitParams.clientSecret,
+          redirect_uris: [this._redirectUrl],
+          response_types: ['code'],
+          ...this._clientInitParams.extraMetadata,
+        });
+      }
+      if (this._maybeClient.issuer.metadata.end_session_endpoint === undefined &&
+        !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
+        throw new Error('The Identity provider does not propose end_session_endpoint. ' +
+          'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
+          'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
+      }
+      return this._maybeClient;
+    })();
   }
 
-  protected _client: Client;
+  private _clientInitParams: OIDCClientDiscoverParams;
   private _redirectUrl: string;
   private _namePropertyKey?: string;
   private _emailPropertyKey: string;
@@ -123,11 +147,9 @@ export class OIDCConfig {
   private _protectionManager: ProtectionsManager;
   private _acrValues?: string;
 
-  protected constructor(
+  constructor(
     private _sendAppPage: SendAppPageFunction
-  ) {}
-
-  public async initOIDC(): Promise<void> {
+  ) {
     const section = appSettings.section('login').section('system').section('oidc');
     const spHost = section.flag('spHost').requireString({
       envVar: 'GRIST_OIDC_SP_HOST',
@@ -187,14 +209,7 @@ export class OIDCConfig {
       ...(agents.trusted !== undefined ? {agent: agents.trusted} : {}),
       ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
     });
-    await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
-
-    if (this._client.issuer.metadata.end_session_endpoint === undefined &&
-      !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
-      throw new Error('The Identity provider does not propose end_session_endpoint. ' +
-        'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
-        'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
-    }
+    this._clientInitParams = { issuerUrl, clientId, clientSecret, extraMetadata };
     log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
   }
 
@@ -214,7 +229,8 @@ export class OIDCConfig {
     let targetUrl: string | undefined;
 
     try {
-      const params = this._client.callbackParams(req);
+      const client = await this._client;
+      const params = client.callbackParams(req);
       if (!mreq.session.oidc) {
         throw new Error('Missing OIDC information associated to this session');
       }
@@ -225,10 +241,10 @@ export class OIDCConfig {
 
       // The callback function will compare the protections present in the params and the ones we retrieved
       // from the session. If they don't match, it will throw an error.
-      const tokenSet = await this._client.callback(this._redirectUrl, params, checks);
+      const tokenSet = await client.callback(this._redirectUrl, params, checks);
       log.debug("Got tokenSet: %o", formatTokenForLogs(tokenSet));
 
-      const userInfo = await this._client.userinfo(tokenSet);
+      const userInfo = await client.userinfo(tokenSet);
       log.debug("Got userinfo: %o", userInfo);
 
       if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
@@ -278,7 +294,7 @@ export class OIDCConfig {
       ...this._protectionManager.generateSessionInfo()
     };
 
-    return this._client.authorizationUrl({
+    return (await this._client).authorizationUrl({
       scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
       acr_values: this._acrValues,
       ...this._protectionManager.forgeAuthUrlParams(mreq.session.oidc),
@@ -297,7 +313,7 @@ export class OIDCConfig {
     // Ignore redirectUrl because OIDC providers don't allow variable redirect URIs
     const stableRedirectUri = new URL('/signed-out', getOriginUrl(req)).href;
     const session: SessionObj|undefined = (req as RequestWithLogin).session;
-    return this._client.endSessionUrl({
+    return (await this._client).endSessionUrl({
       post_logout_redirect_uri: stableRedirectUri,
       id_token_hint: session?.oidc?.idToken,
     });
@@ -305,19 +321,6 @@ export class OIDCConfig {
 
   public supportsProtection(protection: EnabledProtectionString) {
     return this._protectionManager.supportsProtection(protection);
-  }
-
-  protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
-    { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
-  ): Promise<void> {
-    const issuer = await Issuer.discover(issuerUrl);
-    this._client = new issuer.Client({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uris: [this._redirectUrl],
-      response_types: ['code'],
-      ...extraMetadata,
-    });
   }
 
   private _sendErrorPage(
@@ -412,7 +415,7 @@ export async function getOIDCLoginSystem(): Promise<GristLoginSystem | undefined
   if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = await OIDCConfig.build(gristServer.sendAppPage.bind(gristServer));
+      const config = new OIDCConfig(gristServer.sendAppPage.bind(gristServer));
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),
