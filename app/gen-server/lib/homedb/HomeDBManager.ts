@@ -166,7 +166,10 @@ const listPublicSites = appSettings.section('access').flag('listPublicSites').re
 
 // A TTL in milliseconds for caching the result of looking up access level for a doc,
 // which is a burden under heavy traffic.
-const DOC_AUTH_CACHE_TTL = 5000;
+const DOC_AUTH_CACHE_TTL = appSettings.section('access').flag('docAuthCacheTTL').requireInt({
+  envVar: 'GRIST_TEST_DOC_AUTH_CACHE_TTL',
+  defaultValue: 5000,
+});
 
 // Maps from userId to group name, or null to inherit.
 export interface UserIdDelta {
@@ -999,6 +1002,8 @@ export class HomeDBManager implements HomeDBAuth {
         linkId: res.linkId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        removedAt: res.doc?.removedAt || null,
+        disabledAt: res.doc?.disabledAt || null,
         isPinned: false,
         urlId: key.urlId,
         workspace: res.doc.workspace,
