@@ -10,6 +10,8 @@ import {IconList, IconName} from 'app/client/ui2018/IconList';
 import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
 import sortBy = require('lodash/sortBy');
+import {renderCellMarkdown} from 'app/client/ui/MarkdownCellRenderer';
+import {safeJsonParse} from 'app/common/gutil';
 
 const t = makeT('DocTour');
 
@@ -39,58 +41,76 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
   await docData.fetchTable(tableId);
   const tableData = docData.getTable(tableId)!;
 
-  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any).map(rowId => {
-    function getValue(colId: string): string {
-      return String(tableData.getValue(rowId, colId) || "");
-    }
-    const title = getValue("Title");
-    let body: HTMLElement | string = getValue("Body");
-    const linkText = getValue("Link_Text");
-    const linkUrl = getValue("Link_URL");
-    const linkIcon = getValue("Link_Icon") as IconName;
-    const locationValue = getValue("Location");
-    let placement = getValue("Placement");
+  function getColumnCellFormat(colId: string) {
+        const tableRef = docData.getMetaTable("_grist_Tables").findRow('tableId', tableId);
+        const bodyCol = docData.getMetaTable("_grist_Tables_column")
+          .filterRecords({ parentId: tableRef, colId: colId })[0];
+        const widgetType: string | undefined = safeJsonParse(bodyCol?.widgetOptions, {})?.widget;
+        return widgetType;
+      }
+  const columnCellFormat = getColumnCellFormat("Body");
 
-    if (!(title || body)) {
-      return null;
-    }
+  const result = sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any)
+    .map(rowId => {
+      function getValue(colId: string): string {
+        return String(tableData.getValue(rowId, colId) || "");
+      }
 
-    const urlState = sameDocumentUrlState(locationValue);
-    if (isNarrowScreen() || !placements.includes(placement as Placement)) {
-      placement = "auto";
-    }
+      const title = getValue("Title");
+      const bodyValue = getValue("Body");
 
-    let validLinkUrl = true;
-    try {
-      new URL(linkUrl);
-    } catch {
-      validLinkUrl = false;
-    }
+      if (!title && !(bodyValue.trim())) {
+        return null;
+      }
 
-    if (validLinkUrl && linkText) {
-      body = dom(
-        'div',
-        dom('p', body),
-        dom('p',
-          cssButtons(cssLinkBtn(
-            IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
-            linkText,
-            {href: linkUrl, target: '_blank'},
-          ))
-        ),
-      );
-    }
+      let body: HTMLElement | string = bodyValue;
+      // Renders Markdown only if the `Body` colum of type `Text` specifies "Cell Format" as `Markdown`
+      if (columnCellFormat == "Markdown") {
+        body = dom('div', renderCellMarkdown(bodyValue));
+      }
 
-    return {
-      title,
-      body,
-      placement,
-      urlState,
-      selector: '.active_cursor',
-      // Center the popup if the user doesn't provide a link to a cell
-      showHasModal: !urlState?.hash
-    };
-  }).filter(x => x !== null) as IOnBoardingMsg[];
+      const linkText = getValue("Link_Text");
+      const linkUrl = getValue("Link_URL");
+      const linkIcon = getValue("Link_Icon") as IconName;
+      const locationValue = getValue("Location");
+      let placement = getValue("Placement");
+
+      const urlState = sameDocumentUrlState(locationValue);
+      if (isNarrowScreen() || !placements.includes(placement as Placement)) {
+        placement = "auto";
+      }
+
+      let validLinkUrl = true;
+      try {
+        new URL(linkUrl);
+      } catch {
+        validLinkUrl = false;
+      }
+
+      if (validLinkUrl && linkText) {
+        body = dom(
+          'div',
+          body,
+          dom('p',
+            cssButtons(cssLinkBtn(
+              IconList.includes(linkIcon) ? cssLinkIcon(linkIcon) : null,
+              linkText,
+              { href: linkUrl, target: '_blank' },
+            ))
+          ),
+        );
+      }
+
+      return {
+        title,
+        body,
+        placement,
+        urlState,
+        selector: '.active_cursor',
+        // Center the popup if the user doesn't provide a link to a cell
+        showHasModal: !urlState?.hash
+      };
+    }).filter(x => x !== null) as IOnBoardingMsg[];
   if (!result.length) {
     return null;
   }
