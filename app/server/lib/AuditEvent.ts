@@ -47,7 +47,9 @@ export const AuditEventAction = StringUnion(
   "document.create",
   "document.delete",
   "document.deliver_webhook_events",
+  "document.disable",
   "document.duplicate",
+  "document.enable",
   "document.fork",
   "document.modify",
   "document.move",
@@ -153,8 +155,18 @@ export interface AuditEventDetails {
       workspace?: Pick<Workspace, "id" | "name">;
     };
   };
+  "document.enable": {
+    document: Pick<Document, "id" | "name"> & {
+      workspace: Pick<Workspace, "id" | "name">;
+    };
+  };
   "document.delete": {
     document: Pick<Document, "id" | "name">;
+  };
+  "document.disable": {
+    document: Pick<Document, "id" | "name"> & {
+      workspace: Pick<Workspace, "id" | "name">;
+    };
   };
   "document.deliver_webhook_events": {
     document: Pick<Document, "id">;

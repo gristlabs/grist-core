@@ -581,11 +581,19 @@ export interface ResourceSummary {
   id: string|number;
 }
 
+interface AssertAccessOptions {
+  openMode?: OpenDocMode,
+  // Normally removed docs are disallowed all access. Setting this
+  // property to `true` will allow access to removed docs, in addition
+  // to whatever other access is already granted or denied.
+  allowRemoved?: boolean,
+  // As above, but for disabled docs, which are normally otherwise
+  // disallowed in all cases.
+  allowDisabled?: boolean,
+}
+
 export function assertAccess(
-  role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: {
-    openMode?: OpenDocMode,
-    allowRemoved?: boolean,
-  } = {}) {
+  role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
   const openMode = options.openMode || 'default';
   const details = {status: 403, accessMode: openMode};
   if (docAuth.error) {
@@ -598,6 +606,11 @@ export function assertAccess(
 
   if (docAuth.removed && !options.allowRemoved) {
     throw new ErrorWithCode("AUTH_NO_VIEW", "Document is deleted", {status: 404});
+  }
+
+  // Disabled docs have no permissions, except you can delete or undelete them
+  if (docAuth.disabled && !options.allowDisabled) {
+    throw new ErrorWithCode("AUTH_DOC_DISABLED", "Document is disabled", {status: 403});
   }
 
   // If docAuth has no error, the doc is accessible, but we should still check the level (in case

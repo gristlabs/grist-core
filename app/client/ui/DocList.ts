@@ -161,7 +161,7 @@ export class DocList extends Disposable {
               dom.forEach(docs, (doc) => {
                 return cssDocRow(
                   cssDoc(
-                    cssDoc.cls("-no-access", !roles.canView(doc.access)),
+                    cssDoc.cls("-no-access", doc.disabledAt !== undefined || !roles.canView(doc.access)),
                     cssDocIconAndName(
                       buildDocIcon(
                         {
@@ -179,12 +179,12 @@ export class DocList extends Disposable {
                           testId("doc-name")
                         ),
                         cssDocBadges(
-                          !doc.isPinned
-                            ? null
-                            : cssPinIcon("Pin2", testId("doc-pinned")),
-                          !doc.public
-                            ? null
-                            : cssWorldIcon("World", testId("doc-public"))
+                          doc.isPinned
+                            ? cssPinIcon("Pin2", testId("doc-pinned"))
+                            : null,
+                          doc.public
+                            ? cssWorldIcon("World", testId("doc-public"))
+                            : null,
                         )
                       )
                     ),
@@ -197,7 +197,7 @@ export class DocList extends Disposable {
                       testId("doc-workspace")
                     ),
                     cssDocEditedAt(
-                      t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) }),
+                      getUpdatedAt(doc),
                       testId("doc-edited-at")
                     ),
                     cssDocDetailsCompact(
@@ -205,11 +205,7 @@ export class DocList extends Disposable {
                         urlState().setLinkUrl(docUrl(doc)),
                         stripIconFromName(doc.name, Boolean(doc.options?.appearance?.icon?.emoji))
                       ),
-                      cssDocEditedAt(
-                        t("Edited {{at}}", {
-                          at: getTimeFromNow(doc.updatedAt),
-                        })
-                      ),
+                      cssDocEditedAt(getUpdatedAt(doc)),
                       cssDocBadges(
                         !doc.isPinned
                           ? null
@@ -280,7 +276,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     menuItem(
       () => showRenameDocModal({ home, doc }),
       t("Rename and set icon"),
-      dom.cls("disabled", !roles.isOwner(doc)),
+      dom.cls("disabled", doc.disabledAt !== undefined || !roles.isOwner(doc)),
       testId("rename-doc")
     ),
     menuItem(
@@ -293,7 +289,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
       // Having ACL edit access on the doc means the user is also powerful enough to remove
       // the doc, so this is the only access check required to move the doc out of this workspace.
       // The user must also have edit access on the destination, however, for the move to work.
-      dom.cls("disabled", !roles.canEditAccess(doc.access)),
+      dom.cls("disabled", doc.disabledAt !== undefined || !roles.canEditAccess(doc.access)),
       testId("move-doc")
     ),
     menuItem(
@@ -321,6 +317,7 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
         menuItem(
           () => downloadDocModal(doc, home.app),
           menuIcon('Download'), t("Download document..."),
+          dom.cls("disabled", doc.disabledAt !== undefined),
           testId('tb-share-option'))
         ),
   ];
@@ -417,6 +414,13 @@ export async function renameDoc(home: HomeModel, doc: Document, val: string) {
       reportError(err as Error);
     }
   }
+}
+
+export function getUpdatedAt(doc: Document) {
+  if (doc.removedAt) {
+    return t("Deleted {{at}}", { at: getTimeFromNow(doc.removedAt) });
+  }
+  return t("Edited {{at}}", { at: getTimeFromNow(doc.updatedAt) });
 }
 
 const cssHeader = styled("div", `

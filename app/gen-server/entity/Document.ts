@@ -62,6 +62,9 @@ export class Document extends Resource {
   @Column({name: 'removed_at', type: nativeValues.dateTimeType, nullable: true})
   public removedAt: Date|null;
 
+  @Column({name: 'disabled_at', type: nativeValues.dateTimeType, nullable: true})
+  public disabledAt: Date|null;
+
   @Column({name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true})
   public gracePeriodStart: Date|null;
 
@@ -101,6 +104,12 @@ export class Document extends Resource {
     return super.checkProperties(props, documentPropertyKeys);
   }
 
+  // Note that `removedAt` and `disabledAt` are currently set by
+  // HomeDBManager because their modification requires checks and
+  // modifications on other entities such as user limits or guests of
+  // associated workspace or org.
+  //
+  // These two properties are ignored by this method.
   public updateFromProperties(props: Partial<DocumentProperties>) {
     super.updateFromProperties(props);
     if (props.isPinned !== undefined) { this.isPinned = props.isPinned; }

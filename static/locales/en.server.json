@@ -8,6 +8,7 @@
     "emailNotVerifiedError": "Please verify your email with the identity provider, and log in again."
   },
   "access": {
+    "docDisabled": "This document is disabled.",
     "docNoAccess": "You do not have access to this document."
   },
   "admin": {
