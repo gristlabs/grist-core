@@ -138,6 +138,10 @@ export class ChoiceListEditor extends NewBaseEditor {
       this.commandGroup.attach(),
     );
 
+    dom.update(this._dom,
+      dom.on('click', () => this._textInput.focus())
+    );
+
     this._enableAddNew = !this._hasDropdownCondition;
   }
 
@@ -331,6 +335,7 @@ export function buildDropdownConditionFilter(
 
 const cssCellEditor = styled('div', `
   background-color: ${theme.cellEditorBg};
+  cursor: text;
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
 `);
