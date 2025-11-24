@@ -54,6 +54,16 @@ import {IOpenController} from 'popweasel';
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
 /* eslint-disable @typescript-eslint/member-ordering */
 
+export interface ViewOptions {
+  isPreview?: boolean;
+  addNewRow?: boolean;
+  /**
+   * Whether this view supports cursor navigation. Defaults to false. Set to true for custom
+   * widgets that manage their own cursor. When false, Cursor.ts will skip listening to
+   * keyboard events when this view is active.
+   */
+  disabledCursor?: boolean;
+}
 
 /**
  * BaseView forms the basis for ViewSection classes.
@@ -76,10 +86,10 @@ export default class BaseView extends Disposable {
   public selectionSummary?: SelectionSummary;
   public currentEditingColumnIndex: ko.Observable<number>;
   public enableAddRow: ko.Computed<boolean>;
+  public options: ViewOptions;
 
   public onNewRecordRequest?(): Promise<number>|void;
 
-  protected options: {addNewRow?: boolean, isPreview?: boolean};
   protected _name: string;
   protected schemaModel: TableRec;
   protected comparison: DocStateComparison | null;
@@ -107,7 +117,7 @@ export default class BaseView extends Disposable {
   constructor(
     public gristDoc: GristDoc,
     public viewSection: ViewSectionRec,
-    options?: {addNewRow?: boolean, isPreview?: boolean}
+    options?: ViewOptions,
   ) {
     super();
     this.options = options || {};
@@ -324,9 +334,9 @@ export default class BaseView extends Disposable {
    * Most commands with relatively hard or specific triggers should usually go in the normal list.
    */
   private static _commonCommands: {[key: string]: Function} & ThisType<BaseView> = {
-    input: function(init?: string) {
+    input: function(init?: string, event?: Event) {
       this.scrollToCursor(true).catch(reportError);
-      this.activateEditorAtCursor({init});
+      this.activateEditorAtCursor({init, event});
     },
     copyLink: function() { this.copyLink().catch(reportError); },
     filterByThisCellValue: function() { this.filterByThisCellValue(); },

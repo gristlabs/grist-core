@@ -9,5 +9,14 @@
     },
     "access": {
         "docNoAccess": "Ви не маєте доступу до цього документа."
+    },
+    "admin": {
+        "emptyOrg": "В адміністративній організації, визначеній користувачем, не знайдено власників `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "Користувач є власником адміністративної організації, визначеної `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noDefaultEmail": "Немає облікового запису адміністратора, оскільки не встановлено `GRIST_DEFAULT_EMAIL`",
+        "accountByEmail": "Обліковий запис адміністратора, визначений `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Документ без назви"
     }
 }

@@ -330,10 +330,6 @@ export const componentsCssMapping = {
   rightPanelSubtabSelectedUnderline: 'right-panel-subtab-selected-underline',
   rightPanelSubtabHoverFg: 'right-panel-subtab-hover-fg',
   rightPanelDisabledOverlay: 'right-panel-disabled-overlay',
-  rightPanelToggleButtonEnabledFg: 'right-panel-toggle-button-enabled-fg',
-  rightPanelToggleButtonEnabledBg: 'right-panel-toggle-button-enabled-bg',
-  rightPanelToggleButtonDisabledFg: 'right-panel-toggle-button-disabled-fg',
-  rightPanelToggleButtonDisabledBg: 'right-panel-toggle-button-disabled-bg',
   rightPanelFieldSettingsBg: 'right-panel-field-settings-bg',
   rightPanelFieldSettingsButtonBg: 'right-panel-field-settings-button-bg',
   rightPanelCustomWidgetButtonFg: 'right-panel-custom-widget-button-fg',
@@ -895,8 +891,6 @@ export interface SpecificThemeTokens {
     pageInitialsEmojiOutline: Token;
     pageInitialsEmojiBg: Token;
     rightPanelTabButtonHoverBg: Token;
-    rightPanelToggleButtonDisabledFg: Token;
-    rightPanelToggleButtonDisabledBg: Token;
     rightPanelFieldSettingsBg: Token;
     rightPanelFieldSettingsButtonBg: Token;
     documentHistorySnapshotBorder: Token;
@@ -1174,8 +1168,6 @@ export interface BaseThemeTokens {
     rightPanelSubtabSelectedFg: Token;
     rightPanelSubtabSelectedUnderline: Token;
     rightPanelDisabledOverlay: Token;
-    rightPanelToggleButtonEnabledFg: Token;
-    rightPanelToggleButtonEnabledBg: Token;
     rightPanelCustomWidgetButtonFg: Token;
     rightPanelCustomWidgetButtonBg: Token;
     documentHistorySnapshotFg: Token;

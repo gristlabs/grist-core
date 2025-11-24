@@ -221,6 +221,7 @@ export interface GristDoc extends DisposableWithEvents {
   ): Promise<boolean>;
   activateEditorAtCursor(options?: { init?: string; state?: any }): Promise<void>;
   copyAnchorLink(anchorInfo: HashLink & CursorPos): Promise<void>;
+  getActionLog(): ActionLog;
 }
 
 export class GristDocImpl extends DisposableWithEvents implements GristDoc {
@@ -1266,6 +1267,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       throw new UserError(`No table with id ${tableId}`);
     }
     await tableRec.tableName.saveOnly(newTableName);
+  }
+
+  public getActionLog(): ActionLog {
+    return this._actionLog;
   }
 
   // Set section's viewFields to be colIds in that order. Omit any column id that do not belong to

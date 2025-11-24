@@ -1,13 +1,16 @@
 import * as crypto from 'crypto';
 import * as express from 'express';
-import {EntityManager} from 'typeorm';
 import * as cookie from 'cookie';
 import {Request} from 'express';
 import pick from 'lodash/pick';
+import * as t from "ts-interface-checker";
 
 import {ApiError} from 'app/common/ApiError';
+import {isAffirmative} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {BasicRole} from 'app/common/roles';
+import * as SATypes from 'app/common/ServiceAccountTypes';
+import ServiceAccountTI from 'app/common/ServiceAccountTypes-ti';
 import {DOCTYPE_NORMAL,
   DOCTYPE_TEMPLATE,
   DOCTYPE_TUTORIAL,
@@ -28,20 +31,35 @@ import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getTemplateOrg} from 'app/server/lib/gristSettings';
-import log from 'app/server/lib/log';
 import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
         isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
-
+import log from 'app/server/lib/log';
 
 const ALLOW_DEPRECATED_BARE_ORG_DELETE = appSettings.section('api').flag('allowBareOrgDelete').readBool({
   envVar: 'GRIST_ALLOW_DEPRECATED_BARE_ORG_DELETE',
 });
 
-// exposed for testing purposes
-export const Deps = {
-  apiKeyGenerator: () => crypto.randomBytes(20).toString('hex')
-};
+const {PatchServiceAccount, PostServiceAccount} = t.createCheckers(ServiceAccountTI);
+
+for (const checker of [PatchServiceAccount, PostServiceAccount]) {
+  checker.setReportedPath("body");
+}
+
+/**
+ * Middleware for validating request's body with a Checker instance.
+ */
+function validateStrict(checker: t.Checker): express.RequestHandler {
+  return (req, res, next) => {
+    try {
+      checker.strictCheck(req.body);
+    } catch(err) {
+      log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
+      throw new ApiError('Invalid payload', 400, {userError: String(err)});
+    }
+    next();
+  };
+}
 
 // Fetch the org this request was made for, or null if it isn't tied to a particular org.
 // Early middleware should have put the org in the request object for us.
@@ -515,14 +533,13 @@ export class ApiServer {
     // GET /api/profile/apikey
     // Get user's apiKey
     this._app.get('/api/profile/apikey', expressWrap(async (req, res) => {
-      const userId = getUserId(req);
-      const user = await User.findOne({where: {id: userId}});
-      if (user) {
-        // The null value is of no interest to the user, let's show empty string instead.
-        res.send(user.apiKey || '');
-        return;
+      try {
+        const userId = getUserId(req);
+        const apiKey = await this._dbManager.getApiKey(userId);
+        res.status(200).send(apiKey);
+      } catch (e) {
+        throw new ApiError(e, 400);
       }
-      handleDeletedUser();
     }));
 
     // POST /api/profile/apikey
@@ -530,30 +547,22 @@ export class ApiServer {
     this._app.post('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
       const force = req.body ? req.body.force : false;
-      const manager = this._dbManager.connection.manager;
-      let user = await manager.findOne(User, {where: {id: userId}});
-      if (!user) { return handleDeletedUser(); }
-      if (!user.apiKey || force) {
-        user = await updateApiKeyWithRetry(manager, user);
-        this._logCreateUserAPIKeyEvents(req, user);
-        res.status(200).send(user.apiKey);
-      } else {
-        res.status(400).send({error: "An apikey is already set, use `{force: true}` to override it."});
-      }
+      const user = await this._dbManager.createApiKey(userId, force);
+      this._logCreateUserAPIKeyEvents(req, user);
+      res.status(200).send(user.apiKey);
     }));
 
     // DELETE /api/profile/apiKey
     // Delete apiKey
     this._app.delete('/api/profile/apikey', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      await this._dbManager.connection.transaction(async manager => {
-        const user = await manager.findOne(User, {where: {id: userId}});
-        if (!user) { return handleDeletedUser(); }
-        user.apiKey = null;
-        await manager.save(User, user);
+      try {
+        const user = await this._dbManager.deleteApiKey(userId);
         this._logDeleteUserAPIKeyEvents(req, user);
-      });
-      res.sendStatus(200);
+        res.sendStatus(200);
+      } catch (e) {
+        throw new ApiError(e, 400);
+      }
     }));
 
     // GET /api/session/access/active
@@ -627,6 +636,151 @@ export class ApiServer {
       if (data) { this._logDeleteUserEvents(req, data); }
       return sendReply(req, res, result);
     }));
+
+    if (isAffirmative(process.env.GRIST_ENABLE_SERVICE_ACCOUNTS)) {
+      // POST /service-accounts/
+      // Creates a new service account attached to the user making the api call.
+      this._app.post('/api/service-accounts', validateStrict(PostServiceAccount), expressWrap(async (req, res) => {
+        const ownerId = getAuthorizedUserId(req);
+        const body = req.body as SATypes.PostServiceAccount;
+        const options = {
+          label: body.label,
+          description: body.description,
+          expiresAt: new Date(body.expiresAt)
+        };
+        const serviceAccount = await this._dbManager.createServiceAccount(
+          ownerId, options
+        );
+        const resp: SATypes.ServiceAccountCreationResponse = {
+          id: serviceAccount.id,
+          login: serviceAccount.serviceUser.loginEmail!,
+          key: serviceAccount.serviceUser.apiKey!,
+          label: serviceAccount.label,
+          description: serviceAccount.description,
+          expiresAt: serviceAccount.expiresAt.toISOString(),
+          hasValidKey: true
+        };
+
+        return sendOkReply(req, res, resp);
+      }));
+
+      // GET /service-accounts/
+      // Reads all service accounts attached to the user making the api call.
+      this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const data = await this._dbManager.getOwnedServiceAccounts(userId);
+        const resp: Array<Partial<SATypes.ServiceAccountApiResponse>> = data.map(serviceAccount => {
+          const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
+          return {
+            id: serviceAccount.id,
+            login: serviceAccount.serviceUser.loginEmail!,
+            label: serviceAccount.label,
+            description: serviceAccount.description,
+            expiresAt: serviceAccount.expiresAt.toISOString(),
+            hasValidKey
+          };
+        });
+        return sendOkReply(req, res, resp);
+      }));
+
+      // GET /service-accounts/:said
+      // Reads one particular service account of the user making the api call.
+      this._app.get('/api/service-accounts/:said', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountId = parseInt(req.params.said);
+        const serviceAccount = await this._dbManager.getServiceAccount(serviceAccountId);
+        this._dbManager.assertServiceAccountExistingAndOwned(serviceAccount, userId);
+        const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
+        const resp: Partial<SATypes.ServiceAccountApiResponse> = {
+          id: serviceAccount.id,
+          login: serviceAccount.serviceUser.loginEmail!,
+          label: serviceAccount.label,
+          description: serviceAccount.description,
+          expiresAt: serviceAccount.expiresAt.toISOString(),
+          hasValidKey
+        };
+        return sendOkReply(req, res, resp);
+      }));
+
+      // PATCH /service-accounts/:said
+      // Modifies one particular service account of the user making the api call.
+      this._app.patch('/api/service-accounts/:said', validateStrict(PatchServiceAccount), expressWrap(
+        async (req, res) => {
+          const userId = getAuthorizedUserId(req);
+          const serviceAccountId = parseInt(req.params.said);
+          const payload = req.body as SATypes.PatchServiceAccount;
+          const updateProps = {
+            ...( payload.label ? { label: payload.label } : {} ),
+            ...( payload.description ? { description: payload.description } : {} ),
+            ...( payload.expiresAt ? { expiresAt: new Date(payload.expiresAt) } : {} ),
+            expiresAt: payload.expiresAt !== undefined ? new Date(payload.expiresAt) : undefined,
+          };
+
+          const resp = await this._dbManager.updateServiceAccount(
+            serviceAccountId, updateProps, { expectedOwnerId: userId }
+          );
+          if (!resp) {
+            throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
+          }
+          return sendOkReply(req, res);
+        })
+      );
+
+      // DELETE /service-accounts/:said
+      // Deletes one particular service account of the user making the api call.
+      this._app.delete('/api/service-accounts/:said', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountId = parseInt(req.params.said);
+        const resp = await this._dbManager.deleteServiceAccount(serviceAccountId, {expectedOwnerId: userId});
+        if (resp === null) {
+          throw new ApiError(`No such service account as "${serviceAccountId}"`, 404);
+        }
+        return sendOkReply(req, res);
+      }));
+
+      // POST /service-accounts/:said/apikey
+      // Regenerate and return the apikey of a given Service Account
+      this._app.post('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountId = parseInt(req.params.said);
+        const serviceAccount = await this._dbManager.createServiceAccountApiKey(
+          serviceAccountId, {expectedOwnerId: userId}
+        );
+        if (serviceAccount === null) {
+          throw new ApiError(
+            `Can't regenerate api key of non existing service account ${serviceAccountId}`,
+            404
+          );
+        }
+        const resp: SATypes.ServiceAccountCreationResponse = {
+          id: serviceAccount.id,
+          key: serviceAccount.serviceUser.apiKey!,
+          login: serviceAccount.serviceUser.loginEmail!,
+          label: serviceAccount.label,
+          description: serviceAccount.description,
+          expiresAt: serviceAccount.expiresAt.toISOString(),
+          hasValidKey: true
+        };
+        return sendOkReply(req, res, resp);
+      }));
+
+      // DELETE /service-accounts/:said/apikey
+      // Deletes the apikey of a given Service Account by deleting the key
+      this._app.delete('/api/service-accounts/:said/apikey', expressWrap(async (req, res) => {
+        const userId = getAuthorizedUserId(req);
+        const serviceAccountId = parseInt(req.params.said);
+        const serviceAccount = await this._dbManager.deleteServiceAccountApiKey(
+          serviceAccountId, {expectedOwnerId: userId}
+        );
+        if (serviceAccount == null) {
+          throw new ApiError(
+            `Can't delete api key of non existing service account ${serviceAccountId}`,
+            404
+          );
+        }
+        return sendOkReply(req, res);
+      }));
+    }
   }
 
   private async _deleteOrg(req: Request, res: express.Response, name: string) {
@@ -1143,28 +1297,4 @@ export class ApiServer {
  */
 function handleDeletedUser(): never {
   throw new ApiError("user not known", 401);
-}
-
-/**
- * Helper to update a user's apiKey. Update might fail because of the DB uniqueness constraint on
- * the apiKey (although it is very unlikely according to `crypto`), we retry until success. Fails
- * after 5 unsuccessful attempts.
- */
-async function updateApiKeyWithRetry(manager: EntityManager, user: User): Promise<User> {
-  const currentKey = user.apiKey;
-  for (let i = 0; i < 5; ++i) {
-    user.apiKey = Deps.apiKeyGenerator();
-    try {
-      // if new key is the same as the current, the db update won't fail so we check it here (very
-      // unlikely to happen but but still better to handle)
-      if (user.apiKey === currentKey) {
-        throw new Error('the new key is the same as the current key');
-      }
-      return await manager.save(User, user);
-    } catch (e) {
-      // swallow and retry
-      log.warn(`updateApiKeyWithRetry: failed attempt ${i}/5, %s`, e);
-    }
-  }
-  throw new Error('Could not generate a valid api key.');
 }

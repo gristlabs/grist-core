@@ -19,10 +19,10 @@ const clearTooltip = stackWrapFunc(async (params?: {x?: number, y?: number}) => 
 });
 
 describe('Search', function() {
-  this.timeout(20000);
+  this.timeout('25s');
   setupTestSuite();
   addToRepl('gu.searchIsOpened', gu.searchIsOpened);
-  gu.bigScreen();
+  gu.bigScreen('big');
 
   it('should support basic search', async function() {
     // Log in and open the doc 'World'.

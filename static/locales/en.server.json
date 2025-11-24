@@ -9,5 +9,14 @@
   },
   "access": {
     "docNoAccess": "You do not have access to this document."
+  },
+  "admin": {
+    "emptyOrg": "No owners found in the admin organization defined by `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+    "orgUser": "User is an owner of the admin organization defined by `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+    "noDefaultEmail": "Missing admin account because `GRIST_DEFAULT_EMAIL` is not set",
+    "accountByEmail": "Admin account defined by `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+  },
+  "DocApi": {
+    "UntitledDocument": "Untitled document"
   }
 }

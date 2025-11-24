@@ -1,4 +1,5 @@
 import {ApiError} from 'app/common/ApiError';
+import {AssistanceRequestV1, AssistanceRequestV2} from 'app/common/Assistance';
 import {Features} from 'app/common/Features';
 import {resetOrg} from 'app/common/resetOrg';
 import {UserAPI, UserAPIImpl} from 'app/common/UserAPI';
@@ -574,11 +575,23 @@ describe('limits', function() {
     };
 
     const sendAndAssert = async ({fulfilled}: {fulfilled: boolean}) => {
-      const response = docApi.getAssistance({
+      const version = home.server.getAssistant()?.version;
+      const sharedPayload = {
         conversationId: 'id',
         text: 'text',
-        context: {},
-      });
+      };
+      const v1: AssistanceRequestV1 = {
+        ...sharedPayload,
+        context: {
+          tableId: '',
+          colId: '',
+        }
+      };
+      const v2: AssistanceRequestV2 = {
+        ...sharedPayload,
+        context: {}
+      };
+      const response = docApi.getAssistance(version === 1 ? v1 : v2);
       if (fulfilled) {
         await assert.isFulfilled(response);
       } else {

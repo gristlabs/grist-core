@@ -5,20 +5,22 @@ import {UserProfile} from 'app/common/LoginSessionAPI';
 import {components} from 'app/common/ThemePrefs';
 import {dom, DomElementArg, styled} from 'grainjs';
 
+export type User = Partial<UserProfile> | "exampleUser" | "addUser" | null;
+
 export type Size = 'small' | 'medium' | 'large';
 
 /**
  * Returns a DOM element showing a circular icon with a user's picture, or the user's initials if
  * picture is missing. Also varies the color of the circle when using initials.
  */
-export function createUserImage(
-  user: Partial<UserProfile>|'exampleUser'|null, size: Size, ...args: DomElementArg[]
-): HTMLElement {
+export function createUserImage(user: User, size: Size, ...args: DomElementArg[]): HTMLElement {
   return cssUserImage(
     cssUserImage.cls('-' + size),
     ...(function*() {
       if (user === 'exampleUser') {
         yield [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')];
+      } else if (user === 'addUser') {
+        yield [cssUserImage.cls('-add'), cssUserIcon('AddUser')];
       } else if (!user || user.anonymous) {
         yield cssUserImage.cls('-anon');
       } else {
@@ -126,7 +128,7 @@ export const cssUserImage = styled('div', `
   &-square {
     border-radius: 0px;
   }
-  &-example {
+  &-example, &-add {
     background-color: ${colors.slate};
     border: 1px solid ${colors.slate};
   }
@@ -146,8 +148,11 @@ const cssUserPicture = styled('img', `
   box-sizing: content-box;    /* keep the border outside of the size of the image */
 `);
 
-const cssExampleUserIcon = styled(icon, `
+const cssUserIcon = styled(icon, `
   background-color: white;
+`);
+
+const cssExampleUserIcon = styled(cssUserIcon, `
   width: 45px;
   height: 45px;
   transform: scaleY(0.75);

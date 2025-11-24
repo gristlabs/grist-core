@@ -316,7 +316,7 @@ export class AccessRules extends Disposable {
 
       const defaultResourceRowId = resourceSync.rowIdMap.get(serializeResource({id: -1, tableId: '*', colIds: '*'}));
       if (!defaultResourceRowId) {
-        throw new Error('Default resource missing in resource map');
+        throw new Error(t('Default resource missing in resource map'));
       }
 
       // For syncing rules, we'll go by rowId that we store with each RulePart and with the RuleSet.
@@ -336,7 +336,7 @@ export class AccessRules extends Disposable {
           const resourceKey = serializeResource(rule.resourceRec as RowRecord);
           resourceRowId = resourceSync.rowIdMap.get(resourceKey);
           if (!resourceRowId) {
-            throw new Error(`Resource missing in resource map: ${resourceKey}`);
+            throw new Error(t('Resource missing in resource map: {{resourceKey}}', {resourceKey}));
           }
         }
         newRules.push({
@@ -437,7 +437,7 @@ export class AccessRules extends Disposable {
           testId('rules-revert'),
         ),
 
-        bigBasicButton(t("Add Table Rules"), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
+        bigBasicButton(t("Add table rules"), cssDropdownIcon('Dropdown'), {style: 'margin-left: auto'},
           menu(() =>
             this.allTableIds.map((tableId) =>
               // Add the table on a timeout, to avoid disabling the clicked menu item
@@ -449,10 +449,10 @@ export class AccessRules extends Disposable {
             ),
           ),
         ),
-        bigBasicButton(t('Add User Attributes'), dom.on('click', () => this._addUserAttributes())),
-        bigBasicButton(t('View As'), cssDropdownIcon('Dropdown'),
+        bigBasicButton(t('Add user attributes'), dom.on('click', () => this._addUserAttributes())),
+        bigBasicButton(t('View as'), cssDropdownIcon('Dropdown'),
           elem => this._aclUsersPopup.attachPopup(elem, {placement: 'bottom-end', resetDocPage: true}),
-          dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : 'hidden')),
+          dom.style('visibility', use => use(this._aclUsersPopup.isInitialized) ? '' : t('hidden'))),
       ),
       cssConditionError({style: 'margin-left: 16px'},
         dom.text(this._errorMessage),
@@ -488,12 +488,12 @@ export class AccessRules extends Disposable {
         ),
         dom.forEach(this._sortedTableRules, (tableRules) => tableRules.buildDom()),
         cssSection(
-          cssSectionHeading(t("Default Rules"), testId('rule-table-header')),
+          cssSectionHeading(t("Default rules"), testId('rule-table-header')),
           dom.maybe(this._specialRulesWithDefault, tableRules => cssSeedRule(
             tableRules.buildCheckBoxes())),
           cssTableRounded(
             cssTableHeaderRow(
-              cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Columns')),
+              cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell(t('Columns'))),
               cssCell4(
                 cssColumnGroup(
                   cssCellIcon(),
@@ -565,12 +565,15 @@ export class AccessRules extends Disposable {
   public checkTableColumns(tableId: string, colIds?: string[], exemptColIds?: string[]): string {
     if (!tableId || tableId === SPECIAL_RULES_TABLE_ID) { return ''; }
     const tableColIds = this._aclResources.get(tableId)?.colIds;
-    if (!tableColIds) { return `Invalid table: ${tableId}`; }
+    if (!tableColIds) { return t('Invalid table: {{tableId}}', {tableId}); }
     if (colIds) {
       const validColIds = new Set([...tableColIds, ...exemptColIds || []]);
       const invalidColIds = colIds.filter(c => !validColIds.has(c));
       if (invalidColIds.length === 0) { return ''; }
-      return `Invalid columns in table ${tableId}: ${invalidColIds.join(', ')}`;
+      return t(
+        'Invalid columns in table {{tableId}}: {{invalidColIds}}',
+        {tableId, invalidColIds: invalidColIds.join(', ')}
+      );
     }
     return '';
   }
@@ -607,7 +610,7 @@ export class AccessRules extends Disposable {
 
   private _addTableRules(tableId: string) {
     if (this._tableRules.get().some(tr => tr.tableId === tableId)) {
-      throw new Error(`Trying to add TableRules for existing table ${tableId}`);
+      throw new Error(t('Trying to add TableRules for existing table {{tableId}}', {tableId}));
     }
     const defRuleSet: RuleSet = {tableId, colIds: '*', body: []};
     const tableRules = TableRules.create(this._tableRules, tableId, this, undefined, defRuleSet);
@@ -625,7 +628,7 @@ export class AccessRules extends Disposable {
       this.update().catch((e) => this._errorMessage.set(e.message));
     } else {
       this._errorMessage.set(
-        'Access rules have changed. Click Reset to revert your changes and refresh the rules.'
+        t('Access rules have changed. Click Reset to revert your changes and refresh the rules.')
       );
     }
   }
@@ -770,9 +773,9 @@ class TableRules extends Disposable {
         dom('span', t("Rules for table "), cssTableName(this._accessRules.getTableTitle(this.tableId))),
         cssIconButton(icon('Dots'), {style: 'margin-left: auto'},
           menu(() => [
-            menuItemAsync(() => this._addColumnRuleSet(), t("Add Column Rule")),
-            menuItemAsync(() => this._addDefaultRuleSet(), t("Add Table-wide Rule")),
-            menuItemAsync(() => this._accessRules.removeTableRules(this), t("Delete Table Rules")),
+            menuItemAsync(() => this._addColumnRuleSet(), t("Add column rule")),
+            menuItemAsync(() => this._addDefaultRuleSet(), t("Add table-wide rule")),
+            menuItemAsync(() => this._accessRules.removeTableRules(this), t("Delete table rules")),
           ]),
           testId('rule-table-menu-btn'),
         ),
@@ -780,7 +783,7 @@ class TableRules extends Disposable {
       ),
       cssTableRounded(
         cssTableHeaderRow(
-          cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell('Columns')),
+          cssCell1(cssCell.cls('-rborder'), cssCell.cls('-center'), cssColHeaderCell(t('Columns'))),
           cssCell4(
             cssColumnGroup(
               cssCellIcon(),
@@ -825,7 +828,7 @@ class TableRules extends Disposable {
       const counterSign = sign === 'mixed' ? 'mixed' : (sign === 'allow' ? 'deny' : 'allow');
       const colIds = ruleSet.getColIdList();
       if (colIds.length === 0) {
-        throw new UserError(`No columns listed in a column rule for table ${this.tableId}`);
+        throw new UserError(t('No columns listed in a column rule for table {{tableId}}', {tableId: this.tableId}));
       }
       for (const colId of colIds) {
         if (seen[counterSign].has(colId)) {
@@ -838,8 +841,11 @@ class TableRules extends Disposable {
           // Could also allow order dependency and provide a way to control the order.
           // TODO: could be worth also flagging multiple rulesets with the same columns as
           // undesirable.
-          throw new UserError(`Column ${colId} appears in multiple rules for table ${this.tableId}` +
-                              ` that might be order-dependent. Try splitting rules up differently?`);
+          throw new UserError(
+            t('Column {{colId}} appears in multiple rules for table {{tableId}} \
+that might be order-dependent. Try splitting rules up differently?', {colId, tableId: this.tableId}
+            )
+          );
         }
         if (sign === 'mixed') {
           seen.allow.add(colId);
@@ -907,7 +913,7 @@ class TableRules extends Disposable {
 class SpecialRules extends TableRules {
   public buildDom() {
     return cssSection(
-      cssSectionHeading(t('Special Rules'), testId('rule-table-header')),
+      cssSectionHeading(t('Special rules'), testId('rule-table-header')),
       this.buildCheckBoxes(),
       testId('rule-table'),
     );
@@ -1242,7 +1248,7 @@ class DefaultObsRuleSet extends ObsRuleSet {
       cssCenterContent.cls(''),
       cssDefaultLabel(
         dom.domComputed(use => this._haveColumnRules && use(this._haveColumnRules), (haveColRules) =>
-          haveColRules ? withInfoTooltip('All', 'accessRulesTableWide') : 'All')
+          haveColRules ? withInfoTooltip(t('All'), 'accessRulesTableWide') : t('All'))
       ),
     ];
   }
@@ -1613,11 +1619,11 @@ class ObsUserAttributeRule extends Disposable {
     };
     for (const [prop, value] of Object.entries(spec)) {
       if (!value) {
-        throw new UserError(`Invalid user attribute rule: ${prop} must be set`);
+        throw new UserError(t('Invalid user attribute rule: {{prop}} must be set', {prop}));
       }
     }
     if (this._getUserAttrError(fullCharId)) {
-      throw new UserError(`Invalid user attribute to look up`);
+      throw new UserError(t('Invalid user attribute to look up'));
     }
     return {
       id: this._userAttr?.origRecord?.id,
@@ -1640,12 +1646,12 @@ class ObsUserAttributeRule extends Disposable {
       if (/user\.LinkKey\.\w+$/.test(text)) {
         return null;
       }
-      return 'Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something';
+      return t('Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something');
     }
 
     const isChoice = this._userAttrChoices.get().map(choice => choice.value).includes(text);
     if (!isChoice) {
-      return 'Not a valid user attribute';
+      return t('Not a valid user attribute');
     }
     return null;
   }
@@ -1718,7 +1724,7 @@ class ObsRulePart extends Disposable {
         ( !this._ruleSet.isLastCondition(use, this) &&
           use(this._aclFormula) === '' &&
           permissionSetToText(use(this._permissions)) !== '' ?
-          'Condition cannot be blank' : ''
+          t('Condition cannot be blank') : ''
         );
     });
 

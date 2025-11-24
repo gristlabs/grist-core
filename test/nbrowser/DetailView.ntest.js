@@ -29,7 +29,7 @@ describe("DetailView.ntest", function () {
     before(async function() {
       // Open the 'Performances' view
       await gu.actions.viewSection('Performances detail').selectSection();
-      await $('.test-right-panel button:contains(Change Widget)').click();
+      await $('.test-right-panel button:contains(Change widget)').click();
       await $('.test-wselect-type:contains(Card List)').click();
       await $('.test-wselect-addBtn').click();
       await gu.waitForServer();
@@ -62,7 +62,7 @@ describe("DetailView.ntest", function () {
     assert.deepEqual(await gu.getVisibleDetailCells('Actor', [1]), ['Tim Allen']);
 
     // Swap to Card List view, check values.
-    await $('.test-right-panel button:contains(Change Widget)').click();
+    await $('.test-right-panel button:contains(Change widget)').click();
     await $('.test-wselect-type:contains(Card List)').click();
     await $('.test-wselect-addBtn').click();
     await gu.waitForServer();
@@ -70,7 +70,7 @@ describe("DetailView.ntest", function () {
       ['Tom Hanks', 'Tim Allen']);
 
     // Swap back to Card view, re-check values.
-    await $('.test-right-panel button:contains(Change Widget)').click();
+    await $('.test-right-panel button:contains(Change widget)').click();
     await $('.test-wselect-type:contains(Card)').click();
     await $('.test-wselect-addBtn').click();
     await gu.waitForServer();
@@ -96,7 +96,7 @@ describe("DetailView.ntest", function () {
   it('should allow row resize operations after switching section type', async function() {
     // Switch to Card List view and enter a formula. This should cause the scrolly to resize all rows.
     // If the detail view rowModel is wrongly resized, the action will fail.
-    await $('.test-right-panel button:contains(Change Widget)').click();
+    await $('.test-right-panel button:contains(Change widget)').click();
     await $('.test-wselect-type:contains(Card List)').click();
     await $('.test-wselect-addBtn').click();
     await gu.waitForServer();
@@ -117,7 +117,7 @@ describe("DetailView.ntest", function () {
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleDetailCells('Film', [14]), ['Jurassic Park']);
     // Check that adding 'Star Wars' to the detail view add record row adds it as a row.
-    await $('.test-right-panel button:contains(Change Widget)').click();
+    await $('.test-right-panel button:contains(Change widget)').click();
     await $('.test-wselect-type:contains(Card)').click();
     await $('.test-wselect-addBtn').click();
     await gu.waitForServer();

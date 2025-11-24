@@ -21,7 +21,7 @@ export class GristProxyAgent extends ProxyAgent {
   }
 }
 
-function generateProxyAgents() {
+function getProxyAgentConfiguration() {
   const proxyForTrustedRequestsUrl = appSettings.section('proxy').readString({
     envVar: ['HTTPS_PROXY', 'https_proxy'],
     preferredEnvVar: 'HTTPS_PROXY',
@@ -31,6 +31,15 @@ function generateProxyAgents() {
     envVar: ['GRIST_PROXY_FOR_UNTRUSTED_URLS', 'GRIST_HTTPS_PROXY'],
     preferredEnvVar: 'GRIST_PROXY_FOR_UNTRUSTED_URLS'
   });
+
+  return {
+    proxyForTrustedRequestsUrl,
+    proxyForUntrustedRequestsUrl,
+  };
+}
+
+function generateProxyAgents() {
+  const {proxyForTrustedRequestsUrl, proxyForUntrustedRequestsUrl} = getProxyAgentConfiguration();
 
   if (process.env.GRIST_HTTPS_PROXY) {
     log.warn('GRIST_HTTPS_PROXY is deprecated in favor of GRIST_PROXY_FOR_UNTRUSTED_URLS. ' +
@@ -42,6 +51,18 @@ function generateProxyAgents() {
     untrusted: (proxyForUntrustedRequestsUrl && proxyForUntrustedRequestsUrl !== "direct")
       ? new GristProxyAgent(proxyForUntrustedRequestsUrl) : undefined
   };
+}
+
+/**
+ *
+ * Check whether there is explicit proxy configuration for untrusted
+ * requests (regardless of whether it is to set a proxy, or to use
+ * direct requests)
+ *
+ */
+export function isUntrustedRequestBehaviorSet() {
+  const config = getProxyAgentConfiguration();
+  return config.proxyForUntrustedRequestsUrl !== undefined;
 }
 
 export const test_generateProxyAgents = generateProxyAgents;

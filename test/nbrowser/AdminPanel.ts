@@ -183,6 +183,29 @@ describe('AdminPanel', function() {
     }, 3000);
   });
 
+  it('should show admin accounts', async function() {
+    await driver.get(`${server.getHost()}/admin`);
+    await gu.waitForAdminPanel();
+    const adminAccounts = await driver.findWait('.test-admin-panel-item-admins', 2000);
+    assert.equal(await adminAccounts.isDisplayed(), true);
+    const adminDisplay = await driver.find('.test-admin-panel-admin-accounts-display');
+
+    assert.equal('1 admin account', await adminDisplay.getText());
+
+    await toggleItem('admins');
+
+    const adminsList = await driver.find('.test-admin-panel-admin-accounts-list');
+    assert.equal(await adminsList.isDisplayed(), true);
+
+    const names = await adminAccounts.findAll('.test-admin-panel-admin-account-name');
+    assert.equal(names.length, 1);
+
+    const emails = await adminAccounts.findAll('.test-admin-panel-admin-account-email');
+    assert.equal(names.length, 1);
+
+    assert.equal(await emails[0].getText(), gu.session().email);
+  });
+
   it('should show sandbox', async function() {
     await driver.get(`${server.getHost()}/admin`);
     await gu.waitForAdminPanel();
@@ -382,6 +405,35 @@ describe('AdminPanel', function() {
     await gu.waitForAdminPanel();
     assert.equal(await driver.find('.test-admin-panel').isDisplayed(), true);
     assert.match(await driver.find('.test-admin-panel').getText(), /Administrator Panel Unavailable/);
+  });
+
+  it('should show no admins if `GRIST_DEFAULT_EMAIL` is unset', async function() {
+    // If the env var is unset, core and SaaS handle the situation
+    // differently. Core will supply a hardcoded default of you@example.com.
+    //
+    // For the purpose of this test, let's instead set it to the empty
+    // string.
+    process.env.GRIST_DEFAULT_EMAIL='';
+    await server.restart(true);
+    await driver.get(`${server.getHost()}/admin?boot-key=zig`);
+    await gu.waitForAdminPanel();
+
+    const adminAccounts = await driver.findWait('.test-admin-panel-item-admins', 2000);
+    assert.equal(await adminAccounts.isDisplayed(), true);
+    const adminDisplay = await driver.findWait('.test-admin-panel-admin-accounts-display', 1000);
+
+    assert.equal('no admin accounts', await adminDisplay.getText());
+
+    await toggleItem('admins');
+
+    const adminsList = await driver.find('.test-admin-panel-admin-accounts-list');
+    assert.equal(await adminsList.isDisplayed(), true);
+
+    const names = await adminAccounts.findAll('.test-admin-panel-admin-accounts-list-item');
+    assert.equal(names.length, 1);
+
+    assert.equal(await names[0].getText(), 'Admin account not found\n'
+      + 'Missing admin account because GRIST_DEFAULT_EMAIL is not set');
   });
 });
 

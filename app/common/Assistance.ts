@@ -38,6 +38,10 @@ export interface AssistanceRequestV2 extends BaseAssistanceRequest {
   developerPromptVersion?: DeveloperPromptVersion;
 }
 
+export function isAssistanceRequestV2(req: AssistanceRequest): req is AssistanceRequestV2 {
+  return !('tableId' in req.context);
+}
+
 export type DeveloperPromptVersion = "default" | "new-document";
 
 interface BaseAssistanceRequest {

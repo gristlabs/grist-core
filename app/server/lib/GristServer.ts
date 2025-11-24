@@ -110,6 +110,7 @@ export interface GristServer extends StorageCoordinator {
     nextUrl?: URL;
     params?: Record<string, string | undefined>;
   }): Promise<string>;
+  getUserIdMiddleware(): express.RequestHandler;
 }
 
 export interface GristLoginSystem {
@@ -222,6 +223,7 @@ export function createDummyGristServer(): GristServer {
     hardDeleteDoc() { return Promise.resolve(); },
     setReady() { /* do nothing */ },
     getSigninUrl() { return Promise.resolve(''); },
+    getUserIdMiddleware() { throw new Error('no user id middleware'); },
   };
 }
 

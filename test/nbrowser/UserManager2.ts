@@ -154,9 +154,9 @@ describe('UserManager2', function() {
           assert.equal(await driver.find('.test-modal-dialog').isPresent(), false);
         });
         await openUserManager();
-        const collaborator1 = await driver.findContentWait('.test-um-member', /1 of 2/, 2000)
+        let collaborator1 = await driver.findContentWait('.test-um-member', /1 of 2/, 2000)
           .find('.member-email').getText();
-        const collaborator2 = await driver.findContentWait('.test-um-member', /2 of 2/, 2000)
+        let collaborator2 = await driver.findContentWait('.test-um-member', /2 of 2/, 2000)
           .find('.member-email').getText();
         // Order of members appears to be a bit arbitrary.
         assert.sameMembers([collaborator1, collaborator2], ['zig@getgrist.com', 'zag@getgrist.com']);
@@ -167,6 +167,20 @@ describe('UserManager2', function() {
           const member = await findMember(collaborator2);
           assert.match(await member.getText(), /1 of 2 guests/);
         });
+
+        // Check that public access does not count towards guest limit (a bug previously counted it).
+        await driver.find('.test-um-public-access').click();
+        await gu.findOpenMenuItem('.test-um-public-option', 'On').click();
+        await driver.find('.test-um-member-new').find('input').click();
+        await driver.sendKeys("zod@getgrist.com", Key.ENTER);
+        await driver.findWait('.test-um-confirm', 3000).click();
+        await gu.waitForServer();
+        await openUserManager();
+        collaborator1 = await driver.findContentWait('.test-um-member', /1 of 2/, 2000)
+          .find('.member-email').getText();
+        collaborator2 = await driver.findContentWait('.test-um-member', /2 of 2/, 2000)
+          .find('.member-email').getText();
+        assert.sameMembers([collaborator1, collaborator2], ['zig@getgrist.com', 'zod@getgrist.com']);
       } finally {
         // Remove users we added.
         await api.updateOrgPermissions('current', {
@@ -185,7 +199,7 @@ describe('UserManager2', function() {
     // Make a document, and start editing shares.
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+    await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
     // Add a collaborator.
     await driver.findWait('.test-um-member-new', 2000).find('input').click();
@@ -235,7 +249,7 @@ describe('UserManager2', function() {
     // Make a document, and start editing shares.
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+    await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
     // Add a collaborator.
     await driver.findWait('.test-um-member-new', 2000).find('input').click();
@@ -252,7 +266,7 @@ describe('UserManager2', function() {
     // Make a new document, and start editing shares.
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+    await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
     // Add same collaborator.
     await driver.findWait('.test-um-member-new', 2000).find('input').click();
@@ -291,7 +305,7 @@ describe('UserManager2', function() {
       assert.equal(await driver.find('.test-modal-dialog').isPresent(), false);
     });
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+    await driver.findContent('.test-tb-share-option', /Manage users/).click();
     await assertSupportAnnotation();
 
     // Now add another collaborator and check their annotation.
@@ -313,7 +327,7 @@ describe('UserManager2', function() {
     await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
 
     // start view-as mode
-    await driver.findContentWait('button', 'View As', 3000).click();
+    await driver.findContentWait('button', 'View as', 3000).click();
     await driver.findContentWait('.test-acl-user-item', 'viewer@example.com', 100).click();
     await gu.waitForUrl(/aclAsUser/);
     await gu.waitForDocToLoad();
@@ -323,7 +337,7 @@ describe('UserManager2', function() {
 
     // open User Manager
     await driver.findWait('.test-tb-share', 2000).click();
-    await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+    await driver.findContent('.test-tb-share-option', /Manage users/).click();
 
     // Adds new user and save
     await driver.findWait('.test-um-member-new', 2000).find('input').click();
@@ -353,8 +367,8 @@ describe('UserManager2', function() {
       // Start view-as mode. (There was a bug here, where the the server returned an error, and
       // this button wasn't shown to the user. Error was caused by server which was trying to
       // get shared users from not persisted document).
-      await driver.findContentWait('button', 'View As', 3000).click();
-      await driver.findContentWait('.test-acl-user-item', 'viewer@example.com', 100).click();
+      await driver.findContentWait('button', 'View as', 3000).click();
+      await driver.findContentWait('.test-acl-user-item', 'viewer@example.com', 1000).click();
       await gu.isAlertShown().then(v => v ? gu.acceptAlert() : Promise.resolve());
       await gu.waitForUrl(/aclAsUser/);
       await gu.waitForDocToLoad();
@@ -497,7 +511,7 @@ async function openAccessDetails() {
 
 async function openManageUsers() {
   await driver.findWait('.test-tb-share', 2000).click();
-  await driver.findContent('.test-tb-share-option', /Manage Users/).click();
+  await driver.findContentWait('.test-tb-share-option', /Manage users/, 2000).click();
   await driver.findWait('.test-um-header', 2000);
 }
 

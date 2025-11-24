@@ -8,7 +8,7 @@ import {ICustomWidget} from 'app/common/CustomWidget';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
         TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
-import {DocStateComparison} from 'app/common/DocState';
+import {DocStateComparison, DocStates} from 'app/common/DocState';
 import {OrgUsageSummary} from 'app/common/DocUsage';
 import {Features, Product} from 'app/common/Features';
 import {isClient} from 'app/common/gristUrls';
@@ -520,6 +520,7 @@ export interface DocAPI {
   // remove selected snapshots, or all snapshots that have "leaked" from inventory (should
   // be empty), or all but the current snapshot.
   removeSnapshots(snapshotIds: string[] | 'unlisted' | 'past'): Promise<{snapshotIds: string[]}>;
+  getStates(): Promise<DocStates>;
   forceReload(): Promise<void>;
   recover(recoveryMode: boolean): Promise<void>;
   // Compare two documents, optionally including details of the changes.
@@ -602,10 +603,13 @@ export interface DocAPI {
 
   makeProposal(options?: {
     retracted?: boolean,
-  }): Promise<void>;
+  }): Promise<Proposal>;
   getProposals(options?: {
     outgoing?: boolean
   }): Promise<{proposals: Proposal[]}>;
+  applyProposal(proposalId: number): Promise<Proposal>;
+
+  applyUserActions(actions: UserAction[]): Promise<ApplyUAResult>;
 }
 
 // Operations that are supported by a doc worker.
@@ -1110,6 +1114,10 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     });
   }
 
+  public async getStates(): Promise<DocStates> {
+    return this.requestJson(`${this._url}/states`);
+  }
+
   public async getUsersForViewAs(): Promise<PermissionDataWithExtraUsers> {
     return this.requestJson(`${this._url}/usersForViewAs`);
   }
@@ -1315,9 +1323,22 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
   public async makeProposal(options?: {
     retracted?: boolean,
   }) {
-    await this.requestJson(`${this._url}/propose`, {
+    return this.requestJson(`${this._url}/propose`, {
       method: 'POST',
       body: JSON.stringify(options || {}),
+    });
+  }
+
+  public async applyProposal(proposalId: number) {
+    return this.requestJson(`${this._url}/proposals/${proposalId}/apply`, {
+      method: 'POST',
+    });
+  }
+
+  public async applyUserActions(actions: UserAction[]): Promise<ApplyUAResult> {
+    return this.requestJson(`${this._url}/apply`, {
+      method: 'POST',
+      body: JSON.stringify(actions)
     });
   }
 

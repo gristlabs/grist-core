@@ -211,6 +211,39 @@ describe('FormView1', function() {
       await removeForm();
     });
 
+    it('attributes changes to the anonymous user', async function() {
+      const formUrl = await createFormWith('Text');
+
+      // Add a trigger formula with `user` and check it gets evaluated as the anonymous user.
+      await gu.showRawData();
+      await gu.getCell('D', 1).click();
+      await gu.openColumnPanel();
+      await driver.find(".test-field-set-trigger").click();
+      await gu.waitAppFocus(false);
+      await gu.sendKeys('f"{user.Email} {user.Name}"', Key.ENTER);
+      await gu.waitForServer();
+      await gu.closeRawTable();
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await driver.findWait('button[type="submit"]', 2000).click();
+        await waitForConfirm();
+      });
+      const {email, name} = gu.translateUser('anon');
+      const expectedCellValue = `${email} ${name}`;
+      await expectSingle(expectedCellValue);
+
+      // Check Document History also shows the action as originating from an anonymous user.
+      await driver.findWait('.test-tools-log', 1000).click();
+      await gu.waitToPass(() =>
+        driver.findContentWait('.test-doc-history-tabs .test-select-button', 'Activity', 500).click());
+      const item = await driver.find('.action_log .action_log_item');
+      assert.equal(await item.find('.action_log_cell_add').getText(), expectedCellValue);
+      assert.equal(await item.find('.action_info_user').getText(), email);
+      await driver.find('.test-right-tool-close').click();
+
+      await removeForm();
+    });
+
     it('has global markup correctly setup for screen reader users', async function() {
       const formUrl = await createFormWith('Text');
       await gu.onNewTab(async () => {

@@ -134,6 +134,7 @@ export const getCommonUrls = () => withAdminDefinedUrls({
   helpFilteringReferenceChoices: "https://support.getgrist.com/col-refs/#filtering-reference-choices-in-dropdown",
   helpSandboxing: "https://support.getgrist.com/self-managed/#how-do-i-sandbox-documents",
   helpAPI: 'https://support.getgrist.com/api',
+  helpStateStore: 'https://support.getgrist.com/self-managed/#what-is-a-state-store',
   helpSummaryFormulas: 'https://support.getgrist.com/summary-tables/#summary-formulas',
   helpAdminControls: "https://support.getgrist.com/admin-controls",
   helpFiddleMode: 'https://support.getgrist.com/glossary/#fiddle-mode',

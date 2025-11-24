@@ -1,7 +1,7 @@
 import {concatenateSummaries, summarizeAction} from "app/common/ActionSummarizer";
 import {createEmptyActionSummary} from "app/common/ActionSummary";
 import {QueryFilters} from 'app/common/ActiveDocAPI';
-import {ApiError, LimitType} from 'app/common/ApiError';
+import {ApiError} from 'app/common/ApiError';
 import {BrowserSettings} from "app/common/BrowserSettings";
 import {
   BulkColValues,
@@ -228,8 +228,6 @@ export class DocWorkerApi {
     const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
-    // check that limit can be increased by 1
-    const checkLimit = (type: LimitType) => expressWrap(this._checkLimit.bind(this, type));
 
     // Middleware to limit number of outstanding requests per document.  Will also
     // handle errors like expressWrap would.
@@ -620,6 +618,16 @@ export class DocWorkerApi {
         // Sending headers then resetting the connection shows as 'Download failed', regardless of the
         // 'download' attribute being set.
         res.destroy(err);
+        const meta = {
+          docId: activeDoc.doc?.id,
+          archiveFormat,
+          altSessionId: req.altSessionId,
+        };
+        if (err?.code === "ERR_STREAM_PREMATURE_CLOSE") {
+          log.rawWarn("Client closed archive download stream before completion", meta);
+        } else {
+          log.rawError(`Error while packing attachment archive: ${err.stack ?? err.message}`, meta);
+        }
       }
       res.end();
     }));
@@ -1341,6 +1349,10 @@ export class DocWorkerApi {
     }));
 
     this._app.get('/api/docs/:docId/compare/:docId2', canView, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      if (!await activeDoc.canCopyEverything(docSession)) {
+        throw new ApiError('insufficient access', 403);
+      }
       const showDetails = isAffirmative(req.query.detail);
       const maxRows = optIntegerParam(req.query.maxRows, "maxRows", {
         nullable: true,
@@ -1357,6 +1369,10 @@ export class DocWorkerApi {
 
     // Give details about what changed between two versions of a document.
     this._app.get('/api/docs/:docId/compare', canView, withDoc(async (activeDoc, req, res) => {
+      const docSession = docSessionFromRequest(req);
+      if (!await activeDoc.canCopyEverything(docSession)) {
+        throw new ApiError('insufficient access', 403);
+      }
       // This could be a relatively slow operation if actions are large.
       const leftHash = stringParam(req.query.left || 'HEAD', 'left');
       const rightHash = stringParam(req.query.right || 'HEAD', 'right');
@@ -1364,10 +1380,9 @@ export class DocWorkerApi {
         nullable: true,
         isValid: (n) => n > 0,
       });
-      const docSession = docSessionFromRequest(req);
       const {states} = await this._getStates(docSession, activeDoc);
       res.json(
-        await this._getChanges(activeDoc, {
+        await getChanges(docSession, activeDoc, {
           states,
           leftHash,
           rightHash,
@@ -1393,13 +1408,13 @@ export class DocWorkerApi {
         docId2: comparisonUrlId,
         maxRows: null,
       });
-      await this._dbManager.setProposal({
+      const proposal = await this._dbManager.setProposal({
         srcDocId: parts.forkId,
         destDocId: parts.trunkId,
         comparison: comp,
         retracted
       });
-      res.json(comp);
+      res.json(proposal);
     }));
 
     /**
@@ -1441,7 +1456,7 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/proposals/:proposalId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
       const proposalId = integerParam(req.params.proposalId, 'proposalId');
       const docSession = docSessionFromRequest(req);
-      const changes = activeDoc.applyProposal(docSession, proposalId);
+      const changes = await activeDoc.applyProposal(docSession, proposalId);
       await sendReply(req, res, {data: {proposalId, changes}, status: 200});
     }));
 
@@ -1539,24 +1554,10 @@ export class DocWorkerApi {
      * Send a request to the assistant to get completions. Increases the
      * usage of the assistant for the billing account in case of success.
      */
-    this._app.post('/api/docs/:docId/assistant', canView, checkLimit('assistant'),
-      withDoc(async (activeDoc, req, res) => {
+    this._app.post('/api/docs/:docId/assistant', canView, withDoc(async (activeDoc, req, res) => {
         const docSession = docSessionFromRequest(req);
         const request = req.body;
-        const assistant = this._grist.getAssistant();
-        if (!assistant) {
-          throw new Error('Please set OPENAI_API_KEY or ASSISTANT_CHAT_COMPLETION_ENDPOINT');
-        }
-
-        const result = await assistant.getAssistance(docSession, activeDoc, request);
-        const limit = await this._increaseLimit('assistant', req);
-        res.json({
-          ...result,
-          limit: !limit ? undefined : {
-            usage: limit.usage,
-            limit: limit.limit,
-          },
-        });
+        res.json(await activeDoc.getAssistance(docSession, request));
       })
     );
 
@@ -1947,7 +1948,7 @@ export class DocWorkerApi {
   }): Promise<string> {
     const {documentName, workspaceId} = options;
     const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
-      name: documentName ?? 'Untitled document',
+      name: documentName ?? req.t('DocApi.UntitledDocument'),
     });
     if (status !== 200) {
       throw new ApiError(errMessage || 'unable to create document', status);
@@ -2132,22 +2133,6 @@ export class DocWorkerApi {
   }
 
   /**
-   * Creates a middleware that checks the current usage of a limit and rejects the request if it is
-   * exceeded.
-   */
-  private async _checkLimit(limit: LimitType, req: Request, res: Response, next: NextFunction) {
-    await this._dbManager.increaseUsage(getDocScope(req), limit, {dryRun: true, delta: 1});
-    next();
-  }
-
-  /**
-   * Increases the current usage of a limit by 1.
-   */
-  private async _increaseLimit(limit: LimitType, req: Request) {
-    return await this._dbManager.increaseUsage(getDocScope(req), limit, {delta: 1});
-  }
-
-  /**
    * Disallow document creation for anonymous users if GRIST_ANONYMOUS_CREATION is set to false.
    */
   private async _checkAnonymousCreation(req: Request, res: Response, next: NextFunction) {
@@ -2218,55 +2203,6 @@ export class DocWorkerApi {
     return {
       states,
     };
-  }
-
-  /**
-   *
-   * Calculate changes between two document versions identified by leftHash and rightHash.
-   * If rightHash is the latest version of the document, the ActionSummary for it will
-   * contain a copy of updated and added rows.
-   *
-   * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
-   * be lifted, but is adequate for now).
-   *
-   */
-  private async _getChanges(
-    activeDoc: ActiveDoc,
-    options: {
-      states: DocState[];
-      leftHash: string;
-      rightHash: string;
-      maxRows?: number | null;
-    }
-  ): Promise<DocStateComparison> {
-    const { states, leftHash, rightHash, maxRows } = options;
-    const finder = new HashUtil(states);
-    const leftOffset = finder.hashToOffset(leftHash);
-    const rightOffset = finder.hashToOffset(rightHash);
-    if (rightOffset > leftOffset) {
-      throw new Error('Comparisons currently require left to be an ancestor of right');
-    }
-    const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
-    const actions = (await activeDoc.getActions(actionNums)).reverse();
-    let totalAction = createEmptyActionSummary();
-    for (const action of actions) {
-      if (!action) { continue; }
-      const summary = summarizeAction(action, {
-        maximumInlineRows: maxRows,
-      });
-      totalAction = concatenateSummaries([totalAction, summary]);
-    }
-    const result: DocStateComparison = {
-      left: states[leftOffset],
-      right: states[rightOffset],
-      parent: states[leftOffset],
-      summary: (leftOffset === rightOffset) ? 'same' : 'right',
-      details: {
-        leftChanges: {tableRenames: [], tableDeltas: {}},
-        rightChanges: totalAction
-      }
-    };
-    return result;
   }
 
   private async _removeDoc(req: Request, res: Response, permanent: boolean): Promise<QueryResult<Document>> {
@@ -2624,7 +2560,7 @@ export class DocWorkerApi {
     if (showDetails && parent) {
       // Calculate changes from the parent to the current version of this document.
       const leftChanges = (
-        await this._getChanges(activeDoc, {
+        await getChanges(docSession, activeDoc, {
           states,
           leftHash: parent.h,
           rightHash: "HEAD",
@@ -2924,4 +2860,62 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
   return streamXLSX(activeDoc, req, res, options);
+}
+
+
+/**
+ *
+ * Calculate changes between two document versions identified by leftHash and rightHash.
+ * If rightHash is the latest version of the document, the ActionSummary for it will
+ * contain a copy of updated and added rows.
+ *
+ * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
+ * be lifted, but is adequate for now).
+ *
+ */
+export async function getChanges(
+  docSession: OptDocSession,
+  activeDoc: ActiveDoc,
+  options: {
+    states: DocState[];
+    leftHash: string;
+    rightHash: string;
+    maxRows?: number | null;
+  }
+): Promise<DocStateComparison> {
+  // The change calculation currently cannot factor in
+  // granular access rules, so we need broad read rights
+  // to execute it.
+  if (!await activeDoc.canCopyEverything(docSession)) {
+    throw new ApiError('insufficient access', 403);
+  }
+
+  const { states, leftHash, rightHash, maxRows } = options;
+  const finder = new HashUtil(states);
+  const leftOffset = finder.hashToOffset(leftHash);
+  const rightOffset = finder.hashToOffset(rightHash);
+  if (rightOffset > leftOffset) {
+    throw new Error('Comparisons currently require left to be an ancestor of right');
+  }
+  const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
+  const actions = (await activeDoc.getActions(actionNums)).reverse();
+  let totalAction = createEmptyActionSummary();
+  for (const action of actions) {
+    if (!action) { continue; }
+    const summary = summarizeAction(action, {
+      maximumInlineRows: maxRows,
+    });
+    totalAction = concatenateSummaries([totalAction, summary]);
+  }
+  const result: DocStateComparison = {
+    left: states[leftOffset],
+    right: states[rightOffset],
+    parent: states[leftOffset],
+    summary: (leftOffset === rightOffset) ? 'same' : 'right',
+    details: {
+      leftChanges: {tableRenames: [], tableDeltas: {}},
+      rightChanges: totalAction
+    }
+  };
+  return result;
 }

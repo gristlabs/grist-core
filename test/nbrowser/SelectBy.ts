@@ -62,7 +62,7 @@ describe("SelectBy", function() {
         // cases are expected to be simpler, resulting in simpler list of options that are easier to
         // navigate for the user than this one (in particular the `->` separator might rarely show
         // up).
-        formatOption('Select Widget'),
+        formatOption('Select widget'),
         formatOption("TABLE1"),
         formatOption("TABLE1", 'table2_ref'),
         formatOption('TABLE1', 'table3_ref', 'table3_ref'),
@@ -80,7 +80,7 @@ describe("SelectBy", function() {
     await driver.find('.test-wselect-selectby').doClick();
     assert.deepEqual(
       await driver.findAll('.test-wselect-selectby option:not(:first-of-type)', (e) => e.getText()), [
-        formatOption('Select Widget'),
+        formatOption('Select widget'),
         formatOption('TABLE1', 'table2_ref'),
         formatOption('TABLE1', 'table3_ref'),
         formatOption('TABLE1', 'table3_ref_2'),

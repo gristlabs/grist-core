@@ -229,7 +229,7 @@ class SaveCopyModal extends Disposable {
           testId('copy-dest-name'))
       ),
       cssField(
-        cssLabel(t("As Template")),
+        cssLabel(t("As template")),
         cssCheckbox(this._asTemplate, t("Include the structure without any of the data."),
           testId('save-as-template'))
       ),

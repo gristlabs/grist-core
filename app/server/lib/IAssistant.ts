@@ -60,6 +60,10 @@ export interface AssistantV2Options extends AssistantV1Options {
   structuredOutput?: boolean;
 }
 
+export function isAssistantV2(assistant: IAssistant): assistant is AssistantV2 {
+  return assistant.version === 2;
+}
+
 /**
  * Document-related methods for use in the implementation of assistants.
  * Somewhat ad-hoc currently.

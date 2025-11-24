@@ -116,9 +116,9 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   ];
   // Select options for the resource's maxInheritedRole dropdown.
   public readonly inheritSelectOptions: IMemberSelectOption[] = [
-    { value: roles.OWNER,  label: t("In Full")     },
-    { value: roles.EDITOR, label: t("View & Edit") },
-    { value: roles.VIEWER, label: t("View Only")   },
+    { value: roles.OWNER,  label: t("In full")     },
+    { value: roles.EDITOR, label: t("View & edit") },
+    { value: roles.VIEWER, label: t("View only")   },
     { value: null,         label: t("None")        }
   ];
   // Select options for the public member's role dropdown.

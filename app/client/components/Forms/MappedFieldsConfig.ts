@@ -207,7 +207,7 @@ function selectAllLabel(...args: any[]) {
   return cssControlLabel(
     testId('select-all'),
     icon('Tick'),
-    dom('span', t("Select All")),
+    dom('span', t("Select all")),
     ...args
   );
 }

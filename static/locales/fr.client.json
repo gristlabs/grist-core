@@ -10,21 +10,21 @@
         "Invalid": "Invalide",
         "Save": "Enregistrer",
         "Reset": "Annuler",
-        "Add Table Rules": "Ajouter des règles pour la table",
-        "Add User Attributes": "Ajouter des propriétés d'utilisateur",
+        "Add table rules": "Ajouter des règles pour la table",
+        "Add user attributes": "Ajouter des propriétés d'utilisateur",
         "Users": "Utilisateurs",
         "User Attributes": "Propriétés de l'utilisateur",
         "Attribute to Look Up": "Propriété d'appairage",
         "Lookup Table": "Table d'appairage",
         "Lookup Column": "Colonne cible",
-        "Default Rules": "Règles par défaut",
+        "Default rules": "Règles par défaut",
         "Condition": "Condition",
         "Permissions": "Droits",
         "Rules for table ": "Règles pour la table ",
-        "Add Column Rule": "Ajouter une règle de colonne",
+        "Add column rule": "Ajouter une règle de colonne",
         "Add Default Rule": "Ajouter une règle par défaut",
-        "Delete Table Rules": "Supprimer les règles de la table",
-        "Special Rules": "Règles avancées",
+        "Delete table rules": "Supprimer les règles de la table",
+        "Special rules": "Règles avancées",
         "Allow everyone to view Access Rules.": "Autoriser tout le monde à voir les permissions avancées.",
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Permettre à tout le monde de copier le document entier ou de le voir en mode «bac à sable».\nUtile pour faire des exemples et des modèles, mais pas pour des données sensibles.",
         "Permission to view Access Rules": "Permission de voir les règles d'accès",
@@ -36,14 +36,30 @@
         "Enter Condition": "Entrer la condition",
         "Remove {{- name }} user attribute": "Supprimer l'attribut utilisateur {{-name}}",
         "Remove {{- tableId }} rules": "Supprimer les règles pour la table {{-tableId}}",
-        "View As": "Voir en tant que",
+        "View as": "Voir en tant que",
         "Remove column {{- colId }} from {{- tableId }} rules": "Supprimer la colonne {{-colId}} des règles de la table {{-tableId}}",
         "Seed rules": "Règles préconfigurées",
         "When adding table rules, automatically add a rule to grant OWNER full access.": "Pour chaque ajout de règle pour une table, ajouter automatiquement une règle donnant tous les droits au groupe OWNER.",
         "Permission to edit document structure": "Droits d'édition de la structure",
         "This default should be changed if editors' access is to be limited. ": "Cette valeur par défaut doit être modifiée si l'on souhaite limiter l'accès des éditeurs. ",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Autorise les éditeurs à éditer la structure (modifier/supprimer des tables, colonnes, mises en page) et à écrire des formules. Les formules peuvent être éditées et donner accès à l'ensemble des données, quelles que soient les droits d'accès au niveau des tables ou colonnes.",
-        "Add Table-wide Rule": "Ajouter une règle pour l'ensemble du tableau"
+        "Add table-wide rule": "Ajouter une règle pour l'ensemble du tableau",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Les règles d'accès ont changé. Cliquez sur Annuler pour retirer vos changements et rafraîchir les règles.",
+        "All": "Toutes",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "La colonne {{colId}} apparaît dans plusieurs règles pour la table {{tableId}} dont l'application peut dépendre de leur ordre. Peut-être devriez-vous essayer de découper les règles autrement ?",
+        "Columns": "Colonnes",
+        "Condition cannot be blank": "La condition ne peut pas être vide",
+        "Default resource missing in resource map": "La ressource par défaut n'est pas présente parmi les ressources disponibles",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Colonnes invalides dans la table {{tableId}} : {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Table invalide : {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Règle d'attribut utilisateur invalide : {{prop}} doit être défini",
+        "Invalid user attribute to look up": "L'attribut d'utilisateur à rechercher est invalide",
+        "No columns listed in a column rule for table {{tableId}}": "Aucune colonne listée dans une règle de colonne pour la table {{tableId}}",
+        "Not a valid user attribute": "Attribut d'utilisateur non valide",
+        "Resource missing in resource map: {{resourceKey}}": "Ressource absente parmi les ressources disponibles : {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Tentative d'ajout de règles de table pour la table existante {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Utilisez un simple attribut de user.LinkKey, par exemple user.LinkKey.quelquechose",
+        "hidden": "caché"
     },
     "AccountPage": {
         "Account settings": "Paramètres du compte",
@@ -52,9 +68,9 @@
         "Email": "E-mail",
         "Name": "Nom",
         "Save": "Enregistrer",
-        "Password & Security": "Mot de passe et sécurité",
-        "Login Method": "Mode de connexion",
-        "Change Password": "Modifier le mot de passe",
+        "Password & security": "Mot de passe et sécurité",
+        "Login method": "Mode de connexion",
+        "Change password": "Modifier le mot de passe",
         "Allow signing in to this account with Google": "Autoriser la connexion à ce compte avec Google",
         "Two-factor authentication": "Authentification à deux facteurs",
         "Two-factor authentication is an extra layer of security for your Grist account designed to ensure that you're the only person who can access your account, even if someone knows your password.": "L'authentification à double facteur est une couche supplémentaire de sécurité pour votre compte Grist qui permet de s'assurer que vous êtes la seule personne qui peut accéder à votre compte, même si quelqu'un d'autre connaît votre mot de passe.",
@@ -64,23 +80,22 @@
         "Language": "Langue"
     },
     "AccountWidget": {
-        "Sign in": "Connexion",
-        "Document Settings": "Paramètres du document",
+        "Sign in": "Se connecter",
+        "Document settings": "Paramètres du document",
         "Toggle Mobile Mode": "Activer/Désactiver le mode mobile",
         "Pricing": "Tarifs",
-        "Profile Settings": "Paramètres du compte",
-        "Manage Team": "Gestion de l'équipe",
+        "Profile settings": "Paramètres du compte",
+        "Manage team": "Gestion de l'équipe",
         "Access Details": "Informations d’accès",
         "Switch Accounts": "Changer de compte",
         "Accounts": "Comptes",
-        "Add Account": "Ajouter un compte",
-        "Sign Out": "Se déconnecter",
+        "Add account": "Ajouter un compte",
+        "Sign out": "Se déconnecter",
         "Upgrade Plan": "Changer d'offre",
         "Support Grist": "Soutenir Grist",
-        "Billing Account": "Facturation",
+        "Billing account": "Facturation",
         "Activation": "Activer",
-        "Sign In": "Se connecter",
-        "Sign Up": "S'inscrire",
+        "Sign up": "S'inscrire",
         "Use This Template": "Utiliser ce modèle"
     },
     "ActionLog": {
@@ -93,7 +108,7 @@
         "This row was subsequently removed in action {{actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{actionNum}}"
     },
     "AddNewButton": {
-        "Add New": "Nouveau"
+        "Add new": "Nouveau"
     },
     "ApiKey": {
         "You're about to delete an API key. This will cause all future requests using this API key to be rejected. Do you still want to delete?": "Vous êtes sur le point de supprimer une clé API. Cela causera le rejet de toutes les requêtes futures utilisant cette clé API. Voulez-vous toujours la supprimer ?",
@@ -112,13 +127,13 @@
         "Translators: please translate this only when your language is ready to be offered to users": "[TRANSLATED]"
     },
     "AppHeader": {
-        "Home Page": "Page d’accueil",
+        "Home page": "Page d’accueil",
         "Legacy": "Ancienne version",
         "Personal Site": "Espace personnel",
         "Team Site": "Espace d'équipe",
         "Grist Templates": "Modèles Grist",
-        "Billing Account": "Compte de facturation",
-        "Manage Team": "Gestion de l'équipe",
+        "Billing account": "Compte de facturation",
+        "Manage team": "Gestion de l'équipe",
         "{{- organizationName }} - Back to home": "{{- organizationName }} - Retour à l'accueil"
     },
     "AppModel": {
@@ -166,29 +181,29 @@
         "Remove": "Retirer",
         "Symmetric": "Symétrique",
         "Connect gaps": "Relier les points manquants",
-        "Bar Chart": "Graphique en barres",
-        "Donut Chart": "Graphique en anneau",
-        "Area Chart": "Graphique en aires",
-        "Line Chart": "Graphique en courbes",
-        "Scatter Plot": "Nuages de points",
+        "Bar chart": "Graphique en barres",
+        "Donut chart": "Graphique en anneau",
+        "Area chart": "Graphique en aires",
+        "Line chart": "Graphique en courbes",
+        "Scatter plot": "Nuages de points",
         "Invert Y-axis": "Valeurs dans l’ordre inverse",
-        "Show Total": "Afficher le total",
+        "Show total": "Afficher le total",
         "Text Size": "Taille du texte",
         "Aggregate values": "Regrouper par valeurs identiques",
         "SERIES": "SERIES",
-        "Add Series": "Ajouter une série",
+        "Add series": "Ajouter une série",
         "non-numeric columns are not shown": "Les colonnes non numériques ne sont pas affichées",
         "non-numeric column is not shown": "La colonne non numérique n’est pas affichée",
         "Error bars": "Barres d’erreur",
-        "Kaplan-Meier Plot": "Courbe de survie",
+        "Kaplan-Meier plot": "Courbe de survie",
         "Show markers": "Afficher les points",
         "X-AXIS": "AXE HORIZONTAL",
         "Log scale Y-axis": "Échelle logarithmique",
-        "Hole Size": "Taille de l’anneau",
+        "Hole size": "Taille de l’anneau",
         "Stack series": "Empiler les séries",
         "Above+Below": "Asymétrique",
         "selected new x-axis": "Nouvel axe horizontal sélectionné",
-        "Pie Chart": "Diagramme circulaire",
+        "Pie chart": "Diagramme circulaire",
         "LABEL": "LABEL"
     },
     "CodeEditorPanel": {
@@ -205,19 +220,24 @@
         "Search": "Rechercher",
         "Search values": "Chercher",
         "All": "Tous",
-        "All Shown": "Ces valeurs",
-        "All Except": "Pas ces valeurs",
+        "All shown": "Ces valeurs",
+        "All except": "Pas ces valeurs",
         "None": "Aucun",
         "No matching values": "Aucune valeur trouvée",
         "Other Matching": "Autres correspondances",
         "Other Non-Matching": "Autres non-correspondances",
-        "Other Values": "Autres valeurs",
-        "Future Values": "Futures valeurs",
+        "Other values": "Autres valeurs",
+        "Future values": "Futures valeurs",
         "Others": "Autres",
         "Min": "Min",
         "Max": "Max",
         "Start": "Début",
-        "End": "Fin"
+        "End": "Fin",
+        "Clear search": "Effacer la recherche",
+        "Pin filter": "Épingler le filtre",
+        "Sort alphabetically (current: sorted by number of occurrences)": "Trier par ordre alphabétique (actuellement : trié par nombre d'occurrences)",
+        "Sort by number of occurrences (current: sorted alphabetically)": "Trier par nombre d'occurrences (actuellement : trié par ordre alphabétique)",
+        "Unpin filter": "Désépingler le filtre"
     },
     "CustomSectionConfig": {
         "Add": "Ajouter",
@@ -245,28 +265,29 @@
         "Missing description and author information.": "Informations sur la description et sur l'auteur/rice manquantes.",
         "Last updated:": "Dernière mise à jour :",
         "Reject": "Refuser",
-        "Widget": "Widget"
+        "Widget": "Widget",
+        "Change custom widget": "Changer la vue personnalisée"
     },
     "DataTables": {
         "Raw Data Tables": "Données sources",
         "Click to copy": "Cliquez ici pour copier",
         "Table ID copied to clipboard": "Identifiant de table copié",
-        "Duplicate Table": "Dupliquer la table",
+        "Duplicate table": "Dupliquer la table",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
         "Delete {{formattedTableName}} data, and remove it from all pages?": "Supprimer les données de {{formattedTableName}} et les supprimer de toutes les pages ?",
-        "Edit Record Card": "Modifier la vue fiche",
-        "Rename Table": "Renommer la table",
+        "Edit record card": "Modifier la vue fiche",
+        "Rename table": "Renommer la table",
         "{{action}} Record Card": "{{action}} la vue fiche",
         "Record Card": "Vue fiche",
-        "Remove Table": "Supprimer la table",
+        "Remove table": "Supprimer la table",
         "Record Card Disabled": "Vue fiche désactivée"
     },
     "DocHistory": {
         "Activity": "Activité",
         "Snapshots": "Instantanés",
-        "Open Snapshot": "Ouvrir cet instantané",
-        "Compare to Current": "Comparer au document en cours",
-        "Compare to Previous": "Comparer au précédent",
+        "Open snapshot": "Ouvrir cet instantané",
+        "Compare to current": "Comparer au document en cours",
+        "Compare to previous": "Comparer au précédent",
         "Beta": "Bêta",
         "Snapshots are unavailable.": "Les sauvegardes ne sont pas disponibles.",
         "Only owners have access to snapshots for documents with access rules.": "Seuls les propriétaires ont accès aux instantanés des documents soumis à des règles d'accès."
@@ -275,7 +296,7 @@
         "Other Sites": "Autres espaces",
         "You are on the {{siteName}} site. You also have access to the following sites:": "Tu es sur l'espace de {{siteName}}. Tu as aussi accès aux espaces suivants :",
         "You are on your personal site. You also have access to the following sites:": "Tu es sur ton espace personnel. Tu as aussi accès aux espaces suivants :",
-        "All Documents": "Tous les documents",
+        "All documents": "Tous les documents",
         "Examples and Templates": "Exemples et modèles",
         "More Examples and Templates": "Plus d’exemples et de modèles",
         "This service is not available right now": "Ce service n'est pas disponible pour le moment",
@@ -301,7 +322,7 @@
         "Unpin Document": "Désépingler le document",
         "Pin Document": "Épingler le document",
         "Access Details": "Informations d’accès",
-        "Manage Users": "Gérer les utilisateurs",
+        "Manage users": "Gérer les utilisateurs",
         "Permanently Delete \"{{name}}\"?": "Supprimer définitivement « {{name}} » ?",
         "Delete Forever": "Supprimer définitivement",
         "Document will be permanently deleted.": "Le document sera supprimé définitivement.",
@@ -314,7 +335,9 @@
         "Any documents created in this site will appear here.": "Tout document créé dans cet espace apparaîtra ici.",
         "Create my first document": "Créer mon premier document",
         "You have read-only access to this site. Currently there are no documents.": "Vous avez accès en lecture seule à cet espace. Actuellement il n'y a aucun document.",
-        "personal site": "espace personnel"
+        "personal site": "espace personnel",
+        "Grid view": "Vue icônes",
+        "List view": "Vue liste"
     },
     "DocPageModel": {
         "Error accessing document": "Erreur lors de l'accès au document",
@@ -323,9 +346,9 @@
         "Sorry, access to this document has been denied. [{{error}}]": "Désolé, l’accès à ce document a été refusé. [{{error}}]",
         "Document owners can attempt to recover the document. [{{error}}]": "Les propriétaires de documents peuvent tenter de récupérer le document. [{{error}}]",
         "Enter recovery mode": "Passer en mode récupération",
-        "Add Page": "Ajouter une page",
-        "Add Widget to Page": "Ajouter une vue à la page",
-        "Add Empty Table": "Ajouter une table vide",
+        "Add page": "Ajouter une page",
+        "Add widget to page": "Ajouter une vue à la page",
+        "Add empty table": "Ajouter une table vide",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
         "Please reload the document and if the error persist, contact the document owners to attempt a document recovery. [{{error}}]": "Veuillez recharger le document et si l'erreur persiste, contactez les propriétaires du document pour tenter une récupération du document. [{{error}}]"
     },
@@ -334,7 +357,7 @@
         "Cannot construct a document tour from the data in this document. Ensure there is a table named GristDocTour with columns Title, Body, Placement, and Location.": "Impossible de construire un index à partir des données de ce document. Assurez-vous qu'il y ai bien une table nommée GristDocTour, avec des colonnes Title, Body, Placement et Location."
     },
     "DocumentSettings": {
-        "Document Settings": "Paramètres du document",
+        "Document settings": "Paramètres du document",
         "This document's ID (for API use):": "ID du document (pour l’API seulement) :",
         "Time Zone:": "Fuseau horaire :",
         "Locale:": "Langue :",
@@ -348,16 +371,15 @@
         "Ok": "OK",
         "Manage Webhooks": "Gérer les points d’ancrage Web",
         "Webhooks": "Points d’ancrage Web",
-        "API Console": "Console de l'API",
+        "API console": "Console de l'API",
         "Reload": "Recharger",
         "Python": "Python",
         "API URL copied to clipboard": "URL de l'API copié",
-        "API console": "Console de l'API",
         "API documentation.": "Documentation de l'API.",
         "Coming soon": "Prochainement",
         "Copy to clipboard": "Copier dans le presse-papier",
         "Currency": "Devise",
-        "Data Engine": "Moteur de données",
+        "Data engine": "Moteur de données",
         "Default for DateTime columns": "Valeur par défaut pour les colonnes Date et Heure",
         "Document ID": "ID du Document",
         "For currency columns": "Pour les colonnes de devises",
@@ -373,7 +395,7 @@
         "Find slow formulas": "Trouver les formules lentes",
         "python2 (legacy)": "python2 (ancien)",
         "Try API calls from the browser": "Essayer les appels API à partir du navigateur",
-        "Time Zone": "Fuseau horaire",
+        "Time zone": "Fuseau horaire",
         "python3 (recommended)": "python3 (recommandé)",
         "Start timing": "Début du chrono",
         "Time reload": "Durée du rechargement",
@@ -425,12 +447,16 @@
         "Upload": "Importer",
         "Default": "Classique",
         "Default, template, or tutorial": "Classique, modèle ou tutoriel",
-        "Document type": "Type de document"
+        "Document type": "Type de document",
+        "Allow others to suggest changes": "Permettez aux autres de suggérer des changements",
+        "Enable suggestions": "Activer les suggestions",
+        "Suggestions": "Suggestions",
+        "experiment": "expérimentation"
     },
     "DocumentUsage": {
         "Usage statistics are only available to users with full access to the document data.": "Les statistiques d'utilisation ne sont accessibles qu'aux utilisateurs ayant un accès complet aux données du document.",
-        "Attachments Size": "Taille des pièces jointes",
-        "Data Size": "Taille des données",
+        "Size of attachments": "Taille des pièces jointes",
+        "Data size": "Taille des données",
         "Usage": "Utilisation",
         "Contact the site owner to upgrade the plan to raise limits.": "Contactez l’administrateur pour mettre à niveau le plan afin de relever les limites.",
         "start your 30-day free trial of the Pro plan.": "démarrer votre essai gratuit de 30 jours pour le plan Pro.",
@@ -464,12 +490,12 @@
     "FieldConfig": {
         "COLUMN LABEL AND ID": "LABEL ET ID DE LA COLONNE",
         "Column options are limited in summary tables.": "Les options des colonnes sont limitées dans les tableaux récapitulatifs.",
-        "Formula Columns_one": "Colonne formule",
-        "Data Columns_one": "Colonne de données",
-        "Empty Columns_one": "Colonne vide",
-        "Formula Columns_other": "Colonnes formule",
-        "Data Columns_other": "Colonnes de données",
-        "Empty Columns_other": "Colonnes vides",
+        "Formula columns_one": "Colonne formule",
+        "Data columns_one": "Colonne de données",
+        "Empty columns_one": "Colonne vide",
+        "Formula columns_other": "Colonnes formule",
+        "Data columns_other": "Colonnes de données",
+        "Empty columns_other": "Colonnes vides",
         "Mixed Behavior": "Comportement mixte",
         "Clear and make into formula": "Effacer et transformer en formule",
         "Convert column to data": "Convertir la colonne en données",
@@ -491,7 +517,11 @@
         "Revert to common settings": "Revenir aux paramètres communs"
     },
     "FilterConfig": {
-        "Add Column": "Ajouter une colonne"
+        "Add column": "Ajouter une colonne",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "Épingler le filtre - colonne {{- columnName}} (actuellement: désépinglé)",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "Désépingler le filtre - colonne {{- columnName}} (actuellement : épinglé)",
+        "remove filter - {{- columnName}} column": "supprimer le filtre - colonne {{- columnName}}",
+        "{{- columnName }} column filters": "filtres de la colonne {{- columnName }}"
     },
     "FilterBar": {
         "SearchColuns": "Rechercher",
@@ -500,12 +530,12 @@
     },
     "GridOptions": {
         "Grid Options": "Options de la grille",
-        "Vertical Gridlines": "Grille verticale",
-        "Horizontal Gridlines": "Grille horizontale",
-        "Zebra Stripes": "Couleurs alternées"
+        "Vertical gridlines": "Grille verticale",
+        "Horizontal gridlines": "Grille horizontale",
+        "Zebra stripes": "Couleurs alternées"
     },
     "GridViewMenus": {
-        "Add Column": "Ajouter une colonne",
+        "Add column": "Ajouter une colonne",
         "Show column {{- label}}": "Afficher la colonne {{- label}}",
         "Column Options": "Options de la colonne",
         "Filter Data": "Filtrer les données",
@@ -559,7 +589,6 @@
         "Add column with type": "Ajouter une colonne de type",
         "Created by": "Créé par",
         "Created at": "Créé à",
-        "Add column": "Ajouter une colonne",
         "Last updated by": "Dernière mise à jour par",
         "Detect duplicates in...": "Détecter les duplicats dans...",
         "Last updated at": "Dernière mise à jour",
@@ -600,8 +629,8 @@
         "Help Center": "Centre d'aide",
         "Invite Team Members": "Inviter un nouveau membre à l'espace d'équipe",
         "Browse Templates": "Parcourir les modèles",
-        "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un document",
+        "Create empty document": "Créer un document vide",
+        "Import document": "Importer un document",
         "Visit our {{link}} to learn more.": "Consulter le {{link}} pour en savoir plus.",
         "{{signUp}} to save your work. ": "{{signUp}} pour enregistrer votre travail. ",
         "Welcome to Grist, {{- name}}!": "Bienvenue sur Grist, {{- name}} !",
@@ -613,18 +642,18 @@
         "Only show documents": "Afficher des documents seulement"
     },
     "HomeLeftPane": {
-        "All Documents": "Tous les documents",
+        "All documents": "Tous les documents",
         "Examples & Templates": "Modèles",
-        "Create Empty Document": "Créer un document vide",
-        "Import Document": "Importer un document",
-        "Create Workspace": "Créer un nouveau dossier",
+        "Create empty document": "Créer un document vide",
+        "Import document": "Importer un document",
+        "Create workspace": "Créer un nouveau dossier",
         "Trash": "Corbeille",
         "Rename": "Renommer",
         "Delete": "Supprimer",
         "Workspaces": "Dossiers",
         "Delete {{workspace}} and all included documents?": "Supprimer le dossier {{workspace}} et tous les documents qu'il contient ?",
         "Workspace will be moved to Trash.": "Le dossier va être mis à la corbeille.",
-        "Manage Users": "Gérer les utilisateurs",
+        "Manage users": "Gérer les utilisateurs",
         "Access Details": "Détails d'accès",
         "Tutorial": "Tutoriel",
         "Terms of service": "CGU",
@@ -676,7 +705,7 @@
         "No destination workspace": "Aucun dossier destination",
         "Name": "Nom",
         "Enter document name": "Saisir le nom du document",
-        "As Template": "Comme modèle",
+        "As template": "Comme modèle",
         "Include the structure without any of the data.": "Inclure la structure sans les données.",
         "Organization": "Organisation",
         "You do not have write access to this site": "Vous n’avez pas d'accès en écriture à cet espace",
@@ -721,10 +750,12 @@
     },
     "PageWidgetPicker": {
         "Building {{- label}} widget": "Vue {{- label}} en construction",
-        "Select Widget": "Choisir la vue",
-        "Select Data": "Choisir les données source",
+        "Select widget": "Choisir la vue",
+        "Select data": "Choisir les données source",
         "Group by": "Grouper par",
-        "Add to Page": "Ajouter à la Page"
+        "Add to page": "Ajouter à la Page",
+        "New Table": "Nouvelle Table",
+        "SELECT BY": "SÉLECTIONNÉ PAR"
     },
     "Pages": {
         "The following tables will no longer be visible_one": "La donnée source ne sera plus visible",
@@ -736,9 +767,9 @@
         "Document pages": "Pages du document"
     },
     "PermissionsWidget": {
-        "Allow All": "Tout autoriser",
-        "Deny All": "Tout refuser",
-        "Read Only": "Lecture seule"
+        "Allow all": "Tout autoriser",
+        "Deny all": "Tout refuser",
+        "Read only": "Lecture seule"
     },
     "PluginScreen": {
         "Import failed: ": "Échec de l'importation : "
@@ -747,43 +778,42 @@
         "Updating record layout.": "Mise à jour de la disposition."
     },
     "RecordLayoutEditor": {
-        "Add Field": "Ajouter un champ",
-        "Create New Field": "Créer un nouveau champ",
+        "Add field": "Ajouter un champ",
+        "Create new field": "Créer un nouveau champ",
         "Show field {{- label}}": "Afficher le champ {{- label}}",
-        "Save Layout": "Enregistrer cette disposition",
+        "Save layout": "Enregistrer cette disposition",
         "Cancel": "Annuler"
     },
     "RefSelect": {
-        "Add Column": "Ajouter une colonne",
+        "Add column": "Ajouter une colonne",
         "No columns to add": "Aucune colonne à ajouter"
     },
     "RightPanel": {
-        "Columns_one": "Colonne",
-        "Columns_other": "Colonnes",
-        "Fields_one": "Champ",
-        "Fields_other": "Champs",
-        "Series_one": "Série",
-        "Series_other": "Séries",
+        "columns_one": "Colonne",
+        "columns_other": "Colonnes",
+        "fields_one": "Champ",
+        "fields_other": "Champs",
+        "series_one": "Série",
+        "series_other": "Séries",
         "COLUMN TYPE": "TYPE DE COLONNE",
         "TRANSFORM": "TRANSFORMER",
         "Widget": "Vue",
-        "Sort & Filter": "Trier et Filtrer",
+        "Sort & filter": "Trier et Filtrer",
         "Data": "Données source",
         "DATA TABLE NAME": "NOM DE LA TABLE",
         "WIDGET TITLE": "TITRE DE LA VUE",
-        "Change Widget": "Modifier la vue",
+        "Change widget": "Modifier la vue",
         "Theme": "Thème",
-        "ROW STYLE": "ASPECT DE LA LIGNE",
-        "Row Style": "Aspect de la ligne",
+        "Row style": "Aspect de la ligne",
         "CHART TYPE": "TYPE DE GRAPHIQUE",
         "CUSTOM": "PERSONNALISÉ",
         "DATA TABLE": "DONNÉES SOURCE",
         "SOURCE DATA": "DONNÉES SOURCE",
         "GROUPED BY": "GROUPER PAR",
-        "Edit Data Selection": "Données source",
+        "Edit data selection": "Données source",
         "Detach": "Détacher",
         "SELECT BY": "SÉLECTIONNER PAR",
-        "Select Widget": "Choisir la vue",
+        "Select widget": "Choisir la vue",
         "SELECTOR FOR": "SÉLECTEUR POUR",
         "Save": "Enregistrer",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
@@ -809,7 +839,8 @@
         "No field selected": "Aucun champ sélectionné",
         "Select a field in the form widget to configure.": "Sélectionnez un champ du formulaire à configurer.",
         "Submit": "Valider",
-        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée."
+        "Thank you! Your response has been recorded.": "Merci ! Votre réponse a été enregistrée.",
+        "Chart options": "Options du graphique"
     },
     "RowContextMenu": {
         "Insert row": "Insérer une ligne",
@@ -826,19 +857,19 @@
         "Copied to clipboard": "Copié dans le presse-papier"
     },
     "ShareMenu": {
-        "Back to Current": "Retour à la version active",
+        "Back to current": "Retour à la version active",
         "Save Document": "Enregistrer le document",
-        "Save Copy": "Enregistrer une copie",
+        "Save copy": "Enregistrer une copie",
         "Unsaved": "Non enregistré",
-        "Duplicate Document": "Dupliquer le document",
-        "Manage Users": "Gérer les utilisateurs",
+        "Duplicate document": "Dupliquer le document",
+        "Manage users": "Gérer les utilisateurs",
         "Access Details": "Informations d’accès",
         "Current Version": "Version actuelle",
         "Original": "Original",
         "Return to {{termToUse}}": "Revenir à {{termToUse}}",
         "Replace {{termToUse}}...": "Remplacer {{termToUse}}…",
         "Compare to {{termToUse}}": "Comparer avec {{termToUse}}",
-        "Work on a Copy": "Travailler sur une copie",
+        "Work on a copy": "Travailler sur une copie",
         "Edit without affecting the original": "Éditer sans affecter l'original",
         "Show in folder": "Afficher dans le répertoire",
         "Download": "Télécharger",
@@ -854,19 +885,27 @@
         "Tab Separated Values (.tsv)": "Valeurs séparées par des tabulations (.tsv)",
         "Download document...": "Télécharger le document...",
         "Download attachments...": "Télécharger les PJ...",
-        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer."
+        "Exporting is only available from document pages. Please select a document page and try again.": "L'export n'est possible qu'à partir des pages du document. Veuillez sélectionner une page du document et réessayer.",
+        "Suggest Changes": "Suggérer des modifications",
+        "current version": "version actuelle",
+        "original": "original"
     },
     "SiteSwitcher": {
         "Switch Sites": "Changer d’espace",
         "Create new team site": "Créer un nouvel espace d'équipe"
     },
     "SortConfig": {
-        "Add Column": "Ajouter une colonne",
-        "Update Data": "Mettre à jour les données",
+        "Add column": "Ajouter une colonne",
+        "Update data": "Mettre à jour les données",
         "Use choice position": "Utiliser l'ordre des choix",
         "Natural sort": "Trier",
         "Empty values last": "Valeurs vides en dernier",
-        "Search Columns": "Rechercher dans les colonnes"
+        "Search Columns": "Rechercher dans les colonnes",
+        "Remove sort setting - {{- columnName }} column": "Supprimer l'option de tri - colonne {{- columnName }}",
+        "Sort in ascending order (current: descending)": "Trier par ordre croissant (actuellement : ordre décroissant)",
+        "Sort in descending order (current: ascending)": "Trier par ordre décroissant (actuellement : ordre croissant)",
+        "Sort options - {{- columnName }} column": "Options de tri - colonne {{- columnName }}",
+        "{{- columnName }} column": "colonne {{- columnName }}"
     },
     "SortFilterConfig": {
         "Save": "Enregistrer",
@@ -882,24 +921,25 @@
     "Tools": {
         "TOOLS": "OUTILS",
         "Access Rules": "Permissions avancées",
-        "Document History": "Historique du document",
+        "Document history": "Historique du document",
         "Validate Data": "Valider les données",
-        "Code View": "Vue du code",
+        "Code view": "Vue du code",
         "How-to Tutorial": "Tutoriel pratique",
         "Tour of this Document": "Découvrir le document",
         "Delete document tour?": "Supprimer la visite guidée du document ?",
         "Delete": "Supprimer",
         "Return to viewing as yourself": "Revenir à une vue en propre",
-        "Raw Data": "Données source",
+        "Raw data": "Données source",
         "Settings": "Paramètres",
-        "API Console": "Console de l'API",
+        "API console": "Console de l'API",
         "context menu - Access Rules": "menu contextuel - Règles d'Accès",
         "Delete document tour": "Supprimer la visite de document",
         "Preview the tutorial": "Prévisualiser le tutoriel",
-        "Proposed Changes": "Suggestions de modifications"
+        "Proposed Changes": "Suggestions de modifications",
+        "Suggest Changes": "Suggérer des modifications",
+        "Suggestions": "Suggestions"
     },
     "TopBar": {
-        "Manage Team": "Gestion de l'équipe",
         "Manage team": "Gérer les équipes"
     },
     "TriggerFormulas": {
@@ -924,9 +964,9 @@
         "Editor": "Éditeur",
         "Viewer": "Lecture seule",
         "No Default Access": "Pas d’accès par défaut",
-        "In Full": "Tous les accès",
-        "View & Edit": "Lecture et écriture",
-        "View Only": "Lecture seule",
+        "In full": "Tous les accès",
+        "View & edit": "Lecture et écriture",
+        "View only": "Lecture seule",
         "None": "Aucun"
     },
     "ValidationPanel": {
@@ -941,7 +981,7 @@
         "Form": "Formulaire",
         "Compact": "Compact",
         "Blocks": "Blocs",
-        "Edit Card Layout": "Disposition de la fiche",
+        "Edit card layout": "Disposition de la fiche",
         "Plugin: ": "Plugin : ",
         "Section: ": "Section : ",
         "On-Demand Tables have been deprecated due to lack of functionality and usability concerns.": "Les tables à la demande ne sont plus disponibles en raison d'un manque de fonctionnalités et de problèmes d'UX.",
@@ -954,9 +994,9 @@
         "Print widget": "Imprimer la vue",
         "Download as CSV": "Télécharger en CSV",
         "Download as XLSX": "Télécharger en XLSX",
-        "Edit Card Layout": "Disposition de la fiche",
+        "Edit card layout": "Disposition de la fiche",
         "Widget options": "Options de la vue",
-        "Advanced Sort & Filter": "Tri et filtre avancés",
+        "Advanced sort & filter": "Tri et filtre avancés",
         "Data selection": "Sélection des données",
         "Open configuration": "Ouvrir la configuration",
         "Delete widget": "Supprimer la vue",
@@ -974,17 +1014,20 @@
         "(empty)": "(vide)",
         "Custom options": "Options personnalisées",
         "SORT": "TRI",
-        "FILTER": "FILTRE"
+        "FILTER": "FILTRE",
+        "Sort and filter": "Trier et filtrer"
     },
     "VisibleFieldsConfig": {
         "Hidden Fields cannot be reordered": "Les champs masqués ne peuvent pas être réordonnés",
         "Cannot drop items into Hidden Fields": "Impossible de mettre des éléments dans les champs cachés",
-        "Select All": "Sélectionner tout",
+        "Select all": "Sélectionner tout",
         "Clear": "Effacer",
         "Visible {{label}}": "{{label}} visible",
         "Hide {{label}}": "Cacher {{label}}",
         "Show {{label}}": "Montrer {{label}}",
-        "Hidden {{label}}": "{{label}} caché"
+        "Hidden {{label}}": "{{label}} caché",
+        "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
+        "Show {{label}} (batch mode)": "Montrer {{label}} (mode groupé)"
     },
     "WelcomeQuestions": {
         "Welcome to Grist!": "Bienvenue sur Grist !",
@@ -1016,7 +1059,10 @@
         "unsaved": "non enregistré",
         "recovery mode": "mode récupération",
         "override": "remplacer",
-        "fiddle": "bac à sable"
+        "fiddle": "bac à sable",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Vous pouvez apporter des modifications,\nmais elles n'affecteront pas le document original.\nVous pouvez les soumettre à titre de suggestions.",
+        "editing": "édition",
+        "suggesting": "suggestion"
     },
     "duplicatePage": {
         "Note that this does not copy data, but creates another view of the same data.": "Notez que cette opération ne duplique pas les données, mais crée une autre page avec les mêmes données.",
@@ -1048,7 +1094,20 @@
         "Powered by": "Créé avec",
         "An unknown error occurred.": "Une erreur inconnue s'est produite.",
         "Sign-in failed{{suffix}}": "Échec de l'authentification{{suffix}}",
-        "Failed to log in.{{separator}}Please try again or contact support.": "Échec de la connexion.{{separator}}Merci de retenter ou contacter le support."
+        "Failed to log in.{{separator}}Please try again or contact support.": "Échec de la connexion.{{separator}}Merci de retenter ou contacter le support.",
+        "Manage settings": "Gérer les paramètres",
+        "Need Help?": "Besoin d'aide ?",
+        "There was an error": "Une erreur s'est produite",
+        "We could not unsubscribe you": "Nous n'avons pas pu vous désabonner",
+        "You are unsubscribed": "Vous êtes désabonné·e",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Vous pouvez toujours vous désabonner de ce document en mettant à jour vos préférences dans les paramètres du document",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications à l'adresse {{email}} concernant les {{changes}} apportés à {{docName}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Vous ne recevrez plus de notifications à l'adresse {{email}} concernant les {{comments}} dans {{docName}}.",
+        "changes": "modifications",
+        "comments": "commentaires",
+        "this document": "ce document",
+        "your email": "votre email",
+        "Unsubscribed{{suffix}}": "Désabonné{{suffix}}"
     },
     "menus": {
         "Select fields": "Sélectionner les champs",
@@ -1092,7 +1151,7 @@
     "pages": {
         "Rename": "Renommer",
         "Remove": "Supprimer",
-        "Duplicate Page": "Dupliquer la page",
+        "Duplicate page": "Dupliquer la page",
         "You do not have edit access to this document": "Vous n’avez pas accès en écriture à ce document",
         "(default)": "(par défaut)",
         "Collapse {{maybeDefault}}": "Fermer {{maybeDefault}}",
@@ -1106,7 +1165,8 @@
         "No results": "Aucun résultat",
         "Find Next ": "Rechercher suivant ",
         "Find Previous ": "Rechercher le précédent ",
-        "Search": "Chercher"
+        "Search": "Chercher",
+        "Close search bar": "Fermer la barre de recherche"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Envoi en cours vers Google Drive"
@@ -1120,7 +1180,7 @@
         "Field Format": "Format du champ"
     },
     "ViewAsDropdown": {
-        "View As": "Voir en tant que",
+        "View as": "Voir en tant que",
         "Example Users": "Utilisateurs d'exemple",
         "Users from table": "Utilisateurs de la table d'appairage"
     },
@@ -1132,7 +1192,7 @@
     },
     "CellStyle": {
         "Open row styles": "Ouvrir les styles de ligne",
-        "Cell Style": "Style de cellule",
+        "Cell style": "Style de cellule",
         "CELL STYLE": "STYLE de CELLULE",
         "Default cell style": "Style par défaut de la cellule",
         "Mixed style": "Style composite",
@@ -1164,7 +1224,7 @@
         "{{count}} comments_other": "{{count}} commentaires"
     },
     "FieldBuilder": {
-        "Apply Formula to Data": "Appliquer la formule",
+        "Apply formula to data": "Appliquer la formule",
         "DATA FROM TABLE": "DONNÉES DE LA TABLE",
         "CELL FORMAT": "FORMAT DE CELLULE",
         "Mixed types": "Types composites",
@@ -1183,7 +1243,7 @@
         "Customizing columns": "Personnaliser les colonnes",
         "template library": "Bibliothèque de modèles",
         "Share": "Partager",
-        "Add New": "Nouveau",
+        "Add new": "Nouveau",
         "Building up": "En construction",
         "Configuring your document": "Configuration de votre document",
         "Double-click or hit {{enter}} on a cell to edit it. ": "Double-cliquer ou appuyer sur {{enter}} sur une cellule pour la modifier ",
@@ -1220,7 +1280,7 @@
     "ACLUsers": {
         "Example Users": "Utilisateurs tests",
         "Users from table": "Utilisateurs de la table d'appairage",
-        "View As": "Voir en tant que",
+        "View as": "Voir en tant que",
         "Other users from table": "Autres utilisateurs de la table",
         "Shared users": "Utilisateurs partagés"
     },
@@ -1228,10 +1288,11 @@
         "Add conditional style": "Ajouter un style conditionnel",
         "Add another rule": "Ajouter une autre règle",
         "Error in style rule": "Erreur dans la règle de style",
-        "Row Style": "Style de ligne",
+        "Row style": "Style de ligne",
         "Rule must return True or False": "La règle doit retourner Vrai ou Faux",
         "Conditional Style": "Style conditionnel",
-        "IF...": "SI..."
+        "IF...": "SI...",
+        "Row Style": "Style de ligne"
     },
     "CurrencyPicker": {
         "Invalid currency": "Devise invalide"
@@ -1303,7 +1364,7 @@
         "Rearrange the fields in your card by dragging and resizing cells.": "Réorganisez les champs de votre vue fiche en faisant glisser et en redimensionnant les cellules.",
         "The Raw Data page lists all data tables in your document, including summary tables and tables not included in page layouts.": "La page des données sources liste toutes les tables de votre document, y compris les tables récapitulatives et les tables non-inclues dans les mises en page.",
         "The total size of all data in this document, excluding attachments.": "La taille totale de toutes les données de ce document, à l'exclusion des pièces jointes.",
-        "Click the Add New button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents ou dossiers, ou importer des données.",
+        "Click the Add new button to create new documents or workspaces, or import data.": "Cliquez sur le bouton Nouveau pour créer de nouveaux documents ou dossiers, ou importer des données.",
         "Clicking {{EyeHideIcon}} in each cell hides the field from this view without deleting it.": "En cliquant sur {{EyeHideIcon}} dans chaque cellule, vous masquez le champ de cette vue sans le supprimer.",
         "Editing Card Layout": "Modification de la mise en page de la fiche",
         "Linking Widgets": "Lier les vues",
@@ -1321,7 +1382,7 @@
         "Access Rules": "Règles d'accès",
         "Learn more.": "En savoir plus.",
         "They allow for one record to point (or refer) to another.": "Ils permettent à une ligne de pointer (ou de faire référence) vers une autre.",
-        "Add New": "Nouveau",
+        "Add new": "Nouveau",
         "Access rules give you the power to create nuanced rules to determine who can see or edit which parts of your document.": "Les règles d'accès vous donnent le pouvoir de créer des règles nuancées pour déterminer qui peut voir ou modifier quelles parties de votre document.",
         "Use the 𝚺 icon to create summary (or pivot) tables, for totals or subtotals.": "Utilisez l'icône 𝚺 pour créer des tables récapitulatives (ou tables croisées dynamiques), pour les totaux ou les sous-totaux.",
         "Unpin to hide the the button while keeping the filter.": "Détachez pour cacher le bouton tout en conservant le filtre.",
@@ -1366,7 +1427,9 @@
         "Set the maximum number of lines for multi-line text.": "Définir le nombre maximum de lignes pour un texte multi-ligne.",
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ce formulaire a été créé par un utilisateur de Grist. Il n'est pas validé par Grist Labs ni aucune des parties fournissant ce service. Pour votre sécurité, ne fournissez pas vos mots de passe via ce formulaire, et faites attention quand vous cliquez sur des liens. Rapportez les formulaires malveillants à [{{mail}}](mailto:{{mail}}).",
         "Comments are here!": "Les commentaires sont ici !",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Vous pouvez-ajouter des commentaires aux cellules, répondre aux fils de commentaires, et @-mentionner les collaborateurs."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Vous pouvez-ajouter des commentaires aux cellules, répondre aux fils de commentaires, et @-mentionner les collaborateurs.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Lorsqu'il est coché, la valeur par défaut de ce champ peut-être préremplie à partir de l'URL en utilisant ses paramètres de requête.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "Avec les suggestions, les utilisateurs font des modifications dans une copie personnelle sans modifier le document original, puis ils soumettent ces suggestions à la revue du propriétaire du document avant leur intégration."
     },
     "ColumnTitle": {
         "Add description": "Ajouter une description",
@@ -1380,10 +1443,11 @@
         "Close": "Fermer"
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "DESCRIPTION"
+        "DESCRIPTION": "DESCRIPTION",
+        "Set description": "Mettre une description"
     },
     "PagePanels": {
-        "Open Creator Panel": "Ouvrir le panneau de création",
+        "Open creator panel": "Ouvrir le panneau de création",
         "Close Creator Panel": "Fermer le panneau de création",
         "Creator panel (right panel)": "Panneau de création (panneau latéral droit)",
         "Document header": "En-tête du document",
@@ -1407,8 +1471,8 @@
         "Comment": "Commentaire"
     },
     "WebhookPage": {
-        "Clear Queue": "Effacer la file d'attente",
-        "Webhook Settings": "Paramètres des points d’ancrage Web",
+        "Clear queue": "Effacer la file d'attente",
+        "Webhook settings": "Paramètres des points d’ancrage Web",
         "Cleared webhook queue.": "Effacement de la file d'attente du point d'ancrage Web.",
         "Columns to check when update (separated by ;)": "Colonnes à vérifier lors de la mise à jour (séparées par des ;)",
         "Event Types": "Types d'événements",
@@ -1446,8 +1510,8 @@
         "Hi, I'm the Grist Formula AI Assistant.": "Bonjour, je suis l'assistant IA de Grist pour les formules.",
         "I can only help with formulas. I cannot build tables, columns, and views, or write access rules.": "Je ne peux aider que pour les formules, je ne peux pas créer de tables, de colonnes, de vues ou gérer les droits d'accès.",
         "Learn more": "En apprendre plus",
-        "Clear Conversation": "Effacer la conversation",
-        "Code View": "Vue du code",
+        "Clear conversation": "Effacer la conversation",
+        "Code view": "Vue du code",
         "Press Enter to apply suggested formula.": "Appuyer sur entrer pour appliquer la formule suggérée.",
         "Sign Up for Free": "S'inscrire gratuitement",
         "Sign up for a free Grist account to start using the Formula AI Assistant.": "Créez un compte Grist gratuit pour commencer à utiliser l'assistant IA des formules.",
@@ -1522,7 +1586,7 @@
         "User inherits permissions from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'utilisateur hérite des autorisations de {{parent}}. Pour les supprimer, réglez l'option \"Hériter de l'accès\" sur \"Aucun\".",
         "team site": "espace d'équipe",
         "Collaborator": "Collaborateur",
-        "Copy Link": "Copier le lien",
+        "Copy link": "Copier le lien",
         "Create a team to share with more people": "Créer une équipe pour partager avec plus de personnes",
         "Grist support": "Support utilisateur Grist",
         "Guest": "Invité",
@@ -1536,7 +1600,6 @@
         "Once you have removed your own access,             you will not be able to get it back without assistance              from someone else with sufficient access to the {{name}}.": "Une fois que vous avez supprimé votre propre accès, vous ne pourrez pas le récupérer sans l'aide d'une autre personne disposant d'un accès suffisant à {{name}}.",
         "Open Access Rules": "Ouvrir les règles d'accès",
         "Outside collaborator": "Collaborateur externe",
-        "Public Access": "Accès public",
         "Public access": "Accès public",
         "Public access inherited from {{parent}}. To remove, set 'Inherit access' option to 'None'.": "L'accès public est hérité de {{parent}}. Pour le supprimer, changer l'option 'Accès hérité' à 'Aucun'.",
         "Public access: ": "Accès public : ",
@@ -1561,7 +1624,8 @@
         "Search all pages": "Rechercher dans toutes les pages"
     },
     "searchDropdown": {
-        "Search": "Chercher"
+        "Search": "Chercher",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "Affichage de {{displayedCount}} éléments sur {{totalCount}}. Rechercher pour plus de résultats."
     },
     "DescriptionTextArea": {
         "DESCRIPTION": "DESCRIPTION"
@@ -1641,7 +1705,7 @@
     },
     "UnmappedFieldsConfig": {
         "Mapped": "Utilisé",
-        "Select All": "Tout sélectionner",
+        "Select all": "Tout sélectionner",
         "Unmap fields": "Champs non utilisés",
         "Unmapped": "Non utilisé",
         "Clear": "Effacer",
@@ -1660,7 +1724,10 @@
         "Options Sort Order": "Option d'ordonnancement",
         "Vertical": "Verticale",
         "Radio": "Radio",
-        "Select": "Sélectionner"
+        "Select": "Sélectionner",
+        "Accept value from URL": "Accepter une valeur depuis l'URL",
+        "Hidden field": "Champ caché",
+        "URL parameter:\n{{colId}}=VALUE": "Paramètre d'URL :\n{{colId}}=VALEUR"
     },
     "Editor": {
         "Delete": "Supprimer"
@@ -1697,7 +1764,7 @@
         "Last 30 days": "30 derniers jours",
         "Next 7 days": "7 prochains jours",
         "Last 7 days": "7 derniers jours",
-        "Last Week": "Semaine passée",
+        "Last week": "Semaine passée",
         "This month": "Ce mois-ci",
         "This week": "Cette semaine",
         "This year": "Cette année",
@@ -1705,11 +1772,15 @@
     },
     "MappedFieldsConfig": {
         "Mapped": "Utilisé",
-        "Select All": "Sélectionner tout",
+        "Select all": "Sélectionner tout",
         "Unmap fields": "Champs non utilisés",
         "Map fields": "Champs utilisés",
         "Clear": "Effacer",
-        "Unmapped": "Non utilisé"
+        "Unmapped": "Non utilisé",
+        "Hide {{label}}": "Masquer {{label}}",
+        "Hide {{label}} (batch mode)": "Masquer {{label}} (mode groupé)",
+        "Unmap {{label}}": "Désélectionner {{label}}",
+        "Unmap {{label}} (batch mode)": "Désélectionner {{label}} (mode groupé)"
     },
     "Section": {
         "Insert section above": "Ajouter une section ci-dessus",
@@ -1785,7 +1856,14 @@
         "more...": "plus...",
         "no authentication": "pas d'authentification",
         "unavailable": "indisponible",
-        "default": "par défaut"
+        "default": "par défaut",
+        "{{count}} admin accounts_one": "{{count}} comptes d'administration",
+        "{{count}} admin accounts_other": "{{count}} comptes d'administration",
+        "Admin account not found": "Compte d'administration non trouvé",
+        "Administrative accounts": "Comptes d'administration",
+        "The users with administrative accounts": "Les utilisateurs avec un compte d'administration",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "pas de compte d'administration"
     },
     "Field": {
         "No choices configured": "Aucun choix configuré",
@@ -1842,7 +1920,8 @@
         "Select...": "Sélectionner...",
         "Search": "Rechercher",
         "Reset": "Réinitialiser",
-        "Submitting…": "En cours de soumission…"
+        "Submitting…": "En cours de soumission…",
+        "Clear selection for: {{-inputLabel}}": "Effacer la sélection pour : {{-inputLabel}}"
     },
     "widgetTypesMap": {
         "Table": "Table",
@@ -1928,16 +2007,16 @@
         "Delete data and this widget.": "Supprimer les données et le composant.",
         "Keep data and delete widget. Table will remain available in {{rawDataLink}}": "Garder les données et supprimer la vue. La table restera disponible dans {{rawDataLink}}",
         "Table {{tableName}} will no longer be visible": "La table {{tableName}} ne sera plus visible",
-        "raw data page": "la page de données source"
+        "Raw Data page": "la page de données source"
     },
     "CustomWidgetGallery": {
         "(Missing info)": "(Information manquante)",
-        "Add Widget": "Ajouter un widget",
+        "Add widget": "Ajouter un widget",
         "Developer:": "Développeur/se :",
         "Add a widget from outside this gallery.": "Ajouter un widget de votre propre galerie.",
         "Cancel": "Annuler",
-        "Change Widget": "Modifier le widget",
-        "Choose Custom Widget": "Choisir un widget personnalisé",
+        "Change widget": "Modifier le widget",
+        "Choose custom widget": "Choisir un widget personnalisé",
         "Community Widget": "Widget de la communauté",
         "Custom URL": "URL personnalisée",
         "Grist Widget": "Widget Grist",
@@ -1945,7 +2024,7 @@
         "No matching widgets": "Pas de widgets correspondants",
         "Search": "Rechercher",
         "Widget URL": "URL du widget",
-        "Learn more about Custom Widgets": "En savoir plus sur les Widgets personnalisés",
+        "Learn more about custom widgets": "En savoir plus sur les Widgets personnalisés",
         "Add Your Own Widget": "Ajouter votre propre widget"
     },
     "markdown": {
@@ -2074,7 +2153,8 @@
         "Move {{name}} to workspace": "Déplacer {{name}} vers le dossier",
         "Workspace": "Dossier",
         "context menu - {{- documentName }}": "menu contextuel - {{- documentName }}",
-        "Documents list": "Liste des documents"
+        "Documents list": "Liste des documents",
+        "Download document...": "Télécharger le document..."
     },
     "RenameDocModal": {
         "Icon": "Icône",
@@ -2086,12 +2166,12 @@
         "Reset icon": "Réinitialiser l’icône"
     },
     "RightPanelUtils": {
-        "Columns_one": "Colonne",
-        "Columns_other": "Colonnes",
-        "Fields_one": "Champ",
-        "Fields_other": "Champs",
-        "Series_one": "Séries",
-        "Series_other": "Séries"
+        "columns_one": "Colonne",
+        "columns_other": "Colonnes",
+        "fields_one": "Champ",
+        "fields_other": "Champs",
+        "series_one": "Séries",
+        "series_other": "Séries"
     },
     "userTrustsCustomWidget": {
         "Be careful with unknown custom widgets": "Attention aux vues personnalisées de source inconnue",
@@ -2142,7 +2222,8 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Tapez DELETE si vous êtes sûr·e de vouloir supprimer.\nEn cas de doute sur l'effet de cette action,\nnous vous conseillons de ne pas poursuivre."
     },
     "MentionTextBox": {
-        "no access": "pas d'accès"
+        "no access": "pas d'accès",
+        "...loading": "...chargement en cours"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Une mise à jour critique de Grist est disponible.\nEnvisagez de passer à la version {{version}} dès que possible.",
@@ -2274,6 +2355,191 @@
         "{{shortcutsModal}} Show the complete list of keyboard shortcuts": "{{shortcutsModal}} Afficher la liste complète des raccourcis claviers"
     },
     "ProposedChangesPage": {
-        "Proposed Changes": "Suggestions de modifications"
+        "Proposed Changes": "Suggestions de modifications",
+        "Replace Original": "Remplacer l'original",
+        "This is a list of changes relative to the original document.": "Liste des modifications apportées par rapport au document original.",
+        "Replace original": "Replacer l'original",
+        "Accept": "Accepter",
+        "Accepted {{at}}.": "Accepté à {{at}}.",
+        "Dismiss": "Rejeter",
+        "Dismissed {{at}}.": "Rejeté à {{at}}.",
+        "Learn more": "En savoir plus",
+        "No changes found to suggest. Please make some edits.": "Aucune modification à suggérer. Veuillez apporter quelques modifications.",
+        "Retract Suggestion": "Retirer la suggestion",
+        "Retracted {{at}}.": "Retirée à {{at}}.",
+        "Suggest Change": "Suggérer une modification",
+        "Suggest Changes": "Suggérer des modifications",
+        "Suggestion made {{at}}.": "Suggestion faite à {{at}}.",
+        "Suggestions": "Suggestions",
+        "The original document isn't asking for proposed changes.": "Le document original ne demande pas de propositions de modifications.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "De nouvelles modifications n'ont pas encore été ajoutées aux suggestions.",
+        "This is a list of changes relative to the {{originalDocument}}.": "Voici une liste des modifications relative au {{originalDocument}}.",
+        "Update Suggestion": "Mettre à jour une suggestion",
+        "Work on a copy": "Travailler sur une copie",
+        "Your suggestions": "Vos suggestions",
+        "experiment": "expérimentation",
+        "original document": "document original"
+    },
+    "commandList": {
+        "Show accessibility options": "Montrer les options d'accessibilité",
+        "Add a new viewsection to the currently active view": "Ajouter une nouvelle section de vue à la vue active",
+        "Adds all elements above the cursor to the selected range": "Ajoute tous les éléments au dessus du curseur à la sélection",
+        "Adds all elements below the cursor to the selected range": "Ajoute tous les éléments au dessous du curseur à la sélection",
+        "Adds all elements to the left of the cursor to the selected range": "Ajoute tous les éléments à gauche du curseur à la sélection",
+        "Adds all elements to the right of the cursor to the selected range": "Ajoute tous les éléments à droite du curseur à la sélection",
+        "Adds the currently selected column(ascending) to the current view's sort spec": "Ajoute la colonne sélectionnée(ordre croissant) aux spécifications de tri de la vue actuelle",
+        "Adds the currently selected column(descending) to the current view's sort spec": "Ajoute la colonne sélectionnée(ordre décroissant) aux spécifications de tri de la vue actuelle",
+        "Adds the element above the cursor to the selected range": "Ajoute l'élément au dessus du curseur à la sélection",
+        "Adds the element below the cursor to the selected range": "Ajoute l'élément au dessous du curseur à la sélection",
+        "Adds the element to the left of the cursor to the selected range": "Ajoute l'élément à gauche du curseur à la sélection",
+        "Adds the element to the right of the cursor to the selected range": "Ajoute l'élément à droite du curseur à la sélection",
+        "Activate assistant": "Active l’assistant",
+        "Clear the selected columns": "Effacer les colonnes sélectionnées",
+        "Clears the current copy selection, if any": "Efface la sélection copiée, s'il y en a une",
+        "Clears the currently selected cells": "Efface les cellules sélectionnée",
+        "Clears the section links in the current view": "Efface les liens de section dans la vue courante",
+        "Clears the section links in the current viewsection": "Efface les liens de sections dans la section de vue courante",
+        "Collapse the currently active viewsection": "Replie la section de vue active",
+        "Convert the selected columns from formula to data": "Convertir les colonnes sélectionnées de formule à donnée",
+        "Copy anchor link": "Copier le lien d'ancrage",
+        "Copy current selection to clipboard": "Copie la sélection courante dans le presse-papier",
+        "Copy current selection to clipboard including headers": "Copie la sélection courante dans le presse-papier en incluant les entêtes",
+        "Creates form for active table": "Crée un formulaire pour la table active",
+        "Cut current selection to clipboard": "Couper la sélection courante dans le presse-papier",
+        "Delete collapsed viewsection": "Supprimer la section de vue repliée",
+        "Delete the currently active viewsection": "Supprimer la section de vue active",
+        "Delete the currently selected columns": "Supprimer les colonnes sélectionnées",
+        "Delete the currently selected record(s)": "Supprimer les enregistrements séléctionnés",
+        "Detach active editor": "Détacher l'éditeur actif",
+        "Discard changes to a cell value": "Annuler les modifications de valeur d'une cellule",
+        "Display Grist documentation": "Afficher la documentation de Grist",
+        "Display shortcuts pane": "Afficher le panneau des raccourcis",
+        "Duplicate the currently active viewsection": "Dupliquer la section de vue active",
+        "Duplicate the currently selected record(s)": "Dupliquer les enregistrements sélectionnés",
+        "Edit label of the currently-selected field": "Modifier le label du champ sélectionné",
+        "Edit record layout": "Modifier la mise en page de l'enregistrement",
+        "Enter text into currently-selected cell and start editing": "Saisir du texte dans la cellule courante et commencer à modifier",
+        "Expand collapsed viewsection": "Déplier la section de vue",
+        "Fills current selection with the contents of the top row in the selection": "Rempli la sélection courante avec le contenu du rang le plus haut dans la sélection",
+        "Find": "Rechercher",
+        "Find next occurrence": "Rechercher la prochaine occurrence",
+        "Find previous occurrence": "Rechercher l’occurrence précédente",
+        "Finish editing a cell and save without moving to next record": "Terminer de modifier une cellule et sauvegarder sans se déplacer sur l'enregistrement suivant",
+        "Finish editing a cell, saving the value": "Terminer de modifier une cellule, et sauvegarder la valeur",
+        "Focus next page panel or widget": "Placer le focus sur la prochaine page, panneau ou widget",
+        "Focus previous page panel or widget": "Placer le focus sur la page, panneau ou widget précédente",
+        "Freeze or unfreeze selected columns": "Figer ou défiger les colonnes sélectionnées",
+        "Hide the currently selected columns": "Masquer les colonnes sélectionnées",
+        "Hide the currently selected fields": "Masquer les champs sélectionnés",
+        "Insert a new column, after the currently selected one": "Insérer une nouvelle colonne après celle sélectionnée",
+        "Insert a new column, before the currently selected one": "Insérer une nouvelle colonne avant celle sélectionnée",
+        "Insert a new record, after the currently selected one in an unsorted table": "Insérer un nouvel enregistrement, après celui sélectionné, dans une table non triée",
+        "Insert a new record, before the currently selected one in an unsorted table": "Insérer un nouvel enregistrement, avant celui sélectionné, dans une table non triée",
+        "Insert new column in default location": "Insérer une nouvelle colonne à l'emplacement par défaut",
+        "Insert the current date": "Insérer la date du jour",
+        "Insert the current date and time": "Insérer la date du jour et l'heure",
+        "Maximize the active section": "Agrandir la section active",
+        "Move down one page of records, or to next record in a card list": "Descendre d'une page d'enregistrements ou vers le prochain enregistrement dans une liste de carte",
+        "Move down to the last record": "Descendre jusqu'au dernier enregistrement",
+        "Move downward five records": "Se déplacer de cinq enregistrements vers le bas",
+        "Move downward to next record or field": "Se déplacer au prochain enregistrement ou champ vers le bas",
+        "Move left to the previous field": "Se déplacer à gauche sur le champ précédent",
+        "Move right to the next field": "Se déplacer à droite sur le prochain champ",
+        "Move to the first field or the beginning of a row": "Se déplacer sur le premier champ ou au début d'une ligne",
+        "Move to the last field or the end of a row": "Se déplacer sur le dernier champ ou à la fin d'une ligne",
+        "Move to the next field, saving changes if editing a value": "Se déplacer vers le prochain champ, sauvegarder les changement si vous étiez en train de modifier une valeur",
+        "Move to the previous field, saving changes if editing a value": "Se déplacer vers le champ précédent, sauvegarder les changement si vous étiez en train de modifier une valeur",
+        "Move up one page of records, or to previous record in a card list": "Se déplacer vers le haut d'une page d'enregistrements, ou sur l'enregistrement précédent dans une liste de cartes",
+        "Enters section linking mode in the current view": "Entre dans la section des modes de liens dans la vue courante",
+        "Exits section linking mode in the current view": "Quitte la section des modes de liens dans la vue courante",
+        "Move up to the first record": "Se déplacer vers le premier enregistrement",
+        "Move upward five records": "Se déplacer vers le haut de cinq enregistrements",
+        "Move upward to previous record or field": "Se déplacer au précédent enregistrement ou champ vers le haut",
+        "Moves the cursor to the correct location": "Bouge le curseur au bon emplacement",
+        "Open Custom widget configuration screen": "Ouvrir l'écran de configuration de widget personnalisé",
+        "Open comment thread": "Ouvrir le fil de commentaires",
+        "Open next page": "Ouvrir la prochaine page",
+        "Open previous page": "Ouvrir la page précédente",
+        "Opens document list": "Ouvre la liste des documents",
+        "Paste clipboard contents at cursor": "Colle le contenu du presse-papier sous le curseur",
+        "Print currently selected page widget": "Afficher la page du widget sélectionné",
+        "Push an undo action": "Appuyer sur une action d'annulation",
+        "Redo last action": "Refaire la dernière action",
+        "Rename the currently selected column": "Renommer la colonne sélectionnée",
+        "Reverts the sections links to the saved links the current view": "Rétablit les liens des sections aux liens enregistrés dans la vue actuelle",
+        "Saves the sections links in the current view": "Sauve les liens de section dans la vue courante",
+        "Selects all currently displayed cells": "Sélectionne toutes les cellules visibles",
+        "Shortcut to data selection tab": "Raccourci vers l'onglet de sélection des données",
+        "Shortcut to focus view tab if creator panel is open": "Raccourci pour mettre le focus sur l'onglet de vue si le panneau de création est ouvert",
+        "Shortcut to open document tab": "Raccourci pour ouvrir l'onglet de document",
+        "Shortcut to open field tab": "Raccourci pour ouvrir l'onglet de champ",
+        "Shortcut to open sort & filter menu": "Raccourci pour ouvrir le menu \"trier et filtrer\"",
+        "Shortcut to open the left panel": "Raccourci pour ouvrir le panneau de gauche",
+        "Shortcut to open the right panel": "Raccourci pour ouvrir le panneau de droite",
+        "Shortcut to open view tab": "Raccourci pour ouvrir l'onglet de vue",
+        "Shortcut to sort & filter tab": "Raccourci pour l'onglet \"trier et filtrer\"",
+        "Show hidden columns": "Afficher les colonnes masquées",
+        "Show raw data widget for table of currently selected page widget": "Afficher le widget de données brutes pour la table de la page actuellement sélectionnée",
+        "Show the record card widget of the selected record": "Afficher le widget de carte pour l'enregistrement sélectionné",
+        "Sort the view data by the currently selected field in ascending order": "Trier les données de la vue par le champ sélectionné dans l'ordre croissant",
+        "Sort the view data by the currently selected field in descending order": "Trier les données de la vue par le champ sélectionné dans l'ordre décroissant",
+        "Start editing the currently-selected cell": "Commencer à modifier la cellule sélectionnée",
+        "Toggle creator panel keyboard focus": "Alterner le focus du panneau de création",
+        "Toggle the currently selected checkbox or switch cell": "Basculer les valeurs de la case à coché ou de l'interrupteur sélectionné",
+        "Undo last action": "Annuler la dernière action",
+        "Use the currently selected row as table headers": "Utiliser la ligne sélectionnée comme entêtes de table",
+        "When in the search bar, close it and focus the current match": "Quand on est dans la barre de recherche, la fermer et mettre le focus sur la correspondance actuelle",
+        "When typed at the start of a cell, make this a formula column": "Quand tapé au début d'une cellule, transformer celle-ci en colonne de formule",
+        "showing a behavioral popup": "affichage d'une fenêtre contextuelle comportementale",
+        "Filter this column by just this cell's value": "Filtrer cette colonne par la valeur de cette cellule uniquement"
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "format 12-heures",
+        "24-hour format": "format 24-heures",
+        "AM": {
+            "PM": "Matin/Après-Midi"
+        },
+        "Calendar": "Calendrier",
+        "Date helpers…": "Aides de dates…",
+        "Day": "Jour",
+        "Day of month": "Jour du mois",
+        "Day of week": "Jour de la semaine",
+        "Day of week (abbrev)": "Jour de la semaine (abrégé)",
+        "Day of week (full)": "Jour de la semaine (plein)",
+        "Day of week (numeric)": "Jour de la semaine (numérique)",
+        "Days since": "Jours depuis",
+        "Days until": "Jours jusque",
+        "Default": "Par défaut",
+        "End of": "Fin",
+        "Full date": "Date complète",
+        "Full name with year": "Nom complet avec l'année",
+        "Hour": "Heure",
+        "Intervals": "Intervalles",
+        "Is weekend?": "Est-ce le weekend ?",
+        "Minute": "Minute",
+        "Month": "Mois",
+        "Months since": "Mois depuis",
+        "Months until": "Mois jusque",
+        "Name only": "Nom seulement",
+        "Number only": "Nombre seulement",
+        "Quarter": "Quart",
+        "Quick Picks": "Sélection rapide",
+        "Relative": "Relatif",
+        "Short with year": "Courte avec l'année",
+        "Sortable": "Triable",
+        "Start of": "Début",
+        "Time": "Heure",
+        "Time bucket": "Période de temps",
+        "Week": "Semaine",
+        "Week of year": "Semaine de l'année",
+        "Year": "Année",
+        "Years since": "Années depuis",
+        "Years until": "Années jusque"
+    },
+    "selectBy": {
+        "Select widget": "Choisir un widget"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Document sans titre"
     }
 }

@@ -110,18 +110,18 @@ describe('AccessRules1', function() {
     await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
 
     // Make FinancialsTable private to user1.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
     let ruleSet = findDefaultRuleSetWait(/FinancialsTable/);
-    await enterRulePart(ruleSet, 1, null, 'Deny All');
+    await enterRulePart(ruleSet, 1, null, 'Deny all');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
-    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow All');
+    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow all');
 
     // Make RumorsColumn of ClientsTable private to user1.
-    await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+    await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /ClientsTable/).click();
     await findTable(/ClientsTable/).find('.test-rule-table-menu-btn').click();
-    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add column rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
     await ruleSet.find('.test-rule-resource .test-select-open').click();
@@ -138,19 +138,19 @@ describe('AccessRules1', function() {
       ]
     );
     await gu.findOpenMenuItem('li', 'RumorsColumn').click();
-    await enterRulePart(ruleSet, 1, null, 'Deny All');
+    await enterRulePart(ruleSet, 1, null, 'Deny all');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
-    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow All');
+    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow all');
 
     // Make rows of ClientsTable only visible to the team if assigned to them, or marked as shared.
     ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await ruleSet.find('.test-rule-part .test-rule-add').click();
-    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow All');
+    await enterRulePart(ruleSet, 1, `user.Email == '${gu.translateUser('user1').email}'`, 'Allow all');
     await enterRulePart(ruleSet, 2, `rec.Shared`, {R: 'allow'});
     await enterRulePart(ruleSet, 3, `user.Email == rec.Agent_Email`, {R: 'allow'});
-    await enterRulePart(ruleSet, 4, null, 'Deny All');
+    await enterRulePart(ruleSet, 4, null, 'Deny all');
 
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
@@ -203,7 +203,7 @@ describe('AccessRules1', function() {
     await driver.findWait('.test-rule-set', 2000);
     const ruleSet = findDefaultRuleSet(/FinancialsTable/);
     await gu.scrollIntoView(ruleSet);
-    await enterRulePart(ruleSet, 1, `rec.id == 1`, 'Allow All');
+    await enterRulePart(ruleSet, 1, `rec.id == 1`, 'Allow all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
     await gu.openPage('FinancialsTable');
@@ -226,7 +226,7 @@ describe('AccessRules1', function() {
 
     // Change the catch-all rule on ClientsTable to read-only permission, and give it a memo.
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
-    await enterRulePart(ruleSet, 4, null, 'Read Only', 'Sorry, this table is read-only.');
+    await enterRulePart(ruleSet, 4, null, 'Read only', 'Sorry, this table is read-only.');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 
@@ -261,7 +261,7 @@ describe('AccessRules1', function() {
 
     // Revert a rule that was modified in an earlier test.
     let ruleSet = findDefaultRuleSet(/ClientsTable/);
-    await enterRulePart(ruleSet, 4, null, 'Deny All');
+    await enterRulePart(ruleSet, 4, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
     assert.equal(await driver.find('.test-rules-save').isDisplayed(), false);
@@ -373,7 +373,7 @@ describe('AccessRules1', function() {
 
     // Add a column rule that uses rec but doesn't set read permission.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
@@ -404,7 +404,7 @@ describe('AccessRules1', function() {
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
     await driver.findWait('.test-rule-set', 2000);
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
@@ -418,7 +418,7 @@ describe('AccessRules1', function() {
 
     // Make a rule for FinancialsTable.Year and FinancialsTable.Expenses that allows something.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
-    await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+    await gu.findOpenMenuItem('li', /Add column rule/).click();
     ruleSet = findRuleSet(/FinancialsTable/, 2);
     await ruleSet.find('.test-rule-resource .test-select-open').click();
     assert.deepEqual(
@@ -449,7 +449,7 @@ describe('AccessRules1', function() {
     await driver.findWait('.test-rule-set', 2000);
     await driver.find('.test-dp-add-new').doClick();
     assert.includeMembers(await driver.findAll('.test-dp-add-new-menu > li.disabled', (imp) => imp.getText()), [
-      "Add Widget to Page",
+      "Add widget to page",
     ]);
     await driver.sendKeys(Key.ESCAPE);
     await gu.waitAppFocus();

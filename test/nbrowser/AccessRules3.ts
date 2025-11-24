@@ -56,14 +56,14 @@ describe("AccessRules3", function() {
       assert.equal(await hasExtraAdd(seedRule), false);
 
       // Adding rules for a new table/column should look the same as always.
-      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('button', /Add table rules/, 2000).click();
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       await assertChanged();
       let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: 'All' }]);
       await fin.find('.test-rule-table-menu-btn').click();
-      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add column rule/).click();
       await findRuleSetWait(/FinancialsTable/, 1).isPresent();
       assert.deepEqual(await getRules(fin),
                        [{ formula: 'Everyone', perm: '', res: '[Add Column]' },
@@ -80,7 +80,7 @@ describe("AccessRules3", function() {
       assert.equal(await hasExtraAdd(seedRule), true);
 
       // New table rules should start off with that rule.
-      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('button', /Add table rules/, 2000).click();
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       await gu.waitForMenuToClose();
       fin = findTableWait(/FinancialsTable/);
@@ -91,7 +91,7 @@ describe("AccessRules3", function() {
 
       // New column rules should start off with that rule.
       await fin.find('.test-rule-table-menu-btn').click();
-      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add column rule/).click();
       await gu.waitForMenuToClose();
 
       assert.deepEqual(await getRules(fin),
@@ -107,7 +107,7 @@ describe("AccessRules3", function() {
                        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
                         { formula: 'Everyone Else', perm: '', res: '[Add Column]' }]);
       await fin.find('.test-rule-table-menu-btn').click();
-      await gu.findOpenMenuItem('li', /Add Table-wide Rule/).click();
+      await gu.findOpenMenuItem('li', /Add table-wide rule/).click();
       await gu.waitForMenuToClose();
 
       assert.deepEqual(await getRules(fin),
@@ -119,11 +119,11 @@ describe("AccessRules3", function() {
 
       // Check that we can tweak the seed rules if we want.
       await seedRule.find('.test-rule-part .test-rule-add').click();
-      await enterRulePart(seedRule, 1, 'user.Access in [EDITOR]', 'Deny All', 'memo1');
+      await enterRulePart(seedRule, 1, 'user.Access in [EDITOR]', 'Deny all', 'memo1');
       assert.equal(await checkbox.getAttribute('disabled'), 'true');
 
       // New table rules should include the seed rules.
-      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('button', /Add table rules/, 2000).click();
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       await gu.waitForMenuToClose();
 
@@ -182,11 +182,11 @@ describe("AccessRules3", function() {
 
       // Tweak the seed rule to refer to a column.
       await seedRule.find('.test-rule-part .test-rule-add').click();
-      await enterRulePart(seedRule, 1, 'rec.Year == 1', 'Deny All', 'memo1');
+      await enterRulePart(seedRule, 1, 'rec.Year == 1', 'Deny all', 'memo1');
       assert.equal(await checkbox.getAttribute('disabled'), 'true');
 
       // New table rules should include the seed rule.
-      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('button', /Add table rules/, 2000).click();
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
@@ -197,11 +197,11 @@ describe("AccessRules3", function() {
       await removeTable(/FinancialsTable/);
 
       // Tweak the seed rule to refer to a column that won't exist.
-      await enterRulePart(seedRule, 1, 'rec.Unreal == 1', 'Deny All', 'memo1');
+      await enterRulePart(seedRule, 1, 'rec.Unreal == 1', 'Deny all', 'memo1');
       assert.equal(await checkbox.getAttribute('disabled'), 'true');
 
       // New table rules should include the seed rule, and show an error.
-      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('button', /Add table rules/, 2000).click();
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
@@ -290,7 +290,7 @@ describe("AccessRules3", function() {
       assert.equal(await checkbox.isSelected(), true);
       await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
       await seedRule.find('.test-rule-part .test-rule-add').click();
-      await enterRulePart(seedRule, 1, 'user.Access in [EDITOR]', 'Deny All', 'memo2');
+      await enterRulePart(seedRule, 1, 'user.Access in [EDITOR]', 'Deny all', 'memo2');
       assert.equal(await checkbox.getAttribute('disabled'), 'true');
       assert.deepEqual(await getRules(seedRule),
                        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', memo: 'memo2' },
@@ -328,11 +328,11 @@ describe("AccessRules3", function() {
       assert.equal(await seedRule.find('input[type=checkbox]').isSelected(), true);
 
       // New table AND column rules should start off with that rule.
-      await driver.findContentWait('button', /Add Table Rules/, 2000).click();
+      await driver.findContentWait('button', /Add table rules/, 2000).click();
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       let fin = findTableWait(/FinancialsTable/);
       await fin.find('.test-rule-table-menu-btn').click();
-      await gu.findOpenMenuItem('li', /Add Column Rule/).click();
+      await gu.findOpenMenuItem('li', /Add column rule/).click();
       const ruleSet = findRuleSet(/FinancialsTable/, 1);
       await ruleSet.find('.test-rule-resource .test-select-open').click();
       await gu.findOpenMenuItem('li', 'Year').click();

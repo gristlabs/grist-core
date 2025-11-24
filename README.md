@@ -13,7 +13,9 @@ The `grist-core`, `grist-desktop`, and `grist-static` repositories are all open 
 Grist Labs offers free and paid hosted services at [getgrist.com](https://getgrist.com), sells an Enterprise product,
 and offers [cloud packaging](https://support.getgrist.com/install/grist-builder-edition/).
 
-> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/).
+> Questions? Feedback? Want to share what you're building with Grist? Join our [official Discord server](https://discord.gg/MYKpYQ3fbP) or visit our [Community forum](https://community.getgrist.com/). 
+>
+> To keep up-to-date with everything that's going on, you can [sign up for Grist's monthly newsletter](https://www.getgrist.com/newsletter/).
 
 https://github.com/user-attachments/assets/fe152f60-3d15-4b11-8cb2-05731a90d273
 
@@ -243,8 +245,8 @@ You may instead file an issue so someone else can add it.
 To build Grist from source, follow these steps:
 
     yarn install
-    yarn run build
-    yarn run install:python
+    yarn install:python
+    yarn build
     yarn start
     # Grist will be available at http://localhost:8484/
 
@@ -269,11 +271,10 @@ up, at the same level as the Grist repo. If that is a problem for you,
 just move everything into a subdirectory first.
 
     yarn install
-    ./buildtools/checkout-ext-directory.sh grist-ee
-    yarn install --cwd ext --modules-folder ../../node_modules/
-    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn build
-    yarn run install:python
-    WEBPACK_EXTRA_MODULE_PATHS=../node_modules yarn start
+    yarn install:ee
+    yarn install:python
+    yarn build
+    yarn start
     # Grist will be available at http://localhost:8484/
 
 The enterprise code will by default not be used. You need to explicitly enable
@@ -383,6 +384,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_DOMAIN | in hosted Grist, Grist is served from subdomains of this domain.  Defaults to "getgrist.com". |
 | GRIST_EXPERIMENTAL_PLUGINS | enables experimental plugins |
 | GRIST_EXTERNAL_ATTACHMENTS_MODE | required to enable external storage for attachments. Set to "snapshots" to enable external storage. Default value is "none". Note that when enabled, a [snapshot storage has to be configured](https://support.getgrist.com/self-managed/#how-do-i-set-up-snapshots) as well. |
+| GRIST_ENABLE_SERVICE_ACCOUNTS | enables the `service accounts` feature. This feature allows users to create special service accounts that they can manage and to whom they can grant restricted access to chosen resources. Useful as a way to get fine-grained api keys for use with third party automations. Unset by default |
 | GRIST_ENABLE_REQUEST_FUNCTION | enables the REQUEST function. This function performs HTTP requests in a similar way to `requests.request`. This function presents a significant security risk, since it can let users call internal endpoints when Grist is available publicly. This function can also cause performance issues. Unset by default. |
 | GRIST_HEADERS_TIMEOUT_MS | if set, override nodes's server.headersTimeout flag. |
 | GRIST_HIDE_UI_ELEMENTS | comma-separated list of UI features to disable. Allowed names of parts: `helpCenter`, `billing`, `templates`, `createSite`, `multiSite`, `multiAccounts`, `sendToDrive`, `tutorials`, `supportGrist`, `themes`. If a part also exists in GRIST_UI_FEATURES, it will still be disabled. |

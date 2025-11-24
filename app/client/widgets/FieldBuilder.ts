@@ -95,7 +95,7 @@ function buildFontOptions(
 export interface BuildEditorOptions {
   init?: string;
   state?: unknown;
-  event?: KeyboardEvent | MouseEvent
+  event?: Event
 }
 
 /**
@@ -482,7 +482,7 @@ export class FieldBuilder extends Disposable {
                  }
                }),
                cssRow(
-                 textButton(t('Apply Formula to Data'),
+                 textButton(t('Apply formula to data'),
                  dom.on('click', () => transformButton(true)),
                  kd.hide(this._isTransformingFormula),
                  kd.boolAttr('disabled', () =>
@@ -798,7 +798,8 @@ export class FieldBuilder extends Disposable {
       editorCtor,
       state: options.state,
       startVal: this._readonly.get() ? undefined : options.init, // don't start with initial value
-      readonly: this._readonly.get() // readonly for editor will not be observable
+      readonly: this._readonly.get(), // readonly for editor will not be observable
+      event: options.event,
     });
     this._isEditorActive.set(true);
 

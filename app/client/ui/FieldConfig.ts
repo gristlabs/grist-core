@@ -18,6 +18,7 @@ import {CursorPos} from 'app/plugin/GristAPI';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
         Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
+import { components, tokens } from 'app/common/ThemePrefs';
 
 const t = makeT('FieldConfig');
 
@@ -82,7 +83,10 @@ export function buildNameConfig(
       ),
       cssColTieBlock(
         cssColTieConnectors(),
-        cssToggleButton(icon('FieldReference'),
+        cssToggleButton(
+          dom.domComputed(untieColId, (isUntied) =>
+            isUntied ? icon('FieldReferenceDisabled') : icon('FieldReference')
+          ),
           cssToggleButton.cls('-selected', (use) => !use(untieColId)),
           dom.on('click', toggleUntieColId),
           cssToggleButton.cls("-disabled", use => use(origColumn.disableModify) || use(disabled)),
@@ -243,19 +247,19 @@ export function buildFormulaConfig(
   const behaviorName = Computed.create(owner, behavior, (use, type) => {
     if (use(isMultiSelect)) {
       const commonType = use(multiType);
-      if (commonType === 'formula') { return t('Formula Columns', {count: 2}); }
-      if (commonType === 'data') { return t('Data Columns', {count: 2}); }
+      if (commonType === 'formula') { return t('Formula columns', {count: 2}); }
+      if (commonType === 'data') { return t('Data columns', {count: 2}); }
       if (commonType === 'mixed') { return t('Mixed Behavior'); }
-      return t('Empty Columns', {count: 2});
+      return t('Empty columns', {count: 2});
     } else {
-      if (type === 'formula') { return t('Formula Columns', {count: 1}); }
-      if (type === 'data') { return t('Data Columns', {count: 1}); }
-      return t('Empty Columns', {count: 1});
+      if (type === 'formula') { return t('Formula columns', {count: 1}); }
+      if (type === 'data') { return t('Data columns', {count: 1}); }
+      return t('Empty columns', {count: 1});
     }
   });
   const behaviorIcon = Computed.create<IconName>(owner, (use) => {
-    return use(behaviorName) === t('Data Columns', {count: 2}) ||
-           use(behaviorName) === t('Data Columns', {count: 1}) ? "Database" : "Script";
+    return use(behaviorName) === t('Data columns', {count: 2}) ||
+           use(behaviorName) === t('Data columns', {count: 1}) ? "Database" : "Script";
   });
   const behaviorLabel = () => selectTitle(behaviorName, behaviorIcon);
 
@@ -480,19 +484,24 @@ function buildFormula(
 
 const cssToggleButton = styled(cssIconButton, `
   margin-left: 8px;
-  background-color: ${theme.rightPanelToggleButtonDisabledBg};
-  box-shadow: inset 0 0 0 1px ${theme.inputBorder};
+  background-color: ${components.buttonGroupBg};
+  box-shadow: inset 0 0 0 1px ${components.buttonGroupBorder};
   cursor: pointer;
 
+  &:hover {
+    background-color: ${components.buttonGroupBgHover};
+    box-shadow: inset 0 0 0 1px ${components.buttonGroupBorderHover};
+  }
+
   &-selected, &-selected:hover {
-    box-shadow: none;
-    background-color: ${theme.rightPanelToggleButtonEnabledBg};
-    --icon-color: ${theme.rightPanelToggleButtonEnabledFg};
+    box-shadow: inset 0 0 0 1px ${components.buttonGroupSelectedBorder};
+    background-color: ${components.buttonGroupSelectedBg};
+    --icon-color: ${components.buttonGroupSelectedBorder};
   }
   &-disabled, &-disabled:hover {
     cursor: not-allowed;
-    background-color: ${theme.rightPanelToggleButtonDisabledBg};
-    --icon-color: ${theme.iconDisabled};
+    background-color: ${tokens.bg};
+    --icon-color: ${components.iconDisabled};
   }
 `);
 

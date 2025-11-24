@@ -1,9 +1,12 @@
 import {buildHomeBanners} from 'app/client/components/Banners';
 import {makeT} from 'app/client/lib/localization';
+import {markdown} from 'app/client/lib/markdown';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
 import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {App} from 'app/client/ui/App';
+import {cssEmail, cssUserInfo, cssUserName} from 'app/client/ui/AccountWidgetCss';
+import {createUserImage} from 'app/client/ui/UserImage';
 import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
@@ -25,9 +28,10 @@ import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
 import {AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl} from 'app/common/InstallAPI';
+import {InstallAdminInfo} from 'app/common/LoginSessionAPI';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
-import {Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled} from 'grainjs';
+import {Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled, UseCBOwner} from 'grainjs';
 
 const t = makeT('AdminPanel');
 
@@ -165,6 +169,13 @@ Please log in as an administrator.`)),
       ]),
       dom.create(AdminSection, t('Security Settings'), [
         dom.create(AdminSectionItem, {
+          id: 'admins',
+          name: t('Administrative accounts'),
+          description: t('The users with administrative accounts'),
+          value: this._buildAdminUsersDisplay(),
+          expandedContent: this._buildAdminUsersDetail(),
+        }),
+        dom.create(AdminSectionItem, {
           id: 'sandboxing',
           name: t('Sandboxing'),
           description: t('Sandbox settings for data engine'),
@@ -192,7 +203,7 @@ Please log in as an administrator.`)),
           id: 'version',
           name: t('Current'),
           description: t('Current version of Grist'),
-          value: cssValueLabel(`Version ${version.version}`),
+          value: cssValueLabel(t('Version {{versionNumber}}', {versionNumber: version.version})),
         }),
         this._maybeAddEnterpriseToggle(),
         dom.create(this._buildUpdates.bind(this)),
@@ -277,6 +288,63 @@ Please log in as an administrator.`)),
         cssLink({href: commonUrls.helpSandboxing, target: '_blank'}, t('Learn more.'))
       ),
     ];
+  }
+
+  private _buildAdminUsersComputed(
+    use: UseCBOwner,
+    renderSuccess: (users: InstallAdminInfo[]) => Element
+  ) {
+    const req = this._checks.requestCheckById(use, 'admins');
+    const result = req ? use(req.result) : undefined;
+    const success = result?.status === 'success';
+
+    if (!result) {
+      return t('checking');
+    }
+
+    if (!success) {
+      return cssErrorText(t('Error'));
+    }
+
+    const users: InstallAdminInfo[] = result?.details?.users || [];
+    return renderSuccess(users);
+  }
+
+  private _buildAdminUsersDisplay() {
+    return cssValueLabel(
+      dom.domComputed(
+        use => this._buildAdminUsersComputed(use, (users) => {
+          const actualUsers = users.filter(detail => detail.user !== null);
+          if (actualUsers.length > 0) {
+            return cssHappyText(t('{{count}} admin accounts', {count: actualUsers.length}));
+          }
+          return cssErrorText(t('no admin accounts'));
+        })
+      ),
+      testId('admin-panel-admin-accounts-display')
+    );
+  }
+
+  private _buildAdminUsersDetail() {
+    return dom.domComputed(
+      use => this._buildAdminUsersComputed(use, (users) => {
+        return cssAdminAccountList(
+          users.map(({user, reason}) => {
+            const userDisplay = user ? cssUserInfo(
+              createUserImage(user, 'medium'),
+              cssUserName(dom('span', user.name, testId('admin-panel-admin-account-name')),
+                cssEmail(user.email, testId('admin-panel-admin-account-email'))
+              )
+            ) : cssErrorText(t('Admin account not found'));
+            return cssAdminAccountListItem([
+              cssAdminAccountItemPart(userDisplay),
+              cssAdminAccountItemPart(cssAdminAccountReason(markdown(reason, {inline: true})))
+            ], testId(`admin-panel-admin-accounts-list-item`));
+          }),
+          testId(`admin-panel-admin-accounts-list`)
+        );
+      })
+    );
   }
 
   private _buildAuthenticationDisplay() {
@@ -812,6 +880,36 @@ const cssSectionTag = styled('span', `
   margin-top: -4px;
   margin-left: 4px;
   font-weight: bold;
+`);
+
+const cssAdminAccountList = styled('ul', `
+  list-style: none;
+  padding: 0;
+  max-width: 700px;
+  margin: 0 auto;
+`);
+
+const cssAdminAccountListItem = styled('li', `
+  padding: 1rem 0rem;
+  margin: 0rem 1.2rem;
+  display: flex;
+  align-items: center;
+  &:not(:first-child) {
+    border-top: 1px solid ${theme.widgetBorder};
+  }
+`);
+
+const cssAdminAccountReason = styled('span', `
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inherit;
+`);
+
+const cssAdminAccountItemPart = styled('span', `
+  width: 50%;
+  &>:not(div) {
+    padding: 12px 24px 12px 16px;
+  }
 `);
 
 /**
