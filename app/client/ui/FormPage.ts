@@ -104,7 +104,7 @@ export class FormPage extends Disposable {
 
     const {successURL} = formLayout;
     if (successURL) {
-      const url = sanitizeHttpUrl(successURL)?.replace("__ID__", `${recordId}`);
+      const url = sanitizeHttpUrl(successURL)?.replace("{{ID}}", `${recordId}`);
       if (url) {
         window.location.href = url;
       }
