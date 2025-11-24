@@ -71,7 +71,10 @@
         "Tab Separated Values (.tsv)": "Значення, розділені табуляцією (.tsv)",
         "Exporting is only available from document pages. Please select a document page and try again.": "Експорт доступний лише зі сторінок документа. Виберіть сторінку документа та повторіть спробу.",
         "Download attachments...": "Завантажити вкладення...",
-        "Download document...": "Завантажити документ..."
+        "Download document...": "Завантажити документ...",
+        "Suggest Changes": "Запропонувати зміни",
+        "current version": "поточна версія",
+        "original": "оригінальний"
     },
     "MakeCopyMenu": {
         "Be careful, the original has changes not in this document. Those changes will be overwritten.": "Зверніть увагу! В оригіналі є зміни, яких немає в цьому документі. Ці зміни будуть перезаписані.",
@@ -274,7 +277,8 @@
         "(customized)": "(індивідуальний)",
         "(empty)": "(порожній)",
         "(modified)": "(змінений)",
-        "Custom options": "Розширені параметри"
+        "Custom options": "Розширені параметри",
+        "Sort and filter": "Сортування та фільтрування"
     },
     "VisibleFieldsConfig": {
         "Clear": "Очистити",
@@ -446,7 +450,23 @@
         "Allow everyone to copy the entire document, or view it in full in fiddle mode.\nUseful for examples and templates, but not for sensitive data.": "Дозволити кожному скопіювати весь документ або переглянути його повністю в режимі створення нових копій.\nКорисно для прикладів і шаблонів, але не для конфіденційних даних.",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Дозволити редакторам редагувати структуру (наприклад, змінювати та видаляти таблиці, стовпці, макети), а також писати формули, які надають доступ до всіх даних незалежно від обмежень на читання.",
         "This default should be changed if editors' access is to be limited. ": "Цей параметр слід змінити, якщо ви хочете обмежити доступ редакторів. ",
-        "Add table-wide rule": "Додати правило таблиці"
+        "Add table-wide rule": "Додати правило таблиці",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Правила доступу змінилися. Натисніть кнопку «Скинути», щоб скасувати зміни та оновити правила.",
+        "All": "Усі",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Стовпець {{colId}} з'являється в кількох правилах для таблиці {{tableId}}, які можуть залежати від порядку. Спробуйте розділити правила по-іншому?",
+        "Columns": "Колонки",
+        "Condition cannot be blank": "Умова не може бути порожньою",
+        "Default resource missing in resource map": "На карті ресурсів відсутній ресурс за замовчуванням",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Недійсні стовпці в таблиці {{tableId}}: {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Недійсна таблиця: {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Недійсне правило атрибута користувача: {{prop}} має бути встановлено",
+        "Invalid user attribute to look up": "Недійсний атрибут користувача для пошуку",
+        "No columns listed in a column rule for table {{tableId}}": "У правилі для стовпців таблиці немає стовпців {{tableId}}",
+        "Not a valid user attribute": "Недійсний атрибут користувача",
+        "Resource missing in resource map: {{resourceKey}}": "Ресурс відсутній на карті ресурсів: {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Спроба додати TableRules для існуючої таблиці {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Використовуйте простий атрибут user.LinkKey, наприклад, user.LinkKey.something",
+        "hidden": "прихований"
     },
     "AccountPage": {
         "API": "API",
@@ -735,7 +755,11 @@
         "Uploading...": "Вавантажуємо...",
         "Default": "За замовчуванням",
         "Default, template, or tutorial": "За замовчуванням, шаблон або навчальний посібник",
-        "Document type": "Тип документа"
+        "Document type": "Тип документа",
+        "Allow others to suggest changes": "Дозволити іншим пропонувати зміни",
+        "Enable suggestions": "Увімкнути пропозиції",
+        "Suggestions": "Пропозиції",
+        "experiment": "експеримент"
     },
     "DocTour": {
         "No valid document tour": "Немає дійсного огляду документа",
@@ -829,7 +853,9 @@
         "Building {{- label}} widget": "Створення {{- label}} віджету",
         "Group by": "Групувати за",
         "Select data": "Виберіть дані",
-        "Select widget": "Виберіть віджет"
+        "Select widget": "Виберіть віджет",
+        "New Table": "Нова таблиця",
+        "SELECT BY": "ВИБРАТИ ЗА"
     },
     "Pages": {
         "Delete": "Видалити",
@@ -951,7 +977,9 @@
         "context menu - Access Rules": "контекстне меню - Правила доступу",
         "Delete document tour": "Видалити огляд документа",
         "Preview the tutorial": "Попередній перегляд посібника",
-        "Proposed Changes": "Запропоновані зміни"
+        "Proposed Changes": "Запропоновані зміни",
+        "Suggest Changes": "Запропонувати зміни",
+        "Suggestions": "Пропозиції"
     },
     "TopBar": {
         "Manage team": "Керування командою"
@@ -1041,7 +1069,10 @@
         "recovery mode": "режим відновлення",
         "snapshot": "знімок",
         "unsaved": "не збережено",
-        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Ви можете вносити зміни, але вони створять нову копію \nі не впливатимуть на початковий документ."
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "Ви можете вносити зміни, але вони створять нову копію \nі не впливатимуть на початковий документ.",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Ви можете вносити зміни,\nале вони не вплинуть на оригінальний документ.\nВи можете запропонувати їх як пропозиції.",
+        "editing": "редагування",
+        "suggesting": "пропонуючи"
     },
     "duplicatePage": {
         "Duplicate page {{pageName}}": "Дублювати сторінку {{pageName}}",
@@ -1203,7 +1234,8 @@
         "Rule must return True or False": "Правило має повертати True або False",
         "Add conditional style": "Додайте умовний стиль",
         "Conditional Style": "Умовний стиль",
-        "IF...": "ЯКЩО..."
+        "IF...": "ЯКЩО...",
+        "Row Style": "Стиль Рядка"
     },
     "CurrencyPicker": {
         "Invalid currency": "Недійсна валюта"
@@ -1394,10 +1426,13 @@
         "Set the maximum number of lines for multi-line text.": "Встановіть максимальну кількість рядків для багаторядкового тексту.",
         "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "Ця форма створена користувачем Grist і не схвалена компанією Grist Labs, Inc. або будь-якою іншою стороною, що надає цю послугу. Для вашої безпеки не надсилайте паролі через цю форму та будьте обережні, натискаючи на вбудовані посилання. Про зловмисні форми повідомляйте за адресою [{{mail}}](mailto:{{mail}}).",
         "Comments are here!": "Коментарі тут!",
-        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Ви можете додавати коментарі до комірок, відповідати на ланцюжки коментарів та згадувати співавторів за допомогою @."
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "Ви можете додавати коментарі до комірок, відповідати на ланцюжки коментарів та згадувати співавторів за допомогою @.",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "Якщо позначено, значення цього поля за замовчуванням можна попередньо заповнити з URL-адреси за допомогою параметрів запиту.",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "За допомогою пропозицій користувачі вносять зміни до особистої копії, не змінюючи оригінальний документ, а потім надсилають ці пропозиції на розгляд власнику документа перед інтеграцією."
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "ОПИС"
+        "DESCRIPTION": "ОПИС",
+        "Set description": "Опис набору"
     },
     "FieldContextMenu": {
         "Copy anchor link": "Скопіювати якірне посилання",
@@ -1691,7 +1726,10 @@
         "Options Sort Order": "Порядок сортування параметрів",
         "Radio": "Радіо",
         "Select": "Виберіть",
-        "Vertical": "Вертикальний"
+        "Vertical": "Вертикальний",
+        "Accept value from URL": "Прийняти значення з URL-адреси",
+        "Hidden field": "Приховане поле",
+        "URL parameter:\n{{colId}}=VALUE": "Параметр URL-адреси:\n{{colId}}=VALUE"
     },
     "CustomView": {
         "Some required columns aren't mapped": "Деякі обов'язкові стовпці не зіставлені",
@@ -1831,7 +1869,14 @@
         "default": "за замовчуванням",
         "more...": "більше...",
         "no authentication": "без автентифікації",
-        "unavailable": "недоступний"
+        "unavailable": "недоступний",
+        "{{count}} admin accounts_one": "обліковий запис адміністратора ({{count}})",
+        "{{count}} admin accounts_other": "{{count}} облікових записів адміністратора",
+        "Admin account not found": "Обліковий запис адміністратора не знайдено",
+        "Administrative accounts": "Адміністративні облікові записи",
+        "The users with administrative accounts": "Користувачі з обліковими записами адміністраторів",
+        "Version {{versionNumber}}": "Версія {{versionNumber}}",
+        "no admin accounts": "немає облікових записів адміністратора"
     },
     "Columns": {
         "Remove Column": "Вилучити стовпець"
@@ -2176,7 +2221,8 @@
         "Type DELETE if you are sure you do indeed wish to do this deletion.\nIf you are not sure, or do not understand what this operation will do,\nit would be wise to cancel it.": "Введіть DELETE, якщо ви впевнені, що дійсно хочете виконати це видалення.\nЯкщо ви не впевнені або не розумієте, що робитиме ця операція,\nбуло б розумно скасувати її."
     },
     "MentionTextBox": {
-        "no access": "немає доступу"
+        "no access": "немає доступу",
+        "...loading": "...завантаження"
     },
     "VersionUpdateBanner": {
         "There is a critical Grist update available.\nConsider upgrading to version {{version}} as soon as possible.": "Доступне критичне оновлення Grist.\nРозгляньте можливість оновлення до версії {{version}} якомога швидше.",
@@ -2310,7 +2356,27 @@
     "ProposedChangesPage": {
         "Proposed Changes": "Запропоновані зміни",
         "Replace original": "Замінити оригінал",
-        "This is a list of changes relative to the original document.": "Це список змін порівняно з оригінальним документом."
+        "This is a list of changes relative to the original document.": "Це список змін порівняно з оригінальним документом.",
+        "Accept": "Прийняти",
+        "Accepted {{at}}.": "Прийнято {{at}}.",
+        "Dismiss": "Відхилити",
+        "Dismissed {{at}}.": "Відхилено {{at}}.",
+        "Learn more": "Дізнатися більше",
+        "No changes found to suggest. Please make some edits.": "Не знайдено жодних змін, які можна запропонувати. Будь ласка, внесіть деякі зміни.",
+        "Retract Suggestion": "Відкликати пропозицію",
+        "Retracted {{at}}.": "Відтягнуто {{at}}.",
+        "Suggest Change": "Запропонувати зміну",
+        "Suggest Changes": "Запропонувати зміни",
+        "Suggestion made {{at}}.": "Зроблено пропозицію {{at}}.",
+        "Suggestions": "Пропозиції",
+        "The original document isn't asking for proposed changes.": "У вихідному документі не міститься запит на внесення змін.",
+        "There are fresh changes that haven't been added to the suggestion yet.": "До пропозиції ще не додано нові зміни.",
+        "This is a list of changes relative to the {{originalDocument}}.": "Це список змін, що стосуються {{originalDocument}}.",
+        "Update Suggestion": "Пропозиція оновлення",
+        "Work on a copy": "Робота над копією",
+        "Your suggestions": "Ваші пропозиції",
+        "experiment": "експеримент",
+        "original document": "оригінальний документ"
     },
     "commandList": {
         "Show accessibility options": "Показати параметри доступності",
@@ -2422,6 +2488,56 @@
         "Use the currently selected row as table headers": "Використовувати поточний вибраний рядок як заголовки таблиці",
         "When in the search bar, close it and focus the current match": "У рядку пошуку закрити його та виділити поточний збіг",
         "When typed at the start of a cell, make this a formula column": "Якщо ввести на початку комірки, зробити цей стовпець формулою",
-        "showing a behavioral popup": "показ поведінкового спливаючого вікна"
+        "showing a behavioral popup": "показ поведінкового спливаючого вікна",
+        "Filter this column by just this cell's value": "Фільтрувати цей стовпець лише за значенням цієї комірки"
+    },
+    "GridViewMenusDateHelpers": {
+        "12-hour format": "12-годинний формат",
+        "24-hour format": "24-годинний формат",
+        "AM": {
+            "PM": "AM/PM"
+        },
+        "Calendar": "Календар",
+        "Date helpers…": "Помічники на побаченнях…",
+        "Day": "День",
+        "Day of month": "День місяця",
+        "Day of week": "День тижня",
+        "Day of week (abbrev)": "День тижня (скорочено)",
+        "Day of week (full)": "День тижня (повний)",
+        "Day of week (numeric)": "День тижня (числовий)",
+        "Days since": "Днів з того часу",
+        "Days until": "Днів до",
+        "Default": "За замовчуванням",
+        "End of": "Кінець у",
+        "Full date": "Повна дата",
+        "Full name with year": "Повне ім'я з роком",
+        "Hour": "Година",
+        "Intervals": "Інтервали",
+        "Is weekend?": "Вихідні?",
+        "Minute": "Хвилина",
+        "Month": "Місяць",
+        "Months since": "Місяці з того часу",
+        "Months until": "Місяців до",
+        "Name only": "Тільки ім'я",
+        "Number only": "Тільки номер",
+        "Quarter": "Чверть",
+        "Quick Picks": "Швидкий вибір",
+        "Relative": "Родич",
+        "Short with year": "Короткий з роком",
+        "Sortable": "Сортування",
+        "Start of": "Початок у",
+        "Time": "Час",
+        "Time bucket": "Часовий проміжок",
+        "Week": "Тиждень",
+        "Week of year": "Тиждень року",
+        "Year": "Рік",
+        "Years since": "Років з того часу",
+        "Years until": "Років до"
+    },
+    "selectBy": {
+        "Select widget": "Вибрати віджет"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Документ без назви"
     }
 }
