@@ -124,6 +124,7 @@ export class ChoiceListEditor extends NewBaseEditor {
       createMobileButtons(options.commands),
     );
 
+
     this._textInput = this._tokenField.getTextInput();
     dom.update(this._tokenField.getRootElem(),
       dom.style('justify-content', this._alignment),
@@ -136,6 +137,10 @@ export class ChoiceListEditor extends NewBaseEditor {
       dom.on('input', () => this.resizeInput(true)),
       dom.prop('value', options.editValue || ''),
       this.commandGroup.attach(),
+    );
+
+    dom.update(this._dom,
+      dom.on('click', () => this._textInput.focus())
     );
 
     this._enableAddNew = !this._hasDropdownCondition;
@@ -331,6 +336,7 @@ export function buildDropdownConditionFilter(
 
 const cssCellEditor = styled('div', `
   background-color: ${theme.cellEditorBg};
+  cursor: text;
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
 `);

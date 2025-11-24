@@ -300,9 +300,9 @@ export class ReferenceListEditor extends NewBaseEditor {
 
 const cssCellEditor = styled('div', `
   background-color: ${theme.cellEditorBg};
+  cursor: text;
   font-family: var(--grist-font-family-data);
   font-size: var(--grist-medium-font-size);
-  cursor: text;
 `);
 
 const cssTokenField = styled(tokenFieldStyles.cssTokenField, `
