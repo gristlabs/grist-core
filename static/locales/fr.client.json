@@ -525,7 +525,7 @@
     },
     "FilterBar": {
         "SearchColuns": "Rechercher",
-        "SearchColumns": "Colonnes",
+        "SearchColumns": "Rechercher dans les colonnes",
         "Search Columns": "Chercher des colonnes"
     },
     "GridOptions": {
