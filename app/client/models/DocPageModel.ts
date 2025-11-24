@@ -104,7 +104,7 @@ export interface DocPageModel {
   importSources: ImportSource[];
   currentProposal: Observable<Proposal|'empty'|null>;
   //proposalIndexInActionStack: Observable<number|null>;
-  proposalNewChangesCount: Observable<number|'many'|null>;
+  proposalNewChangesCount: Observable<number|'...'|null>;
 
   undoState: Observable<IUndoState|null>;          // See UndoStack for details.
 
@@ -177,28 +177,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly type = Computed.create(this, this.currentDoc,
     (use, doc) => doc?.type ?? null);
   public readonly currentProposal = Observable.create<Proposal|'empty'|null>(this, null);
-  /*
-  public readonly docActionState = Observable.create<DocState|null>(this, null);
-  public readonly proposalIndexInActionStack = Computed.create(
-    this, this.currentProposal, this.gristDoc, (_, proposal, gristDoc) => {
-      if (!gristDoc) { return null; }
-      if (proposal === 'empty') { return -1; }
-      const state = proposal?.comparison.comparison?.left;
-      if (!state) { return -1; }
-      return gristDoc.getUndoStack().getUndoStackIndex(state.n) ?? -1;
-    }
-  );
-
-  public readonly proposalNewChangesCount = Computed.create(
-    this, this.docActionState, this.proposalIndexInActionStack, (use, docState, index) => {
-      if (docState && index !== null) {
-        return this.gristDoc.get()?.getUndoStack().compareStackIndex(index) || null;
-      }
-      return null;
-    }
-    );
-    */
-  public readonly proposalNewChangesCount = Observable.create<number|'many'|null>(this, null);
+  public readonly proposalNewChangesCount = Observable.create<number|'...'|null>(this, null);
 
   public readonly importSources: ImportSource[] = [];
 

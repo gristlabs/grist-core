@@ -8,12 +8,20 @@ const MAX_MEMORY_OF_COUNTED_ACTIONS = 250;
 const MAX_COUNT = 20;
 
 /**
- * Counts the number of actions since the "base action",
- * if there is one.
+ * Counts the number of actions since the "base action"
+ * (when the document was created, or forked, or copied).
+ * A "mark" can be set, meaning a distinct action against
+ * which a separate countFromMark is measured. This is
+ * used for the suggestion feature.
+ *
+ * If the count is large, we give up and just call it
+ * 'many'. We need to bear in mind also that action history
+ * gets truncated and so may not be complete.
  */
 export class ActionCounter extends dispose.Disposable {
-  public count: Observable<number|'many'>;
-  public countFromMark: Observable<number|'many'>;
+  public count: Observable<number|'...'>;
+  public countFromMark: Observable<number|'...'>;
+
   private _counted: Set<number>;
   private _countAt: Map<number, number>;
   private _actionNumList: Array<number>;
@@ -32,15 +40,12 @@ export class ActionCounter extends dispose.Disposable {
     this._countOffset = 0;
     const docSettings = docData.docSettings();
     const state = docSettings.baseAction;
-    console.log("DBASE", state);
     if (!state) { return; }
     let base: number = 0;
     for (let i = 0; i < log.length; i++) {
       const action = log[log.length - i - 1];
-      console.log('looking at', action);
       if (action.actionNum === state.n &&
           action.actionHash === state.h) {
-        console.log("YAY FOUND");
         base = log.length - i;
         break;
       }
@@ -50,27 +55,22 @@ export class ActionCounter extends dispose.Disposable {
       const action = log[i];
       this.pushAction(action);
     }
-    //this.count.set(ct);
-    //this._setCount(ct);
-    console.log(this._actionNumList);
   }
 
   public setMark(state?: DocState) {
     this._actionNumMark = state?.n ?? null;
     this._countOffset = - (this._countAt.get(this._actionNumMark ?? -1) ?? 0);
-    this.countFromMark.set(this._count + this._countOffset);
-    console.log("SETMARK", this._count + this._countOffset);
+    this._setCount();
   }
 
   public pushAction(action: MinimalActionGroup) {
-    console.log(action);
     if (action.isUndo) {
       if (this._counted.has(action.otherId)) {
-        this._setCount(-1);
+        this._changeCount(-1);
       }
     } else {
       this._countAction(action);
-      this._setCount(+1);
+      this._changeCount(+1);
     }
     this._actionNumList.push(action.actionNum);
     while (this._actionNumList.length > MAX_MEMORY_OF_COUNTED_ACTIONS) {
@@ -84,19 +84,21 @@ export class ActionCounter extends dispose.Disposable {
     this._counted.add(action.actionNum);
   }
 
-  private _setCount(delta: number, value?: number) {
+  private _changeCount(delta: number, value?: number) {
     if (value === undefined) {
       value = this._count;
     }
     value += delta;
-    if (value > MAX_COUNT && this.count.get() !== 'many') {
-      console.log("-- MANY COUNT IS", value);
-      this.count.set('many');
-      return;
-    }
-    console.log("-- COUNT IS", value, value + this._countOffset);
     this._count = value;
-    this.count.set(value);
-    this.countFromMark.set(value + this._countOffset);
+    this._setCount();
+  }
+
+  private  _setCount() {
+    this.count.set(this._truncated(this._count));
+    this.countFromMark.set(this._truncated(this._count + this._countOffset));
+  }
+
+  private _truncated(value: number): number|'...' {
+    return (value > MAX_COUNT) ? '...' : value;
   }
 }
