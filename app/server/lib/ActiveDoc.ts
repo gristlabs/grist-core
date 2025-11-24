@@ -26,6 +26,7 @@ import {
   DataSourceTransformed,
   ForkResult,
   FormulaTimingInfo,
+  GetActionSummariesResult,
   ImportOptions,
   ImportResult,
   ISuggestionWithValue,
@@ -609,18 +610,23 @@ export class ActiveDoc extends EventEmitter {
    * earliest actions first, later actions later.  If `summarize` is set,
    * action summaries are computed and included.
    */
-  public async getRecentActions(docSession: OptDocSession, summarize: boolean): Promise<ActionGroup[]> {
+  public async getRecentActions(
+    docSession: OptDocSession, summarize: boolean
+  ): Promise<GetActionSummariesResult> {
     const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
       {clientId: docSession.client?.clientId, summarize});
     const permittedGroups: ActionGroup[] = [];
+    let censored: boolean = false;
     // Process groups serially since the work is synchronous except for some
     // possible db accesses that will be serialized in any case.
     for (const group of groups) {
       if (await this._granularAccess.allowActionGroup(docSession, group)) {
         permittedGroups.push(group);
+      } else {
+        censored = true;
       }
     }
-    return permittedGroups;
+    return {actions: permittedGroups, censored};
   }
 
   public async getRecentMinimalActions(docSession: OptDocSession): Promise<MinimalActionGroup[]> {
@@ -2035,7 +2041,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   // Get recent actions in ActionGroup format with summaries included.
-  public async getActionSummaries(docSession: OptDocSession): Promise<ActionGroup[]> {
+  public async getActionSummaries(docSession: OptDocSession): Promise<GetActionSummariesResult> {
     return this.getRecentActions(docSession, true);
   }
 
