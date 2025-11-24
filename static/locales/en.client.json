@@ -2253,7 +2253,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Duplicate widget",
-        "Duplicate widgets": "Duplicate widgets"
+        "Duplicate widgets": "Duplicate widgets",
+        "Active": "Active",
+        "Create new page": "Create new page"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Uploading, please wait…"
