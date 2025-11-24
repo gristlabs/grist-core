@@ -124,7 +124,6 @@ export class ChoiceListEditor extends NewBaseEditor {
       createMobileButtons(options.commands),
     );
 
-
     this._textInput = this._tokenField.getTextInput();
     dom.update(this._tokenField.getRootElem(),
       dom.style('justify-content', this._alignment),
