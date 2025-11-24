@@ -11,6 +11,7 @@ import {makeT} from 'app/client/lib/localization';
 import {ClientTimeData} from 'app/client/models/TimeQuery';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {theme} from 'app/client/ui2018/cssVars';
 import {ActionGroup} from 'app/common/ActionGroup';
 import {concatenateSummaryPair} from 'app/common/ActionSummarizer';
 import {
@@ -216,16 +217,19 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     return dom('div.action_log',
         {tabIndex: '-1'},
         dom.maybe(this._censored, () => {
-          return dom(
+          return cssHistoryCensored(dom(
             'p',
             t('History blocked because of access rules.'),
+          ));
+        }),
+        // currently, if censored, no history at all available - so drop checkbox
+        dom.maybe((use) => !use(this._censored), () => {
+          return dom('div',
+            labeledSquareCheckbox(fromKo(this.showAllTables),
+              t('All tables'),
+            ),
           );
         }),
-        dom('div',
-          labeledSquareCheckbox(fromKo(this.showAllTables),
-            t('All tables'),
-          ),
-        ),
         dom('div.action_log_load',
           koDom.show(() => this._loading()),
           'Loading...'),
@@ -715,3 +719,9 @@ interface DeletedObject {
   colId?: string;
   tableId?: string;
 }
+
+const cssHistoryCensored = styled('div', `
+  margin: 8px 16px;
+  text-align: center;
+  color: ${theme.text};
+`);
