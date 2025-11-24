@@ -65,6 +65,7 @@ export function buildViewSectionDom(options: {
   draggable?: boolean, /* defaults to true */
   // Should show green bar on the left (but preserves active-section class).
   focusable?: boolean, /* defaults to true */
+  headerVisible?: boolean, /* defaults to true, if title and filters are visible at all */
   tableNameHidden?: boolean,
   widgetNameHidden?: boolean,
   renamable?: boolean,
@@ -77,8 +78,9 @@ export function buildViewSectionDom(options: {
     viewModel,
     draggable = true,
     focusable = true,
+    hideTitleControls = false,
     tableNameHidden,
-    widgetNameHidden,
+    widgetNameHidden,    
   } = options;
 
   // Creating normal section dom
@@ -114,11 +116,12 @@ export function buildViewSectionDom(options: {
         cssTestClick(testId("viewsection-blank")),
       ),
       viewInstance.buildTitleControls(),
-      dom('div.viewsection_buttons',
-        dom.create(viewSectionMenu, gristDoc, vs)
-      )
-     )),
-    dom.create(filterBar, gristDoc, vs),
+      hideTitleControls === true ? null :
+        dom('div.viewsection_buttons',
+          dom.create(viewSectionMenu, gristDoc, vs)
+        )
+    )),
+    hideTitleControls === true ? null : dom.create(filterBar, gristDoc, vs),
     dom.maybe<BaseView|null>(vs.viewInstance, (viewInstance) => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),

@@ -1001,7 +1001,7 @@ export class ActiveDoc extends EventEmitter {
     }
 
     let result: PatchLog = {changes: [], applied: false};
-    if (!options?.dismiss) {
+    if (options?.dismiss === undefined) {
       const patch = new Patch(this, docSession);
       const {details} = removeMetadataChangesFromDetails(origDetails);
       result = await patch.applyChanges(details);
@@ -1012,7 +1012,7 @@ export class ActiveDoc extends EventEmitter {
       }
     } else {
       await this._getHomeDbManagerOrFail().updateProposalStatus(urlId, proposalId, {
-        status: 'dismissed'
+        status: options?.dismiss ? 'dismissed' : undefined,
       });
     }
     const proposalUpdated = await this._getHomeDbManagerOrFail().getProposal(urlId, proposalId);

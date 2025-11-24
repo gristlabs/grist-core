@@ -1,4 +1,4 @@
-import BaseView from 'app/client/components/BaseView';
+import BaseView, {ViewOptions} from 'app/client/components/BaseView';
 import {parsePasteForView} from 'app/client/components/BaseView2';
 import * as selector from 'app/client/components/CellSelector';
 import {ElemType} from 'app/client/components/CellSelector';
@@ -53,10 +53,10 @@ import {BulkColValues, CellValue, UserAction} from 'app/common/DocActions';
 import {Sort} from 'app/common/SortSpec';
 import {isList} from 'app/common/gristTypes';
 import * as gutil from 'app/common/gutil';
-import {UIRowId} from 'app/plugin/GristAPI';
+import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 
 import convert from 'color-convert';
-import {BindableValue, Computed, Disposable, Holder} from 'grainjs';
+import {BindableValue, bundleChanges, Computed, Disposable, Holder, Observable} from 'grainjs';
 import {dom, DomElementArg, DomElementMethod, subscribeElem} from 'grainjs';
 import ko from 'knockout';
 import debounce from 'lodash/debounce';
@@ -78,9 +78,20 @@ const t = makeT('GridView');
 // it was.
 const SHORT_CLICK_IN_MS = 500;
 
-// size of the plus width ()
+/**
+ * A function that renders the index cell for a row, can be overridden in GridViewOptions.
+ */
+export type RowIndexRenderer = (row: DataRowModel) => DomElementArg | null;
+
+
+/**
+ * A function that renders the corner cell, can be overridden in GridViewOptions.
+ */
+export type CornerRenderer = (el: Element) => DomElementArg | null;
+
+// size of the plus width
 const PLUS_WIDTH = 40;
-// size of the row number field (we assume 4rem, 1rem = 13px in grist)
+// size of the row number field
 const ROW_NUMBER_WIDTH = 52;
 
 interface InsertColOptions {
@@ -91,6 +102,20 @@ interface InsertColOptions {
 }
 
 type Direction = 'left'|'right'|'up'|'down';
+
+export interface GridViewOptions extends ViewOptions {
+  inline?: boolean; // If true, grid will try to auto size to fit contents within maxInlineWidth/Height, used in
+                    // VirtualDoc and change proposals. This is still an experimental feature.
+  maxInlineWidth?: number; // In inline mode the default is 800px
+  maxInlineHeight?: number; // In inline mode the default is 600px
+  isPreview?: boolean; // default false, used for imports previews.
+  addNewRow?: boolean; // default true
+  rowMenu?: boolean; // default true
+  colMenu?: boolean; // default true
+  rowIndexRenderer?: RowIndexRenderer; // function to render row index
+  cornerRenderer?: CornerRenderer; // function to render corner cell
+  onCellDblClick?: (pos: CursorPos) => void; // function to call on cell double click
+}
 
 /**
  * GridView component implements the view of a grid of cells.
@@ -139,14 +164,25 @@ export default class GridView extends BaseView {
   protected colShadow: HTMLElement;
   protected rowLine: HTMLElement;
   protected rowShadow: HTMLElement;
+  private _rowHeights: number[] = [];
+  private _inline: boolean;
+  private _rowIndexRenderer: RowIndexRenderer;
+  private _cornerRenderer: CornerRenderer;
+  
+  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, protected gridOptions?: GridViewOptions) {
+    super(gristDoc, viewSectionModel, {...gridOptions, addNewRow: gridOptions?.addNewRow ?? true});
 
-  constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, isPreview = false) {
-    super(gristDoc, viewSectionModel, { isPreview, 'addNewRow': true });
+    this.isPreview = gridOptions?.isPreview || false;
+    this._inline = gridOptions?.inline ?? false;
 
+    this._rowIndexRenderer = gridOptions?.rowIndexRenderer
+      ?? ((row) => dom.text((use) => String(use(row._index)! + 1)));
+    this._cornerRenderer = gridOptions?.cornerRenderer
+      ?? (() => dom.on('click', () => this.selectAll()));
     this.viewSection = viewSectionModel;
     this.isReadonly = this.gristDoc.isReadonly.get() ||
                       this.viewSection.isVirtual() ||
-                      isPreview;
+                      this.isPreview;
 
     //--------------------------------------------------
     // Observables local to this view
@@ -168,11 +204,11 @@ export default class GridView extends BaseView {
     this.customCellMenu = identity;
     this.customRowMenu = identity;
 
-    if (!isPreview && !this.gristDoc.comparison) {
+    if (!this.isPreview && !this.gristDoc.comparison && !this._inline) {
       this.selectionSummary = SelectionSummary.create(this,
         this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
     }
-
+    
     this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
       const result = this.viewSection.viewFields().all().filter((field, index) => {
         // During column removal or restoring (with undo), some columns fields
@@ -213,7 +249,6 @@ export default class GridView extends BaseView {
       this._scrollColumnIntoView(idx);
     }));
 
-    this.isPreview = isPreview;
 
     // Some observables for the scroll markers that show that the view is cut off on a side.
     this.scrollShadow = {
@@ -317,7 +352,13 @@ export default class GridView extends BaseView {
 
     //--------------------------------------------------
     // Set up DOM event handling.
-    onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', (event) => this.activateEditorAtCursor({event}));
+    onDblClickMatchElem(this.scrollPane, '.field:not(.column_name)', (event) => {
+      if (this.gridOptions?.onCellDblClick) {
+        this.gridOptions.onCellDblClick(this.cursor.getCursorPos());
+      } else {
+        this.activateEditorAtCursor({event});
+      }
+    });
     if (!this.isPreview) {
       dom.onMatchElem(this.scrollPane, '.field:not(.column_name)', 'contextmenu',
         (ev, elem) => this.onCellContextMenu(ev, elem as Element), {useCapture: true}
@@ -475,6 +516,46 @@ export default class GridView extends BaseView {
     // Initialize scroll position.
     this.scrollPane.scrollLeft = this.viewSection.lastScrollPos.scrollLeft;
     this.scrolly.scrollToSavedPos(this.viewSection.lastScrollPos);
+
+    // Autowidth will be done in next tick after rows are rendered.
+    setTimeout(() => {
+      if (this.isDisposed()) { return; }
+      // Auto-size columns on initial load if enabled
+      if (this._rowHeights.length > 0 && this._inline) {
+        this.applyAutoWidth();
+        // Bubble event with dimension information
+        const SPACE_FOR_SCROLLBAR = 22;
+
+        const maxHeight = this.gridOptions?.maxInlineHeight || 600;
+        const maxWidth = this.gridOptions?.maxInlineWidth || 800;
+        const totalHeight = this._rowHeights.reduce((sum, value) => sum + value, 0) + 2 + 23 /* for header */;
+        const targetHeight = Math.min(totalHeight, maxHeight)
+        
+        const widthObs = Observable.create<number>(this, 0);
+        
+        const updateWidth = () => {
+          if (this.isDisposed()) { return; }
+          const fields = this.viewSection.viewFields().all();
+          const fieldsWidthSum = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0) ;
+          const targetWidth =  Math.min(fieldsWidthSum + ROW_NUMBER_WIDTH + SPACE_FOR_SCROLLBAR, maxWidth);
+          widthObs.set(targetWidth);
+        };
+
+        updateWidth();
+
+        dom.update(this.viewPane, 
+          dom.style('width', use => `${use(widthObs)}px`),
+          dom.style('height', `${targetHeight}px`)
+        );
+
+        this.scrolly.scheduleUpdateSize();
+
+        const paneElem = this.viewPane.querySelector('.gridview_data_header') as HTMLElement;
+        const resizeObserver = new ResizeObserver(updateWidth);
+        resizeObserver.observe(paneElem);
+        this.onDispose(() => resizeObserver.disconnect()); 
+      }
+    })
   }
 
   /**
@@ -1218,6 +1299,56 @@ export default class GridView extends BaseView {
     }
   }
 
+  public applyAutoHeight(heights?: number[]) {
+    if (!heights || heights.length === 0) { return; }
+    const viewPane = this.viewPane as HTMLElement | undefined;
+    if (!viewPane) { return; }
+    const total = heights.reduce((sum, value) => sum + value, 0) + 2;
+    const current = parseInt(viewPane.style.height.replace('px', '') || '0', 10) || 0;
+    if (total > current) {
+      viewPane.style.height = total + 'px';
+    }
+  }
+
+  public applyAutoWidth() {
+    const viewPane = this.viewPane as HTMLElement | undefined;
+    if (!viewPane) { return; }
+    const fields = this.viewSection.viewFields.peek().all();
+    if (!fields.length) { return; }
+    const clips = Array.from(viewPane.querySelectorAll<HTMLElement>('.field_clip, .column_name'));
+    if (clips.length === 0) { return; }
+    // Very crude way of measuring widths of each column by measuring each cell content.
+    const widthsList = clips.map(elem => {
+      const range = document.createRange();
+      range.selectNodeContents(elem);
+      const rect = range.getBoundingClientRect();
+      return rect.width;
+    });
+
+    const numFields = fields.length;
+    const fieldWidths = new Map<number, number[]>();
+    for (let i = 0; i < widthsList.length; i++) {
+      const fieldIndex = i % numFields;
+      if (!fieldWidths.has(fieldIndex)) {
+        fieldWidths.set(fieldIndex, []);
+      }
+      fieldWidths.get(fieldIndex)!.push(widthsList[i]);
+    }
+
+    const fieldMaxWidths = new Map<number, number>();
+    for (const [fieldIndex, widths] of fieldWidths.entries()) {
+      const maxWidth = Math.ceil(widths.reduce((a, b) => Math.max(a, b), 0));
+      fieldMaxWidths.set(fieldIndex, maxWidth);
+    }
+
+    bundleChanges(() => {
+      fields.forEach((field, index) => {
+        const maxWidth = fieldMaxWidths.get(index) || 100;
+        field.width(maxWidth + 20);
+      });
+    });
+  }
+
   // ======================================================================================
   // DOM STUFF
 
@@ -1269,7 +1400,7 @@ export default class GridView extends BaseView {
       // Corner and shadows (so it's fixed to the grid viewport)
       this._cornerDom = dom(
         'div.gridview_data_corner_overlay',
-        dom.on('click', () => this.selectAll()),
+        this._cornerRenderer,
       ),
       dom('div.scroll_shadow_top', dom.show(this.scrollShadow.top)),
       dom('div.scroll_shadow_left',
@@ -1417,7 +1548,7 @@ export default class GridView extends BaseView {
                     }),
                   ),
                   this._showTooltipOnHover(field, isTooltip),
-                  this.isPreview ? null : menuToggle(null,
+                  (this.isPreview || this.gridOptions?.colMenu === false) ? null : menuToggle(null,
                     dom.cls('g-column-main-menu'),
                     dom.cls('g-column-menu-btn'),
                     // Prevent mousedown on the dropdown triangle from initiating column drag.
@@ -1455,7 +1586,10 @@ export default class GridView extends BaseView {
           ) //end hbox
         ), // END COL HEADER BOX
 
-        koDomScrolly.scrolly(data, { paddingBottom: 80, paddingRight: 28 }, renderRow.bind(this)),
+        koDomScrolly.scrolly(data, {
+          ...(this._inline ? {} : {paddingBottom: 80, paddingRight: 20}),
+          cb: this._onRenderedVisibleRows.bind(this)
+        }, renderRow.bind(this)),
 
         dom.maybe(this._isPrinting, () =>
           renderAllRows(this.tableModel, this.sortedRows.getKoArray().peek(), renderRow.bind(this))
@@ -1532,10 +1666,9 @@ export default class GridView extends BaseView {
               // Must ensure that linkedRowId is not null to avoid drawing on rows whose
               // row ids are null.
               return Boolean(linkedRowId && linkedRowId === myRowId);
-            })
+            }),
           ),
-          dom.text((use) => String(use(row._index)! + 1)),
-
+          this._rowIndexRenderer(row),
           dom.domComputed(use => use(row._validationFailures), (failures) => {
             if (!row._isAddRow() && failures.length > 0) {
               return dom('div.validation_error_number', String(failures.length),
@@ -1552,7 +1685,7 @@ export default class GridView extends BaseView {
             ev.preventDefault();
             ((ev.currentTarget as HTMLElement).querySelector('.menu_toggle') as HTMLElement)?.click();
           }),
-          this.isPreview ? null : menuToggle(null,
+          (this.isPreview || this.gridOptions?.rowMenu === false) ? null : menuToggle(null,
             dom.on('click',
               ev => this.maybeSelectRow((ev.currentTarget as HTMLElement).parentElement!, row.getRowId())),
             menu((ctx) => {
@@ -1663,7 +1796,7 @@ export default class GridView extends BaseView {
 
   public override onResize() {
     const activeFieldBuilder = this.activeFieldBuilder();
-    let height = null;
+    let height: number|null = null;
     if (isNarrowScreen()) {
       height = window.outerHeight;
     }
@@ -1687,6 +1820,13 @@ export default class GridView extends BaseView {
   protected onLinkFilterChange() {
     super.onLinkFilterChange();
     this.clearSelection();
+  }
+
+  protected _onRenderedVisibleRows(heights?: number[]) {
+    // Store heights from scrolly for use in onTableLoaded
+    if (heights && heights.length > 0) {
+      this._rowHeights = heights;
+    }
   }
 
   protected onCellContextMenu(ev: Event, elem: Element) {

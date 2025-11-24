@@ -175,7 +175,24 @@ export default class BaseView extends Disposable {
       sortFunc.updateSpec(spec);
       this.sortedRows.updateSort((rowId1, rowId2) => {
         const value = nativeCompare(rowId1 === "new", rowId2 === "new");
-        return value || sortFunc.compare(rowId1 as number, rowId2 as number);
+
+        if (value) {
+          return value;
+        }
+
+        const left = rowId1 as number;
+        const right = rowId2 as number;
+
+        if (this.comparison) {
+          // If any number is negative, convert it to positive - 0.5, so that: -9 becomes 8.5, -1 becomes 0.5,
+          const convert = (n: number) => n < 0 ? -n - 0.5 : n;
+          const properLeft = convert(left);
+          const properRight = convert(right);
+          const cmp = nativeCompare(properLeft, properRight);
+          return cmp;
+        }
+
+        return sortFunc.compare(left, right);
       });
     };
     this.autoDispose(this.viewSection.activeDisplaySortSpec.subscribe(updateSort));
