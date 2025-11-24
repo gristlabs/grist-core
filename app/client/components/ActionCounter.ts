@@ -19,17 +19,33 @@ const MAX_COUNT = 20;
  * gets truncated and so may not be complete.
  */
 export class ActionCounter extends dispose.Disposable {
+  // The full count from the base action.
   public count: Observable<number|'...'>;
+
+  // The count from the marked actionNum, if there is one
+  // (otherwise is same as `count`).
   public countFromMark: Observable<number|'...'>;
 
-  private _counted: Set<number>;
-  private _countAt: Map<number, number>;
+  // List of actionNums that we've seen. Gets truncated.
   private _actionNumList: Array<number>;
+
+  // Set of actionNums that contributed to count.
+  private _counted: Set<number>;
+
+  // A map from actionNum to the count at that actionNum.
+  private _countAt: Map<number, number>;
+
+  // The current count.
   private _count: number;
+
+  // The current marked actionNum, if any.
   private _actionNumMark: number|null;
+
+  // The offset to the count at the marked actionNum, or 0.
   private _countOffset: number;
 
   public create(log: MinimalActionGroup[], docData: DocData) {
+    // Initialize counters and stats.
     this.count = Observable.create(this, 0);
     this.countFromMark = Observable.create(this, 0);
     this._counted = new Set();
@@ -38,9 +54,16 @@ export class ActionCounter extends dispose.Disposable {
     this._count = 0;
     this._actionNumMark = null;
     this._countOffset = 0;
+
+    // Get base action if any.
     const docSettings = docData.docSettings();
     const state = docSettings.baseAction;
-    if (!state) { return; }
+    if (!state) {
+      this._setCount();
+      return;
+    }
+
+    // Scan log actions for the base action.
     let base: number = 0;
     for (let i = 0; i < log.length; i++) {
       const action = log[log.length - i - 1];
@@ -50,22 +73,29 @@ export class ActionCounter extends dispose.Disposable {
         break;
       }
     }
-    // Now scan forward to count
+
+    // Either we found the base or not. Now scan forward to count
+    // actions. Need to go in this order because of possible
+    // undo/redos.
     for (let i = base; i < log.length; i++) {
       const action = log[i];
       this.pushAction(action);
     }
   }
 
+  // This marks a state to use as the reference for countFromMark.
+  // Useful for suggestion feature.
   public setMark(state?: DocState) {
     this._actionNumMark = state?.n ?? null;
-    this._countOffset = - (this._countAt.get(this._actionNumMark ?? -1) ?? 0);
+    this._countOffset = -(this._countAt.get(this._actionNumMark ?? -1) ?? 0);
     this._setCount();
   }
 
+  // Process an action, updating the count.
   public pushAction(action: MinimalActionGroup) {
     if (action.isUndo) {
       if (this._counted.has(action.otherId)) {
+        // Undoing an action we counted, so update count.
         this._changeCount(-1);
       }
     } else {
@@ -76,6 +106,7 @@ export class ActionCounter extends dispose.Disposable {
     while (this._actionNumList.length > MAX_MEMORY_OF_COUNTED_ACTIONS) {
       const actionNum = this._actionNumList.shift()!;
       this._counted.delete(actionNum);
+      this._countAt.delete(actionNum);
     }
     this._countAt.set(action.actionNum, this._count);
   }

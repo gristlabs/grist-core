@@ -21,7 +21,6 @@ import {mapGetOrSet, MapWithTTL} from 'app/common/AsyncCreate';
 import {AsyncFlow, CancelledError, FlowRunner} from 'app/common/AsyncFlow';
 import {delay} from 'app/common/delay';
 import {OpenDocMode, OpenDocOptions, UserOverride} from 'app/common/DocListAPI';
-// import {DocState} from 'app/common/DocState';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {Features, mergedFeatures, Product} from 'app/common/Features';
 import {buildUrlId, IGristUrlState, parseUrlId, UrlIdParts} from 'app/common/gristUrls';
@@ -103,7 +102,6 @@ export interface DocPageModel {
   type: Observable<DocumentType>;
   importSources: ImportSource[];
   currentProposal: Observable<Proposal|'empty'|null>;
-  //proposalIndexInActionStack: Observable<number|null>;
   proposalNewChangesCount: Observable<number|'...'|null>;
 
   undoState: Observable<IUndoState|null>;          // See UndoStack for details.
@@ -521,7 +519,6 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
 
     // Move ownership of GristDoc to its final owner.
     this.gristDoc.autoDispose(flow.release(gristDoc));
-    // gristDoc.latestActionState
     gristDoc.autoDispose(
       subscribe(
         gristDoc.getActionCounter().countFromMark,
