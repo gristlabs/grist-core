@@ -60,6 +60,7 @@ describe('ActionLog', function() {
       ['RemoveRecord', '_grist_ACLRules', result.retValues[1]]
     ]);
     await driver.navigate().refresh();
+    await gu.waitForDocToLoad();
   });
 
   it('should attribute websocket actions to user', async function() {

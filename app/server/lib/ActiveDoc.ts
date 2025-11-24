@@ -610,7 +610,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public async getRecentActions(
     docSession: OptDocSession, summarize: boolean
-  ): Promise<{actions: ActionGroup[], censored: boolean}> {
+  ): Promise<GetActionSummariesResult> {
     const groups = await this._actionHistory.getRecentActionGroups(MAX_RECENT_ACTIONS,
       {clientId: docSession.client?.clientId, summarize});
     const permittedGroups: ActionGroup[] = [];
