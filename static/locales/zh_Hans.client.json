@@ -37,7 +37,23 @@
         "When adding table rules, automatically add a rule to grant OWNER full access.": "添加表规则时，自动添加规则以授予 OWNER 完全访问权限。",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "允许编辑者编辑结构（例如修改和删除表、列、布局）和编写公式，无论读取限制如何，都可以访问所有数据。",
         "This default should be changed if editors' access is to be limited. ": "如果要限制编辑者的访问权限，则应更改此默认值。 ",
-        "Add table-wide rule": "添加全表规则"
+        "Add table-wide rule": "添加全表规则",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "访问规则已更改。单击重置可还原更改并刷新规则。",
+        "All": "全部",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "{{colId}} 列出现在表{{tableId}} 的多条规则中，可能与顺序有关。尝试以不同方式拆分规则？",
+        "Columns": "列",
+        "Condition cannot be blank": "条件不能为空",
+        "Default resource missing in resource map": "资源地图中缺少默认资源",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "表{{tableId}} 中的无效列 ：{{invalidColIds}}",
+        "Invalid table: {{tableId}}": "无效表格:{{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "无效的用户属性规则：必须设置{{prop}}",
+        "Invalid user attribute to look up": "要查询的用户属性无效",
+        "No columns listed in a column rule for table {{tableId}}": "表{{tableId}}所列出的规则中未包含列",
+        "Not a valid user attribute": "用户属性无效",
+        "Resource missing in resource map: {{resourceKey}}": "资源地图：{{resourceKey}}中缺少资源",
+        "Trying to add TableRules for existing table {{tableId}}": "尝试为现有表:{{tableId}}添加列表规则",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "使用简单的用户属性,比如. user.LinkKey.等等",
+        "hidden": "隐藏"
     },
     "AccountPage": {
         "API": "API",
@@ -158,7 +174,9 @@
         "SERIES": "序列",
         "Add Series": "增加序列",
         "Hole Size": "孔径",
-        "Stack series": "堆叠序列"
+        "Stack series": "堆叠序列",
+        "Hole size": "体积",
+        "Add series": "添加系列"
     },
     "DataTables": {
         "Click to copy": "点击复制",
@@ -371,7 +389,8 @@
         "Use {{helpCenter}} for documentation or questions.": "使用 {{helpCenter}} 获取文档或问题。",
         "convert to card view, select data, and more.": "转换为卡片视图、选择数据等。",
         "creator panel": "创作者面板",
-        "template library": "模板库"
+        "template library": "模板库",
+        "AI Assistant": "AI助手"
     },
     "HomeIntro": {
         "Interested in using Grist outside of your team? Visit your free ": "有兴趣在您的团队之外使用 Grist 吗？ 访问您的免费 ",
@@ -418,7 +437,8 @@
         "Workspaces": "工作区",
         "Tutorial": "教程",
         "Grist Resources": "Grist 资源",
-        "Terms of service": "服务条款"
+        "Terms of service": "服务条款",
+        "context menu - {{- workspaceName }}": "上下文菜单{{- workspaceName }}"
     },
     "MakeCopyMenu": {
         "Cancel": "取消",
@@ -599,7 +619,8 @@
         "(modified)": "（修改的）",
         "Custom options": "自定义选项",
         "FILTER": "筛选",
-        "SORT": "排序"
+        "SORT": "排序",
+        "Sort and filter": "排序和筛选"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "无法将项目放入隐藏字段",
@@ -634,7 +655,10 @@
         "fiddle": "小提琴",
         "override": "覆盖",
         "unsaved": "未保存",
-        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "您可以进行编辑，但他们会创建一个新副本并且\n不影响原文件。"
+        "You may make edits, but they will create a new copy and will\nnot affect the original document.": "您可以进行编辑，但他们会创建一个新副本并且\n不影响原文件。",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "您可以进行编辑、\n但不会作用于原始文档。\n您可以将其作为建议提出。",
+        "editing": "编辑中",
+        "suggesting": "建议中"
     },
     "ConditionalStyle": {
         "Row style": "行样式",
@@ -643,7 +667,8 @@
         "Add conditional style": "添加条件样式",
         "Error in style rule": "样式规则错误",
         "Conditional Style": "条件样式",
-        "IF...": "如果..."
+        "IF...": "如果...",
+        "Row Style": "行样式"
     },
     "CurrencyPicker": {
         "Invalid currency": "货币无效"
@@ -664,7 +689,11 @@
         "Reply": "回复",
         "Reply to a comment": "回复评论",
         "Started discussion": "开始讨论",
-        "Write a comment": "写一个评论"
+        "Write a comment": "写一个评论",
+        "{{count}} comments_one": "{{count}} 评论",
+        "{{count}} comments_other": "{{count}} 评论",
+        "Copy link": "复制链接",
+        "updated": "已更新"
     },
     "FieldBuilder": {
         "Changing multiple column types": "更改多个列类型",
@@ -783,7 +812,11 @@
         "Uploading...": "正在上传...",
         "Default": "默认",
         "Default, template, or tutorial": "默认、模板或教程",
-        "Document type": "文档类型"
+        "Document type": "文档类型",
+        "Formula times": "公式时间",
+        "Allow others to suggest changes": "允许他人提出修改建议",
+        "Enable suggestions": "启用建议",
+        "Suggestions": "建议"
     },
     "DocumentUsage": {
         "Size of attachments": "附件大小",
@@ -849,7 +882,10 @@
         "Using separate settings": "使用单独的设置"
     },
     "FilterConfig": {
-        "Add column": "添加列"
+        "Add column": "添加列",
+        "Unpin filter - {{- columnName}} column (current: pinned)": "解除固定筛选 -{{- columnName}} 列（当前：已固定）",
+        "remove filter - {{- columnName}} column": "删除筛选 -{{- columnName}} 列",
+        "{{- columnName }} column filters": "{{- columnName }} 列过滤器"
     },
     "FilterBar": {
         "SearchColumns": "搜索列",
@@ -936,7 +972,8 @@
         "Added new linked section to view {{viewName}}": "添加了新的链接部分以查看 {{viewName}}",
         "Import from file": "从文件导入",
         "Saved linked section {{title}} in view {{name}}": "已将链接部分 {{title}} 保存在视图 {{name}} 中",
-        "go to webhook settings": "去设置 webhook"
+        "go to webhook settings": "去设置 webhook",
+        "New changes are temporarily suspended. Webhooks queue overflowed. Please check webhooks settings, remove invalid webhooks, and clean the queue.": "新更改暂时中止。Webhooks队列溢出。请检查Webhooks设置，删除无效Webhooks，并清理队列。"
     },
     "Importer": {
         "Merge rows that match these fields:": "合并与这些字段匹配的行：",
@@ -958,7 +995,8 @@
         "Import from file": "从文件导入",
         "Source column": "来源列",
         "Cancel": "取消",
-        "Import": "导入"
+        "Import": "导入",
+        "Import options": "导入选项"
     },
     "LeftPanelCommon": {
         "Help Center": "帮助中心",
@@ -974,7 +1012,9 @@
         "Building {{- label}} widget": "构建 {{- label}} 小部件",
         "Group by": "通过...分组",
         "Select data": "选择数据",
-        "Select widget": "选择小部件"
+        "Select widget": "选择小部件",
+        "New Table": "新表",
+        "SELECT BY": "选择依据"
     },
     "Pages": {
         "Delete": "删除",
@@ -982,7 +1022,8 @@
         "The following tables will no longer be visible_one": "下表将不再可见",
         "The following tables will no longer be visible_other": "下表将不再可见",
         "Keep data and delete page. Table will remain available in {{rawDataLink}}": "保留数据并删除页面。表格将继续在 {{rawDataLink}} 中可用",
-        "raw data page": "原始数据页"
+        "raw data page": "原始数据页",
+        "Document pages": "文档页码"
     },
     "PermissionsWidget": {
         "Allow all": "允许全部",
@@ -1035,7 +1076,10 @@
         "DOO Separated Values (.dsv)": "分隔符分隔值 (.dsv)",
         "Exporting is only available from document pages. Please select a document page and try again.": "导出功能仅支持从文档页面导出。请选择一个文档页面，然后重试。",
         "Download attachments...": "下载附件...",
-        "Download document...": "下载文档..."
+        "Download document...": "下载文档...",
+        "Suggest Changes": "建议修改",
+        "current version": "当前版本",
+        "original": "原来的"
     },
     "SiteSwitcher": {
         "Create new team site": "创建新的团队网站",
@@ -1075,7 +1119,9 @@
         "context menu - Access Rules": "上下文菜单 - 访问规则",
         "Delete document tour": "删除文档导览",
         "Preview the tutorial": "预览教程",
-        "Proposed Changes": "拟议变更"
+        "Proposed Changes": "拟议变更",
+        "Suggest Changes": "建议修改",
+        "Suggestions": "建议"
     },
     "TopBar": {
         "Manage team": "管理团队"
@@ -1176,7 +1222,8 @@
         "changes": "变化",
         "comments": "评论",
         "this document": "本文档",
-        "your email": "您的电子邮件"
+        "your email": "您的电子邮件",
+        "Unsubscribed{{suffix}}": "未订阅{{suffix}}"
     },
     "modals": {
         "Cancel": "取消",
@@ -1200,14 +1247,19 @@
         "Remove": "删除",
         "Rename": "改名",
         "You do not have edit access to this document": "您没有此文档的编辑权限",
-        "(default)": "（默认）"
+        "(default)": "（默认）",
+        "Expand {{maybeDefault}}": "展开{{maybeDefault}}",
+        "Set default: Collapse": "设置默认：折叠",
+        "Set default: Expand": "设置默认：扩展",
+        "context menu - {{- pageName }}": "上下文菜单{{- pageName }}"
     },
     "search": {
         "Find Next ": "找下一个 ",
         "Find Previous ": "查找上一个 ",
         "No results": "没有结果",
         "Search in document": "在文档中搜索",
-        "Search": "搜索"
+        "Search": "搜索",
+        "Close search bar": "关闭搜索栏"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "发送文件到 Google 云端硬盘"
@@ -1223,7 +1275,9 @@
     "ACLUsers": {
         "Example Users": "示例用户",
         "Users from table": "表中的用户",
-        "View as": "查看为"
+        "View as": "查看为",
+        "Other users from table": "表格中的其他用户",
+        "Shared users": "共享用户"
     },
     "TypeTransform": {
         "Apply": "应用",
@@ -1350,14 +1404,36 @@
         "Community widgets are created and maintained by Grist community members.": "社区小部件由Grist社区成员创建和维护。",
         "Two-way references are not currently supported for Formula or Trigger Formula columns": "公式或触发器公式列当前不支持双向引用",
         "This limitation occurs when one column in a two-way reference has the Reference type.": "当双向引用中的一列具有“引用”类型时，会出现此限制。",
-        "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允许多个值，请将引用列的类型更改为“引用列表”。"
+        "To allow multiple assignments, change the referenced column's type to Reference List.": "若要允许多个值，请将引用列的类型更改为“引用列表”。",
+        "The preview below this header shows how the selected user will see this document": "标题下方的预览可以展示所选用户将如何查看该文档",
+        "[Learn more.]({{link}})": "[了解更多。]({{link}})",
+        "Summary tables can only contain formula columns.": "摘要表只能包含公式列。",
+        "Manage users and resources in a Grist installation.": "管理 Grist 安装中的用户和资源。",
+        "The new Grist Assistant is here!": "新版 Grist 助手在这！",
+        "Formulas support many Excel functions and full Python syntax.": "公式支持众多 Excel 函数和完整的 Python 语法。",
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "在目标表中创建一个新的引用列表列，该列与目标列都可编辑且同步。",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "内部存储表示所有附件都存储在文档 SQLite 文件中，而外部存储表示所有附件都存储在同一个外部存储中。",
+        "Understand, modify and work with your data and formulas with the help of Grist's new AI Assistant!": "在 Grist 全新人工智能助手的帮助下，了解、修改并处理您的数据和公式！",
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. or any party providing this service. For your security, do not submit passwords through this form, and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).": "本表单由 Grist 用户创建，未经 Grist Labs 公司或提供此服务的任何一方认可。为了您的安全，请勿通过此表单提交密码，点击嵌入链接时请务必小心。请向 [{{mail}}](mailto:{{mail}}) 报告恶意表单。",
+        "Set the maximum number of lines for multi-line text.": "设置多行文本的最大行数。",
+        "Comments are here!": "在此发表评论！",
+        "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "您可以在单元格中添加评论，回复评论主题，并@-提及合作者。",
+        "When checked, this field’s default value can be prefilled from the URL using query parameters.": "选中后，该字段的默认值可使用查询参数从 URL 中预填。",
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "利用建议功能，用户可以在不修改原始文档的情况下对个人副本进行修改，然后提交这些建议，由文档所有者在整合前进行审核。"
     },
     "DescriptionConfig": {
-        "DESCRIPTION": "描述"
+        "DESCRIPTION": "描述",
+        "Set description": "设置说明"
     },
     "PagePanels": {
         "Close Creator Panel": "关闭创作者面板",
-        "Open creator panel": "打开创作者面板"
+        "Open creator panel": "打开创作者面板",
+        "Creator panel (right panel)": "创作者面板（右侧面板）",
+        "Document header": "文档页眉",
+        "Main content": "主要内容",
+        "Main navigation and document settings (left panel)": "主导航和文档设置（左侧面板）",
+        "Close navigation panel (left panel)": "关闭导航面板（左侧面板）",
+        "Open navigation panel (left panel)": "打开导航面板（左侧面板）"
     },
     "ColumnTitle": {
         "Column label": "列标签",
@@ -1979,7 +2055,16 @@
         "Insert the current date and time": "插入当前日期和时间",
         "Edit label of the currently-selected field": "编辑当前选定字段的标签",
         "Fills current selection with the contents of the top row in the selection": "用当前选区顶部行内容填充选区",
-        "Hide the currently selected fields": "隐藏当前选中的字段"
+        "Hide the currently selected fields": "隐藏当前选中的字段",
+        "Insert a new column, after the currently selected one": "在当前选定列之后插入新列",
+        "Insert a new column, before the currently selected one": "在当前选定列之前插入新列",
+        "Insert a new record, after the currently selected one in an unsorted table": "在未排序表中的当前选定记录之后插入新记录",
+        "Insert a new record, before the currently selected one in an unsorted table": "在未排序表中，在当前选定记录之前插入一条新记录",
+        "Insert new column in default location": "在默认位置插入新列",
+        "Insert the current date": "插入当前日期",
+        "Maximize the active section": "最大化活动部分",
+        "Move down one page of records, or to next record in a card list": "下移一页记录，或移至卡片列表中的下一条记录",
+        "Move downward five records": "向下移动五个记录"
     },
     "ParseOptions": {
         "First row contains headers": "第一行包含表头"
