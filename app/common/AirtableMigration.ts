@@ -1,10 +1,11 @@
 import {AirtableAPI, AirtableBaseSchema, AirtableFieldSchema} from 'app/common/AirtableAPI';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {GristType} from 'app/plugin/GristData';
-import {DocAction, UserAction} from 'app/common/DocActions';
+import {UserAction} from 'app/common/DocActions';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
+export type GetTableColumnInfoFunc = (tableId: string) => Promise<{ id: string, colRef: number }[]>;
 
 export class AirtableMigrator {
   constructor(private _api: AirtableAPI, private _applyUserActions: ApplyUserActionsFunc) {
@@ -16,31 +17,15 @@ export class AirtableMigrator {
     console.log(baseSchema);
     const gristDocSchema = gristDocSchemaFromAirtableSchema(baseSchema);
 
-    const addTableActions: DocAction[] = [];
 
-    for (const table of gristDocSchema.tables) {
-      addTableActions.push([
-        'AddTable',
-        table.name,
-        table.columns.map(colInfo => ({
-          id: colInfo.id,
-          type: colInfo.type,
-          isFormula: colInfo.isFormula,
-          formula: colInfo.formula ?? "",
-        })),
-      ]);
-    }
+    const results = await createTables(gristDocSchema.tables, this._applyUserActions);
 
-    const results = await this._applyUserActions(addTableActions);
     console.log(JSON.stringify(results, null, 2));
 
-    // Calculate base schema
-    // Create tables
-    // Create fields
-    // Apply field types and customization
     return {
       baseSchema,
       gristSchema: await this._getGristDocSchema(base),
+      results,
     };
   }
 
@@ -51,10 +36,96 @@ export class AirtableMigrator {
   }
 }
 
+async function createTables(schemas: TableSchema[],
+                            applyUserActions: ApplyUserActionsFunc,
+                            /*getColumnInfo: GetTableColumnInfoFunc*/) {
+  const addTableActions: UserAction[] = [];
+
+  for (const schema of schemas) {
+    addTableActions.push([
+      'AddTable',
+      // This will be transformed into a valid id
+      schema.name,
+      schema.columns.map(colInfo => ({
+        // This will be transformed into a valid id
+        id: colInfo.desiredId,
+        type: "Any",
+        isFormula: false,
+      })),
+    ]);
+  }
+
+  const tableCreationResults = (await applyUserActions(addTableActions)).retValues;
+
+  const tableOriginalIdToGristTableId = new Map<string, string>();
+  const tableOriginalIdToGristTableRef = new Map<string, number>();
+  const colOriginalIdToGristColId = new Map<string, string>();
+
+  // This expects everything to have been created successfully, and therefore
+  // in order in the response - without any gaps.
+  schemas.forEach((tableSchema, tableIndex) => {
+    const tableCreationResult = tableCreationResults[tableIndex];
+    tableOriginalIdToGristTableId.set(tableSchema.originalId, tableCreationResult.table_id as string);
+    tableOriginalIdToGristTableRef.set(tableSchema.originalId, tableCreationResult.id as number);
+
+    tableSchema.columns.forEach((colSchema, colIndex) => {
+      colOriginalIdToGristColId.set(colSchema.originalId, tableCreationResult.columns[colIndex] as string);
+    });
+  });
+
+  const getTableId = getFromOrThrowIfUndefined(tableOriginalIdToGristTableId, (key) => {
+    throw new Error(`Couldn't locate Grist table id for table ${key}`);
+  });
+
+  const getColId = getFromOrThrowIfUndefined(colOriginalIdToGristColId, (key) => {
+    throw new Error(`Couldn't locate Grist column id for column ${key}`);
+  });
+
+  const modifyColumnActions: UserAction[] = [];
+  for (const tableSchema of schemas) {
+    for (const columnSchema of tableSchema.columns) {
+      // TODO - consider logging a warning for the missing ref case.
+      //        Or block it entirely in TS
+      const type = columnSchema.type.includes("Ref")
+        ? columnSchema.ref ? `${columnSchema.type}:${getTableId(columnSchema.ref.originalTableId)}` : "Any"
+        : columnSchema.type;
+
+      modifyColumnActions.push([
+        'ModifyColumn',
+        getTableId(tableSchema.originalId),
+        getColId(columnSchema.originalId),
+        {
+          type,
+          isFormula: columnSchema.formula !== undefined,
+          formula: columnSchema.formula,
+          label: columnSchema.label,
+          // Need to decouple it - otherwise our stored column ids may now be invalid.
+          untieColIdFromLabel: columnSchema.label !== undefined,
+          description: columnSchema.description,
+          widgetOptions: JSON.stringify(columnSchema.widgetOptions),
+          // TODO - Need column ref for this (as in the numerical id) - will need to load it.
+          //visibleCol: columnSchema.visibleCol?.originalColId && getColId(columnSchema.visibleCol.originalColId),
+          // TODO - This
+          //recalcDeps: number[] | null;
+          //recalcWhen?: RecalcWhen;
+        }
+      ]);
+    }
+  }
+
+  console.log(modifyColumnActions);
+  const modifyColumnResults = await applyUserActions(modifyColumnActions);
+  console.log(JSON.stringify(modifyColumnResults, null, 2));
+  console.log(modifyColumnResults);
+
+  return {};
+}
+
 function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocSchema {
   return {
     tables: airtableSchema.tables.map(baseTable => {
       return {
+        originalId: baseTable.id,
         name: baseTable.name,
         columns: baseTable.fields
           .map(baseField => {
@@ -72,36 +143,42 @@ interface DocSchema {
 }
 
 interface TableSchema {
+  originalId: string;
   name: string;
   columns: ColumnSchema[];
 }
 
 interface ColumnSchema {
-  id: string;
+  originalId: string;
+  desiredId: string;
   type: GristType;
-  isFormula: boolean;
   formula?: string;
   label?: string;
   description?: string;
   recalcDeps?: number[] | null;
   recalcWhen?: RecalcWhen;
-  visibleCol?: number;
+  ref?: { originalTableId: string };
+  visibleCol?: { originalColId: string };
   untieColIdFromLabel?: boolean;
-  widgetOptions?: string;
+  widgetOptions?: { [key: string]: any };
 }
 
 type AirtableFieldMapper = (field: AirtableFieldSchema) => ColumnSchema;
 const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   aiText(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   autoNumber(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should have trigger formula
@@ -109,14 +186,18 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   checkbox(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Bool',
       isFormula: false,
     };
   },
   count(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should be a formula
@@ -124,14 +205,18 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   createdBy(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   createdTime(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'DateTime',
       isFormula: false,
       // TODO - Should have a trigger formula
@@ -139,7 +224,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   currency(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should have currency formatting
@@ -147,7 +234,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   date(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Date',
       isFormula: false,
       // TODO - Choose best format for date based on the Airtable configuration
@@ -155,7 +244,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   dateTime(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'DateTime',
       isFormula: false,
       // TODO - Choose best format for datetime based on the Airtable configuration
@@ -163,7 +254,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   duration(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should also produce a formatted duration formula column.
@@ -171,14 +264,18 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   email(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   formula(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // It would be helpful to convert formulas, but that's significant work.
@@ -186,7 +283,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   lastModifiedBy(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Add trigger formula
@@ -194,7 +293,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   lastModifiedTime(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'DateTime',
       isFormula: false,
       // TODO - Add trigger formula
@@ -202,7 +303,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   multilineText(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up formatting
@@ -210,32 +313,40 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   multipleAttachments(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Attachments',
       isFormula: false,
     };
   },
   multipleCollaborators(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Format this sensibly
     };
   },
-  /*
   multipleRecordLinks(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'RefList',
       isFormula: false,
-      // TODO - Set up references
+      ref: {
+        originalTableId: field.options.linkedTableId,
+      }
     };
   },
-  */
   multipleSelects(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'ChoiceList',
       isFormula: false,
       // TODO - Set up choices
@@ -243,7 +354,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   number(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Set up formatting / precision info
@@ -251,7 +364,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   percent(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Set up percentage formatting
@@ -259,14 +374,18 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   phoneNumber(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   rating(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Int',
       isFormula: false,
       // Consider setting up some nice conditional formatting.
@@ -274,7 +393,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   richText(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up markdown
@@ -283,7 +404,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   /*
   rollup(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: '',
       isFormula: false,
       formula: field.options?.formula || '',
@@ -292,14 +415,18 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   */
   singleCollaborator(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   singleLineText(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up formatting
@@ -307,7 +434,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   singleSelect(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Choice',
       isFormula: false,
       // TODO - Set up choices
@@ -315,10 +444,25 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   url(field) {
     return {
-      id: field.name,
+      originalId: field.id,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
-      // TODO - Set up hyperlink formatting.
+      widgetOptions: {
+        widget: "HyperLink",
+      },
     };
   },
 };
+
+// Small helper to make accessing a map less verbose, and use consistent error handling.
+function getFromOrThrowIfUndefined<K, V>(map: Map<K, V>, makeThrowable: (key: K) => Error) {
+  return (key: K): V => {
+    const value = map.get(key);
+    if (!value) {
+      throw makeThrowable(key);
+    }
+    return value;
+  };
+}
