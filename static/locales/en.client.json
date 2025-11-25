@@ -109,7 +109,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "This row was subsequently removed in action {{action.actionNum}}",
         "All tables": "All tables",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Column {{colId}} was subsequently removed in action #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}",
+        "History blocked because of access rules.": "History blocked because of access rules."
     },
     "AddNewButton": {
         "Add new": "Add new"
@@ -2148,7 +2149,8 @@
         "Workspace": "Workspace",
         "context menu - {{- documentName }}": "context menu - {{- documentName }}",
         "Documents list": "Documents list",
-        "Download document...": "Download document..."
+        "Download document...": "Download document...",
+        "Deleted {{at}}": "Deleted {{at}}"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
