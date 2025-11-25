@@ -9,5 +9,14 @@
     },
     "access": {
         "docNoAccess": "您无权访问此文档。"
+    },
+    "admin": {
+        "emptyOrg": "在 `GRIST_INSTALL_ADMIN_ORG={{org}}` 所定义的管理组织中未发现所有者",
+        "orgUser": "用户是一个由 \"GRIST_INSTALL_ADMIN_ORG={{org}}\"设定的管理组织的所有者",
+        "noDefaultEmail": "缺少管理员帐户,因为未设置 `GRIST_DEFAULT_EMAIL`",
+        "accountByEmail": "由 `GRIST_DEFAULT_EMAIL={{defaultEmail}}` 定义的管理员帐户"
+    },
+    "DocApi": {
+        "UntitledDocument": "无标题文档"
     }
 }
