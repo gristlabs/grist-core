@@ -3304,11 +3304,11 @@ export async function removeFilters(save = false) {
 export async function sortAndFilter() {
   const ctrl = {
     async addColumn() {
-      await driver.find('.test-filter-config-add-filter-btn').click();
+      await driver.findWait('.test-filter-config-add-filter-btn', 1000).click();
       return this;
     },
     async clickColumn(col: string) {
-      await driver.findContentWait(".test-sd-searchable-list-item", col, 500).click();
+      await driver.findContentWait(".test-sd-searchable-list-item", col, 1000).click();
       return this;
     },
     async close() {
@@ -3316,7 +3316,7 @@ export async function sortAndFilter() {
       return this;
     },
     async save() {
-      await driver.find('.test-section-menu-btn-save').click();
+      await driver.findWait('.test-section-menu-btn-save', 1000).click();
       await waitForServer();
       return this;
     },

@@ -218,14 +218,17 @@ export class DocWorkerApi {
       next();
     });
 
+    // Some endpoints require the admin
+    const requireInstallAdmin = this._grist.getInstallAdmin().getMiddlewareRequireAdmin();
+
     // check document exists (not soft deleted) and user can view it
     const canView = expressWrap(this._assertAccess.bind(this, 'viewers', false));
     // check document exists (not soft deleted) and user can edit it
     const canEdit = expressWrap(this._assertAccess.bind(this, 'editors', false));
     const checkAnonymousCreation = expressWrap(this._checkAnonymousCreation.bind(this));
     const isOwner = expressWrap(this._assertAccess.bind(this, 'owners', false));
-    // check user can edit document, with soft-deleted documents being acceptable
-    const canEditMaybeRemoved = expressWrap(this._assertAccess.bind(this, 'editors', true));
+    // check user can edit document, with soft-deleted and disabled documents being acceptable
+    const canEditMaybeRemovedOrDisabled = expressWrap(this._assertAccess.bind(this, 'editors', true));
     // converts google code to access token and adds it to request object
     const decodeGoogleToken = expressWrap(googleAuthTokenMiddleware.bind(null));
 
@@ -1159,7 +1162,7 @@ export class DocWorkerApi {
 
     // DELETE /api/docs/:docId
     // Delete the specified doc.
-    this._app.delete('/api/docs/:docId', canEditMaybeRemoved, throttled(async (req, res) => {
+    this._app.delete('/api/docs/:docId', canEditMaybeRemovedOrDisabled, throttled(async (req, res) => {
       const {data} = await this._removeDoc(req, res, true);
       if (data) { this._logDeleteDocumentEvents(req, data); }
     }));
@@ -1167,7 +1170,7 @@ export class DocWorkerApi {
     // POST /api/docs/:docId/remove
     // Soft-delete the specified doc.  If query parameter "permanent" is set,
     // delete permanently.
-    this._app.post('/api/docs/:docId/remove', canEditMaybeRemoved, throttled(async (req, res) => {
+    this._app.post('/api/docs/:docId/remove', canEditMaybeRemovedOrDisabled, throttled(async (req, res) => {
       const permanent = isParameterOn(req.query.permanent);
       const {data} = await this._removeDoc(req, res, permanent);
       if (data) {
@@ -1177,6 +1180,18 @@ export class DocWorkerApi {
           this._logRemoveDocumentEvents(req, data);
         }
       }
+    }));
+
+    // POST /api/docs/:docId/disable
+    // Disables doc (removes all non-admin access except listing or deleting the doc)
+    this._app.post('/api/docs/:docId/disable', requireInstallAdmin, expressWrap(async (req, res) => {
+      await this._toggleDisabledStatus(req, res, 'disable');
+    }));
+
+    // POST /api/docs/:did/enable
+    // Enables the specified doc if it was previously disabled
+    this._app.post('/api/docs/:did/enable', requireInstallAdmin, expressWrap(async (req, res) => {
+      await this._toggleDisabledStatus(req, res, 'enable');
     }));
 
     this._app.get('/api/docs/:docId/snapshots', canView, withDoc(async (activeDoc, req, res) => {
@@ -1382,7 +1397,7 @@ export class DocWorkerApi {
       });
       const {states} = await this._getStates(docSession, activeDoc);
       res.json(
-        await this._getChanges(docSession, activeDoc, {
+        await getChanges(docSession, activeDoc, {
           states,
           leftHash,
           rightHash,
@@ -1408,13 +1423,13 @@ export class DocWorkerApi {
         docId2: comparisonUrlId,
         maxRows: null,
       });
-      await this._dbManager.setProposal({
+      const proposal = await this._dbManager.setProposal({
         srcDocId: parts.forkId,
         destDocId: parts.trunkId,
         comparison: comp,
         retracted
       });
-      res.json(comp);
+      res.json(proposal);
     }));
 
     /**
@@ -1456,7 +1471,7 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/proposals/:proposalId/apply', canEdit, withDoc(async (activeDoc, req, res) => {
       const proposalId = integerParam(req.params.proposalId, 'proposalId');
       const docSession = docSessionFromRequest(req);
-      const changes = activeDoc.applyProposal(docSession, proposalId);
+      const changes = await activeDoc.applyProposal(docSession, proposalId);
       await sendReply(req, res, {data: {proposalId, changes}, status: 200});
     }));
 
@@ -1948,7 +1963,7 @@ export class DocWorkerApi {
   }): Promise<string> {
     const {documentName, workspaceId} = options;
     const {status, data, errMessage} = await this._dbManager.addDocument(getScope(req), workspaceId, {
-      name: documentName ?? 'Untitled document',
+      name: documentName ?? req.t('DocApi.UntitledDocument'),
     });
     if (status !== 200) {
       throw new ApiError(errMessage || 'unable to create document', status);
@@ -2143,12 +2158,15 @@ export class DocWorkerApi {
     next();
   }
 
-  private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemoved: boolean,
+  private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemovedOrDisabled: boolean,
                               req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
-    allowRemoved = scope.showAll || scope.showRemoved || allowRemoved;
+    allowRemovedOrDisabled = scope.showAll || scope.showRemoved || allowRemovedOrDisabled;
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
-    if (role) { assertAccess(role, docAuth, {allowRemoved}); }
+    if (role) { assertAccess(role, docAuth, {
+      allowRemoved: allowRemovedOrDisabled,
+      allowDisabled: allowRemovedOrDisabled});
+    }
     next();
   }
 
@@ -2205,66 +2223,6 @@ export class DocWorkerApi {
     };
   }
 
-  /**
-   *
-   * Calculate changes between two document versions identified by leftHash and rightHash.
-   * If rightHash is the latest version of the document, the ActionSummary for it will
-   * contain a copy of updated and added rows.
-   *
-   * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
-   * be lifted, but is adequate for now).
-   *
-   */
-  private async _getChanges(
-    docSession: OptDocSession,
-    activeDoc: ActiveDoc,
-    options: {
-      states: DocState[];
-      leftHash: string;
-      rightHash: string;
-      maxRows?: number | null;
-    }
-  ): Promise<DocStateComparison> {
-    // The change calculation currently cannot factor in
-    // granular access rules, so we need broad read rights
-    // to execute it.
-    if (!await activeDoc.canCopyEverything(docSession)) {
-      throw new ApiError('insufficient access', 403);
-    }
-
-    const { states, leftHash, rightHash, maxRows } = options;
-    const finder = new HashUtil(states);
-    const leftOffset = finder.hashToOffset(leftHash);
-    const rightOffset = finder.hashToOffset(rightHash);
-    if (rightOffset > leftOffset) {
-      throw new Error('Comparisons currently require left to be an ancestor of right');
-    }
-    const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
-    // TODO: if in the future changes can be computed for someone
-    // with partial read access, then the call to getActions should
-    // be updated.
-    const actions = (await activeDoc.getActions(actionNums)).reverse();
-    let totalAction = createEmptyActionSummary();
-    for (const action of actions) {
-      if (!action) { continue; }
-      const summary = summarizeAction(action, {
-        maximumInlineRows: maxRows,
-      });
-      totalAction = concatenateSummaries([totalAction, summary]);
-    }
-    const result: DocStateComparison = {
-      left: states[leftOffset],
-      right: states[rightOffset],
-      parent: states[leftOffset],
-      summary: (leftOffset === rightOffset) ? 'same' : 'right',
-      details: {
-        leftChanges: {tableRenames: [], tableDeltas: {}},
-        rightChanges: totalAction
-      }
-    };
-    return result;
-  }
-
   private async _removeDoc(req: Request, res: Response, permanent: boolean): Promise<QueryResult<Document>> {
     const scope = getDocScope(req);
     const docId = getDocId(req);
@@ -2304,6 +2262,34 @@ export class DocWorkerApi {
     await this._dbManager.flushSingleDocAuthCache(scope, docId);
     await this._docManager.interruptDocClients(docId);
     return result;
+  }
+
+  /**
+   * This method should only be called from the docs/:docId/disable
+   * and docs/:docId/enable endpoints, which use middleware to check
+   * for admin access. We therefore assume admin access in the body of
+   * this function.
+   */
+  private async _toggleDisabledStatus(req: Request, res: Response, action: 'enable'|'disable'){
+    const mreq = req as RequestWithLogin;
+    const docId = req.params.docId || req.params.did;
+
+    // We have admin access, so grant a special permit to this doc
+    mreq.specialPermit = { ...mreq.specialPermit, docId };
+
+    const scope = getDocScope(req);
+    const result = await this._dbManager.toggleDisableDocument(action, scope);
+
+    await sendOkReply(req, res);
+    await this._dbManager.flushSingleDocAuthCache(scope, docId);
+
+    if (action === 'disable') {
+      await this._docManager.interruptDocClients(docId);
+    }
+
+    if (result.data) {
+      this._logDisableToggleDocumentEvents(action, mreq, result.data);
+    }
   }
 
   private async _runSql(
@@ -2376,6 +2362,21 @@ export class DocWorkerApi {
         docIdDigest: id,
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,
+      },
+    });
+  }
+
+  private _logDisableToggleDocumentEvents(action: 'enable'|'disable', req: RequestWithLogin, document: Document) {
+    this._grist.getAuditLogger().logEvent(req, {
+      action: `document.${action}`,
+      context: {
+        site: _.pick(document.workspace.org, "id", "name", "domain"),
+      },
+      details:  {
+        document: {
+          ..._.pick(document, "id", "name"),
+          workspace: _.pick(document.workspace, "id", "name"),
+        },
       },
     });
   }
@@ -2620,7 +2621,7 @@ export class DocWorkerApi {
     if (showDetails && parent) {
       // Calculate changes from the parent to the current version of this document.
       const leftChanges = (
-        await this._getChanges(docSession, activeDoc, {
+        await getChanges(docSession, activeDoc, {
           states,
           leftHash: parent.h,
           rightHash: "HEAD",
@@ -2920,4 +2921,62 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
   return streamXLSX(activeDoc, req, res, options);
+}
+
+
+/**
+ *
+ * Calculate changes between two document versions identified by leftHash and rightHash.
+ * If rightHash is the latest version of the document, the ActionSummary for it will
+ * contain a copy of updated and added rows.
+ *
+ * Currently will fail if leftHash is not an ancestor of rightHash (this restriction could
+ * be lifted, but is adequate for now).
+ *
+ */
+export async function getChanges(
+  docSession: OptDocSession,
+  activeDoc: ActiveDoc,
+  options: {
+    states: DocState[];
+    leftHash: string;
+    rightHash: string;
+    maxRows?: number | null;
+  }
+): Promise<DocStateComparison> {
+  // The change calculation currently cannot factor in
+  // granular access rules, so we need broad read rights
+  // to execute it.
+  if (!await activeDoc.canCopyEverything(docSession)) {
+    throw new ApiError('insufficient access', 403);
+  }
+
+  const { states, leftHash, rightHash, maxRows } = options;
+  const finder = new HashUtil(states);
+  const leftOffset = finder.hashToOffset(leftHash);
+  const rightOffset = finder.hashToOffset(rightHash);
+  if (rightOffset > leftOffset) {
+    throw new Error('Comparisons currently require left to be an ancestor of right');
+  }
+  const actionNums: number[] = states.slice(rightOffset, leftOffset).map(state => state.n);
+  const actions = (await activeDoc.getActions(actionNums)).reverse();
+  let totalAction = createEmptyActionSummary();
+  for (const action of actions) {
+    if (!action) { continue; }
+    const summary = summarizeAction(action, {
+      maximumInlineRows: maxRows,
+    });
+    totalAction = concatenateSummaries([totalAction, summary]);
+  }
+  const result: DocStateComparison = {
+    left: states[leftOffset],
+    right: states[rightOffset],
+    parent: states[leftOffset],
+    summary: (leftOffset === rightOffset) ? 'same' : 'right',
+    details: {
+      leftChanges: {tableRenames: [], tableDeltas: {}},
+      rightChanges: totalAction
+    }
+  };
+  return result;
 }

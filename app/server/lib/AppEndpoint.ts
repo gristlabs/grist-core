@@ -132,6 +132,10 @@ export function attachAppEndpoint(options: AttachOptions): void {
             return forceLogin(req, res, next);
           }
         }
+        if (err.code === 'AUTH_DOC_DISABLED') {
+          throw new ApiError(req.t("access.docDisabled"), 403);
+        }
+
         throw new ApiError(req.t("access.docNoAccess"), 403);
       }
       throw err;

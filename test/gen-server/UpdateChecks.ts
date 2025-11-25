@@ -1,16 +1,17 @@
 import axios from "axios";
 import * as chai from "chai";
+import omit from 'lodash/omit';
 import * as sinon from 'sinon';
 
 import { configForUser } from "test/gen-server/testUtils";
 import * as testUtils from "test/server/testUtils";
 import { Defer, serveSomething, Serving } from "test/server/customUtil";
-import { Telemetry } from 'app/server/lib/Telemetry';
+import { ILogMeta, LogMethods } from 'app/server/lib/LogMethods';
 import { Deps } from "app/server/lib/UpdateManager";
 import { TestServer } from "test/gen-server/apiUtils";
 import { delay } from "app/common/delay";
 import { LatestVersion } from 'app/server/lib/UpdateManager';
-import { TelemetryEvent, TelemetryMetadataByLevel } from 'app/common/Telemetry';
+import { TelemetryEvent } from 'app/common/Telemetry';
 
 const assert = chai.assert;
 
@@ -24,7 +25,7 @@ const stop = async () => {
 let homeUrl: string;
 let dockerHub: Serving & { signal: () => Defer };
 let sandbox: sinon.SinonSandbox;
-const logMessages: [TelemetryEvent, TelemetryMetadataByLevel?][] = [];
+const logMessages: [TelemetryEvent, ILogMeta][] = [];
 
 const chimpy = configForUser("Chimpy");
 const headers = {
@@ -44,6 +45,7 @@ describe("UpdateChecks", function () {
 
     // Start the server with correct configuration.
     Object.assign(process.env, {
+      GRIST_TELEMETRY_LEVEL: "full",
       GRIST_TEST_SERVER_DEPLOYMENT_TYPE: "saas",
     });
     sandbox = sinon.createSandbox();
@@ -52,12 +54,12 @@ describe("UpdateChecks", function () {
     sandbox.stub(Deps, "GOOD_RESULT_TTL").value(500);
     sandbox.stub(Deps, "BAD_RESULT_TTL").value(200);
     sandbox.stub(Deps, "DOCKER_ENDPOINT").value(dockerHub.url + "/tags");
-    sandbox.stub(Telemetry.prototype, 'logEvent').callsFake((_, name, meta) => {
+    sandbox.stub(Deps, "OLDEST_RECOMMENDED_VERSION").value('8.8.8');
+    sandbox.stub(LogMethods.prototype, 'rawLog').callsFake((_level, _info, name, meta) => {
       if (name !== 'checkedUpdateAPI') {
-        return Promise.resolve();
+        return;
       }
       logMessages.push([name, meta]);
-      return Promise.resolve();
     });
 
     await startInProcess(this);
@@ -211,25 +213,63 @@ describe("UpdateChecks", function () {
     assert.match(resp.data.error, /timeout/);
   });
 
-  it("logs deploymentId and deploymentType", async function () {
+  it("logs deploymentId, deploymentType, and currentVersion", async function () {
     logMessages.length = 0;
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";
     const deploymentType = "test";
+    const currentVersion = "1.1.1";
     const resp = await axios.post(`${homeUrl}/api/version`, {
       installationId,
-      deploymentType
+      deploymentType,
+      currentVersion,
     }, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(logMessages.length, 1);
     const [name, meta] = logMessages[0];
     assert.equal(name, "checkedUpdateAPI");
-    assert.deepEqual(meta, {
-      full: {
-        deploymentId: installationId,
-        deploymentType,
-      },
+    assert.deepEqual(omit(meta, "installationId"), {
+      deploymentId: installationId,
+      deploymentType,
+      currentVersion,
+      eventName: "checkedUpdateAPI",
+      eventCategory: "SelfHosted",
+      eventSource: "grist-saas",
+      isInternalUser: true,
     });
+  });
+
+  it("sets isCritical correctly", async function() {
+    setEndpoint(dockerHub.url + "/tags");
+    const installationId = "randomInstallationId";
+    const deploymentType = "test";
+    async function testVersion(version: string, isCritical: boolean|'fail') {
+      const resp = await axios.post(`${homeUrl}/api/version`, {
+        installationId,
+        deploymentType,
+        currentVersion: version,
+      }, chimpy);
+      if (isCritical === 'fail') {
+        assert.equal(resp.status, 400);
+      } else {
+        assert.equal(resp.status, 200);
+        assert.equal(resp.data.isCritical, isCritical);
+      }
+    }
+    // we've set 8.8.8 as the oldest recommended version.
+    await testVersion('1.1.1', true);
+    await testVersion('v1.1.1', true);
+    await testVersion('7.1.1', true);
+    await testVersion('8.1.1', true);
+    await testVersion('8.8.7', true);
+    await testVersion('8.8.8', false);
+    await testVersion('8.8.10', false);
+    await testVersion('10.1.1', false);
+    await testVersion('v10.9.0', false);
+    await testVersion('11.1.1', false);
+    await testVersion('10', 'fail');
+    await testVersion('goose', 'fail');
+    await testVersion('', false);
   });
 });
 

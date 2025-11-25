@@ -274,7 +274,8 @@ export class FieldBuilder extends Disposable {
               widgetOptions,
               {
                 disabled,
-                defaultLabel: t('Mixed format')
+                defaultLabel: t('Mixed format'),
+                translateOptionLabels: true,
               }
             ),
           testId('widget-select')
@@ -319,6 +320,7 @@ export class FieldBuilder extends Disposable {
             use(this.isCallPending),
           menuCssClass: cssTypeSelectMenu.className,
           defaultLabel: t('Mixed types'),
+          translateOptionLabels: true,
           renderOptionArgs: (op) => {
             if (['Ref', 'RefList'].includes(selectType.get())) {
               // Don't show tip if a reference column type is already selected.

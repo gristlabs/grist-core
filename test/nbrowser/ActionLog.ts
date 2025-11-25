@@ -38,6 +38,31 @@ describe('ActionLog', function() {
     }
   });
 
+  it('should block history if access is not full', async function() {
+    const api = session.createHomeApi();
+    const result = await api.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'True', permissionsText: '-R',
+      }],
+    ]);
+
+    // Open the action-log tab.
+    await driver.findWait('.test-tools-log', 1000).click();
+    await gu.waitToPass(() =>   // Click might not work while panel is sliding out to open.
+        driver.findContentWait('.test-doc-history-tabs .test-select-button', 'Activity', 500).click());
+
+    // Make sure history is blocked.
+    await driver.findContentWait('p', /History blocked/, 1000);
+
+    // Remove rule.
+    await api.applyUserActions(docId, [
+      ['RemoveRecord', '_grist_ACLRules', result.retValues[1]]
+    ]);
+    await driver.navigate().refresh();
+    await gu.waitForDocToLoad();
+  });
+
   it('should attribute websocket actions to user', async function() {
     // Open the action-log tab.
     await driver.findWait('.test-tools-log', 1000).click();

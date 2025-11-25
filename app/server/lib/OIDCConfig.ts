@@ -67,9 +67,10 @@
 
 import { UserProfile } from 'app/common/LoginSessionAPI';
 import { StringUnionError } from 'app/common/StringUnion';
-import { AppSettings, appSettings } from 'app/server/lib/AppSettings';
+import { appSettings, AppSettings } from 'app/server/lib/AppSettings';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { SessionObj } from 'app/server/lib/BrowserSession';
+import { getSelectedLoginSystemType } from 'app/server/lib/gristSettings';
 import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from 'app/server/lib/oidc/Protections';
@@ -103,99 +104,229 @@ class ErrorWithUserFriendlyMessage extends Error {
   }
 }
 
-export class OIDCConfig {
+/**
+ * Interface for OIDC configuration.
+ */
+export interface OIDCConfig {
+  /** Host at which our /oauth2 endpoint will live (e.g., https://your-domain.com). */
+  readonly spHost: string;
+  /** The issuer URL for the IdP (Identity Provider). */
+  readonly issuerUrl: string;
+  /** The client ID for the application, as registered with the IdP. */
+  readonly clientId: string;
+  /** The client secret for the application, as registered with the IdP. */
+  readonly clientSecret: string;
+  /** The timeout in milliseconds for HTTP requests to the IdP. */
+  readonly httpTimeout?: number;
+  /** The key of the attribute to use for the user's name. If omitted, will use given_name + family_name or "name". */
+  readonly namePropertyKey?: string;
+  /** The key of the attribute to use for the user's email. */
+  readonly emailPropertyKey: string;
+  /** Alternative URL to redirect user upon logout (overrides the IdP's end_session_endpoint). */
+  readonly endSessionEndpoint: string;
+  /** If true, won't attempt to call the IdP's end_session_endpoint on logout. */
+  readonly skipEndSessionEndpoint: boolean;
+  /** A space-separated list of ACR (Authentication Context Class Reference) values to request from the IdP. */
+  readonly acrValues?: string;
+  /** If true, allows login even if the email is not verified by the IdP. */
+  readonly ignoreEmailVerified: boolean;
+  /** Extra client metadata to pass to openid-client. */
+  readonly extraMetadata: Partial<ClientMetadata>;
+  /** Set of enabled security protections (PKCE, STATE, NONCE). */
+  readonly enabledProtections: Set<EnabledProtectionString>;
+  /** The scopes to request from the IdP, as a space-separated list (e.g., "openid email profile"). */
+  readonly scopes: string;
+}
+
+/**
+ * Reads OIDC configuration from AppSettings into a JSON structure.
+ * Structure follows what is defined in the app settings keys.
+ */
+export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
+  const section = settings.section('login').section('system').section('oidc');
+
+  const spHost = section.flag('spHost').requireString({
+    envVar: 'GRIST_OIDC_SP_HOST',
+    defaultValue: process.env.APP_HOME_URL,
+  });
+
+  const issuerUrl = section.flag('issuer').requireString({
+    envVar: 'GRIST_OIDC_IDP_ISSUER',
+  });
+
+  const clientId = section.flag('clientId').requireString({
+    envVar: 'GRIST_OIDC_IDP_CLIENT_ID',
+  });
+
+  const clientSecret = section.flag('clientSecret').requireString({
+    envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
+    censor: true,
+  });
+
+  const httpTimeout = section.flag('httpTimeout').readInt({
+    envVar: 'GRIST_OIDC_SP_HTTP_TIMEOUT',
+    minValue: 0, // 0 means no timeout
+  });
+
+  const namePropertyKey = section.flag('namePropertyKey').readString({
+    envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
+  });
+
+  const emailPropertyKey = section.flag('emailPropertyKey').requireString({
+    envVar: 'GRIST_OIDC_SP_PROFILE_EMAIL_ATTR',
+    defaultValue: 'email',
+  });
+
+  const endSessionEndpoint = section.flag('endSessionEndpoint').readString({
+    envVar: 'GRIST_OIDC_IDP_END_SESSION_ENDPOINT',
+    defaultValue: '',
+  })!;
+
+  const skipEndSessionEndpoint = section.flag('skipEndSessionEndpoint').readBool({
+    envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
+    defaultValue: false,
+  })!;
+
+  const acrValues = section.flag('acrValues').readString({
+    envVar: 'GRIST_OIDC_IDP_ACR_VALUES',
+  })!;
+
+  const ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
+    envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
+    defaultValue: false,
+  })!;
+
+  const extraMetadata = JSON.parse(section.flag('extraClientMetadata').readString({
+    envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
+  }) || '{}');
+
+  const enabledProtections = buildEnabledProtections(section);
+
+  const scopes = process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile';
+
+  return {
+    spHost,
+    issuerUrl,
+    clientId,
+    clientSecret,
+    httpTimeout,
+    namePropertyKey,
+    emailPropertyKey,
+    endSessionEndpoint,
+    skipEndSessionEndpoint,
+    acrValues,
+    ignoreEmailVerified,
+    extraMetadata,
+    enabledProtections,
+    scopes,
+  };
+}
+
+function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionString> {
+  const enabledProtections = section.flag('enabledProtections').readString({
+    envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
+    defaultValue: 'PKCE,STATE',
+  })!.split(',');
+  if (enabledProtections.length === 1 && enabledProtections[0] === 'UNPROTECTED') {
+    log.warn("You chose to enable OIDC connection with no protection, you are exposed to vulnerabilities." +
+      " Please never do that in production.");
+    return new Set();
+  }
+  try {
+    return new Set(EnabledProtection.checkAll(enabledProtections));
+  } catch (e) {
+    if (e instanceof StringUnionError) {
+      throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.`+
+        ` Expected at least one of these values: "${e.values.join(",")}"`
+      );
+    }
+    throw e;
+  }
+}
+
+/**
+ * Check if OIDC is configured based on environment variables.
+ */
+function maybeOIDCConfigured(settings: AppSettings): boolean {
+  const section = settings.section('login').section('system').section('oidc');
+  const issuer = section.flag('issuer').readString({
+    envVar: 'GRIST_OIDC_IDP_ISSUER',
+  });
+  return !!issuer;
+}
+
+/**
+ * Check if OIDC is enabled.
+ *
+ * Returns true if:
+ * - GRIST_LOGIN_SYSTEM_TYPE is explicitly set to 'oidc', OR
+ * - GRIST_LOGIN_SYSTEM_TYPE is not set AND the provider is configured
+ */
+export function isOIDCEnabled(settings: AppSettings): boolean {
+  const selectedType = getSelectedLoginSystemType(settings);
+
+  // If explicitly selected, return true
+  if (selectedType === 'oidc') {
+    return true;
+  }
+
+  // If another system is explicitly selected, return false
+  if (selectedType) {
+    return false;
+  }
+
+  // If no system is selected, check if this provider is configured
+  return maybeOIDCConfigured(settings);
+}
+
+export class OIDCBuilder {
   /**
-   * Handy alias to create an OIDCConfig instance and initialize it.
+   * Handy alias to create an OIDCBuilder instance and initialize it.
    */
-  public static async build(sendAppPage: SendAppPageFunction): Promise<OIDCConfig> {
-    const config = new OIDCConfig(sendAppPage);
-    await config.initOIDC();
-    return config;
+  public static async build(
+    sendAppPage: SendAppPageFunction,
+    config?: OIDCConfig
+  ): Promise<OIDCBuilder> {
+    const builder = new OIDCBuilder(sendAppPage, config);
+    await builder.initOIDC();
+    return builder;
   }
 
   protected _client: Client;
+  private _config: OIDCConfig;
   private _redirectUrl: string;
-  private _namePropertyKey?: string;
-  private _emailPropertyKey: string;
-  private _endSessionEndpoint: string;
-  private _skipEndSessionEndpoint: boolean;
-  private _ignoreEmailVerified: boolean;
   private _protectionManager: ProtectionsManager;
-  private _acrValues?: string;
 
-  protected constructor(
-    private _sendAppPage: SendAppPageFunction
-  ) {}
+  constructor(
+    private _sendAppPage: SendAppPageFunction,
+    config?: OIDCConfig
+  ) {
+    // Use provided config or read from global appSettings
+    this._config = config ?? readOIDCConfigFromSettings(appSettings);
+  }
 
   public async initOIDC(): Promise<void> {
-    const section = appSettings.section('login').section('system').section('oidc');
-    const spHost = section.flag('spHost').requireString({
-      envVar: 'GRIST_OIDC_SP_HOST',
-      defaultValue: process.env.APP_HOME_URL,
-    });
-    const issuerUrl = section.flag('issuer').requireString({
-      envVar: 'GRIST_OIDC_IDP_ISSUER',
-    });
-    const clientId = section.flag('clientId').requireString({
-      envVar: 'GRIST_OIDC_IDP_CLIENT_ID',
-    });
-    const clientSecret = section.flag('clientSecret').requireString({
-      envVar: 'GRIST_OIDC_IDP_CLIENT_SECRET',
-      censor: true,
-    });
-    const httpTimeout = section.flag('httpTimeout').readInt({
-      envVar: 'GRIST_OIDC_SP_HTTP_TIMEOUT',
-      minValue: 0, // 0 means no timeout
-    });
-    this._namePropertyKey = section.flag('namePropertyKey').readString({
-      envVar: 'GRIST_OIDC_SP_PROFILE_NAME_ATTR',
-    });
+    this._protectionManager = new ProtectionsManager(this._config.enabledProtections);
 
-    this._emailPropertyKey = section.flag('emailPropertyKey').requireString({
-      envVar: 'GRIST_OIDC_SP_PROFILE_EMAIL_ATTR',
-      defaultValue: 'email',
-    });
-
-    this._endSessionEndpoint = section.flag('endSessionEndpoint').readString({
-      envVar: 'GRIST_OIDC_IDP_END_SESSION_ENDPOINT',
-      defaultValue: '',
-    })!;
-
-    this._skipEndSessionEndpoint = section.flag('skipEndSessionEndpoint').readBool({
-      envVar: 'GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT',
-      defaultValue: false,
-    })!;
-
-    this._acrValues = section.flag('acrValues').readString({
-      envVar: 'GRIST_OIDC_IDP_ACR_VALUES',
-    })!;
-
-    this._ignoreEmailVerified = section.flag('ignoreEmailVerified').readBool({
-      envVar: 'GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED',
-      defaultValue: false,
-    })!;
-
-    const extraMetadata: Partial<ClientMetadata> = JSON.parse(section.flag('extraClientMetadata').readString({
-      envVar: 'GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA',
-    }) || '{}');
-
-    const enabledProtections = this._buildEnabledProtections(section);
-    this._protectionManager = new ProtectionsManager(enabledProtections);
-
-    this._redirectUrl = new URL(CALLBACK_URL, spHost).href;
+    this._redirectUrl = new URL(CALLBACK_URL, this._config.spHost).href;
     custom.setHttpOptionsDefaults({
       ...(agents.trusted !== undefined ? {agent: agents.trusted} : {}),
-      ...(httpTimeout !== undefined ? {timeout: httpTimeout} : {}),
+      ...(this._config.httpTimeout !== undefined ? {timeout: this._config.httpTimeout} : {}),
     });
-    await this._initClient({ issuerUrl, clientId, clientSecret, extraMetadata });
+    await this._initClient({
+      issuerUrl: this._config.issuerUrl,
+      clientId: this._config.clientId,
+      clientSecret: this._config.clientSecret,
+      extraMetadata: this._config.extraMetadata
+    });
 
     if (this._client.issuer.metadata.end_session_endpoint === undefined &&
-      !this._endSessionEndpoint && !this._skipEndSessionEndpoint) {
+      !this._config.endSessionEndpoint && !this._config.skipEndSessionEndpoint) {
       throw new Error('The Identity provider does not propose end_session_endpoint. ' +
         'If that is expected, please set GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT=true ' +
         'or provide an alternative logout URL in GRIST_OIDC_IDP_END_SESSION_ENDPOINT');
     }
-    log.info(`OIDCConfig: initialized with issuer ${issuerUrl}`);
+    log.info(`OIDCConfig: initialized with issuer ${this._config.issuerUrl}`);
   }
 
   public addEndpoints(app: express.Application, sessions: Sessions): void {
@@ -231,7 +362,7 @@ export class OIDCConfig {
       const userInfo = await this._client.userinfo(tokenSet);
       log.debug("Got userinfo: %o", userInfo);
 
-      if (!this._ignoreEmailVerified && userInfo.email_verified !== true) {
+      if (!this._config.ignoreEmailVerified && userInfo.email_verified !== true) {
         throw new ErrorWithUserFriendlyMessage(
           `OIDCConfig: email not verified for ${userInfo.email}`,
           req.t("oidc.emailNotVerifiedError")
@@ -279,20 +410,20 @@ export class OIDCConfig {
     };
 
     return this._client.authorizationUrl({
-      scope: process.env.GRIST_OIDC_IDP_SCOPES || 'openid email profile',
-      acr_values: this._acrValues,
+      scope: this._config.scopes,
+      acr_values: this._config.acrValues,
       ...this._protectionManager.forgeAuthUrlParams(mreq.session.oidc),
     });
   }
 
   public async getLogoutRedirectUrl(req: express.Request, redirectUrl: URL): Promise<string> {
     // For IdPs that don't have end_session_endpoint, we just redirect to the requested page.
-    if (this._skipEndSessionEndpoint) {
+    if (this._config.skipEndSessionEndpoint) {
       return redirectUrl.href;
     }
     // Alternatively, we could use a logout URL specified by configuration.
-    if (this._endSessionEndpoint) {
-      return this._endSessionEndpoint;
+    if (this._config.endSessionEndpoint) {
+      return this._config.endSessionEndpoint;
     }
     // Ignore redirectUrl because OIDC providers don't allow variable redirect URIs
     const stableRedirectUri = new URL('/signed-out', getOriginUrl(req)).href;
@@ -345,31 +476,9 @@ export class OIDCConfig {
     return mreq;
   }
 
-  private _buildEnabledProtections(section: AppSettings): Set<EnabledProtectionString> {
-    const enabledProtections = section.flag('enabledProtections').readString({
-      envVar: 'GRIST_OIDC_IDP_ENABLED_PROTECTIONS',
-      defaultValue: 'PKCE,STATE',
-    })!.split(',');
-    if (enabledProtections.length === 1 && enabledProtections[0] === 'UNPROTECTED') {
-      log.warn("You chose to enable OIDC connection with no protection, you are exposed to vulnerabilities." +
-        " Please never do that in production.");
-      return new Set();
-    }
-    try {
-      return new Set(EnabledProtection.checkAll(enabledProtections));
-    } catch (e) {
-      if (e instanceof StringUnionError) {
-        throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.`+
-          ` Expected at least one of these values: "${e.values.join(",")}"`
-        );
-      }
-      throw e;
-    }
-  }
-
   private _makeUserProfileFromUserInfo(userInfo: UserinfoResponse): Partial<UserProfile> {
     return {
-      email: String(userInfo[this._emailPropertyKey]),
+      email: String(userInfo[this._config.emailPropertyKey]),
       name: this._extractName(userInfo),
       // extra fields could be returned by the IdP that we might want to store
       extra: pick(userInfo, process.env.GRIST_IDP_EXTRA_PROPS?.split(',') || [])
@@ -377,8 +486,8 @@ export class OIDCConfig {
   }
 
   private _extractName(userInfo: UserinfoResponse): string | undefined {
-    if (this._namePropertyKey) {
-      return (userInfo[this._namePropertyKey] as any)?.toString();
+    if (this._config.namePropertyKey) {
+      return (userInfo[this._config.namePropertyKey] as any)?.toString();
     }
     const fname = userInfo.given_name ?? '';
     const lname = userInfo.family_name ?? '';
@@ -408,17 +517,29 @@ export class OIDCConfig {
   }
 }
 
-export async function getOIDCLoginSystem(): Promise<GristLoginSystem | undefined> {
-  if (!process.env.GRIST_OIDC_IDP_ISSUER) { return undefined; }
+/**
+ * Get the OIDC login system.
+ * This is the final method that ties everything together:
+ * - Uses the config reader to read from AppSettings
+ * - Passes the config to the builder
+ * - Returns the login system
+ */
+export async function getOIDCLoginSystem(settings: AppSettings): Promise<GristLoginSystem|undefined> {
+  if (!isOIDCEnabled(settings)) {
+    return undefined;
+  }
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = await OIDCConfig.build(gristServer.sendAppPage.bind(gristServer));
+      // Read config from settings
+      const config = readOIDCConfigFromSettings(settings);
+      // Build the middleware using the config
+      const oidcBuilder = await OIDCBuilder.build(gristServer.sendAppPage.bind(gristServer), config);
       return {
-        getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
-        getSignUpRedirectUrl: config.getLoginRedirectUrl.bind(config),
-        getLogoutRedirectUrl: config.getLogoutRedirectUrl.bind(config),
+        getLoginRedirectUrl: oidcBuilder.getLoginRedirectUrl.bind(oidcBuilder),
+        getSignUpRedirectUrl: oidcBuilder.getLoginRedirectUrl.bind(oidcBuilder),
+        getLogoutRedirectUrl: oidcBuilder.getLogoutRedirectUrl.bind(oidcBuilder),
         async addEndpoints(app: express.Express) {
-          config.addEndpoints(app, gristServer.getSessions());
+          oidcBuilder.addEndpoints(app, gristServer.getSessions());
           return 'oidc';
         },
       };

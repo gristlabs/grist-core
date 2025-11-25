@@ -133,6 +133,19 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
   });
 }
 
+export interface NestedLogLevel {
+  restore(): void;
+}
+
+export function nestLogLevel(level: string): NestedLogLevel {
+  const prevLogLevel = log.transports.file.level;
+  log.transports.file.level = level;
+  return {
+    restore() {
+      log.transports.file.level = prevLogLevel;
+    }
+  };
+}
 
 /**
  * Captures debug log messages produced by callback. Suppresses ALL messages from console, and

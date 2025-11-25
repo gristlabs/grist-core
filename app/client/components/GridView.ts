@@ -992,6 +992,11 @@ export default class GridView extends BaseView {
   }
 
   protected renameColumn(index: number) {
+    // If this column is in transformation, renaming is disabled.
+    if (this.currentColumn.peek().isTransforming.peek()) {
+      console.warn('Renaming is disabled during column transformation.');
+      return;
+    }
     this.currentEditingColumnIndex(index);
   }
 

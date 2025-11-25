@@ -21,6 +21,7 @@ import {InstallAdmin, SimpleInstallAdmin} from 'app/server/lib/InstallAdmin';
 import {ISandbox, ISandboxCreationOptions} from 'app/server/lib/ISandbox';
 import {createSandbox, SpawnFn} from 'app/server/lib/NSandbox';
 import {SqliteVariant} from 'app/server/lib/SqliteCommon';
+import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 import {Express} from 'express';
 
@@ -90,12 +91,15 @@ export interface ICreate {
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
 
-  getLoginSystem(): Promise<GristLoginSystem>;
+  getLoginSystem(dbManager: HomeDBManager): Promise<GristLoginSystem>;
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
   createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined;
+  startProcessMonitor(telemetry: ITelemetry): StopCallback|undefined;
 }
+
+type StopCallback = () => void;
 
 export interface ICreateStorageOptions {
   name: string;
@@ -217,8 +221,8 @@ export class BaseCreate implements ICreate {
   public async createInstallAdmin(dbManager: HomeDBManager): Promise<InstallAdmin> {
     return new SimpleInstallAdmin(dbManager);
   }
-  public getLoginSystem(): Promise<GristLoginSystem> {
-    return getCoreLoginSystem();
+  public getLoginSystem(dbManager: HomeDBManager): Promise<GristLoginSystem> {
+    return getCoreLoginSystem(dbManager.getAppSettings());
   }
   public async createLocalDocStorageManager(...args: ConstructorParameters<typeof DocStorageManager>) {
     return new DocStorageManager(...args);
@@ -230,5 +234,8 @@ export class BaseCreate implements ICreate {
   public areAdminControlsAvailable(): boolean { return false; }
   public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined {
     return undefined;
+  }
+  public startProcessMonitor(telemetry: ITelemetry) {
+    return ProcessMonitor.start(telemetry);
   }
 }

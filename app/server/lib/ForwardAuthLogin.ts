@@ -1,7 +1,14 @@
+/**
+ * To read more about setting up the Forward Auth flow and how to configure it through environmental variables, in a
+ * single server setup, please visit:
+ * https://support.getgrist.com/install/forwarded-headers
+ */
+
 import { ApiError } from 'app/common/ApiError';
-import { appSettings } from 'app/server/lib/AppSettings';
+import { AppSettings } from 'app/server/lib/AppSettings';
 import { getRequestProfile } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
+import { getSelectedLoginSystemType } from 'app/server/lib/gristSettings';
 import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import { optStringParam } from 'app/server/lib/requestUtils';
@@ -59,32 +66,90 @@ import trimStart = require('lodash/trimStart');
  *
  * Redirection logic currently assumes a single-site installation.
  */
-export async function getForwardAuthLoginSystem(): Promise<GristLoginSystem|undefined> {
-  const section = appSettings.section('login').section('system').section('forwardAuth');
+
+/**
+ * Interface for Forward Auth configuration.
+ */
+export interface ForwardAuthConfig {
+  /** Header that will contain authorized user emails (e.g., "x-forwarded-user" or "x-remote-user"). */
+  readonly header: string;
+  /** Path that will trigger a logout (e.g., "/_oauth/logout" for traefik-forward-auth). */
+  readonly logoutPath: string;
+  /** Path for the login endpoint. */
+  readonly loginPath: string;
+  /** If true, Grist sessions will not be used, and the header will be checked on every request. */
+  readonly skipSession: boolean;
+}
+
+
+/**
+ * Read Forward Auth configuration from application settings.
+ * This reads configuration from env vars - should only be called when ForwardAuth is enabled.
+ */
+export function readForwardAuthConfigFromSettings(settings: AppSettings): ForwardAuthConfig {
+  const section = settings.section('login').section('system').section('forwardAuth');
   const headerSetting = section.flag('header');
-  const header = headerSetting.readString({
+
+  const header = headerSetting.requireString({
     envVar: ['GRIST_FORWARD_AUTH_HEADER', 'GRIST_PROXY_AUTH_HEADER']
   });
-  if (!header) {
-    return;
-  }
 
   if (headerSetting.describe().foundInEnvVar === 'GRIST_PROXY_AUTH_HEADER') {
     log.warn("GRIST_PROXY_AUTH_HEADER is deprecated; interpreted as a synonym of GRIST_FORWARD_AUTH_HEADER");
   }
 
   section.flag('active').set(true);
-  const logoutPath = section.flag('logoutPath').readString({
-    envVar: 'GRIST_FORWARD_AUTH_LOGOUT_PATH'
-  }) || '';
+  const logoutPath = section.flag('logoutPath').requireString({
+    envVar: 'GRIST_FORWARD_AUTH_LOGOUT_PATH',
+    defaultValue: '',
+  });
+
   const loginPath = section.flag('loginPath').requireString({
     envVar: 'GRIST_FORWARD_AUTH_LOGIN_PATH',
     defaultValue: '/auth/login',
   });
 
-  const skipSession = appSettings.section('login').flag('skipSession').readBool({
+  const skipSession = settings.section('login').flag('skipSession').readBool({
     envVar: 'GRIST_IGNORE_SESSION',
+    defaultValue: false,
+  }) || false;
+
+  return {header, logoutPath, loginPath, skipSession};
+}
+
+/**
+ * Check if Forward Auth is configured based on environment variables.
+ */
+export function isForwardAuthConfigured(settings: AppSettings): boolean {
+  const section = settings.section('login').section('system').section('forwardAuth');
+  const header = section.flag('header').readString({
+    envVar: ['GRIST_FORWARD_AUTH_HEADER', 'GRIST_PROXY_AUTH_HEADER']
   });
+  return !!header;
+}
+
+/**
+ * Check if Forward Auth is enabled either by explicit selection or by configuration.
+ */
+export function isForwardAuthEnabled(settings: AppSettings): boolean {
+  const selectedType = getSelectedLoginSystemType(settings);
+  if (selectedType === 'forward-auth') {
+    return true;
+  } else if (selectedType) {
+    return false;
+  } else {
+    return isForwardAuthConfigured(settings);
+  }
+}
+
+
+export async function getForwardAuthLoginSystem(settings: AppSettings): Promise<GristLoginSystem | undefined> {
+  if (!isForwardAuthEnabled(settings)) {
+    return undefined;
+  }
+
+  const config = readForwardAuthConfigFromSettings(settings);
+  const {header, logoutPath, loginPath, skipSession} = config;
 
   return {
     async getMiddleware(gristServer: GristServer) {

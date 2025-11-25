@@ -1,7 +1,7 @@
 import {UserAPI} from 'app/common/UserAPI';
 import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import path from 'path';
-import { setupExternalSite } from 'test/server/customUtil';
+import {setupExternalSite} from 'test/server/customUtil';
 import {
   arrow,
   clickMenu,
@@ -20,16 +20,18 @@ import {
   selectedLabel
 } from 'test/nbrowser/formTools';
 import * as gu from 'test/nbrowser/gristUtils';
-import {setupTestSuite} from 'test/nbrowser/testUtils';
-import {fixturesRoot} from 'test/server/testUtils';
+import {server, setupTestSuite} from 'test/nbrowser/testUtils';
+import {EnvironmentSnapshot, fixturesRoot} from 'test/server/testUtils';
 
 describe('FormView1', function() {
   this.timeout(20_000);   // Default for each test or hook.
   gu.bigScreen('medium');
 
   let api: UserAPI;
+  let adminApi: UserAPI;
   let docId: string;
 
+  const oldEnv = new EnvironmentSnapshot();
   const cleanup = setupTestSuite();
 
   addToRepl('question', question);
@@ -37,6 +39,19 @@ describe('FormView1', function() {
   addToRepl('questionType', questionType);
   const clipboard = gu.getLockableClipboard();
 
+  before(async function() {
+    process.env.GRIST_DEFAULT_EMAIL = gu.translateUser('support').email;
+    // Disable doc auth cache, because we're going to mess with
+    // documents being disabled. We don't want the cache to delay
+    // application of disabled permissions.
+    process.env.GRIST_TEST_DOC_AUTH_CACHE_TTL = '0';
+    await server.restart(true);
+  });
+
+  after(async function() {
+    oldEnv.restore();
+    await server.restart(true);
+  });
   afterEach(() => gu.checkForErrors());
 
   async function createFormWith(
@@ -150,6 +165,8 @@ describe('FormView1', function() {
 
   describe('on personal site', async function() {
     before(async function() {
+      const adminSession = await gu.session().user('support').login();
+      adminApi = adminSession.createHomeApi();
       const session = await gu.session().login();
       docId = await session.tempNewDoc(cleanup);
       api = session.createHomeApi();
@@ -240,6 +257,27 @@ describe('FormView1', function() {
       assert.equal(await item.find('.action_log_cell_add').getText(), expectedCellValue);
       assert.equal(await item.find('.action_info_user').getText(), email);
       await driver.find('.test-right-tool-close').click();
+
+      await removeForm();
+    });
+
+    it('forbids form access to disabled documents', async function() {
+      const formUrl = await createFormWith('Text');
+
+      await adminApi.disableDoc(docId);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await gu.waitForServer();
+        const accessError = await driver.find('.test-form-error-page-text');
+        assert.equal(await accessError.getText(), "You don't have access to this form.");
+      });
+
+      await adminApi.enableDoc(docId);
+      await gu.onNewTab(async () => {
+        await driver.get(formUrl);
+        await gu.waitForServer();
+        await assert.isRejected(driver.find('.test-form-error-page-text'));
+      });
 
       await removeForm();
     });
@@ -1810,6 +1848,8 @@ describe('FormView1', function() {
   });
 
   describe('on team site', async function() {
+    const cleanup = setupTestSuite();
+
     before(async function() {
       const session = await gu.session().teamSite.login();
       docId = await session.tempNewDoc(cleanup);

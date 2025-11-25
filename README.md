@@ -98,18 +98,18 @@ If you evaluate Grist by using the hosted version at [getgrist.com](https://getg
     - Enterprises may care about this.
   * [Advanced Admin Controls](https://support.getgrist.com/admin-controls/) (2025)
     - This is a special page for a Grist installation administrator to monitor and edit user access to resources.
-	- It uses a special set of administrative endpoints not present on `grist-core`.
-	- If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
+  - It uses a special set of administrative endpoints not present on `grist-core`.
+  - If you're going to be running a large Grist installation, with employees coming and going, you may care about this.
   * [Grist Assistant](https://support.getgrist.com/assistant/#assistant) (2025)
     - An AI Formula Assistant - limited to working with formulas - is present in `grist-core`, but the newer Assistant can help with a wider range of tasks like building tables and dashboards and modifying data.
     - If you have many users who need help building documents or working with data, you may care about this one.
   * [Invite Notifications](https://support.getgrist.com/self-managed/#how-do-i-set-up-email-notifications) (2025)
     - When a user is added to a document, or a workspace, or a site, with email notifications they will get emailed a link to access the resource.
-	- This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
-	- For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
+  - This link isn't special, with `grist-core` you can just send a link yourself or a colleague.
+  - For a big Grist installation with users who aren't in close communication, emails might be nice? Hard to guess if you'll care about this one.
   * [Document Change and Comment Notifications](https://support.getgrist.com/document-settings/#notifications) (2025)
     - You can achieve change notifications in `grist-core` using webhooks, but it is less convenient.
-	- People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
+  - People have been asking for this one for years. If you need an excuse to get your boss to pay for Grist, this might finally be the one that works?
 
 ## Using Grist
 
@@ -448,6 +448,7 @@ Grist can be configured in many ways. Here are the main environment variables it
 | GRIST_SNAPSHOT_KEEP | optional. Number of recent snapshots to retain unconditionally for a document, regardless of when they were made |
 | GRIST_PROMCLIENT_PORT | optional. If set, serve the Prometheus metrics on the specified port number. ⚠️ Be sure to use a port which is not publicly exposed ⚠️. |
 | GRIST_ENABLE_SCIM | optional. If set, enable the [SCIM API Endpoint](https://support.getgrist.com/install/scim/) (experimental) |
+| GRIST_LOGIN_SYSTEM_TYPE | optional. If set, explicitly selects which login system to use. Valid values: `saml`, `oidc`, `forward-auth`, `minimal`. If not set, Grist will automatically detect and use the first configured login system. |
 | GRIST_OIDC_... | optional. Environment variables used to configure OpenID authentification. See [OpenID Connect](https://support.getgrist.com/install/oidc/) documentation for full related list of environment variables. |
 | GRIST_SAML_... | optional. Environment variables used to configure SAML authentification. See [SAML](https://support.getgrist.com/install/saml/) documentation for full related list of environment variables. |
 | GRIST_IDP_EXTRA_PROPS | optional. If set, defines which extra fields returned by your identity provider will be stored in the users table of the home database (in the `options.ssoExtraInfo` object). Usage: 'onekey,anotherkey'. |

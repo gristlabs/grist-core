@@ -88,6 +88,7 @@ export class MergedServer {
 
     if (ms._options.logToConsole !== false) { ms.flexServer.addLogging(); }
     if (ms._options.externalStorage === false) { ms.flexServer.disableExternalStorage(); }
+    await ms.flexServer.initHomeDBManager();
     await ms.flexServer.addLoginMiddleware();
 
     if (ms.hasComponent("docs")) {
@@ -111,7 +112,6 @@ export class MergedServer {
       ms.flexServer.addStaticAndBowerDirectories();
     }
 
-    await ms.flexServer.initHomeDBManager();
     ms.flexServer.addHosts();
 
     ms.flexServer.addDocWorkerMap();

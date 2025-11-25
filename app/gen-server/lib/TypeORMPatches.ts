@@ -18,11 +18,12 @@ import {delay} from 'app/common/delay';
 import log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
 import isEqual = require('lodash/isEqual');
-import {EntityManager, QueryRunner} from 'typeorm';
+import {EntityManager, QueryRunner, TypeORMError} from 'typeorm';
 import {PostgresDriver} from 'typeorm/driver/postgres/PostgresDriver';
 import {PostgresQueryRunner} from 'typeorm/driver/postgres/PostgresQueryRunner';
 import {SqliteDriver} from 'typeorm/driver/sqlite/SqliteDriver';
 import {SqliteQueryRunner} from 'typeorm/driver/sqlite/SqliteQueryRunner';
+import {IsolationLevel} from 'typeorm/driver/types/IsolationLevel';
 import {
   QueryRunnerProviderAlreadyReleasedError
 } from 'typeorm/error/QueryRunnerProviderAlreadyReleasedError';
@@ -95,20 +96,34 @@ SqliteDriver.prototype.createQueryRunner = SqliteDriverPatched.prototype.createQ
 
 export function applyPatch() {
   // tslint: disable-next-line
-  EntityManager.prototype.transaction = async function <T>(arg1: any,  arg2?: any): Promise<T> {
+  EntityManager.prototype.transaction = async function<T>(
+      arg1: IsolationLevel | ((entityManager: EntityManager) => Promise<T>),
+      arg2?: (entityManager: EntityManager) => Promise<T>): Promise<T>
+    {
+    const isolation =
+      typeof arg1 === "string"
+        ? arg1
+        : undefined;
+    const runInTransaction =
+      typeof arg1 === "function"
+        ? arg1
+        : arg2;
+
+    if (!runInTransaction) {
+      throw new TypeORMError(
+        `Transaction method requires callback in second parameter if isolation level is supplied.`,
+      );
+    }
+
     if (this.queryRunner && this.queryRunner.isReleased) {
       throw new QueryRunnerProviderAlreadyReleasedError();
     }
-    if (this.queryRunner && this.queryRunner.isTransactionActive) {
-      throw new Error(`Cannot start transaction because its already started`);
-    }
-    const queryRunner = this.connection.createQueryRunner();
-    const runInTransaction = typeof arg1 === "function" ? arg1 : arg2;
+    const queryRunner = this.queryRunner || this.connection.createQueryRunner();
     const isSqlite = this.connection.driver.options.type === 'sqlite';
     try {
-      async function runOrRollback() {
+      const runOrRollback = async () => {
         try {
-          await queryRunner.startTransaction();
+          await queryRunner.startTransaction(isolation);
 
           const start = Date.now();
 
@@ -139,7 +154,7 @@ export function applyPatch() {
           }
           throw err;
         }
-      }
+      };
       if (isSqlite) {
         return await callWithRetry(runOrRollback, {
           // Transactions may fail immediately if there are connections from
@@ -212,12 +227,13 @@ declare module 'typeorm/query-builder/QueryBuilder' {
 }
 
 abstract class QueryBuilderPatched<T> extends QueryBuilder<T> {
+  private static _origSetParameter = QueryBuilder.prototype.setParameter;
   public setParameter(key: string, value: any): this {
     const prev = this.expressionMap.parameters[key];
     if (prev !== undefined && !isEqual(prev, value)) {
       throw new Error(`TypeORM parameter collision for key '${key}' ('${prev}' vs '${value}')`);
     }
-    this.expressionMap.parameters[key] = value;
+    QueryBuilderPatched._origSetParameter.call(this, key, value);
     return this;
   }
 
@@ -347,7 +363,7 @@ export class PostgresQueryRunnerPatched extends PostgresQueryRunner {
 }
 
 export class PostgresDriverPatched extends PostgresDriver {
-  public createQueryRunner(mode: 'master' | 'slave'): QueryRunner {
+  public createQueryRunner(mode: 'master' | 'slave'): PostgresQueryRunner {
     return new PostgresQueryRunnerPatched(this, mode);
   }
 }

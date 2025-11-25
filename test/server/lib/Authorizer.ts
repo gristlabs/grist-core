@@ -18,8 +18,8 @@ let server: FlexServer;
 let dbManager: HomeDBManager;
 
 async function activateServer(home: FlexServer, docManager: DocManager) {
-  await home.addLoginMiddleware();
   await home.initHomeDBManager();
+  await home.addLoginMiddleware();
   home.addHosts();
   home.addDocWorkerMap();
   home.addAccessMiddleware();

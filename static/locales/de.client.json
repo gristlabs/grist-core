@@ -443,7 +443,10 @@
         "Uploading...": "Hochladen...",
         "Default": "Standard",
         "Default, template, or tutorial": "Standard, Vorlage oder Tutorial",
-        "Document type": "Art des Dokuments"
+        "Document type": "Art des Dokuments",
+        "Enable suggestions": "Vorschläge aktivieren",
+        "Suggestions": "Vorschläge",
+        "experiment": "Experiment"
     },
     "DocumentUsage": {
         "Size of attachments": "Größe der Anhänge",
@@ -917,7 +920,9 @@
         "DOO Separated Values (.dsv)": "DOO-getrennte Werte (.dsv)",
         "Exporting is only available from document pages. Please select a document page and try again.": "Das Exportieren ist nur von Dokumentenseiten aus möglich. Bitte wählen Sie eine Dokumentenseite und versuchen Sie es erneut.",
         "Download attachments...": "Anhänge herunterladen...",
-        "Download document...": "Dokument herunterladen..."
+        "Download document...": "Dokument herunterladen...",
+        "Suggest Changes": "Änderungen vorschlagen",
+        "current version": "aktuelle Version"
     },
     "SiteSwitcher": {
         "Create new team site": "Neue Teamseite erstellen",
@@ -2318,5 +2323,8 @@
     },
     "commandList": {
         "Undo last action": "Letzte Aktion rückgängig machen"
+    },
+    "GridViewMenusDateHelpers": {
+        "Years until": "Jahre bis"
     }
 }

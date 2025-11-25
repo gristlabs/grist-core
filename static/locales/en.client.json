@@ -42,7 +42,23 @@
         "Permission to edit document structure": "Permission to edit document structure",
         "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. ",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.",
-        "Add table-wide rule": "Add table-wide rule"
+        "Add table-wide rule": "Add table-wide rule",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Access rules have changed. Click Reset to revert your changes and refresh the rules.",
+        "All": "All",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?",
+        "Columns": "Columns",
+        "Condition cannot be blank": "Condition cannot be blank",
+        "Default resource missing in resource map": "Default resource missing in resource map",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Invalid columns in table {{tableId}}: {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Invalid table: {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Invalid user attribute rule: {{prop}} must be set",
+        "Invalid user attribute to look up": "Invalid user attribute to look up",
+        "No columns listed in a column rule for table {{tableId}}": "No columns listed in a column rule for table {{tableId}}",
+        "Not a valid user attribute": "Not a valid user attribute",
+        "Resource missing in resource map: {{resourceKey}}": "Resource missing in resource map: {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Trying to add TableRules for existing table {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something",
+        "hidden": "hidden"
     },
     "AccountPage": {
         "API": "API",
@@ -741,7 +757,8 @@
         "Group by": "Group by",
         "Select data": "Select data",
         "Select widget": "Select widget",
-        "New Table": "New Table"
+        "New Table": "New Table",
+        "SELECT BY": "SELECT BY"
     },
     "Pages": {
         "Delete": "Delete",
@@ -1006,7 +1023,8 @@
         "Revert": "Revert",
         "SORT": "SORT",
         "Save": "Save",
-        "Update Sort&Filter settings": "Update Sort&Filter settings"
+        "Update Sort&Filter settings": "Update Sort&Filter settings",
+        "Sort and filter": "Sort and filter"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "Cannot drop items into Hidden Fields",
@@ -2235,7 +2253,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Duplicate widget",
-        "Duplicate widgets": "Duplicate widgets"
+        "Duplicate widgets": "Duplicate widgets",
+        "Active": "Active",
+        "Create new page": "Create new page"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Uploading, please wait…"
@@ -2510,5 +2530,11 @@
         "Year": "Year",
         "Years since": "Years since",
         "Years until": "Years until"
+    },
+    "selectBy": {
+        "Select widget": "Select widget"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Untitled document"
     }
 }

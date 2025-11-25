@@ -41,10 +41,21 @@ type SandboxMethod = (...args: any[]) => any;
  * in tests) which runs grist/main.py.
  */
 export interface ISandboxOptions {
-  command?: string;       // External program or container to call to run the sandbox.
-  args: string[];         // The arguments to pass to the python process.
+  // External program or container to call to run the sandbox.
+  command?: string;
+  // The arguments to pass first to the sandbox process.
+  testSandboxArgs: string[];
+  // The arguments to pass first to the python process.
+  testPythonArgs: string[];
+  // Extra arguments that get appended to the end of sandbox command, after anything else.
+  // Implemented only to enable workaround for a Grist desktop Flatpak sandbox issue
+  appendArgs?: string[];
+  // an argument to add to the command line when possible, that should be shown in the `ps` output
+  // for the sandbox process. Intended to be a document name or id
+  comment?: string;
 
-  preferredPythonVersion?: string;  // Mandatory for gvisor; ignored by other methods.
+  // Mandatory for gvisor; ignored by other methods.
+  preferredPythonVersion?: string;
 
   // TODO: update
   // ISandboxCreationOptions to talk about directories instead of
@@ -52,17 +63,23 @@ export interface ISandboxOptions {
   // mounts (e.g. for unsandboxed operation).
   importDir?: string;  // a directory containing data file(s) to import by plugins
 
-  minimalPipeMode?: boolean;     // Whether to use newer 3-pipe operation
-  deterministicMode?: boolean;   // Whether to override time + randomness
+  // Whether to use newer 3-pipe operation
+  minimalPipeMode?: boolean;
+  // Whether to override time + randomness
+  deterministicMode?: boolean;
 
-  exports?: {[name: string]: SandboxMethod}; // Functions made available to the sandboxed process.
-  logCalls?: boolean;     // (Not implemented) Whether to log all system calls from the python sandbox.
-  logTimes?: boolean;     // Whether to log time taken by calls to python sandbox.
-  logMeta?: log.ILogMeta; // Log metadata (e.g. including docId) to report in all log messages.
+  // Functions made available to the sandboxed process.
+  exports?: {[name: string]: SandboxMethod};
+  // (Not implemented) Whether to log all system calls from the python sandbox.
+  logCalls?: boolean;
+  // Whether to log time taken by calls to python sandbox.
+  logTimes?: boolean;
+  // Log metadata (e.g. including docId) to report in all log messages.
+  logMeta?: log.ILogMeta;
 
-  useGristEntrypoint?: boolean;  // Should be set for everything except tests, which
-                                 // may want to pass arguments to python directly.
-                                 // Now defaults to true.
+  // Should be set for everything except tests, which may want to pass arguments to python directly.
+  // Now defaults to true.
+  useGristEntrypoint?: boolean;
 }
 
 /**
@@ -532,11 +549,15 @@ export class NSandboxCreator implements ISandboxCreator {
   private _flavor: string;
   private _spawner: SpawnFn;
   private _command?: string;
+  private _commandArgs: string[];
+  private _commandAppendArgs?: string[];
   private _preferredPythonVersion?: string;
 
   public constructor(options: {
     defaultFlavor: string,
     command?: string,
+    commandArgs?: string[],
+    commandAppendArgs?: string[],
     preferredPythonVersion?: string,
   }) {
     const flavor = options.defaultFlavor;
@@ -552,21 +573,24 @@ export class NSandboxCreator implements ISandboxCreator {
     }
     this._flavor = flavor;
     this._command = options.command;
+    this._commandArgs = options.commandArgs ?? [];
+    this._commandAppendArgs = options.commandAppendArgs;
     this._preferredPythonVersion = options.preferredPythonVersion;
   }
 
   public create(options: ISandboxCreationOptions): ISandbox {
-    const args: string[] = [];
-    if (!options.entryPoint && options.comment) {
-      // When using default entry point, we can add on a comment as an argument - it isn't
-      // used, but will show up in `ps` output for the sandbox process.  Comment is intended
-      // to be a document name/id.
-      args.push(options.comment);
-    }
+    const sandboxArgs: string[] = [
+      ...this._commandArgs,
+      ...(options.sandboxOptions?.testSandboxArgs ?? [])
+    ];
+    const appendArgs: string[] = [
+      ...(this._commandAppendArgs ?? []),
+      ...(options.sandboxOptions?.appendArgs ?? []),
+    ];
+
     const translatedOptions: ISandboxOptions = {
       minimalPipeMode: true,
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
-      args,
       logCalls: options.logCalls,
       logMeta: {flavor: this._flavor, command: this._command,
                 entryPoint: options.entryPoint || '(default)',
@@ -577,6 +601,9 @@ export class NSandboxCreator implements ISandboxCreator {
       useGristEntrypoint: true,
       importDir: options.importMount,
       ...options.sandboxOptions,
+      testPythonArgs: options.sandboxOptions?.testPythonArgs ?? [],
+      testSandboxArgs: sandboxArgs,
+      appendArgs,
     };
     return new NSandbox(translatedOptions, this._spawner);
   }
@@ -609,11 +636,18 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
  * been installed globally.
  */
 function unsandboxed(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs, importDir} = options;
+  const {testSandboxArgs, testPythonArgs, appendArgs, importDir} = options;
   const paths = getAbsolutePaths(options);
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift(paths.main);
-  }
+
+  const commandArgs = [
+    // No sandbox here, so apply the sandbox args to Python instead of ignoring them.
+    ...testSandboxArgs,
+    ...testPythonArgs,
+    ...(options.useGristEntrypoint !== false ? [paths.main] : []),
+    ...(options.comment ? [options.comment] : []),
+    ...(appendArgs ?? []),
+  ];
+
   const spawnOptions = {
     stdio: ['pipe', 'pipe', 'pipe'] as 'pipe'[],
     env: {
@@ -627,7 +661,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
     spawnOptions.stdio.push('pipe', 'pipe');
   }
   const command = findPython(options.command);
-  const child = adjustedSpawn(command, pythonArgs,
+  const child = adjustedSpawn(command, commandArgs,
                       {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {
     name: 'unsandboxed',
@@ -654,13 +688,41 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
     env: {
       PYTHONPATH: paths.engine,
       IMPORTDIR: options.importDir,
+      // If running in electron, forces the child process to behave as plain Node.js (no Chromium or browser)
+      ELECTRON_RUN_AS_NODE: "1",
       ...getInsertedEnv(options),
       ...getWrappingEnv(options),
     }
   };
   const base = getUnpackedAppRoot();
-  const child = fork(path.join(base, 'sandbox', 'pyodide', 'pipe.js'),
-                     {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+  const scriptPath = path.join(base, 'sandbox', 'pyodide', 'pipe.js');
+  const cwd = path.join(process.cwd(), 'sandbox');
+
+  let child: ChildProcess;
+
+  if (options.command) {
+    const args = [
+      ...options.testSandboxArgs,
+      // Ignore options.pythonArgs - no python process runs for pyodide
+      '--',
+      scriptPath,
+      ...(options.comment ? [options.comment] : []),
+      ...(options.appendArgs ?? [])
+    ];
+    log.rawDebug("Launching Pyodide sandbox via spawn", { command: options.command, args, cwd, spawnOptions });
+    child = spawn(
+      options.command,
+      args,
+      {cwd, ...spawnOptions}
+    );
+  } else {
+    log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
+    child = fork(
+      scriptPath,
+      {cwd, ...spawnOptions}
+    );
+  }
+
   return {
     name: 'pyodide',
     child,
@@ -688,7 +750,6 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
  * Be sure to read setup instructions in that directory.
  */
 function gvisor(options: ISandboxOptions): SandboxProcess {
-  const pythonArgs = options.args || [];
   let command = options.command;
   if (!command) {
     try {
@@ -707,15 +768,13 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '-E', mount: '-m'});
+  wrapperArgs.push(...options.testSandboxArgs);
   wrapperArgs.addEnv('PYTHONPATH', paths.engine);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addMount(paths.sandboxDir);
   if (paths.importDir) {
     wrapperArgs.addMount(paths.importDir);
     wrapperArgs.addEnv('IMPORTDIR', paths.importDir);
-  }
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift(paths.main);
   }
   if (options.deterministicMode) {
     wrapperArgs.push('--faketime', FAKETIME);
@@ -730,6 +789,16 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     wrapperArgs.push('-s', path.join(venv, 'bin', 'python'));
   }
 
+  const pythonArgs = [
+    ...options.testPythonArgs,
+    ...(options.useGristEntrypoint !== false ? [paths.main] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? []),
+  ];
+
   // For a regular sandbox not being used for importing, if GRIST_CHECKPOINT is set
   // try to restore from it. If GRIST_CHECKPOINT_MAKE is set, try to recreate the
   // checkpoint (this is an awkward place to do it, but avoids mismatches
@@ -741,14 +810,14 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
         adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
-                        `python3`, '--', ...pythonArgs]);
+                        `python3`, '--', ...pythonArgs, ...appendArgs]);
       // We don't want process control for this.
       return {name: 'gvisor', child, control: () => new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
     wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
   }
-  const child = adjustedSpawn(command, [...wrapperArgs.get(), `python3`, '--', ...pythonArgs]);
+  const child = adjustedSpawn(command, [...wrapperArgs.get(), `python3`, '--', ...pythonArgs, ...appendArgs]);
   const childPid = child.pid;
   if (!childPid) {
     throw new Error(`failed to spawn python3`);
@@ -787,27 +856,37 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
  * `sandbox/docker` for more.
  */
 function docker(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs, command} = options;
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift('grist/main.py');
-  }
+  const {command} = options;
   if (options.minimalPipeMode === false) {
     throw new Error("docker only supports 3-pipe operation (although runc has --preserve-file-descriptors)");
   }
   const paths = getAbsolutePaths(options);
   const wrapperArgs = new FlagBag({env: '--env', mount: '-v'});
+  wrapperArgs.push(...options.testSandboxArgs);
   if (paths.importDir) {
     wrapperArgs.addMount(`${paths.importDir}:/importdir:ro`);
   }
   wrapperArgs.addMount(`${paths.engine}:/grist:ro`);
   wrapperArgs.addAllEnv(getInsertedEnv(options));
   wrapperArgs.addEnv('PYTHONPATH', 'grist:thirdparty');
-  const commandParts: string[] = ['python'];
-  if (options.deterministicMode) {
+
+  const commandParts = [
     // DETERMINISTIC_MODE is already set by getInsertedEnv().  We also take
     // responsibility here for running faketime around python.
-    commandParts.unshift('faketime', '-f', FAKETIME);
-  }
+    ...(options.deterministicMode ? ['faketime', '-f', FAKETIME] : []),
+    'python',
+  ];
+
+  const pythonArgs = [
+    ...options.testPythonArgs,
+    ...(options.useGristEntrypoint !== false ? ['grist/main.py'] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? [])
+  ];
+
   const dockerPath = which.sync('docker');
   const child = spawn(dockerPath, [
     'run', '--rm', '-i', '--network', 'none',
@@ -815,6 +894,7 @@ function docker(options: ISandboxOptions): SandboxProcess {
     command || 'grist-docker-sandbox',  // this is the docker image to use
     ...commandParts,
     ...pythonArgs,
+    ...appendArgs,
   ]);
   log.rawDebug("cannot do process control via docker yet", {...options.logMeta});
   return {name: 'docker', child, control: () => new NoProcessControl(child)};
@@ -829,14 +909,11 @@ function docker(options: ISandboxOptions): SandboxProcess {
  * no obvious native sandboxing alternative.
  */
 function macSandboxExec(options: ISandboxOptions): SandboxProcess {
-  const {args: pythonArgs} = options;
   if (options.minimalPipeMode === false) {
     throw new Error("macSandboxExec flavor only supports 3-pipe operation");
   }
   const paths = getAbsolutePaths(options);
-  if (options.useGristEntrypoint !== false) {
-    pythonArgs.unshift(paths.main);
-  }
+
   const env = {
     PYTHONPATH: paths.engine,
     IMPORTDIR: paths.importDir,
@@ -905,8 +982,19 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
     profile.push(`(allow file-read* (subpath ${JSON.stringify(paths.importDir)}))`);
   }
 
+  const pythonArgs = [
+    ...options.testPythonArgs,
+    ...(options.useGristEntrypoint !== false ? [paths.main] : []),
+  ];
+
+  const appendArgs = [
+    ...(options.comment ? [options.comment] : []),
+    ...(options.appendArgs ?? [])
+  ];
+
   const profileString = profile.join('\n');
-  const child = spawn('/usr/bin/sandbox-exec', ['-p', profileString, command, ...pythonArgs],
+  const child = spawn('/usr/bin/sandbox-exec',
+                      [...options.testSandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
                       {cwd, env});
   return {
     name: 'macSandboxExec',
@@ -1066,6 +1154,20 @@ function findPython(command: string|undefined): string {
   throw new Error('Cannot find Python');
 }
 
+function getCommandFromEnv(pythonVersion?: string) {
+  return process.env['GRIST_SANDBOX' + (pythonVersion || '')] ||
+    process.env['GRIST_SANDBOX'];
+}
+
+function getCommandArgsFromEnv() {
+  const argsString = process.env['GRIST_TEST_SANDBOX_ARGS'];
+  const extraArgsString = process.env['GRIST_SANDBOX_APPEND_ARGS'];
+  return {
+    args: argsString ? argsString.split(" ") : [],
+    extraArgs: extraArgsString ? extraArgsString.split(" ") : [],
+  };
+}
+
 /**
  * Create a sandbox. The defaultFlavorSpec is a guide to which sandbox
  * to create, based on the desired python version. Examples:
@@ -1087,10 +1189,12 @@ export function createSandbox(defaultFlavorSpec: string, options: ISandboxCreati
     const flavor = parts[parts.length - 1];
     const version = parts.length === 2 ? parts[0] : '*';
     if (preferredPythonVersion === version || version === '*' || !preferredPythonVersion) {
+      const args = getCommandArgsFromEnv();
       const creator = new NSandboxCreator({
         defaultFlavor: flavor,
-        command: process.env['GRIST_SANDBOX' + (preferredPythonVersion||'')] ||
-          process.env['GRIST_SANDBOX'],
+        command: getCommandFromEnv(preferredPythonVersion),
+        commandArgs: args.args,
+        commandAppendArgs: args.extraArgs,
         preferredPythonVersion,
       });
       return creator.create(options);
