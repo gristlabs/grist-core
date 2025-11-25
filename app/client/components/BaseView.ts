@@ -33,6 +33,7 @@ import {buildReassignModal} from 'app/client/ui/buildReassignModal';
 import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 import type {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {BuildEditorOptions, createAllFieldWidgets, FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, CellValue, DocAction, UserAction} from 'app/common/DocActions';
 import {DocStateComparison} from 'app/common/DocState';
 import {DismissedPopup} from 'app/common/Prefs';
@@ -43,8 +44,7 @@ import {IGristUrlState} from 'app/common/gristUrls';
 import {arrayRepeat, nativeCompare, roundDownToMultiple, waitObs} from 'app/common/gutil';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 
-import {Events as BackboneEvents} from 'backbone';
-import {Disposable, DomArg} from 'grainjs';
+import {DomArg} from 'grainjs';
 import ko from 'knockout';
 import mapValues from 'lodash/mapValues';
 import moment from 'moment-timezone';
@@ -71,7 +71,7 @@ export interface ViewOptions {
  * @param {Boolean} options.isPreview - Whether the view is a read-only preview (e.g. Importer view).
  * @param {Boolean} options.addNewRow - Whether to include an add row in the model.
  */
-export default class BaseView extends Disposable {
+export default class BaseView extends DisposableWithEvents {
 
   public viewPane: HTMLElement;
   public viewData: LazyArrayModel<DataRowModel>;
@@ -111,8 +111,6 @@ export default class BaseView extends Disposable {
   private _isLoading: ko.Observable<boolean>;
   private _pendingCursorPos: CursorPos|null;
   protected _isPrinting: ko.Observable<boolean>;
-
-  protected listenTo: BackboneEvents['listenTo'];  // set by Backbone
 
   constructor(
     public gristDoc: GristDoc,
@@ -986,5 +984,3 @@ export default class BaseView extends Disposable {
     return this.viewSection.isTableRecordCardDisabled();
   }
 }
-
-Object.assign(BaseView.prototype, BackboneEvents);

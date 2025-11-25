@@ -75,6 +75,7 @@ export class RefCountMap<Key, Value> implements IDisposable {
     // used after clear(), subscriptions created before clear() would wreak havoc when disposed.
     for (const [key, r] of this._map) {
       r.count = 0;
+      r.unsetTimeout();   // Clear timeouts to avoid holding on to references unnecessarily.
       this._disposeKey.call(null, key, r.value);
     }
     this._map.clear();

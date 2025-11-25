@@ -1640,6 +1640,7 @@ export default class GridView extends BaseView {
               dom.autoDispose(isCellSelected),
               dom.autoDispose(isCellActive),
               dom.autoDispose(isSelected),
+              dom.autoDispose(isTooltip),
               this._showTooltipOnHover(field, isTooltip),
               kd.style('width', field.widthPx),
               //TODO: Ensure that fields in a row resize when
