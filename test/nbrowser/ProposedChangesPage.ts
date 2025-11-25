@@ -251,13 +251,13 @@ describe('ProposedChangesPage', function() {
     await api.applyUserActions(doc.id, [
       ['RenameTable', 'Life', 'Vie'],
     ]);
-
+    await driver.sleep(500);
     // Check that expanding context works (at least, that it does something).
-    await expand('VIE');
+    await expand('LIFE');
     await driver.findWait('.tabular_diffs .field_clip', 2000);
-    assert.deepEqual(await getColumns('Vie'), ['id', 'A', 'BB']);
-    assert.deepEqual(await getRowValues('Vie', 0), ['1', '10', 'FishBird']);
-    assert.deepEqual(await getChangeType('Vie', 0), '→');
+    assert.deepEqual(await getColumns('VIE'), ['id', 'A', 'BB']);
+    assert.deepEqual(await getRowValues('VIE', 0), ['1', '10', 'FishBird']);
+    assert.deepEqual(await getChangeType('VIE', 0), '→');
 
     // Apply and check that it has an effect.
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
