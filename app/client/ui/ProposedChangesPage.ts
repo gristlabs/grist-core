@@ -533,6 +533,7 @@ class ActionLogPartInProposal extends ActionLogPart {
         cornerRenderer: toggleInfo ? (el) => [
           cssExpander(
             haveId ? icon('PanelLeft') : icon('PanelRight'),
+            haveId ? testId('collapse') : testId('expand'),
             dom.on('click', () => toggleInfo(table))
           ),
         ] : () => ['aaa'],

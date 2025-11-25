@@ -71,29 +71,23 @@ describe('ProposedChangesPage', function() {
 
     // Make sure the expected change is shown.
     await driver.findContentWait('.test-main-content', /Suggest Changes/, 2000);
-    await driver.findWait('.action_log_table', 2000);
-    assert.lengthOf(await driver.findAll('.action_log_table'), 1);
-    assert.equal(
-      await driver.find('.action_log_table tr:first-of-type').getText(),
-      'A E'
-    );
-    assert.equal(
-      await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
-      '→\ntest1test2\nTEST1TEST2'
-    );
+    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    assert.deepEqual(await getColumns('TABLE1'), ['A', 'E']);
+    assert.deepEqual(await getRowValues('TABLE1', 0), ['test1test2', 'TEST1TEST2']);
+    assert.deepEqual(await getChangeType('TABLE1', 0), '→');
 
     // Check that expanding context works (at least, that it does something).
-    assert.equal(await driver.find('.action_log_table button').getText(), '>');
-    await driver.find('.action_log_table button').click();
-    assert.equal(await driver.find('.action_log_table button').getText(), '<');
-    assert.equal(
-      await driver.findContentWait('.action_log_table tr:first-of-type', /id/, 2000).getText(),
-      'id A B C D E'
-    );
-    assert.equal(
-      await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
-      '→ 1\ntest1test2\nTEST1TEST2'
-    );
+    await expand('TABLE1');
+    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    assert.deepEqual(await getColumns('TABLE1'), ['id', 'A', 'B', 'C', 'D', 'E']);
+    assert.deepEqual(await getRowValues('TABLE1', 0), ['1', 'test1test2', "", "", "", 'TEST1TEST2']);
+    assert.deepEqual(await getChangeType('TABLE1', 0), '→');
+
+    await collapse('TABLE1');
+    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    assert.deepEqual(await getColumns('TABLE1'), ['A', 'E']);
+    assert.deepEqual(await getRowValues('TABLE1', 0), ['test1test2', 'TEST1TEST2']);
+    assert.deepEqual(await getChangeType('TABLE1', 0), '→');
 
     // Check a "Suggest" button is present, and click it.
     assert.match(await driver.find('.test-proposals-propose').getText(), /Suggest/);
@@ -127,7 +121,7 @@ describe('ProposedChangesPage', function() {
 
     // The proposal should basically be to change something to "test2".
     // Click on that part.
-    await driver.findContent('span.action_log_cell_add', /test2/).click();
+    await gu.dbClick(driver.findContent('.diff-remote', /test2/));
 
     // It should bring us to a cell that is currently at "test1".
     await driver.findContentWait('.test-widget-title-text', /TABLE1/, 2000);
@@ -141,7 +135,7 @@ describe('ProposedChangesPage', function() {
     await gu.waitForServer();
 
     // Now go back and see the cell is now filled with "test2".
-    await driver.findContent('span.action_log_cell_add', /test2/).click();
+    await gu.dbClick(driver.findContent('.diff-remote', /test2/));
     await driver.findContentWait('.test-widget-title-text', /TABLE1/, 2000);
     assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), 'test2');
 
@@ -182,8 +176,9 @@ describe('ProposedChangesPage', function() {
     // There should be exactly three proposals, newest first.
     await driver.findWait('.test-proposals-header', 2000);
     assert.lengthOf(await driver.findAll('.test-proposals-header'), 3);
+    await driver.findWait('.diff-remote', 2000);
     assert.deepEqual(
-      await driver.findAll('span.action_log_cell_add', e => e.getText()),
+      await driver.findAll('.diff-remote', e => e.getText()),
       [ 'SpaceDuck', 'Mammal', 'Bird' ]
     );
 
@@ -244,16 +239,10 @@ describe('ProposedChangesPage', function() {
     assert.lengthOf(await driver.findAll('.test-proposals-header'), 1);
 
     // Make sure the expected change is shown.
-    await driver.findWait('.action_log_table', 2000);
-    assert.lengthOf(await driver.findAll('.action_log_table'), 1);
-    assert.equal(
-      await driver.find('.action_log_table tr:first-of-type').getText(),
-      'B'
-    );
-    assert.equal(
-      await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
-      '→\nFishBird'
-    );
+    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    assert.deepEqual(await getColumns('LIFE'), ['B']);
+    assert.deepEqual(await getRowValues('LIFE', 0), ['FishBird']);
+    assert.deepEqual(await getChangeType('LIFE', 0), '→');
 
     // Change column and table name.
     await api.applyUserActions(doc.id, [
@@ -264,19 +253,11 @@ describe('ProposedChangesPage', function() {
     ]);
 
     // Check that expanding context works (at least, that it does something).
-    assert.equal(await driver.find('.action_log_table button').getText(), '>');
-    await driver.find('.action_log_table button').click();
-    await gu.waitToPass(async () => {
-      assert.equal(await driver.find('.action_log_table button').getText(), '<');
-    }, 2000);
-    assert.equal(
-      await driver.findContentWait('.action_log_table tr:first-of-type', /id/, 2000).getText(),
-      'id A BB'
-    );
-    assert.equal(
-      await driver.find('.action_log_table tr:nth-of-type(2)').getText(),
-      '→ 1 10\nFishBird'
-    );
+    await expand('VIE');
+    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    assert.deepEqual(await getColumns('Vie'), ['id', 'A', 'BB']);
+    assert.deepEqual(await getRowValues('Vie', 0), ['1', '10', 'FishBird']);
+    assert.deepEqual(await getChangeType('Vie', 0), '→');
 
     // Apply and check that it has an effect.
     assert.deepEqual((await api.getDocAPI(doc.id).getRows('Vie')).BB,
@@ -337,3 +318,39 @@ describe('ProposedChangesPage', function() {
     await gu.waitForServer();
   }
 });
+
+async function getColumns(section: string): Promise<string[]> {
+  const title = await driver.findContentWait('.test-viewsection-title', section, 2000);
+  const parent = await title.findClosest('.viewsection_content');
+  return await parent.findAll('.test-column-title-text', e => e.getText());
+}
+
+async function getRowValues(section: string, rowIndex: number): Promise<string[]> {
+  const title = await driver.findContentWait('.test-viewsection-title', section, 2000);
+  const parent = await title.findClosest('.viewsection_content');
+  await parent.findWait('.record', 2000);
+  const row = (await parent.findAll('.gridview_row .record'))[rowIndex];
+  return await row.findAll('.field_clip', e => e.getText());
+}
+
+async function getChangeType(section: string, rowIndex: number): Promise<string> {
+  const title = await driver.findContentWait('.test-viewsection-title', section, 2000);
+  const parent = await title.findClosest('.viewsection_content');
+  await parent.findWait('.gridview_data_row_num', 2000);
+  const row = (await parent.findAll('.gridview_data_row_num'))[rowIndex];
+  return await row.getText();
+}
+
+async function expand(section: string) {
+  const title = await driver.findContentWait('.test-viewsection-title', section, 2000);
+  const parent = await title.findClosest('.viewsection_content');
+  const button = await parent.find('.test-proposals-expand');
+  await button.click();
+}
+
+async function collapse(section: string) {
+  const title = await driver.findContentWait('.test-viewsection-title', section, 2000);
+  const parent = await title.findClosest('.viewsection_content');
+  const button = await parent.find('.test-proposals-collapse');
+  await button.click();
+}
