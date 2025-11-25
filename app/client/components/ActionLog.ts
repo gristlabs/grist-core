@@ -21,9 +21,13 @@ import {
 import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
-import {Disposable, dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
+import {Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled} from 'grainjs';
 import * as ko from 'knockout';
 import takeWhile = require('lodash/takeWhile');
+
+
+const testId = makeTestId('test-actionlog-');
+
 
 /**
  *
@@ -326,8 +330,8 @@ export abstract class ActionLogPart extends Disposable {
         context,
         order: this._naiveColumnOrder.bind(this),
       });
-      return dom(
-        'div.tabular_diffs',
+      return dom('div',
+        testId('tabular-diffs'),
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
         options.customRender ? options.customRender?.(act, contextObs!, this.selectCell.bind(this)) :
@@ -462,7 +466,7 @@ export abstract class ActionLogPart extends Disposable {
    * Show any table additions/removals/renames.
    */
   private _renderTableSchemaChanges(sum: ActionSummary) {
-    return dom('div.table_schema_changes',
+    return dom('div',
                sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
   }
 

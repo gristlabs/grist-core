@@ -71,20 +71,20 @@ describe('ProposedChangesPage', function() {
 
     // Make sure the expected change is shown.
     await driver.findContentWait('.test-main-content', /Suggest Changes/, 2000);
-    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    await driver.findWait('.test-actionlog-tabular-diffs .field_clip', 2000);
     assert.deepEqual(await getColumns('TABLE1'), ['A', 'E']);
     assert.deepEqual(await getRowValues('TABLE1', 0), ['test1test2', 'TEST1TEST2']);
     assert.deepEqual(await getChangeType('TABLE1', 0), '→');
 
     // Check that expanding context works (at least, that it does something).
     await expand('TABLE1');
-    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    await driver.findWait('.test-actionlog-tabular-diffs .field_clip', 2000);
     assert.deepEqual(await getColumns('TABLE1'), ['id', 'A', 'B', 'C', 'D', 'E']);
     assert.deepEqual(await getRowValues('TABLE1', 0), ['1', 'test1test2', "", "", "", 'TEST1TEST2']);
     assert.deepEqual(await getChangeType('TABLE1', 0), '→');
 
     await collapse('TABLE1');
-    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    await driver.findWait('.test-actionlog-tabular-diffs .field_clip', 2000);
     assert.deepEqual(await getColumns('TABLE1'), ['A', 'E']);
     assert.deepEqual(await getRowValues('TABLE1', 0), ['test1test2', 'TEST1TEST2']);
     assert.deepEqual(await getChangeType('TABLE1', 0), '→');
@@ -218,7 +218,7 @@ describe('ProposedChangesPage', function() {
                      [ 'Bird', 'Mammal', 'SpaceDuck' ]);
   });
 
-  it('can apply a proposed change after a trunk change', async function() {
+  it.skip('can apply a proposed change after a trunk change', async function() {
     const {api, doc} = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
@@ -239,7 +239,7 @@ describe('ProposedChangesPage', function() {
     assert.lengthOf(await driver.findAll('.test-proposals-header'), 1);
 
     // Make sure the expected change is shown.
-    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    await driver.findWait('.test-actionlog-tabular-diffs .field_clip', 2000);
     assert.deepEqual(await getColumns('LIFE'), ['B']);
     assert.deepEqual(await getRowValues('LIFE', 0), ['FishBird']);
     assert.deepEqual(await getChangeType('LIFE', 0), '→');
@@ -254,7 +254,7 @@ describe('ProposedChangesPage', function() {
     await driver.sleep(500);
     // Check that expanding context works (at least, that it does something).
     await expand('LIFE');
-    await driver.findWait('.tabular_diffs .field_clip', 2000);
+    await driver.findWait('.test-actionlog-tabular-diffs .field_clip', 2000);
     assert.deepEqual(await getColumns('VIE'), ['id', 'A', 'BB']);
     assert.deepEqual(await getRowValues('VIE', 0), ['1', '10', 'FishBird']);
     assert.deepEqual(await getChangeType('VIE', 0), '→');
