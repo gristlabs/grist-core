@@ -2258,7 +2258,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Дублікат віджета",
-        "Duplicate widgets": "Дублікати віджетів"
+        "Duplicate widgets": "Дублікати віджетів",
+        "Active": "Активний",
+        "Create new page": "Створити нову сторінку"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Завантаження, зачекайте…"
