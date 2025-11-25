@@ -1,7 +1,7 @@
 import {AirtableAPI, AirtableBaseSchema, AirtableFieldSchema} from 'app/common/AirtableAPI';
 import {RecalcWhen} from 'app/common/gristTypes';
 import {GristType} from 'app/plugin/GristData';
-import {DocAction, UserAction} from 'app/common/DocActions';
+import {UserAction} from 'app/common/DocActions';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
@@ -16,22 +16,9 @@ export class AirtableMigrator {
     console.log(baseSchema);
     const gristDocSchema = gristDocSchemaFromAirtableSchema(baseSchema);
 
-    const addTableActions: DocAction[] = [];
 
-    for (const table of gristDocSchema.tables) {
-      addTableActions.push([
-        'AddTable',
-        table.name,
-        table.columns.map(colInfo => ({
-          id: colInfo.id,
-          type: colInfo.type,
-          isFormula: colInfo.isFormula,
-          formula: colInfo.formula ?? "",
-        })),
-      ]);
-    }
+    const results = await createTables(gristDocSchema.tables, this._applyUserActions);
 
-    const results = await this._applyUserActions(addTableActions);
     console.log(JSON.stringify(results, null, 2));
 
     // Calculate base schema
@@ -41,6 +28,7 @@ export class AirtableMigrator {
     return {
       baseSchema,
       gristSchema: await this._getGristDocSchema(base),
+      results,
     };
   }
 
@@ -49,6 +37,45 @@ export class AirtableMigrator {
 
     return gristDocSchemaFromAirtableSchema(baseSchema);
   }
+}
+
+/* TODO:
+- It's safe to pass any Column info to AddTable as it's handled in useractions.py
+- Make sure ColumnSchema is converted into the correct format for the user action
+- Set this up to do two passes (creation, update)
+- Apply the two passes in createTable (one to create, then one derived from col schema)
+ */
+
+async function createTables(schemas: TableSchema[], _applyUserActions: ApplyUserActionsFunc) {
+  const addTableActions: UserAction[] = [];
+
+  for (const schema of schemas) {
+    addTableActions.push([
+      'AddTable',
+      schema.name,
+      schema.columns.map(colInfo => ({
+        ...colInfo,
+        id: colInfo.desiredId,
+        //formula: colInfo.formula ?? "",
+      })),
+    ]);
+  }
+
+  const actionResults = (await _applyUserActions(addTableActions)).retValues;
+
+  return {
+    tables: schemas.map((tableSchema, actionIndex) => {
+      const result: any = actionResults[actionIndex];
+      return {
+        id: result.id as string,
+        schema: tableSchema,
+        columns: tableSchema.columns.map((columnSchema, colIndex) => ({
+          id: result.columns[colIndex],
+          schema: columnSchema,
+        })),
+      };
+    })
+  };
 }
 
 function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocSchema {
@@ -77,7 +104,7 @@ interface TableSchema {
 }
 
 interface ColumnSchema {
-  id: string;
+  desiredId: string;
   type: GristType;
   isFormula: boolean;
   formula?: string;
@@ -94,14 +121,16 @@ type AirtableFieldMapper = (field: AirtableFieldSchema) => ColumnSchema;
 const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   aiText(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   autoNumber(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should have trigger formula
@@ -109,14 +138,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   checkbox(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Bool',
       isFormula: false,
     };
   },
   count(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should be a formula
@@ -124,14 +155,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   createdBy(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   createdTime(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'DateTime',
       isFormula: false,
       // TODO - Should have a trigger formula
@@ -139,7 +172,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   currency(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should have currency formatting
@@ -147,7 +181,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   date(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Date',
       isFormula: false,
       // TODO - Choose best format for date based on the Airtable configuration
@@ -155,7 +190,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   dateTime(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'DateTime',
       isFormula: false,
       // TODO - Choose best format for datetime based on the Airtable configuration
@@ -163,7 +199,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   duration(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Should also produce a formatted duration formula column.
@@ -171,14 +208,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   email(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   formula(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // It would be helpful to convert formulas, but that's significant work.
@@ -186,7 +225,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   lastModifiedBy(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Add trigger formula
@@ -194,7 +234,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   lastModifiedTime(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'DateTime',
       isFormula: false,
       // TODO - Add trigger formula
@@ -202,7 +243,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   multilineText(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up formatting
@@ -210,14 +252,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   multipleAttachments(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Attachments',
       isFormula: false,
     };
   },
   multipleCollaborators(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Format this sensibly
@@ -226,7 +270,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   /*
   multipleRecordLinks(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'RefList',
       isFormula: false,
       // TODO - Set up references
@@ -235,7 +280,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   */
   multipleSelects(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'ChoiceList',
       isFormula: false,
       // TODO - Set up choices
@@ -243,7 +289,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   number(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Set up formatting / precision info
@@ -251,7 +298,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   percent(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Numeric',
       isFormula: false,
       // TODO - Set up percentage formatting
@@ -259,14 +307,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   phoneNumber(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   rating(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Int',
       isFormula: false,
       // Consider setting up some nice conditional formatting.
@@ -274,7 +324,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   richText(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up markdown
@@ -283,7 +334,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   /*
   rollup(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: '',
       isFormula: false,
       formula: field.options?.formula || '',
@@ -292,14 +344,16 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   */
   singleCollaborator(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
     };
   },
   singleLineText(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up formatting
@@ -307,7 +361,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   singleSelect(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Choice',
       isFormula: false,
       // TODO - Set up choices
@@ -315,7 +370,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   },
   url(field) {
     return {
-      id: field.name,
+      desiredId: field.name,
+      label: field.name,
       type: 'Text',
       isFormula: false,
       // TODO - Set up hyperlink formatting.

@@ -15,7 +15,5 @@ window.runAirtableMigration = async function (apiKey, base) {
   const docApi = userApi.getDocAPI(docId);
 
   const migrator = new AirtableMigrator(api, (actions) => docApi.applyUserActions(actions));
-  await migrator.run(base);
-  console.log(migrator);
-  console.log(docId);
+  return await migrator.run(base);
 };
