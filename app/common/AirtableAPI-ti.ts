@@ -8,17 +8,17 @@ export const AirtableAPIOptions = t.iface([], {
   "apiKey": "string",
 });
 
-export const AirtableSchema = t.iface([], {
-  "tables": t.array("AirtableSchemaTable"),
+export const AirtableBaseSchema = t.iface([], {
+  "tables": t.array("AirtableTableSchema"),
 });
 
-export const AirtableSchemaTable = t.iface([], {
+export const AirtableTableSchema = t.iface([], {
   "id": "string",
   "name": "string",
-  "fields": t.array("AirtableSchemaField"),
+  "fields": t.array("AirtableFieldSchema"),
 });
 
-export const AirtableSchemaField = t.iface([], {
+export const AirtableFieldSchema = t.iface([], {
   "id": "string",
   "name": "string",
   "type": "string",
@@ -27,8 +27,8 @@ export const AirtableSchemaField = t.iface([], {
 
 const exportedTypeSuite: t.ITypeSuite = {
   AirtableAPIOptions,
-  AirtableSchema,
-  AirtableSchemaTable,
-  AirtableSchemaField,
+  AirtableBaseSchema,
+  AirtableTableSchema,
+  AirtableFieldSchema,
 };
 export default exportedTypeSuite;

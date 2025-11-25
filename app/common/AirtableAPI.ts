@@ -1,4 +1,4 @@
-import AirtableSchemaTypeSuite, {AirtableSchema} from 'app/common/AirtableAPI-ti';
+import AirtableSchemaTypeSuite from 'app/common/AirtableAPI-ti';
 
 import Airtable from 'airtable';
 import {CheckerT, createCheckers} from 'ts-interface-checker';
@@ -14,7 +14,7 @@ export class AirtableAPI {
     this._airtable = new Airtable(_options);
   }
 
-  public async getBaseSchema(baseId: string): Promise<AirtableSchema> {
+  public async getBaseSchema(baseId: string): Promise<AirtableBaseSchema> {
     // Airtable's JS library doesn't support fetching schemas, but by passing an empty baseId
     // we can still force it to request the URL we want, and re-use the library's backoff logic
     // to help with Airtable's rate limiting.
@@ -54,22 +54,22 @@ export class AirtableAPIError extends Error {
 }
 
 const AirtableTypeSuiteCheckers = createCheckers(AirtableSchemaTypeSuite);
-const AirtableSchemaChecker = AirtableTypeSuiteCheckers.AirtableSchema as CheckerT<AirtableSchema>;
+const AirtableSchemaChecker = AirtableTypeSuiteCheckers.AirtableBaseSchema as CheckerT<AirtableBaseSchema>;
 //const AirtableSchemaTableChecker = AirtableTypeSuiteCheckers.AirtableSchemaTable as CheckerT<AirtableSchemaTable>;
 //const AirtableSchemaFieldChecker = AirtableTypeSuiteCheckers.AirtableSchemaField as CheckerT<AirtableSchemaField>;
 
 // Airtable schema response. Limit this to only needed fields to minimise chance of breakage.
-export interface AirtableSchema {
-  tables: AirtableSchemaTable[];
+export interface AirtableBaseSchema {
+  tables: AirtableTableSchema[];
 }
 
-export interface AirtableSchemaTable {
+export interface AirtableTableSchema {
   id: string;
   name: string;
-  fields: AirtableSchemaField[];
+  fields: AirtableFieldSchema[];
 }
 
-export interface AirtableSchemaField {
+export interface AirtableFieldSchema {
   id: string;
   name: string;
   type: string;

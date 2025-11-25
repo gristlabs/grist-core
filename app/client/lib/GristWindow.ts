@@ -25,6 +25,7 @@ export interface GristWindow {
   resetDismissedPopups?: (seen?: boolean) => void;
   resetOnboarding?: () => void;
   testGrist?: Partial<TestState>;
+  runAirtableMigration?: (apiKey: string, base: string) => Promise<any>;
 }
 
 declare global {
