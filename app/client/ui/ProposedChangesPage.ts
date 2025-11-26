@@ -59,7 +59,7 @@ export class ProposedChangesPage extends Disposable {
 
     const loader = this.body.load();
     loader.then(result => {
-      if (result) {this.isInitialized.set(true);}
+      if (result) { this.isInitialized.set(true); }
     }).catch(reportError);
     isLongerThan(loader, 100).then((slow) => slow && this.isInitialized.set("slow")).catch(() => {});
   }
@@ -108,9 +108,9 @@ export class ProposedChangesTrunkPage extends Disposable {
 
   public async load() {
     const urlId = this.gristDoc.docPageModel.currentDocId.get();
-    if (!urlId) {return;}
+    if (!urlId) { return; }
     const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals();
-    if (this.isDisposed()) {return;}
+    if (this.isDisposed()) { return; }
     this._proposals = proposals.proposals.filter(p => p.status.status !== 'retracted');
     this._proposalsObs.splice(0);
     this._proposalsObs.push(...this._proposals);
@@ -137,7 +137,7 @@ export class ProposedChangesTrunkPage extends Disposable {
   }
 
   public buildDom() {
-    if (!this._proposals) {return null;}
+    if (!this._proposals) { return null; }
     const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
     return [
       dom.domComputed(this._showDismissed, showDismissed => {
@@ -183,7 +183,7 @@ and is subject to change and withdrawal.`,
           ] : null,
           dom.maybe(this._proposalsObs, proposals => {
             if (proposals.some(p => p.status.status === 'dismissed')) {
-              if (isReadOnly) {return null;}
+              if (isReadOnly) { return null; }
               return labeledSquareCheckbox(this._showDismissed, 'Show dismissed suggestions.');
             }
           }),
@@ -191,10 +191,10 @@ and is subject to change and withdrawal.`,
             'div',
             dom.forEach(this._proposalsObs, (proposal) => {
               const details = proposal.comparison.comparison?.details;
-              if (!details) {return null;}
+              if (!details) { return null; }
               const applied = proposal.status.status === 'applied';
               const dismissed = proposal.status.status === 'dismissed';
-              if (dismissed && !showDismissed) {return null;}
+              if (dismissed && !showDismissed) { return null; }
               return dom('div', [
                 cssProposalHeader(
                   this._linkProposal(proposal),
@@ -295,18 +295,18 @@ export class ProposedChangesForkPage extends Disposable {
    */
   public async load() {
     const urlId = this.gristDoc.docPageModel.currentDocId.get();
-    if (!urlId) {return;}
+    if (!urlId) { return; }
     const parts = parseUrlId(urlId || '');
     const comparisonUrlId = parts.trunkId;
     const comparison = await this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
       comparisonUrlId, {detail: true}
     );
-    if (this.isDisposed()) {return;}
+    if (this.isDisposed()) { return; }
     this._comparison = comparison;
     const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
       outgoing: true
     });
-    if (this.isDisposed()) {return;}
+    if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
 
     // Fetch all tables that have changes
@@ -357,11 +357,11 @@ export class ProposedChangesForkPage extends Disposable {
                     // If anonymous, be careful, proposal list won't
                     // give a link back to this URL since that would
                     // let anyone edit it.
-                    if (user?.anonymous) {return;}
+                    if (user?.anonymous) { return; }
                     // If a proposal hasn't been saved, or is retracted,
                     // also be careful, since there won't be a back-link.
                     if (!proposal?.updatedAt ||
-                      proposal.status.status === 'retracted') {return;}
+                      proposal.status.status === 'retracted') { return; }
                     // Otherwise, don't worry about losing the link
                     // to this page, you can get it from the original
                     // document.
@@ -410,11 +410,11 @@ export class ProposedChangesForkPage extends Disposable {
 
   public async update() {
     const urlId = this.gristDoc.docPageModel.currentDocId.get();
-    if (!urlId) {return;}
+    if (!urlId) { return; }
     const proposals = await this.gristDoc.appModel.api.getDocAPI(urlId).getProposals({
       outgoing: true
     });
-    if (this.isDisposed()) {return;}
+    if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
   }
 
@@ -464,7 +464,7 @@ class ActionLogPartInProposal extends ActionLogPart {
       txt: "",
       // This holds any extra context known about the comparison. Computed on
       // request. It is managed by ActionLogPart.
-      contextObs: ko.observable({}),      
+      contextObs: ko.observable({}),
       customRender: (diffs, ctx, selectCell) => {
         return this._makeTable({
           diffs,
@@ -475,7 +475,7 @@ class ActionLogPartInProposal extends ActionLogPart {
       },
     });
   }
-  
+
   protected _makeTable(props: {
     diffs?: TabularDiffs;
     origComparison?: DocStateComparison;
@@ -512,7 +512,7 @@ class ActionLogPartInProposal extends ActionLogPart {
               colId,
               label: colId,
               type: (types[colId]?.pureType.peek() as any) || 'Any',
-              widgetOptions: types[colId]?.widgetOptionsJson.peek() as any
+              widgetOptions: types[colId]?.widgetOptionsJson.peek()
             };
           }),
         ],

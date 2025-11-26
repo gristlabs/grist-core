@@ -167,7 +167,7 @@ export default class GridView extends BaseView {
   private _rowIndexRenderer: RowIndexRenderer;
   private _cornerRenderer: CornerRenderer;
   private _autoWidthHolder: Holder<Disposable>;
-  
+
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec, protected gridOptions?: GridViewOptions) {
     super(gristDoc, viewSectionModel, {...gridOptions, addNewRow: gridOptions?.addNewRow ?? true});
 
@@ -208,7 +208,7 @@ export default class GridView extends BaseView {
       this.selectionSummary = SelectionSummary.create(this,
         this.cellSelector, this.tableModel.tableData, this.sortedRows, this.viewSection.viewFields);
     }
-    
+
     this.selectedColumns = this.autoDispose(ko.pureComputed(() => {
       const result = this.viewSection.viewFields().all().filter((field, index) => {
         // During column removal or restoring (with undo), some columns fields
@@ -536,18 +536,18 @@ export default class GridView extends BaseView {
         const maxHeight = this.gridOptions?.maxInlineHeight || 600;
         const maxWidth = this.gridOptions?.maxInlineWidth || 800;
         const totalHeight = this._rowHeights.reduce((sum, value) => sum + value, 0) + headerHeight + borderWidth;
-        const targetHeight = Math.min(totalHeight, maxHeight)
+        const targetHeight = Math.min(totalHeight, maxHeight);
         const widthObs = Observable.create<number>(this, 0);
-            
+
         const updateWidth = () => {
           if (this.isDisposed()) { return; }
           const fields = this.viewSection.viewFields().all();
-          const fieldsWidthSum = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0) ;
+          const fieldsWidthSum = fields.reduce((sum, field) => sum + field.widthDef.peek(), 0);
           const targetWidth =  Math.min(fieldsWidthSum + ROW_NUMBER_WIDTH + scrollbarWidth, maxWidth);
           widthObs.set(targetWidth);
         };
         updateWidth();
-        dom.update(this.viewPane, 
+        dom.update(this.viewPane,
           dom.style('width', use => `${use(widthObs)}px`),
           dom.style('height', `${targetHeight}px`)
         );
@@ -555,9 +555,9 @@ export default class GridView extends BaseView {
         const paneElem = this.viewPane.querySelector('.gridview_data_header') as HTMLElement;
         const resizeObserver = new ResizeObserver(updateWidth);
         resizeObserver.observe(paneElem);
-        scope.onDispose(() => resizeObserver.disconnect()); 
+        scope.onDispose(() => resizeObserver.disconnect());
       }
-    })
+    });
     scope.onDispose(() => clearTimeout(timeout));
   }
 

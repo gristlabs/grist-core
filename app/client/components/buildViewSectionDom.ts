@@ -80,7 +80,7 @@ export function buildViewSectionDom(options: {
     focusable = true,
     hideTitleControls = false,
     tableNameHidden,
-    widgetNameHidden,    
+    widgetNameHidden,
   } = options;
 
   // Creating normal section dom
