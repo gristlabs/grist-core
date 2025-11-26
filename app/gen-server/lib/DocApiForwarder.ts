@@ -52,6 +52,8 @@ export class DocApiForwarder {
     app.use('/api/docs/:docId/force-reload', withDoc);
     app.use('/api/docs/:docId/recover', withDoc);
     app.use('/api/docs/:docId/remove', withDoc);
+    app.use('/api/docs/:docId/disable', withDocWithoutAuth);
+    app.use('/api/docs/:docId/enable', withDocWithoutAuth);
     app.delete('/api/docs/:docId', withDoc);
     app.use('/api/docs/:docId/download', withDoc);
     app.use('/api/docs/:docId/send-to-drive', withDoc);
@@ -96,7 +98,7 @@ export class DocApiForwarder {
       const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager,
         this._gristServer, req.params.docId);
       if (role) {
-        assertAccess(role, docAuth, {allowRemoved: true});
+        assertAccess(role, docAuth, {allowRemoved: true, allowDisabled: true});
       }
       docId = docAuth.docId;
     }

@@ -25,6 +25,7 @@ describe('disabledAt', function() {
   before(async function() {
     oldEnv = new EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = gu.translateUser('support').email;
+    process.env.GRIST_TEST_DOC_AUTH_CACHE_TTL = '0';
     await server.restart(false);
 
     ownerSession = await team.user('user1').login();
