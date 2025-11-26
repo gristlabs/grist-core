@@ -6,6 +6,10 @@ import { dom } from "grainjs";
 const testId = makeTestId("test-forms-");
 
 export class SubmitModel extends BoxModel {
+  public canRemove() {
+    return false;
+  }
+
   public override render() {
     const text = this.view.viewSection.layoutSpecObj.prop('submitText');
     return dom(
