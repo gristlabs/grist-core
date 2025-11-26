@@ -1541,9 +1541,9 @@
   },
   "WelcomeCoachingCall": {
     "free coaching call": "免費諮詢通話",
-    "Maybe Later": "暫時先不用",
+    "Maybe later": "暫時先不用",
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "在通話中，我們會花時間了解您的需求，並根據您的情況量身打造內容。我們可以介紹 Grist 的基本功能，或是直接使用您的資料，幫您建立所需的儀表板。",
-    "Schedule Call": "預約通話",
+    "Schedule call": "預約通話",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "安排與我們團隊成員的 {{freeCoachingCall}}。"
   },
   "FormView": {

@@ -1640,9 +1640,9 @@
   },
   "WelcomeCoachingCall": {
     "free coaching call": "бесплатный коуч-звонок",
-    "Maybe Later": "Возможно позже",
+    "Maybe later": "Возможно позже",
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Во время звонка мы уделяем время тому, чтобы понять ваши потребности и адаптировать звонок под ваши нужды. Мы можем показать вам основы Grist или сразу начать работать с вашими данными, чтобы создать нужные вам информационные панели.",
-    "Schedule Call": "Запланировать звонок",
+    "Schedule call": "Запланировать звонок",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "Запланируйте свой {{freeCoachingCall}} с членом нашей команды.",
     "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Вы также можете проверить {{ourWeeklyWebinars}} чтобы узнать больше о Grist.",
     "our weekly webinars": "наши еженедельные вебинары"

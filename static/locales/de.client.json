@@ -1723,9 +1723,9 @@
     },
     "WelcomeCoachingCall": {
         "free coaching call": "kostenloser Coaching-Anruf",
-        "Schedule Call": "Anruf planen",
+        "Schedule call": "Anruf planen",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Planen Sie Ihre {{freeCoachingCall}} mit einem Mitglied unseres Teams.",
-        "Maybe Later": "Vielleicht später",
+        "Maybe later": "Vielleicht später",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Während des Gesprächs nehmen wir uns die Zeit, Ihre Bedürfnisse zu verstehen und das Gespräch auf Sie zuzuschneiden. Wir können Ihnen die Grundlagen von Grist zeigen oder sofort mit Ihren Daten arbeiten, um die von Ihnen benötigten Dashboards zu erstellen.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Sie können auch {{ourWeeklyWebinars}} besuchen, um mehr über Grist zu erfahren.",
         "our weekly webinars": "unsere wöchentlichen Webinare"

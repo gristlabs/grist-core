@@ -1521,8 +1521,8 @@
   "WelcomeCoachingCall": {
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Počas hovoru si nájdeme čas na pochopenie vašich potrieb a prispôsobíme sa vám. Môžeme vám ukázať základy Gristu alebo začať pracovať s vašimi údajmi hneď na zostavení panelov, ktoré potrebujete.",
     "free coaching call": "bezplatný hovor koučovi",
-    "Maybe Later": "Možno Neskôr",
-    "Schedule Call": "Naplánovať Hovor",
+    "Maybe later": "Možno Neskôr",
+    "Schedule call": "Naplánovať Hovor",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "Naplánujte si {{freeCoachingCall}} s členom nášho tímu."
   },
   "FormConfig": {

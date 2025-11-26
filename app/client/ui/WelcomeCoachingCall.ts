@@ -79,8 +79,7 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
           testId('popup-close-button'),
         ),
       ),
-      cssPopupTitle(t('free coaching call'),
-        dom.style('text-transform', 'capitalize'),
+      cssPopupTitle(t('Free coaching call'),
         testId('popup-title')
       ),
       cssPopupBody(
@@ -95,11 +94,12 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
 We can show you the Grist basics, or start working with your data right away to build the dashboards you need.")
           ),
           dom('div',
-            t("You may also check out {{ourWeeklyWebinars}} to learn more about Grist.",
+            t("You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users \
+navigate the fundamentals of Grist.",
               {
                 ourWeeklyWebinars: cssLink(
                   {href: commonUrls.webinars, target: '_blank'},
-                  t('our weekly webinars')
+                  t('Grist 101')
                 )
               }
             ),
@@ -110,7 +110,7 @@ We can show you the Grist basics, or start working with your data right away to 
       ),
       cssPopupButtons(
         bigPrimaryButtonLink(
-          t('Schedule Call'),
+          t('Schedule call'),
           dom.on('click', () => {
             dismissPopup(false);
             logTelemetryEvent('clickedScheduleCoachingCall');
@@ -122,7 +122,7 @@ We can show you the Grist basics, or start working with your data right away to 
           testId('popup-primary-button'),
         ),
         bigBasicButton(
-          t('Maybe Later'),
+          t('Maybe later'),
           dom.on('click', () => dismissPopup(true)),
           testId('popup-basic-button'),
         ),

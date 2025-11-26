@@ -1739,8 +1739,8 @@
     "WelcomeCoachingCall": {
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "在通话中，我们会花时间了解您的需求，并为您量身定制通话内容。我们可以向您介绍 Grist 的基础知识，或者立即开始使用您的数据构建所需的仪表板。",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "与我们的团队成员预约您的 {{freeCoachingCall}} 。",
-        "Schedule Call": "预约通话",
-        "Maybe Later": "或许稍后",
+        "Schedule call": "预约通话",
+        "Maybe later": "或许稍后",
         "free coaching call": "免费辅助热线"
     },
     "AuditLogStreamingConfig": {

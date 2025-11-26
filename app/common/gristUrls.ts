@@ -1070,7 +1070,7 @@ export function getContactSupportUrl(): string {
 }
 
 export function getWebinarsUrl(): string {
-  const defaultUrl = 'https://www.getgrist.com/webinars';
+  const defaultUrl = 'https://www.getgrist.com/webinars/grist-101-new-users-guide';
   return getCustomizableValue('webinarsUrl', 'GRIST_WEBINARS_URL') || defaultUrl;
 }
 
