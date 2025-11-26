@@ -8,7 +8,8 @@
         "og-title": "Grist, le tableur évolué"
     },
     "access": {
-        "docNoAccess": "Vous n'avez pas accès à ce document."
+        "docNoAccess": "Vous n'avez pas accès à ce document.",
+        "docDisabled": "Ce document est désactivé."
     },
     "admin": {
         "emptyOrg": "Aucun propriétaire trouvé dans l'organisation admin définie par `GRIST_INSTALL_ADMIN_ORG={{org}}`",
