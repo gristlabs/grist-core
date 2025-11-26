@@ -228,11 +228,6 @@ export class CommentPopup extends Disposable {
     const access = this._props.gristDoc.docPageModel.docUsers;
 
     this._menuInstance = popupOpen(this._props.domEl, (ctl) => {
-      this.onDispose(() => {
-        if (!ctl.isDisposed()) {
-          ctl.close();
-        }
-      });
       // When the popup is being disposed (after closing).
       ctl.onDispose(() => {
         // Make sure we are not disposed already. TODO: popupMenu should have some hooks exposed like beforeClose.
@@ -273,6 +268,12 @@ export class CommentPopup extends Disposable {
       placement: 'bottom',
       attach: 'body',
       boundaries: 'window',
+    });
+
+    this.onDispose(() => {
+      if (this._menuInstance && !this._menuInstance.isDisposed()) {
+        this._menuInstance.dispose();
+      }
     });
   }
 

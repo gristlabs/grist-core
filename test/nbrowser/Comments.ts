@@ -116,7 +116,7 @@ describe('Comments', function() {
     // Copy the anchor link to this cell.
     let anchor = await gu.getAnchor();
 
-    // Change it's type to the a4 (reserved now for the comments popup).
+    // Change its type to the a4 (reserved now for the comments popup).
     anchor = anchor.replace(/#a\d+/, '#a4');
 
     // Now open this link.
@@ -134,6 +134,50 @@ describe('Comments', function() {
     await driver.get(anchor);
     await gu.waitForAnchor();
     await waitForPopup('filled');
+    assert.equal(await readComment(0), 'Hello from Chimpy');
+  });
+
+    it('should open the popup by using anchor link without p', async function() {
+    // Create a new document and add a comment.
+    docId = (await session.tempShortDoc(cleanup, 'Hello.grist')).id;
+
+    // Add new table, to make it the first one.
+    await gu.addNewTable('Apples');
+    // Add new page with Table2, it will be the second one.
+    await gu.addNewPage('Table', 'Table1');
+    // Remove the first page.
+    await gu.removePage('Table1');
+
+    // Now copy the anchor link
+    await gu.openPage('New page');
+    await gu.getCell('A', 1).click();
+    await openCommentsWithKey();
+    await waitForInput();
+    await gu.sendKeys('Hello from Chimpy');
+    await enter();
+    await gu.sendKeys(Key.ESCAPE);
+    await assertNoPopup();
+
+    // Copy the anchor link to this cell.
+    let anchor = await gu.getAnchor();
+
+    // Change its type to the a4 (reserved now for the comments popup).
+    anchor = anchor.replace(/#a\d+/, '#a4');
+    // Remove the 'p' parameter.
+    anchor = anchor.replace(/\/p\/\d+/, '');
+
+
+    // Now open this link.
+    await driver.get('about:blank'); // to make sure we are not reusing the same page
+    await driver.sleep(100);
+    await driver.get(anchor);
+
+    // We should see the comments popup.
+    await gu.waitForAnchor();
+    await gu.checkForErrors();
+    await waitForPopup('filled');
+
+    // Make sure we see the comment.
     assert.equal(await readComment(0), 'Hello from Chimpy');
   });
 
