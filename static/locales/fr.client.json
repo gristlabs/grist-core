@@ -2259,7 +2259,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Dupliquer la vue",
-        "Duplicate widgets": "Dupliquer les vues"
+        "Duplicate widgets": "Dupliquer les vues",
+        "Active": "Actif",
+        "Create new page": "Créer une nouvelle page"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "En cours de téléversement, merci de patienter…"
