@@ -14,7 +14,12 @@ import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
-import {choiceToken, DEFAULT_BACKGROUND_COLOR, DEFAULT_COLOR} from 'app/client/widgets/ChoiceToken';
+import {
+  choiceToken,
+  DEFAULT_BACKGROUND_COLOR,
+  DEFAULT_COLOR,
+  getReadableColorsCombo,
+} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {Computed, dom, styled} from 'grainjs';
 
@@ -25,11 +30,17 @@ export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
 const t = makeT('ChoiceTextBox');
 
 export function getRenderFillColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.fillColor ?? DEFAULT_BACKGROUND_COLOR;
+  if (!choiceOptions) {
+    return DEFAULT_BACKGROUND_COLOR;
+  }
+  return getReadableColorsCombo(choiceOptions).bg;
 }
 
 export function getRenderTextColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.textColor ?? DEFAULT_COLOR;
+  if (!choiceOptions) {
+    return DEFAULT_COLOR;
+  }
+  return getReadableColorsCombo(choiceOptions).fg;
 }
 
 /**
