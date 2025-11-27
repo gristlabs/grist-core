@@ -517,7 +517,8 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "Колонка {{colId}} згодом була видалена під час події #{{action.actionNum}}",
         "All tables": "Всі таблиці",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Колонку {{colId}} згодом було видалено в дії №{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "Цей рядок згодом було вилучено в рамках дії {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "Цей рядок згодом було вилучено в рамках дії {{actionNum}}",
+        "History blocked because of access rules.": "Історію заблоковано через правила доступу."
     },
     "ApiKey": {
         "Click to show": "Натисніть, щоб показати",
@@ -2153,7 +2154,8 @@
         "Workspace": "Робочий простір",
         "context menu - {{- documentName }}": "контекстне меню - {{- documentName }}",
         "Documents list": "Список документів",
-        "Download document...": "Завантажити документ..."
+        "Download document...": "Завантажити документ...",
+        "Deleted {{at}}": "Видалено {{at}}"
     },
     "RenameDocModal": {
         "Choose color": "Виберіть колір",
