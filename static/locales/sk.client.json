@@ -51,7 +51,8 @@
         "Invalid table: {{tableId}}": "Neplatná tabuľka: {{tableId}}",
         "Invalid user attribute rule: {{prop}} must be set": "Neplatné pravidlo užívateľského atribútu: {{prop}} musí byť nastavené",
         "Invalid user attribute to look up": "Neplatný atribút používateľa na vyhľadanie",
-        "Not a valid user attribute": "Neplatný užívateľský atribút"
+        "Not a valid user attribute": "Neplatný užívateľský atribút",
+        "hidden": "skrytý"
     },
     "AccountPage": {
         "API": "API",
@@ -102,7 +103,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "Tento riadok bol následne odstránený v akcii {{action.actionNum}}",
         "All tables": "Všetky tabuľky",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Stĺpec {{colId}} bol následne odstránený v akcii #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "Tento riadok bol následne odstránený v akcii {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "Tento riadok bol následne odstránený v akcii {{actionNum}}",
+        "History blocked because of access rules.": "História zablokovaná kvôli pravidlám prístupu."
     },
     "ApiKey": {
         "By generating an API key, you will be able to make API calls for your own account.": "Vygenerovaním kľúča API budete môcť uskutočňovať volania API pre svoj vlastný účet.",
@@ -332,7 +334,9 @@
         "Create my first document": "Vytvoriť môj prvý dokument",
         "personal site": "osobná stránka",
         "Any documents created in this site will appear here.": "Všetky dokumenty vytvorené na tejto stránke sa zobrazia tu.",
-        "You have read-only access to this site. Currently there are no documents.": "Máte prístup len na čítanie tejto stránky. V súčasnosti neexistujú žiadne dokumenty."
+        "You have read-only access to this site. Currently there are no documents.": "Máte prístup len na čítanie tejto stránky. V súčasnosti neexistujú žiadne dokumenty.",
+        "Grid view": "Zobraziť v mriežke",
+        "List view": "Zobraziť v zozname"
     },
     "DocPageModel": {
         "Enter recovery mode": "Spustiť režim obnovenia",
@@ -442,7 +446,11 @@
         "Default": "Predvolené",
         "Document type": "Typ dokumentu",
         "[Learn more.]({{learnLink}})": "[Naučiť sa viac.]({{learnLink}})",
-        "Default, template, or tutorial": "Predvolené, šablóna alebo návod"
+        "Default, template, or tutorial": "Predvolené, šablóna alebo návod",
+        "Allow others to suggest changes": "Dovoľte ostatným navrhnúť zmeny",
+        "Enable suggestions": "Povoliť návrhy",
+        "Suggestions": "Návrhy",
+        "experiment": "experiment"
     },
     "DocumentUsage": {
         "Size of attachments": "Veľkosť Príloh",
@@ -739,7 +747,8 @@
         "Group by": "Zoskupiť podľa",
         "Building {{- label}} widget": "Vytvoriť miniaplikáciu {{- label}}",
         "Select data": "Vybrať Údaje",
-        "Select widget": "Vybrať Miniaplikáciu"
+        "Select widget": "Vybrať Miniaplikáciu",
+        "New Table": "Nová Tabuľka"
     },
     "RecordLayout": {
         "Updating record layout.": "Aktualizuje sa schéma záznamov."
