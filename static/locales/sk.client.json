@@ -52,7 +52,13 @@
         "Invalid user attribute rule: {{prop}} must be set": "Neplatné pravidlo užívateľského atribútu: {{prop}} musí byť nastavené",
         "Invalid user attribute to look up": "Neplatný atribút používateľa na vyhľadanie",
         "Not a valid user attribute": "Neplatný užívateľský atribút",
-        "hidden": "skrytý"
+        "hidden": "skrytý",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Stĺpec {{colId}} sa objavuje vo viacerých pravidlách tabuľky {{tableId}}, ktoré môžu byť závislé od poradia. Skúste pravidlá rozdeliť inak?",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Neplatné stĺpce v tabuľke {{tableId}}: {{invalidColIds}}",
+        "No columns listed in a column rule for table {{tableId}}": "Niesu uvedené žiadne stĺpce v pravidle stĺpcov pre tabuľku {{tableId}}",
+        "Resource missing in resource map: {{resourceKey}}": "Chýba zdroj v mape zdrojov: {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Pokus pridať Pravidlá Tabuľky pre existujúcu tabuľku {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Použite jednoduchý atribút user.LinkKey, napr. user.LinkKey.niečo"
     },
     "AccountPage": {
         "API": "API",
@@ -748,7 +754,8 @@
         "Building {{- label}} widget": "Vytvoriť miniaplikáciu {{- label}}",
         "Select data": "Vybrať Údaje",
         "Select widget": "Vybrať Miniaplikáciu",
-        "New Table": "Nová Tabuľka"
+        "New Table": "Nová Tabuľka",
+        "SELECT BY": "VYBRAŤ PODĽA"
     },
     "RecordLayout": {
         "Updating record layout.": "Aktualizuje sa schéma záznamov."
@@ -875,7 +882,10 @@
         "Save Document": "Uložiť Dokument",
         "Exporting is only available from document pages. Please select a document page and try again.": "Export je dostupný iba zo stránok dokumentov. Vyberte stránku dokumentu a skúste to znova.",
         "Download attachments...": "Stiahnite si prílohy...",
-        "Download document...": "Stiahnuť dokument..."
+        "Download document...": "Stiahnuť dokument...",
+        "Suggest Changes": "Navrhnúť Zmeny",
+        "current version": "aktuálna verzia",
+        "original": "originál"
     },
     "Tools": {
         "Delete document tour?": "Chcete odstrániť Prehliadku?",
@@ -894,7 +904,9 @@
         "context menu - Access Rules": "kontextové menu - Pravidlá Prístupu",
         "Delete document tour": "Vymazať prehliadku dokumentov",
         "Preview the tutorial": "Náhľad tutoriálu",
-        "Proposed Changes": "Navrhované Zmeny"
+        "Proposed Changes": "Navrhované Zmeny",
+        "Suggest Changes": "Navrhnúť Zmeny",
+        "Suggestions": "Návrhy"
     },
     "TopBar": {
         "Manage team": "Riadiť tím"
@@ -967,7 +979,8 @@
         "FILTER": "FILTER",
         "Revert": "Návrat",
         "Save": "Uložiť",
-        "Update Sort&Filter settings": "Aktualizovať nastavenie triedenia a filtrovania"
+        "Update Sort&Filter settings": "Aktualizovať nastavenie triedenia a filtrovania",
+        "Sort and filter": "Triedenie a filter"
     },
     "WelcomeQuestions": {
         "Education": "Vzdelávanie",
@@ -1023,7 +1036,13 @@
         "An unknown error occurred.": "Vyskytla sa neznáma chyba.",
         "Build your own form": "Vytvorte si vlastný formulár",
         "Sign-in failed{{suffix}}": "Prihlásenie zlyhalo{{suffix}}",
-        "Failed to log in.{{separator}}Please try again or contact support.": "Nepodarilo sa prihlásiť.{{separator}}Prosím skúste to znova alebo kontaktujte podporu."
+        "Failed to log in.{{separator}}Please try again or contact support.": "Nepodarilo sa prihlásiť.{{separator}}Prosím skúste to znova alebo kontaktujte podporu.",
+        "Manage settings": "Spravovať nastavenia",
+        "Need Help?": "Potreba Pomoci?",
+        "There was an error": "Vyskytla sa chyba",
+        "Unsubscribed{{suffix}}": "Odhlásenie {{suffix}}",
+        "We could not unsubscribe you": "Nemohli sme vás odhlásiť",
+        "You are unsubscribed": "Ste odhlásený"
     },
     "menus": {
         "Select fields": "Vybrať polia",
@@ -1650,7 +1669,10 @@
         "fiddle": "pokus",
         "override": "prepísať",
         "recovery mode": "režim obnovenia",
-        "snapshot": "snímka"
+        "snapshot": "snímka",
+        "You may make edits,\nbut they will not affect the original document.\nYou can propose them as suggestions.": "Môžete robiť úpravy,\nale neovplyvnia pôvodný dokument.\nMôžete ich navrhnúť ako zmenu.",
+        "editing": "editácia",
+        "suggesting": "návrhnúť"
     },
     "pages": {
         "Duplicate page": "Duplikovať stránku",
@@ -1706,7 +1728,9 @@
         "Visible {{label}}": "Viditeľné {{label}}",
         "Hide {{label}}": "Skryť {{label}}",
         "Hidden {{label}}": "Skryté {{label}}",
-        "Show {{label}}": "Zobraziť {{label}}"
+        "Show {{label}}": "Zobraziť {{label}}",
+        "Hide {{label}} (batch mode)": "Skryť {{label}} (dávkový režim)",
+        "Show {{label}} (batch mode)": "Zobraziť {{label}} (dávkový režim)"
     },
     "search": {
         "No results": "Žiadne výsledky",
