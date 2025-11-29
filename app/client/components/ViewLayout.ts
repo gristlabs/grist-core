@@ -70,17 +70,19 @@ function getInstanceConstructor(parentKey: string) {
 export class ViewSectionHelper extends Disposable {
   private _instance = Holder.create<BaseView>(this);
 
-  constructor(gristDoc: GristDoc, vs: ViewSectionRec) {
+  constructor(gristDoc: GristDoc, vs: ViewSectionRec, options?: any) {
     super();
     this.onDispose(() => vs.viewInstance(null));
 
     this.autoDispose(subscribe((use) => {
       // Rebuild the section when its type changes or its underlying table.
       const table = use(vs.table);
-      const Cons = getInstanceConstructor(use(vs.parentKey));
+      const key = use(vs.parentKey);
+      const Cons = getInstanceConstructor(key);
+      const viewOptions = options?.[key] || {};
       this._instance.clear();
       if (table.getRowId()) {
-        this._instance.autoDispose(Cons.create(null, gristDoc, vs));
+        this._instance.autoDispose(Cons.create(null, gristDoc, vs, viewOptions));
       }
       vs.viewInstance(this._instance.get());
     }));
