@@ -2012,14 +2012,22 @@ export class DocWorkerApi {
 
   private async _getDownloadFilename(req: Request, tableId?: string, optDoc?: Document): Promise<string> {
     let filename = optStringParam(req.query.title, 'title');
+
     if (!filename) {
-      // Query DB for doc metadata to get the doc data.
-      const doc = optDoc || await this._dbManager.getDoc(req);
-      const docTitle = doc.name;
-      const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
-      filename = docTitle + suffix || 'document';
+      let doc = optDoc;
+
+      try {
+        // Query DB for doc metadata to get the doc data.
+        doc = doc || await this._dbManager.getDoc(req);
+        const docTitle = doc?.name;
+        const suffix = tableId ? (tableId === docTitle ? '' : `-${tableId}`) : '';
+        filename = docTitle + suffix || 'document';
+      } catch(error) {
+        filename = 'document';
+      }
     }
-    return filename;
+
+    return filename || 'document';
   }
 
   private async _getDownloadOptions(req: Request, doc?: Document): Promise<DownloadOptions> {
