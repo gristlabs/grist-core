@@ -66,7 +66,7 @@ async function _readManifest(pluginPath: string): Promise<object> {
     return await fse.readFile(path.join(pluginPath, "manifest." + fileExtension), "utf8");
   }
   try {
-    return yaml.safeLoad(await readManifestFile("yml"));
+    return yaml.load(await readManifestFile("yml")) as object;
   } catch (e) {
     if (e instanceof yaml.YAMLException) {
       throw new Error('error parsing yaml manifest: ' + e.message);
