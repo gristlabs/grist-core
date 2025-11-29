@@ -24,6 +24,7 @@ import {DocManager} from 'app/server/lib/DocManager';
 import {docSessionFromRequest, makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {filterColValues, GranularAccess} from 'app/server/lib/GranularAccess';
 import {globalUploadSet} from 'app/server/lib/uploads';
+import axios from "axios";
 import {assert} from 'chai';
 import {cloneDeep, isMatch, pick} from 'lodash';
 import * as sinon from 'sinon';
@@ -3678,6 +3679,16 @@ describe('GranularAccess', function() {
       {id: [1], MoreTexts: [[GristObjCode.List, i6]]}
     ), /403.*Cannot access attachment/);
 
+    const readTokenResult = (await cliEditor.send("getAccessToken", 0, {readOnly: true})).data;
+    await assert.isRejected(postAttachment(editor, docId, readTokenResult.token, "dataError", "error.txt"));
+
+    const tokenResult = (await cliEditor.send("getAccessToken", 0, {readOnly: false})).data;
+    const i7 = await postAttachment(editor, docId, tokenResult.token, "content7", "7.txt");
+    await assert.isFulfilled(getAttachment(owner, docId, i7));
+    //await assert.isFulfilled(getAttachment(editor, docId, i7));
+    await editor.getDocAPI(docId).updateRows('Data1', {id: [1], Texts: [[GristObjCode.List, i7]]});
+    await assert.isFulfilled(getAttachment(editor, docId, i7));
+
     // Attachment check is not applied for undos of actions by the same user.
     const ownerProfile = await owner.getUserProfile();
     const editorProfile = await editor.getUserProfile();
@@ -4369,6 +4380,22 @@ async function getAttachment(api: UserAPI, docId: string, attId: number) {
     }
   );
   return result.text();
+}
+
+// Upload an attachment.
+async function postAttachment(api: UserAPI, docId: string, token: string, content: string, filename: string) {
+  const formData = new FormData();
+  formData.append('upload', new Blob([content]), filename);
+  const url = api.getBaseUrl() + `/api/docs/${docId}/attachments?auth=${token}`;
+  const response = await axios.request({
+    url,
+    method: 'POST',
+    data: formData,
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+    },
+  });
+  return response.data[0];
 }
 
 async function assertFlux(check: Promise<any>) {
