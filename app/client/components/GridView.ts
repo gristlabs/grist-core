@@ -669,7 +669,7 @@ export default class GridView extends BaseView {
     // from a different peer.
 
     // convert row-wise data to column-wise so that it better resembles a user action
-    let pasteData = _.unzip(data);
+    let pasteData = unzipPasteData(data);
     const pasteHeight = pasteData[0].length;
     const pasteWidth = pasteData.length;
     // figure out the size of the paste area
@@ -687,7 +687,7 @@ export default class GridView extends BaseView {
     const leftIndex = this.cellSelector.colLower();
     const updateColIndices = _.range(leftIndex, leftIndex + outputWidth);
 
-    pasteData = gutil.growMatrix(pasteData, updateColIndices.length, updateRowIds.length);
+    pasteData = growPasteDataMatrix(pasteData, updateColIndices.length, updateRowIds.length);
 
     const fields = this.viewSection.viewFields().peek();
     const pasteFields = updateColIndices.map(i => fields[i] || null);
@@ -2259,6 +2259,16 @@ export default class GridView extends BaseView {
       }
     });
   }
+}
+
+// Provide a type-safe wrapper around _.unzip
+function unzipPasteData(pasteData: PasteData): PasteData {
+  return _.unzip<any>(pasteData) as PasteData;
+}
+
+// Provide a type-safe wrapper around growMatrix
+function growPasteDataMatrix(pasteData: PasteData, r: number, c: number): PasteData {
+  return gutil.growMatrix<any>(pasteData, r, c) as PasteData;
 }
 
 interface ComputedRule {
