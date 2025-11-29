@@ -46,6 +46,7 @@ import { setTimeout } from 'node:timers/promises';
 import {createClient, RedisClient} from 'redis';
 import * as sinon from 'sinon';
 import {v4 as uuidv4} from 'uuid';
+import { IAttachmentVirusScanProvider } from 'app/server/lib/AttachmentVirusScanProvider';
 
 bluebird.promisifyAll(RedisClient.prototype);
 
@@ -289,7 +290,8 @@ class TestStore {
     private _workerId: string,
     private _workers: IDocWorkerMap,
     private _externalStorageCreate: ExternalStorageCreator,
-    private _attachmentStoreProvider?: IAttachmentStoreProvider) {
+    private _attachmentStoreProvider?: IAttachmentStoreProvider,
+    private _virusScanProvider?: IAttachmentVirusScanProvider[]) {
   }
 
   public async run<T>(fn: () => Promise<T>): Promise<T> {
@@ -326,6 +328,9 @@ class TestStore {
     const attachmentStoreProvider =
       this._attachmentStoreProvider ?? new AttachmentStoreProvider([],  "TESTINSTALL");
 
+    const virusScanProviders =
+      this._virusScanProvider ?? [];
+
     const testStore = this;
     const gristServer: GristServer = {
       ...createDummyGristServer(),
@@ -343,7 +348,11 @@ class TestStore {
                                                     externalStorageCreator,
                                                     options);
     this.storageManager = storageManager;
-    this.docManager = new DocManager(storageManager, await getGlobalPluginManager(), dbManager, attachmentStoreProvider,
+    this.docManager = new DocManager(storageManager,
+                                     await getGlobalPluginManager(),
+                                     dbManager,
+                                     attachmentStoreProvider,
+                                     virusScanProviders,
                                      {
                                        ...createDummyGristServer(),
                                        getStorageManager() { return storageManager; },
