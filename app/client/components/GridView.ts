@@ -927,12 +927,13 @@ export default class GridView extends BaseView {
   }
 
   protected async deleteRows(rowIds: number[]) {
-    const saved = this.cursor.getCursorPos();
+    const savedCursorPos = this.cursor.getCursorPos();
     this.cursor.setLive(false);
     try {
       await super.deleteRows(rowIds);
     } finally {
-      this.cursor.setCursorPos(saved);
+      // Avoid setting cursor rowId, as the old rowId may have just been deleted!
+      this.cursor.setCursorPos({ rowIndex: savedCursorPos.rowIndex });
       this.cursor.setLive(true);
       this.clearSelection();
     }
