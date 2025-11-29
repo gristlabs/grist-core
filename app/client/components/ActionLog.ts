@@ -106,6 +106,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    * action (and not including it).
    */
   public async getChangesSince(actionNum: number): Promise<ActionSummary> {
+    await this._loadActionSummaries();
     return takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
       .reduce((summary, item) => concatenateSummaryPair(item.actionSummary, summary), createEmptyActionSummary());
   }
