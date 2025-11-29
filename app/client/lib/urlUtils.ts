@@ -1,5 +1,5 @@
 import { parseFirstUrlPart } from "app/common/gristUrls";
-import { addOrgToPath } from "app/common/urlUtils";
+import { addOrgToPath, appendBasePath } from "app/common/urlUtils";
 
 export interface URLOptions {
   /**
@@ -46,7 +46,7 @@ export interface URLOptions {
 export function buildURL(path: string, options: URLOptions = {}): URL {
   const {base = window.location.href, hash, searchParams} = options;
   const url = new URL(base);
-  url.pathname = addOrgToPath('', base, true) + '/' + path.replace(/^\//, '');
+  url.pathname = appendBasePath(addOrgToPath('', base, true) + '/' + path.replace(/^\//, ''));
   if (hash !== undefined) {
     url.hash = hash ?? '';
   }

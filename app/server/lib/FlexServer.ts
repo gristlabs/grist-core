@@ -2430,12 +2430,19 @@ export class FlexServer implements GristServer {
     const config = this.getGristConfig();
     const {hostname, orgInPath} = getOrgUrlInfo(subdomain, req.get('host')!, config);
     const redirectUrl = new URL(pathname, getOriginUrl(req));
+    if (config.homeUrl)
+    {
+      redirectUrl.port = new URL(config.homeUrl).port;
+    }
     if (hostname) {
       redirectUrl.hostname = hostname;
     }
     if (orgInPath) {
-      redirectUrl.pathname = `/o/${orgInPath}` + redirectUrl.pathname;
+      redirectUrl.pathname = (config.basePath || '') + `/o/${orgInPath}` + redirectUrl.pathname;
+    } else if (config.basePath) {
+      redirectUrl.pathname = config.basePath + redirectUrl.pathname;
     }
+
     return redirectUrl.href;
   }
 
