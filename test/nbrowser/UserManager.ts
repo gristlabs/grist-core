@@ -145,7 +145,7 @@ describe('UserManager', function() {
     await editOrgAcls();
     assert.equal(await driver.find('.test-um-member-new').find('input').isPresent(), false);
     await findMember('charon@getgrist.com').find('.test-um-member-delete').click();
-    await saveAcls(true);
+    await saveAcls({clickRemove: true});
     await driver.get(`${server.getHost()}/o/fish`);
     await driver.findContentWait('.test-error-header', /Access denied/, 3000);
 
