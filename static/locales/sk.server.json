@@ -13,7 +13,9 @@
     },
     "admin": {
         "emptyOrg": "Nenašli sa žiadni vlastníci správcu organizácie definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
-        "noDefaultEmail": "Chýbajúci účet správcu, pretože `GRIST_DEFAULT_EMAIL` nie je nastavený"
+        "noDefaultEmail": "Chýbajúci účet správcu, pretože `GRIST_DEFAULT_EMAIL` nie je nastavený",
+        "orgUser": "Užívateľ je vlastníkom správcu organizácie definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "accountByEmail": "Správcovský účet definovaný ako `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
     },
     "DocApi": {
         "UntitledDocument": "Dokument bez názvu"
