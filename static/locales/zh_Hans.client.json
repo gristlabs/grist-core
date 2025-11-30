@@ -230,7 +230,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "该行将在操作 {{action.actionNum}} 中删除",
         "All tables": "所有表格",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "{{colId}} 列将在 #{{actionNum}} 操作后被删除",
-        "This row was subsequently removed in action {{actionNum}}": "该行将在 #{{actionNum}} 操作后被删除"
+        "This row was subsequently removed in action {{actionNum}}": "该行将在 #{{actionNum}} 操作后被删除",
+        "History blocked because of access rules.": "因访问规则而被阻止的历史记录。"
     },
     "ApiKey": {
         "This API key can be used to access this account anonymously via the API.": "该API密钥可用于通过API匿名访问该账户。",
@@ -693,7 +694,8 @@
         "{{count}} comments_one": "{{count}} 评论",
         "{{count}} comments_other": "{{count}} 评论",
         "Copy link": "复制链接",
-        "updated": "已更新"
+        "updated": "已更新",
+        "Remove thread": "删除帖子"
     },
     "FieldBuilder": {
         "Changing multiple column types": "更改多个列类型",
@@ -705,7 +707,11 @@
         "Mixed format": "混合格式",
         "Mixed types": "混合类型",
         "Use separate field settings for {{colId}}": "为 {{colId}} 使用单独的字段设置",
-        "Changing column type": "更改列类型"
+        "Changing column type": "更改列类型",
+        "Common": "常规",
+        "Separate": "分离",
+        "Field in {{count}} views_one": "单视图中的字段",
+        "Field in {{count}} views_other": "{{count}}视图中的字段"
     },
     "FormulaEditor": {
         "Column or field is required": "列或字段是必需的",
@@ -816,7 +822,8 @@
         "Formula times": "公式时间",
         "Allow others to suggest changes": "允许他人提出修改建议",
         "Enable suggestions": "启用建议",
-        "Suggestions": "建议"
+        "Suggestions": "建议",
+        "experiment": "试验"
     },
     "DocumentUsage": {
         "Size of attachments": "附件大小",
@@ -885,7 +892,8 @@
         "Add column": "添加列",
         "Unpin filter - {{- columnName}} column (current: pinned)": "解除固定筛选 -{{- columnName}} 列（当前：已固定）",
         "remove filter - {{- columnName}} column": "删除筛选 -{{- columnName}} 列",
-        "{{- columnName }} column filters": "{{- columnName }} 列过滤器"
+        "{{- columnName }} column filters": "{{- columnName }} 列过滤器",
+        "Pin filter - {{- columnName}} column (current: unpinned)": "解除固定筛选 -{{- columnName}} 列（当前：已固定）"
     },
     "FilterBar": {
         "SearchColumns": "搜索列",
@@ -1251,7 +1259,8 @@
         "Expand {{maybeDefault}}": "展开{{maybeDefault}}",
         "Set default: Collapse": "设置默认：折叠",
         "Set default: Expand": "设置默认：扩展",
-        "context menu - {{- pageName }}": "上下文菜单{{- pageName }}"
+        "context menu - {{- pageName }}": "上下文菜单{{- pageName }}",
+        "Collapse {{maybeDefault}}": "崩溃{{maybeDefault}}"
     },
     "search": {
         "Find Next ": "找下一个 ",
@@ -1419,7 +1428,8 @@
         "Comments are here!": "在此发表评论！",
         "You can add comments to cells, reply to comment threads, and @-mention collaborators.": "您可以在单元格中添加评论，回复评论主题，并@-提及合作者。",
         "When checked, this field’s default value can be prefilled from the URL using query parameters.": "选中后，该字段的默认值可使用查询参数从 URL 中预填。",
-        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "利用建议功能，用户可以在不修改原始文档的情况下对个人副本进行修改，然后提交这些建议，由文档所有者在整合前进行审核。"
+        "With suggestions, users make changes in a personal copy without modifying the original document, then submit these suggestions to be reviewed by the document owner prior to integration.": "利用建议功能，用户可以在不修改原始文档的情况下对个人副本进行修改，然后提交这些建议，由文档所有者在整合前进行审核。",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "这样，您就可以添加外部存储中缺少的附件，例如导入的文档中的附件。只能上传从 Grist 下载的 .tar 附件档案。"
     },
     "DescriptionConfig": {
         "DESCRIPTION": "描述",
@@ -1452,7 +1462,8 @@
         "Cut": "剪切",
         "Hide field": "隐藏字段",
         "Paste": "粘贴",
-        "Clear field": "清除字段"
+        "Clear field": "清除字段",
+        "Comment": "评论"
     },
     "FormulaAssistant": {
         "Capabilities": "技术支持",
@@ -1490,7 +1501,10 @@
         "You have used all available credits.": "您已使用所有可用积分。",
         "upgrade your plan": "升级您的计划",
         "You have {{numCredits}} remaining credits.": "您还有{{numCredits}} 剩余积分。",
-        "For higher limits, {{upgradeNudge}}.": "如需更高限额，{{upgradeNudge}} 。"
+        "For higher limits, {{upgradeNudge}}.": "如需更高限额，{{upgradeNudge}} 。",
+        "For more help with formulas, check out our {{functionList}} and {{formulaCheatSheet}}, or visit our {{community}} for more help.": "有关公式的更多帮助，请查看我们的{{functionList}} 和{{formulaCheatSheet}} ，或访问我们的{{community}} 获取更多帮助。",
+        "When you talk to me, your questions and your document structure (visible in {{codeView}}) are sent to OpenAI. {{learnMore}}.": "当您与我交谈时，您的问题和文档结构（在此{{codeView}} 可见）会被发送到 OpenAI。{{learnMore}}.",
+        "Talk to me like a person. No need to specify tables and column names. For example, you can ask \"Please calculate the total invoice amount.\"": "像对人类一样跟我说话。无需指定表和列的名称。例如，您可以询问 \"请计算发票总金额\"。"
     },
     "WebhookPage": {
         "Clear queue": "清除队列",
@@ -1509,7 +1523,8 @@
         "Sorry, not all fields can be edited.": "抱歉，并非所有字段都可编辑。",
         "Header Authorization": "Header Authorization",
         "Memo": "备忘录",
-        "Ready Column": "就绪列"
+        "Ready Column": "就绪列",
+        "Webhooks Unavailable In Unsaved Document Copies": "Webhooks在未保存的文档副本中不可用"
     },
     "WelcomeSitePicker": {
         "Welcome back": "欢迎回来",
@@ -1558,7 +1573,9 @@
         "Team member": "团队成员",
         "team site": "团队网站",
         "{{collaborator}} limit exceeded": "已超出{{collaborator}}限制",
-        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} of {{limitTop}} {{collaborator}}s"
+        "{{limitAt}} of {{limitTop}} {{collaborator}}s": "{{limitAt}} of {{limitTop}} {{collaborator}}s",
+        "Inherit access: ": "继承访问权限： ",
+        "Access overview": "访问概览"
     },
     "SupportGristPage": {
         "This instance is opted out of telemetry. Only the site administrator has permission to change this.": "该实例被选择退出遥测。只有网站管理员有权更改此设置。",
@@ -1577,7 +1594,11 @@
         "You can opt out of telemetry at any time from this page.": "您可以随时从此页面选择退出遥测。",
         "You have opted in to telemetry. Thank you!": "您已选择使用遥测。谢谢你，谢谢！",
         "You have opted out of telemetry.": "您已选择退出遥测。",
-        "Sponsor": "赞助"
+        "Sponsor": "赞助",
+        "Grist software is developed by Grist Labs, which offers free and paid hosted plans. We also make Grist code available under a standard free and open OSS license (Apache 2.0) on {{link}}.": "Grist 软件由 Grist Labs 开发，提供免费和付费托管计划。我们还在标准免费开放源码软件许可证（Apache 2.0）下提供 Grist 代码，网址是{{link}} 。",
+        "Support Grist by opting in to telemetry, which helps us understand how the product is used, so that we can prioritize future improvements.": "支持 Grist，选择加入遥测技术，这能帮助我们了解产品的使用情况，从而确定未来改进的优先次序。",
+        "We are a small and determined team. Your support matters a lot to us. It also shows to others that there is a determined community behind this product.": "我们是一个小而坚定的团队。您的支持对我们非常重要。这也向其他人表明，这个产品背后有一个坚固的社区。",
+        "You can support Grist open-source development by sponsoring us on our {{link}}.": "您可以通过赞助我们的{{link}} 来支持 Grist 的开源开发。"
     },
     "SupportGristNudge": {
         "Help Center": "帮助中心",
@@ -1600,7 +1621,8 @@
     },
     "Clipboard": {
         "Got it": "明白了",
-        "Unavailable Command": "命令不可用"
+        "Unavailable Command": "命令不可用",
+        "The {{action}} menu command is not available in this browser. You can still {{action}} by using the keyboard shortcut {{shortcut}}.": "{{action}} 菜单命令在此浏览器中不可用。您仍然可以使用键盘快捷键{{shortcut}} 来执行{{action}} 。"
     },
     "GridView": {
         "Click to insert": "点击插入"
@@ -1610,7 +1632,8 @@
         "Search all tables": "搜索所有表"
     },
     "searchDropdown": {
-        "Search": "搜索"
+        "Search": "搜索",
+        "Showing {{displayedCount}} of {{totalCount}} items. Search for more.": "显示{{displayedCount}} 的{{totalCount}} 项目。搜索更多内容。"
     },
     "FloatingEditor": {
         "Collapse Editor": "折叠编辑器"
@@ -1647,7 +1670,11 @@
         "Embed this form": "嵌入此表单",
         "View": "视图",
         "# **Form Title**": "# **表单标题**",
-        "Your form description goes here.": "您可将表格描述置于此处。"
+        "Your form description goes here.": "您可将表格描述置于此处。",
+        "Publishing your form will generate a share link. Anyone with the link can see the empty form and submit a response.": "发布表单会生成一个共享链接。任何人通过该链接都可以看到空表单并提交回复。",
+        "Unpublishing the form will disable the share link so that users accessing your form via that link will see an error.": "未发布表单将禁用共享链接，这样通过该链接访问表单的用户就会看到一个错误提示。",
+        "Users are limited to submitting entries (records in your table) and reading pre-set values in designated fields, such as reference and choice columns.": "用户仅限于提交条目（表中的记录）和读取指定字段（如参考和选择列）中的预设值。",
+        "Your form is published. Every change is live and visible to users with access to the form. If you want to make changes in draft, unpublish the form.": "您的表单已经发布。访问该表单的用户都可以实时看到每项更改。如果想在草稿中进行更改，请取消发布表单。"
     },
     "FormConfig": {
         "Field Rules": "字段规则",
@@ -1662,7 +1689,10 @@
         "Descending": "降序",
         "Options Sort Order": "选项排序顺序",
         "Default": "默认的",
-        "Radio": "单选"
+        "Radio": "单选",
+        "Accept value from URL": "接受来自 URL 的值",
+        "Hidden field": "隐藏的字段",
+        "URL parameter:\n{{colId}}=VALUE": "URL 参数：\n{{colId}}=VALUE"
     },
     "DateRangeOptions": {
         "Last 30 days": "最近 30 天",
@@ -1731,7 +1761,25 @@
         "No information available": "无可用信息",
         "Grist allows different types of authentication to be configured, including SAML and OIDC.     We recommend enabling one of these if Grist is accessible over the network or being made available     to multiple people.": "Grist 允许配置不同类型的身份验证，包括 SAML 和 OIDC。如果 Grist 可通过网络访问或供多人使用，我们建议启用其中一种。",
         "Log Streaming": "日志流式传输",
-        "No record of last version check": "未检测到上次版本检查记录"
+        "No record of last version check": "未检测到上次版本检查记录",
+        "{{count}} admin accounts_one": "{{count}} 管理账户",
+        "{{count}} admin accounts_other": "{{count}} 管理账户",
+        "On": "开启",
+        "Grist Instance": "Grist 实例",
+        "Auto-check weekly": "每周自动检查",
+        "You can set up streaming of audit events from Grist to an external security information and event management (SIEM) system if you enable Grist Enterprise. {{contactUsLink}} to learn more.": "如果启用 Grist Enterprise，您可以设置将审计事件从 Grist 流式传输到外部安全信息和事件管理（SIEM）系统。如需了解更多信息，请访问{{contactUsLink}} 。",
+        "Automatic checks are disabled. Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to \"true\" to enable them.": "自动检查已禁用。将环境变量 GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING 设为 \"true\"，即可启用自动检查。",
+        "auth error": "认证错误",
+        "configured": "已配置",
+        "default": "默认",
+        "more...": "更多",
+        "no authentication": "无认证",
+        "unavailable": "不可用",
+        "Admin account not found": "未找到管理员帐户",
+        "Administrative accounts": "管理员账户",
+        "The users with administrative accounts": "拥有管理员权限的用户",
+        "Version {{versionNumber}}": "版本{{versionNumber}}",
+        "no admin accounts": "无管理员账户"
     },
     "Menu": {
         "Copy": "拷贝",
@@ -1745,7 +1793,8 @@
         "Columns": "列",
         "Unmapped fields": "未映射的字段",
         "Building blocks": "构建区块",
-        "More": "更多"
+        "More": "更多",
+        "New question": "新问题"
     },
     "Toggle": {
         "Field Format": "字段格式",
@@ -1791,7 +1840,8 @@
     },
     "FormContainer": {
         "Build your own form": "创建自己的表单",
-        "Powered by": "驱动自"
+        "Powered by": "驱动自",
+        "Powered by Grist": "由 Grist 提供技术支持"
     },
     "Columns": {
         "Remove Column": "删除列"
@@ -1810,14 +1860,20 @@
         "Select all": "全选",
         "Clear": "清空",
         "Unmap fields": "取消映射字段",
-        "Unmapped": "未映射的"
+        "Unmapped": "未映射的",
+        "Hide {{label}}": "隐藏 {{label}}",
+        "Hide {{label}} (batch mode)": "隐藏 {{label}}（批量模式）",
+        "Unmap {{label}}": "解除映射{{label}}",
+        "Unmap {{label}} (batch mode)": "解除映射{{label}} （批处理模式）"
     },
     "WelcomeCoachingCall": {
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "在通话中，我们会花时间了解您的需求，并为您量身定制通话内容。我们可以向您介绍 Grist 的基础知识，或者立即开始使用您的数据构建所需的仪表板。",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "与我们的团队成员预约您的 {{freeCoachingCall}} 。",
         "Schedule Call": "预约通话",
         "Maybe Later": "或许稍后",
-        "free coaching call": "免费辅助热线"
+        "free coaching call": "免费辅助热线",
+        "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "您还可以查看{{ourWeeklyWebinars}} ，了解有关 Grist 的更多信息。",
+        "our weekly webinars": "我们的每周网络研讨会"
     },
     "AuditLogStreamingConfig": {
         "Enter token": "输入令牌",
@@ -1851,11 +1907,15 @@
     },
     "CustomView": {
         "Some required columns aren't mapped": "部分必要的列尚未映射",
-        "To use this widget, please map all non-optional columns from the creator panel on the right.": "要使用此小部件，请从右侧创建者面板映射所有非可选列。"
+        "To use this widget, please map all non-optional columns from the creator panel on the right.": "要使用此小部件，请从右侧创建者面板映射所有非可选列。",
+        "Some required columns are hidden by access rules": "因访问规则某些必填列已被隐藏",
+        "To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.": "要使用此小部件，所有映射列必须可见。请联系文档所有者或修改访问规则。"
     },
     "Section": {
         "Insert section below": "在下面插入部分",
-        "Insert section above": "在上面插入部分"
+        "Insert section above": "在上面插入部分",
+        "## **Header**": "## **标题**",
+        "Description": "描述"
     },
     "SupportGristButton": {
         "Help Center": "帮助中心",
@@ -1864,17 +1924,22 @@
         "Admin Panel": "管理面板",
         "Opt in to Telemetry": "选择加入 Telemetry",
         "Thank you! Your trust and support is greatly appreciated. Opt out any time from the {{link}} in the user menu.": "谢谢！非常感谢您的信任和支持。您可以通过用户菜单中的{{link}}随时退出。",
-        "Support Grist": "支持 Grist"
+        "Support Grist": "支持 Grist",
+        "Opt in to telemetry to help us understand how the product is used, so that we can prioritize future improvements.": "选择使用遥测技术，帮助我们了解产品的使用情况，从而改进未来的开发。",
+        "We only collect usage statistics, as detailed in our {{helpCenterLink}}, never document contents. Opt out any time from the {{supportGristLink}} in the user menu.": "我们只收集使用统计数据，详情请参见{{helpCenterLink}} ，绝不收集文档内容。您可以随时从{{supportGristLink}} 用户菜单中选择退出。"
     },
     "Field": {
         "No choices configured": "未配置任何选项",
-        "No values in show column of referenced table": "引用表的显示列中没有值"
+        "No values in show column of referenced table": "引用表的显示列中没有值",
+        "Hide": "隐藏"
     },
     "FormRenderer": {
         "Reset": "重置",
         "Select...": "选择...",
         "Submit": "提交",
-        "Search": "搜索"
+        "Search": "搜索",
+        "Submitting…": "提交中…",
+        "Clear selection for: {{-inputLabel}}": "清除选择：{{-inputLabel}}"
     },
     "TimingPage": {
         "Column ID": "列 ID",
@@ -1883,7 +1948,8 @@
         "Total Time (s)": "总时间 (s)",
         "Table ID": "表 ID",
         "Average Time (s)": "平均时间 (s)",
-        "Formula timer": "公式计时器"
+        "Formula timer": "公式计时器",
+        "Number of Calls": "通话次数"
     },
     "ChoiceEditor": {
         "No choices matching condition": "没有符合条件的选择",
@@ -1933,14 +1999,33 @@
         "What is your role?": "您的角色是什么？",
         "What organization are you with?": "您所在的组织是？",
         "What brings you to Grist (you can select multiple)?": "是什么吸引您使用Grist（您可以多选）？",
-        "Your organization": "您的组织"
+        "Your organization": "您的组织",
+        "Grist may look like a spreadsheet, but it doesn't always act like one. Discover what makes Grist different.": "Grist 看起来像电子表格，但并不完全像电子表格。了解 Grist 的与众不同之处。"
     },
     "ToggleEnterpriseWidget": {
         "Grist Enterprise is **enabled**.": "Grist 企业版**已启用**。",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [contacting us]({{contactLink}}) today. You do\nnot need an activation key to run Grist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "激活密钥用于在30天试用期结束后运行 Grist 企业版。\n立即通过[联系我们]({{contactLink}})获取激活密钥。\n您不需要激活密钥来运行 Grist Core。\n\n在我们的[帮助中心]({{helpCenter}})了解更多。",
         "Disable Grist Enterprise": "禁用 Grist 企业版",
         "An activation key is used to run Grist Enterprise after a trial period\nof 30 days has expired. Get an activation key by [signing up for Grist\nEnterprise]({{signupLink}}). You do not need an activation key to run\nGrist Core.\n\nLearn more in our [Help Center]({{helpCenter}}).": "激活密钥用于在30天试用期结束后运行 Grist 企业版。\n通过[注册 Grist 企业版]({{signupLink}})获取激活密钥。\n您不需要激活密钥来运行 Grist Core。\n\n在我们的[帮助中心]({{helpCenter}})了解更多信息。",
-        "Enable Grist Enterprise": "启用 Grist 企业版"
+        "Enable Grist Enterprise": "启用 Grist 企业版",
+        "Activate": "激活",
+        "Activation key": "激活密钥",
+        "An activation key is used to run Grist Enterprise after a trial period\n        of 30 days has expired. Get an activation key by [signing up for Grist\n        Enterprise]({{signupLink}}). You do not need an activation key to run\n        Grist Core.": "如果想在30天试用期结束后继续运行 Grist Enterprise,\n需要激活密钥。通过[注册 Grist Enterprise]({{signupLink}})可获取激活密钥。\n运行 Grist Core 无需激活密钥。",
+        "An active subscription is required to continue using Grist Enterprise. You can\nyou activate your subscription by [signing up for Grist Enterprise ]({{signupLink}}) and pasting your\nactivation key below.": "继续使用 Grist Enterprise 需要激活订阅。您可以\n注册 Grist Enterprise ]({{signupLink}}) 并在下面粘贴您的激活密钥。",
+        "Copy to clipboard": "复制到剪贴板",
+        "Expiration date": "过期时间",
+        "Installation ID copied to clipboard": "安装 ID 已复制到剪贴板",
+        "Installation ID:": "安装ID:",
+        "Learn more in our [Help Center]({{helpCenter}}).": "如需了解更多信息，请访问我们的 [帮助中心]({{helpCenter}})。",
+        "Paste your activation key": "粘贴激活密钥",
+        "Plan name": "计划名称",
+        "To continue using Grist Enterprise, you need to\n                  [contact us]({{signupLink}}) to get your activation key.": "要继续使用 Grist Enterprise，您需要\n[联系我们]({{signupLink}}) 获取激活密钥。",
+        "You are currently trialing Grist Enterprise.": "您正在试用 Grist Enterprise。",
+        "You do not have an active subscription.": "您没有激活订阅。",
+        "Your activation key has expired due to exceeding limits.": "由于超出限制，您的激活密钥已过期。",
+        "Your instance will be in **read-only** mode in **{{days}}** day(s).": "您的实例将在 **{{days}}** 天内处于**只读**模式。",
+        "Your subscription expired on {{date}}.": "您的订阅已于{{date}} 到期。",
+        "Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to\n[sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.": "您的试用期已于 **{{expireAt}}** 到期。要继续使用 Grist Enterprise，您需要\n[注册 Grist Enterprise]({{signupLink}}) 并在下面粘贴您的激活密钥。"
     },
     "CustomWidgetGallery": {
         "Custom URL": "自定义 URL",
@@ -1971,7 +2056,9 @@
         "Templates": "模版",
         "Tutorial": "教程",
         "Learn more {{webinarsLinks}}": "了解更多 {{webinarsLinks}}",
-        "Start a new document": "从一个新的文档开始吧"
+        "Start a new document": "从一个新的文档开始吧",
+        "Find solutions and explore more resources": "寻找解决方案，探索更多资源",
+        "Learn more": "了解更多"
     },
     "ReverseReferenceConfig": {
         "Table": "表",
@@ -1982,7 +2069,8 @@
         "Delete two-way reference?": "是否删除双向引用？",
         "Column": "列",
         "Delete": "删除",
-        "Delete column {{column}} in table {{table}}?": "是否删除表{{table}}中的列{{column}}？"
+        "Delete column {{column}} in table {{table}}?": "是否删除表{{table}}中的列{{column}}？",
+        "This will delete the reference column {{refCol}} in table {{refTable}}. The reference column {{myName}} will remain in the current table {{myTable}}.": "这将删除表{{refTable}} 中的参考列{{refCol}} 。参考列{{myName}} 将保留在当前表{{myTable}} 中。"
     },
     "DropdownConditionConfig": {
         "Dropdown Condition": "下拉框条件",
