@@ -105,7 +105,8 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{action.actionNum}}",
         "All tables": "Toutes les tables",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{actionNum}}",
+        "History blocked because of access rules.": "Historique non accessible à cause des permissions avancées."
     },
     "AddNewButton": {
         "Add new": "Nouveau"
@@ -2154,7 +2155,8 @@
         "Workspace": "Dossier",
         "context menu - {{- documentName }}": "menu contextuel - {{- documentName }}",
         "Documents list": "Liste des documents",
-        "Download document...": "Télécharger le document..."
+        "Download document...": "Télécharger le document...",
+        "Deleted {{at}}": "Supprimé {{at}}"
     },
     "RenameDocModal": {
         "Icon": "Icône",
