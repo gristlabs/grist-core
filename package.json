@@ -91,6 +91,7 @@
     "@types/swagger-ui": "3.52.4",
     "@types/tmp": "0.2.6",
     "@types/uuid": "10.0.0",
+    "@types/underscore": "1.11.15",
     "@types/webpack-dev-server": "4.7.2",
     "@types/which": "2.0.1",
     "@types/ws": "^8",
