@@ -2538,5 +2538,8 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Untitled document"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "This row is unavailable or does not exist"
     }
 }
