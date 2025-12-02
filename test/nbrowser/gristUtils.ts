@@ -13,12 +13,13 @@ import * as path from 'path';
 import * as PluginApi from 'app/plugin/grist-plugin-api';
 
 import { BaseAPI } from 'app/common/BaseAPI';
-import {csvDecodeRow} from 'app/common/csvFormat';
+import { csvDecodeRow } from 'app/common/csvFormat';
 import { AccessLevel } from 'app/common/CustomWidget';
 import { DocStateComparison } from 'app/common/DocState';
 import { decodeUrl } from 'app/common/gristUrls';
 import { FullUser, UserProfile } from 'app/common/LoginSessionAPI';
 import { resetOrg } from 'app/common/resetOrg';
+import { ResourceType } from 'app/common/ResourceTypes';
 import { TestState } from 'app/common/TestState';
 import { Organization as APIOrganization,
          UserAPI, UserAPIImpl, Workspace } from 'app/common/UserAPI';
@@ -2002,33 +2003,50 @@ export async function editOrgAcls(): Promise<void> {
   // To prevent a common flakiness problem, wait for a potentially open modal dialog
   // to close before attempting to open the account menu.
   await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
-  await driver.findWait('.test-user-icon', 3000).click();
+  await driver.findWait('.test-user-icon', 5000).click();
   await driver.findWait('.test-dm-org-access', 3000).click();
   await driver.findWait('.test-um-members', 3000);
 }
 
-export async function addUser(email: string|string[], role?: 'Owner'|'Viewer'|'Editor'): Promise<void> {
-  await driver.findWait('.test-user-icon', 5000).click();
-  await driver.findWait('.test-dm-org-access', 200).click();
-  await driver.findWait('.test-um-members', 500);
-  const orgInput = await driver.find('.test-um-member-new input');
+export async function editDocAcls(): Promise<void> {
+  // To prevent a common flakiness problem, wait for a potentially open modal dialog
+  // to close before attempting to open the account menu.
+  await driver.wait(async () => !(await driver.find('.test-modal-dialog').isPresent()), 3000);
+  await driver.findWait('.test-tb-share', 5000).click();
+  await driver.find('.test-tb-share-option').click();
+  await driver.findWait('.test-um-members', 3000);
+}
+
+export async function addUser(
+  email: string|string[], role?: 'Owner'|'Viewer'|'Editor', resourceType: ResourceType = 'organization'
+): Promise<void> {
+  if (!await driver.find('.test-um-members').isPresent()) {
+    if (resourceType === 'organization') {
+      await editOrgAcls();
+    } else if (resourceType === 'document') {
+      await editDocAcls();
+    }
+  }
+  const newMemberInput = await driver.find('.test-um-member-new input');
 
   const emails = Array.isArray(email) ? email : [email];
   for(const e of emails) {
-    await orgInput.sendKeys(e, Key.ENTER);
+    await newMemberInput.sendKeys(e, Key.ENTER);
     if (role && role !== 'Viewer') {
       await driver.findContentWait('.test-um-member', e, 1000).find('.test-um-member-role').click();
-      await driver.findContent('.test-um-role-option', role ?? 'Viewer').click();
+      await driver.findContentWait('.test-um-role-option', role ?? 'Viewer', 1000).click();
     }
   }
   await driver.find('.test-um-confirm').click();
   await driver.wait(async () => !await driver.find('.test-um-members').isPresent(), 500);
 }
 
-export async function removeUser(emails: string|string[]): Promise<void> {
-  await driver.findWait('.test-user-icon', 5000).click();
-  await driver.find('.test-dm-org-access').click();
-  await driver.findWait('.test-um-members', 500);
+export async function removeUser(emails: string|string[], resourceType: ResourceType = 'organization'): Promise<void> {
+  if (resourceType === 'organization') {
+    await editOrgAcls();
+  } else if (resourceType === 'document') {
+    await editDocAcls();
+  }
   for(const email of (Array.isArray(emails) ? emails : [emails])) {
     const userRow = await driver.findContent('.test-um-member', email);
     await userRow.find('.test-um-member-delete').click();
@@ -2042,9 +2060,14 @@ export async function removeUser(emails: string|string[]): Promise<void> {
  * any extra modal that pops up will be accepted. Returns true unless
  * clickRemove was set and no modal popped up.
  */
-export async function saveAcls(clickRemove: boolean = false): Promise<boolean> {
+export async function saveAcls(
+  {sharePublicly = false, clickRemove = false}: {sharePublicly?: boolean, clickRemove?: boolean} = {}
+) {
   await driver.findWait('.test-um-confirm', 3000).click();
   let clickedRemove: boolean = false;
+  if (sharePublicly) {
+    await driver.findWait('.test-modal-confirm', 3000).click();
+  }
   await driver.wait(async () => {
     if (clickRemove && !clickedRemove && await driver.find('.test-modal-confirm').isPresent()) {
       await driver.find('.test-modal-confirm').click();
@@ -2201,6 +2224,7 @@ export enum TestUserEnum {
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',
+  everyone = 'everyone',
 }
 export type TestUser = keyof typeof TestUserEnum;     // 'user1' | 'user2' | ...
 export interface UserData { email: string, name: string }
@@ -2212,6 +2236,9 @@ export function translateUser(userName: TestUser): UserData {
   }
   if (userName === 'support') {
     return {email: 'support@getgrist.com', name: 'Support'};
+  }
+  if (userName === 'everyone') {
+    return {email: 'everyone@getgrist.com', name: 'Everyone'};
   }
   const translatedUser = TestUserEnum[userName];
   const email = `gristoid+${translatedUser}@gmail.com`;
