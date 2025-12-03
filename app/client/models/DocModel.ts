@@ -79,9 +79,10 @@ export function recordSet<TRow extends MetaRowModel>(
 ): ko.Computed<KoArray<TRow>> {
 
   const opts = {groupBy: groupByField, sortBy: 'id', ...options};
-  return koUtil.computedAutoDispose(
-    () => tableModel.createRowGroupModel(rowModel.id() || 0, opts),
-    null, { pure: true });
+  return koUtil.computedAutoDispose(() => {
+    const id = rowModel.id();
+    return id ? tableModel.createRowGroupModel(id, opts) : new KoArray();
+  }, null, { pure: true });
 }
 
 
