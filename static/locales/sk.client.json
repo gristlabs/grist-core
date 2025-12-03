@@ -1042,7 +1042,14 @@
         "There was an error": "Vyskytla sa chyba",
         "Unsubscribed{{suffix}}": "Odhlásenie {{suffix}}",
         "We could not unsubscribe you": "Nemohli sme vás odhlásiť",
-        "You are unsubscribed": "Ste odhlásený"
+        "You are unsubscribed": "Ste odhlásený",
+        "You can still unsubscribe from this document by updating your preferences in the document settings": "Stále sa môžete odhlásiť z tohto dokumentu aktualizáciou svojich preferencií v nastaveniach dokumentu",
+        "You will no longer receive email notifications about {{changes}} in {{docName}} at {{email}}.": "Už nebudete dostávať e-mailové upozornenia o {{changes}} v {{docName}} na {{email}}.",
+        "You will no longer receive email notifications about {{comments}} in {{docName}} at {{email}}.": "Už nebudete dostávať e-mailové upozornenia o {{comments}} v {{docName}} na {{email}}.",
+        "changes": "zmeny",
+        "comments": "komentáre",
+        "this document": "tento dokument",
+        "your email": "tvoj email"
     },
     "menus": {
         "Select fields": "Vybrať polia",
@@ -1133,7 +1140,10 @@
         "Started discussion": "Začať diskusiu",
         "Write a comment": "Napísať komentár",
         "Remove thread": "Odstrániť vlákno",
-        "updated": "aktualizované"
+        "updated": "aktualizované",
+        "{{count}} comments_one": "{{count}} komentár",
+        "{{count}} comments_other": "{{count}} komentáre",
+        "Copy link": "Kopírovať odkaz"
     },
     "FieldBuilder": {
         "Changing column type": "Zmena typu stĺpca",
@@ -1145,7 +1155,11 @@
         "Use separate field settings for {{colId}}": "Použiť samostatné nastavenie poľa pre {{colId}}",
         "Apply formula to data": "Použiť Vzorec na Údaje",
         "CELL FORMAT": "FORMÁT BUNIEK",
-        "Changing multiple column types": "Zmena viacerých typov stĺpcov"
+        "Changing multiple column types": "Zmena viacerých typov stĺpcov",
+        "Common": "Bežný",
+        "Separate": "Oddelené",
+        "Field in {{count}} views_one": "Pole v jednom zobrazení",
+        "Field in {{count}} views_other": "Pole v {{count}} zobrazeniach"
     },
     "FieldEditor": {
         "Unable to finish saving edited cell": "Ukladanie upravenej bunky nie je možné dokončiť",
@@ -1186,7 +1200,8 @@
         "template library": "knižnica šablón",
         "Building up": "Vybudovanie",
         "Customizing columns": "Prispôsobenie stĺpcov",
-        "Double-click or hit {{enter}} on a cell to edit it. ": "Ak chcete bunku upraviť, dvakrát kliknite na bunku, alebo stlačte {{enter}}. "
+        "Double-click or hit {{enter}} on a cell to edit it. ": "Ak chcete bunku upraviť, dvakrát kliknite na bunku, alebo stlačte {{enter}}. ",
+        "AI Assistant": "UI Asistent"
     },
     "Reference": {
         "SHOW COLUMN": "ZOBRAZIŤ STĹPEC",
@@ -1265,7 +1280,9 @@
         "Summary tables can only contain formula columns.": "Súhrnné tabuľky môžu obsahovať len stĺpce vzorcov.",
         "The new Grist Assistant is here!": "Nový Grist Asistent je tu!",
         "Formulas support many Excel functions and full Python syntax.": "Vzorce podporujú mnoho funkcií Excel-u a úplnú syntax jazyka Python.",
-        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Vytvorí nový stĺpec Referenčný zoznam v cieľovej tabuľke, pričom tento stĺpec aj cieľové stĺpce sú upraviteľné a synchronizované."
+        "Creates a new Reference List column in the target table, with both this and the target columns editable and synchronized.": "Vytvorí nový stĺpec Referenčný zoznam v cieľovej tabuľke, pričom tento stĺpec aj cieľové stĺpce sú upraviteľné a synchronizované.",
+        "Internal storage means all attachments are stored in the document SQLite file, while external storage indicates all attachments are stored in the same external storage.": "Interné úložisko znamená, že všetky prílohy sú uložené v súbore SQLite dokumentu, zatiaľ čo externé úložisko znamená, že všetky prílohy sú uložené v rovnakom externom úložisku.",
+        "This allows you to add attachments that are missing from external storage, e.g. in an imported document. Only .tar attachment archives downloaded from Grist can be uploaded here.": "Toto umožňuje pridávať prílohy, ktoré chýbajú v externom úložisku, napríklad v importovanom dokumente. Sem je možné nahrať len .tar archívy príloh stiahnuté z Grist."
     },
     "ColumnTitle": {
         "Add description": "Pridať popis",
@@ -1683,7 +1700,8 @@
         "Collapse {{maybeDefault}}": "Zložiť {{maybeDefault}}",
         "Expand {{maybeDefault}}": "Rozbaliť {{maybeDefault}}",
         "Set default: Collapse": "Predvolené: Zložiť",
-        "Set default: Expand": "Predvolené: Rozbaliť"
+        "Set default: Expand": "Predvolené: Rozbaliť",
+        "context menu - {{- pageName }}": "kontextové menu - {{- pageName }}"
     },
     "SelectionSummary": {
         "Copied to clipboard": "Skopírované do schránky"
@@ -1737,7 +1755,8 @@
         "Search in document": "Hľadať v dokumente",
         "Search": "Hľadať",
         "Find Next ": "Nájsť Ďaľší ",
-        "Find Previous ": "Nájsť Predošlý "
+        "Find Previous ": "Nájsť Predošlý ",
+        "Close search bar": "Zatvoriť vyhľadávací panel"
     },
     "sendToDrive": {
         "Sending file to Google Drive": "Odoslať súbor na Disk Google"
@@ -1745,7 +1764,9 @@
     "ACLUsers": {
         "Example Users": "Príklady Používateľov",
         "Users from table": "Používatelia z tabuľky",
-        "View as": "Zobraziť ako"
+        "View as": "Zobraziť ako",
+        "Other users from table": "Ostatní používatelia z tabuľky",
+        "Shared users": "Zdieľaní používatelia"
     },
     "CellStyle": {
         "CELL STYLE": "ŠTÝL BUNKY",
