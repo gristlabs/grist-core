@@ -1,1 +1,23 @@
-{}
+{
+    "sendAppPage": {
+        "Loading...": "Memuat...",
+        "og-description": "Spreadsheet sumber terbuka modern yang melampaui grid",
+        "og-title": "Grist, evolusi spreadsheet"
+    },
+    "oidc": {
+        "emailNotVerifiedError": "Harap verifikasi email Anda dengan penyedia identitas, lalu masuk lagi."
+    },
+    "access": {
+        "docDisabled": "Dokumen ini dinonaktifkan.",
+        "docNoAccess": "Anda tidak memiliki akses ke dokumen ini."
+    },
+    "admin": {
+        "emptyOrg": "Tidak ada pemilik yang ditemukan dalam organisasi admin yang ditentukan oleh `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "Pengguna adalah pemilik organisasi admin yang ditentukan oleh `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noDefaultEmail": "Akun admin hilang karena `GRIST_DEFAULT_EMAIL` tidak disetel",
+        "accountByEmail": "Akun admin ditentukan oleh `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Dokumen tanpa judul"
+    }
+}
