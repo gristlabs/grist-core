@@ -34,10 +34,22 @@ export function choiceToken(
   options: IChoiceTokenOptions,
   ...args: DomElementArg[]
 ): DomContents {
+  return cssChoiceToken(choiceTokenDomArgs(label, options, ...args));
+}
+
+/**
+ * Exposes the choiceToken dom args outside of cssChoiceToken to allow
+ * easy usage of them with TokenField#renderToken, that has its own wrapper dom el.
+ */
+export function choiceTokenDomArgs(
+  label: DomElementArg,
+  options: IChoiceTokenOptions,
+  ...args: DomElementArg[]
+): DomElementArg {
   const {fillColor, textColor, fontBold, fontItalic, fontUnderline,
-         fontStrikethrough, invalid, blank} = options;
+    fontStrikethrough, invalid, blank} = options;
   const {bg, fg} = getReadableColorsCombo({fillColor, textColor});
-  return cssChoiceToken(
+  return [
     label,
     dom.style('background-color', bg),
     dom.style('color', fg),
@@ -48,7 +60,7 @@ export function choiceToken(
     invalid ? cssChoiceToken.cls('-invalid') : null,
     blank ? cssChoiceToken.cls('-blank') : null,
     ...args
-  );
+  ];
 }
 
 export const cssChoiceToken = styled('div', `
