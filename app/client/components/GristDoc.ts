@@ -4,6 +4,7 @@
 // tslint:disable:no-console
 
 import {AccessRules} from 'app/client/aclui/AccessRules';
+import {ActionCounter} from 'app/client/components/ActionCounter';
 import {ActionLog} from 'app/client/components/ActionLog';
 import BaseView from 'app/client/components/BaseView';
 import type {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
@@ -199,6 +200,7 @@ export interface GristDoc extends DisposableWithEvents {
   onSetCursorPos(rowModel: BaseRowModel | undefined, fieldModel?: ViewFieldRec): Promise<void>;
   moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void>;
   getUndoStack(): UndoStack;
+  getActionCounter(): ActionCounter;
   getTableModel(tableId: string): DataTableModel;
   getTableModelMaybeWithDiff(tableId: string): DataTableModel;
   addEmptyTable(): Promise<void>;
@@ -311,6 +313,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   public latestActionState: Observable<DocState|null>;
 
   private _actionLog: ActionLog;
+  private _actionCounter: ActionCounter;
   private _undoStack: UndoStack;
   private _lastOwnActionGroup: ActionGroupWithCursorPos | null = null;
   private _rightPanelTabs = new Map<string, TabContent[]>();
@@ -607,6 +610,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     this.docPageModel.importSources = importMenuItems;
 
     this._actionLog = this.autoDispose(ActionLog.create({gristDoc: this}));
+    this._actionCounter = this.autoDispose(ActionCounter.create(openDocResponse.log, this.docData));
     this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {gristDoc: this}));
     if (openDocResponse.log.length > 0) {
       const latestAction = openDocResponse.log[openDocResponse.log.length - 1];
@@ -913,6 +917,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
   public getUndoStack() {
     return this._undoStack;
+  }
+
+  public getActionCounter() {
+    return this._actionCounter;
   }
 
   public getTableModel(tableId: string): DataTableModel {
@@ -1390,10 +1398,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
     }
     if (this.docComm.isActionFromThisDoc(message)) {
       const docActions = message.data.docActions;
-      this.latestActionState.set({
-        h: message.data.actionGroup.actionHash,
-        n: message.data.actionGroup.actionNum,
-      });
       for (let i = 0, len = docActions.length; i < len; i++) {
         console.log("GristDoc applying #%d", i, docActions[i]);
         this.docData.receiveAction(docActions[i]);
@@ -1410,10 +1414,16 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'),
       if (!actionGroup.internal) {
         this._actionLog.pushAction(actionGroup);
         this._undoStack.pushAction(actionGroup);
+        this._actionCounter.pushAction(actionGroup);
         if (actionGroup.fromSelf) {
           this._lastOwnActionGroup = actionGroup;
         }
       }
+      // Set latestActionState once we've processed the action.
+      this.latestActionState.set({
+        h: message.data.actionGroup.actionHash,
+        n: message.data.actionGroup.actionNum,
+      });
       if (schemaUpdated) {
         this.trigger('schemaUpdateAction', docActions);
       }
