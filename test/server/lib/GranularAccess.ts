@@ -3106,8 +3106,10 @@ describe('GranularAccess', function() {
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [100]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
                        [ [ 'UpdateRecord', 'Data1', 4, { A: 100 } ],
-                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], { C: [ [GristObjCode.Censored] ] } ],
-                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], { D: [ [GristObjCode.Censored] ] } ] ]);
+                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], {
+                           C: [ [GristObjCode.Censored] ],
+                           D: [ [GristObjCode.Censored] ],
+                         } ] ]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
                        [ [ 'UpdateRecord', 'Data1', 4, { A: 100 } ] ]);
       cliEditor.flush();
@@ -3115,8 +3117,10 @@ describe('GranularAccess', function() {
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [600]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
                        [ [ 'UpdateRecord', 'Data1', 4, { A: 600 } ],
-                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], { C: [ 1 ] } ],
-                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], { D: [ 1 ] } ] ]);
+                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], {
+                           C: [ 1 ],
+                           D: [ 1 ],
+                         } ] ]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
                        [ [ 'UpdateRecord', 'Data1', 4, { A:600 } ] ]);
       cliEditor.flush();
@@ -3124,9 +3128,12 @@ describe('GranularAccess', function() {
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [3]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
                        [ [ 'UpdateRecord', 'Data1', 4, { A: 3 } ],
+                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], {
+                           C: [ [GristObjCode.Censored] ],
+                           D: [ [GristObjCode.Censored] ],
+                         } ],
                          [ 'BulkUpdateRecord', 'Data1', [ 4 ], { B: [ [GristObjCode.Censored] ] } ],
-                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], { C: [ [GristObjCode.Censored] ] } ],
-                         [ 'BulkUpdateRecord', 'Data1', [ 4 ], { D: [ [GristObjCode.Censored] ] } ] ]);
+                       ]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
                        [ [ 'UpdateRecord', 'Data1', 4, { A: 3 } ] ]);
       cliEditor.flush();
@@ -3166,15 +3173,13 @@ describe('GranularAccess', function() {
                            'Data1',
                            [ 1, 2, 4 ],
                            { A: [ 1, 75, 200 ] } ],
+                         [ 'BulkUpdateRecord',
+                           'Data1',
+                           [ 2, 4 ],
+                           { C: [ [GristObjCode.Censored], 1 ],
+                             D: [ [GristObjCode.Censored], 1 ] } ],
                          [ 'BulkUpdateRecord', 'Data1', [ 1 ], { B: [ [GristObjCode.Censored] ] } ],
-                         [ 'BulkUpdateRecord',
-                           'Data1',
-                           [ 2, 4 ],
-                           { C: [ [GristObjCode.Censored], 1 ] } ],
-                         [ 'BulkUpdateRecord',
-                           'Data1',
-                           [ 2, 4 ],
-                           { D: [ [GristObjCode.Censored], 1 ] } ] ]);
+                       ]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
                        [ [ 'BulkUpdateRecord',
                            'Data1',

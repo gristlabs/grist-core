@@ -116,7 +116,7 @@ describe("AccessRules4", function() {
     // Add this table as an attribute.
     await driver.findWait('.test-tools-access-rules', 100).click();
     await driver.findContentWait('button', /Add user attributes/, 2000).click();
-    const userAttrRule = await driver.find('.test-rule-userattr');
+    const userAttrRule = await driver.findWait('.test-rule-userattr', 200);
     await userAttrRule.find('.test-rule-userattr-name').click();
     await driver.sendKeys('Custom', Key.ENTER);
     await userAttrRule.find('.test-rule-userattr-attr').click();

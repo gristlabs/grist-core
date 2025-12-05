@@ -12,7 +12,9 @@ import {
   BulkRemoveRecord,
   BulkUpdateRecord,
   DataAction,
+  getActionColValues,
   getColValues,
+  getRowIds,
   getRowIdsFromDocAction,
   isBulkAction,
   isDataAction,
@@ -27,7 +29,7 @@ import { UserOverride } from 'app/common/DocListAPI';
 import { DocUsageSummary, FilteredDocUsageSummary, UsageRecommendations } from 'app/common/DocUsage';
 import { normalizeEmail } from 'app/common/emails';
 import { ErrorWithCode } from 'app/common/ErrorWithCode';
-import { InfoEditor } from 'app/common/GranularAccessClause';
+import { InfoEditor, RuleSet } from 'app/common/GranularAccessClause';
 import * as gristTypes from 'app/common/gristTypes';
 import { getSetMapValue, isNonNullish, pruneArray } from 'app/common/gutil';
 import { isMetadataTable } from 'app/common/isHiddenTable';
@@ -1735,30 +1737,34 @@ export class GranularAccess implements GranularAccessForBundle {
     // No censorship is done here, all we do at this point is pull in any extra cells that need
     // to be updated for the current client.  Censorship for these cells, and any cells already
     // present in the DocAction, is done by _filterRowsAndCells.
-    const ruler = await this._getRuler(cursor);
-    const tableId = getTableId(action);
-    const ruleSets = ruler.ruleCollection.getAllColumnRuleSets(tableId);
-    const colIds = new Set(([] as string[]).concat(
-      ...ruleSets.map(ruleSet => ruleSet.colIds === '*' ? [] : ruleSet.colIds)
-    ));
-    const access = await ruler.getAccess(cursor.docSession);
-    // Check columns in a consistent order, for determinism (easier testing).
-    // TODO: could pool some work between columns by doing them together rather than one by one.
-    for (const colId of [...colIds].sort()) {
-      // If the column is already in the DocAction, we can skip checking if we need to add it.
-      if (!action[3] || (colId in action[3])) { continue; }
-      // If the column is not row dependent, we have nothing to do.
-      if (access.getColumnAccess(tableId, colId).perms.read !== 'mixed') { continue; }
-      // Check column accessibility before and after.
-      const _forbiddenBefores = new Set(await this._getForbiddenRows(cursor, rowsBefore, ids, colId));
-      const _forbiddenAfters = new Set(await this._getForbiddenRows(cursor, rowsAfter, ids, colId));
-      // For any column that is in a visible row and for which accessibility has changed,
-      // pull it into the doc actions.  We don't censor cells yet, that happens later
-      // (if that's what needs doing).
-      const changedIds = orderedIds.filter(id => !forceRemoves.has(id) && !removals.has(id) &&
-                                        (_forbiddenBefores.has(id) !== _forbiddenAfters.has(id)));
-      if (changedIds.length > 0) {
-        revisedDocActions.push(this._makeColumnUpdate(rowsAfter, colId, new Set(changedIds)));
+    if (!isSomeRemoveRecordAction(action)) {  // Nothing to do for remove actions, which don't have cell data.
+      const ruler = await this._getRuler(cursor);
+      const tableId = getTableId(action);
+      const ruleSets = ruler.ruleCollection.getAllColumnRuleSets(tableId);
+      for (const ruleSet of ruleSets) {
+        // Skip table-wide rules, we are only looking for column rules for cell-censoring.
+        if (ruleSet.colIds === '*') { continue; }
+
+        // If any column is already in the DocAction, we can skip checking if we need to add it.
+        const colValues = getActionColValues(action);
+        const colIdsToCheck: string[] = ruleSet.colIds.filter(colId => !(colId in colValues));
+        if (colIdsToCheck.length === 0) { continue; }
+
+        // If this column ruleSet is not row dependent, we have nothing to do.
+        const access = await ruler.getAccess(cursor.docSession);
+        if (access.getColumnRuleSetAspect(ruleSet).read !== 'mixed') { continue; }
+
+        // Check accessibility of columns in this ruleSet before and after.
+        const _forbiddenBefores = new Set(await this._getForbiddenRows(cursor, rowsBefore, ids, ruleSet));
+        const _forbiddenAfters = new Set(await this._getForbiddenRows(cursor, rowsAfter, ids, ruleSet));
+        // For any column that is in a visible row and for which accessibility has changed,
+        // pull it into the doc actions.  We don't censor cells yet, that happens later
+        // (if that's what needs doing).
+        const changedIds = orderedIds.filter(id => !forceRemoves.has(id) && !removals.has(id) &&
+                                          (_forbiddenBefores.has(id) !== _forbiddenAfters.has(id)));
+        if (changedIds.length > 0) {
+          revisedDocActions.push(this._makeColumnUpdate(rowsAfter, colIdsToCheck, new Set(changedIds)));
+        }
       }
     }
 
@@ -1950,9 +1956,9 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   // Compute which of the row ids supplied are for rows forbidden for this session.
-  // If colId is supplied, check instead whether that specific column is forbidden.
+  // If colRuleSet is supplied, check instead whether any columns covered by it are forbidden.
   private async _getForbiddenRows(cursor: ActionCursor, data: TableDataAction, ids: Set<number>,
-                                  colId?: string): Promise<number[]> {
+                                  colRuleSet?: RuleSet): Promise<number[]> {
     const ruler = await this._getRuler(cursor);
     const rec = new RecordView(data, undefined);
     const input: PredicateFormulaInput = {...await this.inputs(cursor.docSession), rec};
@@ -1964,21 +1970,22 @@ export class GranularAccess implements GranularAccessForBundle {
       if (!ids.has(rowIds[idx])) { continue; }
 
       const rowPermInfo = new PermissionInfo(ruler.ruleCollection, input);
-      // getTableAccess() evaluates all column rules for THIS record. So it's really rowAccess.
-      const rowAccess = rowPermInfo.getTableAccess(tableId);
-      if (!colId) {
-        if (this.getReadPermission(rowAccess) === 'deny') {
+      if (!colRuleSet) {
+        // getTableAspect() evaluates all column rules for THIS record. So it's really rowAccess.
+        const rowAccess = rowPermInfo.getTableAspect(tableId);
+        if (rowAccess.read === 'deny') {
           toRemove.push(rowIds[idx]);
         }
       } else {
-        const colAccess = rowPermInfo.getColumnAccess(tableId, colId);
-        if (this.getReadPermission(colAccess) === 'deny') {
+        const colAccess = rowPermInfo.getColumnRuleSetAspect(colRuleSet);
+        if (colAccess.read === 'deny') {
           toRemove.push(rowIds[idx]);
         }
       }
     }
     return toRemove;
   }
+
 
   /**
    * Removes the toRemove rows (indexes, not row ids) from the rowIds list and from
@@ -2147,13 +2154,19 @@ export class GranularAccess implements GranularAccessForBundle {
   }
 
   /**
-   * Make a BulkUpdateRecord for a particular column across a set of rows.
+   * Make a BulkUpdateRecord for a list of columns across a set of rows.
    */
-  private _makeColumnUpdate(data: TableDataAction, colId: string, rowIds: Set<number>): BulkUpdateRecord {
-    const dataRowIds = data[2];
+  private _makeColumnUpdate(data: TableDataAction, colIds: string[], rowIds: Set<number>): BulkUpdateRecord {
+    const dataRowIds = getRowIds(data);
     const selectedRowIds = dataRowIds.filter(r => rowIds.has(r));
-    const colData = data[3][colId].filter((value, idx) => rowIds.has(dataRowIds[idx]));
-    return ['BulkUpdateRecord', getTableId(data), selectedRowIds, {[colId]: colData}];
+    const origColValues = getActionColValues(data);
+    const selectedColValues: BulkColValues = {};
+    // Include only the columns listed in colIds list.
+    for (const colId of colIds) {
+      // Filter to leave only the rows present in rowIds set.
+      selectedColValues[colId] = origColValues[colId].filter((value, idx) => rowIds.has(dataRowIds[idx]));
+    }
+    return ['BulkUpdateRecord', getTableId(data), selectedRowIds, selectedColValues];
   }
 
   private async _getSteps(): Promise<Array<ActionStep>> {
@@ -2218,6 +2231,12 @@ export class GranularAccess implements GranularAccessForBundle {
     // Now step forward, storing the before and after state for the table
     // involved in each action.  We'll use this to compute row access changes.
     // For simple changes, the rows will be just the minimal set needed.
+    //
+    // TODO Warning! For a large table / large change (e.g. for the result of a Calculate that
+    // touches every row), cloning is heavy processing that consumes memory and blocks the server.
+    // Further, we are making a full copy for each action in the list. For many actions, this
+    // risks both exhausting memory and making the server unresponsive.
+    //
     // This could definitely be optimized.  E.g. for pure table updates, these
     // states could be extracted while applying undo actions, with no need for
     // a forward pass.  And for a series of updates to the same table, there'll
