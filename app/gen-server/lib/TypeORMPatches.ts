@@ -18,7 +18,7 @@ import {delay} from 'app/common/delay';
 import log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
 import isEqual = require('lodash/isEqual');
-import {EntityManager, QueryRunner, TypeORMError} from 'typeorm';
+import {EntityManager, ObjectLiteral, QueryRunner, TypeORMError} from 'typeorm';
 import {PostgresDriver} from 'typeorm/driver/postgres/PostgresDriver';
 import {PostgresQueryRunner} from 'typeorm/driver/postgres/PostgresQueryRunner';
 import {SqliteDriver} from 'typeorm/driver/sqlite/SqliteDriver';
@@ -226,7 +226,7 @@ declare module 'typeorm/query-builder/QueryBuilder' {
   }
 }
 
-abstract class QueryBuilderPatched<T> extends QueryBuilder<T> {
+abstract class QueryBuilderPatched<T extends ObjectLiteral> extends QueryBuilder<T> {
   private static _origSetParameter = QueryBuilder.prototype.setParameter;
   public setParameter(key: string, value: any): this {
     const prev = this.expressionMap.parameters[key];

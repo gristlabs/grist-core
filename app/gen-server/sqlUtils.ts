@@ -1,4 +1,4 @@
-import {DatabaseType, QueryRunner, SelectQueryBuilder} from 'typeorm';
+import {DatabaseType, ObjectLiteral, QueryRunner, SelectQueryBuilder} from 'typeorm';
 import {RelationCountLoader} from 'typeorm/query-builder/relation-count/RelationCountLoader';
 import {RelationIdLoader} from 'typeorm/query-builder/relation-id/RelationIdLoader';
 import {RawSqlResultsToEntityTransformer} from "typeorm/query-builder/transformer/RawSqlResultsToEntityTransformer";
@@ -156,7 +156,7 @@ export function datetime(dbType: DatabaseType) {
  * The results are returned in the same format as SelectQueryBuilder's
  * getRawAndEntities.
  */
-export async function getRawAndEntities<T>(rawQueryBuilder: SelectQueryBuilder<any>,
+export async function getRawAndEntities<T extends ObjectLiteral>(rawQueryBuilder: SelectQueryBuilder<any>,
                                            nominalQueryBuilder: SelectQueryBuilder<T>): Promise<{
   entities: T[],
   raw: any[],

@@ -17,7 +17,7 @@ function setupTest() {
         popup = popupControl(
           elem,
           ctl => {
-            const list = SimpleList<string>.create(null, ctl, items, val => logs.push(val));
+            const list = (SimpleList<string>).create(null, ctl, items, val => logs.push(val));
             list.listenKeys(elem);
             return list.content;
           },
