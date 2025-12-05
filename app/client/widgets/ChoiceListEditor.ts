@@ -15,8 +15,8 @@ import {CellValue} from "app/common/DocActions";
 import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
 import {EmptyRecordView} from 'app/common/RecordView';
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
-import {ChoiceOptions, getRenderFillColor, getRenderTextColor} from 'app/client/widgets/ChoiceTextBox';
-import {choiceToken, cssChoiceACItem, cssChoiceToken} from 'app/client/widgets/ChoiceToken';
+import {ChoiceOptions} from 'app/client/widgets/ChoiceTextBox';
+import {choiceToken, choiceTokenDomArgs, cssChoiceACItem} from 'app/client/widgets/ChoiceToken';
 import {icon} from 'app/client/ui2018/icons';
 import {dom, styled} from 'grainjs';
 
@@ -95,17 +95,14 @@ export class ChoiceListEditor extends NewBaseEditor {
 
     this._tokenField = TokenField.ctor<ChoiceItem>().create(this, {
       initialValue: startTokens,
-      renderToken: item => [
+      renderToken: item => choiceTokenDomArgs(
         item.isBlank ? '[Blank]' : item.label,
-        dom.style('background-color', getRenderFillColor(this._choiceOptionsByName[item.label])),
-        dom.style('color', getRenderTextColor(this._choiceOptionsByName[item.label])),
-        dom.cls('font-bold', this._choiceOptionsByName[item.label]?.fontBold ?? false),
-        dom.cls('font-underline', this._choiceOptionsByName[item.label]?.fontUnderline ?? false),
-        dom.cls('font-italic', this._choiceOptionsByName[item.label]?.fontItalic ?? false),
-        dom.cls('font-strikethrough', this._choiceOptionsByName[item.label]?.fontStrikethrough ?? false),
-        cssChoiceToken.cls('-invalid', item.isInvalid),
-        cssChoiceToken.cls('-blank', item.isBlank),
-      ],
+        {
+          ...(this._choiceOptionsByName[item.label] || {}),
+          invalid: item.isInvalid,
+          blank: item.isBlank,
+        },
+      ),
       createToken: label => new ChoiceItem(label, !this._choicesSet.has(label), label.trim() === ''),
       acOptions,
       openAutocompleteOnFocus: true,
