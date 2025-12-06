@@ -649,8 +649,11 @@ class ReferenceListColumn(BaseReferenceColumn):
         result.append(lookup_value)
       val = result
 
-    if isinstance(val, int) and val:
-      val = [val]
+    if val:
+      if isinstance(val, int):
+        val = [val]
+      elif self._target_table and isinstance(val, self._target_table.Record):
+        val = [val.id]
 
     return super(ReferenceListColumn, self).convert(val)
 

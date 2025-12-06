@@ -691,6 +691,12 @@ class Table(object):
   # Called when record_set.foo is accessed
   def _get_col_obj_subset(self, col_obj, row_ids, relation):
     self._engine._use_node(col_obj.node, relation, row_ids)
+
+    # We construct and return a RecordSet if values are References or ReferenceLists. Match that
+    # behavior for empty lists of references (e.g. T.lookupRecords(...).RefCol).
+    if not row_ids and isinstance(col_obj, column.BaseReferenceColumn):
+      return col_obj._target_table.RecordSet([], None)
+
     values = [col_obj.get_cell_value(row_id) for row_id in row_ids]
 
     # When all the values are the same type of Record (i.e. all references to the same table)
@@ -703,6 +709,11 @@ class Table(object):
         # This is different from row_ids: these are the row IDs referenced by these Records,
         # whereas row_ids are where the values were being stored.
         [val._row_id for val in values],
+        relation.compose(values[0]._source_relation),
+      )
+    elif len(value_types) == 1 and issubclass(value_types[0], BaseRecordSet):
+      return col_obj._target_table.RecordSet(
+        col_obj.convert(values),
         relation.compose(values[0]._source_relation),
       )
     else:
