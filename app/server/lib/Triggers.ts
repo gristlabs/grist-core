@@ -62,7 +62,7 @@ interface WebHookEvent {
   id: string;
 }
 
-export const allowedEventTypes = StringUnion("add", "update");
+export const allowedEventTypes = StringUnion("add", "update", "remove");
 
 type EventType = typeof allowedEventTypes.type;
 
@@ -485,9 +485,8 @@ export class DocTriggers {
     tableDelta.addRows.forEach(id =>
       recordDeltas.set(id, {existedBefore: false, existedAfter: true}));
 
-    // If we allow subscribing to deletion in the future
-    // delta.removeRows.forEach(id =>
-    //   recordDeltas.set(id, {existedBefore: true, existedAfter: false}));
+    tableDelta.removeRows.forEach(id =>
+      recordDeltas.set(id, {existedBefore: true, existedAfter: false}));
 
     return recordDeltas;
   }
@@ -497,6 +496,9 @@ export class DocTriggers {
     tableDataAction: TableDataAction,
   ) {
     const bulkColValues = fromTableDataAction(tableDataAction);
+    // HACK: bulkColValues don't include removed data because the data no longer exist on the Database
+    // but tableDataAction is got from Database query
+    this._appendRemovedRowsIntoTableColValues(tableDelta, bulkColValues);
 
     const meta = {numTriggers: triggers.length, numRecords: bulkColValues.id.length};
     this._log(`Processing triggers`, meta);
@@ -632,12 +634,12 @@ export class DocTriggers {
       } else {
         return false;
       }
-      // If we allow subscribing to deletion in the future
-      // if (recordDelta.existedAfter) {
-      //   eventType = "update";
-      // } else {
-      //   eventType = "remove";
-      // }
+
+      if (recordDelta.existedAfter) {
+        eventType = "update";
+      } else {
+        eventType = "remove";
+      }
     } else {
       eventType = "add";
     }
@@ -875,6 +877,32 @@ export class DocTriggers {
       }
     }
     return false;
+  }
+
+  /**
+   * Use this to append removed rows in TableColValues data from current tableDelta.
+   * This method modify bulkColValues parameter directly.
+   */
+  private _appendRemovedRowsIntoTableColValues(tableDelta: TableDelta, bulkColValues: TableColValues) {
+    for (const removedRow of tableDelta.removeRows) {
+      for (const key in bulkColValues) {
+        if (key === "id") {
+          bulkColValues.id.push(removedRow);
+        } else {
+          const columnDelta = tableDelta.columnDeltas[key];
+          const cellDelta = columnDelta[removedRow];
+          const [previousValue, ] = cellDelta;
+
+          // previousValue is always include on a array for typescript type workaround
+          // See CellDelta type declaration comment
+          if (previousValue instanceof Array) {
+            bulkColValues[key].push(previousValue[0]);
+          } else {
+            bulkColValues[key].push(previousValue);
+          }
+        }
+      }
+    }
   }
 }
 
