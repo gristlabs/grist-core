@@ -377,7 +377,8 @@ export class FloatingPopup extends Disposable {
                     key: FLOATING_POPUP_TOOLTIP_KEY,
                   }),
                   dom.on('click', () => {
-                    this._options.onClose?.() ?? this._closePopup();
+                    this._options.onClose?.();
+                    this._closePopup();
                   }),
                   dom.show(this._closable),
                   this._testId('popup-close'),

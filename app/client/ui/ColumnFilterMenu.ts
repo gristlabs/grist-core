@@ -303,7 +303,11 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               cssCheckboxSquare(
                 {type: 'checkbox'},
                 dom.on('change', (_ev, elem) => {
-                  elem.checked ? columnFilter.add(key) : columnFilter.delete(key);
+                  if (elem.checked) {
+                    columnFilter.add(key);
+                  } else {
+                    columnFilter.delete(key);
+                  }
                 }),
                 (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
                 dom.style('position', 'relative'),

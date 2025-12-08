@@ -75,7 +75,9 @@ export function prepareForTransition(elem: HTMLElement, prepare: () => void) {
   // Recompute styles while transitions are off. See https://stackoverflow.com/a/16575811/328565
   // for explanation and https://stackoverflow.com/a/31862081/328565 for the recommendation used
   // here to trigger a style computation without a reflow.
-  window.getComputedStyle(elem).opacity;   // eslint-disable-line no-unused-expressions
+  //
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions, no-unused-expressions
+  window.getComputedStyle(elem).opacity;
 
   // Restore transitions.
   elem.style.transitionProperty = prior;

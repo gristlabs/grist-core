@@ -425,7 +425,7 @@ export class FormulaAssistant extends Disposable {
     // height.
     this._chatPanelBody.style.setProperty('transition', 'none');
     this._chatPanelBody.style.setProperty('height', `${this._chatPanelBody.clientHeight}px`);
-    // eslint-disable-next-line no-unused-expressions
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions, no-unused-expressions
     this._chatPanelBody.offsetHeight; // Flush CSS changes.
     this._chatPanelBody.style.removeProperty('transition');
     this._chatPanelBody.style.setProperty('height', '0px');
