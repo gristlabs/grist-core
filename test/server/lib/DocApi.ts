@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
 import {ActionSummary} from 'app/common/ActionSummary';
 import {BulkColValues, UserAction} from 'app/common/DocActions';
 import {DocState} from 'app/common/DocState';
@@ -43,7 +42,7 @@ import * as testUtils from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 import defaultsDeep = require('lodash/defaultsDeep');
 import pick = require('lodash/pick');
-import range = require('lodash/range')
+import range = require('lodash/range');
 import {getDatabase} from 'test/testUtils';
 import {testDailyApiLimitFeatures} from 'test/gen-server/seed';
 import {readFixtureDoc} from 'test/server/testUtils';
@@ -4981,7 +4980,7 @@ function testDocApi(settings: {
         await webhook1();
       });
 
-      it("should call to a webhook only when columns updated are in watchedColIds if not empty", async () => {  // eslint-disable-line max-len
+      it("should call to a webhook only when columns updated are in watchedColIds if not empty", async () => {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({ name: 'testdoc5' }, ws1);

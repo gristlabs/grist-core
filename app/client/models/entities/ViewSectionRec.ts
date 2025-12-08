@@ -375,7 +375,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 }
 
 export type WidgetMappedColumn = number|number[]|null;
-export type WidgetColumnMapping = Record<string, WidgetMappedColumn>
+export type WidgetColumnMapping = Record<string, WidgetMappedColumn>;
 
 export interface CustomViewSectionDef {
   /**

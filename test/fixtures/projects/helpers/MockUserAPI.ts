@@ -518,7 +518,7 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     throw new Error('not implemented');
   }
 
-  public getGoogleAuthEndpoint(scope?: string | undefined): string {
+  public getGoogleAuthEndpoint(scope?: string): string {
     throw new Error("not implemented");
   }
 

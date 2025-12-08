@@ -585,7 +585,7 @@ export default class BaseView extends DisposableWithEvents {
       this.tableModel.tableData.getValue(rowId, 'manualSort') : null;
 
     return this.sendTableAction(['AddRecord', null, { 'manualSort': insertPos }])!
-    .then((rowId) => {      // eslint-disable-line @typescript-eslint/no-shadow
+    .then((rowId) => {
       if (!this.isDisposed()) {
         this._exemptFromFilterRows.addExemptRow(rowId);
         this.setCursorPos({rowId});

@@ -259,9 +259,9 @@ describe('removedAt', function() {
         }
       });
       const userRef = (email: string) => home.dbManager.getUserByLogin(email).then((user) => user.ref);
-      const idTest1 = (await home.dbManager.getUserByLogin("test1@getgrist.com"))!.id;
-      const idTest2 = (await home.dbManager.getUserByLogin("test2@getgrist.com"))!.id;
-      const idTest3 = (await home.dbManager.getUserByLogin("test3@getgrist.com"))!.id;
+      const idTest1 = (await home.dbManager.getUserByLogin("test1@getgrist.com")).id;
+      const idTest2 = (await home.dbManager.getUserByLogin("test2@getgrist.com")).id;
+      const idTest3 = (await home.dbManager.getUserByLogin("test3@getgrist.com")).id;
       // Create one extra document, with one extra user.
       const extraDocId = await api.newDoc({name: 'doc'}, ws);
       await api.updateDocPermissions(extraDocId, {

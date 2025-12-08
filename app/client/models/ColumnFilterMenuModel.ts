@@ -22,7 +22,7 @@ export interface IFilterCount {
   displayValue: any;
 }
 
-type ICompare<T> = (a: T, b: T) => number
+type ICompare<T> = (a: T, b: T) => number;
 
 const localeCompare = new Intl.Collator('en-US', {numeric: true}).compare;
 

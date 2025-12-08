@@ -84,7 +84,7 @@ function setupTest() {
         dom.on('click', () => treeModel.set(buildTreeModel()))),
       dom('input.move', {type: 'button', value: 'move'},
         dom.on('click', () => {
-          const src = treeModel.get().children().get()[0]!;
+          const src = treeModel.get().children().get()[0];
           const dest = treeModel.get();
           const item = src.children()!.get()[1];
           // removeChild

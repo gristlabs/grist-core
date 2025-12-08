@@ -193,7 +193,7 @@ async function callWithRetry<T>(op: () => Promise<T>, options: {
 }): Promise<T> {
   const startedAt = Date.now();
   let dt = options.firstDelayMsec;
-  while (true) {  // eslint-disable-line no-constant-condition
+  while (true) {
     try {
       return await op();
     } catch (e) {

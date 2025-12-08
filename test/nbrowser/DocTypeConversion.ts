@@ -21,7 +21,7 @@ describe("DocTypeConversion", function () {
     userApi = session.createHomeApi();
   });
 
-  async function assertExistsButton(button: Button, text: String) {
+  async function assertExistsButton(button: Button, text: string) {
     await gu.waitToPass(async () => {
       assert.equal(await button.element().getText(), text);
     });

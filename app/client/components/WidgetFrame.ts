@@ -462,7 +462,7 @@ export class GristViewImpl implements GristView {
       // Use the colId of the displayCol when expanding references, so
       // we don't get the underlying refId instead.
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
-      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId)!;
+      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId);
       const typeInfo = extractInfoFromColType(column.type.peek());
       data[column.colId.peek()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
     }

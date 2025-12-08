@@ -36,7 +36,7 @@ namespace gristUtils {
    * Remove any rules within an element, by hitting the trash button.
    */
   export async function removeRules(el: WebElement): Promise<void> {
-    while (true) {  // eslint-disable-line no-constant-condition
+    while (true) {
       const remove = el.find('.test-rule-remove');
       if (!await remove.isPresent()) { break; }
       await remove.click();

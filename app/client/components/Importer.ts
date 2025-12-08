@@ -594,7 +594,7 @@ export class Importer extends DisposableWithEvents {
         uploadFileIndex: info.uploadFileIndex,
         origTableName: info.origTableName,
         // This is the section with the data imported.
-        sourceSection: this._getPrimaryViewSection(info.hiddenTableId)!,
+        sourceSection: this._getPrimaryViewSection(info.hiddenTableId),
         // This is the section created every time user changes the configuration, used for the preview.
         transformSection: Observable.create(owner, this._getSectionByRef(info.transformSectionRef)),
         // This is the table where the data will be imported, either a new table or an existing one.
@@ -1295,7 +1295,7 @@ export class Importer extends DisposableWithEvents {
   private _buildSourceSelector(owner: MultiHolder, field: ViewFieldRec, info: SourceInfo) {
     const anyOtherColumns = Computed.create(owner, use => {
       const transformCol = field.column.peek();
-      const options = use(this._transformColImportOptions)!.get(transformCol.getRowId()) ?? new Map<string, string>();
+      const options = use(this._transformColImportOptions).get(transformCol.getRowId()) ?? new Map<string, string>();
       const otherFilter = ([formula]: [string, string] ) => {
         // Notice how this is only reactive to the formula value, every other observable is
         // just picked without being tracked. This is because we only want to recompute this

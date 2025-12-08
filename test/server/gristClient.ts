@@ -132,7 +132,7 @@ export class GristClient {
 
   // Helper to read the next docUserAction ignoring anything else (e.g. a duplicate clientConnect).
   public async readDocUserAction(): Promise<DocAction[]> {
-    while (true) {    // eslint-disable-line no-constant-condition
+    while (true) {
       const msg = await this.readMessage();
       if (msg.type === 'docUserAction') {
         return msg.data.docActions;
