@@ -31,13 +31,19 @@ export function userTrustsCustomWidget() {
       body: dom('div',
         cssImageContainer(cssImage(dom.attr('src', src))),
         alert(t('Please review the following before adding a new custom widget.')),
-        dom('p', inlineMarkdown(t('Custom widgets are **powerful**! They may be able to read and write your document data, and send it elsewhere.'))),
+        dom('p', inlineMarkdown(
+          t('Custom widgets are **powerful**! \
+They may be able to read and write your document data, and send it elsewhere.')
+        )),
         dom('ul',
           cssListItem(inlineMarkdown(t('Are you sure you **trust the resource** at this URL?'))),
           cssListItem(inlineMarkdown(t('Do you **trust the person** who shared this link?'))),
           cssListItem(inlineMarkdown(t('Have you **reviewed the code** at this URL?'))),
         ),
-        dom('p', inlineMarkdown(t('If in doubt, do not install this widget, or ask an administrator of your organization to review it for safety.'))),
+        dom('p', inlineMarkdown(
+          t('If in doubt, do not install this widget, or ask an administrator \
+of your organization to review it for safety.')
+        )),
         cssConfirmCheckbox(
           labeledSquareCheckbox(confirmIsChecked,
             dom('span',
