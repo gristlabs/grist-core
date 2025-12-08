@@ -49,7 +49,7 @@ describe('Comm', function() {
   testUtils.setTmpLogLevel(process.env.VERBOSE ? 'debug' : 'warn');
 
   // Allow test cases to register afterEach callbacks here for easier cleanup.
-  const cleanup: Array<() => void> = [];
+  const cleanup: Array<() => Promise<void>> = [];
 
   let server: http.Server;
   let sessions: Sessions;
@@ -289,7 +289,7 @@ describe('Comm', function() {
       // Cast with BackboneEvents to allow using cliComm.on().
       const cliComm = ClientComm.create() as ClientComm & BackboneEvents;
       cliComm.useDocConnection(docId);
-      cleanup.push(() => cliComm.dispose());      // Dispose after this test ends.
+      cleanup.push(async () => cliComm.dispose());      // Dispose after this test ends.
 
       return {cliComm, forwarder};
     }

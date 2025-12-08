@@ -292,7 +292,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       const currentPage = this.currentPage.get();
       const promises = [
         this._fetchWorkspaces(org.id, false).catch(reportError),
-        currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null,
+        currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : Promise.resolve(null),
         this._maybeFetchTemplates(),
       ] as const;
 

@@ -781,9 +781,9 @@ as well as copy or download it.`
       // Hopefully, the user will understand.
       const title = t('Remove {{- tableId }} rules', { tableId });
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
-        await Promise.all(this._tableRules.get()
+        this._tableRules.get()
           .filter(rules => rules.tableId === tableId)
-          .map(rules => rules.remove()));
+          .forEach(rules => rules.remove());
         button.style.display = 'none';
       }));
       buttons.push(button);
@@ -807,9 +807,9 @@ as well as copy or download it.`
       // TODO: we could translate tableId to table name in this case.
       const title = t('Remove column {{- colId }} from {{- tableId }} rules', { tableId, colId });
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
-        await Promise.all(this._tableRules.get()
+        this._tableRules.get()
           .filter(rules => rules.tableId === tableId)
-          .map(rules => removeColRules(rules, colId)));
+          .forEach(rules => removeColRules(rules, colId));
         button.style.display = 'none';
       }));
       buttons.push(button);
@@ -823,9 +823,9 @@ as well as copy or download it.`
     for (const name of names) {
       const title = t('Remove {{- name }} user attribute', {name});
       const button = bigBasicButton(title, cssRemoveIcon('Remove'), dom.on('click', async () => {
-        await Promise.all(this._userAttrRules.get()
+        this._userAttrRules.get()
           .filter(rule => rule.name.get() === name)
-          .map(rule => rule.remove()));
+          .forEach(rule => rule.remove());
         button.style.display = 'none';
       }));
       buttons.push(button);

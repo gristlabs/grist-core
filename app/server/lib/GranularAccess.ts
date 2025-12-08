@@ -603,6 +603,7 @@ export class GranularAccess implements GranularAccessForBundle {
           if (isDirect[actionIdx]) {
             return this._checkIncomingDocAction({docSession, action, actionIdx});
           }
+          return Promise.resolve(undefined);
         }));
       const shares = this._docData.getMetaTable('_grist_Shares');
       /**

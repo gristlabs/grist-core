@@ -1290,7 +1290,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     // remove old view fields
     await Promise.all(section.viewFields.peek().all().map((viewField) => (
-      this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()])
+      this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()]) ?? Promise.resolve(undefined)
     )));
 
     // create map
@@ -1317,7 +1317,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     // adds new view fields; ignore colIds that do not exist in new table.
     await Promise.all(colIds.map((colId, i) => {
       if (!mapColIdToColumn.has(colId)) {
-        return;
+        return Promise.resolve(undefined);
       }
       const colInfo = {
         parentId: section.id(),
@@ -1325,7 +1325,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
         parentPos: i
       };
       const action = ['AddRecord', null, colInfo];
-      return this.docModel.viewFields.sendTableAction(action);
+      return this.docModel.viewFields.sendTableAction(action) ?? Promise.resolve(undefined);
     }));
   }
 

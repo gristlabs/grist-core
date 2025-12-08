@@ -163,10 +163,8 @@ class PubSubManagerRedis extends PubSubManagerBase {
   }
 
   public async close() {
-    await Promise.all([
-      this._redisSub.disconnect(),
-      this._redisPub.disconnect()
-    ]);
+    this._redisSub.disconnect();
+    this._redisPub.disconnect();
     await super.close();
   }
 
