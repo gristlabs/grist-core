@@ -2208,6 +2208,7 @@ export enum TestUserEnum {
   user4 = 'ham',
   userz = 'userz',    // a user for old tests, that doesn't overlap with others.
   fresh = 'fresh',    // user with no resources in seed.ts, safe to recreate as needed
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',

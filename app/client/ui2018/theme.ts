@@ -280,7 +280,7 @@ function fixOldCustomCss() {
   // Find all the --grist-* variables declared in the `:root` rules
   const overridenVars: Record<string, string> = {};
   rootCssRules.forEach(rootBlock => {
-    for (const key in rootBlock.style) {
+    for (const key in rootBlock.style) { // eslint-disable-line @typescript-eslint/no-for-in-array
       const value = rootBlock.style[key];
       if (rootBlock.style.hasOwnProperty(key) && value.startsWith('--grist-')) {
         overridenVars[value] = rootBlock.style.getPropertyValue(value).trim();
