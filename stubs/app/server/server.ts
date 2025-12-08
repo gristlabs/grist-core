@@ -53,6 +53,7 @@ function setDefaultEnv(name: string, value: string) {
 async function setupDb() {
   // Make a blank db if needed.
   if (process.env.TEST_CLEAN_DATABASE) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {createInitialDb} = require('test/gen-server/seed');
     await createInitialDb();
   } else {

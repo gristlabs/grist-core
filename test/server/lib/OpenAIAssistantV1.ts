@@ -14,8 +14,8 @@ import {EnvironmentSnapshot} from 'test/server/testUtils';
 // For some reason, assert.isRejected is not getting defined,
 // though test/chai-as-promised.js should be taking care of this.
 // So test/chai-as-promised.js is just repeated here.
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 
 /**

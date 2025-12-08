@@ -58,6 +58,7 @@ export async function main() {
   // For tests, it is useful to start with the database in a known state.
   // If TEST_CLEAN_DATABASE is set, we reset the database before starting.
   if (process.env.TEST_CLEAN_DATABASE) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {createInitialDb} = require('test/gen-server/seed');
     await createInitialDb();
     if (process.env.REDIS_URL) {

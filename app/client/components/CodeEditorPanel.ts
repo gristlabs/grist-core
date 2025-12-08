@@ -6,7 +6,9 @@ import {makeT} from 'app/client/lib/localization';
 
 // Rather than require the whole of highlight.js, require just the core with the one language we
 // need, to keep our bundle smaller and the build faster.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const hljs           = require('highlight.js/lib/core');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 hljs.registerLanguage('python', require('highlight.js/lib/languages/python'));
 
 const t = makeT('CodeEditorPanel');

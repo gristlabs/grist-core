@@ -88,6 +88,8 @@ export class UnsafeNodeComponent extends BaseComponent {
     // We take our own, via Module.globalPaths, a poorly documented
     // method listing the search path for the active node program
     // https://github.com/nodejs/node/blob/master/test/parallel/test-module-globalpaths-nodepath.js
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const paths = require('module').globalPaths.slice().concat([
       // add the path to the plugin itself
       path.resolve(base),
