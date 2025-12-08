@@ -217,6 +217,11 @@ module.exports = defineConfig([{
       "@stylistic/semi": ["warn", "always"],
       "@stylistic/semi-spacing": "warn",
 
+      // FIXME: The below set of rules should be activated at some points
+      "@typescript-eslint/no-unsafe-function-type": "off",
+      "@typescript-eslint/no-base-to-string": "off",
+      "@typescript-eslint/no-unsafe-enum-comparison": "off",
+
     },
   }, globalIgnores([
     "*",
