@@ -7,7 +7,7 @@ import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
 import {App} from 'app/client/ui/App';
 import {cssEmail, cssUserInfo, cssUserName} from 'app/client/ui/AccountWidgetCss';
 import {createUserImage} from 'app/client/ui/UserImage';
-import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
+import {AuditLogsModel, AuditLogsModelImpl} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 import {buildAdminData} from 'app/client/ui/AdminControls';
@@ -753,7 +753,7 @@ learn more.",
         ),
       });
     } else {
-      const model = new AuditLogsModel({
+      const model = new AuditLogsModelImpl({
         configsAPI: new InstallConfigsAPI(),
       });
       model.fetchStreamingDestinations().catch(reportError);
