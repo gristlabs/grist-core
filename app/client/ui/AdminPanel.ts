@@ -859,7 +859,7 @@ learn more.",
         ),
       });
     } else {
-      const model = new AuditLogsModel({
+      const model = new AuditLogsModelImpl({
         configsAPI: new InstallConfigsAPI(),
       });
       model.fetchStreamingDestinations().catch(reportError);
