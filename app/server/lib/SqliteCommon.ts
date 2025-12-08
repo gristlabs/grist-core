@@ -9,7 +9,7 @@ import { OpenMode, quoteIdent } from 'app/server/lib/SQLiteDB';
  * It is important that Statement exists - but we don't expect
  * anything of it.
  */
-export interface Statement {}
+export interface Statement {} // eslint-disable-line @typescript-eslint/no-empty-object-type
 
 // Some facts about the wrapper implementation.
 export interface MinDBOptions {

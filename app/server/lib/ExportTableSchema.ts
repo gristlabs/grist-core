@@ -3,23 +3,25 @@ import {ApiError} from 'app/common/ApiError';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {DownloadOptions, ExportColumn, exportTable} from 'app/server/lib/Export';
 
+interface FrictionlessFields {
+  name: string;
+  type: string;
+  description?: string;
+  format?: string;
+  bareNumber?: boolean;
+  groupChar?: string;
+  decimalChar?: string;
+  gristFormat?: string;
+  constraints?: {enum: any};
+  trueValue?: string[];
+  falseValue?: string[];
+}
+
 interface FrictionlessFormat {
   name: string;
   title: string;
   schema: {
-    fields: {
-      name: string;
-      type: string;
-      description?: string;
-      format?: string;
-      bareNumber?: boolean;
-      groupChar?: string;
-      decimalChar?: string;
-      gristFormat?: string;
-      constraint?: {};
-      trueValue?: string[];
-      falseValue?: string[];
-    }[]
+    fields: FrictionlessFields[]
   }
 }
 
@@ -64,7 +66,7 @@ export async function collectTableSchemaInFrictionlessFormat(
   };
 }
 
-function buildTypeField(col: ExportColumn, locale: string) {
+function buildTypeField(col: ExportColumn, locale: string): {type: string} & Partial<FrictionlessFields> {
   const type = col.type.split(':', 1)[0];
   const widgetOptions = col.formatter.widgetOpts;
   switch (type) {
