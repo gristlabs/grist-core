@@ -3,7 +3,7 @@ import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 
 import {assert} from 'chai';
-import range = require('lodash/range');
+import range from 'lodash/range';
 
 describe("BundleActions", function() {
 

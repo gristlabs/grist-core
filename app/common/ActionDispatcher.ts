@@ -1,4 +1,4 @@
-import mapValues = require('lodash/mapValues');
+import mapValues from 'lodash/mapValues';
 import {BulkColValues, ColInfo, ColInfoWithId, ColValues, DocAction} from "app/common/DocActions";
 
 // TODO this replaces modelUtil's ActionDispatcher and bulkActionExpand. Those should be removed.

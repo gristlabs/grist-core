@@ -8,8 +8,8 @@ import {DocumentSettings} from 'app/common/DocumentSettings';
 import {getDistinctValues} from 'app/common/gutil';
 import {getCurrency, NumberFormatOptions, NumMode, parseNumMode} from 'app/common/NumberFormat';
 import {buildNumberFormat} from 'app/common/NumberFormat';
-import escapeRegExp = require('lodash/escapeRegExp');
-import last = require('lodash/last');
+import escapeRegExp from 'lodash/escapeRegExp';
+import last from 'lodash/last';
 
 // Possible values of Intl.NumberFormat.formatToParts[i].type
 // Seems Intl.NumberFormatPartTypes is not quite complete

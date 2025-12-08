@@ -10,7 +10,7 @@ import {cssModalTooltip, modalTooltip} from 'app/client/ui2018/modals';
 import {dom, DomContents, keyframes, observable, styled, svg} from 'grainjs';
 import {IPopupOptions} from 'popweasel';
 import {makeT} from 'app/client/lib/localization';
-import merge = require('lodash/merge');
+import merge from 'lodash/merge';
 
 const t = makeT('modals');
 

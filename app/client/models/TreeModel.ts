@@ -15,9 +15,9 @@
 import { BulkColValues, UserAction } from "app/common/DocActions";
 import { nativeCompare } from "app/common/gutil";
 import { obsArray, ObsArray, Observable } from "grainjs";
-import forEach = require("lodash/forEach");
-import forEachRight = require("lodash/forEachRight");
-import reverse = require("lodash/reverse");
+import forEach from "lodash/forEach";
+import forEachRight from "lodash/forEachRight";
+import reverse from "lodash/reverse";
 
 /**
  * A generic definition of a tree to use with the `TreeViewComponent`. The tree implements

@@ -79,10 +79,10 @@ import {
 import {NodeSqliteVariant} from 'app/server/lib/SqliteNode';
 import assert from 'assert';
 import * as fse from 'fs-extra';
-import fromPairs = require('lodash/fromPairs');
-import isEqual = require('lodash/isEqual');
-import noop = require('lodash/noop');
-import range = require('lodash/range');
+import fromPairs from 'lodash/fromPairs';
+import isEqual from 'lodash/isEqual';
+import noop from 'lodash/noop';
+import range from 'lodash/range';
 import {AsyncLocalStorage} from 'node:async_hooks';
 
 export type {PreparedStatement, ResultRow, Statement};

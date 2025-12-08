@@ -9,7 +9,7 @@ import {assert} from 'chai';
 import {TestServer} from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 import {v4 as uuidv4} from 'uuid';
-import omit = require('lodash/omit');
+import omit from 'lodash/omit';
 
 const charonProfile = {email: 'charon@getgrist.com', name: 'Charon'};
 const chimpyProfile = {email: 'chimpy@getgrist.com', name: 'Chimpy'};

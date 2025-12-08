@@ -16,7 +16,7 @@ import { mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { dom, input, styled } from 'grainjs';
 import { noTestId, TestId } from 'grainjs';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 export * from 'app/client/models/SearchModel';
 

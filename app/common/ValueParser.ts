@@ -12,8 +12,8 @@ import {parseDateStrict, parseDateTime} from 'app/common/parseDate';
 import {MetaRowRecord, TableData} from 'app/common/TableData';
 import {DateFormatOptions, DateTimeFormatOptions, formatDecoded, FormatOptions} from 'app/common/ValueFormatter';
 import {encodeObject} from 'app/plugin/objtypes';
-import flatMap = require('lodash/flatMap');
-import mapValues = require('lodash/mapValues');
+import flatMap from 'lodash/flatMap';
+import mapValues from 'lodash/mapValues';
 
 
 export class ValueParser {

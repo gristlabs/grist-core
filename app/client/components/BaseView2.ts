@@ -12,8 +12,8 @@ import {isFullReferencingType} from 'app/common/gristTypes';
 import {getSetMapValue} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
 import {BulkColValues, CellValue, GristObjCode} from 'app/plugin/GristData';
-import omit = require('lodash/omit');
-import pick = require('lodash/pick');
+import omit from 'lodash/omit';
+import pick from 'lodash/pick';
 
 function isFileList(value: unknown): value is File[] {
   return Array.isArray(value) && value.every(item => (item instanceof File));

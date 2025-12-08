@@ -15,8 +15,8 @@ import {cssDragger} from 'app/client/ui2018/draggableList';
 import {menu} from 'app/client/ui2018/menus';
 import {Sort} from 'app/common/SortSpec';
 import {Computed, Disposable, dom, makeTestId, MultiHolder, styled} from 'grainjs';
-import difference = require('lodash/difference');
-import isEqual = require('lodash/isEqual');
+import difference from 'lodash/difference';
+import isEqual from 'lodash/isEqual';
 import {cssMenuItem, IMenuOptions} from 'popweasel';
 
 interface SortableColumn {

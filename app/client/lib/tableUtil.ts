@@ -9,7 +9,7 @@ import {safeJsonParse} from 'app/common/gutil';
 import type {TableData} from 'app/common/TableData';
 import {tsvEncode} from 'app/common/tsvFormat';
 import {dom} from 'grainjs';
-import zipObject = require('lodash/zipObject');
+import zipObject from 'lodash/zipObject';
 
 const G = getBrowserGlobals('document', 'DOMParser');
 

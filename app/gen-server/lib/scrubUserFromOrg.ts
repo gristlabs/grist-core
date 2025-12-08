@@ -6,7 +6,7 @@ import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";
 import {Organization} from "app/gen-server/entity/Organization";
 import {Workspace} from "app/gen-server/entity/Workspace";
-import pick = require('lodash/pick');
+import pick from 'lodash/pick';
 
 /**
  *

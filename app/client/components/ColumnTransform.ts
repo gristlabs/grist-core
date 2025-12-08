@@ -15,7 +15,7 @@ import {GristObjCode} from 'app/plugin/GristData';
 import {Disposable, Observable} from 'grainjs';
 import isPlainObject from 'lodash/isPlainObject';
 import * as ko from 'knockout';
-import noop = require('lodash/noop');
+import noop from 'lodash/noop';
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */

@@ -4,8 +4,8 @@ import { FilterInfo } from "app/client/models/entities/ViewSectionRec";
 import { CellValue } from "app/plugin/GristData";
 import { normalizeText } from "app/client/lib/ACIndex";
 import { Computed, Disposable, Observable } from "grainjs";
-import escapeRegExp = require("lodash/escapeRegExp");
-import isNull = require("lodash/isNull");
+import escapeRegExp from "lodash/escapeRegExp";
+import isNull from "lodash/isNull";
 
 const MAXIMUM_SHOWN_FILTER_ITEMS = 500;
 

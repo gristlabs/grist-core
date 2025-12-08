@@ -1,10 +1,10 @@
 import {ActionSummary, ColumnDelta, createEmptyActionSummary, createEmptyTableDelta} from 'app/common/ActionSummary';
 import {CellDelta} from 'app/common/TabularDiff';
 import {concatenateSummaries} from 'app/common/ActionSummarizer';
-import keyBy = require('lodash/keyBy');
-import matches = require('lodash/matches');
-import sortBy = require('lodash/sortBy');
-import toPairs = require('lodash/toPairs');
+import keyBy from 'lodash/keyBy';
+import matches from 'lodash/matches';
+import sortBy from 'lodash/sortBy';
+import toPairs from 'lodash/toPairs';
 
 /**
  * We can combine an ActionSummary with the current state of the database

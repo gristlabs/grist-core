@@ -15,7 +15,7 @@ import {menuCssClass} from 'app/client/ui2018/menus';
 import {BindableValue, dom, DomContents, DomElementArg, DomElementMethod, Observable, styled} from 'grainjs';
 import Popper from 'popper.js';
 import {cssMenu, cssMenuItem, defaultMenuOptions, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import merge = require('lodash/merge');
+import merge from 'lodash/merge';
 
 export interface ITipOptions {
   /**

@@ -27,8 +27,8 @@ import {hooks} from 'app/client/Hooks';
 import {UrlState} from 'app/client/lib/UrlState';
 import {decodeUrl, encodeUrl, getSlugIfNeeded, GristLoadConfig, IGristUrlState} from 'app/common/gristUrls';
 import {Document} from 'app/common/UserAPI';
-import isEmpty = require('lodash/isEmpty');
-import isEqual = require('lodash/isEqual');
+import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
 import {CellValue} from "app/plugin/GristData";
 
 /**

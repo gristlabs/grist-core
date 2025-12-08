@@ -1,4 +1,4 @@
-import sortBy = require('lodash/sortBy');
+import sortBy from 'lodash/sortBy';
 
 /**
  * Custom widget manifest definition.

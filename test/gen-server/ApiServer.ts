@@ -18,7 +18,7 @@ import {
 
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import * as chai from 'chai';
-import omit = require('lodash/omit');
+import omit from 'lodash/omit';
 
 const assert = chai.assert;
 

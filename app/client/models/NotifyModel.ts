@@ -18,8 +18,8 @@ import {
   obsArray,
   Observable
 } from 'grainjs';
-import clamp = require('lodash/clamp');
-import defaults = require('lodash/defaults');
+import clamp from 'lodash/clamp';
+import defaults from 'lodash/defaults';
 
 // When rendering app errors, we'll only show the last few.
 const maxAppErrors = 5;

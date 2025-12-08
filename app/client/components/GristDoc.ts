@@ -102,10 +102,10 @@ import {
   toKo
 } from 'grainjs';
 import * as ko from 'knockout';
-import cloneDeepWith = require('lodash/cloneDeepWith');
-import isEqual = require('lodash/isEqual');
-import omit = require('lodash/omit');
-import pick = require('lodash/pick');
+import cloneDeepWith from 'lodash/cloneDeepWith';
+import isEqual from 'lodash/isEqual';
+import omit from 'lodash/omit';
+import pick from 'lodash/pick';
 
 const RICK_ROLL_YOUTUBE_EMBED_ID = 'dQw4w9WgXcQ';
 

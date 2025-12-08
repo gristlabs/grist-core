@@ -5,7 +5,7 @@ import {dom, makeTestId, styled} from 'grainjs';
 import {HomeModel, ViewSettings} from 'app/client/models/HomeModel';
 import * as css from 'app/client/ui/DocMenuCss';
 import {buildPinnedDoc} from 'app/client/ui/PinnedDocs';
-import sortBy = require('lodash/sortBy');
+import sortBy from 'lodash/sortBy';
 
 const testId = makeTestId('test-dm-');
 

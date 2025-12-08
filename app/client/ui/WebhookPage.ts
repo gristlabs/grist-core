@@ -22,10 +22,10 @@ import {DocAPI} from 'app/common/UserAPI';
 import {GristObjCode, RowRecord} from 'app/plugin/GristData';
 import {dom, styled} from 'grainjs';
 import {observableArray, ObservableArray} from "knockout";
-import omit = require('lodash/omit');
-import pick = require('lodash/pick');
-import range = require('lodash/range');
-import without = require('lodash/without');
+import omit from 'lodash/omit';
+import pick from 'lodash/pick';
+import range from 'lodash/range';
+import without from 'lodash/without';
 
 const t = makeT('WebhookPage');
 

@@ -9,7 +9,7 @@ import {PartialPermissionSet, PartialPermissionValue} from 'app/common/ACLPermis
 import {ALL_PERMISSION_PROPS, emptyPermissionSet, PermissionKey} from 'app/common/ACLPermissions';
 import {capitalize} from 'app/common/gutil';
 import {dom, DomElementArg, Observable, styled} from 'grainjs';
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 import {makeT} from 'app/client/lib/localization';
 
 // Canonical order of permission bits when rendered in a permissionsWidget.

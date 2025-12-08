@@ -4,8 +4,8 @@ import {INotification, INotifyOptions, MessageType, Notifier} from 'app/client/m
 import {ErrorTooltips} from 'app/client/ui/GristTooltips';
 import {ApiErrorDetails} from 'app/common/ApiError';
 import {fetchFromHome, pageHasHome} from 'app/common/urlUtils';
-import isError = require('lodash/isError');
-import pick = require('lodash/pick');
+import isError from 'lodash/isError';
+import pick from 'lodash/pick';
 
 const G = getBrowserGlobals('document', 'window');
 

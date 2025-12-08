@@ -6,9 +6,9 @@ import * as path from 'path';
 import * as tmp from 'tmp';
 import * as fse from 'fs-extra';
 import log from 'app/server/lib/log';
-import chunk = require('lodash/chunk');
-import fromPairs = require('lodash/fromPairs');
-import zipObject = require('lodash/zipObject');
+import chunk from 'lodash/chunk';
+import fromPairs from 'lodash/fromPairs';
+import zipObject from 'lodash/zipObject';
 import { fetchUntrustedWithAgent } from 'app/server/lib/ProxyAgent';
 
 export class DocRequests {

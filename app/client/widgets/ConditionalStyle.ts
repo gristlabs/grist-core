@@ -19,7 +19,7 @@ import {isRaisedException, isValidRuleValue} from 'app/common/gristTypes';
 import {GristObjCode, RowRecord} from 'app/plugin/GristData';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, Disposable, dom, DomContents, makeTestId, Observable, styled} from 'grainjs';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 const testId = makeTestId('test-widget-style-');
 const t = makeT('ConditionalStyle');

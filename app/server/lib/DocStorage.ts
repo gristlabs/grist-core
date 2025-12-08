@@ -28,9 +28,9 @@ import {v4 as uuidv4} from 'uuid';
 import {OnDemandStorage} from 'app/server/lib/OnDemandActions';
 import {ISQLiteDB, MigrationHooks, OpenMode, PreparedStatement, quoteIdent,
         ResultRow, RunResult, SchemaInfo, SQLiteDB} from 'app/server/lib/SQLiteDB';
-import chunk = require('lodash/chunk');
-import cloneDeep = require('lodash/cloneDeep');
-import groupBy = require('lodash/groupBy');
+import chunk from 'lodash/chunk';
+import cloneDeep from 'lodash/cloneDeep';
+import groupBy from 'lodash/groupBy';
 import { MinDBOptions } from 'app/server/lib/SqliteCommon';
 
 // Run with environment variable NODE_DEBUG=db (may include additional comma-separated sections)

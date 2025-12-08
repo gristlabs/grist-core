@@ -8,7 +8,7 @@ import { assertChanged, assertSaved, enterRulePart,
          findDefaultRuleSet, findTable, getRules, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
-import pick = require('lodash/pick');
+import pick from 'lodash/pick';
 
 describe("AccessRulesSchemaEdit", function() {
   this.timeout(40000);

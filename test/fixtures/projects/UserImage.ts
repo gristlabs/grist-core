@@ -3,7 +3,7 @@
  */
 import {createUserImage, Size} from 'app/client/ui/UserImage';
 import {dom, styled} from 'grainjs';
-import range = require('lodash/range');
+import range from 'lodash/range';
 import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
 
 function setupTest() {

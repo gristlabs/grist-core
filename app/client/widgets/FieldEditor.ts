@@ -15,7 +15,7 @@ import * as gutil from 'app/common/gutil';
 import {CellPosition} from "app/client/components/CellPosition";
 import {FloatingEditor} from 'app/client/widgets/FloatingEditor';
 import {CursorPos} from 'app/plugin/GristAPI';
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 import {Disposable, dom, Emitter, Holder, MultiHolder, Observable} from 'grainjs';
 
 const t = makeT('FieldEditor');

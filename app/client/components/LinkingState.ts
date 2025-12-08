@@ -14,10 +14,10 @@ import {CellValue} from "app/plugin/GristData";
 import {encodeObject} from 'app/plugin/objtypes';
 import {Disposable, Holder, MultiHolder} from "grainjs";
 import * as  ko from "knockout";
-import merge = require('lodash/merge');
-import mapValues = require('lodash/mapValues');
-import pick = require('lodash/pick');
-import pickBy = require('lodash/pickBy');
+import merge from 'lodash/merge';
+import mapValues from 'lodash/mapValues';
+import pick from 'lodash/pick';
+import pickBy from 'lodash/pickBy';
 
 
 // Descriptive string enum for each case of linking

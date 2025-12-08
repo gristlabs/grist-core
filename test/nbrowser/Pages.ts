@@ -4,7 +4,7 @@ import {assert, driver, Key} from 'mocha-webdriver';
 import {Session} from 'test/nbrowser/gristUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
-import values = require('lodash/values');
+import values from 'lodash/values';
 
 describe('Pages', function() {
   this.timeout(60000);

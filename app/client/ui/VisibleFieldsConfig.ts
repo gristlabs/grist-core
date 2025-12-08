@@ -17,8 +17,8 @@ import { icon } from "app/client/ui2018/icons";
 import * as gutil from 'app/common/gutil';
 import { Computed, Disposable, dom, IDomArgs, makeTestId, Observable, styled, subscribe } from "grainjs";
 import ko from "knockout";
-import difference = require("lodash/difference");
-import isEqual = require("lodash/isEqual");
+import difference from "lodash/difference";
+import isEqual from "lodash/isEqual";
 
 const testId = makeTestId('test-vfc-');
 const t = makeT('VisibleFieldsConfig');

@@ -1,4 +1,4 @@
-import mapValues = require('lodash/mapValues');
+import mapValues from 'lodash/mapValues';
 import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';

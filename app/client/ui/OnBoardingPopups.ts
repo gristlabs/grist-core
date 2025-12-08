@@ -29,7 +29,7 @@ import {makeT} from 'app/client/lib/localization';
 import * as Mousetrap from 'app/client/lib/Mousetrap';
 import { bigBasicButton, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { theme, vars } from "app/client/ui2018/cssVars";
-import range = require("lodash/range");
+import range from "lodash/range";
 import {IGristUrlState} from "app/common/gristUrls";
 import {urlState} from "app/client/models/gristUrlState";
 import {delay} from "app/common/delay";

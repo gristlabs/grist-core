@@ -1,6 +1,6 @@
 import {mouseDrag} from 'app/client/ui/mouseDrag';
 import {dom, makeTestId, observable, styled} from "grainjs";
-import pick = require('lodash/pick');
+import pick from 'lodash/pick';
 import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
 
 const testId = makeTestId('test-');

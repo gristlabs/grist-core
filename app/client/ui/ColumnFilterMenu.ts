@@ -41,13 +41,13 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
         input, makeTestId, Observable, styled} from 'grainjs';
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import concat = require('lodash/concat');
-import identity = require('lodash/identity');
-import noop = require('lodash/noop');
-import partition = require('lodash/partition');
-import some = require('lodash/some');
-import tail = require('lodash/tail');
-import debounce = require('lodash/debounce');
+import concat from 'lodash/concat';
+import identity from 'lodash/identity';
+import noop from 'lodash/noop';
+import partition from 'lodash/partition';
+import some from 'lodash/some';
+import tail from 'lodash/tail';
+import debounce from 'lodash/debounce';
 
 const t = makeT('ColumnFilterMenu');
 

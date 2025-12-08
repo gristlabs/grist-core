@@ -5,12 +5,12 @@ import {DocAction} from 'app/common/DocActions';
 import * as Action from 'app/common/DocActions';
 import {arrayExtend} from 'app/common/gutil';
 import {CellDelta} from 'app/common/TabularDiff';
-import clone = require('lodash/clone');
-import fromPairs = require('lodash/fromPairs');
-import keyBy = require('lodash/keyBy');
-import sortBy = require('lodash/sortBy');
-import toPairs = require('lodash/toPairs');
-import values = require('lodash/values');
+import clone from 'lodash/clone';
+import fromPairs from 'lodash/fromPairs';
+import keyBy from 'lodash/keyBy';
+import sortBy from 'lodash/sortBy';
+import toPairs from 'lodash/toPairs';
+import values from 'lodash/values';
 
 /**
  * The default maximum number of rows in a single bulk change that will be recorded

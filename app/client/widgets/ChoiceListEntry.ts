@@ -10,8 +10,8 @@ import {ChoiceOptionsByName, IChoiceOptions} from 'app/client/widgets/ChoiceText
 import {Computed, Disposable, dom, DomContents, DomElementArg, Holder, MultiHolder, Observable, styled} from 'grainjs';
 import {createCheckers, iface, ITypeSuite, opt, union} from 'ts-interface-checker';
 
-import isEqual = require('lodash/isEqual');
-import uniqBy = require('lodash/uniqBy');
+import isEqual from 'lodash/isEqual';
+import uniqBy from 'lodash/uniqBy';
 
 const t = makeT('ChoiceListEntry');
 

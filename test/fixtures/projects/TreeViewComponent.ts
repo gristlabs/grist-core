@@ -1,7 +1,7 @@
 import { TreeItem } from "app/client/models/TreeModel";
 import { TreeViewComponent } from "app/client/ui/TreeViewComponent";
 import { dom, MutableObsArray, obsArray, observable, styled } from "grainjs";
-import constant = require('lodash/constant');
+import constant from 'lodash/constant';
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 

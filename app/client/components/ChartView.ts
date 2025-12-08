@@ -27,13 +27,13 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
         IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
 import * as ko from 'knockout';
-import clamp = require('lodash/clamp');
-import debounce = require('lodash/debounce');
-import defaultsDeep = require('lodash/defaultsDeep');
-import isNumber = require('lodash/isNumber');
-import merge = require('lodash/merge');
-import sum = require('lodash/sum');
-import union = require('lodash/union');
+import clamp from 'lodash/clamp';
+import debounce from 'lodash/debounce';
+import defaultsDeep from 'lodash/defaultsDeep';
+import isNumber from 'lodash/isNumber';
+import merge from 'lodash/merge';
+import sum from 'lodash/sum';
+import union from 'lodash/union';
 import type {Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
     PlotData as PlotlyPlotData} from 'plotly.js';
 import {makeT} from 'app/client/lib/localization';

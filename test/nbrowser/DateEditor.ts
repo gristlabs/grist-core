@@ -1,7 +1,7 @@
 import {assert, driver, Key, WebElement} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
-import escapeRegExp = require('lodash/escapeRegExp');
+import escapeRegExp from 'lodash/escapeRegExp';
 
 async function setCustomDateFormat(format: string) {
   await gu.setDateFormat("Custom");

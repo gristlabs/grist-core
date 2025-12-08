@@ -2,9 +2,9 @@ import { TableData } from "app/client/models/TableData";
 import { find, fixIndents, fromTableData, TreeItemRecord, TreeNodeRecord } from "app/client/models/TreeModel";
 import { nativeCompare } from "app/common/gutil";
 import { assert } from "chai";
-import flatten = require("lodash/flatten");
-import noop = require("lodash/noop");
-import sinon = require("sinon");
+import flatten from "lodash/flatten";
+import noop from "lodash/noop";
+import sinon from "sinon";
 
 const buildDom = noop as any;
 

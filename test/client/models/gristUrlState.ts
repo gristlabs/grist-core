@@ -5,9 +5,9 @@ import {assert} from 'chai';
 import {dom} from 'grainjs';
 import {popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
 import {JSDOM} from 'jsdom';
-import clone = require('lodash/clone');
-import merge = require('lodash/merge');
-import omit = require('lodash/omit');
+import clone from 'lodash/clone';
+import merge from 'lodash/merge';
+import omit from 'lodash/omit';
 import * as sinon from 'sinon';
 
 function assertResetCall(spy: sinon.SinonSpy, ...args: any[]): void {

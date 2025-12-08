@@ -34,7 +34,7 @@ import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {GristObjCode} from 'app/plugin/GristData';
 import {Computed, Holder, Observable, subscribe} from 'grainjs';
 import * as ko from 'knockout';
-import defaults = require('lodash/defaults');
+import defaults from 'lodash/defaults';
 
 export interface InsertColOptions {
   colInfo?: ColInfo;

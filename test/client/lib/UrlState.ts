@@ -3,7 +3,7 @@ import {assert} from 'chai';
 import {dom} from 'grainjs';
 import {popGlobals, pushGlobals} from 'grainjs/dist/cjs/lib/browserGlobals';
 import {JSDOM} from 'jsdom';
-import fromPairs = require('lodash/fromPairs');
+import fromPairs from 'lodash/fromPairs';
 
 describe('UrlState', function() {
   let mockWindow: HistWindow;

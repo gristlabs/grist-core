@@ -22,7 +22,7 @@ import {DocSession, OptDocSession} from 'app/server/lib/DocSession';
 import log from 'app/server/lib/log';
 import {globalUploadSet, moveUpload, UploadInfo} from 'app/server/lib/uploads';
 import {buildComparisonQuery} from 'app/server/lib/ExpandedQuery';
-import flatten = require('lodash/flatten');
+import flatten from 'lodash/flatten';
 
 const IMPORT_TRANSFORM_COLUMN_PREFIX = 'gristHelper_Import_';
 

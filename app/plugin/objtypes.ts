@@ -5,7 +5,7 @@
 // tslint:disable:max-classes-per-file
 
 import { CellValue, GristObjCode } from 'app/plugin/GristData';
-import isPlainObject = require('lodash/isPlainObject');
+import isPlainObject from 'lodash/isPlainObject';
 
 // The text to show on cells whose values are pending.
 export const PENDING_DATA_PLACEHOLDER = "Loading...";

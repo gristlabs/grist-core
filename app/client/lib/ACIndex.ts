@@ -9,9 +9,9 @@
 
 import {localeCompare, nativeCompare, sortedIndex} from 'app/common/gutil';
 import {DomContents} from 'grainjs';
-import escapeRegExp = require("lodash/escapeRegExp");
-import deburr = require("lodash/deburr");
-import split = require("lodash/split");
+import escapeRegExp from "lodash/escapeRegExp";
+import deburr from "lodash/deburr";
+import split from "lodash/split";
 
 export interface ACItem {
   // This should be a trimmed lowercase version of the item's text. It may be an accessor.

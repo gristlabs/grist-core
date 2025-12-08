@@ -14,7 +14,7 @@ import {FullUser} from 'app/common/LoginSessionAPI';
 import * as roles from 'app/common/roles';
 import {Organization, PermissionData, UserAPI} from 'app/common/UserAPI';
 import {Computed, Disposable, dom, DomElementArg, IDomArgs, Observable, observable, styled} from 'grainjs';
-import pick = require('lodash/pick');
+import pick from 'lodash/pick';
 
 import {ACIndexImpl, normalizeText} from 'app/client/lib/ACIndex';
 import {copyToClipboard} from 'app/client/lib/clipboardUtils';

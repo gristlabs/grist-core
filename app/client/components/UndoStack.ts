@@ -5,7 +5,7 @@ import {PromiseChain, setDefault} from 'app/common/gutil';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {Computed, fromKo, Observable} from 'grainjs';
 import * as ko from 'knockout';
-import sortBy = require('lodash/sortBy');
+import sortBy from 'lodash/sortBy';
 
 export interface ActionGroupWithCursorPos extends MinimalActionGroup {
   cursorPos?: CursorPos;

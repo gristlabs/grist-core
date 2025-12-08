@@ -73,7 +73,7 @@ import {
   styled
 } from 'grainjs';
 import {makeT} from 'app/client/lib/localization';
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 
 const t = makeT('AccessRules');
 
