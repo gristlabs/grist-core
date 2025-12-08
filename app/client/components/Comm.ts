@@ -222,13 +222,6 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   }
 
   /**
-   * Wait for all active requests to complete.
-   */
-  public async waitForActiveRequests(): Promise<void> {
-    await Promise.all(this.pendingRequests.values());
-  }
-
-  /**
    * Internal implementation of all the server methods. They differ only in the name of the server
    * method to call, and the arguments that it expects.
    *
