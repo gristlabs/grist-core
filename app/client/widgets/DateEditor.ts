@@ -12,6 +12,8 @@ import {dom} from 'grainjs';
 // These are all the locales available for the datepicker. Having a prepared list lets us find a
 // suitable one without trying combinations that don't exist. This list can be rebuilt using:
 //    ls bower_components/bootstrap-datepicker/dist/locales/bootstrap-datepicker.* | cut -d. -f2 | xargs echo
+//
+// eslint-disable-next-line @stylistic/max-len
 const availableLocales = 'ar-tn ar az bg bm bn br bs ca cs cy da de el en-AU en-CA en-GB en-IE en-NZ en-ZA eo es et eu fa fi fo fr-CH fr gl he hi hr hu hy id is it-CH it ja ka kh kk km ko kr lt lv me mk mn ms nl-BE nl no oc pl pt-BR pt ro rs-latin rs ru si sk sl sq sr-latin sr sv sw ta tg th tk tr uk uz-cyrl uz-latn vi zh-CN zh-TW';
 
 monkeyPatchDatepicker();
