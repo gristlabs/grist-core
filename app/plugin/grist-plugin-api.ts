@@ -480,6 +480,7 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
 }
 
 export function enableKeyboardShortcuts() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Mousetrap = require('mousetrap');
   Mousetrap.bind('mod+z', () => commandApi.run('undo'));
   Mousetrap.bind(['mod+shift+z', 'ctrl+y'], () => commandApi.run('redo'));

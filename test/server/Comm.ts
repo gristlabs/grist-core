@@ -23,6 +23,7 @@ import * as testUtils from 'test/server/testUtils';
 import * as session from '@gristlabs/express-session';
 import { Hosts, RequestOrgInfo } from 'app/server/lib/extractOrg';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
 promisifyAll(SQLiteStore.prototype);
 
