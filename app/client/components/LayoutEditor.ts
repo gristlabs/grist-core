@@ -612,7 +612,7 @@ export class LayoutEditor extends Disposable {
     this.dropOverlay.detach();
     this.trigger('dragEnd');
     // Cleanup for any state.
-    this.transitionPromise.finally(() => {
+    void this.transitionPromise.finally(() => {
       this.floater.onMouseUp();
       resizeLayoutBox(this.targetBox!, 'reset');
       this.targetBox = this.originalBox = null;
