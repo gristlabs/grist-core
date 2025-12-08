@@ -54,7 +54,7 @@ const driver: WebDriver = new Proxy({} as any, {
     if (!_driver) {
       return (driverOrig as any)[prop];
     }
-    return (_driver as any)[prop];  // eslint-disable-line @typescript-eslint/no-unnecessary-type-assertion
+    return (_driver as any)[prop];
   }
 });
 
@@ -327,8 +327,8 @@ export async function assertGridData(section: string, data: any[][]) {
  * Experimental fast version of getVisibleGridCells that reads data directly from browser by
  * invoking javascript code.
  */
-export async function getVisibleGridCellsFast(col: string, rowNums: number[]): Promise<string[]>
-export async function getVisibleGridCellsFast(options: {cols: string[], rowNums: number[]}): Promise<string[]>
+export async function getVisibleGridCellsFast(col: string, rowNums: number[]): Promise<string[]>;
+export async function getVisibleGridCellsFast(options: {cols: string[], rowNums: number[]}): Promise<string[]>;
 export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: number[]): Promise<string[]>{
   if (rowNums) {
     return getVisibleGridCellsFast({cols: [colOrOptions], rowNums});
@@ -947,8 +947,8 @@ export async function fileDialogUpload(filePath: string, triggerDialogFunc: () =
 }
 
 /** Opens upload dialog for a cell */
-export async function openUploadDialog(cell: WebElement): Promise<void>
-export async function openUploadDialog(col: string, row: number): Promise<void>
+export async function openUploadDialog(cell: WebElement): Promise<void>;
+export async function openUploadDialog(col: string, row: number): Promise<void>;
 export async function openUploadDialog(...args: any): Promise<void> {
   const cell = args.length === 1 ? args[0] : getCell(args[0], args[1]);
   await cell.click();
@@ -957,16 +957,16 @@ export async function openUploadDialog(...args: any): Promise<void> {
 }
 
 /** Returns a number attachments in a cell */
-export async function numberOfAttachments(cell: WebElement): Promise<number>
-export async function numberOfAttachments(col: string, row: number): Promise<number>
+export async function numberOfAttachments(cell: WebElement): Promise<number>;
+export async function numberOfAttachments(col: string, row: number): Promise<number>;
 export async function numberOfAttachments(...args: any): Promise<number> {
   const cell: WebElement = args.length === 1 ? args[0] : getCell(args[0], args[1]);
   return (await cell.findAll(".test-pw-thumbnail")).length;
 }
 
 /** Waits for specific number of attachments in a cell */
-export async function waitForAttachments(cell: WebElement, count: number): Promise<void>
-export async function waitForAttachments(col: string, row: number, count: number): Promise<void>
+export async function waitForAttachments(cell: WebElement, count: number): Promise<void>;
+export async function waitForAttachments(col: string, row: number, count: number): Promise<void>;
 export async function waitForAttachments(...args: any): Promise<void> {
   const cell: WebElement = args.length === 3 ? getCell(args[0], args[1]) : args[0];
   await waitToPass(async () => {
@@ -1017,8 +1017,8 @@ export async function importUrlDialog(url: string): Promise<void> {
  * Executed passed function in the context of given iframe, and then switching back to original context
  *
  */
-export async function doInIframe<T>(func: () => Promise<T>): Promise<T>
-export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>): Promise<T>
+export async function doInIframe<T>(func: () => Promise<T>): Promise<T>;
+export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>): Promise<T>;
 export async function doInIframe<T>(frameOrFunc: WebElement|(() => Promise<T>), func?: () => Promise<T>): Promise<T> {
   try {
     let iframe: WebElement;
@@ -1914,11 +1914,11 @@ export async function selectAllKey() {
  * Send keys, with support for Key.chord(), similar to driver.sendKeys(). Note that while
  * elem.sendKeys() supports Key.chord(...), driver.sendKeys() does not. This is a replacement.
  */
-export async function sendKeys(...keys: string[]): Promise<void>
+export async function sendKeys(...keys: string[]): Promise<void>;
 /**
  * Send keys with a pause between each key.
  */
-export async function sendKeys(interval: number, ...keys: string[]): Promise<void>
+export async function sendKeys(interval: number, ...keys: string[]): Promise<void>;
 export async function sendKeys(...args: (string|number)[]) {
   let interval = 0;
   if (typeof args[0] === 'number') {
@@ -2285,8 +2285,8 @@ export class Session {
   }
 
   // Return a session configured for the current session's site but a different user.
-  public user(userName?: TestUser): Session
-  public user(user: UserData): Session
+  public user(userName?: TestUser): Session;
+  public user(user: UserData): Session;
   public user(arg: TestUser|UserData = 'user1') {
     const data = typeof arg === 'string' ? translateUser(arg) : arg;
     return new Session({...this.settings, ...data});

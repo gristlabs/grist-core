@@ -200,7 +200,6 @@ export async function handleSandboxErrorOnPlatform<T>(
         platform.throwError('', `Invalid row id ${match[1]}`, 400);
       }
       match = message.match(
-        // eslint-disable-next-line max-len
         /\[Sandbox] (?:KeyError u?'(?:Table \w+ has no column )?|ValueError No such table: |ValueError No such column: )([\w.]+)/
       );
       if (match) {

@@ -809,13 +809,13 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
       !paths.importDir) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
-        adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT!,
+        adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
                         `python3`, '--', ...pythonArgs, ...appendArgs]);
       // We don't want process control for this.
       return {name: 'gvisor', child, control: () => new NoProcessControl(child)};
     }
     wrapperArgs.push('--restore');
-    wrapperArgs.push(process.env.GRIST_CHECKPOINT!);
+    wrapperArgs.push(process.env.GRIST_CHECKPOINT);
   }
   const child = adjustedSpawn(command, [...wrapperArgs.get(), `python3`, '--', ...pythonArgs, ...appendArgs]);
   const childPid = child.pid;

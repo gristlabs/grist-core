@@ -384,7 +384,7 @@ type CommonOptions = modelUtil.SaveableObjObservable<any> & {
   disabled(prop: string): ko.Computed<boolean>,
   mixed(prop: string): ko.Computed<boolean>,
   empty(prop: string): ko.Computed<boolean>,
-}
+};
 
 /**
  * Extended version of widget options observable that contains information about mixed and empty styles, and supports
@@ -394,7 +394,7 @@ type StyleOptions = modelUtil.SaveableObjObservable<any> & {
   mixed(prop: string): ko.Computed<boolean>,
   empty(prop: string): ko.Computed<boolean>,
   revert(): void;
-}
+};
 
 // This is helper that adds disabled computed to an ObjObservable, it follows
 // the same pattern as `prop` helper.

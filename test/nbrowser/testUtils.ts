@@ -41,7 +41,6 @@ setOptionsModifyFunc(({chromeOpts, firefoxOpts}) => {
   // don't have latest webdriver library (where the new `enableBiDi` method is exposed), it can be
   // toggled by using the `set` method in `capabilities` interface, as it is done here (long URL):
 
-  // eslint-disable-next-line max-len
   // https://github.com/shs96c/selenium/blob/ff82c4af6a493321d9eaec6ba8fa8589e4aa824d/javascript/node/selenium-webdriver/firefox.js#L415
   chromeOpts.set('webSocketUrl', true);
   chromeOpts.set(Capability.UNHANDLED_PROMPT_BEHAVIOR, "ignore");

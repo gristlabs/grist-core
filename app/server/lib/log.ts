@@ -88,7 +88,7 @@ winston.add(winston.transports.File, fileTransportOptions);
 
 // It's a little tricky to export a type when the top-level export is an object.
 // tslint:disable-next-line:no-namespace
-declare namespace log { // eslint-disable-line @typescript-eslint/no-namespace
+declare namespace log {
   interface ILogMeta {
     [key: string]: any;
   }

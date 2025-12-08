@@ -27,9 +27,9 @@ type MinIOVersioningStatus = "" | {
   MFADelete?: string,
   ExcludeFolders?: boolean,
   ExcludedPrefixes?: {Prefix: string}[]
-}
+};
 
-type RemoveObjectsParam = string[] | { name: string, versionId?: string }[]
+type RemoveObjectsParam = string[] | { name: string, versionId?: string }[];
 
 type RemoveObjectsResponse = null | undefined | {
   Error?: {
@@ -38,7 +38,7 @@ type RemoveObjectsResponse = null | undefined | {
     Key?: string
     VersionId?: string
   }
-}
+};
 
 /**
  * An external store implemented using the MinIO client, which
@@ -162,7 +162,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     await this._deleteObjects(objectsToDelete);
   }
 
-  public async hasVersioning(): Promise<Boolean> {
+  public async hasVersioning(): Promise<boolean> {
     const versioning = await this._s3.getBucketVersioning(this.bucket);
     // getBucketVersioning() may return an empty string when versioning has never been enabled.
     // This situation is not addressed in minio-js v8.0.0, but included in our workaround.
@@ -180,7 +180,7 @@ export class MinIOExternalStorage implements ExternalStorage {
         // Circumvent inconsistency of MinIO API with versionId by casting it to string
         // PR to MinIO so we don't have to do that anymore:
         // https://github.com/minio/minio-js/pull/1193
-        snapshotId: String((v as any).versionId!),
+        snapshotId: String((v as any).versionId),
       }));
   }
 

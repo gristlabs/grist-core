@@ -18,7 +18,7 @@ import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {Computed, dom, styled} from 'grainjs';
 
-export type IChoiceOptions = Style
+export type IChoiceOptions = Style;
 export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
 export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
 

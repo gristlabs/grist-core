@@ -497,8 +497,8 @@ type WebhookSchemaType = {
   watchedColIds: [GristObjCode, ...unknown[]];
   status: string;
   webhookId: string;
-}
+};
 
 type UIWebhookSummary = WebhookSummary & {
   fields: {watchedColIdsText?: string;}
-}
+};

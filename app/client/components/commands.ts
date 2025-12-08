@@ -302,7 +302,7 @@ export class CommandGroup extends Disposable {
     // Map recognized key combinations to the corresponding command names.
     this.knownKeys = {};
     for (const name in this.commands) {
-      const keys = allCommands[name as CommandName]!.keys;
+      const keys = allCommands[name as CommandName].keys;
       for (let i = 0; i < keys.length; i++) {
         this.knownKeys[keys[i]] = name;
       }
@@ -340,7 +340,7 @@ export class CommandGroup extends Disposable {
       }
       // Add this CommandGroup to each command that it implements.
       for (const name in this.commands) {
-        allCommands[name as CommandName]!.addGroup(this);
+        allCommands[name as CommandName].addGroup(this);
       }
     }
   }
@@ -351,7 +351,7 @@ export class CommandGroup extends Disposable {
         arrayRemove(_allKeys[key], this);
       }
       for (const name in this.commands) {
-        allCommands[name as CommandName]!.removeGroup(this);
+        allCommands[name as CommandName].removeGroup(this);
       }
       this.isActive = false;
     }
@@ -380,7 +380,7 @@ export function createGroup<T>(commands: BoundedMap<T>|null, context: T, activat
  *      dom('button', commands.setButtonCommand(dom, 'command'))
  */
 export const setButtonCommand = dom.inlinable(function(elem: Element, commandName: CommandName) {
-  const cmd = allCommands[commandName]!;
+  const cmd = allCommands[commandName];
   elem.setAttribute('title', cmd.getDesc());
   dom.on(elem, 'click', cmd.run);
 });

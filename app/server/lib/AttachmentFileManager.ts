@@ -655,4 +655,4 @@ interface AttachmentFileInfo {
   file: AttachmentFile;
 }
 
-type TransferJob = Promise<void>
+type TransferJob = Promise<void>;

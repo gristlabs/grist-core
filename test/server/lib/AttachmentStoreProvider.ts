@@ -86,21 +86,21 @@ describe("Snapshot attachment store option", () => {
 });
 
 class FakeExternalStorage implements ExternalStorage {
-  public async exists(key: string, snapshotId?: string | undefined): Promise<boolean> {
+  public async exists(key: string, snapshotId?: string): Promise<boolean> {
     return false;
   }
-  public async head(key: string, snapshotId?: string | undefined): Promise<ObjSnapshotWithMetadata | null> {
+  public async head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata | null> {
     return null;
   }
   public async upload(
-    key: string, fname: string, metadata?: ObjMetadata | undefined
+    key: string, fname: string, metadata?: ObjMetadata
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
-  public async download(key: string, fname: string, snapshotId?: string | undefined): Promise<string> {
+  public async download(key: string, fname: string, snapshotId?: string): Promise<string> {
     return "";
   }
-  public async remove(key: string, snapshotIds?: string[] | undefined): Promise<void> {
+  public async remove(key: string, snapshotIds?: string[]): Promise<void> {
     return;
   }
   public async versions(key: string): Promise<ObjSnapshot[]> {
@@ -117,11 +117,11 @@ class FakeExternalStorage implements ExternalStorage {
 
 class FakeAttachmentExternalStorage extends FakeExternalStorage implements ExternalStorageSupportingAttachments {
   public async uploadStream(
-    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata | undefined
+    key: string, inStream: stream.Readable, size?: number, metadata?: ObjMetadata
   ): Promise<string | typeof Unchanged | null> {
     return null;
   }
-  public async downloadStream(key: string, snapshotId?: string | undefined): Promise<StreamDownloadResult> {
+  public async downloadStream(key: string, snapshotId?: string): Promise<StreamDownloadResult> {
     return {
       metadata: { size: 0, snapshotId: "", },
       contentStream: stream.Readable.from(Buffer.from([])),

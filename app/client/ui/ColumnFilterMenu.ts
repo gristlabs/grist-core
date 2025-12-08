@@ -772,8 +772,8 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
  * values and display them with an appropriate label.
  */
 function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: ViewFieldRec|ColumnRec) {
-  const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId())!;
-  const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId())!;
+  const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId());
+  const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId());
   const formatter = fieldOrColumn.visibleColFormatter();
 
   let labelMapFunc: (rowId: number) => string | string[];

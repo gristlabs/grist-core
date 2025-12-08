@@ -99,10 +99,10 @@ export interface IOptions extends ISelectOptions {
 export interface ICompatibleTypes {
 
   // true if "New Page" is selected in Page Picker
-  isNewPage: Boolean | undefined;
+  isNewPage: boolean | undefined;
 
   // true if can be summarized
-  summarize: Boolean;
+  summarize: boolean;
 }
 
 const testId = makeTestId('test-wselect-');

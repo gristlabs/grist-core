@@ -271,8 +271,8 @@ class ColumnListPicker extends Disposable {
   }
 
   // Helper method that for accessing mapped columns. Can be used to set and retrieve the value.
-  private _list(value: number[]): void
-  private _list(): number[]
+  private _list(value: number[]): void;
+  private _list(): number[];
   private _list(value?: number[]) {
     if (value) {
       this._value.set(value);

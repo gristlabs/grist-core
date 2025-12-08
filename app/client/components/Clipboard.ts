@@ -191,11 +191,8 @@ export class Clipboard extends Disposable {
     let data;
     if (typeof ClipboardItem === 'function') {
       const htmlText = makePasteHtml(pasteObj.data, pasteObj.selection, includeColHeaders);
-      // eslint-disable-next-line no-undef
       data = new ClipboardItem({
-        // eslint-disable-next-line no-undef
         'text/plain': new Blob([plainText], {type: 'text/plain'}),
-        // eslint-disable-next-line no-undef
         'text/html': new Blob([htmlText], {type: 'text/html'}),
       });
     } else {

@@ -393,8 +393,8 @@ export async function doExportSection(
   return exportData;
 }
 
-type GristViewsSectionField = MetaRowRecord<'_grist_Views_section_field'>
-type GristTablesColumn = MetaRowRecord<'_grist_Tables_column'>
+type GristViewsSectionField = MetaRowRecord<'_grist_Views_section_field'>;
+type GristTablesColumn = MetaRowRecord<'_grist_Tables_column'>;
 
 // Type for filters passed from the client
 export interface Filter { colRef: number, filter: string }

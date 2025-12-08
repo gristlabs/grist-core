@@ -17,7 +17,7 @@ export interface DataLimitInfo {
 
 type DocUsageOrPending = {
   [Metric in keyof Required<DocumentUsage>]: Required<DocumentUsage>[Metric] | 'pending'
-}
+};
 
 export interface DocUsageSummary extends DocUsageOrPending {
   dataLimitInfo: DataLimitInfo;
@@ -40,7 +40,7 @@ export interface UsageRecommendations {
 
 type FilteredDocUsage = {
   [Metric in keyof DocUsageOrPending]: DocUsageOrPending[Metric] | 'hidden'
-}
+};
 
 export interface FilteredDocUsageSummary extends FilteredDocUsage {
   dataLimitInfo: DataLimitInfo;

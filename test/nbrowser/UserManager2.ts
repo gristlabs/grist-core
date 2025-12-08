@@ -399,7 +399,7 @@ describe('UserManager2', function() {
     // This tests if an team/workspace owner see members and guests who don't have access to
     // the document.
     const {id: docId} = await session.tempShortDoc(cleanup, 'Hello.grist', {load: false});
-    const homeId = await api.getOrgWorkspaces('current').then(l => l[0]!.id);
+    const homeId = await api.getOrgWorkspaces('current').then(l => l[0].id);
 
     // Break the inheritance of the document.
     await session.createHomeApi().updateDocPermissions(docId, {

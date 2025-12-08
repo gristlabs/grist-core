@@ -269,7 +269,7 @@ export class UsersManager {
       } else {
         // Else update profile and login information from external profile.
         let updated = false;
-        let login: Login = existing.logins[0]!;
+        let login: Login = existing.logins[0];
         const properEmail = normalizeEmail(profile.email);
 
         if (properEmail !== existing.loginEmail) {

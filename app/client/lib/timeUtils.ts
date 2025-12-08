@@ -4,12 +4,12 @@ import moment from 'moment';
  * Given a UTC Date ISO 8601 string (the doc updatedAt string), gives a reader-friendly
  * relative time to now - e.g. 'yesterday', '2 days ago'.
  */
-export function getTimeFromNow(utcDateISO: string): string
+export function getTimeFromNow(utcDateISO: string): string;
 /**
  * Given a unix timestamp (in milliseconds), gives a reader-friendly
  * relative time to now - e.g. 'yesterday', '2 days ago'.
  */
-export function getTimeFromNow(ms: number): string
+export function getTimeFromNow(ms: number): string;
 export function getTimeFromNow(isoOrTimestamp: string|number): string {
   const time = moment.utc(isoOrTimestamp);
   const now = moment();

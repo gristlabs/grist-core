@@ -25,7 +25,7 @@ import { Disposable, dom, Observable, styled } from 'grainjs';
  * Validation function. Can return either boolean value or throw an error with a message that will be displayed
  * in a validator instance.
  */
-type ValidationFunction = () => (boolean | Promise<boolean> | void | Promise<void>)
+type ValidationFunction = () => (boolean | Promise<boolean> | void | Promise<void>);
 
 /**
  * Validation groups allow you to organize validator controls on a page as a set.

@@ -232,7 +232,7 @@ describe('Telemetry', function() {
           it("throws an error when an event's metadata requires an elevated telemetry level", async function() {
             await assert.isRejected(
               telemetry.logEventAsync(null, 'documentOpened', {limited: {userId: 1}}),
-              // eslint-disable-next-line max-len
+
               /Telemetry metadata userId of event documentOpened requires a minimum telemetry level of 2 but the current level is 1/
             );
           });

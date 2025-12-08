@@ -182,7 +182,7 @@ export class DocTriggers {
     let hasWatchedCols = false;
     for (const tableRef of Object.keys(triggersByTableRef).sort()) {
       const triggers = triggersByTableRef[tableRef];
-      const tableId = getTableId(Number(tableRef))!;  // groupBy makes tableRef a string
+      const tableId = getTableId(Number(tableRef));  // groupBy makes tableRef a string
       triggersByTableId.push([tableId, triggers]);
       for (const trigger of triggers) {
         if (trigger.isReadyColRef) {

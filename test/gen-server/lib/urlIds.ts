@@ -126,6 +126,6 @@ describe('urlIds', function() {
 
   async function getAnyWorkspace(api: UserAPI) {
     const workspaces = await api.getOrgWorkspaces('current');
-    return workspaces[0]!.id;
+    return workspaces[0].id;
   }
 });

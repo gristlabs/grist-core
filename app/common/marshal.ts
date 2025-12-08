@@ -453,7 +453,7 @@ export class Unmarshaller extends EventEmitter {
 
   private _parseDict() {
     const dict: {[key: string]: any} = {};
-    while (true) {    // eslint-disable-line no-constant-condition
+    while (true) {
       let key = this._parse() as string|Uint8Array;
       if (key === null && this._lastCode === marshalCodes.NULL) {
         break;

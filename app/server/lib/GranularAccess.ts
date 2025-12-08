@@ -1381,10 +1381,10 @@ export class GranularAccess implements GranularAccessForBundle {
             {tableId, filters: {id: [...rows.get(tableId)!]}})
         };
       }, {
-        _grist_Cells: this._docData.getMetaTable('_grist_Cells')!.getTableDataAction(),
+        _grist_Cells: this._docData.getMetaTable('_grist_Cells').getTableDataAction(),
         // We need some basic table information to translate numeric ids to string ids (refs to ids).
-        _grist_Tables: this._docData.getMetaTable('_grist_Tables')!.getTableDataAction(),
-        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column')!.getTableDataAction()
+        _grist_Tables: this._docData.getMetaTable('_grist_Tables').getTableDataAction(),
+        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction()
       },
     );
     // Load pre-existing rows touched by the bundle.
@@ -1596,7 +1596,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   // Return true for special system sessions or document-creation sessions, where
   // unfettered access is appropriate.
-  private _hasExceptionalFullAccess(docSession: OptDocSession): Boolean {
+  private _hasExceptionalFullAccess(docSession: OptDocSession): boolean {
     return docSession.mode === 'system' || docSession.mode === 'nascent';
   }
 

@@ -98,11 +98,11 @@ export class VirtualTable extends Disposable {
   /**
    * Sets the static data for the virtual table.
    */
-  public setData(recs: any[]): void
+  public setData(recs: any[]): void;
   /**
    * Sets the function to fetch data from external source.
    */
-  public setData(func: () => Promise<any>): void
+  public setData(func: () => Promise<any>): void;
   public setData(args: any) {
     if (typeof args === 'function') {
       this._getData = args;

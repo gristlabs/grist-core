@@ -3983,7 +3983,7 @@ export class HomeDBManager implements HomeDBAuth {
       if (orgGroups.length !== 1) {
         throw new Error(`_repairOrgGuests error: found ${orgGroups.length} ${roles.GUEST} ACL group(s)`);
       }
-      const orgGuestGroup = orgGroups[0]!;
+      const orgGuestGroup = orgGroups[0];
       await this._groupsManager.setGroupUsers(manager, orgGuestGroup.id, orgGuestGroup.memberUsers,
                                 this._usersManager.filterEveryone(UsersManager.getResourceUsers(org.workspaces)));
     });

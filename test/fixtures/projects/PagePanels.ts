@@ -44,9 +44,9 @@ function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: 
         primaryButton(
           (elem) => attachPageWidgetPicker(
             elem, gristDocMock,
-            async (val) => { selected.get()!.record.widget = val; },
+            async (val) => { selected.get().record.widget = val; },
             {
-              value: () => selected.get()!.record.widget,
+              value: () => selected.get().record.widget,
               buttonLabel: 'Save',
             }),
           "Edit Data Selection",

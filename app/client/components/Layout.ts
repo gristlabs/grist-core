@@ -444,7 +444,7 @@ export class Layout extends Disposable {
     }
     if (boxSpec.leaf) {
       box.leafId(boxSpec.leaf);
-      box.leafContent(this.createLeafFunc(box.leafId()!));
+      box.leafContent(this.createLeafFunc(box.leafId()));
     } else if (boxSpec.children) {
       box.setChildren(boxSpec.children.map(this.buildLayoutBox, this));
     }

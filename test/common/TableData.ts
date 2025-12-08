@@ -32,7 +32,7 @@ describe('TableData', function() {
     assert.deepEqual(rowIds.map(r => colIds.map(c => t.getValue(r, c))), data);
 
     // Verify data using getRowPropFunc()
-    assert.deepEqual(colIds.map(c => rowIds.map(t.getRowPropFunc(c)!)), transposed);
+    assert.deepEqual(colIds.map(c => rowIds.map(t.getRowPropFunc(c))), transposed);
 
     // Verify data using getRecord()
     const expRecords = data.map((row, i) => zipObject(colIds, row));
@@ -160,7 +160,7 @@ describe('TableData', function() {
     verifyTableData(t, ["id", "city", "state", "amount", "bool"], []);
     assert.isFalse(t.isLoaded);
 
-    const getters = ["id", "city", "state", "amount", "bool"].map(c => t.getRowPropFunc(c)!);
+    const getters = ["id", "city", "state", "amount", "bool"].map(c => t.getRowPropFunc(c));
     t.loadData(sampleData);
     assert.isTrue(t.isLoaded);
     assert.deepEqual(t.getSortedRowIds().map(r => getters.map(getter => getter(r))), [

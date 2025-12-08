@@ -35,8 +35,8 @@ export class CopySelection {
     this.colStyle = options.colStyle;
     this.columns = fields.map((f, i) => {
       const formatter = f.formatter();
-      const _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i])!;
-      const _rawGetter = tableData.getRowPropFunc(this.colIds[i])!;
+      const _fmtGetter = tableData.getRowPropFunc(this.displayColIds[i]);
+      const _rawGetter = tableData.getRowPropFunc(this.colIds[i]);
 
       return {
         colId: this.colIds[i],

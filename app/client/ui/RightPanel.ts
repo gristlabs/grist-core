@@ -780,7 +780,7 @@ export class RightPanel extends Disposable {
         ].join('\n');
       }
 
-      const collapsed: SessionObs<Boolean> = this._advLinkInfoCollapsed;
+      const collapsed: SessionObs<boolean> = this._advLinkInfoCollapsed;
       return hasLink ? [
           cssRow(
             icon('Dropdown', dom.style('transform', (use2) => use2(collapsed) ? 'rotate(-90deg)' : '')),

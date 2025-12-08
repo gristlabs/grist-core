@@ -2,7 +2,7 @@
 
 /* global grist, window, document, $ */
 
-let resolve;  // eslint-disable-line no-unused-vars
+let resolve;
 
 const importer = {
   getImportSource: () => new Promise((_resolve) => {

@@ -435,7 +435,7 @@ describe('Comments', function() {
 
     // Create another doc in this workspace.
     const homeWs = await ownerApi.getOrgWorkspaces(session.teamSite.orgDomain)
-                                 .then(list => list.find(w => w.name === 'Home')?.id ?? null)!;
+                                 .then(list => list.find(w => w.name === 'Home')?.id ?? null);
     const secondDoc = await session.forWorkspace('Home').tempNewDoc(cleanup, 'Hello2', {load: false});
 
     // Add an Charon as an Owner of the Home workspace
