@@ -65,6 +65,7 @@ export class WebpackServer implements IMochaServer {
     });
 
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const config = require(configPath);
     const port = config.devServer.port;
     this._serverUrl = `http://localhost:${port}`;
