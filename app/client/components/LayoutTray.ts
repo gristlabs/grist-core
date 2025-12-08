@@ -649,7 +649,9 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
     this._buildHidden();
     this.onDispose(() => {
       const instance = this._hiddenViewInstance.get();
-      instance && dom.domDispose(instance);
+      if (instance) {
+        dom.domDispose(instance);
+      }
     });
   }
 
@@ -661,7 +663,9 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
     this._detached = false;
     const previous = this._hiddenViewInstance.get();
     this._buildHidden();
-    previous && dom.domDispose(previous);
+    if (previous) {
+      dom.domDispose(previous);
+    }
   }
 
   public buildDom() {

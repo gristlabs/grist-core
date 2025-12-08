@@ -171,7 +171,16 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         [this._keyBindings.previous + '$']: (ev) => this._maybeAdvance(ev, -1),
         [this._keyBindings.next + '$']: (ev) => this._maybeAdvance(ev, +1),
         // ['Mod+z'] triggers undo; ['Mod+Shift+Z', 'Ctrl+y' ] trigger redo
-        z$: (ev) => { if (ev[modKeyProp()]) { ev.shiftKey ? this._redo(ev) : this._undo(ev); } },
+        z$: (ev) => {
+          if (ev[modKeyProp()]) {
+            if (ev.shiftKey) {
+              this._redo(ev);
+            }
+            else {
+              this._undo(ev);
+            }
+          }
+        },
         y$: (ev) => { if (ev.ctrlKey && !ev.shiftKey) { this._redo(ev); } },
       }),
       this._hiddenInput = cssHiddenInput({type: 'text', tabIndex: '-1'},

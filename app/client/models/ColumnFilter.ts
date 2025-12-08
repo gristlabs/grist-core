@@ -79,7 +79,11 @@ export class ColumnFilter extends Disposable {
   public addMany(values: CellValue[]) {
     this._toValues();
     for (const val of values) {
-      this._include ? this._values.add(val) : this._values.delete(val);
+      if (this._include) {
+        this._values.add(val);
+      } else {
+        this._values.delete(val);
+      }
     }
     this._updateState();
   }
@@ -91,7 +95,11 @@ export class ColumnFilter extends Disposable {
   public deleteMany(values: CellValue[]) {
     this._toValues();
     for (const val of values) {
-      this._include ? this._values.delete(val) : this._values.add(val);
+      if (this._include) {
+        this._values.delete(val);
+      } else {
+        this._values.add(val);
+      }
     }
     this._updateState();
   }

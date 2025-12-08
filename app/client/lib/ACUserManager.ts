@@ -58,7 +58,11 @@ export function buildACMemberEmail(
     emailInput.focus();
   };
   const onEnter = () => {
-    isOpen() ? commitIfValid() : acOpen();
+    if (isOpen()) {
+      commitIfValid();
+    } else {
+      acOpen();
+    }
   };
 
   const commitIfValid = () => {

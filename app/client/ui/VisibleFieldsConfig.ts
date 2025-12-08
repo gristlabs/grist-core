@@ -402,7 +402,11 @@ export class VisibleFieldsConfig extends Disposable {
         dom.boolAttr('disabled', this._disabled),
         dom.attr('aria-label', (use) => t("Show {{label}} (batch mode)", {label: use(column.label)})),
         dom.on('change', (ev, el) => {
-          el.checked ? selection.add(id) : selection.delete(id);
+          if (el.checked) {
+            selection.add(id);
+          } else {
+            selection.delete(id);
+          }
           this._showHiddenBatchButtons.set(Boolean(selection.size));
         })
       )
@@ -428,7 +432,11 @@ export class VisibleFieldsConfig extends Disposable {
         dom.boolAttr('disabled', this._disabled),
         dom.attr('aria-label', (use) => t("Hide {{label}} (batch mode)", {label: use(field.label)})),
         dom.on('change', (ev, el) => {
-          el.checked ? selection.add(id) : selection.delete(id);
+          if (el.checked) {
+            selection.add(id);
+          } else {
+            selection.delete(id);
+          }
           this._showVisibleBatchButtons.set(Boolean(selection.size));
         })
       )
