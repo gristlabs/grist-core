@@ -321,7 +321,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // If all selected columns are empty or formula column.
   columnsAllIsFormula: ko.PureComputed<boolean>;
   // Common type of selected columns or mixed.
-  columnsType: ko.PureComputed<string|'mixed'>;
+  columnsType: ko.PureComputed<string>;
 
   widgetType: modelUtil.KoSaveableObservable<WidgetType>;
 

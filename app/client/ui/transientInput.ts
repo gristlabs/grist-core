@@ -12,7 +12,7 @@ import {dom, DomArg, styled} from 'grainjs';
 
 export interface ITransientInputOptions {
   initialValue: string;
-  save(value: string): Promise<void>|any;
+  save(value: string): Promise<void>;
   close(): void;
 }
 

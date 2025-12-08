@@ -4,7 +4,7 @@ import {CompiledPredicateFormula} from 'app/common/PredicateFormula';
 import {MetaRowRecord} from 'app/common/TableData';
 
 export interface RuleSet {
-  tableId: '*' | string;
+  tableId: string;
   colIds: '*' | string[];
   // The default permissions for this resource, if set, are represented by a RulePart with
   // aclFormula of "", which must be the last element of body.

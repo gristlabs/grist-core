@@ -94,7 +94,11 @@ export class AccountPage extends Disposable {
               transientInput(
                 {
                   initialValue: user.name,
-                  save: (val) => this._isNameValid.get() && this._updateUserName(val),
+                  save: async (val) => {
+                    if (this._isNameValid.get()) {
+                      await this._updateUserName(val);
+                    }
+                  },
                   close: () => { this._isEditingName.set(false); this._nameEdit.set(''); },
                 },
                 {size: '5'}, // Lower size so that input can shrink below ~152px.
