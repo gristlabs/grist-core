@@ -112,15 +112,15 @@ describe('gutil2', function() {
       assert.equal(await gutil.isLongerThan(delay(10), 100), false);
 
       // A promise that throws before the timeout, causes the returned promise to resolve to false.
-      const errorObj = {};
-      let promise = delay(10).then(() => { throw errorObj; });
+      const err = new Error('some error');
+      let promise = delay(10).then(() => { throw err; });
       assert.equal(await gutil.isLongerThan(promise, 100), false);
-      await assert.isRejected(promise);
+      await assert.isRejected(promise, err);
 
       // A promise that throws after the timeout, causes the returned promise to resolve to true.
-      promise = delay(200).then(() => { throw errorObj; });
+      promise = delay(200).then(() => { throw err; });
       assert.equal(await gutil.isLongerThan(promise, 100), true);
-      await assert.isRejected(promise);
+      await assert.isRejected(promise, err);
     });
   });
 
@@ -137,7 +137,7 @@ describe('gutil2', function() {
       assert.isFalse(await gutil.timeoutReached(DELAY_2, delay(DELAY_1)
         .then(() => { throw new Error("test error"); })));
       assert.isFalse(await gutil.timeoutReached(DELAY_2, Promise.resolve('foo')));
-      assert.isFalse(await gutil.timeoutReached(DELAY_2, Promise.reject('bar')));
+      assert.isFalse(await gutil.timeoutReached(DELAY_2, Promise.reject(new Error('bar'))));
     });
   });
 

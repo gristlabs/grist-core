@@ -15,7 +15,7 @@ describe('streams', function() {
     it('drain a stream when a promise is rejected, and rejects', async function () {
       const readable = stream.Readable.from(Buffer.from('Some content'));
       assert.isTrue(readable.readable);
-      await assert.isRejected(drainWhenSettled(readable, Promise.reject("Some value")), "Some value");
+      await assert.isRejected(drainWhenSettled(readable, Promise.reject(new Error("Some value"))), "Some value");
       assert.isFalse(readable.readable);
     });
   });
