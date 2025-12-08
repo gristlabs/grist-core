@@ -523,7 +523,7 @@ describe('DocWorkerMap', function() {
           this.timeout(15000);
 
           // Create a test documment.
-          const session = new TestSession(servers.home!);
+          const session = new TestSession(servers.home);
           const api = await session.createHomeApi('chimpy', 'nasa');
           const supportApi = await session.createHomeApi('support', 'docs', true);
           const ws1 = await api.newWorkspace({name: 'ws1'}, 'current');
@@ -690,7 +690,7 @@ describe('DocWorkerMap', function() {
 
             workers = getDocWorkerMap();
 
-            session = new TestSession(servers.home!);
+            session = new TestSession(servers.home);
             api = await session.createHomeApi('chimpy', 'nasa', true);
             wsId = await api.newWorkspace({name: 'ws'}, 'current');
             docId = await api.newDoc({name: 'doc'}, wsId);

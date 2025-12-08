@@ -8,6 +8,16 @@
         "og-title": "Grist, vývoj tabuľkových procesorov"
     },
     "access": {
-        "docNoAccess": "Nemáte prístup k tomuto dokumentu."
+        "docNoAccess": "Nemáte prístup k tomuto dokumentu.",
+        "docDisabled": "Tento dokument je deaktivovaný."
+    },
+    "admin": {
+        "emptyOrg": "Nenašli sa žiadni vlastníci správcu organizácie definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noDefaultEmail": "Chýbajúci účet správcu, pretože `GRIST_DEFAULT_EMAIL` nie je nastavený",
+        "orgUser": "Užívateľ je vlastníkom správcu organizácie definovanej ako `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "accountByEmail": "Správcovský účet definovaný ako `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Dokument bez názvu"
     }
 }

@@ -9,7 +9,7 @@
         "Saved": "Enregistré",
         "Invalid": "Invalide",
         "Save": "Enregistrer",
-        "Reset": "Annuler",
+        "Reset": "Réinitialiser",
         "Add table rules": "Ajouter des règles pour la table",
         "Add user attributes": "Ajouter des propriétés d'utilisateur",
         "Users": "Utilisateurs",
@@ -105,7 +105,8 @@
         "Column {{colId}} was subsequently removed in action #{{action.actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{action.actionNum}}",
         "All tables": "Toutes les tables",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "La colonne {{colId}} a ensuite été supprimée dans l'action #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "Cette ligne a été ensuite supprimée dans l'action {{actionNum}}",
+        "History blocked because of access rules.": "Historique non accessible à cause des permissions avancées."
     },
     "AddNewButton": {
         "Add new": "Nouveau"
@@ -525,7 +526,7 @@
     },
     "FilterBar": {
         "SearchColuns": "Rechercher",
-        "SearchColumns": "Colonnes",
+        "SearchColumns": "Rechercher dans les colonnes",
         "Search Columns": "Chercher des colonnes"
     },
     "GridOptions": {
@@ -588,7 +589,7 @@
         "Add formula column": "Ajouter une colonne formule",
         "Add column with type": "Ajouter une colonne de type",
         "Created by": "Créé par",
-        "Created at": "Créé à",
+        "Created at": "Créé le",
         "Last updated by": "Dernière mise à jour par",
         "Detect duplicates in...": "Détecter les duplicats dans...",
         "Last updated at": "Dernière mise à jour",
@@ -2154,7 +2155,8 @@
         "Workspace": "Dossier",
         "context menu - {{- documentName }}": "menu contextuel - {{- documentName }}",
         "Documents list": "Liste des documents",
-        "Download document...": "Télécharger le document..."
+        "Download document...": "Télécharger le document...",
+        "Deleted {{at}}": "Supprimé {{at}}"
     },
     "RenameDocModal": {
         "Icon": "Icône",
@@ -2259,7 +2261,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Dupliquer la vue",
-        "Duplicate widgets": "Dupliquer les vues"
+        "Duplicate widgets": "Dupliquer les vues",
+        "Active": "Actif",
+        "Create new page": "Créer une nouvelle page"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "En cours de téléversement, merci de patienter…"

@@ -1,5 +1,8 @@
 {
     "App": {
         "Translators: please translate this only when your language is ready to be offered to users": "Translators: please translate this only when your language is ready to be offered to users"
+    },
+    "ACUserManager": {
+        "Enter email address": "输入电子邮箱地址"
     }
 }

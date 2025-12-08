@@ -10,6 +10,7 @@ import {viewCommands} from 'app/client/components/RegionFocusSwitcher';
 import * as commands from 'app/client/components/commands';
 import kd from 'app/client/lib/koDom';
 import koDomScrolly from 'app/client/lib/koDomScrolly';
+import {makeT} from 'app/client/lib/localization';
 import {PasteData} from 'app/client/lib/tableUtil';
 import * as tableUtil from 'app/client/lib/tableUtil';
 import BaseRowModel from 'app/client/models/BaseRowModel';
@@ -27,6 +28,8 @@ import {UIRowId} from 'app/plugin/GristAPI';
 import {dom} from 'grainjs';
 import ko from 'knockout';
 import _ from 'underscore';
+
+const t = makeT('DetailView');
 
 // Disable member-ordering linting temporarily, so that it's easier to review the conversion to
 // typescript. It would be reasonable to reorder methods and re-enable this lint check.
@@ -374,11 +377,20 @@ export default class DetailView extends BaseView {
             ),
           );
         } else {
-          return dom.update(
-            this.makeRecord(this.detailRecord!),
-            kd.domData('itemModel', this.detailRecord),
-            dom.hide((use) => use(this.cursor.rowIndex) === null)
-          );
+          return dom.domComputed((use) => {
+            if (use(this.cursor.rowIndex) === null) {
+              return dom('div',
+                dom('div.detailview_record_unavailable_overlay', t('This row is unavailable or does not exist')),
+              );
+            } else {
+              return dom.update(
+                this.makeRecord(this.detailRecord!),
+                kd.domData('itemModel', this.detailRecord),
+                dom.hide((use2) => use2(this.cursor.rowIndex) === null)
+              );
+            }
+          });
+
         }
       }),
     );

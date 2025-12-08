@@ -138,9 +138,9 @@ async function getMetaTables(activeDocSource: ActiveDocSource): Promise<TableDat
 }
 
 // Makes assertion that value does exist or throws an error
-function safe<T>(value: T, msg: string) {
+function safe<T>(value: T, msg: string): NonNullable<T> {
   if (!value) { throw new ApiError(msg, 404); }
-  return value as NonNullable<T>;
+  return value;
 }
 
 // Helper for getting table from filtered metadata.
