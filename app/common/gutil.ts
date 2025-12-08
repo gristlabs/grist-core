@@ -14,7 +14,7 @@ import {
   UseCBOwner
 } from 'grainjs';
 import {Observable as KoObservable} from 'knockout';
-import identity = require('lodash/identity');
+import identity from 'lodash/identity';
 
 // Some definitions have moved to be used by plugin API.
 export {arrayRepeat} from 'app/plugin/gutil';

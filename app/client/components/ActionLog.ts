@@ -23,7 +23,7 @@ import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
 import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
 import * as ko from 'knockout';
-import takeWhile = require('lodash/takeWhile');
+import takeWhile from 'lodash/takeWhile';
 
 /**
  *

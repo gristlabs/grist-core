@@ -31,7 +31,7 @@ import {
 } from "grainjs";
 import Popper from 'popper.js';
 import {IOpenController, popupOpen, setPopupToCreateDom} from 'popweasel';
-import without = require('lodash/without');
+import without from 'lodash/without';
 
 const t = makeT('PageWidgetPicker');
 

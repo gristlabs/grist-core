@@ -5,7 +5,7 @@ import {DocStatus, DocWorkerInfo, IDocWorkerMap} from 'app/server/lib/DocWorkerM
 import log from 'app/server/lib/log';
 import {checkPermitKey, formatPermitKey, IPermitStore, Permit} from 'app/server/lib/Permit';
 import {promisifyAll} from 'bluebird';
-import mapValues = require('lodash/mapValues');
+import mapValues from 'lodash/mapValues';
 import {createClient, Multi, RedisClient} from 'redis';
 import Redlock from 'redlock';
 import {v4 as uuidv4} from 'uuid';

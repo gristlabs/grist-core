@@ -6,7 +6,7 @@ import {syncedKoArray} from 'app/client/lib/koArray';
 import {ColumnRec, TableRec} from 'app/client/models/DocModel';
 import {observable, toKo} from 'grainjs';
 import * as ko from 'knockout';
-import range = require('lodash/range');
+import range from 'lodash/range';
 
 function table(id: number, name: string) {
   return {id: ko.observable(id), tableId: ko.observable(name), tableNameDef: ko.observable(name)} as any as TableRec;

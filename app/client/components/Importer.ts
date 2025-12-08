@@ -61,7 +61,7 @@ import {
   styled,
   UseCBOwner
 } from 'grainjs';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 const t = makeT('Importer');
 // Custom testId that can be appended conditionally.

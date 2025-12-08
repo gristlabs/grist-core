@@ -16,7 +16,7 @@ import {nativeCompare} from 'app/common/gutil';
 import {decodeObject, encodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, IDisposableOwner, MultiHolder, Observable, styled} from 'grainjs';
 import {cssMenu, cssMenuItem, defaultMenuOptions, IOpenController, setPopupToCreateDom} from "popweasel";
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 
 const t = makeT('TriggerFormulas');
 

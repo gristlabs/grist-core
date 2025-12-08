@@ -17,7 +17,7 @@ import {ApiError} from 'app/common/ApiError';
 import {delay} from 'app/common/delay';
 import log from 'app/server/lib/log';
 import {Mutex, MutexInterface} from 'async-mutex';
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 import {EntityManager, ObjectLiteral, QueryRunner, TypeORMError} from 'typeorm';
 import {PostgresDriver} from 'typeorm/driver/postgres/PostgresDriver';
 import {PostgresQueryRunner} from 'typeorm/driver/postgres/PostgresQueryRunner';

@@ -6,8 +6,8 @@ import { INotifier } from 'app/server/lib/INotifier';
 import { scrubUserFromOrg } from 'app/gen-server/lib/scrubUserFromOrg';
 import { GristLoginSystem } from 'app/server/lib/GristServer';
 import { IPermitStore } from 'app/server/lib/Permit';
-import remove = require('lodash/remove');
-import sortBy = require('lodash/sortBy');
+import remove from 'lodash/remove';
+import sortBy from 'lodash/sortBy';
 import fetch from 'node-fetch';
 
 /**

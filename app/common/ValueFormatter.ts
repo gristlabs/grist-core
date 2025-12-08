@@ -13,7 +13,7 @@ import {createParserOrFormatterArguments, ReferenceParsingOptions} from 'app/com
 import {GristObjCode} from 'app/plugin/GristData';
 import {decodeObject, GristDateTime} from 'app/plugin/objtypes';
 import moment from 'moment-timezone';
-import isPlainObject = require('lodash/isPlainObject');
+import isPlainObject from 'lodash/isPlainObject';
 
 export {PENDING_DATA_PLACEHOLDER} from 'app/plugin/objtypes';
 

@@ -42,7 +42,7 @@ import {tbind} from 'app/common/tbind';
 import {UIRowId} from 'app/plugin/GristAPI';
 import {Disposable, Holder, IDisposableOwnerT} from 'grainjs';
 import * as ko from 'knockout';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 // Limit on the how many rows to request for OnDemand tables.
 const ON_DEMAND_ROW_LIMIT = 10000;

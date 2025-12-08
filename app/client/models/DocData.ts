@@ -13,7 +13,7 @@ import {SchemaTypes} from 'app/common/schema';
 import {ColTypeMap} from 'app/common/TableData';
 import * as bluebird from 'bluebird';
 import {Emitter} from 'grainjs';
-import defaults = require('lodash/defaults');
+import defaults from 'lodash/defaults';
 
 const gristNotify = window.gristNotify!;
 

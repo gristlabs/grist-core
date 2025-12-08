@@ -15,8 +15,8 @@ import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document, Organization, RenameDocOptions, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
-import flatten = require('lodash/flatten');
-import sortBy = require('lodash/sortBy');
+import flatten from 'lodash/flatten';
+import sortBy from 'lodash/sortBy';
 
 const DELAY_BEFORE_SPINNER_MS = 500;
 

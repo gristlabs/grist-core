@@ -1,6 +1,6 @@
 import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {ResultRow} from 'app/common/TimeQuery';
-import toPairs = require('lodash/toPairs');
+import toPairs from 'lodash/toPairs';
 
 /**
  * An ActionSummary represents the overall effect of changes that took place

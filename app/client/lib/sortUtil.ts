@@ -7,7 +7,7 @@ import { SortFunc } from 'app/common/SortFunc';
 import { Sort } from 'app/common/SortSpec';
 import { UIRowId } from 'app/plugin/GristAPI';
 import * as ko from 'knockout';
-import range = require('lodash/range');
+import range from 'lodash/range';
 
 
 /**

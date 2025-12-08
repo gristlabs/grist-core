@@ -2,10 +2,10 @@ import * as Types from "app/plugin/DocApiTypes";
 import { BulkColValues } from 'app/plugin/GristData';
 import { OpOptions, TableOperations, UpsertOptions } from 'app/plugin/TableOperations';
 import { arrayRepeat } from 'app/plugin/gutil';
-import flatMap = require('lodash/flatMap');
-import isEqual = require('lodash/isEqual');
-import pick = require('lodash/pick');
-import groupBy = require('lodash/groupBy');
+import flatMap from 'lodash/flatMap';
+import isEqual from 'lodash/isEqual';
+import pick from 'lodash/pick';
+import groupBy from 'lodash/groupBy';
 
 /**
  * An implementation of the TableOperations interface, given a platform

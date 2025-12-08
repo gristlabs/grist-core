@@ -1,5 +1,5 @@
-import defaults = require('lodash/defaults');
-import identity = require('lodash/identity');
+import defaults from 'lodash/defaults';
+import identity from 'lodash/identity';
 import {inspect} from 'util';
 
 function truncateString(s: string|Uint8Array, maxLen: number, optStringMapper?: (arg: any) => string): string {

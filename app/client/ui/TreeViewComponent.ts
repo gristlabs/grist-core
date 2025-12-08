@@ -4,9 +4,9 @@ import { mouseDrag, MouseDragHandler, MouseDragStart } from "app/client/ui/mouse
 import * as css from 'app/client/ui/TreeViewComponentCss';
 import { Computed, dom, DomArg, Holder } from "grainjs";
 import { Disposable, IDisposable, makeTestId, ObsArray, Observable, observable } from "grainjs";
-import debounce = require('lodash/debounce');
-import defaults = require("lodash/defaults");
-import noop = require('lodash/noop');
+import debounce from 'lodash/debounce';
+import defaults from "lodash/defaults";
+import noop from 'lodash/noop';
 
 const t = makeT('TreeViewComponent');
 

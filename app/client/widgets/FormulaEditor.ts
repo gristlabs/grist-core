@@ -23,7 +23,7 @@ import {undef} from 'app/common/gutil';
 import {getGristConfig} from 'app/common/urlUtils';
 import {decodeObject, RaisedException} from 'app/plugin/objtypes';
 import {Computed, Disposable, dom, Holder, MultiHolder, Observable, styled, subscribe} from 'grainjs';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 // How wide to expand the FormulaEditor when an error is shown in it.
 const minFormulaErrorWidth = 400;

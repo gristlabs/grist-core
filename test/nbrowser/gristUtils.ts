@@ -4,9 +4,9 @@
  * The helpers are themselves tested in TestGristUtils.ts.
  */
 import * as fse from 'fs-extra';
-import escapeRegExp = require('lodash/escapeRegExp');
-import noop = require('lodash/noop');
-import startCase = require('lodash/startCase');
+import escapeRegExp from 'lodash/escapeRegExp';
+import noop from 'lodash/noop';
+import startCase from 'lodash/startCase';
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';

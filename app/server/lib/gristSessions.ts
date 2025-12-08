@@ -9,7 +9,7 @@ import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
 import * as crypto from 'crypto';
 import * as express from 'express';
-import assignIn = require('lodash/assignIn');
+import assignIn from 'lodash/assignIn';
 import * as path from 'path';
 import {createClient} from 'redis';
 

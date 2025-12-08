@@ -1,6 +1,6 @@
-import escapeRegExp = require('lodash/escapeRegExp');
-import last = require('lodash/last');
-import memoize = require('lodash/memoize');
+import escapeRegExp from 'lodash/escapeRegExp';
+import last from 'lodash/last';
+import memoize from 'lodash/memoize';
 import {getDistinctValues, isNonNullish} from 'app/common/gutil';
 // Simply importing 'moment-guess' inconsistently imports bundle.js or bundle.esm.js depending on environment
 import guessFormat from '@gristlabs/moment-guess/dist/bundle.js';

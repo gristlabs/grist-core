@@ -15,8 +15,8 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import {byteString, safeJsonParse} from 'app/common/gutil';
 import {FetchUrlOptions, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
 import {docUrl} from 'app/common/urlUtils';
-import noop = require('lodash/noop');
-import trimStart = require('lodash/trimStart');
+import noop from 'lodash/noop';
+import trimStart from 'lodash/trimStart';
 import {basename} from 'path';      // made available by webpack using path-browserify module.
 
 type ProgressCB = (percent: number) => void;

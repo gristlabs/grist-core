@@ -21,10 +21,10 @@ import {
 } from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
-import noop = require('lodash/noop');
-import debounce = require('lodash/debounce');
-import isEqual = require('lodash/isEqual');
-import flatMap = require('lodash/flatMap');
+import noop from 'lodash/noop';
+import debounce from 'lodash/debounce';
+import isEqual from 'lodash/isEqual';
+import flatMap from 'lodash/flatMap';
 
 const testId = makeTestId('test-custom-widget-');
 

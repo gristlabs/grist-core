@@ -16,8 +16,8 @@ import {urlState} from 'app/client/models/gristUrlState';
 import {getTheme, ProductFlavor} from 'app/client/ui/CustomThemes';
 import {getOrCreateStyleElement} from 'app/client/lib/getOrCreateStyleElement';
 import {DomElementMethod, makeTestId, Observable, styled, TestId} from 'grainjs';
-import debounce = require('lodash/debounce');
-import values = require('lodash/values');
+import debounce from 'lodash/debounce';
+import values from 'lodash/values';
 
 /**
  * @deprecated Consume the {@link tokens} object directly

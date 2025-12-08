@@ -7,8 +7,8 @@
  */
 // tslint:disable:no-namespace
 
-import fromPairs = require('lodash/fromPairs');
-import mapValues = require('lodash/mapValues');
+import fromPairs from 'lodash/fromPairs';
+import mapValues from 'lodash/mapValues';
 
 
 // A PermissionValue is the result of evaluating rules. It provides a definitive answer.

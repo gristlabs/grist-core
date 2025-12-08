@@ -7,8 +7,8 @@ import {cssModalButtons} from 'app/client/ui2018/modals';
 import {ParseOptionSchema} from 'app/plugin/FileParserAPI';
 
 import {Computed, dom, DomContents, IDisposableOwner, input, Observable, styled} from 'grainjs';
-import fromPairs = require('lodash/fromPairs');
-import invert = require('lodash/invert');
+import fromPairs from 'lodash/fromPairs';
+import invert from 'lodash/invert';
 
 export type ParseOptionValueType = boolean|string|number;
 

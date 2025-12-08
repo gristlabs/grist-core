@@ -1,8 +1,8 @@
 import {BaseAPI} from 'app/common/BaseAPI';
 import {UserAPI, Workspace} from 'app/common/UserAPI';
 import {assert} from 'chai';
-import flatten = require('lodash/flatten');
-import sortBy = require('lodash/sortBy');
+import flatten from 'lodash/flatten';
+import sortBy from 'lodash/sortBy';
 import {TestServer} from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 

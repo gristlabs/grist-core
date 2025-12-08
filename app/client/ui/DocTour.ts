@@ -9,7 +9,7 @@ import {isNarrowScreen} from 'app/client/ui2018/cssVars';
 import {IconList, IconName} from 'app/client/ui2018/IconList';
 import {DocData} from 'app/common/DocData';
 import {dom} from 'grainjs';
-import sortBy = require('lodash/sortBy');
+import sortBy from 'lodash/sortBy';
 
 const t = makeT('DocTour');
 

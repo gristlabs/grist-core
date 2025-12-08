@@ -33,7 +33,7 @@ import {
   makeTestId,
   Observable,
 } from 'grainjs';
-import sortBy = require('lodash/sortBy');
+import sortBy from 'lodash/sortBy';
 
 const t = makeT(`DocMenu`);
 

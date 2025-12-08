@@ -37,9 +37,9 @@ import log from 'app/server/lib/log';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {PluginManager} from 'app/server/lib/PluginManager';
 import {getFileUploadInfo, globalUploadSet, makeAccessId, UploadInfo} from 'app/server/lib/uploads';
-import isDeepEqual = require('lodash/isEqual');
-import merge = require('lodash/merge');
-import noop = require('lodash/noop');
+import isDeepEqual from 'lodash/isEqual';
+import merge from 'lodash/merge';
+import noop from 'lodash/noop';
 import {DocumentSettings, DocumentSettingsChecker} from 'app/common/DocumentSettings';
 import {safeJsonParse} from 'app/common/gutil';
 

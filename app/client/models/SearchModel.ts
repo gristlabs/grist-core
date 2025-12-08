@@ -12,7 +12,7 @@ import {BaseFormatter} from 'app/common/ValueFormatter';
 import { makeT } from 'app/client/lib/localization';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {Computed, Disposable, Observable} from 'grainjs';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 const t = makeT('SearchModel');
 

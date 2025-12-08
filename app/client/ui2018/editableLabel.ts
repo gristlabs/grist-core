@@ -12,7 +12,7 @@
 import { theme } from 'app/client/ui2018/cssVars';
 import { dom, DomArg, styled } from 'grainjs';
 import { Observable } from 'grainjs';
-import noop = require('lodash/noop');
+import noop from 'lodash/noop';
 
 const cssWrapper = styled('div', `
   position: relative;

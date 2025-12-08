@@ -182,13 +182,13 @@ import {Patch} from 'app/server/lib/Patch';
 import {isUntrustedRequestBehaviorSet} from 'app/server/lib/ProxyAgent';
 import {findOrAddAllEnvelope, Sharing} from 'app/server/lib/Sharing';
 import {Cancelable} from 'lodash';
-import cloneDeep = require('lodash/cloneDeep');
-import flatten = require('lodash/flatten');
-import merge = require('lodash/merge');
-import pick = require('lodash/pick');
-import sum = require('lodash/sum');
-import throttle = require('lodash/throttle');
-import without = require('lodash/without');
+import cloneDeep from 'lodash/cloneDeep';
+import flatten from 'lodash/flatten';
+import merge from 'lodash/merge';
+import pick from 'lodash/pick';
+import sum from 'lodash/sum';
+import throttle from 'lodash/throttle';
+import without from 'lodash/without';
 
 const MAX_RECENT_ACTIONS = 100;
 

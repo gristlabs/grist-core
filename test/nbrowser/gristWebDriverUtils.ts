@@ -8,7 +8,7 @@
  * easily.
  */
 
-import escapeRegExp = require('lodash/escapeRegExp');
+import escapeRegExp from 'lodash/escapeRegExp';
 import { CommandName } from 'app/client/components/commandList';
 import { DocAction, UserAction } from 'app/common/DocActions';
 import { WebDriver, WebElement, WebElementPromise } from 'mocha-webdriver';

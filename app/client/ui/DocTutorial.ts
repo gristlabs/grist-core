@@ -16,9 +16,9 @@ import {confirmModal, modal} from 'app/client/ui2018/modals';
 import {parseUrlId} from 'app/common/gristUrls';
 import {Disposable, dom, Holder, makeTestId, Observable, styled} from 'grainjs';
 import {marked, Token} from 'marked';
-import debounce = require('lodash/debounce');
-import range = require('lodash/range');
-import sortBy = require('lodash/sortBy');
+import debounce from 'lodash/debounce';
+import range from 'lodash/range';
+import sortBy from 'lodash/sortBy';
 
 interface DocTutorialSlide {
   slideContent: string;

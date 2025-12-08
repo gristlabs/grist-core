@@ -6,8 +6,8 @@
 import {DocumentSettings} from 'app/common/DocumentSettings';
 import {safeJsonParse} from 'app/common/gutil';
 import {schema, SchemaTypes} from 'app/common/schema';
-import fromPairs = require('lodash/fromPairs');
-import groupBy = require('lodash/groupBy');
+import fromPairs from 'lodash/fromPairs';
+import groupBy from 'lodash/groupBy';
 import {ActionDispatcher} from 'app/common/ActionDispatcher';
 import {TableFetchResult} from 'app/common/ActiveDocAPI';
 import {

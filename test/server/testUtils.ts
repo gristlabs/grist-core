@@ -15,7 +15,7 @@ import { assert } from 'chai';
 import {tmpdir} from 'os';
 import * as path from 'path';
 import * as fse from 'fs-extra';
-import clone = require('lodash/clone');
+import clone from 'lodash/clone';
 import * as tmp from 'tmp-promise';
 import {FileOptions as TmpOptions} from 'tmp';
 import * as winston from 'winston';
