@@ -82,7 +82,11 @@ function buildDomFromTable(
   const {docModel} = activeDoc;
 
   const options: PageOptions = {
-    onRename: (newName: string) => newName.length && pageName.saveOnly(newName),
+    onRename: async (newName: string) => {
+      if (newName.length) {
+        await pageName.saveOnly(newName);
+      }
+    },
     onRemove: () => removeView(activeDoc, viewId, pageName.peek()),
     onDuplicate: () => buildDuplicatePageDialog(activeDoc, pageId),
     // Can't remove last visible page

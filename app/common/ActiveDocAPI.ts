@@ -49,6 +49,7 @@ export interface TransformRuleMap {
 // Both special options exposed as consts.
 export const NEW_TABLE = null;
 export const SKIP_TABLE = "";
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type DestId = string | typeof NEW_TABLE | typeof SKIP_TABLE;
 
 /**

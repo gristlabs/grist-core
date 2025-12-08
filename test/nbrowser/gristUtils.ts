@@ -1821,9 +1821,9 @@ type SortOptions = 'sort-asc'|'sort-dsc'|'add-to-sort-asc'|'add-to-sort-dsc';
  * Open the given column's dropdown menu. If `option` is provided, finds and clicks it.
  * If `option` is present in ColumnMenuOption, also waits for the specified element.
  */
-export function openColumnMenu(col: IColHeader|string, option?: 'Filter'): WebElementPromise;
-export function openColumnMenu(col: IColHeader|string, option: SortOptions|string): Promise<void>;
-export function openColumnMenu(col: IColHeader|string, option?: string): WebElementPromise|Promise<void> {
+export function openColumnMenu(col: IColHeader|string, option: SortOptions): Promise<void>;
+export function openColumnMenu(col: IColHeader|string, option?: string): WebElementPromise;
+export function openColumnMenu(col: IColHeader|string, option?: string): WebElementPromise | Promise<void> {
   if (['sort-asc', 'sort-dsc', 'add-to-sort-asc', 'add-to-sort-dsc'].includes(option || '')) {
     return openColumnMenuHelper(col).then<void>(async (menu) => {
       await menu.find(`.test-${option}`).click();

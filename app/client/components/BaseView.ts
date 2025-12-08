@@ -399,7 +399,7 @@ export default class BaseView extends DisposableWithEvents {
 
   // Commands run via a Mousetrap callback get a KeyboardEvent is the first argument. This is
   // obscure and essentially undocumented.
-  protected deleteRecords(source: KeyboardEvent|unknown) {
+  protected deleteRecords(source: unknown) {
     if (this.gristDoc.isReadonly.get()) {
       return;
     }

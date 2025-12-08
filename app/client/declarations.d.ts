@@ -24,11 +24,13 @@ declare module "app/client/components/RecordLayout" {
 
     public isEditingLayout: ko.Observable<boolean>;
     public editIndex: ko.Observable<number>;
-    public layoutEditor: ko.Observable<unknown|null>;
+    public layoutEditor: ko.Observable<unknown>;
 
     public getContainingRow(elem: Element, optContainer?: Element): DataRowModel;
     public getContainingField(elem: Element, optContainer?: Element): ViewFieldRec;
     public editLayout(rowIndex: number): void;
+    // FIXME: DataRowModel is unresolved.
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     public buildLayoutDom(row: DataRowModel|undefined, optCreateEditor?: boolean): HTMLElement;
   }
   export = RecordLayout;

@@ -400,7 +400,7 @@ export class ActiveDoc extends EventEmitter {
         ),
         // Log document metrics every hour.
         new Interval(
-          () => this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'),
+          async () => { this._logDocMetrics(makeExceptionalDocSession('system'), 'interval'); },
           LOG_DOCUMENT_METRICS_DELAY,
           {onError: (e) => this._log.error(null, 'failed to log document metrics', e)},
         ),
