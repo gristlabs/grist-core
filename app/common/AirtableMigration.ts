@@ -37,8 +37,7 @@ export class AirtableMigrator {
 }
 
 async function createTables(schemas: TableSchema[],
-                            applyUserActions: ApplyUserActionsFunc,
-                            /*getColumnInfo: GetTableColumnInfoFunc*/) {
+                            applyUserActions: ApplyUserActionsFunc) {
   const addTableActions: UserAction[] = [];
 
   for (const schema of schemas) {
@@ -96,8 +95,8 @@ async function createTables(schemas: TableSchema[],
         getColId(columnSchema.originalId),
         {
           type,
-          isFormula: columnSchema.formula !== undefined,
-          formula: columnSchema.formula,
+          isFormula: columnSchema.isFormula ?? false,
+          formula: columnSchema.formula?.({ getColId }),
           label: columnSchema.label,
           // Need to decouple it - otherwise our stored column ids may now be invalid.
           untieColIdFromLabel: columnSchema.label !== undefined,
@@ -105,9 +104,8 @@ async function createTables(schemas: TableSchema[],
           widgetOptions: JSON.stringify(columnSchema.widgetOptions),
           // TODO - Need column ref for this (as in the numerical id) - will need to load it.
           //visibleCol: columnSchema.visibleCol?.originalColId && getColId(columnSchema.visibleCol.originalColId),
-          // TODO - This
-          //recalcDeps: number[] | null;
-          //recalcWhen?: RecalcWhen;
+          recalcDeps: columnSchema.recalcDeps,
+          recalcWhen: columnSchema.recalcWhen,
         }
       ]);
     }
@@ -148,19 +146,23 @@ interface TableSchema {
   columns: ColumnSchema[];
 }
 
+type FormulaFunc = (params: { getColId(originalId: string): string }) => string
+
 interface ColumnSchema {
   originalId: string;
   desiredId: string;
   type: GristType;
-  formula?: string;
+  isFormula?: boolean;
+  formula?: FormulaFunc;
   label?: string;
   description?: string;
-  recalcDeps?: number[] | null;
+  // Only allow null until ID mapping is implemented
+  recalcDeps?: /*{ originalColId: string }[] |*/ null;
   recalcWhen?: RecalcWhen;
   ref?: { originalTableId: string };
   visibleCol?: { originalColId: string };
   untieColIdFromLabel?: boolean;
-  widgetOptions?: { [key: string]: any };
+  widgetOptions?: Record<string, any>;
 }
 
 type AirtableFieldMapper = (field: AirtableFieldSchema) => ColumnSchema;
@@ -171,7 +173,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
     };
   },
   autoNumber(field) {
@@ -180,8 +181,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      isFormula: false,
-      // TODO - Should have trigger formula
+      // TODO - Need a simple formula for this - PREVIOUS runs into working correctly, circular reference issues
     };
   },
   checkbox(field) {
@@ -190,17 +190,25 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Bool',
-      isFormula: false,
     };
   },
   count(field) {
+    let formula: FormulaFunc = () => "";
+    const fieldOptions = field.options;
+    if (fieldOptions && fieldOptions.isValid && fieldOptions.recordLinkFieldId) {
+      // These can have conditions set in Airtable to filter them, but we have no way of knowing
+      // if they're present - they're not exported in the schema definition...
+      // Warning: This may not strictly match 1-to-1 with airtable as a result.
+      formula = ({ getColId }) => `len($${getColId(fieldOptions.recordLinkFieldId)})`;
+    }
+
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      isFormula: false,
-      // TODO - Should be a formula
+      isFormula: true,
+      formula,
     };
   },
   createdBy(field) {
@@ -209,7 +217,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
+
     };
   },
   createdTime(field) {
@@ -218,8 +226,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      isFormula: false,
-      // TODO - Should have a trigger formula
+      formula: () => "NOW()",
+      recalcWhen: RecalcWhen.DEFAULT,
     };
   },
   currency(field) {
@@ -228,8 +236,12 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      isFormula: false,
-      // TODO - Should have currency formatting
+      widgetOptions: {
+        // Airtable only provides a currency symbol, which is pretty useless for setting this column up.
+        // Instead of showing a wrong currency - omit currency formatting and just use precision.
+        decimals: field.options?.precision ?? 2,
+        maxDecimals: field.options?.precision ?? 2,
+      }
     };
   },
   date(field) {
@@ -238,8 +250,10 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Date',
-      isFormula: false,
-      // TODO - Choose best format for date based on the Airtable configuration
+      widgetOptions: {
+        isCustomDateFormat: true,
+        dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+      },
     };
   },
   dateTime(field) {
@@ -248,8 +262,12 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      isFormula: false,
-      // TODO - Choose best format for datetime based on the Airtable configuration
+      widgetOptions: {
+        isCustomDateFormat: true,
+        dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+        isCustomTimeFormat: true,
+        timeFormat: field.options?.timeFormat?.format ?? "h:mma",
+      },
     };
   },
   duration(field) {
@@ -258,7 +276,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      isFormula: false,
       // TODO - Should also produce a formatted duration formula column.
     };
   },
@@ -268,7 +285,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
     };
   },
   formula(field) {
@@ -276,9 +292,13 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
-      type: 'Text',
-      isFormula: false,
-      // It would be helpful to convert formulas, but that's significant work.
+      // The field schema from Airtable has more information on what this should be,
+      // such as field type and options. The logic to implement that however doesn't seem worth
+      // the time investment.
+      type: 'Any',
+      // Store the formula as a comment to prevent it showing errors.
+      formula: () => `#${field.options?.formula || "No formula set"}`,
+      isFormula: true,
     };
   },
   lastModifiedBy(field) {
@@ -287,8 +307,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
-      // TODO - Add trigger formula
+      formula: () => 'user and f"{user.Name}"',
+      recalcWhen: 2,
     };
   },
   lastModifiedTime(field) {
@@ -297,8 +317,14 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'DateTime',
-      isFormula: false,
-      // TODO - Add trigger formula
+      formula: () => 'NOW()',
+      recalcWhen: 2,
+      widgetOptions: {
+        isCustomDateFormat: true,
+        dateFormat: field.options?.dateFormat?.format ?? "MM/DD/YYYY",
+        isCustomTimeFormat: true,
+        timeFormat: field.options?.timeFormat?.format ?? "h:mma",
+      },
     };
   },
   multilineText(field) {
@@ -307,8 +333,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
-      // TODO - Set up formatting
     };
   },
   multipleAttachments(field) {
@@ -317,7 +341,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Attachments',
-      isFormula: false,
     };
   },
   multipleCollaborators(field) {
@@ -326,8 +349,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
-      // TODO - Format this sensibly
+      // Do we make a collaborators table and make this a reference instead?
     };
   },
   multipleRecordLinks(field) {
@@ -336,9 +358,8 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'RefList',
-      isFormula: false,
       ref: {
-        originalTableId: field.options.linkedTableId,
+        originalTableId: field.options?.linkedTableId,
       }
     };
   },
@@ -348,8 +369,11 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'ChoiceList',
-      isFormula: false,
-      // TODO - Set up choices
+      widgetOptions: {
+        choices: field.options?.choices.map((choice: any) => choice.name),
+        // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
+        choiceOptions: {},
+      },
     };
   },
   number(field) {
@@ -358,8 +382,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      isFormula: false,
-      // TODO - Set up formatting / precision info
+      widgetOptions: {
+        decimals: field.options?.precision,
+      }
     };
   },
   percent(field) {
@@ -368,8 +393,9 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Numeric',
-      isFormula: false,
-      // TODO - Set up percentage formatting
+      widgetOptions: {
+        numMode: "percent",
+      },
     };
   },
   phoneNumber(field) {
@@ -378,7 +404,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
     };
   },
   rating(field) {
@@ -387,7 +412,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Int',
-      isFormula: false,
       // Consider setting up some nice conditional formatting.
     };
   },
@@ -397,29 +421,35 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
-      // TODO - Set up markdown
+      widgetOptions: {
+        widget: "Markdown",
+      },
     };
   },
-  /*
   rollup(field) {
+    let formula: FormulaFunc = () => "";
+    const fieldOptions = field.options;
+    if (fieldOptions && fieldOptions.recordLinkFieldId && fieldOptions.fieldIdInLinkedTable) {
+      formula = ({ getColId }) => `
+        $${getColId(fieldOptions.recordLinkFieldId)}.${getColId(fieldOptions.fieldIdInLinkedTable)}
+      `.trim();
+    }
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
-      type: '',
-      isFormula: false,
-      formula: field.options?.formula || '',
+      type: 'Any',
+      isFormula: true,
+      formula,
+      // TODO - Warn that this won't be perfect.
     };
   },
-  */
   singleCollaborator(field) {
     return {
       originalId: field.id,
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
     };
   },
   singleLineText(field) {
@@ -428,8 +458,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
-      // TODO - Set up formatting
     };
   },
   singleSelect(field) {
@@ -438,8 +466,11 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Choice',
-      isFormula: false,
-      // TODO - Set up choices
+      widgetOptions: {
+        choices: field.options?.choices.map((choice: any) => choice.name),
+        // We could import the color by mapping choice.color (e.g. tealLight2) to a hex color
+        choiceOptions: {},
+      },
     };
   },
   url(field) {
@@ -448,7 +479,6 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
       desiredId: field.name,
       label: field.name,
       type: 'Text',
-      isFormula: false,
       widgetOptions: {
         widget: "HyperLink",
       },
