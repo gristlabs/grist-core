@@ -452,3 +452,42 @@ class TestColumnActions(test_engine.EngineTestCase):
       [3,     '[-16]'      ],
       [5,     '[]'         ],
     ])
+
+  @test_engine.test_undo
+  def test_column_add_preserves_label(self):
+    # Verify that when we add a column and its colId is used also for the label, the value used is
+    # the value before sanitization (e.g. "Full Amount $") rather than after ("Full_Amount_").
+    self.apply_user_action(["AddTable", "Address", []])
+
+    self.apply_user_action(["AddColumn", "Address", "Full Amount $", {"type": "Numeric"}])
+    self.apply_user_action(["AddColumn", "Address", "  Résumé  ", {}])
+    self.apply_user_action(["AddColumn", "Address", "компанія", {}])
+    self.apply_user_action(["AddColumn", "Address", "12/2025", {}])
+    self.apply_user_action(["AddColumn", "Address", "", {}])
+    self.apply_user_action(["AddColumn", "Address", "   ", {}])
+
+    # In case of duplicate column, it's a bit debatable whether a duplicate label is a good idea,
+    # but we don't enforce uniqueness of labels, so it seems better to preserve label as is too.
+    self.apply_user_action(["AddColumn", "Address", "Phone", {}])
+    self.apply_user_action(["AddColumn", "Address", "Phone", {}])
+
+    # If we specify a label, it takes priority.
+    self.apply_user_action(["AddColumn", "Address", "Full Amount $", {"label": " TOTAL!"}])
+
+    # The same behavior should apply to AddHiddenColumn.
+    self.apply_user_action(["AddHiddenColumn", "Address", "São Luís", {}])
+
+    self.assertTableData('_grist_Tables_column', cols="subset", rows="all", data=[
+      ["id", "colId", "label"],
+      [1, "manualSort", "manualSort"],  # An automatically created hidden column.
+      [2, "Full_Amount_", "Full Amount $"],
+      [3, "Resume_", "Résumé"],         # Notice that we trim start/end whitespace from label.
+      [4, "A", "компанія"],
+      [5, "c12_2025", "12/2025"],
+      [6, "B", "B"],                    # we do keep colId over an empty string.
+      [7, "C", "C"],                    # here too.
+      [8, "Phone", "Phone"],
+      [9, "Phone2", "Phone"],
+      [10, "Full_Amount_2", " TOTAL!"],
+      [11, "Sao_Luis", "São Luís"],
+    ])

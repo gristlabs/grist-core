@@ -488,3 +488,38 @@ class TestTableActions(test_engine.EngineTestCase):
       [ 5,   "Bedford", 1,       [2]],
       [ 6,   "Buffalo", 1,       [3]],
     ])
+
+  @test_engine.test_undo
+  def test_table_add_preserves_labels(self):
+    # Verify that when we add columns without labels, the value of colId used for the label is the
+    # value before sanitization (e.g. "Full Amount $") rather than after ("Full_Amount_").
+    self.apply_user_action(["AddTable", "Address", [
+      {"id": "Full Amount $", "type": "Numeric"},
+      {"id": "  Résumé  "},
+      {"id": "компанія"},
+      {"id": "12/2025"},
+      {"id": ""},
+      {"id": "   "},
+
+      # In case of duplicate column, it's a bit debatable whether a duplicate label is a good idea,
+      # but we don't enforce uniqueness of labels, so it seems better to preserve label as is too.
+      {"id": "Phone"},
+      {"id": "Phone"},
+
+      # If we specify a label, it takes priority.
+      {"id": "Full Amount $", "label": " TOTAL!"},
+    ]])
+
+    self.assertTableData('_grist_Tables_column', cols="subset", rows="all", data=[
+      ["id", "colId", "label"],
+      [1, "manualSort", "manualSort"],  # An automatically created hidden column.
+      [2, "Full_Amount_", "Full Amount $"],
+      [3, "Resume_", "Résumé"],         # Notice that we trim start/end whitespace
+      [4, "A", "компанія"],
+      [5, "c12_2025", "12/2025"],
+      [6, "B", "B"],                    # we do keep colId over an empty string.
+      [7, "C", "C"],                    # here too.
+      [8, "Phone", "Phone"],
+      [9, "Phone2", "Phone"],
+      [10, "Full_Amount_2", " TOTAL!"],
+    ])
