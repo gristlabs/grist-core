@@ -131,7 +131,7 @@ class TestRules(test_engine.EngineTestCase):
        {"formula": "", "isFormula": True, "type": "Any"}],
       ["AddRecord", "_grist_Tables_column", 5,
        {"colId": "gristHelper_ConditionalRule2", "formula": "", "isFormula": True,
-        "label": "gristHelper_ConditionalRule2", "parentId": 1, "parentPos": 4.0,
+        "label": "gristHelper_ConditionalRule", "parentId": 1, "parentPos": 4.0,
         "type": "Any",
         "widgetOptions": ""}],
       ["UpdateRecord", "_grist_Tables_column", 3, {"rules": ["L", 4, 5]}],

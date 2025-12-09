@@ -413,7 +413,7 @@ class TestUserActions(test_engine.EngineTestCase):
         ["BulkUpdateRecord", "People", [1, 2, 3], {"favorite": [12, 11, 13]}],
         ["AddColumn", "People", "favorite", {"formula": "", "isFormula": False, "type": "Ref:Television"}],
         ["AddColumn", "People", "gristHelper_Display", {"formula": "$favorite.show", "isFormula": True, "type": "Any"}],
-        ["AddRecord", "_grist_Tables_column", 28, {"colId": "gristHelper_Display2", "formula": "$favorite.network", "isFormula": True, "label": "gristHelper_Display2", "parentId": 2, "parentPos": 8.0, "type": "Any"}],
+        ["AddRecord", "_grist_Tables_column", 28, {"colId": "gristHelper_Display2", "formula": "$favorite.network", "isFormula": True, "label": "gristHelper_Display", "parentId": 2, "parentPos": 8.0, "type": "Any"}],
         ["AddColumn", "People", "gristHelper_Display2", {"formula": "$favorite.network", "isFormula": True, "type": "Any"}],
       ],
     })
