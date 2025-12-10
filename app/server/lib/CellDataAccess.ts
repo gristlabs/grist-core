@@ -28,6 +28,7 @@ import { isCensored } from 'app/common/gristTypes';
 import { getSetMapValue, safeJsonParse } from 'app/common/gutil';
 import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { GristObjCode } from 'app/plugin/GristData';
+import { isEqual } from 'lodash';
 
 
 /**
@@ -39,15 +40,12 @@ import { GristObjCode } from 'app/plugin/GristData';
 export async function applyAndCheckActionsForCells(
   docData: DocData,
   docActions: DocAction[],
+  directActions: boolean[],
   userIsOwner: boolean,
   haveRules: boolean,
   userRef: string,
   hasAccess: (cell: SingleCellInfo, state: DocData) => Promise<boolean>
 ) {
-  // Owner can modify all comments, without exceptions.
-  if (userIsOwner) {
-    return;
-  }
   // First check if we even have actions that modify cell's data.
   const cellsActions = docActions.filter(isCellDataAction);
 
@@ -73,8 +71,10 @@ export async function applyAndCheckActionsForCells(
   let postponed: Array<number> = [];
   // Now one by one apply all actions to the snapshot recording all changes
   // to the cell table.
-  for(const docAction of docActions) {
-    if (!isCellDataAction(docAction)) {
+
+  const zipped = docActions.map((a, i) => ({docAction: a, isDirect: directActions[i]}));
+  for(const {docAction, isDirect} of zipped) {
+    if (!isDirect || !isCellDataAction(docAction)) {
       docData.receiveAction(docAction);
       continue;
     }
@@ -108,7 +108,8 @@ export async function applyAndCheckActionsForCells(
           if (!record || !cell.colId || !(cell.colId in record)) {
             continue;
           }
-          if (cell.userRef && cell.userRef !== (userRef || '')) {
+          // Document owner can remove anything.
+          if (cell.userRef && cell.userRef !== (userRef || '') && !userIsOwner) {
             fail();
           }
         }
@@ -127,21 +128,45 @@ export async function applyAndCheckActionsForCells(
           continue;
         }
 
-
-        // We can't update cells, that are not ours.
-        if (cell.userRef && cell.userRef !== (userRef || '')) {
-          fail();
-        }
         // And if the cell was attached before, we will need to check if we can access it.
         if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, docData)) {
           fail();
         }
         // Now receive the action, and test if we can still see the cell (as the info might be moved
         // to a different cell).
+        const before = cellData.getCellRecord(id);
         docData.receiveAction(single);
         cell = cellData.getCell(id)!;
+        const after = cellData.getCellRecord(id);
+
         if (cellData.isAttached(cell) && haveRules && !await hasAccess(cell, docData)) {
           fail();
+        }
+
+        // Anyone can toggle the parent property (as it is Ref field for the main thread which might be removed)
+        // Grist data engine has something that resembles ON DELETE CASCADE, but the children (dependencies) are removed
+        // after, not before, so there is a brief moment when references are invalid.
+        if (before && after &&
+            checkChangedIds(before, after, ['parentId']) &&
+            wasToggled(before, after, 'parentId')
+          ) {
+          continue;
+        }
+
+        // We can't update cells, that are not ours, unless we are owner and we are resolving a root comment.
+        if (cell.userRef && cell.userRef !== (userRef || '')) {
+          // Check if this is owner resolving a root comment
+          const isOwnerResolvingRoot =
+            userIsOwner &&
+            before && after &&
+            after.root &&
+            wasToggled(before, after, 'resolved') &&
+            // Only resolved field changed (timeCreated and timeUpdated are automatic and not user-controlled)
+            checkChangedIds(before, after, ['resolved', 'timeUpdated']);
+
+          if (!isOwnerResolvingRoot) {
+            fail();
+          }
         }
       }
     }
@@ -174,6 +199,7 @@ interface SingleCellInfo extends SingleCell {
 
 interface SingleCellInfoWithData extends SingleCellInfo {
   content: string;
+  parentId: number | null;
 }
 
 /**
@@ -385,12 +411,13 @@ export class CellData {
 
   public convertToCellInfo(cell: MetaRowRecord<'_grist_Cells'>): SingleCellInfoWithData {
     const singleCell = {
+      id: cell.id,
       tableId: this.getTableId(cell.tableRef) as string,
       colId: this.getColId(cell.colRef) as string,
       rowId: cell.rowId,
       userRef: cell.userRef,
-      id: cell.id,
-      content: cell.content || '',
+      parentId: cell.parentId,
+      content: cell.content,
     };
     return singleCell;
   }
@@ -565,4 +592,41 @@ export class CellData {
     return action[2].length > 1 ? action :
           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
+}
+
+
+type CellField = keyof MetaRowRecord<'_grist_Cells'>;
+
+/**
+ * Checks if only expected fields were changed between before and after.
+ * @returns true if only allowed fields (or nothing) changed in the row.
+ */
+function checkChangedIds(
+  before: MetaRowRecord<'_grist_Cells'>,
+  after: MetaRowRecord<'_grist_Cells'>,
+  allowed: Array<CellField>
+) {
+  // All columns except id, we assume after has same keys.
+  const cols: CellField[] = Object.keys(before).filter(k => k !== 'id') as CellField[];
+  const changed = cols.filter(c =>
+    !isEqual(
+      before[c],
+      after[c]
+    )
+  );
+  if (changed.length === 0) {
+    return true;
+  }
+  const allowedSet = new Set(allowed);
+  return changed.every(c => allowedSet.has(c));
+}
+
+/**
+ * Checks if a field was toggled between before and after.
+ */
+function wasToggled(
+  before: MetaRowRecord<'_grist_Cells'>,
+  after: MetaRowRecord<'_grist_Cells'>,
+  field: CellField) {
+  return Boolean(before[field]) !== Boolean(after[field]);
 }

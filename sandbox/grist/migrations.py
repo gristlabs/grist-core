@@ -31,6 +31,9 @@ log = logging.getLogger(__name__)
 # ./test/upgradeDocument public_samples/*.grist
 # UPDATE_REGRESSION_DATA=1 GREP_TESTS=DocRegressionTests ./test/testrun.sh server
 # ./test/upgradeDocument core/test/fixtures/docs/Hello.grist
+# If you have trouble doing it with gvisor, you can prefix those commands with
+# GRIST_SANDBOX_FLAVOR=unsandboxed
+# but be careful, this will run the document without sandboxing.
 
 all_migrations = {}
 
@@ -1331,3 +1334,59 @@ def migration44(tdset):
   return tdset.apply_doc_actions([
     add_column('_grist_Pages', 'options', 'Text')
   ])
+
+@migration(schema_version=45)
+def migration45(tdset):
+  """
+  Move timeCreated, timeUpdated, and resolved fields from JSON content to separate columns
+  in _grist_Cells table for better access control.
+  """
+  doc_actions = [
+    add_column('_grist_Cells', 'timeCreated', 'DateTime'),
+    add_column('_grist_Cells', 'timeUpdated', 'DateTime'),
+    add_column('_grist_Cells', 'resolved', 'Bool'),
+  ]
+
+  # Migrate existing data from JSON content to new columns
+  cells = list(actions.transpose_bulk_action(tdset.all_tables['_grist_Cells']))
+
+  if cells:
+    time_created_values = []
+    time_updated_values = []
+    resolved_values = []
+    content_updates = []
+
+    for cell in cells:
+      content = safe_parse(cell.content)
+
+      # Make sure content is a dict
+      if not isinstance(content, dict):
+        content = {}
+
+      time_created = content.get('timeCreated')
+      time_updated = content.get('timeUpdated')
+
+      # Convert milliseconds to seconds for DateTime columns
+      time_created_values.append(int(time_created / 1000) if time_created is not None else 0)
+      time_updated_values.append(int(time_updated / 1000) if time_updated is not None else 0)
+      resolved_values.append(bool(content.get('resolved', False)))
+
+      # Remove these fields from JSON content if they exist
+      if any(key in content for key in ['timeCreated', 'timeUpdated', 'resolved']):
+        content.pop('timeCreated', None)
+        content.pop('timeUpdated', None)
+        content.pop('resolved', None)
+        content_updates.append(json.dumps(content))
+      else:
+        content_updates.append(cell.content)
+
+    # Update all cells with the extracted values
+    cell_ids = [cell.id for cell in cells]
+    doc_actions.append(actions.BulkUpdateRecord('_grist_Cells', cell_ids, {
+      'timeCreated': time_created_values,
+      'timeUpdated': time_updated_values,
+      'resolved': resolved_values,
+      'content': content_updates,
+    }))
+
+  return tdset.apply_doc_actions(doc_actions)

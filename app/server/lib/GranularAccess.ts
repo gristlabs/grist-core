@@ -2765,16 +2765,13 @@ export class GranularAccess implements GranularAccessForBundle {
    * Tests if the user can modify cell's data.
    */
   private async _canApplyCellActions(currentUser: User, userIsOwner: boolean) {
-    // Owner can modify all comments, without exceptions.
-    if (userIsOwner) {
-      return;
-    }
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const {docActions, docSession} = this._activeBundle;
     const snapShot = await this.createSnapshotWithCells(docActions);
     await applyAndCheckActionsForCells(
       snapShot,
       docActions,
+      this._activeBundle.isDirect,
       userIsOwner,
       this._ruler.haveRules(),
       currentUser.UserRef || '',

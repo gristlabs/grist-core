@@ -4,6 +4,7 @@ import re
 import json
 import logging
 import sys
+import time
 from contextlib import contextmanager
 
 import acl
@@ -460,6 +461,42 @@ class UserActions(object):
   def _addACLRules(self, table_id, row_ids, col_values):
     parse_acl_formulas(col_values)
     return self.doBulkAddOrReplace(table_id, row_ids, col_values)
+
+  @override_action('BulkAddRecord', '_grist_Cells')
+  def _addCells(self, table_id, row_ids, col_values):
+    self._restrict_cells_columns(col_values)
+
+    # Set timeCreated and timeUpdated automatically to current timestamp, this
+    # is a general practice for new records
+    current_time = int(time.time())
+    col_values['timeCreated'] = [current_time] * len(row_ids)
+    col_values['timeUpdated'] = [current_time] * len(row_ids)
+    # Set userRef automatically to current user
+    user_ref = self._engine._user.UserRef if self._engine._user else None
+    col_values['userRef'] = [user_ref] * len(row_ids)
+    return self.doBulkAddOrReplace(table_id, row_ids, col_values)
+
+  @override_action('BulkUpdateRecord', '_grist_Cells')
+  def _updateCells(self, table_id, row_ids, col_values):
+    self._restrict_cells_columns(col_values)
+
+    # Only set timeUpdated if the content field is being updated
+    # This tracks when the comment text was last modified, not
+    # status changes like resolve
+    if 'content' in col_values:
+      # Set timeUpdated automatically to current timestamp
+      current_time = time.time()
+      col_values['timeUpdated'] = [current_time] * len(row_ids)
+    return self.doBulkUpdateRecord(table_id, row_ids, col_values)
+
+  # Helper to prevent direct modification of protected fields in _grist_Cells table.
+  def _restrict_cells_columns(self, col_values):
+    # Prevent users from modifying cell columns that are protected
+    protected_fields = ['timeCreated', 'timeUpdated', 'userRef', 'cellId']
+    for field in protected_fields:
+      if field in col_values:
+        raise ValueError(f"Cannot modify {field} field directly")
+
 
   #----------------------------------------
   # UpdateRecords & co.

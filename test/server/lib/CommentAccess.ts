@@ -10,7 +10,7 @@ import * as testUtils from 'test/server/testUtils';
 import {assert} from 'chai';
 
 describe('CommentAccess', function() {
-  this.timeout(60000);
+  this.timeout('60s');
   let home: TestServer;
   testUtils.setTmpLogLevel('error');
   let owner: UserAPI;
@@ -300,6 +300,20 @@ describe('CommentAccess', function() {
     }]);
   });
 
+  // Tables look like:
+  // Chat
+  // id | Public | Private | Censored
+  // -----------------------------
+  //  1 |   0    |  None   |  None   |
+  //  2 |   0    |  None   |  None   |
+  //
+  // Column Private is only for owners, other users don't see it
+  // Column Censored is censored, owners see value, other see value only if Public > 1
+  //
+  // Public
+  // id | A
+  // ----------------
+  // (no rows)
   async function testDoc() {
     await freshDoc();
     await owner.applyUserActions(docId, [
@@ -374,7 +388,8 @@ describe('CommentAccess', function() {
 
     // First test some basic helpers.
     deepEqual(helper.getCell(1), {
-      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1, content: 'First',
+      "tableId": "Chat", "colId": "Private", "rowId": 1, "userRef": ownerRef, "id": 1,
+      content: 'First', parentId: 0
     });
     assert.isNull(helper.getCell(400));
     assert.equal(helper.getColId(6), "Public");
@@ -384,8 +399,14 @@ describe('CommentAccess', function() {
     assert.isUndefined(helper.getTableRef('Chat2'));
     assert.equal(helper.getTableRef('Chat'), 2);
 
-    const firstComment = {tableId: "Chat", colId: "Private", rowId: 1, userRef: ownerRef, id: 1, content: "First"};
-    const secondComment = {tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 2, content: "Second"};
+    const firstComment = {
+      tableId: "Chat", colId: "Private", rowId: 1, userRef: ownerRef, id: 1, content: "First",
+      parentId: 0,
+    };
+    const secondComment = {
+      tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 2, content: "Second",
+      parentId: 0,
+    };
 
     // Test method that converts docActions for _grist_Cells to a list of cells.
     deepEqual(helper.convertToCells(['RemoveColumn', 'Table1', 'Test']), []);
@@ -794,7 +815,8 @@ describe('CommentAccess', function() {
     // First make sure that we are censoring cells still.
     await owner.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
-        tableRef: ChatTable, colRef: Censored, rowId: 1, type: 1, root: true, userRef: ownerRef,
+        tableRef: ChatTable, colRef: Censored, rowId: 1, type: 1, root: true,
+        // userRef is set automatically by the data engine
         content: "New Secret",
       }],
     ]);
@@ -815,7 +837,8 @@ describe('CommentAccess', function() {
     // This is not trivial, as cell info is censored after the fact.
     await owner.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
-        tableRef: ChatTable, colRef: Censored, rowId: 1, type: 1, root: true, userRef: ownerRef,
+        tableRef: ChatTable, colRef: Censored, rowId: 1, type: 1, root: true,
+        // userRef is set automatically by the data engine
         content: 'New Secret',
       }],
       ['RemoveRecord', 'Chat2', 1]
@@ -886,28 +909,32 @@ describe('CommentAccess', function() {
         tableRef: await tableRef("Chat"),
         colRef: await colRef("Chat", "Private"),
         rowId: 1,
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1,
+        root: true,
+        content: 'test'
       }]
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
         tableRef: await tableRef("Chat"),
         colRef: await colRef("Chat", "Private"),
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1,
+        root: true,
+        content: 'test'
       }],
       ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}]
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
         tableRef: await tableRef("Chat"),
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1, root: true, content: 'test'
       }],
       ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
       ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Private")}]
     ]));
     await assert.isRejected(editor.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1, root: true, content: 'test'
       }],
       ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
       ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Private")}],
@@ -918,7 +945,7 @@ describe('CommentAccess', function() {
     // as data-engine will remove comments that are not attached.
     await assert.isFulfilled(editor.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1, root: true, content: 'test'
       }],
       // ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
       ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Public")}],
@@ -926,7 +953,7 @@ describe('CommentAccess', function() {
     ]));
     await assert.isFulfilled(editor.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1, root: true, content: 'test'
       }],
       ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
       // ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Public")}],
@@ -934,7 +961,7 @@ describe('CommentAccess', function() {
     ]));
     await assert.isFulfilled(editor.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
-        type: 1, root: true, userRef: editorRef, content: 'test'
+        type: 1, root: true, content: 'test'
       }],
       ['UpdateRecord', '_grist_Cells', 6, {rowId: 1}],
       ['UpdateRecord', '_grist_Cells', 6, {colRef: await colRef("Chat", "Public")}],
@@ -987,7 +1014,6 @@ describe('CommentAccess', function() {
   }
 
   async function send(api: UserAPI, chat: string, message: string, rowId = 1) {
-    const who = await api.getSessionActive();
     await api.applyUserActions(docId, [
       ['AddRecord', '_grist_Cells', null, {
         tableRef: await tableRef('Chat'),
@@ -995,7 +1021,7 @@ describe('CommentAccess', function() {
         rowId,
         type: 1,
         root: true,
-        userRef: who.user.ref || '',
+        // userRef is set automatically by the data engine
         content: message
       }]
     ]);

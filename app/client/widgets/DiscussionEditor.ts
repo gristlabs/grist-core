@@ -144,9 +144,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
         rowId,
         type: CellInfoType.COMMENT,
         root: true,
-        userRef: author?.ref ?? '',
         content: JSON.stringify({
-          timeCreated: Date.now(),
           userName: author?.name ?? '',
           sectionId: pos.sectionId,
           ...commentText,
@@ -166,11 +164,8 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
           parentId: comment.id.peek(),
           root: false,
           type: CellInfoType.COMMENT,
-          userRef: author?.ref ?? '',
           content: JSON.stringify({
             userName: author?.name ?? '',
-            timeCreated: Date.now(),
-            timeUpdated: null,
             sectionId: comment.sectionId.peek(),
             ...commentText,
           } as CommentContent),
@@ -183,23 +178,17 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
   }
 
   public resolve(comment: CellRec): Promise<void> {
-    const author = commentAuthor(this.gristDoc);
-    comment.resolved(true);
-    comment.resolvedBy(author?.email ?? '');
-    return comment.timeUpdated.saveOnly(Date.now());
+    return comment.resolved.setAndSave(true);
   }
 
   public async update(comment: CellRec, commentText: CommentWithMentions): Promise<void> {
     this.gristDoc.commentMonitor?.clear();
-    comment.text(commentText.text);
     comment.mentions(commentText.mentions);
-    return comment.timeUpdated.setAndSave(Date.now());
+    return comment.text.setAndSave(commentText.text);
   }
 
   public async open(comment: CellRec): Promise<void> {
-    comment.resolved(false);
-    comment.resolvedBy('');
-    return comment.timeUpdated.setAndSave(Date.now());
+    return comment.resolved.setAndSave(false);
   }
 
   public async remove(comment: CellRec): Promise<void> {
@@ -646,12 +635,15 @@ class Comment extends Disposable {
     const comment = this.props.comment;
     const topic = this.props.cell;
 
+    const wasUpdated = Computed.create(null, use => use(comment.timeUpdated) !== use(comment.timeCreated));
+
     const containerClass = () => this.props.panel ? cssDiscussionPanel.className : cssCommentPopup.className;
 
     const user = (c: CellRec) =>
       comment.hidden() ? null : commentAuthor(this.props.gristDoc, c.userRef(), c.userName());
     this._bodyDom = cssComment(
       ...(this.props.args ?? []),
+      dom.autoDispose(wasUpdated),
       this._isReply  ? testId('reply') : testId('comment'),
       dom.on('click', () => {
         if (this._isReply) { return; }
@@ -670,9 +662,9 @@ class Comment extends Disposable {
               cssCommentBodyText(
                 buildNick(user(comment), testId('comment-nick')),
                 dom.domComputed(use => cssTime(
-                  formatTime(use(comment.timeUpdated) ?? use(comment.timeCreated) ?? 0),
+                  formatTime(use(comment.timeUpdated) || use(comment.timeCreated) || 0),
                   testId('comment-time'),
-                  use(comment.timeUpdated) ? dom('span', ' (' + t('updated') + ')') : null,
+                  use(wasUpdated) ? dom('span', ' (' + t('updated') + ')') : null,
                 )),
               ),
               // if this is reply in a resolved comment, don't show menu
@@ -817,6 +809,8 @@ class Comment extends Disposable {
 
   private _menuItems() {
     const currentUser = this.props.gristDoc.currentUser.get()?.ref;
+    const currentUserAccess = this.props.gristDoc.docPageModel.currentDoc.get()?.access;
+    const isDocOwner = currentUserAccess === 'owners';
     const comment = this.props.comment;
     const lastComment = comment.column.peek().cells.peek().peek().at(-1);
 
@@ -842,7 +836,8 @@ class Comment extends Disposable {
           () => this.props.cell.resolve(comment),
           t('Resolve'),
           dom.cls('disabled', use => {
-            return use(this.props.gristDoc.isReadonly) || use(this._start.userRef) !== currentUser;
+            // Thread author or owner can resolve
+            return use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner);
           })
         ),
       !openVisible ? null :
@@ -850,7 +845,8 @@ class Comment extends Disposable {
           () => this.props.cell.open(comment),
           t('Open'),
           dom.cls('disabled', use => {
-            return use(this.props.gristDoc.isReadonly);
+            // Thread author or owner can open
+            return use(this.props.gristDoc.isReadonly) || (use(this._start.userRef) !== currentUser && !isDocOwner);
           })
         ),
       menuItem(
@@ -859,7 +855,8 @@ class Comment extends Disposable {
         },
         comment.root.peek() ? t('Remove thread') : t('Remove'),
         dom.cls('disabled', use => {
-          return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
+          // Comment author or owner can delete
+          return (currentUser !== use(comment.userRef) && !isDocOwner) || use(this.props.gristDoc.isReadonly);
         })
       ),
       // If comment is resolved, we can't edit it.
@@ -867,6 +864,7 @@ class Comment extends Disposable {
         () => this.setEditing(true),
         t('Edit'),
         dom.cls('disabled', use => {
+          // Only comment author can edit
           return currentUser !== use(comment.userRef) || use(this.props.gristDoc.isReadonly);
         })
       ),
@@ -1213,8 +1211,8 @@ function buildNick(user: {name: string} | null, ...args: DomArg<HTMLElement>[]) 
 // }
 
 // Display timestamp as a relative time ago using moment.js
-function formatTime(timeStamp: number) {
-  const time = moment(timeStamp);
+function formatTime(timeStampSec: number) {
+  const time = moment(Math.floor(timeStampSec * 1000));
   const now = moment();
   const diff = now.diff(time, 'days');
   if (diff < 1) {

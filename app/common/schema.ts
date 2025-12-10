@@ -4,7 +4,7 @@ import { GristObjCode } from "app/plugin/GristData";
 
 // tslint:disable:object-literal-key-quotes
 
-export const SCHEMA_VERSION = 44;
+export const SCHEMA_VERSION = 45;
 
 export const schema = {
 
@@ -220,6 +220,9 @@ export const schema = {
     type                : "Int",
     content             : "Text",
     userRef             : "Text",
+    timeCreated         : "DateTime",
+    timeUpdated         : "DateTime",
+    resolved            : "Bool",
   },
 
   "_grist_Shares": {
@@ -445,6 +448,9 @@ export interface SchemaTypes {
     type: number;
     content: string;
     userRef: string;
+    timeCreated: number;
+    timeUpdated: number;
+    resolved: boolean;
   };
 
   "_grist_Shares": {

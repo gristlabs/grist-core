@@ -13,7 +13,7 @@ from collections import OrderedDict, namedtuple
 
 import actions
 
-SCHEMA_VERSION = 44
+SCHEMA_VERSION = 45
 
 def make_column(col_id, col_type, formula='', isFormula=False):
   return {
@@ -359,6 +359,10 @@ def schema_create_actions():
       # JSON representation of the metadata.
       make_column("content",        "Text"),
       make_column("userRef",        "Text"),
+      # Comment-specific fields (moved from JSON content for better access control)
+      make_column("timeCreated",    "DateTime"),
+      make_column("timeUpdated",    "DateTime"),
+      make_column("resolved",       "Bool"),
     ]),
 
     actions.AddTable('_grist_Shares', [
