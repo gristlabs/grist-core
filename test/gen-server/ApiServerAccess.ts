@@ -66,8 +66,13 @@ describe('ApiServerAccess', function() {
         }
       }
     );
-    if (['saas', 'enterprise'].includes(create.deploymentType())) {
-      assert.exists(notificationsConfig);
+    if (process.env.GRIST_NOTIFIER !== 'test') {
+      // If the notifier is explicitly set to 'test', there is no sendGrid extensions configured, and we
+      // won't test notifications here.
+      // TODO: all those ifs should be removed and stubbed with proper test doubles.
+      if (['saas', 'enterprise'].includes(create.deploymentType())) {
+        assert.exists(notificationsConfig);
+      }
     }
     dbManager = server.dbManager;
     chimpyRef = await dbManager.getUserByLogin(chimpyEmail).then((user) => user.ref);
@@ -161,11 +166,11 @@ describe('ApiServerAccess', function() {
     }
     // Assert that the number of users in the org has not been updated (Charon role modified only).
     assert.deepEqual(userCountUpdates[oid as number], undefined);
-    // Assert that Charon is now allowed to rename workspaces in Chimpyland
+    // Assert that Charon is still not allowed to rename workspaces in Chimpyland
     const charonResp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
       name: 'Charon-Rename'
     }, charon);
-    assert.equal(charonResp2.status, 200);
+    assert.equal(charonResp2.status, 403);
     // Move Charon back to 'viewers' and add Kiwi to 'editors' (from no permission).
     const delta2 = {
       users: {
@@ -206,11 +211,11 @@ describe('ApiServerAccess', function() {
       name: 'Charon-Illegal-Rename-2'
     }, charon);
     assert.equal(charonResp3.status, 403);
-    // Assert that Kiwi is now allowed to rename workspaces in Chimpyland
+    // Assert that Kiwi is still not allowed to rename workspaces in Chimpyland
     const kiwiResp1 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
       name: 'Private'
     }, kiwi);
-    assert.equal(kiwiResp1.status, 200);
+    assert.equal(kiwiResp1.status, 403);
     // Revert the changes and check that behavior is expected once more for good measure.
     const delta3 = {
       users: {
@@ -564,11 +569,11 @@ describe('ApiServerAccess', function() {
 
     // Assert that the number of users in Chimpyland has updated (Kiwi was added).
     assert.deepEqual(userCountUpdates[oid as number], [3]);
-    // Assert that Kiwi is now allowed to rename workspace 'Private' in Chimpyland
+    // Assert that Kiwi is still now allowed to rename workspace 'Private' in Chimpyland
     const kiwiResp2 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
       name: 'Kiwi-Rename'
     }, kiwi);
-    assert.equal(kiwiResp2.status, 200);
+    assert.equal(kiwiResp2.status, 403);
     // Assert that Kiwi is also now able to GET the org, since Kiwi is now a guest of the org.
     const kiwiResp3 = await axios.get(`${homeUrl}/api/orgs/${oid}`, kiwi);
     assert.equal(kiwiResp3.status, 200);
@@ -582,11 +587,11 @@ describe('ApiServerAccess', function() {
     if (notificationsConfig) {
       assert.equal((await getLastMail()).description, null);
     }
-    // Assert that Kiwi is still allowed to rename the workspace.
+    // Assert that Kiwi is still not allowed to rename the workspace.
     const kiwiResp4 = await axios.patch(`${homeUrl}/api/workspaces/${wid}`, {
       name: 'Kiwi-Rename2'
     }, kiwi);
-    assert.equal(kiwiResp4.status, 200);
+    assert.equal(kiwiResp4.status, 403);
     // Assert that Charon is still allowed to GET the workspace.
     const charonResp1 = await axios.get(`${homeUrl}/api/workspaces/${wid}`, charon);
     assert.equal(charonResp1.status, 200);

@@ -785,9 +785,10 @@ export class ApiServer {
 
   private async _deleteOrg(req: Request, res: express.Response, name: string) {
     const orgKey = getOrgKey(req);
+    const requirePermissions = Permissions.REMOVE | Permissions.SCHEMA_EDIT;
     const org: Organization = this._dbManager.unwrapQueryResult(
       await this._dbManager.getOrg(getScope(req), orgKey, undefined,
-                                   { requirePermissions: Permissions.REMOVE })
+                                   { requirePermissions })
     );
     const okToDelete = ((org.domain && name === org.domain) ||
         (org.name && name === org.name) ||
@@ -869,7 +870,7 @@ export class ApiServer {
         },
         wsId, undefined,
         {
-          requirePermissions: Permissions.REMOVE
+          requirePermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT
         })
     );
     try {

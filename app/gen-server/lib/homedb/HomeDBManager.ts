@@ -1411,15 +1411,15 @@ export class HomeDBManager implements HomeDBAuth {
     let modifyPrefs: boolean = false;
     for (const key of Object.keys(props)) {
       if (key === 'orgPrefs') {
-        // If setting orgPrefs, make sure we have UPDATE rights since this
+        // If setting orgPrefs, make sure we have SCHEMA_EDIT rights since this
         // will affect other users.
-        markPermissions = Permissions.UPDATE;
+        markPermissions = Permissions.SCHEMA_EDIT;
         modifyPrefs = true;
       } else if (key === 'userPrefs' || key === 'userOrgPrefs') {
         // These keys only affect the current user.
         modifyPrefs = true;
       } else {
-        markPermissions = Permissions.UPDATE;
+        markPermissions = Permissions.SCHEMA_EDIT;
         modifyOrg = true;
       }
     }
@@ -1478,7 +1478,7 @@ export class HomeDBManager implements HomeDBAuth {
     });
   }
 
-  // Checks that the user has REMOVE permissions to the given org. If not, throws an
+  // Checks that the user has REMOVE and SCHEMA_EDIT permissions to the given org. If not, throws an
   // error. Otherwise deletes the given org. Returns a query result with status 200
   // on success.
   //
@@ -1494,7 +1494,7 @@ export class HomeDBManager implements HomeDBAuth {
     return await this.runInTransaction(transaction, async manager => {
       const orgQuery = this.org(scope, orgKey, {
         manager,
-        markPermissions: Permissions.REMOVE,
+        markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,
         allowSpecialPermit: true
       })
       // Join the org's workspaces (with ACLs and groups), docs (with ACLs and groups)
@@ -1593,7 +1593,7 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   /**
-   * Checks that the user has UPDATE permissions to the given workspace. If
+   * Checks that the user has SCHEMA_EDIT permissions to the given workspace. If
    * not, throws an error. Otherwise updates the given workspace with the given
    * name.
    *
@@ -1608,7 +1608,7 @@ export class HomeDBManager implements HomeDBAuth {
     return await this._connection.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
-        markPermissions: Permissions.UPDATE
+        markPermissions: Permissions.SCHEMA_EDIT
       })
       .leftJoinAndSelect('workspaces.org', 'orgs');
       const queryResult = await verifyEntity(wsQuery);
@@ -1627,7 +1627,7 @@ export class HomeDBManager implements HomeDBAuth {
   }
 
   /**
-   * Checks that the user has REMOVE permissions to the given workspace. If not, throws an
+   * Checks that the user has REMOVE | SCHEMA_EDIT permissions to the given workspace. If not, throws an
    * error. Otherwise deletes the given workspace. Returns a query result with status 200
    * and the deleted workspace on success.
    */
@@ -1635,7 +1635,7 @@ export class HomeDBManager implements HomeDBAuth {
     return await this._connection.transaction(async manager => {
       const wsQuery = this._workspace(scope, wsId, {
         manager,
-        markPermissions: Permissions.REMOVE,
+        markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
         allowSpecialPermit: true
       })
       // Join the workspace's docs (with ACLs and groups) and ACLs and groups so we can
@@ -5299,7 +5299,7 @@ export class HomeDBManager implements HomeDBAuth {
     return this._connection.transaction(async manager => {
       const wsQuery = this._workspace({...scope, showAll: true}, wsId, {
         manager,
-        markPermissions: Permissions.REMOVE
+        markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
       })
       .leftJoinAndSelect('workspaces.org', 'orgs');
       const workspace: Workspace = this.unwrapQueryResult(await verifyEntity(wsQuery));

@@ -1716,10 +1716,15 @@ describe('ApiServer', function() {
     const accessResp = await axios.patch(`${homeUrl}/api/docs/${magicDocId}/access`,
       {delta}, chimpy);
     assert.equal(accessResp.status, 403);
-    // Finish by removing the added workspace
-    const removeResp = await axios.delete(`${homeUrl}/api/workspaces/${mediumWs}`, chimpy);
+    // Check that chimpy can no longer access the magic doc
+    const chimpyRemoveResp = await axios.delete(`${homeUrl}/api/workspaces/${mediumWs}`, chimpy);
     // Assert that the response is successful.
-    assert.equal(removeResp.status, 200);
+    assert.equal(chimpyRemoveResp.status, 403);
+
+    // Finish by removing the added workspace
+    const kiwiRemoveResp = await axios.delete(`${homeUrl}/api/workspaces/${mediumWs}`, kiwi);
+    // Assert that the response is successful.
+    assert.equal(kiwiRemoveResp.status, 200);
   });
 
   it('PATCH /api/docs/{did}/move is operational between orgs', async function() {
