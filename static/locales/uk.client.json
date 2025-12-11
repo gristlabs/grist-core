@@ -1660,7 +1660,10 @@
         "Schedule call": "Запланувати дзвінок",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Заплануйте свій {{freeCoachingCall}} з членом нашої команди.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Ви також можете переглянути {{ourWeeklyWebinars}}, щоб дізнатися більше про Grist.",
-        "our weekly webinars": "наші щотижневі вебінари"
+        "our weekly webinars": "наші щотижневі вебінари",
+        "Free coaching call": "Безкоштовний коучинговий дзвінок",
+        "Grist 101": "Зерно 101",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Ви також можете переглянути наш вступний вебінар {{ourWeeklyWebinars}}, розроблений, щоб допомогти новим користувачам зорієнтуватися в основах Grist."
     },
     "FormView": {
         "Publish": "Опублікувати",
