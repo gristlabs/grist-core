@@ -289,7 +289,7 @@ class DateColumn(NumericColumn):
   to midnight of specific UTC dates. Accessing them yields date objects.
   """
   def _make_rich_value(self, typed_value):
-    return typed_value and moment.ts_to_date(typed_value)
+    return moment.ts_to_date(typed_value) if isinstance(typed_value, float) else typed_value
 
   def sample_value(self):
     return _sample_date
@@ -304,7 +304,8 @@ class DateTimeColumn(NumericColumn):
     self._timezone = col_info.type_obj.timezone
 
   def _make_rich_value(self, typed_value):
-    return typed_value and moment.ts_to_dt(typed_value, self._timezone)
+    return (moment.ts_to_dt(typed_value, self._timezone)
+        if isinstance(typed_value, float) else typed_value)
 
   def sample_value(self):
     return _sample_datetime
