@@ -18,12 +18,16 @@ import {
   ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
   LabelDelta
 } from 'app/common/ActionSummary';
-import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
+import {CellDelta, TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
-import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
+import {Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled} from 'grainjs';
 import * as ko from 'knockout';
 import takeWhile = require('lodash/takeWhile');
+
+
+const testId = makeTestId('test-actionlog-');
+
 
 /**
  *
@@ -167,7 +171,10 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
       ag,
       this
     );
-    return part.renderTabularDiffs(sum, txt, ag?.context);
+    return part.renderTabularDiffs(sum, {
+      txt,
+      contextObs: ag?.context
+    });
   }
 
   /**
@@ -284,10 +291,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
  * is useful elsewhere in the UI now. This is an abstract class,
  * we will connect it with ActionLog in ActionLogPartInList.
  */
-export abstract class ActionLogPart {
+export abstract class ActionLogPart extends Disposable {
   public constructor(
     private _gristDocBase: GristDoc|null,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * This is used in the ActionLog to selectively show entries in the
@@ -314,62 +323,66 @@ export abstract class ActionLogPart {
    * @param {string} txt - a textual description of the action
    * @param {Observable} context - extra information about the action
    */
-  public renderTabularDiffs(sum: ActionSummary, txt?: string, contextObs?: ko.Observable<ActionContext>): HTMLElement {
+  public renderTabularDiffs(sum: ActionSummary, options: RenderTabularDiffOptions): HTMLElement {
+    const {txt, contextObs} = options;
     const editDom = koDom.scope(contextObs, (context: ActionContext) => {
       const act = asTabularDiffs(sum, {
         context,
         order: this._naiveColumnOrder.bind(this),
       });
-      return dom(
-        'div',
+      return dom('div',
+        testId('tabular-diffs'),
         this._renderTableSchemaChanges(sum),
         this._renderColumnSchemaChanges(sum),
-        Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
-          if (tdiff.cells.length === 0) { return dom('div'); }
-          return dom(
-            'table.action_log_table',
-            koDom.show(() => this.showForTable(table)),
-            dom('caption',
-                this._renderTableName(table),
-                // Add a little button to show or hide extra context.
-                // This is a baby step, there's a lot more that could
-                // and should be done here.
-                contextObs ? cssBasicButton(
-                  context[table] ? ' <' : ' >',
-                  dom.on('click', async () => {
-                    if (context[table]) {
-                      await this._resetContext(contextObs, table, context);
-                    } else {
-                      await this._setContext(contextObs, table, context);
-                    }
-                  })) : null,
-                dom.style('text-align', 'left'),
-               ),
-            dom(
-              'tr',
-              dom('th'),
-              tdiff.header.map(diff => {
-                return dom('th', this._renderCell(diff));
-              })),
-            tdiff.cells.map(
-              row => {
-                return dom(
-                  'tr',
-                  dom('td', this._renderCell(row.type)),
-                  row.cellDeltas.map((diff, idx: number) => {
-                    return dom('td',
-                               this._renderCell(diff),
-                               dom.on('click', () => {
-                                 return this.selectCell(row.rowId, act[table].header[idx], table);
-                               }));
-                  }));
-              }));
-        }),
+        options.customRender ? options.customRender?.(act, contextObs!, this.selectCell.bind(this)) :
+          Object.entries(act).map(([table, tdiff]: [string, TabularDiff]) => {
+            if (tdiff.cells.length === 0) { return dom('div'); }
+            return dom(
+              'table.action_log_table',
+              koDom.show(() => this.showForTable(table)),
+              dom('caption',
+                  this._renderTableName(table),
+                  // Add a little button to show or hide extra context.
+                  // This is a baby step, there's a lot more that could
+                  // and should be done here.
+                  contextObs ? cssBasicButton(
+                    context[table] ? ' <' : ' >',
+                    dom.on('click', () => this.toggleContext(contextObs, table))) : null,
+                  dom.style('text-align', 'left'),
+                ),
+              dom(
+                'tr',
+                dom('th'),
+                tdiff.header.map(diff => {
+                  return dom('th', this._renderCell(diff));
+                })),
+              tdiff.cells.map(
+                row => {
+                  return dom(
+                    'tr',
+                    dom('td', this._renderCell(row.type)),
+                    row.cellDeltas.map((diff, idx: number) => {
+                      return dom('td',
+                                this._renderCell(diff),
+                                dom.on('click', () => {
+                                  return this.selectCell(row.rowId, act[table].header[idx], table);
+                                }));
+                    }));
+                }));
+          }),
         txt ? dom('span.action_comment', txt) : null,
       );
     });
-    return dom('div',
-               editDom);
+    return dom('div', editDom);
+  }
+
+  public async toggleContext(contextObs: ko.Observable<ActionContext>, table: string) {
+    const context = contextObs.peek();
+    if (context[table]) {
+      await this._resetContext(contextObs, table, context);
+    } else {
+      await this._setContext(contextObs, table, context);
+    }
   }
   /**
    * Prepare dom element(s) for a cell that has been created, destroyed,
@@ -718,6 +731,16 @@ interface DeletedObject {
   thisRow?: boolean;
   colId?: string;
   tableId?: string;
+}
+
+interface RenderTabularDiffOptions {
+  txt?: string;
+  contextObs?: ko.Observable<ActionContext>;
+  customRender?(
+    diffs: TabularDiffs,
+    ctx: ko.Observable<ActionContext>,
+    selectCell: (rowId: number, colId: string, tableId: string) => Promise<void>
+  ): DomContents;
 }
 
 const cssHistoryCensored = styled('div', `
