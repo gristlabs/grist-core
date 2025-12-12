@@ -881,7 +881,12 @@ export class DocWorkerApi {
       const srcDocId = stringParam(req.body.srcDocId, 'srcDocId');
       if (srcDocId !== req.specialPermit?.otherDocId) { throw new Error('access denied'); }
       const fname = await this._docManager.storageManager.prepareFork(srcDocId, docId);
-      await filterDocumentInPlace(docSessionFromRequest(req), fname);
+      await filterDocumentInPlace(docSessionFromRequest(req), fname, {
+        removeData: false,
+        removeHistory: false,
+        removeFullCopiesSpecialRight: true,
+        markAction: true,
+      });
       res.json({srcDocId, docId});
     }));
 
