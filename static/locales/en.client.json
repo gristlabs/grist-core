@@ -1661,7 +1661,8 @@
         "Free coaching call": "Free coaching call",
         "Grist 101": "Grist 101",
         "Schedule call": "Schedule call",
-        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist."
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users navigate the fundamentals of Grist."
     },
     "FormView": {
         "Publish": "Publish",
@@ -2541,5 +2542,8 @@
     },
     "CoreNewDocMethods": {
         "Untitled document": "Untitled document"
+    },
+    "DetailView": {
+        "This row is unavailable or does not exist": "This row is unavailable or does not exist"
     }
 }
