@@ -1550,6 +1550,7 @@ class UserActions(object):
 
   def doAddColumn(self, table_id, col_id, col_info):
     table_rec = self._docmodel.get_table_rec(table_id)
+    default_label = col_id and col_id.strip()
     col_id = self._pick_col_name(table_rec, col_id)
     clean_colinfo = _make_clean_col_info(col_info)
     self._do_doc_action(actions.AddColumn(table_id, col_id, clean_colinfo))
@@ -1559,7 +1560,7 @@ class UserActions(object):
     values.update({
       'colId': col_id,
       'widgetOptions': col_info.get('widgetOptions', ''),
-      'label': col_info.get('label', col_id),
+      'label': col_info.get('label', default_label or col_id),
     })
     if 'rules' in col_info:
       values['rules'] = col_info['rules']
@@ -2064,6 +2065,7 @@ class UserActions(object):
       table_title = table_id
     # Sanitize and de-duplicate column identifiers.
     col_ids = [c['id'] for c in columns]
+    default_labels = [col_id and col_id.strip() for col_id in col_ids]
     col_ids = identifiers.pick_col_ident_list(col_ids, avoid={'id'})
 
     # Clean up col_info objects, including setting certain defaults for omitted fields.
@@ -2080,7 +2082,8 @@ class UserActions(object):
       type          = [c['type'] for c in clean_colinfo],
       isFormula     = [c['isFormula'] for c in clean_colinfo],
       formula       = [c['formula'] for c in clean_colinfo],
-      label         = [c.get('label', col_id) for (c, col_id) in zip(columns, col_ids)],
+      label         = [c.get('label', def_label or col_id)
+        for (c, def_label, col_id) in zip(columns, default_labels, col_ids)],
       widgetOptions = [c.get('widgetOptions', '') for c in columns])
 
     result = {
