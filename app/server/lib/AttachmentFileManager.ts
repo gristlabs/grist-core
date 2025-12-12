@@ -364,7 +364,7 @@ export class AttachmentFileManager extends EventEmitter {
 
     this._transferJob.catch((err) => this._log.error({}, `Error during transfer: ${err}`));
 
-    this._transferJob.finally(() => {
+    void this._transferJob.finally(() => {
       this._transferJob = undefined;
     });
   }
@@ -655,4 +655,4 @@ interface AttachmentFileInfo {
   file: AttachmentFile;
 }
 
-type TransferJob = Promise<void>
+type TransferJob = Promise<void>;

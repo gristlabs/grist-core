@@ -10,7 +10,7 @@ import {getGristConfig} from 'app/common/urlUtils';
 import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
         PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
-import some = require('lodash/some');
+import some from 'lodash/some';
 
 const t = makeT('UserManagerModel');
 

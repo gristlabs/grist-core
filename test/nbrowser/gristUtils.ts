@@ -4,9 +4,9 @@
  * The helpers are themselves tested in TestGristUtils.ts.
  */
 import * as fse from 'fs-extra';
-import escapeRegExp = require('lodash/escapeRegExp');
-import noop = require('lodash/noop');
-import startCase = require('lodash/startCase');
+import escapeRegExp from 'lodash/escapeRegExp';
+import noop from 'lodash/noop';
+import startCase from 'lodash/startCase';
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from 'mocha-webdriver';
 import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from 'mocha-webdriver';
 import * as path from 'path';
@@ -54,7 +54,7 @@ const driver: WebDriver = new Proxy({} as any, {
     if (!_driver) {
       return (driverOrig as any)[prop];
     }
-    return (_driver as any)[prop];  // eslint-disable-line @typescript-eslint/no-unnecessary-type-assertion
+    return (_driver as any)[prop];
   }
 });
 
@@ -327,8 +327,8 @@ export async function assertGridData(section: string, data: any[][]) {
  * Experimental fast version of getVisibleGridCells that reads data directly from browser by
  * invoking javascript code.
  */
-export async function getVisibleGridCellsFast(col: string, rowNums: number[]): Promise<string[]>
-export async function getVisibleGridCellsFast(options: {cols: string[], rowNums: number[]}): Promise<string[]>
+export async function getVisibleGridCellsFast(col: string, rowNums: number[]): Promise<string[]>;
+export async function getVisibleGridCellsFast(options: {cols: string[], rowNums: number[]}): Promise<string[]>;
 export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: number[]): Promise<string[]>{
   if (rowNums) {
     return getVisibleGridCellsFast({cols: [colOrOptions], rowNums});
@@ -947,8 +947,8 @@ export async function fileDialogUpload(filePath: string, triggerDialogFunc: () =
 }
 
 /** Opens upload dialog for a cell */
-export async function openUploadDialog(cell: WebElement): Promise<void>
-export async function openUploadDialog(col: string, row: number): Promise<void>
+export async function openUploadDialog(cell: WebElement): Promise<void>;
+export async function openUploadDialog(col: string, row: number): Promise<void>;
 export async function openUploadDialog(...args: any): Promise<void> {
   const cell = args.length === 1 ? args[0] : getCell(args[0], args[1]);
   await cell.click();
@@ -957,16 +957,16 @@ export async function openUploadDialog(...args: any): Promise<void> {
 }
 
 /** Returns a number attachments in a cell */
-export async function numberOfAttachments(cell: WebElement): Promise<number>
-export async function numberOfAttachments(col: string, row: number): Promise<number>
+export async function numberOfAttachments(cell: WebElement): Promise<number>;
+export async function numberOfAttachments(col: string, row: number): Promise<number>;
 export async function numberOfAttachments(...args: any): Promise<number> {
   const cell: WebElement = args.length === 1 ? args[0] : getCell(args[0], args[1]);
   return (await cell.findAll(".test-pw-thumbnail")).length;
 }
 
 /** Waits for specific number of attachments in a cell */
-export async function waitForAttachments(cell: WebElement, count: number): Promise<void>
-export async function waitForAttachments(col: string, row: number, count: number): Promise<void>
+export async function waitForAttachments(cell: WebElement, count: number): Promise<void>;
+export async function waitForAttachments(col: string, row: number, count: number): Promise<void>;
 export async function waitForAttachments(...args: any): Promise<void> {
   const cell: WebElement = args.length === 3 ? getCell(args[0], args[1]) : args[0];
   await waitToPass(async () => {
@@ -1017,8 +1017,8 @@ export async function importUrlDialog(url: string): Promise<void> {
  * Executed passed function in the context of given iframe, and then switching back to original context
  *
  */
-export async function doInIframe<T>(func: () => Promise<T>): Promise<T>
-export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>): Promise<T>
+export async function doInIframe<T>(func: () => Promise<T>): Promise<T>;
+export async function doInIframe<T>(iframe: WebElement, func: () => Promise<T>): Promise<T>;
 export async function doInIframe<T>(frameOrFunc: WebElement|(() => Promise<T>), func?: () => Promise<T>): Promise<T> {
   try {
     let iframe: WebElement;
@@ -1821,9 +1821,9 @@ type SortOptions = 'sort-asc'|'sort-dsc'|'add-to-sort-asc'|'add-to-sort-dsc';
  * Open the given column's dropdown menu. If `option` is provided, finds and clicks it.
  * If `option` is present in ColumnMenuOption, also waits for the specified element.
  */
-export function openColumnMenu(col: IColHeader|string, option?: 'Filter'): WebElementPromise;
-export function openColumnMenu(col: IColHeader|string, option: SortOptions|string): Promise<void>;
-export function openColumnMenu(col: IColHeader|string, option?: string): WebElementPromise|Promise<void> {
+export function openColumnMenu(col: IColHeader|string, option: SortOptions): Promise<void>;
+export function openColumnMenu(col: IColHeader|string, option?: string): WebElementPromise;
+export function openColumnMenu(col: IColHeader|string, option?: string): WebElementPromise | Promise<void> {
   if (['sort-asc', 'sort-dsc', 'add-to-sort-asc', 'add-to-sort-dsc'].includes(option || '')) {
     return openColumnMenuHelper(col).then<void>(async (menu) => {
       await menu.find(`.test-${option}`).click();
@@ -1914,11 +1914,11 @@ export async function selectAllKey() {
  * Send keys, with support for Key.chord(), similar to driver.sendKeys(). Note that while
  * elem.sendKeys() supports Key.chord(...), driver.sendKeys() does not. This is a replacement.
  */
-export async function sendKeys(...keys: string[]): Promise<void>
+export async function sendKeys(...keys: string[]): Promise<void>;
 /**
  * Send keys with a pause between each key.
  */
-export async function sendKeys(interval: number, ...keys: string[]): Promise<void>
+export async function sendKeys(interval: number, ...keys: string[]): Promise<void>;
 export async function sendKeys(...args: (string|number)[]) {
   let interval = 0;
   if (typeof args[0] === 'number') {
@@ -2208,6 +2208,7 @@ export enum TestUserEnum {
   user4 = 'ham',
   userz = 'userz',    // a user for old tests, that doesn't overlap with others.
   fresh = 'fresh',    // user with no resources in seed.ts, safe to recreate as needed
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   owner = 'chimpy',
   anon = 'anon',
   support = 'support',
@@ -2285,8 +2286,8 @@ export class Session {
   }
 
   // Return a session configured for the current session's site but a different user.
-  public user(userName?: TestUser): Session
-  public user(user: UserData): Session
+  public user(userName?: TestUser): Session;
+  public user(user: UserData): Session;
   public user(arg: TestUser|UserData = 'user1') {
     const data = typeof arg === 'string' ? translateUser(arg) : arg;
     return new Session({...this.settings, ...data});

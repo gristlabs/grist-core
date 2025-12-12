@@ -23,8 +23,8 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import {timeFormat} from 'app/common/timeFormat';
 import * as version from 'app/common/version';
 import {dom} from 'grainjs';
-import identity = require('lodash/identity');
-import pickBy = require('lodash/pickBy');
+import identity from 'lodash/identity';
+import pickBy from 'lodash/pickBy';
 
 export type BeaconCmd = 'init' | 'destroy' | 'open' | 'close' | 'toggle' | 'search' | 'suggest' |
   'article' | 'navigate' | 'identify' | 'prefill' | 'reset' | 'logout' | 'config' | 'on' | 'off' |

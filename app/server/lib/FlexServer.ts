@@ -94,8 +94,8 @@ import * as http from 'http';
 import * as https from 'https';
 import {i18n} from 'i18next';
 import i18Middleware from 'i18next-http-middleware';
-import mapValues = require('lodash/mapValues');
-import pick = require('lodash/pick');
+import mapValues from 'lodash/mapValues';
+import pick from 'lodash/pick';
 import morganLogger from 'morgan';
 import {AddressInfo} from 'net';
 import fetch from 'node-fetch';
@@ -555,7 +555,7 @@ export class FlexServer implements GristServer {
     // If docWorkerRegistered=1 query parameter is included, status will include the status of the
     // doc worker registration in Redis.
     this.app.get('/status(/hooks)?', async (req, res) => {
-      const checks = new Map<string, Promise<boolean>|boolean>();
+      const checks = new Map<string, Promise<boolean>>();
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
 
       // Check that the given promise resolves with no error within our timeout.
@@ -567,7 +567,7 @@ export class FlexServer implements GristServer {
       };
 
       if (req.path.endsWith('/hooks')) {
-        checks.set('hooks', this._hasTestingHooks);
+        checks.set('hooks', Promise.resolve(this._hasTestingHooks));
       }
       if (isParameterOn(req.query.db)) {
         checks.set('db', asyncCheck(this._dbManager.connection.query('SELECT 1')));
@@ -590,7 +590,7 @@ export class FlexServer implements GristServer {
         }
       }
       if (isParameterOn(req.query.ready)) {
-        checks.set('ready', this._isReady);
+        checks.set('ready', Promise.resolve(this._isReady));
       }
       let extra = '';
       let ok = true;

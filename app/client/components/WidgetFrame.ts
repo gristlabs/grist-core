@@ -21,10 +21,10 @@ import {
 } from 'app/plugin/grist-plugin-api';
 import {MsgType, Rpc} from 'grain-rpc';
 import {Computed, Disposable, dom, Observable} from 'grainjs';
-import noop = require('lodash/noop');
-import debounce = require('lodash/debounce');
-import isEqual = require('lodash/isEqual');
-import flatMap = require('lodash/flatMap');
+import noop from 'lodash/noop';
+import debounce from 'lodash/debounce';
+import isEqual from 'lodash/isEqual';
+import flatMap from 'lodash/flatMap';
 
 const testId = makeTestId('test-custom-widget-');
 
@@ -462,7 +462,7 @@ export class GristViewImpl implements GristView {
       // Use the colId of the displayCol when expanding references, so
       // we don't get the underlying refId instead.
       const colId: string = expandRefs ? column.displayColModel.peek().colId.peek() : column.colId.peek();
-      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId)!;
+      const getter = this._baseView.tableModel.tableData.getRowPropFunc(colId);
       const typeInfo = extractInfoFromColType(column.type.peek());
       data[column.colId.peek()] = rowIds.map(r => reencodeAsAny(getter(r)!, typeInfo));
     }

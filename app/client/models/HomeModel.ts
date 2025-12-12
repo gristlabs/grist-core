@@ -15,8 +15,8 @@ import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
 import {Document, Organization, RenameDocOptions, Workspace} from 'app/common/UserAPI';
 import {bundleChanges, Computed, Disposable, Observable, subscribe} from 'grainjs';
-import flatten = require('lodash/flatten');
-import sortBy = require('lodash/sortBy');
+import flatten from 'lodash/flatten';
+import sortBy from 'lodash/sortBy';
 
 const DELAY_BEFORE_SPINNER_MS = 500;
 
@@ -194,7 +194,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     // Defer home plugin initialization
     const pluginManager = new HomePluginManager({
       localPlugins: _app.topAppModel.plugins,
-      untrustedContentOrigin: _app.topAppModel.getUntrustedContentOrigin()!,
+      untrustedContentOrigin: _app.topAppModel.getUntrustedContentOrigin(),
       clientScope,
     });
     const importSources = ImportSourceElement.fromArray(pluginManager.pluginsList);
@@ -292,7 +292,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       const currentPage = this.currentPage.get();
       const promises = [
         this._fetchWorkspaces(org.id, false).catch(reportError),
-        currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : null,
+        currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : Promise.resolve(null),
         this._maybeFetchTemplates(),
       ] as const;
 

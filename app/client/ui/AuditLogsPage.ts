@@ -2,7 +2,7 @@ import { buildHomeBanners } from "app/client/components/Banners";
 import { makeT } from "app/client/lib/localization";
 import { AppModel, reportError } from "app/client/models/AppModel";
 import { App } from "app/client/ui/App";
-import { AuditLogsModel } from "app/client/models/AuditLogsModel";
+import { AuditLogsModel, AuditLogsModelImpl } from "app/client/models/AuditLogsModel";
 import { urlState } from "app/client/models/gristUrlState";
 import { AppHeader } from "app/client/ui/AppHeader";
 import { AuditLogStreamingConfig } from "app/client/ui/AuditLogStreamingConfig";
@@ -32,7 +32,7 @@ const t = makeT("AuditLogsPage");
 const testId = makeTestId("test-audit-logs-page-");
 
 export class AuditLogsPage extends Disposable {
-  private readonly _model = new AuditLogsModel({
+  private readonly _model: AuditLogsModel = new AuditLogsModelImpl({
     configsAPI: new OrgConfigsAPI(this._appModel.currentOrg!.id),
   });
   private readonly _currentPage = Computed.create(

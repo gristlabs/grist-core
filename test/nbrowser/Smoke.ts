@@ -12,7 +12,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 
 async function openMainPage() {
   await driver.get(`${server.getHost()}`);
-  while (true) {    // eslint-disable-line no-constant-condition
+  while (true) {
     try {
       if (await driver.find('.test-intro-create-doc').isPresent()) {
         return;

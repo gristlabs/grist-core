@@ -7,7 +7,7 @@ import * as fse from 'fs-extra';
 import path from 'path';
 import * as tmp from 'tmp-promise';
 
-export type AttachmentStoreId = string
+export type AttachmentStoreId = string;
 
 /**
  * Creates an {@link IAttachmentStore} from a given store id, if the Grist installation is

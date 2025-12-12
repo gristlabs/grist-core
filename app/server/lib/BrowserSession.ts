@@ -206,7 +206,11 @@ export class ScopedSession {
   // This is mainly used to know which emails are logged in in this session; fields like name and
   // picture URL come from the database instead.
   public async updateUserProfile(req: Request, profile: UserProfile|null): Promise<void> {
-    profile ? await this.updateUser(req, {profile}) : await this.clearScopedSession(req);
+    if (profile) {
+      await this.updateUser(req, {profile});
+    } else {
+      await this.clearScopedSession(req);
+    }
   }
 
   /**

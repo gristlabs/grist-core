@@ -399,7 +399,7 @@ export default class BaseView extends DisposableWithEvents {
 
   // Commands run via a Mousetrap callback get a KeyboardEvent is the first argument. This is
   // obscure and essentially undocumented.
-  protected deleteRecords(source: KeyboardEvent|unknown) {
+  protected deleteRecords(source: unknown) {
     if (this.gristDoc.isReadonly.get()) {
       return;
     }
@@ -585,7 +585,7 @@ export default class BaseView extends DisposableWithEvents {
       this.tableModel.tableData.getValue(rowId, 'manualSort') : null;
 
     return this.sendTableAction(['AddRecord', null, { 'manualSort': insertPos }])!
-    .then((rowId) => {      // eslint-disable-line @typescript-eslint/no-shadow
+    .then((rowId) => {
       if (!this.isDisposed()) {
         this._exemptFromFilterRows.addExemptRow(rowId);
         this.setCursorPos({rowId});

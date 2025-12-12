@@ -15,7 +15,6 @@ export async function waitForIt(fn: () => MaybePromise<any>, maxWaitMs: number =
                                 stepWaitMs: number = 1000) {
   const start = Date.now();
   const timePassed = () => Date.now() - start;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       await fn();

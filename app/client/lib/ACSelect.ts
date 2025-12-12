@@ -34,8 +34,19 @@ export function buildACSelect(
   const acClose = () => acHolder.clear();
   const finish = () => { acClose(); textInput.blur(); };
   const revert = () => { textInput.value = valueObs.get(); finish(); };
-  const commitOrRevert = async () => { (await commitIfValid()) || revert(); };
-  const openOrCommit = () => { isOpen() ? commitOrRevert().catch(() => {}) : acOpen(); };
+  const commitOrRevert = async () => {
+    const isValid = await commitIfValid();
+    if (!isValid) {
+      revert();
+    }
+  };
+  const openOrCommit = () => {
+    if (isOpen()) {
+      commitOrRevert().catch(() => {});
+    } else {
+      acOpen();
+    }
+  };
 
   const commitIfValid = async () => {
     const item = acHolder.get()?.getSelectedItem();

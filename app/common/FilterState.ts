@@ -14,7 +14,7 @@ export interface FilterSpec {
 
 export type IRangeBoundType = undefined|number|IRelativeDateSpec;
 
-export type FilterState = ByValueFilterState | RangeFilterState
+export type FilterState = ByValueFilterState | RangeFilterState;
 
 // A more efficient representation of filter state for a column than FilterSpec.
 interface ByValueFilterState {

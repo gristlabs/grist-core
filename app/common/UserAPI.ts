@@ -1403,7 +1403,7 @@ export type PublicDocWorkerUrlInfo = {
   selfPrefix: null;
   docWorkerUrl: string;
   docWorkerId: string;
-}
+};
 
 export function getUrlFromPrefix(homeUrl: string, prefix: string) {
   const url = new URL(homeUrl);

@@ -194,7 +194,11 @@ export function modal(
   function doClose() {
     if (!modalDom.isConnected) { return; }
 
-    variant === 'collapsing' ? collapseAndCloseModal() : closeModal();
+    if (variant === 'collapsing') {
+      collapseAndCloseModal();
+    } else {
+      closeModal();
+    }
   }
 
   function closeModal() {

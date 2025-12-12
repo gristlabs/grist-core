@@ -1,9 +1,9 @@
 import {typedCompare} from 'app/common/SortFunc';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Datum} from 'plotly.js';
-import range = require('lodash/range');
-import uniqBy = require('lodash/uniqBy');
-import flatten = require('lodash/flatten');
+import range from 'lodash/range';
+import uniqBy from 'lodash/uniqBy';
+import flatten from 'lodash/flatten';
 
 /**
  * Sort all values in a list of series according to the values in the first one.

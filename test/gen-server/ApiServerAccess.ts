@@ -8,8 +8,8 @@ import {SendGridConfig, SendGridMailWithTemplateId} from 'app/gen-server/lib/Not
 import {create} from 'app/server/lib/create';
 import axios, {AxiosResponse} from 'axios';
 import * as chai from 'chai';
-import fromPairs = require('lodash/fromPairs');
-import pick = require('lodash/pick');
+import fromPairs from 'lodash/fromPairs';
+import pick from 'lodash/pick';
 import moment from 'moment';
 import * as sinon from 'sinon';
 import {TestServer} from 'test/gen-server/apiUtils';

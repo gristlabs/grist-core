@@ -290,7 +290,6 @@ export function addVersionCommand(program: commander.Command) {
 export async function dbCheck(connection: Connection) {
   const migrations = await getMigrations(connection);
   const changingProducts = await synchronizeProducts(connection, false);
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   const log = process.env.TYPEORM_LOGGING === 'true' ? console.log : (...args: any[]) => null;
   const options = getTypeORMSettings();
   log("database url:", getDatabaseUrl(options, false));

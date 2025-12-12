@@ -3,7 +3,7 @@
  */
 import FormData from 'form-data';
 import * as fse from 'fs-extra';
-import defaults = require('lodash/defaults');
+import defaults from 'lodash/defaults';
 import {Key, WebDriver, WebElement} from 'mocha-webdriver';
 import fetch from 'node-fetch';
 import {authenticator} from 'otplib';
@@ -15,7 +15,7 @@ import {BehavioralPrompt, UserPrefs, WelcomePopup} from 'app/common/Prefs';
 import {DocWorkerAPI, UserAPI, UserAPIImpl} from 'app/common/UserAPI';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {TestingHooksClient} from 'app/server/lib/TestingHooks';
-import EventEmitter = require('events');
+import EventEmitter from 'events';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 
 export interface Server extends EventEmitter {

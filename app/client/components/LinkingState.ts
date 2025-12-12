@@ -14,10 +14,10 @@ import {CellValue} from "app/plugin/GristData";
 import {encodeObject} from 'app/plugin/objtypes';
 import {Disposable, Holder, MultiHolder} from "grainjs";
 import * as  ko from "knockout";
-import merge = require('lodash/merge');
-import mapValues = require('lodash/mapValues');
-import pick = require('lodash/pick');
-import pickBy = require('lodash/pickBy');
+import merge from 'lodash/merge';
+import mapValues from 'lodash/mapValues';
+import pick from 'lodash/pick';
+import pickBy from 'lodash/pickBy';
 
 
 // Descriptive string enum for each case of linking
@@ -549,8 +549,9 @@ export class LinkingState extends Disposable {
   // - Uses a row model to create a dependency on the cell's value, so changes to the cell value will notify observers
   // - ValGetter returns null for the 'new' row
   // - An undefined colId means to use the 'id' column, i.e. Valgetter is (rowId)=>rowId
-  private _makeValGetter(table: TableRec, colId: string | undefined, owner: MultiHolder=this)
-    : ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
+  private _makeValGetter(
+    table: TableRec, colId: string | undefined, owner: MultiHolder=this
+  ): ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
   {
     if(colId === undefined) { //passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };

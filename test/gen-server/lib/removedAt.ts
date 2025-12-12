@@ -1,8 +1,8 @@
 import {BaseAPI} from 'app/common/BaseAPI';
 import {UserAPI, Workspace} from 'app/common/UserAPI';
 import {assert} from 'chai';
-import flatten = require('lodash/flatten');
-import sortBy = require('lodash/sortBy');
+import flatten from 'lodash/flatten';
+import sortBy from 'lodash/sortBy';
 import {TestServer} from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
@@ -259,9 +259,9 @@ describe('removedAt', function() {
         }
       });
       const userRef = (email: string) => home.dbManager.getUserByLogin(email).then((user) => user.ref);
-      const idTest1 = (await home.dbManager.getUserByLogin("test1@getgrist.com"))!.id;
-      const idTest2 = (await home.dbManager.getUserByLogin("test2@getgrist.com"))!.id;
-      const idTest3 = (await home.dbManager.getUserByLogin("test3@getgrist.com"))!.id;
+      const idTest1 = (await home.dbManager.getUserByLogin("test1@getgrist.com")).id;
+      const idTest2 = (await home.dbManager.getUserByLogin("test2@getgrist.com")).id;
+      const idTest3 = (await home.dbManager.getUserByLogin("test3@getgrist.com")).id;
       // Create one extra document, with one extra user.
       const extraDocId = await api.newDoc({name: 'doc'}, ws);
       await api.updateDocPermissions(extraDocId, {

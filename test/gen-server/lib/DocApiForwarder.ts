@@ -3,13 +3,13 @@ import { createDummyGristServer } from 'app/server/lib/GristServer';
 import axios, { AxiosResponse } from 'axios';
 import { fromCallback } from "bluebird";
 import { assert } from 'chai';
-import express = require("express");
+import express from "express";
 import FormData from 'form-data';
 import { Server } from 'http';
-import defaultsDeep = require('lodash/defaultsDeep');
+import defaultsDeep from 'lodash/defaultsDeep';
 import morganLogger from 'morgan';
 import { AddressInfo } from 'net';
-import sinon = require("sinon");
+import sinon from "sinon";
 
 import { createInitialDb, removeConnection, setUpDB } from "test/gen-server/seed";
 import { configForUser } from 'test/gen-server/testUtils';

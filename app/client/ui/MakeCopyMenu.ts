@@ -48,7 +48,7 @@ import {
   subscribeElem
 } from 'grainjs';
 import {cssLink} from 'app/client/ui2018/links';
-import sortBy = require('lodash/sortBy');
+import sortBy from 'lodash/sortBy';
 
 const t = makeT('MakeCopyMenu');
 

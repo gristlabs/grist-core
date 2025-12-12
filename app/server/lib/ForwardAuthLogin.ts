@@ -13,8 +13,8 @@ import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession }
 import log from 'app/server/lib/log';
 import { optStringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
-import trimEnd = require('lodash/trimEnd');
-import trimStart = require('lodash/trimStart');
+import trimEnd from 'lodash/trimEnd';
+import trimStart from 'lodash/trimStart';
 
 /**
  * Return a login system that can work in concert with middleware that

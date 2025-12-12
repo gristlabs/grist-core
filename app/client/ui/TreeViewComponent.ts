@@ -4,9 +4,9 @@ import { mouseDrag, MouseDragHandler, MouseDragStart } from "app/client/ui/mouse
 import * as css from 'app/client/ui/TreeViewComponentCss';
 import { Computed, dom, DomArg, Holder } from "grainjs";
 import { Disposable, IDisposable, makeTestId, ObsArray, Observable, observable } from "grainjs";
-import debounce = require('lodash/debounce');
-import defaults = require("lodash/defaults");
-import noop = require('lodash/noop');
+import debounce from 'lodash/debounce';
+import defaults from "lodash/defaults";
+import noop from 'lodash/noop';
 
 const t = makeT('TreeViewComponent');
 
@@ -644,10 +644,18 @@ function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
     dom.onDisposeElem(el, () => clearTimeout(timeoutId));
     function onMove(ev: MouseEvent) {
       // Clears timeout if cursor moves before timer expires, ie: the startDrag won't be called.
-      handler ? handler.onMove(ev) : clearTimeout(timeoutId);
+      if (handler) {
+        handler.onMove(ev);
+      } else {
+        clearTimeout(timeoutId);
+      }
     }
     function onStop(ev: MouseEvent) {
-      handler ? handler.onStop(ev) : clearTimeout(timeoutId);
+      if (handler) {
+        handler.onStop(ev);
+      } else {
+        clearTimeout(timeoutId);
+      }
     }
     return {onMove, onStop};
   });

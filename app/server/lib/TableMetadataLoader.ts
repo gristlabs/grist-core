@@ -1,7 +1,7 @@
 import { BulkColValues, TableColValues, TableDataAction, toTableDataAction } from 'app/common/DocActions';
 import log from 'app/server/lib/log';
 
-import fromPairs = require('lodash/fromPairs');
+import fromPairs from 'lodash/fromPairs';
 
 /**
  *

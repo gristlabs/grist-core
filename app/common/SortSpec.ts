@@ -211,6 +211,9 @@ export namespace Sort {
    */
   export function swapColRef(colSpec: ColSpec, colRef: ColRef): ColSpec {
     if (typeof colSpec === "number") {
+      // FIXME: This eslint rule should probably be reenabled. But we need to understand
+      // how this function is expected to be called.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-unary-minus
       return colSpec >= 0 ? colRef : -colRef;
     }
     const spec = parseColSpec(colSpec);

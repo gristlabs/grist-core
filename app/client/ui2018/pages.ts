@@ -14,7 +14,7 @@ const t = makeT('pages');
 const testId = makeTestId('test-docpage-');
 
 export interface PageOptions {
-  onRename: (name: string) => Promise<void>|any;
+  onRename: (name: string) => Promise<void>;
   onRemove: () => void;
   onDuplicate: () => void;
   isRemoveDisabled: () => boolean;
@@ -138,7 +138,7 @@ export function buildPageDom(name: Observable<string>, options: PageOptions, ...
             cssEditorInput(
               {
                 initialValue: name.get() || '',
-                save: (val) => onRename(val),
+                save: async (val) => onRename(val),
                 close: () => isRenaming.set(false)
               },
               testId('editor'),

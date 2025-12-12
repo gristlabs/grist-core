@@ -1,7 +1,7 @@
 import { TreeItem } from "app/client/models/TreeModel";
 import { TreeViewComponent } from "app/client/ui/TreeViewComponent";
 import { dom, MutableObsArray, obsArray, observable, styled } from "grainjs";
-import constant = require('lodash/constant');
+import constant from 'lodash/constant';
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
@@ -84,7 +84,7 @@ function setupTest() {
         dom.on('click', () => treeModel.set(buildTreeModel()))),
       dom('input.move', {type: 'button', value: 'move'},
         dom.on('click', () => {
-          const src = treeModel.get().children().get()[0]!;
+          const src = treeModel.get().children().get()[0];
           const dest = treeModel.get();
           const item = src.children()!.get()[1];
           // removeChild

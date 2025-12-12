@@ -15,7 +15,7 @@ import * as menu from 'app/client/ui2018/menus';
 import { searchBar } from 'app/client/ui2018/search';
 import { Computed, dom, makeTestId, obsArray, styled } from 'grainjs';
 import { observable, Observable } from 'grainjs';
-import noop = require('lodash/noop');
+import noop from 'lodash/noop';
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 

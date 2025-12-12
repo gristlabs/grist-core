@@ -45,7 +45,7 @@ describe("DocWorkerLoadTracker", function () {
   });
 
   describe('getLoad()', function () {
-    let cleanupFiles: Array<() => {}> = [];
+    let cleanupFiles: Array<() => void> = [];
     const registerCleanup = (cleanup: () => Promise<void>) => cleanupFiles.push(cleanup);
 
     afterEach(function () {

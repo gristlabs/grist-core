@@ -22,7 +22,7 @@ import ko from 'knockout';
 
 const t = makeT('duplicateWidget');
 
-type PageSelectOption = IOption<number> & { isActivePage: boolean }
+type PageSelectOption = IOption<number> & { isActivePage: boolean };
 
 export async function buildDuplicateWidgetModal(gristDoc: GristDoc, viewSectionId: number) {
   saveModal((ctl, owner) => {

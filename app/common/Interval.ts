@@ -20,12 +20,12 @@ export interface IntervalDelay {
  */
 export class Interval {
   private _timeout?: NodeJS.Timeout | null;
-  private _lastPendingCall?: Promise<unknown> | unknown;
+  private _lastPendingCall?: Promise<unknown>;
   private _timeoutDelay?: number;
   private _stopped: boolean = true;
 
   constructor(
-    private _callback: () => Promise<unknown> | unknown,
+    private _callback: () => Promise<unknown>,
     private _delay: IntervalDelay,
     private _options: IntervalOptions
   ) {}

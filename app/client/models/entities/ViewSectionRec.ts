@@ -34,7 +34,7 @@ import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import {GristObjCode} from 'app/plugin/GristData';
 import {Computed, Holder, Observable, subscribe} from 'grainjs';
 import * as ko from 'knockout';
-import defaults = require('lodash/defaults');
+import defaults from 'lodash/defaults';
 
 export interface InsertColOptions {
   colInfo?: ColInfo;
@@ -321,7 +321,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // If all selected columns are empty or formula column.
   columnsAllIsFormula: ko.PureComputed<boolean>;
   // Common type of selected columns or mixed.
-  columnsType: ko.PureComputed<string|'mixed'>;
+  columnsType: ko.PureComputed<string>;
 
   widgetType: modelUtil.KoSaveableObservable<WidgetType>;
 
@@ -375,7 +375,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
 }
 
 export type WidgetMappedColumn = number|number[]|null;
-export type WidgetColumnMapping = Record<string, WidgetMappedColumn>
+export type WidgetColumnMapping = Record<string, WidgetMappedColumn>;
 
 export interface CustomViewSectionDef {
   /**

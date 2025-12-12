@@ -8,7 +8,7 @@ import {makeExceptionalDocSession} from 'app/server/lib/DocSession';
 import {DocStorage} from 'app/server/lib/DocStorage';
 import {OnDemandActions, ProcessedAction} from 'app/server/lib/OnDemandActions';
 import {assert} from 'chai';
-import times = require('lodash/times');
+import times from 'lodash/times';
 import * as sinon from 'sinon';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';

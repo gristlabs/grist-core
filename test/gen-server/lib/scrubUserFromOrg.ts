@@ -14,7 +14,7 @@ describe('scrubUserFromOrg', function() {
     server = new TestServer(this);
     await server.start();
     // Use an empty org called "org1" created by "user1" for these tests.
-    const user1 = (await server.dbManager.getUserByLogin('user1@getgrist.com'))!;
+    const user1 = (await server.dbManager.getUserByLogin('user1@getgrist.com'));
     await server.dbManager.addOrg(user1, {name: 'org1', domain: 'org1'}, {
       setUserAsOwner: false,
       useNewPlan: true
@@ -32,7 +32,7 @@ describe('scrubUserFromOrg', function() {
 
   // get the home api, making sure the user's api key is set.
   async function getApi(userName: string, orgName: string) {
-    const user = (await server.dbManager.getUserByLogin(`${userName}@getgrist.com`))!;
+    const user = (await server.dbManager.getUserByLogin(`${userName}@getgrist.com`));
     user.apiKey = `api_key_for_${userName}`;
     await user.save();
     return server.createHomeApi(userName, orgName, true);

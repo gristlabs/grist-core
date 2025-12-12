@@ -38,7 +38,6 @@ describe('BundleActions', function() {
     // over the next test (on my machine it fails after 3 seconds). So this test is skipped and
     // just a documentation of the bug for later use.
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const rollback = await gu.begin();
       // Start a transform.

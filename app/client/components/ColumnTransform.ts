@@ -15,7 +15,7 @@ import {GristObjCode} from 'app/plugin/GristData';
 import {Disposable, Observable} from 'grainjs';
 import isPlainObject from 'lodash/isPlainObject';
 import * as ko from 'knockout';
-import noop = require('lodash/noop');
+import noop from 'lodash/noop';
 
 // To simplify diff (avoid rearranging methods to satisfy private/public order).
 /* eslint-disable @typescript-eslint/member-ordering */
@@ -33,7 +33,7 @@ export class ColumnTransform extends Disposable {
   protected transformColumn: ColumnRec;                 // Set in prepare()
   protected origWidgetOptions: unknown;
   protected isCallPending: ko.Observable<boolean>;
-  protected editor: AceEditor|null = null;              // Created when the dom is built by extending classes
+  protected editor: AceEditor = null;              // Created when the dom is built by extending classes
   protected formulaUpToDate = Observable.create(this, true);
   protected _tableData: TableData;
   protected rules: [GristObjCode.List, ...number[]]|null;

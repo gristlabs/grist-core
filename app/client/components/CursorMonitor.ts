@@ -8,7 +8,7 @@ import {CursorPos} from 'app/plugin/GristAPI';
 /**
  * Enriched cursor position with a view id
  */
-export type ViewCursorPos = CursorPos & { viewId: ViewDocPage }
+export type ViewCursorPos = CursorPos & { viewId: ViewDocPage };
 
 /**
  * Component for GristDoc that allows it to keep track of the latest cursor position.

@@ -430,7 +430,11 @@ export function inputMenu(createFunc: weasel.MenuCreateFunc, options?: weasel.IM
   // Triggers the input menu on 'input' events, if the input has text inside.
   function inputTrigger(triggerElem: Element, ctl: weasel.PopupControl): void {
     dom.onElem(triggerElem, 'input', () => {
-      (triggerElem as HTMLInputElement).value.length > 0 ? ctl.open() : ctl.close();
+      if ((triggerElem as HTMLInputElement).value.length > 0) {
+        ctl.open();
+      } else {
+        ctl.close();
+      }
     });
   }
   return weasel.inputMenu(createFunc, {

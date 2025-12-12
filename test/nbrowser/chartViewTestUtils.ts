@@ -1,8 +1,8 @@
 import {assert, driver, WebElement} from 'mocha-webdriver';
 import {Layout, LayoutAxis, PlotData} from 'plotly.js';
 import * as gu from 'test/nbrowser/gristUtils';
-import isString = require('lodash/isString');
-import isUndefined = require('lodash/isUndefined');
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 
 export interface ChartData {
   data: Partial<PlotData>[];

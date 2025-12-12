@@ -41,7 +41,7 @@ export class ServiceAccount extends BaseEntity {
     }
   }
 
-  public isActive(): Boolean {
+  public isActive(): boolean {
     const currentDate = new Date();
     return this.expiresAt > currentDate;
   }

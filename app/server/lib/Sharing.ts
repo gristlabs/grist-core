@@ -16,7 +16,7 @@ import {LogMethods} from "app/server/lib/LogMethods";
 import {shortDesc} from 'app/server/lib/shortDesc';
 import assert from 'assert';
 import {Mutex} from 'async-mutex';
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 import {ActionHistory, asActionGroup, getActionUndoInfo} from 'app/server/lib/ActionHistory';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
 import {makeExceptionalDocSession, OptDocSession} from 'app/server/lib/DocSession';

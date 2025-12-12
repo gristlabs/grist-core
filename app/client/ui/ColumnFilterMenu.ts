@@ -41,13 +41,13 @@ import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
         input, makeTestId, Observable, styled} from 'grainjs';
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
-import concat = require('lodash/concat');
-import identity = require('lodash/identity');
-import noop = require('lodash/noop');
-import partition = require('lodash/partition');
-import some = require('lodash/some');
-import tail = require('lodash/tail');
-import debounce = require('lodash/debounce');
+import concat from 'lodash/concat';
+import identity from 'lodash/identity';
+import noop from 'lodash/noop';
+import partition from 'lodash/partition';
+import some from 'lodash/some';
+import tail from 'lodash/tail';
+import debounce from 'lodash/debounce';
 
 const t = makeT('ColumnFilterMenu');
 
@@ -303,7 +303,11 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               cssCheckboxSquare(
                 {type: 'checkbox'},
                 dom.on('change', (_ev, elem) => {
-                  elem.checked ? columnFilter.add(key) : columnFilter.delete(key);
+                  if (elem.checked) {
+                    columnFilter.add(key);
+                  } else {
+                    columnFilter.delete(key);
+                  }
                 }),
                 (elem) => { elem.checked = columnFilter.includes(key); checkboxMap.set(key, elem); },
                 dom.style('position', 'relative'),
@@ -772,8 +776,8 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
  * values and display them with an appropriate label.
  */
 function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: ViewFieldRec|ColumnRec) {
-  const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId())!;
-  const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId())!;
+  const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId());
+  const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId());
   const formatter = fieldOrColumn.visibleColFormatter();
 
   let labelMapFunc: (rowId: number) => string | string[];

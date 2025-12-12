@@ -1,7 +1,7 @@
 import {checksumFile, HashPassthroughStream} from 'app/server/lib/checksumFile';
 import {MemoryWritableStream} from 'app/server/utils/streams';
 import {assert} from 'chai';
-import times = require('lodash/times');
+import times from 'lodash/times';
 import stream from 'node:stream';
 import * as testUtils from 'test/server/testUtils';
 

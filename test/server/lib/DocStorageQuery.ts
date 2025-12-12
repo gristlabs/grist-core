@@ -152,6 +152,7 @@ describe('DocStorageQuery', function() {
  * strings. Items can be regular expressions. These can contain named groups (e.g. /Hello (?<name>.*)/).
  * Across different regular expressions, same-named groups must match.
  */
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function assertMatches(calls: Array<unknown[]>, expected: Array<Array<unknown|RegExp>>) {
   const groups = new Map<string, string>();
   for (const [n, expectedCall] of expected.entries()) {

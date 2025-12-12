@@ -30,8 +30,8 @@ import {getAuthSession, getLogMeta, isRequest, RequestOrSession} from 'app/serve
 import * as cookie from 'cookie';
 import * as express from 'express';
 import fetch from 'node-fetch';
-import merge = require('lodash/merge');
-import pickBy = require('lodash/pickBy');
+import merge from 'lodash/merge';
+import pickBy from 'lodash/pickBy';
 
 interface RequestWithMatomoVisitorId extends RequestWithLogin {
   /**

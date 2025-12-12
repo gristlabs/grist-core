@@ -9,7 +9,7 @@ import {testId, theme} from 'app/client/ui2018/cssVars';
 import {MaybePromise} from 'app/plugin/gutil';
 import {Disposable, dom, DomContents} from 'grainjs';
 import {obsArray, onKeyElem, styled} from 'grainjs';
-import merge = require('lodash/merge');
+import merge from 'lodash/merge';
 import maxSize from 'popper-max-size-modifier';
 import {cssMenu} from 'popweasel';
 

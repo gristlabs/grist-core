@@ -56,10 +56,10 @@ import { integerParam } from 'app/server/lib/requestUtils';
 import { getRelatedRows } from 'app/server/lib/RowAccess';
 import { getDocSessionAccess, getDocSessionShare } from 'app/server/lib/sessionUtils';
 import { quoteIdent } from 'app/server/lib/SQLiteDB';
-import cloneDeep = require('lodash/cloneDeep');
-import fromPairs = require('lodash/fromPairs');
-import get = require('lodash/get');
-import memoize = require('lodash/memoize');
+import cloneDeep from 'lodash/cloneDeep';
+import fromPairs from 'lodash/fromPairs';
+import get from 'lodash/get';
+import memoize from 'lodash/memoize';
 import { getConfiguredStandardAttachmentStore } from 'app/server/lib/AttachmentStoreProvider';
 
 /**
@@ -603,6 +603,7 @@ export class GranularAccess implements GranularAccessForBundle {
           if (isDirect[actionIdx]) {
             return this._checkIncomingDocAction({docSession, action, actionIdx});
           }
+          return Promise.resolve(undefined);
         }));
       const shares = this._docData.getMetaTable('_grist_Shares');
       /**
@@ -1362,10 +1363,10 @@ export class GranularAccess implements GranularAccessForBundle {
             {tableId, filters: {id: [...rows.get(tableId)!]}})
         };
       }, {
-        _grist_Cells: this._docData.getMetaTable('_grist_Cells')!.getTableDataAction(),
+        _grist_Cells: this._docData.getMetaTable('_grist_Cells').getTableDataAction(),
         // We need some basic table information to translate numeric ids to string ids (refs to ids).
-        _grist_Tables: this._docData.getMetaTable('_grist_Tables')!.getTableDataAction(),
-        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column')!.getTableDataAction()
+        _grist_Tables: this._docData.getMetaTable('_grist_Tables').getTableDataAction(),
+        _grist_Tables_column: this._docData.getMetaTable('_grist_Tables_column').getTableDataAction()
       },
     );
     // Load pre-existing rows touched by the bundle.
@@ -1577,7 +1578,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   // Return true for special system sessions or document-creation sessions, where
   // unfettered access is appropriate.
-  private _hasExceptionalFullAccess(docSession: OptDocSession): Boolean {
+  private _hasExceptionalFullAccess(docSession: OptDocSession): boolean {
     return docSession.mode === 'system' || docSession.mode === 'nascent';
   }
 

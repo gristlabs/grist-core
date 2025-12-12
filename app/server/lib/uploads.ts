@@ -18,7 +18,7 @@ import {fromCallback} from 'bluebird';
 import * as contentDisposition from 'content-disposition';
 import {Application, Request, RequestHandler, Response} from 'express';
 import * as fse from 'fs-extra';
-import pick = require('lodash/pick');
+import pick from 'lodash/pick';
 import * as multiparty from 'multiparty';
 import {Response as FetchResponse} from 'node-fetch';
 import stream from 'node:stream';

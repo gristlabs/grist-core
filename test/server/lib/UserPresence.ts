@@ -262,7 +262,7 @@ describe('UserPresence', function() {
             while (viewerClient.count() > 0) {
               const msg = viewerClient.shift();
               if (msg && "type" in msg && msg.type === "docUserPresenceUpdate") {
-                reject(msg);
+                reject(msg); // eslint-disable-line @typescript-eslint/prefer-promise-reject-errors
               }
             }
             resolve(undefined);

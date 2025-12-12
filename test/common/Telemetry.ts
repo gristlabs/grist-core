@@ -82,32 +82,26 @@ describe('Telemetry', function() {
       const checker = buildTelemetryEventChecker('full');
       assert.throws(
         () => checker('siteUsage', {siteId: '1'}),
-        // eslint-disable-next-line max-len
         /Telemetry metadata siteId of event siteUsage expected a value of type number but received a value of type string/
       );
       assert.throws(
         () => checker('siteUsage', {lastActivity: 1234567890}),
-        // eslint-disable-next-line max-len
         /Telemetry metadata lastActivity of event siteUsage expected a value of type Date or string but received a value of type number/
       );
       assert.throws(
         () => checker('siteUsage', {inGoodStanding: 'true'}),
-        // eslint-disable-next-line max-len
         /Telemetry metadata inGoodStanding of event siteUsage expected a value of type boolean but received a value of type string/
       );
       assert.throws(
         () => checker('siteUsage', {numDocs: '1'}),
-        // eslint-disable-next-line max-len
         /Telemetry metadata numDocs of event siteUsage expected a value of type number but received a value of type string/
       );
       assert.throws(
         () => checker('documentUsage', {attachmentTypes: '1,2,3'}),
-        // eslint-disable-next-line max-len
         /Telemetry metadata attachmentTypes of event documentUsage expected a value of type array but received a value of type string/
       );
       assert.throws(
         () => checker('documentUsage', {attachmentTypes: ['.txt', 1, true]}),
-        // eslint-disable-next-line max-len
         /Telemetry metadata attachmentTypes of event documentUsage expected a value of type string\[\] but received a value of type object\[\]/
       );
     });
@@ -116,7 +110,6 @@ describe('Telemetry', function() {
       const checker = buildTelemetryEventChecker('limited');
       assert.throws(
         () => checker('signupVerified', {}),
-        // eslint-disable-next-line max-len
         /Telemetry event signupVerified requires a minimum telemetry level of 2 but the current level is 1/
       );
     });
@@ -129,7 +122,6 @@ describe('Telemetry', function() {
           userId: 1,
           altSessionId: 'altSessionId',
         }),
-        // eslint-disable-next-line max-len
         /Telemetry metadata userId of event watchedVideoTour requires a minimum telemetry level of 2 but the current level is 1/
       );
     });

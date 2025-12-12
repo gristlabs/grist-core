@@ -13,7 +13,7 @@ import {
   LinkNodeTable,
 } from 'app/common/LinkNode';
 import { IOptionFull } from 'grainjs';
-import isEqual = require('lodash/isEqual');
+import isEqual from 'lodash/isEqual';
 
 const t = makeT('selectBy');
 

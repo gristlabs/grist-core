@@ -105,7 +105,7 @@ describe('CardView', function() {
     await driver.find('.test-config-widget').click();
 
     // Show all fields in the one Card section we have.
-    while (true) {  // eslint-disable-line no-constant-condition
+    while (true) {
       try {
         await driver.find('.test-vfc-hidden-fields .kf_draggable').mouseMove().find('.test-vfc-hide').click();
         await gu.waitForServer();

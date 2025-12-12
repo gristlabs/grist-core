@@ -9,7 +9,7 @@ import {Sessions} from 'app/server/lib/Sessions';
 import {promisifyAll} from 'bluebird';
 import * as crypto from 'crypto';
 import * as express from 'express';
-import assignIn = require('lodash/assignIn');
+import assignIn from 'lodash/assignIn';
 import * as path from 'path';
 import {createClient} from 'redis';
 
@@ -56,6 +56,7 @@ export interface IGristSession {
 function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
   if (process.env.REDIS_URL) {
     // Note that ./build excludes this module from the electron build.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const RedisStore = require('connect-redis')(session);
     promisifyAll(RedisStore.prototype);
     return () => {
@@ -74,6 +75,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
         }});
     };
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
     promisifyAll(SQLiteStore.prototype);
     return () => {

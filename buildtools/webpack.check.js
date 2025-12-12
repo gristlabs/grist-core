@@ -1,6 +1,6 @@
-const path = require('path');
+import path from 'path';
 
-module.exports = {
+export default {
   target: 'web',
   mode: 'production',
   entry: "./app/client/browserCheck",
