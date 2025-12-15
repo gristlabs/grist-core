@@ -1,13 +1,17 @@
 import {AirtableAPI, AirtableBaseSchema, AirtableFieldSchema} from 'app/common/AirtableAPI';
 import {RecalcWhen} from 'app/common/gristTypes';
-import {GristType} from 'app/plugin/GristData';
 import {UserAction} from 'app/common/DocActions';
 import {ApplyUAResult} from 'app/common/ActiveDocAPI';
+import {
+  ColumnCreationSchema,
+  createTablesFromSchemas,
+  DocCreationSchema,
+  FormulaCreationFunc
+} from 'app/common/DocCreationHelper';
 
 export type ApplyUserActionsFunc = (userActions: UserAction[]) => Promise<ApplyUAResult>;
-export type GetTableColumnInfoFunc = (tableId: string) => Promise<{ id: string, colRef: number }[]>;
 
-export class AirtableMigrator {
+export class AirtableImporter {
   constructor(private _api: AirtableAPI, private _applyUserActions: ApplyUserActionsFunc) {
   }
 
@@ -18,7 +22,7 @@ export class AirtableMigrator {
     const gristDocSchema = gristDocSchemaFromAirtableSchema(baseSchema);
 
 
-    const results = await createTables(gristDocSchema.tables, this._applyUserActions);
+    const results = await createTablesFromSchemas(gristDocSchema.tables, this._applyUserActions);
 
     console.log(JSON.stringify(results, null, 2));
 
@@ -29,97 +33,14 @@ export class AirtableMigrator {
     };
   }
 
-  private async _getGristDocSchema(base: string): Promise<DocSchema> {
+  private async _getGristDocSchema(base: string): Promise<DocCreationSchema> {
     const baseSchema = await this._api.getBaseSchema(base);
 
     return gristDocSchemaFromAirtableSchema(baseSchema);
   }
 }
 
-async function createTables(schemas: TableSchema[],
-                            applyUserActions: ApplyUserActionsFunc) {
-  const addTableActions: UserAction[] = [];
-
-  for (const schema of schemas) {
-    addTableActions.push([
-      'AddTable',
-      // This will be transformed into a valid id
-      schema.name,
-      schema.columns.map(colInfo => ({
-        // This will be transformed into a valid id
-        id: colInfo.desiredId,
-        type: "Any",
-        isFormula: false,
-      })),
-    ]);
-  }
-
-  const tableCreationResults = (await applyUserActions(addTableActions)).retValues;
-
-  const tableOriginalIdToGristTableId = new Map<string, string>();
-  const tableOriginalIdToGristTableRef = new Map<string, number>();
-  const colOriginalIdToGristColId = new Map<string, string>();
-
-  // This expects everything to have been created successfully, and therefore
-  // in order in the response - without any gaps.
-  schemas.forEach((tableSchema, tableIndex) => {
-    const tableCreationResult = tableCreationResults[tableIndex];
-    tableOriginalIdToGristTableId.set(tableSchema.originalId, tableCreationResult.table_id as string);
-    tableOriginalIdToGristTableRef.set(tableSchema.originalId, tableCreationResult.id as number);
-
-    tableSchema.columns.forEach((colSchema, colIndex) => {
-      colOriginalIdToGristColId.set(colSchema.originalId, tableCreationResult.columns[colIndex] as string);
-    });
-  });
-
-  const getTableId = getFromOrThrowIfUndefined(tableOriginalIdToGristTableId, (key) => {
-    throw new Error(`Couldn't locate Grist table id for table ${key}`);
-  });
-
-  const getColId = getFromOrThrowIfUndefined(colOriginalIdToGristColId, (key) => {
-    throw new Error(`Couldn't locate Grist column id for column ${key}`);
-  });
-
-  const modifyColumnActions: UserAction[] = [];
-  for (const tableSchema of schemas) {
-    for (const columnSchema of tableSchema.columns) {
-      // TODO - consider logging a warning for the missing ref case.
-      //        Or block it entirely in TS
-      const type = columnSchema.type.includes("Ref")
-        ? columnSchema.ref ? `${columnSchema.type}:${getTableId(columnSchema.ref.originalTableId)}` : "Any"
-        : columnSchema.type;
-
-      modifyColumnActions.push([
-        'ModifyColumn',
-        getTableId(tableSchema.originalId),
-        getColId(columnSchema.originalId),
-        {
-          type,
-          isFormula: columnSchema.isFormula ?? false,
-          formula: columnSchema.formula?.({ getColId }),
-          label: columnSchema.label,
-          // Need to decouple it - otherwise our stored column ids may now be invalid.
-          untieColIdFromLabel: columnSchema.label !== undefined,
-          description: columnSchema.description,
-          widgetOptions: JSON.stringify(columnSchema.widgetOptions),
-          // TODO - Need column ref for this (as in the numerical id) - will need to load it.
-          //visibleCol: columnSchema.visibleCol?.originalColId && getColId(columnSchema.visibleCol.originalColId),
-          recalcDeps: columnSchema.recalcDeps,
-          recalcWhen: columnSchema.recalcWhen,
-        }
-      ]);
-    }
-  }
-
-  console.log(modifyColumnActions);
-  const modifyColumnResults = await applyUserActions(modifyColumnActions);
-  console.log(JSON.stringify(modifyColumnResults, null, 2));
-  console.log(modifyColumnResults);
-
-  return {};
-}
-
-function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocSchema {
+function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): DocCreationSchema {
   return {
     tables: airtableSchema.tables.map(baseTable => {
       return {
@@ -130,42 +51,13 @@ function gristDocSchemaFromAirtableSchema(airtableSchema: AirtableBaseSchema): D
             if (!AirtableFieldMappers[baseField.type]) { return undefined; }
             return AirtableFieldMappers[baseField.type](baseField);
           })
-          .filter((column): column is ColumnSchema => column !== undefined),
+          .filter((column): column is ColumnCreationSchema => column !== undefined),
       };
     })
   };
 }
 
-interface DocSchema {
-  tables: TableSchema[];
-}
-
-interface TableSchema {
-  originalId: string;
-  name: string;
-  columns: ColumnSchema[];
-}
-
-type FormulaFunc = (params: { getColId(originalId: string): string }) => string
-
-interface ColumnSchema {
-  originalId: string;
-  desiredId: string;
-  type: GristType;
-  isFormula?: boolean;
-  formula?: FormulaFunc;
-  label?: string;
-  description?: string;
-  // Only allow null until ID mapping is implemented
-  recalcDeps?: /*{ originalColId: string }[] |*/ null;
-  recalcWhen?: RecalcWhen;
-  ref?: { originalTableId: string };
-  visibleCol?: { originalColId: string };
-  untieColIdFromLabel?: boolean;
-  widgetOptions?: Record<string, any>;
-}
-
-type AirtableFieldMapper = (field: AirtableFieldSchema) => ColumnSchema;
+type AirtableFieldMapper = (field: AirtableFieldSchema) => ColumnCreationSchema;
 const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
   aiText(field) {
     return {
@@ -193,7 +85,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   count(field) {
-    let formula: FormulaFunc = () => "";
+    let formula: FormulaCreationFunc = () => "";
     const fieldOptions = field.options;
     if (fieldOptions && fieldOptions.isValid && fieldOptions.recordLinkFieldId) {
       // These can have conditions set in Airtable to filter them, but we have no way of knowing
@@ -427,7 +319,7 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
   rollup(field) {
-    let formula: FormulaFunc = () => "";
+    let formula: FormulaCreationFunc = () => "";
     const fieldOptions = field.options;
     if (fieldOptions && fieldOptions.recordLinkFieldId && fieldOptions.fieldIdInLinkedTable) {
       formula = ({ getColId }) => `
@@ -485,14 +377,3 @@ const AirtableFieldMappers: { [type: string]: AirtableFieldMapper } = {
     };
   },
 };
-
-// Small helper to make accessing a map less verbose, and use consistent error handling.
-function getFromOrThrowIfUndefined<K, V>(map: Map<K, V>, makeThrowable: (key: K) => Error) {
-  return (key: K): V => {
-    const value = map.get(key);
-    if (!value) {
-      throw makeThrowable(key);
-    }
-    return value;
-  };
-}

@@ -1,4 +1,4 @@
-import { AirtableMigrator } from 'app/common/AirtableMigration';
+import { AirtableImporter } from 'app/common/AirtableImporter';
 import { AirtableAPI } from 'app/common/AirtableAPI';
 
 window.runAirtableMigration = async function (apiKey, base) {
@@ -14,6 +14,6 @@ window.runAirtableMigration = async function (apiKey, base) {
   const docId = await userApi.newDoc({ name: base }, workspaces[0].id);
   const docApi = userApi.getDocAPI(docId);
 
-  const migrator = new AirtableMigrator(api, (actions) => docApi.applyUserActions(actions));
+  const migrator = new AirtableImporter(api, (actions) => docApi.applyUserActions(actions));
   return await migrator.run(base);
 };

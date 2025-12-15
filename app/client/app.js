@@ -13,7 +13,7 @@ const {setupLocale} = require('./lib/localization');
 const {AppImpl} = require('./ui/App');
 
 // Sets up global helper for airtable migration
-require('./lib/AirtableMigration');
+require('./lib/AirtableImporter');
 
 // Disable longStackTraces, which seem to be enabled in the browser by default.
 var bluebird = require('bluebird');
