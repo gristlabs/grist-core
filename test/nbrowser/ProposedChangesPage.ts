@@ -218,7 +218,7 @@ describe('ProposedChangesPage', function() {
                      [ 'Bird', 'Mammal', 'SpaceDuck' ]);
   });
 
-  it.skip('can apply a proposed change after a trunk change', async function() {
+  it('can apply a proposed change after a trunk change', async function() {
     const {api, doc} = await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 

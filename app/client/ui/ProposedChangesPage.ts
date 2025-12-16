@@ -490,10 +490,12 @@ class ActionLogPartInProposal extends ActionLogPart {
     const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
       const data = convertTabularDiffToTableData(table, tdiff);
       const tableRow = this._gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
-      const columnRows = this._gristDoc.docModel.columns.rowModels.filter(cr => cr.parentId() === tableRow.id());
-      const types = Object.fromEntries(
+      const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
+        cr => cr.parentId() === tableRow.id()
+      ) : null;
+      const types = columnRows ? Object.fromEntries(
         columnRows.map(cr => [cr.colId(), cr])
-      );
+      ) : {};
       const haveId = tdiff.header.includes('id');
       doc.addTable({
         name: table,

@@ -103,10 +103,12 @@ export class DocData extends ActionDispatcher {
    * Fetches the data for tableId if needed, and returns a promise that is fulfilled when the data
    * is loaded.
    */
-  public fetchTable(tableId: string, force?: boolean): Promise<void> {
+  public async fetchTable(tableId: string, force?: boolean): Promise<void> {
     const table = this._tables.get(tableId);
     if (!table) { throw new Error(`DocData.fetchTable: unknown table ${tableId}`); }
-    return (!table.isLoaded || force) ? table.fetchData(this._fetchTableFunc) : Promise.resolve();
+    if (!table.isLoaded || force) {
+      await table.fetchData(this._fetchTableFunc);
+    }
   }
 
   /**
