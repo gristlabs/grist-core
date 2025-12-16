@@ -189,7 +189,7 @@
         "Scatter plot": "Nuages de points",
         "Invert Y-axis": "Valeurs dans l’ordre inverse",
         "Show total": "Afficher le total",
-        "Text Size": "Taille du texte",
+        "Text size": "Taille du texte",
         "Aggregate values": "Regrouper par valeurs identiques",
         "SERIES": "SERIES",
         "Add series": "Ajouter une série",
@@ -1658,7 +1658,9 @@
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Lors de l'appel, nous prendrons le temps de comprendre vos besoins et d'adapter l'appel à ces derniers. Nous pouvons vous montrer les bases de Grist, ou commencer tout de suite à travailler avec vos données pour construire les tableaux de bord dont vous avez besoin.",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Planifiez votre {{freeCoachingCall}} avec un membre de notre équipe.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Vous pouvez également consulter {{ourWeeklyWebinars}} pour en savoir plus sur Grist.",
-        "our weekly webinars": "nos webinaires hebdomadaires"
+        "our weekly webinars": "nos webinaires hebdomadaires",
+        "Grist 101": "Les fondamentaux de Grist",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Vous pouvez également suivre notre webinaire d’introduction, {{ourWeeklyWebinars}}, qui a été spécialement créé afin d'aider les nouveaux utilisateurs à maitriser les fondamentaux de Grist."
     },
     "FormView": {
         "Publish": "Publier",
