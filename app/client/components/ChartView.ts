@@ -618,7 +618,7 @@ export class ChartConfig extends GrainJSDisposable {
         cssCheckboxRow(t('Show total'), this._optionsObj.prop('showTotal')),
         dom.maybe(this._optionsObj.prop('showTotal'), () => (
           cssNumberWithSpinnerRow(
-            t('Text Size'),
+            t('Text size'),
             Computed.create(owner, (use) => use(this._optionsObj.prop('textSize')) ??  DONUT_DEFAULT_TEXT_SIZE),
             (val: number) => this._optionsObj.prop('textSize').saveOnly(val),
             testId('option')
