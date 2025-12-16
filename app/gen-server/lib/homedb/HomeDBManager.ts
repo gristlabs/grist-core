@@ -455,8 +455,11 @@ export class HomeDBManager implements HomeDBAuth {
     return this._usersManager.getUserByKey(apiKey);
   }
 
-  public async getUserByRef(ref: string): Promise<User|undefined> {
-    return this._usersManager.getUserByRef(ref);
+  public async getUserByRef(
+    ref: string,
+    options: {manager?: EntityManager; relations?: string[]} = {}
+  ): Promise<User|undefined> {
+    return this._usersManager.getUserByRef(ref, options);
   }
 
   public async getUser(userId: number, options: {includePrefs?: boolean} = {}) {

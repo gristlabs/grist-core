@@ -54,16 +54,18 @@ import {GracePeriod1732103776245 as GracePeriod} from 'app/gen-server/migration/
 import {UserCreatedAt1738912357827 as UserCreatedAt} from 'app/gen-server/migration/1738912357827-UserCreatedAt';
 import {DocPref1746246433628 as DocPref} from 'app/gen-server/migration/1746246433628-DocPref';
 import {GroupUsersCreatedAt1749454162428
-  as GroupUsersCreatedAt} from 'app/gen-server/migration/1749454162428-GroupUsersCreatedAt';
+        as GroupUsersCreatedAt} from 'app/gen-server/migration/1749454162428-GroupUsersCreatedAt';
 import {GroupTypes1753088213255
         as GroupTypes} from 'app/gen-server/migration/1753088213255-GroupTypes';
-import {UserUnsubscribeKey1756799894986 as UserUnsubscribeKey}
-        from 'app/gen-server/migration/1756799894986-UserUnsubscribeKey';
+import {UserUnsubscribeKey1756799894986
+        as UserUnsubscribeKey} from 'app/gen-server/migration/1756799894986-UserUnsubscribeKey';
 import {UserDisabledAt1754077317821
- as UserDisabledAt } from 'app/gen-server/migration/1754077317821-UserDisabledAt';
+        as UserDisabledAt } from 'app/gen-server/migration/1754077317821-UserDisabledAt';
 import {ServiceAccounts1756918816559 as ServiceAccounts} from 'app/gen-server/migration/1756918816559-ServiceAccounts';
 import {DocDisabledAt1759434763338
- as DocDisabledAt} from 'app/gen-server/migration/1759434763338-DocDisabledAt';
+        as DocDisabledAt} from 'app/gen-server/migration/1759434763338-DocDisabledAt';
+import {OAuthClientsAndGrants1764872085347
+        as OAuthClientsAndGrants} from 'app/gen-server/migration/1764872085347-OAuthClientsAndGrants';
 
 const home: HomeDBManager = new HomeDBManager();
 
@@ -75,7 +77,7 @@ const migrations = [Initial, Login, PinDocs, UserPicture, DisplayEmail, DisplayE
                     Forks, ForkIndexes, ActivationPrefs, AssistantLimit, Shares, BillingFeatures,
                     UserLastConnection, ActivationEnabled, Configs, LoginsEmailsIndex, GracePeriod,
                     UserCreatedAt, DocPref, GroupUsersCreatedAt, GroupTypes, UserUnsubscribeKey,
-                    UserDisabledAt, ServiceAccounts, DocDisabledAt];
+                    UserDisabledAt, ServiceAccounts, DocDisabledAt, OAuthClientsAndGrants];
 
 // Assert that the "members" acl rule and group exist (or not).
 function assertMembersGroup(org: Organization, exists: boolean) {
