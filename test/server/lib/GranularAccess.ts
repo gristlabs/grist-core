@@ -4254,6 +4254,40 @@ describe('GranularAccess', function() {
       await owner.getDocAPI(docId).recover(true);
       await assert.isFulfilled(owner.getDocAPI(docId).getRows('Table1'));
     });
+
+    it('can share forms with a reference with no display column', async function() {
+      await freshDoc();
+
+      await owner.applyUserActions(docId, [
+        ['AddRecord', '_grist_Shares', null, {
+          linkId: 'x',
+          options: '{"publish": true}'
+        }],
+      ]);
+      await owner.applyUserActions(docId, [
+        ['UpdateRecord', '_grist_Views_section', 1,
+         {shareOptions: '{"publish": true, "form": true}'}
+        ],
+        ['UpdateRecord', '_grist_Pages', 1, {shareRef: 1}],
+        ['AddRecord', 'Table1', null, {A: 1, B: 1}],
+        ['AddTable', 'Table2', [{id: 'A'}]],
+        ['AddRecord', 'Table2', null, {A: 55}],
+        ['AddColumn', 'Table1', 'Reffy', {type: 'Ref:Table2'}],
+        ['AddRecord', '_grist_Views_section_field', null, {
+          colRef: 7,
+          parentId: 1,
+        }],
+      ]);
+      const ham = await home.createHomeApi('ham', 'docs', true);
+      const hamShare = ham.getDocAPI(await getShareKeyForUrl('x'));
+      await assert.isFulfilled(hamShare.getRecords('Table1'));
+      // This used to fail due to this case not being covered
+      // (access to Table2 isn't logically needed to see ids that
+      // are present in the referring table anyway, but it is more
+      // consistent if it is granted).
+      assert.deepEqual(await hamShare.getRecords('Table2'),
+                       [{id: 1, fields: {}}]);
+    });
   });
 
   it('handles column types correctly when rows are created', async function() {

@@ -1,4 +1,5 @@
 import { DocData } from 'app/common/DocData';
+import { extractInfoFromColType } from 'app/common/gristTypes';
 import { getSetMapValue } from 'app/common/gutil';
 import { SchemaTypes } from 'app/common/schema';
 import { ShareOptions } from 'app/common/ShareOptions';
@@ -330,16 +331,28 @@ export class ACLRulesReader {
         c.parentId === table.id &&
         (c.type.startsWith('Ref:') || c.type.startsWith('RefList:')));
     for (const column of tableColumns) {
-      const visibleColRef = column.visibleCol;
-      // This could be blank in tests, not sure about real life.
-      if (!visibleColRef) { continue; }
-      const visibleCol = columns.getRecord(visibleColRef);
-      if (!visibleCol) { continue; }
-      const referencedTable = tables.getRecord(visibleCol.parentId);
-      if (!referencedTable) { continue; }
+      let tableId: string;
+      let colId: string;
 
-      const tableId = referencedTable.tableId;
-      const colId = visibleCol.colId;
+      const visibleColRef = column.visibleCol;
+      if (visibleColRef) {
+        const visibleCol = columns.getRecord(visibleColRef);
+        if (!visibleCol) { continue; }
+        const referencedTable = tables.getRecord(visibleCol.parentId);
+        if (!referencedTable) { continue; }
+
+        tableId = referencedTable.tableId;
+        colId = visibleCol.colId;
+      } else {
+        const info = extractInfoFromColType(column.type);
+        if (info.type !== 'Ref' && info.type !== 'RefList') {
+          // should never happen
+          throw new Error('Unexpected column type in _shareTableReferencesForForm');
+        }
+        tableId = info.tableId;
+        colId = 'id';
+      }
+
       const resourceColIds = this._resourceColIdsByTableAndColId.get(`${tableId}:${colId}`) ?? colId;
       const maybeResourceId = this._resourcesTable.findMatchingRowId({tableId, colIds: resourceColIds});
       if (maybeResourceId !== 0) {
