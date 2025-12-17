@@ -293,7 +293,6 @@ describe('ProposedChangesPage', function() {
   });
 
   it('can show a count of changes to add to suggestion', async function() {
-    //const {api, doc} =
     await makeLifeDoc();
     const url = await driver.getCurrentUrl();
 
@@ -328,9 +327,13 @@ describe('ProposedChangesPage', function() {
     assert.equal(await driver.find('.test-tools-proposals').getText(),
                  'Suggest Changes (2)');
 
+    assert.notInclude(await driver.find('.test-undo').getAttribute('class'), '-disable');
+
     await proposeChange();
     assert.equal(await driver.find('.test-tools-proposals').getText(),
                  'Suggest Changes');
+
+    assert.include(await driver.find('.test-undo').getAttribute('class'), '-disable');
 
     await gu.openPage('Life');
     await gu.getCell('A', 1).click();
@@ -338,9 +341,11 @@ describe('ProposedChangesPage', function() {
     await gu.enterCell('13');
     assert.equal(await driver.find('.test-tools-proposals').getText(),
                  'Suggest Changes (1)');
+    assert.notInclude(await driver.find('.test-undo').getAttribute('class'), '-disable');
     await proposeChange();
     assert.equal(await driver.find('.test-tools-proposals').getText(),
                  'Suggest Changes');
+    assert.include(await driver.find('.test-undo').getAttribute('class'), '-disable');
 
     await driver.findContentWait('span', /original document/, 2000).click();
     await driver.findWait('.test-proposals-header', 2000);

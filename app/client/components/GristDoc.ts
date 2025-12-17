@@ -611,7 +611,10 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
 
     this._actionLog = this.autoDispose(ActionLog.create({gristDoc: this}));
     this._actionCounter = this.autoDispose(ActionCounter.create(openDocResponse.log, this.docData));
-    this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {gristDoc: this}));
+    this._undoStack = this.autoDispose(UndoStack.create(openDocResponse.log, {
+      gristDoc: this,
+      isUndoBlocked: this._actionCounter.isUndoBlocked,
+    }));
     if (openDocResponse.log.length > 0) {
       const latestAction = openDocResponse.log[openDocResponse.log.length - 1];
       this.latestActionState.set({

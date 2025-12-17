@@ -2,7 +2,7 @@ import * as dispose from 'app/client/lib/dispose';
 import { DocData } from 'app/client/models/DocData';
 import { MinimalActionGroup } from 'app/common/ActionGroup';
 import { DocState } from 'app/common/DocState';
-import { Observable } from 'grainjs';
+import { Computed, Observable } from 'grainjs';
 
 const MAX_MEMORY_OF_COUNTED_ACTIONS = 250;
 const MAX_COUNT = 20;
@@ -26,6 +26,8 @@ export class ActionCounter extends dispose.Disposable {
   // (otherwise is same as `count`).
   public countFromMark: Observable<number|'...'>;
 
+  public isUndoBlocked: Observable<boolean>;
+
   // List of actionNums that we've seen. Gets truncated.
   private _actionNumList: Array<number>;
 
@@ -48,6 +50,11 @@ export class ActionCounter extends dispose.Disposable {
     // Initialize counters and stats.
     this.count = Observable.create(this, 0);
     this.countFromMark = Observable.create(this, 0);
+    this.isUndoBlocked = Computed.create(
+      this,
+      this.countFromMark,
+      (_, count) => count <= 0
+    );
     this._counted = new Set();
     this._actionNumList = [];
     this._countAt = new Map();
