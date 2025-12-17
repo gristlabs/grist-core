@@ -1,17 +1,28 @@
 import * as css from 'app/client/components/FormRendererCss';
-import {bindMarkdown} from 'app/client/components/Forms/styles';
-import {getBrowserGlobals} from 'app/client/lib/browserGlobals';
-import {makeT} from 'app/client/lib/localization';
-import {FormField} from 'app/client/ui/FormAPI';
-import {dropdownWithSearch} from 'app/client/ui/searchDropdown';
-import {isXSmallScreenObs} from 'app/client/ui2018/cssVars';
-import {icon} from 'app/client/ui2018/icons';
-import {confirmModal} from 'app/client/ui2018/modals';
-import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
-import {isAffirmative, isNumber} from 'app/common/gutil';
-import {CellValue} from 'app/plugin/GristData';
-import {Disposable, dom, DomContents, IAttrObj, makeTestId, MutableObsArray, obsArray, Observable} from 'grainjs';
-import {IPopupOptions, PopupControl} from 'popweasel';
+import { bindMarkdown } from 'app/client/components/Forms/styles';
+import { getBrowserGlobals } from 'app/client/lib/browserGlobals';
+import { makeT } from 'app/client/lib/localization';
+import { FormField } from 'app/client/ui/FormAPI';
+import { cssRow } from "app/client/ui/RightPanelStyles";
+import { dropdownWithSearch } from 'app/client/ui/searchDropdown';
+import { isXSmallScreenObs, theme, vars } from 'app/client/ui2018/cssVars';
+import { icon } from 'app/client/ui2018/icons';
+import { confirmModal } from 'app/client/ui2018/modals';
+import { toggleSwitch } from 'app/client/ui2018/toggleSwitch';
+import { isAffirmative, isNumber } from 'app/common/gutil';
+import { CellValue } from 'app/plugin/GristData';
+import {
+  Disposable,
+  dom,
+  DomContents,
+  IAttrObj,
+  makeTestId,
+  MutableObsArray,
+  obsArray,
+  Observable,
+  styled
+} from 'grainjs';
+import { IPopupOptions, PopupControl } from 'popweasel';
 
 const testId = makeTestId('test-form-');
 
@@ -270,7 +281,7 @@ abstract class BaseFieldRenderer extends Disposable {
     return this.name().replace(/\s+/g, '-');
   }
 
-  public label() {
+  public label(): HTMLElement {
     return dom('label',
       css.label.cls(''),
       css.label.cls('-required', Boolean(this.field.options.formRequired)),
@@ -316,12 +327,56 @@ class TextRenderer extends BaseFieldRenderer {
   private _lineCount = String(this.field.options.formTextLineCount || 3);
   private _value = Observable.create<string>(this, this.getInitialValue() ?? '');
 
-  public input() {
-    if (this._format === 'singleline') {
-      return this._renderSingleLineInput();
-    } else {
-      return this._renderMultiLineInput();
+  public label() {
+    const minimumLength = this.field.options.formTextMinimumLength;
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (!maximumLength && !minimumLength) {
+      return super.label();
     }
+
+    const minimumLengthLabel = minimumLength && t("min. {{minimum}}", {
+      "minimum": minimumLength,
+    });
+    const maxLengthLabel = maximumLength && t("max. {{maximum}}", {
+      "maximum": maximumLength,
+    });
+
+    let finalLengthText;
+    if (minimumLength && maximumLength) {
+      finalLengthText = minimumLengthLabel + ", " + maxLengthLabel;
+    } else if (minimumLength) {
+      finalLengthText = minimumLengthLabel;
+    } else {
+      finalLengthText = maxLengthLabel;
+    }
+
+    return cssRow(
+        super.label(),
+        constraintLabel("(" + finalLengthText + ")"),
+    );
+  }
+
+  public input() {
+    let element: HTMLInputElement | HTMLTextAreaElement;
+    if (this._format === 'singleline') {
+      element = this._renderSingleLineInput();
+    } else {
+      element = this._renderMultiLineInput();
+    }
+
+    const minimumLength = this.field.options.formTextMinimumLength;
+    const maximumLength = this.field.options.formTextMaximumLength;
+
+    if (minimumLength) {
+      element.minLength = minimumLength;
+    }
+
+    if (maximumLength) {
+      element.maxLength = maximumLength;
+    }
+
+    return element;
   }
 
   public resetInput(): void {
@@ -1053,3 +1108,9 @@ function validateRequiredLists() {
     });
   }
 }
+
+const constraintLabel = styled('span', `
+  color: ${theme.text};
+  font-size: ${vars.xsmallFontSize};
+  margin-left: 8px;
+`);

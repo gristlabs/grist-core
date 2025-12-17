@@ -71,6 +71,17 @@ export class NTextBox extends NewAbstractWidget {
       this.field.widgetOptionsJson.prop('formTextLineCount'),
       ''
     );
+    const minimumLength = fieldWithDefault<number|"">(
+      this.field.widgetOptionsJson.prop('formTextMinimumLength'),
+      ''
+    );
+    const maximumLength = fieldWithDefault<number|"">(
+      this.field.widgetOptionsJson.prop('formTextMaximumLength'),
+      ''
+    );
+
+    const minimumLengthValue = minimumLength.peek();
+    const maximumLengthValue = maximumLength.peek();
 
     return [
       cssLabel(t('Field Format')),
@@ -96,6 +107,30 @@ export class NTextBox extends NewAbstractWidget {
               save: async (val) => lineCount.setAndSave((val && Math.floor(val)) ?? ''),
             },
           ),
+        ),
+      ),
+      cssLabel(t('Length constraints')),
+      cssRow(
+        cssNumericSpinner(
+          fromKo(minimumLength),
+          {
+            label: t('Minimum length'),
+            defaultValue: 0,
+            minValue: 0,
+            maxValue: maximumLengthValue === "" ? Number.MAX_VALUE : maximumLengthValue,
+            save: async (val) => minimumLength.setAndSave((val && Math.floor(val)) ?? ''),
+          },
+        ),
+      ),
+      cssRow(
+        cssNumericSpinner(
+          fromKo(maximumLength),
+          {
+            label: t('Maximum length'),
+            defaultValue: undefined,
+            minValue: minimumLengthValue === "" ? 0 : minimumLengthValue,
+            save: async (val) => maximumLength.setAndSave((val && Math.floor(val)) ?? ''),
+          },
         ),
       ),
       dom.create(FormFieldRulesConfig, this.field),
