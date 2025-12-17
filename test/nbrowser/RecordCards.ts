@@ -123,6 +123,29 @@ describe('RecordCards', function() {
       await gu.getCell(0, 747).find('.test-ref-link-icon').click();
       assert.isFalse(await driver.find('.test-record-card-popup-overlay').isPresent());
     });
+
+    it('shows an unavailable message if the row is blocked by ACL rules', async function() {
+       await api.applyUserActions(docId, [
+         ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Country', colIds: '*'}],
+         ['AddRecord', '_grist_ACLRules', null, {
+           resource: -1,
+           aclFormula: 'rec.Code == "ZWE"',
+           permissionsText: '-R',
+           memo: 'Block ZWE records',
+         }],
+       ]);
+
+       await gu.reloadDoc();
+
+       await gu.getCell(0, 745).find('.test-ref-link-icon').click();
+
+       assert.include(
+         await driver.find('.test-record-card-popup-wrapper').getText(),
+         "This row is unavailable or does not exist"
+       );
+
+      await gu.sendKeys(Key.ESCAPE);
+    });
   });
 
   describe('ReferenceList', function() {

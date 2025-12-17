@@ -669,7 +669,7 @@ export default class GridView extends BaseView {
     // from a different peer.
 
     // convert row-wise data to column-wise so that it better resembles a user action
-    let pasteData = _.unzip(data);
+    let pasteData = unzipPasteData(data);
     const pasteHeight = pasteData[0].length;
     const pasteWidth = pasteData.length;
     // figure out the size of the paste area
@@ -687,7 +687,7 @@ export default class GridView extends BaseView {
     const leftIndex = this.cellSelector.colLower();
     const updateColIndices = _.range(leftIndex, leftIndex + outputWidth);
 
-    pasteData = gutil.growMatrix(pasteData, updateColIndices.length, updateRowIds.length);
+    pasteData = growPasteDataMatrix(pasteData, updateColIndices.length, updateRowIds.length);
 
     const fields = this.viewSection.viewFields().peek();
     const pasteFields = updateColIndices.map(i => fields[i] || null);
@@ -927,12 +927,13 @@ export default class GridView extends BaseView {
   }
 
   protected async deleteRows(rowIds: number[]) {
-    const saved = this.cursor.getCursorPos();
+    const savedCursorPos = this.cursor.getCursorPos();
     this.cursor.setLive(false);
     try {
       await super.deleteRows(rowIds);
     } finally {
-      this.cursor.setCursorPos(saved);
+      // Avoid setting cursor rowId, as the old rowId may have just been deleted!
+      this.cursor.setCursorPos({ rowIndex: savedCursorPos.rowIndex });
       this.cursor.setLive(true);
       this.clearSelection();
     }
@@ -991,6 +992,11 @@ export default class GridView extends BaseView {
   }
 
   protected renameColumn(index: number) {
+    // If this column is in transformation, renaming is disabled.
+    if (this.currentColumn.peek().isTransforming.peek()) {
+      console.warn('Renaming is disabled during column transformation.');
+      return;
+    }
     this.currentEditingColumnIndex(index);
   }
 
@@ -1635,6 +1641,7 @@ export default class GridView extends BaseView {
               dom.autoDispose(isCellSelected),
               dom.autoDispose(isCellActive),
               dom.autoDispose(isSelected),
+              dom.autoDispose(isTooltip),
               this._showTooltipOnHover(field, isTooltip),
               kd.style('width', field.widthPx),
               //TODO: Ensure that fields in a row resize when
@@ -2254,6 +2261,16 @@ export default class GridView extends BaseView {
       }
     });
   }
+}
+
+// Provide a type-safe wrapper around _.unzip
+function unzipPasteData(pasteData: PasteData): PasteData {
+  return _.unzip<any>(pasteData) as PasteData;
+}
+
+// Provide a type-safe wrapper around growMatrix
+function growPasteDataMatrix(pasteData: PasteData, r: number, c: number): PasteData {
+  return gutil.growMatrix<any>(pasteData, r, c) as PasteData;
 }
 
 interface ComputedRule {

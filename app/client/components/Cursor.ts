@@ -165,19 +165,30 @@ export class Cursor extends Disposable {
    * preferring rowId.
    *
    * isFromLink prevents lastEditedAt from being updated, so lastEdit reflects only user-driven edits
-   * @param cursorPos: Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
-   * @param isFromLink: should be set if this is a cascading update from cursor-linking
+   * @param cursorPos - Position as { rowId?, rowIndex?, fieldIndex? }, as from getCursorPos().
+   * @param isFromLink - should be set if this is a cascading update from cursor-linking
+   *
+   * @returns {boolean} True if the cursor position was valid
    */
-  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): void {
-
+  public setCursorPos(cursorPos: CursorPos, isFromLink: boolean = false): boolean {
     try {
       // If updating as a result of links, we want to NOT update lastEditedAt
       if (isFromLink) { this._silentUpdatesFlag = true; }
 
-      if (cursorPos.rowId !== undefined && this.viewData.getRowIndex(cursorPos.rowId) >= 0) {
-        this.rowIndex(this.viewData.getRowIndex(cursorPos.rowId));
+      let newRowIndex: number | null | undefined = undefined;
+
+      if (cursorPos.rowId !== undefined) {
+        newRowIndex = this.viewData.getRowIndex(cursorPos.rowId);
       } else if (cursorPos.rowIndex !== undefined && cursorPos.rowIndex >= 0) {
-        this.rowIndex(cursorPos.rowIndex);
+        newRowIndex = cursorPos.rowIndex;
+      }
+
+      if (typeof(newRowIndex) === "number" && newRowIndex < 0) {
+        newRowIndex = null;
+      }
+
+      if (newRowIndex !== undefined && (newRowIndex === null || newRowIndex >= 0)) {
+        this.rowIndex(newRowIndex);
       } else {
         // Write rowIndex to itself to force an update of rowId if needed.
         this.rowIndex(this.rowIndex.peek() || 0);
@@ -202,10 +213,10 @@ export class Cursor extends Disposable {
       //   but that shouldn't cause any problems, since we don't care about edit counts, just who was edited latest.
       this._cursorEdited();
 
+      return newRowIndex !== null;
     } finally { // Make sure we reset this even on error
       this._silentUpdatesFlag = false;
     }
-
   }
 
 

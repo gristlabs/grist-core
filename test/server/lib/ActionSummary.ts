@@ -1,7 +1,7 @@
-import {ActionSummaryOptions, concatenateSummaries, summarizeAction} from 'app/common/ActionSummarizer';
-import {ActionSummary, asTabularDiffs, TableDelta} from 'app/common/ActionSummary';
+import { ActionSummaryOptions, concatenateSummaries, rebaseSummary, summarizeAction} from 'app/common/ActionSummarizer';
+import { ActionSummary, asTabularDiffs, createEmptyTableDelta, LabelDelta, TableDelta} from 'app/common/ActionSummary';
 import {ActiveDoc} from 'app/server/lib/ActiveDoc';
-import {keyBy} from 'lodash';
+import { cloneDeep, keyBy} from 'lodash';
 import {createDocTools} from 'test/server/docTools';
 import * as testUtils from 'test/server/testUtils';
 import {assert} from 'test/server/testUtils';
@@ -253,7 +253,7 @@ describe("ActionSummary", function() {
     // so we check that diffs are generated for it.
     const doc = await docTools.loadFixtureDoc('Favorite_Films.grist');
     const session = docTools.createFakeSession();
-    const actions = await doc.getRecentActions(session, true);
+    const {actions} = await doc.getRecentActions(session, true);
     assert(Object.keys(actions[0].actionSummary.tableDeltas).length > 0, "some diff present");
 
     // Pick out a change where Captain America is replaced with Steve Rogers.
@@ -344,7 +344,7 @@ describe("ActionSummary", function() {
         "Pajamas": makeTableDelta('Pajamas'),
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -395,7 +395,7 @@ describe("ActionSummary", function() {
         }
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -465,7 +465,7 @@ describe("ActionSummary", function() {
         }
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -491,7 +491,7 @@ describe("ActionSummary", function() {
                       [['Friends_', 'Friends']],
                       [['Performances', 'Performances2']],
                       [['Performances2', 'Performances']]]);
-    const sum = concatenateSummaries(sums);
+    const sum = concatenateSummariesCleanly(sums);
     // at the end of history, we have three tables
     assert.deepEqual(sum.tableRenames,
                      [[null, 'Films'],
@@ -587,7 +587,7 @@ describe("ActionSummary", function() {
         }
       },
     };
-    const result = concatenateSummaries([summary1, summary2]);
+    const result = concatenateSummariesCleanly([summary1, summary2]);
     assert.deepEqual(result, summary3);
   });
 
@@ -698,4 +698,184 @@ describe("ActionSummary", function() {
     };
     assert.deepEqual(sum2, sum);
   });
+
+  describe('rebasing', async function() {
+    function expand(deltas?: {[key: string]: Partial<TableDelta>}) {
+      const result: { [key: string]: TableDelta } = {};
+      if (!deltas) { return result; }
+      for (const [key, delta] of Object.entries(deltas)) {
+        result[key] = { ...empty, ...delta };
+      }
+      return result;
+    }
+    function assertRebase(options: {
+      trunk?: {
+        renames?: LabelDelta[],
+        deltas?: {[key: string]: Partial<TableDelta>},
+      },
+      fork?: {
+        renames?: LabelDelta[],
+        deltas?: {[key: string]: Partial<TableDelta>},
+      },
+      result?: {
+        renames?: LabelDelta[],
+        deltas?: {[key: string]: Partial<TableDelta>},
+      }
+    }) {
+      const ref: ActionSummary = {
+        tableRenames: options.trunk?.renames ?? [],
+        tableDeltas: expand(options.trunk?.deltas),
+      };
+      const target: ActionSummary = {
+        tableRenames: options.fork?.renames ?? [],
+        tableDeltas: expand(options.fork?.deltas),
+      };
+      const expected: ActionSummary = {
+        tableRenames: options.result?.renames ?? [],
+        tableDeltas: expand(options.result?.deltas),
+      };
+      rebaseSummary(ref, target);
+      assert.deepEqual(target, expected);
+    }
+    const empty = createEmptyTableDelta();
+    const something: TableDelta = {
+      ...createEmptyTableDelta(),
+      columnRenames: [['col1', 'col2']],
+    };
+    it('leaves target untouched if empty', async function() {
+      assertRebase({});
+      assertRebase({
+        trunk: { renames: [['table1', 'table2']] },
+      });
+      assertRebase({
+        trunk: { renames: [['table1', 'table2']],
+                 deltas: { table2: empty } }
+      });
+    });
+
+    it('renames tables in target as needed', async function() {
+      assertRebase({
+        trunk: { renames: [['table1', 'table2']] },
+        fork: { deltas: { table1: empty, table3: empty } },
+        result: { deltas: { table2: empty, table3: empty } },
+      });
+      assertRebase({
+        trunk: { renames: [['table1', 'table2'], ['table2', 'table1']] },
+        fork: { deltas: { table1: empty, table2: something } },
+        result: { deltas: { table1: something, table2: empty } },
+      });
+    });
+
+    it('preserves table renames in target', async function() {
+      assertRebase({
+        trunk: { renames: [['table1', 'table2'], ['table2', 'table1']] },
+        fork: {
+          renames: [['table2', 'table3']],
+          deltas: { table1: empty, table3: something }
+        },
+        result: {
+          renames: [['table1', 'table3']],
+          deltas: { table3: something, table2: empty }
+        },
+      });
+    });
+
+    it('respects table deletion in reference', async function() {
+      assertRebase({
+        trunk: { renames: [['table1', null]] },
+        fork: {
+          renames: [['table1', 'table2'], ['table4', 'table5']],
+          deltas: { table2: something, table3: empty }
+        },
+        result: {
+          renames: [['table4', 'table5']],
+          deltas: { table3: empty }
+        },
+      });
+      assertRebase({
+        trunk: { renames: [['table1', null]] },
+        fork: {
+          renames: [['table1', null]],
+        },
+        result: {
+          renames: [],
+        },
+      });
+      assertRebase({
+        trunk: { renames: [['table1', null]] },
+        fork: {
+          renames: [['table1', 'table2']],
+        },
+        result: {
+          renames: [],
+        },
+      });
+      assertRebase({
+        trunk: { renames: [['table1', null]] },
+        fork: {
+          renames: [['table1', 'table2'], [null, 'table1']],
+        },
+        result: {
+          renames: [[null, 'table1']],
+        },
+      });
+    });
+
+    it('handles column renames', async function() {
+      assertRebase({
+        trunk: { deltas: { table1: { columnRenames: [['col1', 'col2']] } } },
+      });
+      assertRebase({
+        trunk: { deltas: { table1: { columnRenames: [['col1', 'col2']] } } },
+        fork: { renames: [['table1', 'table2']] },
+        result: { renames: [['table1', 'table2']] },
+      });
+      assertRebase({
+        trunk: { deltas: { table1: { columnRenames: [['col1', 'col2']] } } },
+        fork: { deltas: { table1: { columnDeltas: { col1: {1: [null, null]} } } } },
+        result: { deltas: { table1: { columnDeltas: { col2: {1: [null, null]} } } } },
+      });
+      assertRebase({
+        trunk: { deltas: { table1: {
+          columnRenames: [['col1', 'col2'], ['col2', 'col1'], ['col3', null]],
+        } } },
+        fork: { deltas: { table1: { columnDeltas: {
+          col1: {1: [null, null]},
+          col2: {2: [null, null]},
+          col3: {3: [null, null]},
+        } } } },
+        result: { deltas: { table1: { columnDeltas: {
+          col1: {2: [null, null]},
+          col2: {1: [null, null]},
+        } } } },
+      });
+      assertRebase({
+        trunk: { deltas: { table1: {
+          columnRenames: [['col1', 'col2'], ['col2', 'col1'], ['col3', null]],
+        } } },
+        fork: { deltas: { table1: {
+          columnRenames: [['col1', 'col9']],
+          columnDeltas: {
+            col9: {1: [null, null]},
+            col2: {2: [null, null]},
+            col3: {3: [null, null]},
+          } } } },
+        result: { deltas: { table1: {
+          columnRenames: [['col2', 'col9']],
+          columnDeltas: {
+            col1: {2: [null, null]},
+            col9: {1: [null, null]},
+          } } } },
+      });
+    });
+  });
 });
+
+function concatenateSummariesCleanly(args: ActionSummary[]) {
+  const argsCopy = cloneDeep(args);
+  const result = concatenateSummaries(args);
+  for (let i = 0; i < args.length; i++) {
+    assert.deepEqual(args[i], argsCopy[i]);
+  }
+  return result;
+}

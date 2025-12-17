@@ -91,21 +91,6 @@ export class ServiceAccountsManager {
   /**
    * Like getServiceAccount but also returns informations of the owner.
    */
-  public async getServiceAccountWithOwner(
-    serviceAccountId: number,
-    transaction?: EntityManager
-  ): Promise<ServiceAccount|null> {
-    return await this._runInTransaction(transaction, async manager => {
-      return await this._buildServiceAccountQuery(manager)
-        .innerJoinAndSelect("serviceAccount.owner", "owner")
-        .where("ServiceAccount.id = :id", {id: serviceAccountId})
-        .getOne();
-    });
-  }
-
-  /**
-   * Like getServiceAccount but also returns informations of the owner.
-   */
   public async getServiceAccountByLoginWithOwner(
     serviceAccountLogin: string,
     transaction?: EntityManager

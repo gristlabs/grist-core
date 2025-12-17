@@ -8,6 +8,16 @@
         "og-title": "Grist, le tableur évolué"
     },
     "access": {
-        "docNoAccess": "Vous n'avez pas accès à ce document."
+        "docNoAccess": "Vous n'avez pas accès à ce document.",
+        "docDisabled": "Ce document est désactivé."
+    },
+    "admin": {
+        "emptyOrg": "Aucun propriétaire trouvé dans l'organisation admin définie par `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "orgUser": "L'utilisateur est un propriétaire de l'organisation admin définie par `GRIST_INSTALL_ADMIN_ORG={{org}}`",
+        "noDefaultEmail": "Il manque un compte d'administration parce que `GRIST_DEFAULT_EMAIL` n'est pas défini",
+        "accountByEmail": "Compte d'administration défini par `GRIST_DEFAULT_EMAIL={{defaultEmail}}`"
+    },
+    "DocApi": {
+        "UntitledDocument": "Document sans titre"
     }
 }

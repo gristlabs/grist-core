@@ -42,7 +42,23 @@
         "Permission to edit document structure": "Permission to edit document structure",
         "This default should be changed if editors' access is to be limited. ": "This default should be changed if editors' access is to be limited. ",
         "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.": "Allow editors to edit structure (e.g., modify and delete tables, columns, and layouts) and write formulas. Regardless of the permissions set at the table and column level, formulas can still be edited and can access all data.",
-        "Add table-wide rule": "Add table-wide rule"
+        "Add table-wide rule": "Add table-wide rule",
+        "Access rules have changed. Click Reset to revert your changes and refresh the rules.": "Access rules have changed. Click Reset to revert your changes and refresh the rules.",
+        "All": "All",
+        "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?": "Column {{colId}} appears in multiple rules for table {{tableId}} that might be order-dependent. Try splitting rules up differently?",
+        "Columns": "Columns",
+        "Condition cannot be blank": "Condition cannot be blank",
+        "Default resource missing in resource map": "Default resource missing in resource map",
+        "Invalid columns in table {{tableId}}: {{invalidColIds}}": "Invalid columns in table {{tableId}}: {{invalidColIds}}",
+        "Invalid table: {{tableId}}": "Invalid table: {{tableId}}",
+        "Invalid user attribute rule: {{prop}} must be set": "Invalid user attribute rule: {{prop}} must be set",
+        "Invalid user attribute to look up": "Invalid user attribute to look up",
+        "No columns listed in a column rule for table {{tableId}}": "No columns listed in a column rule for table {{tableId}}",
+        "Not a valid user attribute": "Not a valid user attribute",
+        "Resource missing in resource map: {{resourceKey}}": "Resource missing in resource map: {{resourceKey}}",
+        "Trying to add TableRules for existing table {{tableId}}": "Trying to add TableRules for existing table {{tableId}}",
+        "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something": "Use a simple attribute of user.LinkKey, e.g. user.LinkKey.something",
+        "hidden": "hidden"
     },
     "AccountPage": {
         "API": "API",
@@ -93,7 +109,8 @@
         "This row was subsequently removed in action {{action.actionNum}}": "This row was subsequently removed in action {{action.actionNum}}",
         "All tables": "All tables",
         "Column {{colId}} was subsequently removed in action #{{actionNum}}": "Column {{colId}} was subsequently removed in action #{{actionNum}}",
-        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}"
+        "This row was subsequently removed in action {{actionNum}}": "This row was subsequently removed in action {{actionNum}}",
+        "History blocked because of access rules.": "History blocked because of access rules."
     },
     "AddNewButton": {
         "Add new": "Add new"
@@ -170,7 +187,7 @@
         "Log scale Y-axis": "Log scale Y-axis",
         "Hole size": "Hole size",
         "Show total": "Show total",
-        "Text Size": "Text Size",
+        "Text size": "Text size",
         "Connect gaps": "Connect gaps",
         "Show markers": "Show markers",
         "Stack series": "Stack series",
@@ -740,7 +757,9 @@
         "Building {{- label}} widget": "Building {{- label}} widget",
         "Group by": "Group by",
         "Select data": "Select data",
-        "Select widget": "Select widget"
+        "Select widget": "Select widget",
+        "New Table": "New Table",
+        "SELECT BY": "SELECT BY"
     },
     "Pages": {
         "Delete": "Delete",
@@ -1005,7 +1024,8 @@
         "Revert": "Revert",
         "SORT": "SORT",
         "Save": "Save",
-        "Update Sort&Filter settings": "Update Sort&Filter settings"
+        "Update Sort&Filter settings": "Update Sort&Filter settings",
+        "Sort and filter": "Sort and filter"
     },
     "VisibleFieldsConfig": {
         "Cannot drop items into Hidden Fields": "Cannot drop items into Hidden Fields",
@@ -1633,12 +1653,15 @@
     },
     "WelcomeCoachingCall": {
         "free coaching call": "free coaching call",
-        "Maybe Later": "Maybe Later",
+        "Maybe later": "Maybe later",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.",
-        "Schedule Call": "Schedule Call",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Schedule your {{freeCoachingCall}} with a member of our team.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.",
-        "our weekly webinars": "our weekly webinars"
+        "our weekly webinars": "our weekly webinars",
+        "Free coaching call": "Free coaching call",
+        "Grist 101": "Grist 101",
+        "Schedule call": "Schedule call",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist."
     },
     "FormView": {
         "Publish": "Publish",
@@ -1849,7 +1872,12 @@
         "default": "default",
         "more...": "more...",
         "no authentication": "no authentication",
-        "unavailable": "unavailable"
+        "unavailable": "unavailable",
+        "Admin account not found": "Admin account not found",
+        "Administrative accounts": "Administrative accounts",
+        "The users with administrative accounts": "The users with administrative accounts",
+        "Version {{versionNumber}}": "Version {{versionNumber}}",
+        "no admin accounts": "no admin accounts"
     },
     "Columns": {
         "Remove Column": "Remove Column"
@@ -2124,7 +2152,8 @@
         "Workspace": "Workspace",
         "context menu - {{- documentName }}": "context menu - {{- documentName }}",
         "Documents list": "Documents list",
-        "Download document...": "Download document..."
+        "Download document...": "Download document...",
+        "Deleted {{at}}": "Deleted {{at}}"
     },
     "RenameDocModal": {
         "Choose color": "Choose color",
@@ -2229,7 +2258,9 @@
     },
     "duplicateWidget": {
         "Duplicate widget": "Duplicate widget",
-        "Duplicate widgets": "Duplicate widgets"
+        "Duplicate widgets": "Duplicate widgets",
+        "Active": "Active",
+        "Create new page": "Create new page"
     },
     "AttachmentsWidget": {
         "Uploading, please wait…": "Uploading, please wait…"
@@ -2504,5 +2535,11 @@
         "Year": "Year",
         "Years since": "Years since",
         "Years until": "Years until"
+    },
+    "selectBy": {
+        "Select widget": "Select widget"
+    },
+    "CoreNewDocMethods": {
+        "Untitled document": "Untitled document"
     }
 }

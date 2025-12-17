@@ -1,4 +1,15 @@
-import {appSettings} from 'app/server/lib/AppSettings';
+import {AppSettings, appSettings} from 'app/server/lib/AppSettings';
+
+/**
+ * Get the selected login system type from app settings.
+ * This checks the GRIST_LOGIN_SYSTEM_TYPE environment variable.
+ * Returns undefined if not explicitly set.
+ */
+export function getSelectedLoginSystemType(settings: AppSettings): string | undefined {
+  return settings.section('login').section('system').flag('type').readString({
+    envVar: 'GRIST_LOGIN_SYSTEM_TYPE',
+  });
+}
 
 export function getTemplateOrg() {
   let org = appSettings.section('templates').flag('org').readString({

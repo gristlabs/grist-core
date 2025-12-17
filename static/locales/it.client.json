@@ -1585,10 +1585,10 @@
     "On": "Attivo"
   },
   "WelcomeCoachingCall": {
-    "Maybe Later": "Forse più tardi",
+    "Maybe later": "Forse più tardi",
     "free coaching call": "chiamata di assistenza gratuita",
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Durante la chiamata, ci prendiamo del tempo per capire i tuoi bisogni e adattarci a quelli. Possiamo spiegarti i fondamenti di Grist, o iniziare a lavorare subito con i tuoi dati e creare le dashboard che ti servono.",
-    "Schedule Call": "Prenota una chiamata",
+    "Schedule call": "Prenota una chiamata",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "Prenota la tua {{freeCoachingCall}} con un membro del nostro team."
   },
   "FormConfig": {

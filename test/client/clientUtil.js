@@ -91,18 +91,6 @@ function querySelectorLast(el, selector) {
 }
 exports.querySelectorLast = querySelectorLast;
 
-var SERVER_TIMEOUT = 250; // How long to wait for pending requests to resolve
-var CLIENT_DELAY = 100; // How long to wait for browser to render the action
-
-function appCommWaiter(app) {
-  return function(timeout, delay) {
-    return Promise.resolve(app.comm.waitForActiveRequests())
-      .timeout(timeout || SERVER_TIMEOUT)
-      .delay(delay || CLIENT_DELAY);
-  };
-}
-exports.appCommWaiter = appCommWaiter;
-
 /*
  *
  * Takes and observable and returns a promise when the observable changes.

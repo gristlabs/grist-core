@@ -458,7 +458,7 @@ export interface ActiveDocAPI {
   /**
    * Get recent actions in ActionGroup format with summaries included.
    */
-  getActionSummaries(): Promise<ActionGroup[]>;
+  getActionSummaries(): Promise<GetActionSummariesResult>;
 
   /**
    *  Initiates user actions bandling for undo.
@@ -564,4 +564,9 @@ export interface PatchLog {
 export interface PatchItem {
   msg: string;
   fail?: boolean;
+}
+
+export interface GetActionSummariesResult {
+  actions: ActionGroup[];
+  censored: boolean;
 }

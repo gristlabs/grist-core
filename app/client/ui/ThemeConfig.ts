@@ -52,6 +52,7 @@ export class ThemeConfig extends Disposable {
             ],
             {
               disabled: this._syncWithOS,
+              translateOptionLabels: true,
             },
           ),
           testId('appearance'),

@@ -56,6 +56,10 @@ export function emptyMemoSet(): MemoSet {
  * Abstract base class for processing rules given a particular input.
  * Main use of this class will be to calculate permissions, but will also
  * be used to calculate metadata about permissions.
+ *
+ * Whichever aspect (e.g. permissions or memos) we are processing, this abstract class implements
+ * the rules of precedence: column rules are applied first, followed by table default rules, then
+ * doc default rules.
  */
 abstract class RuleInfo<MixedT extends TableT, TableT> {
 
@@ -63,22 +67,30 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
   // optionally a record.
   constructor(protected _acls: ACLRuleCollection, protected _input: PredicateFormulaInput) {}
 
+  // Merge the results for a particular column, falling back to table and doc defaults.
   public getColumnAspect(tableId: string, colId: string): MixedT {
     const ruleSet: RuleSet|undefined = this._acls.getColumnRuleSet(tableId, colId);
     return ruleSet ? this._processColumnRule(ruleSet) : this._getTableDefaultAspect(tableId);
   }
 
+  // Merge the results for all columns of a table, falling back to table and doc defaults.
   public getTableAspect(tableId: string): TableT {
     const columnAccess = this._acls.getAllColumnRuleSets(tableId).map(rs => this._processColumnRule(rs));
     columnAccess.push(this._getTableDefaultAspect(tableId));
     return this._mergeTableAccess(columnAccess);
   }
 
+  // Merge the results from all rules in a doc: columns, tables, and falling back to doc defaults.
   public getFullAspect(): MixedT {
     const tableAccess = this._acls.getAllTableIds().map(tableId => this.getTableAspect(tableId));
     tableAccess.push(this._getDocDefaultAspect());
 
     return this._mergeFullAccess(tableAccess);
+  }
+
+  // Merge the results for a particular column RuleSet, falling back to table and doc defaults.
+  public getColumnRuleSetAspect(ruleSet: RuleSet): MixedT {
+    return this._processColumnRule(ruleSet);
   }
 
   public getUser(): User {

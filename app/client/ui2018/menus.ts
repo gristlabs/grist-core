@@ -228,6 +228,9 @@ const defaults = {
 export interface SelectOptions<T> extends weasel.ISelectUserOptions {
   /** Additional DOM element args to pass to each select option. */
   renderOptionArgs?: (option: IOptionFull<T | null>) => DomElementArg;
+
+  /** Whether to translate the labels of the provided options. */
+  translateOptionLabels?: boolean;
 }
 
 /**
@@ -278,7 +281,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
   return weasel.select(obs, optionArray, selectOptions, (op) =>
     cssOptionRow(
       op.icon ? cssOptionRowIcon(op.icon) : null,
-      cssOptionLabel(t(op.label)),
+      cssOptionLabel(options.translateOptionLabels ? t(op.label) : op.label),
       renderOptionArgs ? renderOptionArgs(op) : null,
       testId('select-row')
     )

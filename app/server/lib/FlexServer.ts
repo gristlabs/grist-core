@@ -70,7 +70,6 @@ import {IPermitStore} from 'app/server/lib/Permit';
 import {getAppPathTo, getAppRoot, getInstanceRoot, getUnpackedAppRoot} from 'app/server/lib/places';
 import {addPluginEndpoints, limitToPlugins} from 'app/server/lib/PluginEndpoint';
 import {PluginManager} from 'app/server/lib/PluginManager';
-import * as ProcessMonitor from 'app/server/lib/ProcessMonitor';
 import { createPubSubManager, IPubSubManager } from 'app/server/lib/PubSubManager';
 import {adaptServerUrl, getOrgUrl, getOriginUrl, getScope, integerParam, isParameterOn, optIntegerParam,
         optStringParam, RequestWithGristInfo, stringArrayParam, stringParam, TEST_HTTPS_OFFSET,
@@ -202,7 +201,7 @@ export class FlexServer implements GristServer {
   private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
-  private _getLoginSystem: () => Promise<GristLoginSystem>;
+  private _getLoginSystem: (dbManager: HomeDBManager) => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
@@ -1060,7 +1059,7 @@ export class FlexServer implements GristServer {
     await this._telemetry.start();
 
     // Start up a monitor for memory and cpu usage.
-    this._processMonitorStop = ProcessMonitor.start(this._telemetry);
+    this._processMonitorStop = this.create.startProcessMonitor(this._telemetry);
   }
 
   public async close() {
@@ -1271,7 +1270,7 @@ export class FlexServer implements GristServer {
           // to avoid a redirect loop.
 
           if (orgInfo.billingAccount.isManager && orgInfo.billingAccount.getFeatures().vanityDomain) {
-            const prefix = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
+            const prefix: string = isOrgInPathOnly(req.hostname) ? `/o/${mreq.org}` : '';
             return res.redirect(`${prefix}/billing/payment?billingTask=signUpLite`);
           }
         }
@@ -1310,7 +1309,7 @@ export class FlexServer implements GristServer {
   }
 
   public async addLoginMiddleware() {
-    if (this._check('loginMiddleware')) { return; }
+    if (this._check('loginMiddleware', 'homedb')) { return; }
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
@@ -2150,7 +2149,7 @@ export class FlexServer implements GristServer {
 
   public resolveLoginSystem() {
     return isTestLoginAllowed() ?
-      getTestLoginSystem() : this._getLoginSystem();
+      getTestLoginSystem() : this._getLoginSystem(this.getHomeDBManager());
   }
 
   public addUpdatesCheck() {
@@ -2245,7 +2244,7 @@ export class FlexServer implements GristServer {
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
   }
 
-  private _check(part: string, ...precedents: Array<string|null>) {
+  private _check(part: Part, ...precedents: Array<CheckKey|null>) {
     if (this.deps.has(part)) { return true; }
     for (const precedent of precedents) {
       if (!precedent) { continue; }
@@ -2845,3 +2844,52 @@ const serveAnyOrigin: serveStatic.ServeStaticOptions = {
     res.setHeader("Access-Control-Allow-Origin", "*");
   }
 };
+
+type Part =
+  'activation'
+  | 'api'
+  | 'api-error'
+  | 'api-mw'
+  | 'assistant'
+  | 'audit-logger'
+  | 'billing-api'
+  | 'boot'
+  | 'cleanup'
+  | 'clientSecret'
+  | 'comm'
+  | 'dir'
+  | 'doc'
+  | 'doc_api_forwarder'
+  | 'early-api'
+  | 'google-auth'
+  | 'health'
+  | 'homedb'
+  | 'hosts'
+  | 'housekeeper'
+  | 'json'
+  | 'landing'
+  | 'log-endpoint'
+  | 'logging'
+  | 'login'
+  | 'loginMiddleware'
+  | 'map'
+  | 'middleware'
+  | 'notifier'
+  | 'org'
+  | 'pluginUntaggedAssets'
+  | 'router'
+  | 'scim'
+  | 'sessions'
+  | 'start'
+  | 'static_and_bower'
+  | 'strip_dw'
+  | 'tag'
+  | 'telemetry'
+  | 'testAssets'
+  | 'testinghooks'
+  | 'update'
+  | 'usage'
+  | 'webhooks'
+  | 'widgets';
+
+type CheckKey = Part | `!${Part}`;

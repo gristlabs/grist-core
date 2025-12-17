@@ -219,6 +219,38 @@ describe('Sandbox', function () {
       assert.isFalse(fs.existsSync(tmpFile), 'File should not exist in the host OS');
     });
   });
+
+  describe('pyodide', function () {
+    before(function () {
+      if (process.env.GRIST_SANDBOX_FLAVOR !== 'pyodide') {
+        this.skip();
+      }
+    });
+
+    describe('execute via external node command', function () {
+      let oldEnv: testUtils.EnvironmentSnapshot;
+      before(function () {
+        oldEnv = new testUtils.EnvironmentSnapshot();
+        process.env.GRIST_SANDBOX = process.execPath;
+      });
+
+      after(function () {
+        oldEnv?.restore();
+      });
+
+      it("can create a pyodide sandbox by spawning", async function () {
+        const sandbox = createSandbox('sandboxed', {});
+        try {
+          const result = await sandbox.pyCall(
+            'test_echo', 'Hello world'
+          );
+          assert.equal(result, 'Hello world');
+        } finally {
+          await sandbox.shutdown();
+        }
+      });
+    });
+  });
 });
 
 function getSubDirs(dir: string, root: string): string[] {

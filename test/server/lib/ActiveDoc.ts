@@ -783,14 +783,14 @@ describe('ActiveDoc', async function() {
       const docName = 'tmp';
       const activeDoc1 = await docTools.createDoc(docName);
       await activeDoc1.addInitialTable(fakeSession);
-      const actions1 = await activeDoc1.getRecentActions(fakeSession, true);
+      const {actions: actions1} = await activeDoc1.getRecentActions(fakeSession, true);
       assert.lengthOf(actions1, 2);
       assert.equal(actions1[1].primaryAction, 'AddEmptyTable');
       assert.equal(actions1[1].actionNum, 2);
       await activeDoc1.shutdown();
 
       const activeDoc2 = await docTools.loadDoc(docName);
-      const actions2 = await activeDoc2.getRecentActions(fakeSession, true);
+      const {actions: actions2} = await activeDoc2.getRecentActions(fakeSession, true);
       assert.lengthOf(actions2, 2);
       assert.equal(actions2[1].primaryAction, 'AddEmptyTable');
       assert.equal(actions2[1].actionNum, 2);
@@ -812,7 +812,7 @@ describe('ActiveDoc', async function() {
         }]
       ]);
       async function checkDoc(doc: ActiveDoc) {
-        const actions = await doc.getRecentActions(fakeSession, true);
+        const {actions} = await doc.getRecentActions(fakeSession, true);
         assert.lengthOf(actions, 3);
         assert.equal(actions[1].primaryAction, 'AddEmptyTable');
         assert.equal(actions[1].actionNum, 2);

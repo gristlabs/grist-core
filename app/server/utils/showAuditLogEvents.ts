@@ -625,6 +625,50 @@ const AuditEvents: AuditEvents = {
       },
     },
   },
+  "document.disable": {
+    type: ["installation", "site"],
+    description: "A document was disabled.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The disabled document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+          workspace: {
+            type: "object",
+            description: "The document's workspace.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The workspace ID.",
+              },
+              name: {
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+        workspace: {
+          id: 97,
+          name: "Secret Plans",
+        },
+      },
+    },
+  },
   "document.duplicate": {
     type: ["installation", "site"],
     description: "A document was duplicated.",
@@ -708,6 +752,50 @@ const AuditEvents: AuditEvents = {
       },
       options: {
         as_template: false,
+      },
+    },
+  },
+  "document.enable": {
+    type: ["installation", "site"],
+    description: "A disabled document was re-enabled.",
+    properties: {
+      document: {
+        type: "object",
+        description: "The enabled document.",
+        properties: {
+          id: {
+            type: "string",
+            description: "The document ID.",
+          },
+          name: {
+            type: "string",
+            description: "The document name.",
+          },
+          workspace: {
+            type: "object",
+            description: "The document's workspace.",
+            properties: {
+              id: {
+                type: "number",
+                description: "The workspace ID.",
+              },
+              name: {
+                type: "string",
+                description: "The workspace name.",
+              },
+            },
+          },
+        },
+      },
+    },
+    sample: {
+      document: {
+        id: "mRM8ydxxLkc6Ewo56jsDGx",
+        name: "Project Lollipop",
+        workspace: {
+          id: 97,
+          name: "Secret Plans",
+        },
       },
     },
   },

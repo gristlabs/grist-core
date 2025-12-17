@@ -79,9 +79,10 @@ export function recordSet<TRow extends MetaRowModel>(
 ): ko.Computed<KoArray<TRow>> {
 
   const opts = {groupBy: groupByField, sortBy: 'id', ...options};
-  return koUtil.computedAutoDispose(
-    () => tableModel.createRowGroupModel(rowModel.id() || 0, opts),
-    null, { pure: true });
+  return koUtil.computedAutoDispose(() => {
+    const id = rowModel.id();
+    return id ? tableModel.createRowGroupModel(id, opts) : new KoArray();
+  }, null, { pure: true });
 }
 
 
@@ -183,6 +184,18 @@ export class DocModel extends Disposable {
 
   constructor(public readonly docData: DocData, private readonly _docPageModel?: DocPageModel) {
     super();
+
+    // This ensures we drop references to held objects when disposed (like DocData). This helps
+    // avoid memory leaks if a reference to the DocModel itself is retained anywhere.
+    this.wipeOnDispose();
+
+    // When DocModel is disposed, disposed all the held DataTableModels.
+    this.onDispose(() => {
+      for (const dt of Object.values(this.dataTables)) {
+        dt.dispose();
+      }
+    });
+
     // For all the metadata tables, load their data (and create the RowModels).
     for (const model of this._metaTables) {
       model.loadData();

@@ -1273,10 +1273,10 @@
   },
   "WelcomeCoachingCall": {
     "free coaching call": "Cuộc gọi tư vấn miễn phí",
-    "Maybe Later": "Xem sau",
+    "Maybe later": "Xem sau",
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Trong cuộc gọi, chúng tôi sẽ dành thời gian để biết thêm nhu cầu của bạn và điều chỉnh cuộc gọi cho bạn. Chúng tôi có thể cho bạn xem thông tin cơ bản về Grist, hoặc bắt đầu làm việc với dữ liệu của bạn ngay để xây dựng các trang tổng quan bạn cần.",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "Đặt lịch {{freeCoachingCall}} với một thành viên trong đội của chúng tôi.",
-    "Schedule Call": "Đặt lịch gọi"
+    "Schedule call": "Đặt lịch gọi"
   },
   "FormView": {
     "Publish": "Đăng",

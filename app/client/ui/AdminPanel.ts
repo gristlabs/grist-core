@@ -333,7 +333,7 @@ Please log in as an administrator.`)),
             const userDisplay = user ? cssUserInfo(
               createUserImage(user, 'medium'),
               cssUserName(dom('span', user.name, testId('admin-panel-admin-account-name')),
-                cssEmail(user.email)
+                cssEmail(user.email, testId('admin-panel-admin-account-email'))
               )
             ) : cssErrorText(t('Admin account not found'));
             return cssAdminAccountListItem([

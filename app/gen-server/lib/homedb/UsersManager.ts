@@ -174,8 +174,13 @@ export class UsersManager {
     return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;
   }
 
-  public async getUserByRef(ref: string): Promise<User|undefined> {
-    return await User.findOne({where: {ref}, relations: ["logins"]}) || undefined;
+  public async getUserByRef(
+    ref: string,
+    options: {manager?: EntityManager; relations?: string[]} = {}
+  ): Promise<User|undefined> {
+    const { manager, relations = ["logins"] } = options;
+    const user = await this._runInTransaction(manager, (m) => m.findOne(User, {where: {ref}, relations}));
+    return user || undefined;
   }
 
   public async getUser(

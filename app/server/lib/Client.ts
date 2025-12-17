@@ -435,12 +435,11 @@ export class Client {
         docId: request.docId,  // caution: trusting client for docId for this purpose.
       });
       return;
-    } else {
-      this._log.info(null, "onMessage", shortDesc(message));
     }
     let response: CommResponse|CommResponseError;
     const method = this._methods.get(request.method);
     if (!method) {
+      this._log.info(null, "onMessage: unknown method", shortDesc(message));
       response = {reqId: request.reqId, error: `Unknown method ${request.method}`};
     } else {
       try {

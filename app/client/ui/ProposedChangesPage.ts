@@ -12,6 +12,7 @@ import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
 import { icon } from 'app/client/ui2018/icons';
 import { cssLink } from 'app/client/ui2018/links';
 import { loadingSpinner } from 'app/client/ui2018/loaders';
+import { rebaseSummary } from 'app/common/ActionSummarizer';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
@@ -187,7 +188,7 @@ and is subject to change and withdrawal.`,
                   getProposalActionSummary(proposal),
                   testId('header'),
                 ),
-                renderComparisonDetails(this.gristDoc, details),
+                renderComparisonDetails(this.gristDoc, details, proposal.comparison.comparison),
                 proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
                 isReadOnly ? null : cssDataRow(
                   applied ? null : primaryButton(
@@ -348,7 +349,7 @@ export class ProposedChangesForkPage extends Disposable {
             return dom('p', t('No changes found to suggest. Please make some edits.'));
           }),
           cssDataRow(
-            details ? renderComparisonDetails(this.gristDoc, details) : null,
+            details ? renderComparisonDetails(this.gristDoc, details, this._comparison) : null,
           ),
           [
             dom('p',
@@ -407,7 +408,8 @@ export class ProposedChangesForkPage extends Disposable {
 class ActionLogPartInProposal extends ActionLogPart {
   public constructor(
     private _gristDoc: GristDoc,
-    private _details: DocStateComparisonDetails
+    private _details: DocStateComparisonDetails,
+    private _comparison: DocStateComparison|undefined,
   ) {
     super(_gristDoc);
   }
@@ -421,7 +423,14 @@ class ActionLogPartInProposal extends ActionLogPart {
   }
 
   public async getContext() {
-    return computeContext(this._gristDoc, this._details.leftChanges);
+    const parentActionNum = this._comparison?.parent?.n;
+    const summary = this._details.leftChanges;
+    if (parentActionNum) {
+      const actionLog = this._gristDoc.getActionLog();
+      const ref = await actionLog.getChangesSince(parentActionNum);
+      rebaseSummary(ref, summary);
+    }
+    return computeContext(this._gristDoc, summary);
   }
 }
 
@@ -525,7 +534,8 @@ function getProposalActionSummary(proposal: Proposal|null) {
 }
 
 
-function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateComparisonDetails) {
+function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateComparisonDetails,
+                                 origComparison: DocStateComparison|undefined) {
   // The change we want to render is based on a calculation
   // done on the fork document. The calculation treated the
   // fork as the local/left document, and the trunk as the
@@ -533,7 +543,7 @@ function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateCompar
   const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
   // We want to look at the changes from their most recent
   // common ancestor and the current doc.
-  const part = new ActionLogPartInProposal(gristDoc, details);
+  const part = new ActionLogPartInProposal(gristDoc, details, origComparison);
   // This holds any extra context known about the comparison. Computed on
   // request. It is managed by ActionLogPart.
   // TODO: does this need ownership of some kind for disposal?

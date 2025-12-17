@@ -33,6 +33,7 @@ import {buildReassignModal} from 'app/client/ui/buildReassignModal';
 import {closeRegisteredMenu} from 'app/client/ui2018/menus';
 import type {CommentWithMentions} from 'app/client/widgets/MentionTextBox';
 import {BuildEditorOptions, createAllFieldWidgets, FieldBuilder} from 'app/client/widgets/FieldBuilder';
+import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {BulkColValues, CellValue, DocAction, UserAction} from 'app/common/DocActions';
 import {DocStateComparison} from 'app/common/DocState';
 import {DismissedPopup} from 'app/common/Prefs';
@@ -43,8 +44,7 @@ import {IGristUrlState} from 'app/common/gristUrls';
 import {arrayRepeat, nativeCompare, roundDownToMultiple, waitObs} from 'app/common/gutil';
 import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 
-import {Events as BackboneEvents} from 'backbone';
-import {Disposable, DomArg} from 'grainjs';
+import {DomArg} from 'grainjs';
 import ko from 'knockout';
 import mapValues from 'lodash/mapValues';
 import moment from 'moment-timezone';
@@ -71,7 +71,7 @@ export interface ViewOptions {
  * @param {Boolean} options.isPreview - Whether the view is a read-only preview (e.g. Importer view).
  * @param {Boolean} options.addNewRow - Whether to include an add row in the model.
  */
-export default class BaseView extends Disposable {
+export default class BaseView extends DisposableWithEvents {
 
   public viewPane: HTMLElement;
   public viewData: LazyArrayModel<DataRowModel>;
@@ -111,8 +111,6 @@ export default class BaseView extends Disposable {
   private _isLoading: ko.Observable<boolean>;
   private _pendingCursorPos: CursorPos|null;
   protected _isPrinting: ko.Observable<boolean>;
-
-  protected listenTo: BackboneEvents['listenTo'];  // set by Backbone
 
   constructor(
     public gristDoc: GristDoc,
@@ -436,13 +434,17 @@ export default class BaseView extends Disposable {
 
   /**
    * Sets the cursor to the given position, deferring if necessary until the current query finishes
-   * loading. isFromLink will be set when called as result of cursor linking(see Cursor.setCursorPos for info)
+   * loading.
+   *
+   * @param cursorPos - Cursor position to set to
+   * @param isFromLink - Set when called as a result of cursor linking (see Cursor.setCursorPos for info)
+   * @param immediate - Avoids deferring - immediately sets the cursor pos
    */
-  public setCursorPos(cursorPos: CursorPos, isFromLink = false): void {
+  public setCursorPos(cursorPos: CursorPos, isFromLink = false, immediate = false): void {
     if (this.isDisposed()) {
       return;
     }
-    if (!this._isLoading.peek()) {
+    if (!this._isLoading.peek() || immediate) {
       this.cursor.setCursorPos(cursorPos, isFromLink);
     } else {
       // This is the first step; the second happens in onTableLoaded.
@@ -819,7 +821,7 @@ export default class BaseView extends Disposable {
   protected onTableLoaded() {
     // Complete the setting of a pending cursor position (see setCursorPos() for the first half).
     if (this._pendingCursorPos) {
-      this.cursor.setCursorPos(this._pendingCursorPos);
+      this.setCursorPos(this._pendingCursorPos, false, true);
       this._pendingCursorPos = null;
     }
     this._isLoading(false);
@@ -986,5 +988,3 @@ export default class BaseView extends Disposable {
     return this.viewSection.isTableRecordCardDisabled();
   }
 }
-
-Object.assign(BaseView.prototype, BackboneEvents);

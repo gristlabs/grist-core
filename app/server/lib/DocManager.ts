@@ -1,6 +1,5 @@
 import {Document} from 'app/gen-server/entity/Document';
 import {getScope} from 'app/server/lib/requestUtils';
-import * as bluebird from 'bluebird';
 import {EventEmitter} from 'events';
 import * as path from 'path';
 import pidusage from 'pidusage';
@@ -8,6 +7,7 @@ import pidusage from 'pidusage';
 import {ApiError} from 'app/common/ApiError';
 import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
+import {delay} from 'app/common/delay';
 import {DocCreationInfo, DocEntry, DocListAPI,
         OpenDocMode, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
@@ -29,6 +29,7 @@ import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import {makeForkIds, makeId} from 'app/server/lib/idUtils';
+import {insightLogDecorate, insightLogEntry} from 'app/server/lib/InsightLog';
 import {checkAllegedGristDoc} from 'app/server/lib/serverUtils';
 import {getDocSessionCachedDoc} from 'app/server/lib/sessionUtils';
 import {OpenMode, SQLiteDB} from 'app/server/lib/SQLiteDB';
@@ -309,7 +310,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
   /**
    * Interrupt all clients, forcing them to reconnect.  Handy when a document has changed
-   * status in some major way that affects access rights, such as being deleted.
+   * status in some major way that affects access rights, such as being deleted or disabled.
    */
   public async interruptDocClients(docName: string) {
     const docPromise = this._activeDocs.get(docName);
@@ -326,11 +327,16 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    *      `docFD` - the descriptor to use in further methods and messages about this document,
    *      `doc` - the object with metadata tables.
    */
+  @insightLogDecorate("DocManager")
   public async openDoc(client: Client, docId: string,
                        options?: OpenDocOptions): Promise<OpenLocalDocResult> {
     if (typeof options === 'string') {
       throw new Error('openDoc call with outdated parameter type');
     }
+
+    const insightLog = insightLogEntry();
+    insightLog?.addMeta(client.getLogMeta());
+    insightLog?.addMeta({docId});
 
     const openMode: OpenDocMode = options?.openMode || 'default';
     const linkParameters = options?.linkParameters || {};
@@ -361,10 +367,12 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     }
 
     const docSessionPrecursor: DocSessionPrecursor = new DocSessionPrecursor(client, auth, {linkParameters});
+    insightLog?.mark("openDocAuth");
 
     // Fetch the document, and continue when we have the ActiveDoc (which may be immediately).
     return this._withUnmutedDoc(docSessionPrecursor, docId, async () => {
       const activeDoc: ActiveDoc = await this.fetchDoc(docSessionPrecursor, docId);
+      insightLog?.mark("fetchDoc");
 
       // Get a fresh DocSession object.
       const docSession = activeDoc.addClient(client, docSessionPrecursor);
@@ -399,6 +407,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         activeDoc.getUser(docSession),
         activeDoc.getUserOverride(docSession),
       ]);
+      insightLog?.mark("fetchOther");
 
       let docUsage: FilteredDocUsageSummary | undefined;
       try {
@@ -406,6 +415,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       } catch (e) {
         log.warn("DocManager.openDoc failed to get doc usage", e);
       }
+      insightLog?.mark("getDocUsage");
 
       const result: OpenLocalDocResult = {
         docFD: docSession.fd,
@@ -588,11 +598,16 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   private async _withUnmutedDoc<T>(docSession: OptDocSession, docName: string,
                                    op: () => Promise<{ result: T, activeDoc: ActiveDoc }>): Promise<T> {
     // Repeat until we acquire an ActiveDoc that is not muted (shutting down).
+    let markedAsMuted = false;
     for (;;) {
       const { result, activeDoc } = await op();
       if (!activeDoc.muted) { return result; }
+      if (!markedAsMuted) {
+        insightLogEntry()?.mark("docIsMuted");    // Mark the *first* time we find the doc muted.
+        markedAsMuted = true;
+      }
       log.debug('DocManager._withUnmutedDoc waiting because doc is muted', docName);
-      await bluebird.delay(1000);
+      await delay(1000);
     }
   }
 

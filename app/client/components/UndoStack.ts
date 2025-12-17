@@ -131,11 +131,15 @@ export class UndoStack extends dispose.Disposable {
       // Get all actions in the bundle that starts at the current index. Typically, an array with a
       // single action group is returned.
       const actionGroups = this._findActionBundle(ag);
+      // rowId may not exist when we're undoing certain changes (e.g. add record), meaning no row
+      // ends up selected. Removing rowId makes it use rowIndex instead, which gets us to the closest
+      // valid row.
+      const returnCursorPos = ag.cursorPos && { ...ag.cursorPos, rowId: undefined };
       // When we undo/redo, jump to the place where this action occurred, to bring the user to the
       // context where the change was originally made. We jump first immediately to feel more
       // responsive, then again when the action is done. The second jump matters more for most
       // changes, but the first is the important one when Undoing an AddRecord.
-      this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => { /* do nothing */ });
+      this._gristDoc.moveToCursorPos(returnCursorPos, ag).catch(() => { /* do nothing */ });
       if (actionGroups.length === 1 && actionGroups[0].op) {
         // this is an internal operation, rather than one done by the server,
         // so we can't ask the server to undo it.
@@ -147,7 +151,7 @@ export class UndoStack extends dispose.Disposable {
           isUndo,
           { otherId: ag.actionNum });
       }
-      this._gristDoc.moveToCursorPos(ag.cursorPos, ag).catch(() => { /* do nothing */ });
+      this._gristDoc.moveToCursorPos(returnCursorPos, ag).catch(() => { /* do nothing */ });
     } catch (err) {
       err.message = `Failed to apply ${isUndo ? 'undo' : 'redo'} action: ${err.message}`;
       throw err;

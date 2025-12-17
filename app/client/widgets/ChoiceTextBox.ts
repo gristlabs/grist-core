@@ -14,7 +14,7 @@ import {cssLabel, cssRow} from 'app/client/ui/RightPanelStyles';
 import {testId, theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {ChoiceListEntry} from 'app/client/widgets/ChoiceListEntry';
-import {choiceToken, DEFAULT_BACKGROUND_COLOR, DEFAULT_COLOR} from 'app/client/widgets/ChoiceToken';
+import {choiceToken} from 'app/client/widgets/ChoiceToken';
 import {NTextBox} from 'app/client/widgets/NTextBox';
 import {Computed, dom, styled} from 'grainjs';
 
@@ -23,14 +23,6 @@ export type ChoiceOptions = Record<string, IChoiceOptions | undefined>;
 export type ChoiceOptionsByName = Map<string, IChoiceOptions | undefined>;
 
 const t = makeT('ChoiceTextBox');
-
-export function getRenderFillColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.fillColor ?? DEFAULT_BACKGROUND_COLOR;
-}
-
-export function getRenderTextColor(choiceOptions?: IChoiceOptions) {
-  return choiceOptions?.textColor ?? DEFAULT_COLOR;
-}
 
 /**
  * ChoiceTextBox - A textbox for choice values.

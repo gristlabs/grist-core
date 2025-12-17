@@ -307,7 +307,6 @@ describe('CellColor', function() {
     await driver.sendKeys(Key.DELETE);
     await gu.waitAppFocus();
 
-    const clip = cell.find('.field_clip');
 
     // open color picker
     await gu.openCellColorPicker();
@@ -315,12 +314,14 @@ describe('CellColor', function() {
     // set and check cell color
     await gu.setColor(driver.find('.test-text-input'), 'rgb(0, 255, 0)');
     await gu.waitToPass(async () => {
+      const clip = cell.find('.field_clip');
       assert.equal(await clip.getCssValue('color'), 'rgba(0, 255, 0, 1)');
     });
 
     // set and check fill color
     await gu.setColor(driver.find('.test-fill-input'), 'rgb(0, 0, 255)');
     await gu.waitToPass(async () => {
+      const clip = cell.find('.field_clip');
       assert.equal(await clip.getCssValue('background-color'), 'rgba(0, 0, 255, 1)');
     });
 

@@ -78,7 +78,7 @@ describe('FormsUrlValues', function() {
 
     // The first 9 fields are added automatically. Add the remaining ones manually.
     async function addUnmapped(label: string) {
-      await plusButton().click();
+      await gu.waitToPass(() => plusButton().click(), 500);
       await gu.findOpenMenuItem('.test-forms-menu-unmapped', label).click();
       await gu.waitForServer();
     }

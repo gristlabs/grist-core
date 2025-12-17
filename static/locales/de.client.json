@@ -182,7 +182,7 @@
         "Log scale Y-axis": "Logarithmische Skala Y-Achse",
         "Hole size": "Lochgröße",
         "Show total": "Total anzeigen",
-        "Text Size": "Textgröße",
+        "Text size": "Textgröße",
         "Connect gaps": "Lücken verbinden",
         "Show markers": "Marker anzeigen",
         "Stack series": "Stapel-Serie",
@@ -443,7 +443,10 @@
         "Uploading...": "Hochladen...",
         "Default": "Standard",
         "Default, template, or tutorial": "Standard, Vorlage oder Tutorial",
-        "Document type": "Art des Dokuments"
+        "Document type": "Art des Dokuments",
+        "Enable suggestions": "Vorschläge aktivieren",
+        "Suggestions": "Vorschläge",
+        "experiment": "Experiment"
     },
     "DocumentUsage": {
         "Size of attachments": "Größe der Anhänge",
@@ -917,7 +920,9 @@
         "DOO Separated Values (.dsv)": "DOO-getrennte Werte (.dsv)",
         "Exporting is only available from document pages. Please select a document page and try again.": "Das Exportieren ist nur von Dokumentenseiten aus möglich. Bitte wählen Sie eine Dokumentenseite und versuchen Sie es erneut.",
         "Download attachments...": "Anhänge herunterladen...",
-        "Download document...": "Dokument herunterladen..."
+        "Download document...": "Dokument herunterladen...",
+        "Suggest Changes": "Änderungen vorschlagen",
+        "current version": "aktuelle Version"
     },
     "SiteSwitcher": {
         "Create new team site": "Neue Teamseite erstellen",
@@ -1718,9 +1723,9 @@
     },
     "WelcomeCoachingCall": {
         "free coaching call": "kostenloser Coaching-Anruf",
-        "Schedule Call": "Anruf planen",
+        "Schedule call": "Anruf planen",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Planen Sie Ihre {{freeCoachingCall}} mit einem Mitglied unseres Teams.",
-        "Maybe Later": "Vielleicht später",
+        "Maybe later": "Vielleicht später",
         "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "Während des Gesprächs nehmen wir uns die Zeit, Ihre Bedürfnisse zu verstehen und das Gespräch auf Sie zuzuschneiden. Wir können Ihnen die Grundlagen von Grist zeigen oder sofort mit Ihren Daten arbeiten, um die von Ihnen benötigten Dashboards zu erstellen.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Sie können auch {{ourWeeklyWebinars}} besuchen, um mehr über Grist zu erfahren.",
         "our weekly webinars": "unsere wöchentlichen Webinare"
@@ -2318,5 +2323,8 @@
     },
     "commandList": {
         "Undo last action": "Letzte Aktion rückgängig machen"
+    },
+    "GridViewMenusDateHelpers": {
+        "Years until": "Jahre bis"
     }
 }

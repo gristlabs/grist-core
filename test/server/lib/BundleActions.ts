@@ -32,7 +32,7 @@ describe("BundleActions", function() {
     assert.deepEqual(actions1.map(a => a.actionNum), expectedActionNums1);
 
     async function getRecentActions(count: number) {
-      return (await doc.getRecentActions(session, false)).slice(-count);
+      return (await doc.getRecentActions(session, false)).actions.slice(-count);
     }
 
     assert.deepEqual((await getRecentActions(4)).map(a => a.actionNum), expectedActionNums1);

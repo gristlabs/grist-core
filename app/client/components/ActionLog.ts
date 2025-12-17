@@ -11,14 +11,19 @@ import {makeT} from 'app/client/lib/localization';
 import {ClientTimeData} from 'app/client/models/TimeQuery';
 import {basicButton} from 'app/client/ui2018/buttons';
 import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {theme} from 'app/client/ui2018/cssVars';
 import {ActionGroup} from 'app/common/ActionGroup';
-import {ActionSummary, asTabularDiffs, defunctTableName, getAffectedTables,
-        LabelDelta} from 'app/common/ActionSummary';
+import {concatenateSummaryPair} from 'app/common/ActionSummarizer';
+import {
+  ActionSummary, asTabularDiffs, createEmptyActionSummary, defunctTableName, getAffectedTables,
+  LabelDelta
+} from 'app/common/ActionSummary';
 import {CellDelta, TabularDiff} from 'app/common/TabularDiff';
 import {timeFormat} from 'app/common/timeFormat';
 import {ResultRow, TimeCursor, TimeQuery} from 'app/common/TimeQuery';
 import {dom, DomContents, fromKo, IDomComponent, styled} from 'grainjs';
 import * as ko from 'knockout';
+import takeWhile = require('lodash/takeWhile');
 
 /**
  *
@@ -61,6 +66,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   private _pending: ActionGroupWithState[] = [];  // cache for actions that arrive while loading log
   private _loaded: boolean = false;               // flag set once log is loaded
   private _loading: ko.Observable<boolean>;  // flag set while log is loading
+  private _censored: ko.Observable<boolean>;
 
   /**
    * Create an ActionLog.
@@ -73,6 +79,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this.showAllTables = ko.observable(false);
     // We load the ActionLog lazily now, when it is first viewed.
     this._loading = ko.observable(false);
+    this._censored = ko.observable(false);
 
     this._gristDoc = options.gristDoc;
 
@@ -92,6 +99,15 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
 
   public buildDom() {
     return this._buildLogDom();
+  }
+
+  /**
+   * Figure out what has changed in the document after the given
+   * action (and not including it).
+   */
+  public async getChangesSince(actionNum: number): Promise<ActionSummary> {
+    return takeWhile(this.displayStack.all(), item => item.actionNum > actionNum)
+      .reduce((summary, item) => concatenateSummaryPair(item.actionSummary, summary), createEmptyActionSummary());
   }
 
   /**
@@ -200,11 +216,20 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
         {tabIndex: '-1'},
-        dom('div',
-          labeledSquareCheckbox(fromKo(this.showAllTables),
-            t('All tables'),
-          ),
-        ),
+        dom.maybe(this._censored, () => {
+          return cssHistoryCensored(dom(
+            'p',
+            t('History blocked because of access rules.'),
+          ));
+        }),
+        // currently, if censored, no history at all available - so drop checkbox
+        dom.maybe((use) => !use(this._censored), () => {
+          return dom('div',
+            labeledSquareCheckbox(fromKo(this.showAllTables),
+              t('All tables'),
+            ),
+          );
+        }),
         dom('div.action_log_load',
           koDom.show(() => this._loading()),
           'Loading...'),
@@ -237,7 +262,8 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     if (this._loaded || !this._gristDoc) { return; }
     this._loading(true);
     // Returned actions are ordered with earliest actions first.
-    const result = await this._gristDoc.docComm.getActionSummaries();
+    const {actions: result, censored} = await this._gristDoc.docComm.getActionSummaries();
+    this._censored(censored);
     this._loading(false);
     this._loaded = true;
     // Add the actions to our action log.
@@ -450,6 +476,8 @@ export abstract class ActionLogPart {
 
   private async _setContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
     const result = await this.getContext();
+    // table may have changed name
+    tableId = Object.keys(result || {})[0] || tableId;
     if (result) {
       contextObs({...context, [tableId]: result[tableId]});
     }
@@ -691,3 +719,9 @@ interface DeletedObject {
   colId?: string;
   tableId?: string;
 }
+
+const cssHistoryCensored = styled('div', `
+  margin: 8px 16px;
+  text-align: center;
+  color: ${theme.text};
+`);

@@ -281,6 +281,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   // Handle for a click on a token or the token's delete button. This handles selection, including
   // Shift+Click and Ctrl+Click.
   private _onTokenClick(ev: MouseEvent, t: TokenWrap<Token>) {
+    ev.stopPropagation();
     const idx = this._tokens.get().indexOf(t);
     if (idx < 0) { return; }
     if (ev.target && (ev.target as HTMLElement).matches('.' + this._styles.cssDeleteIcon.className)) {

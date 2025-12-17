@@ -1,3 +1,4 @@
+import {ActionLog} from 'app/client/components/ActionLog';
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
 import {ClientScope} from 'app/client/components/ClientScope';
@@ -34,7 +35,7 @@ import {useBindable} from 'app/common/gutil';
 import {VirtualId} from 'app/common/SortSpec';
 import {DocAPI, ExtendedUser} from 'app/common/UserAPI';
 import type {ISupportedFeatures} from 'app/common/UserConfig';
-import {CursorPos} from 'app/plugin/GristAPI';
+import {CursorPos, UIRowId} from 'app/plugin/GristAPI';
 import type {GristType, RowRecord} from 'app/plugin/GristData';
 import type {MaybePromise} from 'app/plugin/gutil';
 import camelCase from 'camelcase';
@@ -538,6 +539,9 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   }
   public async sendTableAction() {}
   public async sendTableActions() {}
+  public getActionLog(): ActionLog {
+    throw new Error('no ActionLog available');
+  }
 }
 
 /**
@@ -553,6 +557,11 @@ interface ExternalData {
 interface ExternalFormat {
   convert(tableId: string, data: any, colIds: string[]): TableDataAction;
 }
+
+/**
+ * Extends UIRowId to allow rows to use string ids.
+ */
+export type VirtualRowId = string | UIRowId;
 
 /**
  * UI component for rendering single section (from VirtualDoc) in the UI.
@@ -580,7 +589,7 @@ export class VirtualSection extends Disposable {
     /** Function to be called when focus is changed in this section */
     onFocus?: (on: boolean) => void,
     /** Observable for currently selected row, support two-way binding */
-    selectedRow?: Observable<string | number | undefined>,
+    selectedRow?: Observable<VirtualRowId | undefined>,
     /** Optional function to call when cursor is changed (for convenience, as there is an observer above ) */
     rowChanged?: (rowId?: string|number) => void,
     /** Linking configuration to other sections in the same view */
@@ -695,15 +704,22 @@ export class VirtualSection extends Disposable {
     }, this, viewSectionRec.hasFocus));
 
     if (props.selectedRow) {
-      const setRowIdInInstance = (rowId: any) => viewSectionRec.viewInstance.peek()?.setCursorPos({rowId});
+      const setRowIdInInstance = (virtualRowId?: VirtualRowId) => {
+        // String IDs are allowed in virtual documents, and are intended to be supported by the Grist UI.
+        // The type system doesn't allow that, so forcibly cast the string as number.
+        // Only cast strings to retain as much type safety as possible.
+        const rowId = typeof virtualRowId === 'string' ? virtualRowId as unknown as number : virtualRowId;
+        const pos = !rowId || rowId === 0 ? { rowIndex: 0 } : { rowId };
+        viewSectionRec.viewInstance.peek()?.setCursorPos(pos);
+      };
       setRowIdInInstance(props.selectedRow.get());
       this.autoDispose(props.selectedRow.addListener(val => {
         setRowIdInInstance(val);
       }));
       const rowId = viewSectionRec.viewInstance.peek()?.cursor.rowId;
       if (rowId) {
-        this.autoDispose(rowId.subscribe(id => {
-          props.selectedRow!.set(id as any);
+        this.autoDispose(rowId.subscribe((id: VirtualRowId | null) => {
+          props.selectedRow?.set(id ?? undefined);
         }));
       }
     }

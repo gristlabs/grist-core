@@ -365,7 +365,7 @@ export class PageWidgetSelect extends Disposable {
           testId('data'),
           header(t("Select data")),
           cssEntry(
-            cssIcon('TypeTable'), 'New Table',
+            cssIcon('TypeTable'), t('New Table'),
             // prevent the selection of 'New Table' if it is disabled
             dom.on('click', (ev) => !this._isNewTableDisabled.get() && this._selectTable('New Table')),
             this._behavioralPromptsManager.attachPopup('pageWidgetPicker', {
@@ -424,7 +424,7 @@ export class PageWidgetSelect extends Disposable {
           dom.maybe((use) => this._selectByOptions && use(this._selectByOptions).length > 1, () =>
             withInfoTooltip(
               cssSelectBy(
-                cssSmallLabel('SELECT BY'),
+                cssSmallLabel(t('SELECT BY')),
                 dom.update(cssSelect(this._value.link, this._selectByOptions!),
                           testId('selectby'))
               ),

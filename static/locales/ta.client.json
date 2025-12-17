@@ -1053,8 +1053,8 @@
     "Hidden fields": "மறைக்கப்பட்ட புலங்கள்"
   },
   "WelcomeCoachingCall": {
-    "Schedule Call": "அழைப்பு திட்டமிடு",
-    "Maybe Later": "ஒருவேளை பின்னர்",
+    "Schedule call": "அழைப்பு திட்டமிடு",
+    "Maybe later": "ஒருவேளை பின்னர்",
     "free coaching call": "இலவச பயிற்சி அழைப்பு",
     "On the call, we'll take the time to understand your needs and tailor the call to you. We can show you the Grist basics, or start working with your data right away to build the dashboards you need.": "அழைப்பில், உங்கள் தேவைகளைப் புரிந்துகொள்வதற்கும் உங்களுக்கு அழைப்பைத் தக்கவைத்துக்கொள்வதற்கும் நாங்கள் நேரம் எடுப்போம். உங்களுக்கு தேவையான டாச்போர்டுகளை உருவாக்க உங்கள் தரவுத்தளங்களை நாங்கள் உங்களுக்குக் காண்பிக்கலாம், அல்லது உங்கள் தரவுகளுடன் இப்போதே பணியாற்றத் தொடங்கலாம்.",
     "Schedule your {{freeCoachingCall}} with a member of our team.": "எங்கள் அணியின் உறுப்பினருடன் உங்கள் {{freeCoachingCall}} திட்டமிடவும்.",
@@ -1418,7 +1418,7 @@
     "Log scale Y-axis": "பதிவு அளவிலான Y- அச்சு",
     "Hole size": "துளை அளவு",
     "Show total": "மொத்தத்தைக் காட்டு",
-    "Text Size": "உரை அளவு",
+    "Text size": "உரை அளவு",
     "Connect gaps": "இடைவெளிகளை இணைக்கவும்",
     "Show markers": "குறிப்பான்களைக் காட்டு",
     "Stack series": "அடுக்கு தொடர்",

@@ -167,7 +167,10 @@ const listPublicSites = appSettings.section('access').flag('listPublicSites').re
 
 // A TTL in milliseconds for caching the result of looking up access level for a doc,
 // which is a burden under heavy traffic.
-const DOC_AUTH_CACHE_TTL = 5000;
+const DOC_AUTH_CACHE_TTL = appSettings.section('access').flag('docAuthCacheTTL').requireInt({
+  envVar: 'GRIST_TEST_DOC_AUTH_CACHE_TTL',
+  defaultValue: 5000,
+});
 
 // Maps from userId to group name, or null to inherit.
 export interface UserIdDelta {
@@ -344,6 +347,15 @@ export class HomeDBManager implements HomeDBAuth {
       .map(_grpDesc => _grpDesc.name) as roles.NonMemberRole[];
   }
 
+  /**
+   * Returns the application settings object.
+   * Currently returns the global appSettings, but in the future this could be enhanced
+   * to return settings from the database.
+   */
+  public getAppSettings() {
+    return appSettings;
+  }
+
   public setPrefix(prefix: string) {
     this._idPrefix = prefix;
   }
@@ -444,8 +456,11 @@ export class HomeDBManager implements HomeDBAuth {
     return this._usersManager.getUserByKey(apiKey);
   }
 
-  public async getUserByRef(ref: string): Promise<User|undefined> {
-    return this._usersManager.getUserByRef(ref);
+  public async getUserByRef(
+    ref: string,
+    options: {manager?: EntityManager; relations?: string[]} = {}
+  ): Promise<User|undefined> {
+    return this._usersManager.getUserByRef(ref, options);
   }
 
   public async getUser(userId: number, options: {includePrefs?: boolean} = {}) {
@@ -1000,6 +1015,8 @@ export class HomeDBManager implements HomeDBAuth {
         linkId: res.linkId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        removedAt: res.doc?.removedAt || null,
+        disabledAt: res.doc?.disabledAt || null,
         isPinned: false,
         urlId: key.urlId,
         workspace: res.doc.workspace,
@@ -1900,6 +1917,10 @@ export class HomeDBManager implements HomeDBAuth {
       }
       // Update the name and save.
       const doc = getDocResult(queryResult);
+      // Disabled docs can't be modified.
+      if (doc.disabledAt) {
+        return {status: 403, errMessage: 'Document is disabled'};
+      }
       const previous = structuredClone(doc);
       doc.checkProperties(props);
       doc.updateFromProperties(props);
@@ -1996,6 +2017,10 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async undeleteDocument(scope: DocScope): Promise<QueryResult<Document>> {
     return this._setDocumentRemovedAt(scope, null);
+  }
+
+  public toggleDisableDocument(action: 'enable'|'disable', scope: DocScope): Promise<QueryResult<Document>> {
+    return this._setDocumentDisabledAt(scope, action === 'disable' ? new Date() : null);
   }
 
   // Fetches and provides a callback with the billingAccount so it may be updated within
@@ -2602,6 +2627,13 @@ export class HomeDBManager implements HomeDBAuth {
     const result = await this._connection.transaction(async manager => {
       // Get the doc
       const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
+      // Disabled docs can't be moved
+      if (doc.disabledAt) {
+        return {
+          status: 403,
+          errMessage: 'Document is disabled'
+        };
+      }
       const previous = structuredClone(doc);
       if (doc.workspace.id === wsId) {
         return {
@@ -3561,10 +3593,6 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async getServiceAccount(serviceId: number) {
     return this._serviceAccountsManager.getServiceAccount(serviceId);
-  }
-
-  public async getServiceAccountWithOwner(serviceId: number) {
-    return this._serviceAccountsManager.getServiceAccountWithOwner(serviceId);
   }
 
   public async getServiceAccountByLoginWithOwner(login: string) {
@@ -5290,22 +5318,30 @@ export class HomeDBManager implements HomeDBAuth {
 
   // Set Document.removedAt to null (undeletion) or to a datetime (soft deletion)
   private _setDocumentRemovedAt(scope: DocScope, removedAt: Date|null) {
+    return this._setDocumentDeletionProperty(scope, 'removedAt', removedAt);
+  }
+
+  private _setDocumentDisabledAt(scope: DocScope, removedAt: Date|null) {
+    return this._setDocumentDeletionProperty(scope, 'disabledAt', removedAt);
+  }
+
+  private _setDocumentDeletionProperty(scope: DocScope, property: 'removedAt'|'disabledAt', value: Date|null) {
     return this._connection.transaction(async manager => {
       let docQuery = this._doc({...scope, showAll: true}, {
         manager,
         markPermissions: Permissions.SCHEMA_EDIT | Permissions.REMOVE,
         allowSpecialPermit: true
       });
-      if (!removedAt) {
+      if (!value) {
         docQuery = this._addFeatures(docQuery);  // pull in billing information for doc count limits
       }
       const doc: Document = this.unwrapQueryResult(await verifyEntity(docQuery));
-      if (!removedAt) {
+      if (!value) {
         await this._checkRoomForAnotherDoc(doc.workspace, manager);
       }
-      doc.removedAt = removedAt;
+      doc[property] = value;
       await manager.createQueryBuilder()
-        .update(Document).set({removedAt}).where({id: doc.id})
+        .update(Document).set({[property]: value}).where({id: doc.id})
         .execute();
 
       // Update guests of the workspace and org after soft-deleting/undeleting this doc.
@@ -5443,9 +5479,10 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
   try {
     const doc = await docPromise;
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
-    return {docId: doc.id, access: doc.access, removed, cachedDoc: doc};
+    const disabled = Boolean(doc.disabledAt);
+    return {docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc};
   } catch (error) {
-    return {docId: null, access: null, removed: null, error};
+    return {docId: null, access: null, removed: null, disabled: null, error};
   }
 }
 
