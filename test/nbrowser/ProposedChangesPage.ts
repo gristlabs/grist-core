@@ -66,7 +66,7 @@ describe('ProposedChangesPage', function() {
 
     // Go to the propose-changes page.
     assert.equal(await driver.find('.test-tools-proposals').getText(),
-                 'Suggest Changes');
+                 'Suggest Changes (1)');
     await driver.find('.test-tools-proposals').click();
 
     // Make sure the expected change is shown.
@@ -273,6 +273,88 @@ describe('ProposedChangesPage', function() {
                      [ 'Bird', 'Primate' ]);
   });
 
+  it('can show a count of changes to add to suggestion', async function() {
+    await makeLifeDoc();
+    const url = await driver.getCurrentUrl();
+
+    await workOnCopy(url);
+    const forkUrl = await driver.getCurrentUrl();
+
+    // Make a change.
+    await gu.getCell('B', 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('Bird');
+
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (1)');
+
+    // Make another change.
+    await gu.getCell('A', 2).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('15');
+
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (2)');
+
+    await gu.undo();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (1)');
+
+    await gu.redo();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (2)');
+
+    await gu.refreshDismiss({ignore: true});
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (2)');
+
+    assert.notInclude(await driver.find('.test-undo').getAttribute('class'), '-disable');
+
+    await proposeChange();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes');
+
+    assert.include(await driver.find('.test-undo').getAttribute('class'), '-disable');
+
+    await gu.openPage('Life');
+    await gu.getCell('A', 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('13');
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (1)');
+    assert.notInclude(await driver.find('.test-undo').getAttribute('class'), '-disable');
+    await proposeChange();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes');
+    assert.include(await driver.find('.test-undo').getAttribute('class'), '-disable');
+
+    await driver.findContentWait('span', /original document/, 2000).click();
+    await driver.findWait('.test-proposals-header', 2000);
+    await gu.openPage('Life');
+    await gu.getCell('A', 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('1');
+
+    await driver.get(forkUrl);
+    await gu.getCell('A', 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('99');
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (1)');
+    await proposeChange();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes');
+    await gu.openPage('Life');
+    await gu.getCell('A', 1).click();
+    await gu.waitAppFocus();
+    await gu.enterCell('999');
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes (1)');
+    await proposeChange();
+    assert.equal(await driver.find('.test-tools-proposals').getText(),
+                 'Suggest Changes');
+  });
+
   async function makeLifeDoc() {
     // Load a test document.
     const session = await gu.session().teamSite.login();
@@ -311,8 +393,8 @@ describe('ProposedChangesPage', function() {
 
   // Propose a change.
   async function proposeChange() {
-    assert.equal(await driver.find('.test-tools-proposals').getText(),
-                 'Suggest Changes');
+    assert.match(await driver.find('.test-tools-proposals').getText(),
+                 /Suggest Changes/);
     await driver.find('.test-tools-proposals').click();
     await driver.findWait('.test-proposals-propose', 2000).click();
     await gu.waitForServer();

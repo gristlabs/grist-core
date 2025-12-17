@@ -112,8 +112,11 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
         cssPageEntry.cls('-selected', (use) => use(gristDoc.activeViewId) === 'suggestions'),
         cssPageLink(
           cssPageIcon('MobileChat'),
-          dom.domComputed(canMakeProposal, (proposable) => {
-            return cssLinkText(proposable ? t("Suggest Changes") : t("Suggestions"));
+          dom.domComputed((use) => {
+            const proposable = use(canMakeProposal);
+            const changes = proposable ? use(docPageModel.proposalNewChangesCount) : 0;
+            const text = proposable ? t("Suggest Changes") : t("Suggestions");
+            return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
           }),
           testId('proposals'),
           urlState().setLinkUrl({docPage: 'suggestions'})
@@ -265,4 +268,8 @@ const cssExampleCardOpener = styled(unstyledButton, `
   .${cssTools.className}-collapsed & {
     display: none;
   }
+`);
+
+const cssChangeCount = styled('span', `
+  font-weight: bold;
 `);

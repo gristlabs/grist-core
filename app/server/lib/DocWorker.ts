@@ -4,7 +4,6 @@
  */
 import {isAffirmative} from 'app/common/gutil';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
-import {ActionHistoryImpl} from 'app/server/lib/ActionHistoryImpl';
 import {assertAccess, getOrSetDocAuth, RequestWithLogin} from 'app/server/lib/Authorizer';
 import {Client} from 'app/server/lib/Client';
 import {Comm} from 'app/server/lib/Comm';
@@ -14,7 +13,6 @@ import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
 import log from 'app/server/lib/log';
 import {getDocId, integerParam, optIntegerParam, optStringParam, stringParam} from 'app/server/lib/requestUtils';
-import {OpenMode, quoteIdent, SQLiteDB} from 'app/server/lib/SQLiteDB';
 import contentDisposition from 'content-disposition';
 import * as express from 'express';
 import * as fse from 'fs-extra';
@@ -76,14 +74,20 @@ export class DocWorker {
 
     // Get a copy of document for downloading.
     const tmpPath = await storageManager.getCopy(docId);
+    let removeData: boolean = false;
+    let removeHistory: boolean = false;
     if (isAffirmative(req.query.template)) {
-      await removeData(tmpPath);
-      await removeHistory(tmpPath);
+      removeData = removeHistory = true;
     } else if (isAffirmative(req.query.nohistory)) {
-      await removeHistory(tmpPath);
+      removeHistory = true;
     }
 
-    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath);
+    await filterDocumentInPlace(docSessionFromRequest(mreq), tmpPath, {
+      removeData,
+      removeHistory,
+      removeFullCopiesSpecialRight: true,
+      markAction: true,
+    });
     // NOTE: We may want to reconsider the mimeType used for Grist files.
     return res.type('application/x-sqlite3')
       .download(
@@ -205,30 +209,4 @@ async function activeDocMethod(role: 'viewers'|'editors'|'owners'|null, methodNa
   // Include a basic log record for each ActiveDoc method call.
   log.rawDebug('activeDocMethod', activeDoc.getLogMeta(docSession, methodName));
   return (activeDoc as any)[methodName](docSession, ...args);
-}
-
-/**
- * Remove rows from all user tables.
- */
-async function removeData(filename: string) {
-  const db = await SQLiteDB.openDBRaw(filename, OpenMode.OPEN_EXISTING);
-  const tableIds = (await db.all("SELECT name FROM sqlite_master WHERE type='table'"))
-    .map(row => row.name as string)
-    .filter(name => !name.startsWith('_grist'));
-  for (const tableId of tableIds) {
-    await db.run(`DELETE FROM ${quoteIdent(tableId)}`);
-  }
-  await db.run(`DELETE FROM _grist_Attachments`);
-  await db.run(`DELETE FROM _gristsys_Files`);
-  await db.close();
-}
-
-/**
- * Wipe as much history as we can.
- */
-async function removeHistory(filename: string) {
-  const db = await SQLiteDB.openDBRaw(filename, OpenMode.OPEN_EXISTING);
-  const history = new ActionHistoryImpl(db);
-  await history.deleteActions(1);
-  await db.close();
 }
