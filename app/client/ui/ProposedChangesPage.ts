@@ -1,28 +1,31 @@
-import { ActionLogPart, computeContext, showCell } from 'app/client/components/ActionLog';
-import { cssBannerLink } from 'app/client/components/Banner';
-import { GristDoc } from 'app/client/components/GristDoc';
-import { makeT } from 'app/client/lib/localization';
-import { getTimeFromNow } from 'app/client/lib/timeUtils';
-import { urlState } from 'app/client/models/gristUrlState';
-import { docListHeader } from 'app/client/ui/DocMenuCss';
-import { buildOriginalUrlId } from 'app/client/ui/ShareMenu';
-import { basicButton, bigBasicButton, bigPrimaryButton, primaryButton } from 'app/client/ui2018/buttons';
-import { labeledSquareCheckbox } from 'app/client/ui2018/checkbox';
-import { colors, mediaSmall, theme, vars } from 'app/client/ui2018/cssVars';
-import { icon } from 'app/client/ui2018/icons';
-import { cssLink } from 'app/client/ui2018/links';
-import { loadingSpinner } from 'app/client/ui2018/loaders';
-import { rebaseSummary } from 'app/common/ActionSummarizer';
+import {ActionLogPart, computeContext, showCell} from 'app/client/components/ActionLog';
+import {cssBannerLink} from 'app/client/components/Banner';
+import {GristDoc} from 'app/client/components/GristDoc';
+import {ApiData, VirtualDoc, VirtualSection} from 'app/client/components/VirtualDoc';
+import {makeT} from 'app/client/lib/localization';
+import {getTimeFromNow} from 'app/client/lib/timeUtils';
+import {urlState} from 'app/client/models/gristUrlState';
+import {docListHeader} from 'app/client/ui/DocMenuCss';
+import {buildOriginalUrlId} from 'app/client/ui/ShareMenu';
+import {basicButton, bigBasicButton, bigPrimaryButton, primaryButton} from 'app/client/ui2018/buttons';
+import {labeledSquareCheckbox} from 'app/client/ui2018/checkbox';
+import {colors, mediaSmall, theme, vars} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
+import {cssLink} from 'app/client/ui2018/links';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
+import {rebaseSummary} from 'app/common/ActionSummarizer';
+import {TableDataAction} from 'app/common/DocActions';
 import {
   DocStateComparison,
   DocStateComparisonDetails,
   removeMetadataChangesFromDetails,
 } from 'app/common/DocState';
-import { buildUrlId, commonUrls, parseUrlId } from 'app/common/gristUrls';
-import { isLongerThan } from 'app/common/gutil';
-import { Proposal } from 'app/common/UserAPI';
+import {buildUrlId, commonUrls, parseUrlId} from 'app/common/gristUrls';
+import {isLongerThan} from 'app/common/gutil';
+import {TabularDiff, TabularDiffs} from 'app/common/TabularDiff';
+import {Proposal} from 'app/common/UserAPI';
 import {
-  Computed, Disposable, dom, makeTestId, MutableObsArray,
+  Computed, Disposable, dom, makeTestId, MultiHolder, MutableObsArray,
   obsArray, Observable, styled
 } from 'grainjs';
 import * as ko from 'knockout';
@@ -41,7 +44,7 @@ const testId = makeTestId('test-proposals-');
  */
 export class ProposedChangesPage extends Disposable {
   public body: ProposedChangesTrunkPage | ProposedChangesForkPage;
-  public readonly isInitialized: Observable<boolean|'slow'> = Observable.create(this, false);
+  public readonly isInitialized: Observable<boolean | 'slow'> = Observable.create(this, false);
 
   constructor(public gristDoc: GristDoc) {
     super();
@@ -51,8 +54,8 @@ export class ProposedChangesPage extends Disposable {
 
     this.body = this.autoDispose(
       isFork ?
-          ProposedChangesForkPage.create(null, gristDoc) :
-          ProposedChangesTrunkPage.create(null, gristDoc));
+        ProposedChangesForkPage.create(null, gristDoc) :
+        ProposedChangesTrunkPage.create(null, gristDoc));
 
     const loader = this.body.load();
     loader.then(result => {
@@ -63,6 +66,7 @@ export class ProposedChangesPage extends Disposable {
 
   public buildDom() {
     const content = cssContainer(
+      dom.cls('diff'),
       cssHeader(this.body.title(), betaTag(t('experiment'))),
       dom.maybe(this.isInitialized, (init) => {
         if (init === 'slow') {
@@ -74,8 +78,8 @@ export class ProposedChangesPage extends Disposable {
     );
     // Common pattern on other pages to avoid clipboard deactivation.
     return dom('div.clipboard',
-               {tabIndex: "-1"},
-               content);
+      {tabIndex: "-1"},
+      content);
   }
 }
 
@@ -110,6 +114,21 @@ export class ProposedChangesTrunkPage extends Disposable {
     this._proposals = proposals.proposals.filter(p => p.status.status !== 'retracted');
     this._proposalsObs.splice(0);
     this._proposalsObs.push(...this._proposals);
+
+    // Fetch all tables that have changes in any proposal
+    const tablesToFetch = new Set<string>();
+    for (const proposal of this._proposals) {
+      const details = proposal.comparison.comparison?.details;
+      if (details?.leftChanges.tableDeltas) {
+        Object.keys(details.leftChanges.tableDeltas).forEach(tableId => tablesToFetch.add(tableId));
+      }
+    }
+    await Promise.all([...tablesToFetch].map(tableId =>
+      this.gristDoc.docData.fetchTable(tableId).catch(err => {
+        console.warn(`Failed to fetch table ${tableId}:`, err);
+      })
+    ));
+
     return true;
   }
 
@@ -118,10 +137,6 @@ export class ProposedChangesTrunkPage extends Disposable {
   }
 
   public buildDom() {
-    return this.buildTrunkDom();
-  }
-
-  public buildTrunkDom() {
     if (!this._proposals) { return null; }
     const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
     return [
@@ -143,14 +158,14 @@ export class ProposedChangesTrunkPage extends Disposable {
               cssWarningMessage(
                 cssWarningIcon('Warning'),
                 dom('div',
-                    `This is an experimental feature, with many limitations,
+                  `This is an experimental feature, with many limitations,
 and is subject to change and withdrawal.`,
-                    ' ',
-                    cssLink(t("Learn more"), {
-                      href: commonUrls.helpSuggestions,
-                      target: "_blank",
-                    }),
-                   ),
+                  ' ',
+                  cssLink(t("Learn more"), {
+                    href: commonUrls.helpSuggestions,
+                    target: "_blank",
+                  }),
+                ),
               ),
               dom('p', 'There are currently no suggestions.'),
             ];
@@ -188,7 +203,7 @@ and is subject to change and withdrawal.`,
                   getProposalActionSummary(proposal),
                   testId('header'),
                 ),
-                renderComparisonDetails(this.gristDoc, details, proposal.comparison.comparison),
+                buildComparisonDetails(this, this.gristDoc, details, proposal.comparison.comparison),
                 proposal.status.status === 'dismissed' ? 'DISMISSED' : null,
                 isReadOnly ? null : cssDataRow(
                   applied ? null : primaryButton(
@@ -201,17 +216,16 @@ and is subject to change and withdrawal.`,
                         if (change.fail) {
                           reportError(new Error(change.msg));
                         }
-                        console.log(change);
                       }
                     }),
                     testId('apply'),
                   ),
                   ' ',
-                  (isReadOnly || proposal.status.status === 'dismissed') ? null : basicButton(
-                    t("Dismiss"),
+                  isReadOnly ? null : basicButton(
+                    dismissed ? t("Undo dismissal") : t("Dismiss"),
                     dom.on('click', async () => {
                       const result = await this.gristDoc.docComm.applyProposal(proposal.shortId, {
-                        dismiss: true,
+                        dismiss: !dismissed,
                       });
                       this._updateProposal(proposal, result.proposal);
                     }),
@@ -236,19 +250,19 @@ and is subject to change and withdrawal.`,
   private _linkProposal(proposal: Proposal) {
     const name = `#${proposal.shortId}`;
     return proposal.srcDoc.id !== 'hidden' ?
-        cssBannerLink(
-          name,
-          urlState().setLinkUrl({
-            doc: buildUrlId({
-              trunkId: this.gristDoc.docId(),
-              forkId: proposal.srcDoc.id,
-              ...(proposal.srcDoc.creator.anonymous ? {} : {
-                forkUserId: proposal.srcDoc.creator.id,
-              })
-            }),
-            docPage: 'suggestions',
-          })
-        ) : name;
+      cssBannerLink(
+        name,
+        urlState().setLinkUrl({
+          doc: buildUrlId({
+            trunkId: this.gristDoc.docId(),
+            forkId: proposal.srcDoc.id,
+            ...(proposal.srcDoc.creator.anonymous ? {} : {
+              forkUserId: proposal.srcDoc.creator.id,
+            })
+          }),
+          docPage: 'suggestions',
+        })
+      ) : name;
   }
 }
 
@@ -256,7 +270,7 @@ export class ProposedChangesForkPage extends Disposable {
   // This will hold a comparison between this document and another version.
   private _comparison?: DocStateComparison;
 
-  private _proposalObs: Observable<Proposal|null> = Observable.create(this, null);
+  private _proposalObs: Observable<Proposal | null> = Observable.create(this, null);
   private _outOfDateObs: Computed<boolean>;
 
   constructor(public gristDoc: GristDoc) {
@@ -285,7 +299,7 @@ export class ProposedChangesForkPage extends Disposable {
     const parts = parseUrlId(urlId || '');
     const comparisonUrlId = parts.trunkId;
     const comparison = await this.gristDoc.appModel.api.getDocAPI(urlId).compareDoc(
-      comparisonUrlId, { detail: true }
+      comparisonUrlId, {detail: true}
     );
     if (this.isDisposed()) { return; }
     this._comparison = comparison;
@@ -294,6 +308,18 @@ export class ProposedChangesForkPage extends Disposable {
     });
     if (this.isDisposed()) { return; }
     this._proposalObs.set(proposals.proposals[0] || null);
+
+    // Fetch all tables that have changes
+    const details = comparison.details;
+    if (details?.leftChanges.tableDeltas) {
+      const tablesToFetch = Object.keys(details.leftChanges.tableDeltas);
+      await Promise.all(tablesToFetch.map(tableId =>
+        this.gristDoc.docData.fetchTable(tableId).catch(err => {
+          console.warn(`Failed to fetch table ${tableId}:`, err);
+        })
+      ));
+    }
+
     return true;
   }
 
@@ -304,10 +330,10 @@ export class ProposedChangesForkPage extends Disposable {
     const origUrlId = buildOriginalUrlId(docId, isSnapshot);
     const isReadOnly = this.gristDoc.docPageModel.currentDoc.get()?.isReadonly;
     const maybeHasChanges =
-        Object.keys(details?.leftChanges.tableDeltas || {}).length !== 0 ||
-        details?.leftChanges.tableRenames.length !== 0;
+      Object.keys(details?.leftChanges.tableDeltas || {}).length !== 0 ||
+      details?.leftChanges.tableRenames.length !== 0;
     const trunkAcceptsProposals =
-        this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
+      this.gristDoc.docPageModel.currentDoc?.get()?.options?.proposedChanges?.acceptProposals;
     return dom.domComputed(
       (use) => [use(this._proposalObs), use(this._outOfDateObs)] as const, ([proposal, outOfDate]) => {
         const hasProposal = Boolean(proposal?.updatedAt && proposal?.status?.status === undefined);
@@ -319,43 +345,43 @@ export class ProposedChangesForkPage extends Disposable {
             );
           }),
           dom('p',
-              t('This is a list of changes relative to the {{originalDocument}}.', {
-                originalDocument: cssBannerLink(
-                  t('original document'),
-                  urlState().setLinkUrl({
-                    doc: origUrlId,
-                    docPage: 'suggestions',
-                  }, {
-                    beforeChange: () => {
-                      const user = this.gristDoc.currentUser.get();
-                      // If anonymous, be careful, proposal list won't
-                      // give a link back to this URL since that would
-                      // let anyone edit it.
-                      if (user?.anonymous) { return; }
-                      // If a proposal hasn't been saved, or is retracted,
-                      // also be careful, since there won't be a back-link.
-                      if (!proposal?.updatedAt ||
-                          proposal.status.status  === 'retracted') { return; }
-                      // Otherwise, don't worry about losing the link
-                      // to this page, you can get it from the original
-                      // document.
-                      this.gristDoc.docPageModel.clearUnsavedChanges();
-                    }
-                  })
-                )
-              }),
-             ),
+            t('This is a list of changes relative to the {{originalDocument}}.', {
+              originalDocument: cssBannerLink(
+                t('original document'),
+                urlState().setLinkUrl({
+                  doc: origUrlId,
+                  docPage: 'suggestions',
+                }, {
+                  beforeChange: () => {
+                    const user = this.gristDoc.currentUser.get();
+                    // If anonymous, be careful, proposal list won't
+                    // give a link back to this URL since that would
+                    // let anyone edit it.
+                    if (user?.anonymous) { return; }
+                    // If a proposal hasn't been saved, or is retracted,
+                    // also be careful, since there won't be a back-link.
+                    if (!proposal?.updatedAt ||
+                      proposal.status.status === 'retracted') { return; }
+                    // Otherwise, don't worry about losing the link
+                    // to this page, you can get it from the original
+                    // document.
+                    this.gristDoc.docPageModel.clearUnsavedChanges();
+                  }
+                })
+              )
+            }),
+          ),
           dom.maybe(!maybeHasChanges, () => {
             return dom('p', t('No changes found to suggest. Please make some edits.'));
           }),
           cssDataRow(
-            details ? renderComparisonDetails(this.gristDoc, details, this._comparison) : null,
+            details ? buildComparisonDetails(this, this.gristDoc, details, this._comparison) : null,
           ),
           [
             dom('p',
-                getProposalActionSummary(proposal),
-                testId('status'),
-               ),
+              getProposalActionSummary(proposal),
+              testId('status'),
+            ),
             this._getProposalRelativeToCurrent(),
             (isReadOnly || !maybeHasChanges) ? null : cssControlRow(
               (hasProposal && !outOfDate) ? null : bigPrimaryButton(
@@ -409,7 +435,7 @@ class ActionLogPartInProposal extends ActionLogPart {
   public constructor(
     private _gristDoc: GristDoc,
     private _details: DocStateComparisonDetails,
-    private _comparison: DocStateComparison|undefined,
+    private _comparison: DocStateComparison | undefined,
   ) {
     super(_gristDoc);
   }
@@ -432,7 +458,187 @@ class ActionLogPartInProposal extends ActionLogPart {
     }
     return computeContext(this._gristDoc, summary);
   }
+
+  public buildDom() {
+    return this.renderTabularDiffs(this._details.leftChanges, {
+      txt: "",
+      // This holds any extra context known about the comparison. Computed on
+      // request. It is managed by ActionLogPart.
+      contextObs: ko.observable({}),
+      customRender: (diffs, ctx, selectCell) => {
+        return this._makeTable({
+          diffs,
+          origComparison: this._comparison,
+          toggleInfo: (table: any) => this.toggleContext(ctx, table),
+          selectCell: selectCell,
+        });
+      },
+    });
+  }
+
+  protected _makeTable(props: {
+    diffs?: TabularDiffs;
+    origComparison?: DocStateComparison;
+    toggleInfo?: (table: string) => void;
+    selectCell?: (rowId: number, colId: string, tableId: string) => Promise<void>;
+  }) {
+    const {diffs, toggleInfo} = props;
+    const doc = VirtualDoc.create(this, this._gristDoc.appModel);
+    if (!diffs) {
+      return null;
+    }
+    const lst = Object.entries(diffs).map(([table, tdiff]: [string, TabularDiff]) => {
+      const data = convertTabularDiffToTableData(table, tdiff);
+      const tableRow = this._gristDoc.docModel.tables.rowModels.filter(tr => tr.tableId() === table)[0];
+      const columnRows = tableRow ? this._gristDoc.docModel.columns.rowModels.filter(
+        cr => cr.parentId() === tableRow.id()
+      ) : null;
+      const types = columnRows ? Object.fromEntries(
+        columnRows.map(cr => [cr.colId(), cr])
+      ) : {};
+      const haveId = tdiff.header.includes('id');
+      doc.addTable({
+        name: table,
+        tableId: table,
+        data: new ApiData(() => data),
+        columns: [
+          // Add the special row change type column
+          {
+            colId: '_gristChangeType',
+            label: '_gristChangeType',
+            type: 'Text',
+          },
+          // Add regular columns from the diff
+          ...tdiff.header.map(colId => {
+            return {
+              colId,
+              label: colId,
+              type: (types[colId]?.pureType.peek() as any) || 'Any',
+              widgetOptions: types[colId]?.widgetOptionsJson.peek()
+            };
+          }),
+        ],
+      });
+      doc.refreshTableData(table).catch(reportError);
+      return dom.create(VirtualSection, doc, {
+        tableId: table,
+        sectionId: 'list',
+        inline: true,
+        hiddenColumns: ['_gristChangeType'],
+        hideViewButtons: true,
+        onCellDblClick: (pos) => {
+          if (Number.isInteger(pos.rowId)) {
+            const colId = tdiff.header[pos.fieldIndex ?? 0 - 1];
+            props.selectCell?.(pos.rowId as number, colId || '', table).catch(reportError);
+          }
+        },
+        cornerRenderer: toggleInfo ? (el) => [
+          cssExpander(
+            haveId ? icon('PanelLeft') : icon('PanelRight'),
+            haveId ? testId('collapse') : testId('expand'),
+            dom.on('click', () => toggleInfo(table))
+          ),
+        ] : () => ['aaa'],
+        rowIndexRenderer: (row) => {
+          const changeType = row.cells['_gristChangeType'].peek();
+          return dom('div', String(changeType || '?'),
+            dom.style('font-weight', 'bold'),
+            dom.style('font-size', '12px'));
+        },
+      });
+    });
+    return lst;
+  }
 }
+
+function getProposalActionSummary(proposal: Proposal | null) {
+  return proposal?.updatedAt ? dom.text(
+    proposal?.status.status === 'retracted' ?
+      t("Retracted {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
+      proposal?.status.status === 'dismissed' ?
+        t("Dismissed {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
+        proposal?.status.status === 'applied' && proposal.appliedAt ?
+          t("Accepted {{at}}.", {at: getTimeFromNow(proposal.appliedAt)}) :
+          t("Suggestion made {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}),
+  ) : null;
+}
+
+/**
+ * Converts a TabularDiff to TableDataAction format.
+ * Transforms cell deltas into the appropriate format for display.
+ * Also adds a special column '_gristChangeType' to track the type of change.
+ */
+function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): TableDataAction {
+  const data: TableDataAction = ['TableData', table, [], {}];
+
+  for (const row of tdiff.cells) {
+    data[2].push(row.rowId);
+
+    // Add special column to track row change type
+    data[3]['_gristChangeType'] ??= [];
+    data[3]['_gristChangeType'].push(row.type);
+
+    for (const [idx, cell] of row.cellDeltas.entries()) {
+      let item;
+      if (cell === null) {
+        item = '...';
+      } else if (!Array.isArray(cell)) {
+        item = cell;
+      } else {
+        const [pre, post] = cell;
+        if (!pre && !post) {
+          item = '';
+        } else {
+          item = ['V', {
+            parent: pre?.[0],
+            remote: post?.[0],
+          }];
+        }
+      }
+      const colId = tdiff.header[idx];
+      data[3][colId] ??= [];
+      data[3][colId].push(item as any);
+    }
+  }
+
+  return data;
+}
+
+function buildComparisonDetails(
+    owner: MultiHolder,
+    gristDoc: GristDoc,
+    origDetails: DocStateComparisonDetails,
+    origComparison: DocStateComparison | undefined,
+  ) {
+  // The change we want to render is based on a calculation
+  // done on the fork document. The calculation treated the
+  // fork as the local/left document, and the trunk as the
+  // remote/right document.
+  const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
+  // We want to look at the changes from their most recent
+  // common ancestor and the current doc.
+  const part = new ActionLogPartInProposal(gristDoc, details, origComparison);
+  owner.autoDispose(part);
+
+  return [
+    leftHadMetadata ? dom('p', "(some changes we can't deal with yet were ignored)") : null,
+    part.buildDom(),
+  ];
+}
+
+const cssExpander = styled('div', `
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: ${theme.controlPrimaryBg};
+  --icon-color: ${theme.controlPrimaryBg};
+  &:hover {
+    text-decoration: underline;
+  }
+`);
 
 const cssHeader = styled(docListHeader, `
   margin-bottom: 0;
@@ -469,7 +675,7 @@ const cssControlRow = styled('div', `
 `);
 
 
-export const betaTag = styled('span', `
+const betaTag = styled('span', `
   text-transform: uppercase;
   vertical-align: super;
   font-size: ${vars.xsmallFontSize};
@@ -504,7 +710,7 @@ const cssProposalHeader = styled('h3', `
   color: ${theme.accessRulesTableHeaderFg};
 `);
 
-export const cssWarningMessage = styled('div', `
+const cssWarningMessage = styled('div', `
   margin-top: 8px;
   margin-bottom: 8px;
   padding: 8px;
@@ -515,41 +721,7 @@ export const cssWarningMessage = styled('div', `
   border: 1px solid ${theme.accessRulesTableHeaderFg};
 `);
 
-export const cssWarningIcon = styled(icon, `
+const cssWarningIcon = styled(icon, `
   --icon-color: ${colors.warning};
   flex-shrink: 0;
 `);
-
-
-function getProposalActionSummary(proposal: Proposal|null) {
-  return proposal?.updatedAt ? dom.text(
-    proposal?.status.status === 'retracted' ?
-        t("Retracted {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
-        proposal?.status.status === 'dismissed' ?
-        t("Dismissed {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}) :
-        proposal?.status.status === 'applied' && proposal.appliedAt ?
-        t("Accepted {{at}}.", {at: getTimeFromNow(proposal.appliedAt)}) :
-        t("Suggestion made {{at}}.", {at: getTimeFromNow(proposal.updatedAt)}),
-  ) : null;
-}
-
-
-function renderComparisonDetails(gristDoc: GristDoc, origDetails: DocStateComparisonDetails,
-                                 origComparison: DocStateComparison|undefined) {
-  // The change we want to render is based on a calculation
-  // done on the fork document. The calculation treated the
-  // fork as the local/left document, and the trunk as the
-  // remote/right document.
-  const {details, leftHadMetadata} = removeMetadataChangesFromDetails(origDetails);
-  // We want to look at the changes from their most recent
-  // common ancestor and the current doc.
-  const part = new ActionLogPartInProposal(gristDoc, details, origComparison);
-  // This holds any extra context known about the comparison. Computed on
-  // request. It is managed by ActionLogPart.
-  // TODO: does this need ownership of some kind for disposal?
-  const context = ko.observable({});
-  return [
-    leftHadMetadata ? dom('p', "(some changes we can't deal with yet were ignored)") : null,
-    part.renderTabularDiffs(details.leftChanges, "", context),
-  ];
-}
