@@ -50,10 +50,11 @@ export class ActionCounter extends dispose.Disposable {
     // Initialize counters and stats.
     this.count = Observable.create(this, 0);
     this.countFromMark = Observable.create(this, 0);
+    // If there is a marked actionNum, then block undos beyond it.
     this.isUndoBlocked = Computed.create(
       this,
       this.countFromMark,
-      (_, count) => count <= 0
+      (_, count) => this._actionNumMark ? count <= 0 : false
     );
     this._counted = new Set();
     this._actionNumList = [];
