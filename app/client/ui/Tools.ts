@@ -114,7 +114,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
           cssPageIcon('MobileChat'),
           dom.domComputed((use) => {
             const proposable = use(canMakeProposal);
-            const changes = use(docPageModel.proposalNewChangesCount);
+            const changes = proposable ? use(docPageModel.proposalNewChangesCount) : 0;
             const text = proposable ? t("Suggest Changes") : t("Suggestions");
             return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
           }),
