@@ -311,7 +311,7 @@ export async function assertGridData(section: string, data: any[][]) {
   // [1, "Val",  1]
 
   const rowIndices = data.slice(1).map((row: number[]) => row[0]);
-  const columnNames = data[0].slice(1);
+  const columnNames = data[0]?.slice(1) ?? [];
 
   for(const col of columnNames) {
     const colIndex = columnNames.indexOf(col) + 1;

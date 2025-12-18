@@ -1,3 +1,4 @@
+import {ActionCounter} from 'app/client/components/ActionCounter';
 import {ActionLog} from 'app/client/components/ActionLog';
 import {BehavioralPromptsManager} from 'app/client/components/BehavioralPromptsManager';
 import {buildViewSectionDom} from 'app/client/components/buildViewSectionDom';
@@ -5,6 +6,7 @@ import {ClientScope} from 'app/client/components/ClientScope';
 import {Comm} from 'app/client/components/Comm';
 import * as commands from 'app/client/components/commands';
 import {CursorMonitor} from 'app/client/components/CursorMonitor';
+import {CornerRenderer, GridViewOptions, RowIndexRenderer} from 'app/client/components/GridView';
 import {DocComm, GristDoc, IExtraTool} from 'app/client/components/GristDoc';
 import {UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout, ViewSectionHelper} from 'app/client/components/ViewLayout';
@@ -12,6 +14,7 @@ import type {BoxSpec} from 'app/client/lib/BoxSpec';
 import {DocPluginManager} from 'app/client/lib/DocPluginManager';
 import type {AppModel, TopAppModel} from 'app/client/models/AppModel';
 import BaseRowModel from 'app/client/models/BaseRowModel';
+import {DataTableModelWithDiff} from 'app/client/models/DataTableModelWithDiff';
 import {DocData} from 'app/client/models/DocData';
 import {DocInfoRec, DocModel, ViewFieldRec, ViewRec, ViewSectionRec} from 'app/client/models/DocModel';
 import {DocPageModel, DocPageModelImpl} from 'app/client/models/DocPageModel';
@@ -77,7 +80,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   // Currently we don't support this feature.
   public maximizedSectionId = Observable.create(this, null);
   public externalSectionId = Observable.create(this, null);
-  public comparison = null;
+  public comparison: any = null;
   public docInfo: DocInfoRec = {timezone: Observable.create(null, 'UTC')} as any;
   public docModel: DocModel;
   public viewModel: ViewRec;
@@ -453,7 +456,12 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   // Rest of the methods are not implemented and not needed or used by virtual tables.
 
   public getTableModelMaybeWithDiff(tableId: string) {
-    return this.docModel.getTableModel(tableId);
+    const tableModel = this.getTableModel(tableId);
+    if (!this.comparison?.details) {
+      return tableModel;
+    }
+    // TODO: cache wrapped models and share between views.
+    return new DataTableModelWithDiff(tableModel, this.comparison.details);
   }
 
   public getTableModel(tableId: string) {
@@ -477,6 +485,10 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
 
   public getUndoStack(): UndoStack {
     return new UndoStack(); // Return empty undo stack
+  }
+
+  public getActionCounter(): ActionCounter {
+    throw new Error('no action counter');
   }
 
   public async addEmptyTable(): Promise<void> {
@@ -607,6 +619,18 @@ export class VirtualSection extends Disposable {
     /** If this view section is visible or not. Used for resizing when the parent element is initially hidden */
     isVisible?: Observable<boolean>,
     disableAddRemove?: boolean,
+    hideViewButtons?: boolean,
+    /** If true, the section will auto size to fit its contents, simulating inline element that respects parent
+     * container size */
+    inline?: boolean,
+
+    // GridView specific options:
+    /** Custom renderer for row index area (row numbers column) */
+    rowIndexRenderer?: RowIndexRenderer,
+    /** Custom renderer for corner cell (top-left cell at row/column intersection) */
+    cornerRenderer?: CornerRenderer,
+    /** Handler that is called when user double clicks a cell */
+    onCellDblClick?: (pos: CursorPos) => void;
   }) {
     super();
 
@@ -619,7 +643,6 @@ export class VirtualSection extends Disposable {
     const sectionId = this.props.sectionId ?? tableId;
     this._sectionId = sectionId;
 
-
     const linkSrcSectionRef = this.props.selectBy?.sectionId ?? 0;
     this._doc.docData.receiveAction([
       'AddRecord', '_grist_Views_section', this._sectionId as any as number, {
@@ -628,7 +651,6 @@ export class VirtualSection extends Disposable {
         parentKey: this.props.type ?? 'record',
         title: this.props?.label ?? tableRec.tableName.peek(),
         borderWidth: 1,
-        defaultWidth: 100,
         linkSrcSectionRef,
       }
     ]);
@@ -657,7 +679,17 @@ export class VirtualSection extends Disposable {
     this.autoDispose(this._columns.addListener(this._syncColumns.bind(this)));
 
     const viewSectionRec = this._doc.docModel.viewSections.getRowModel(sectionId as any as number);
-    ViewSectionHelper.create(this, this._doc as any, viewSectionRec);
+    ViewSectionHelper.create(this, this._doc as any, viewSectionRec, {
+      'record': {
+        inline: this.props.inline,
+        isPreview: true,
+        addNewRow: false,
+        maxInlineHeight: 400,
+        rowIndexRenderer: this.props.rowIndexRenderer,
+        cornerRenderer: this.props.cornerRenderer,
+        onCellDblClick: this.props.onCellDblClick,
+      } as GridViewOptions,
+    });
 
     viewSectionRec.hideViewMenu(true);
     viewSectionRec.canRename(false);
@@ -670,7 +702,7 @@ export class VirtualSection extends Disposable {
       viewSectionRec.hasFocus(true);
     }
 
-    const viewInstance =viewSectionRec.viewInstance.peek() as any;
+    const viewInstance = viewSectionRec.viewInstance.peek() as any;
     // Additional elements to add to the cell context menu.
     if (props.cellMenu && viewInstance) {
       viewInstance.customCellMenu = props.cellMenu;
@@ -735,6 +767,7 @@ export class VirtualSection extends Disposable {
 
   public buildDom() {
     const vs = this._sectionRec;
+    const visible = Observable.create(this, true);
     return dom('div.layout_root',
       // Catch custom CustomEvent('setCursor', {detail: {row, col}}) event and set cursor position.
       dom.on('setCursor', (ev: any) => {
@@ -754,12 +787,14 @@ export class VirtualSection extends Disposable {
       }),
       dom.style('flex', '1'),
       dom('div.layout_box layout_vbox',
+        dom.show(visible),
         dom('div.layout_box layout_leaf',
           dom.style('--flex-grow', '100'),
           buildViewSectionDom({
             gristDoc: this._doc,
             sectionRowId: this._sectionId as number,
             viewModel: vs.view.peek(),
+            hideTitleControls: this.props.hideViewButtons
           }),
         )
       )
@@ -806,7 +841,7 @@ export class ApiData implements ExternalData {
 }
 
 /**
- * Converts the Records format ({record: {id, fields}[]}) to TableDataAction.
+ * Converts the Records format ({records: {id, fields}[]}) to TableDataAction.
  */
 export class RecordsFormat implements ExternalFormat {
   public convert(tableId: string, data: TableRecordValues, keys: string[]): TableDataAction {
@@ -850,6 +885,7 @@ export interface TableSpec {
   format?: ExternalFormat;
   hidden?: boolean;
   initialFocus?: boolean;
+  defaultWidth?: number;
 }
 
 /**
@@ -997,7 +1033,7 @@ function generateInitialActions(tabDef: TableSpec): DocAction[] {
         } as BoxSpec),
         showHeader: true,
         borderWidth: 1,
-        defaultWidth: 100,
+        defaultWidth: tabDef.defaultWidth ?? 100,
       }
     ],
     [
