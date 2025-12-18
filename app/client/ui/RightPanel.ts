@@ -1010,6 +1010,10 @@ export class RightPanel extends Disposable {
         ),
         dom.show(redirection)
       ),
+      cssHintRow(
+        t("You may use {{ID}} placeholder for the ID of the added record."),
+        dom.show(redirection)
+      ),
     ];
   }
 
@@ -1200,6 +1204,10 @@ const cssRow = styled('div', `
   }
 `);
 
+const cssHintRow = styled('div', `
+  margin: -4px 16px 8px 16px;
+  color: ${theme.lightText};
+`);
 
 const cssButtonRow = styled(cssRow, `
   margin-left: 0;

@@ -79,7 +79,7 @@ export class FormPage extends Disposable {
                 handleSubmit({
                   pending: this._model.submitting,
                   onSubmit: (_formData, formElement) => this._handleFormSubmit(formElement),
-                  onSuccess: () => this._handleFormSubmitSuccess(),
+                  onSuccess: (recordId: number) => this._handleFormSubmitSuccess(recordId),
                   onError: (e) => this._handleFormError(e),
                 }),
               ),
@@ -95,16 +95,16 @@ export class FormPage extends Disposable {
   }
 
   private async _handleFormSubmit(formElement: HTMLFormElement) {
-    await this._model.submitForm(new TypedFormData(formElement));
+    return await this._model.submitForm(new TypedFormData(formElement));
   }
 
-  private async _handleFormSubmitSuccess() {
+  private async _handleFormSubmitSuccess(recordId: number) {
     const formLayout = this._model.formLayout.get();
     if (!formLayout) { throw new Error('formLayout is not defined'); }
 
     const {successURL} = formLayout;
     if (successURL) {
-      const url = sanitizeHttpUrl(successURL);
+      const url = sanitizeHttpUrl(successURL)?.replace("{{ID}}", `${recordId}`);
       if (url) {
         window.location.href = url;
       }
