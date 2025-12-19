@@ -523,27 +523,32 @@ class ActionLogPartInProposal extends ActionLogPart {
       return dom.create(VirtualSection, doc, {
         tableId: table,
         sectionId: 'list',
-        inline: true,
         hiddenColumns: ['_gristChangeType'],
         hideViewButtons: true,
-        onCellDblClick: (pos) => {
-          if (Number.isInteger(pos.rowId)) {
-            const colId = tdiff.header[pos.fieldIndex ?? 0 - 1];
-            props.selectCell?.(pos.rowId as number, colId || '', table).catch(reportError);
-          }
-        },
-        cornerRenderer: toggleInfo ? (el) => [
-          cssExpander(
-            haveId ? icon('PanelLeft') : icon('PanelRight'),
-            haveId ? testId('collapse') : testId('expand'),
-            dom.on('click', () => toggleInfo(table))
-          ),
-        ] : () => ['aaa'],
-        rowIndexRenderer: (row) => {
-          const changeType = row.cells['_gristChangeType'].peek();
-          return dom('div', String(changeType || '?'),
-            dom.style('font-weight', 'bold'),
-            dom.style('font-size', '12px'));
+        gridOptions: {
+          inline: true,
+          maxInlineHeight: 400,
+          rowMenu: false,
+          colMenu: false,
+          onCellDblClick: (pos) => {
+            if (Number.isInteger(pos.rowId)) {
+              const colId = tdiff.header[pos.fieldIndex ?? 0 - 1];
+              props.selectCell?.(pos.rowId as number, colId || '', table).catch(reportError);
+            }
+          },
+          cornerRenderer: toggleInfo ? (el) => [
+            cssExpander(
+              haveId ? icon('PanelLeft') : icon('PanelRight'),
+              haveId ? testId('collapse') : testId('expand'),
+              dom.on('click', () => toggleInfo(table))
+            ),
+          ] : () => ['aaa'],
+          rowIndexRenderer: (row) => {
+            const changeType = row.cells['_gristChangeType'].peek();
+            return dom('div', String(changeType || '?'),
+              dom.style('font-weight', 'bold'),
+              dom.style('font-size', '12px'));
+          },
         },
       });
     });

@@ -6,7 +6,7 @@ import {ClientScope} from 'app/client/components/ClientScope';
 import {Comm} from 'app/client/components/Comm';
 import * as commands from 'app/client/components/commands';
 import {CursorMonitor} from 'app/client/components/CursorMonitor';
-import {CornerRenderer, GridViewOptions, RowIndexRenderer} from 'app/client/components/GridView';
+import {GridViewOptions} from 'app/client/components/GridView';
 import {DocComm, GristDoc, IExtraTool} from 'app/client/components/GristDoc';
 import {UndoStack} from 'app/client/components/UndoStack';
 import {ViewLayout, ViewSectionHelper} from 'app/client/components/ViewLayout';
@@ -620,17 +620,7 @@ export class VirtualSection extends Disposable {
     isVisible?: Observable<boolean>,
     disableAddRemove?: boolean,
     hideViewButtons?: boolean,
-    /** If true, the section will auto size to fit its contents, simulating inline element that respects parent
-     * container size */
-    inline?: boolean,
-
-    // GridView specific options:
-    /** Custom renderer for row index area (row numbers column) */
-    rowIndexRenderer?: RowIndexRenderer,
-    /** Custom renderer for corner cell (top-left cell at row/column intersection) */
-    cornerRenderer?: CornerRenderer,
-    /** Handler that is called when user double clicks a cell */
-    onCellDblClick?: (pos: CursorPos) => void;
+    gridOptions?: Partial<GridViewOptions>,
   }) {
     super();
 
@@ -652,6 +642,7 @@ export class VirtualSection extends Disposable {
         title: this.props?.label ?? tableRec.tableName.peek(),
         borderWidth: 1,
         linkSrcSectionRef,
+        ...(props.gridOptions?.inline ? {} : {defaultWidth: 100})
       }
     ]);
     this.onDispose(() => {
@@ -681,13 +672,8 @@ export class VirtualSection extends Disposable {
     const viewSectionRec = this._doc.docModel.viewSections.getRowModel(sectionId as any as number);
     ViewSectionHelper.create(this, this._doc as any, viewSectionRec, {
       'record': {
-        inline: this.props.inline,
-        isPreview: true,
+        ...this.props.gridOptions,
         addNewRow: false,
-        maxInlineHeight: 400,
-        rowIndexRenderer: this.props.rowIndexRenderer,
-        cornerRenderer: this.props.cornerRenderer,
-        onCellDblClick: this.props.onCellDblClick,
       } as GridViewOptions,
     });
 

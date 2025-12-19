@@ -1594,6 +1594,9 @@ export default class GridView extends BaseView {
       const fontItalic = buildStyleOption(this, computedRule, 'fontItalic', false);
       const fontUnderline = buildStyleOption(this, computedRule, 'fontUnderline', false);
       const fontStrikethrough = buildStyleOption(this, computedRule, 'fontStrikethrough', false);
+      const hasContextMenu = !this.isPreview && !(
+        this.gridOptions?.rowMenu === false && this.gridOptions.colMenu === false
+      );
 
       return dom('div.gridview_row',
         dom.autoDispose(isRowActive),
@@ -1675,7 +1678,7 @@ export default class GridView extends BaseView {
               this.changeHover(-1);
             }
           }),
-          this.isPreview ? null : contextMenu((ctx) => {
+          !hasContextMenu ? null : contextMenu((ctx) => {
             // We need to close the menu when the row is removed, but the dom of the row is not
             // disposed when the record is removed (this is probably due to how scrolly work). Hence,
             // we need to subscribe to `isRowActive` to close the menu.
