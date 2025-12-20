@@ -1,5 +1,6 @@
 import {UserAPI} from 'app/common/UserAPI';
 import {assert, driver, Key} from 'mocha-webdriver';
+import {startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
@@ -29,8 +30,7 @@ describe('DropdownConditionEditor', function () {
       ['AddRecord', 'Roles', null, {Email: gu.translateUser('user1').email, Admin: true}],
       ['AddRecord', 'Roles', null, {Email: gu.translateUser('user2').email, Admin: false}],
     ]);
-    await driver.find('.test-tools-access-rules').click();
-    await gu.waitForServer();
+    await startEditingAccessRules();
     await driver.findContentWait('button', /Add user attributes/, 2000).click();
     const userAttrRule = await driver.find('.test-rule-userattr');
     await userAttrRule.find('.test-rule-userattr-name').click();
@@ -151,7 +151,7 @@ describe('DropdownConditionEditor', function () {
       await gu.sendKeys('!@#$%^', Key.ENTER);
       await gu.waitForServer();
       assert.equal(
-        await driver.find('.test-field-dropdown-condition-error').getText(),
+        await driver.findWait('.test-field-dropdown-condition-error', 500).getText(),
         'SyntaxError invalid syntax on line 1 col 1'
       );
       await gu.reloadDoc();

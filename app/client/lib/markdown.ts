@@ -1,6 +1,6 @@
-import { sanitizeHTML } from 'app/client/ui/sanitizeHTML';
+import { sanitizeHTMLIntoDOM } from 'app/client/ui/sanitizeHTML';
 import { theme } from 'app/client/ui2018/cssVars';
-import { BindableValue, DomElementMethod, IDomArgs, styled, subscribeElem } from 'grainjs';
+import { BindableValue, dom, DomContents, IDomArgs, styled } from 'grainjs';
 import { marked } from 'marked';
 
 /**
@@ -23,8 +23,8 @@ import { marked } from 'marked';
  *
  * Enable `inline` option to avoid wrapping results in `<p>` tags.
  */
-export function markdown(markdownObs: BindableValue<string>, options: {inline?: boolean} = {}): DomElementMethod {
-  return elem => subscribeElem(elem, markdownObs, value => setMarkdownValue(elem, value, options));
+export function markdown(markdownObs: BindableValue<string>, options: {inline?: boolean} = {}): DomContents {
+  return dom.domComputed(markdownObs, value => getMarkdownValue(value, options));
 }
 
 /**
@@ -54,16 +54,17 @@ const cssMarkdownLine = styled('span', `
   }
 `);
 
-export function inlineMarkdown(markdownObs: BindableValue<string>): DomElementMethod {
+export function inlineMarkdown(markdownObs: BindableValue<string>): DomContents {
   return markdown(markdownObs, {inline: true});
 }
 
-function setMarkdownValue(elem: Element, markdownValue: string, options: {inline?: boolean} = {}): void {
+function getMarkdownValue(markdownValue: string, options: {inline?: boolean} = {}): DomContents {
   const html = options.inline
     ? marked.parseInline(markdownValue, {async: false})
     : marked(markdownValue, {async: false});
-  elem.innerHTML = sanitizeHTML(html);
+  return sanitizeHTMLIntoDOM(html);
 }
+
 
 /**
  * Removes all links from markdown text replacing them with the plain label.

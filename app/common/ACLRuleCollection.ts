@@ -43,7 +43,9 @@ export function isSchemaEditResource(resource: {tableId: string, colIds: string}
   return resource.tableId === SPECIAL_RULES_TABLE_ID && resource.colIds === 'SchemaEdit';
 }
 
-const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
+export type SpecialRuleName = "AccessRules" | "DocCopies" | "FullCopies" | "SeedRule" | "SchemaEdit";
+
+const SPECIAL_RULE_SETS: Record<SpecialRuleName, RuleSet> = {
   SchemaEdit: {
     tableId: SPECIAL_RULES_TABLE_ID,
     colIds: ['SchemaEdit'],
@@ -72,6 +74,18 @@ const SPECIAL_RULE_SETS: Record<string, RuleSet> = {
       matchFunc: defaultMatchFunc,
       permissions: parsePermissions('-R'),
       permissionsText: '-R',
+    }],
+  },
+  DocCopies: {
+    // Absense of +R on DocCopies means that the user is NOT allowed to copy the document in full
+    // or download it, even if they can see all data and can view access rules.
+    tableId: SPECIAL_RULES_TABLE_ID,
+    colIds: ['DocCopies'],
+    body: [{
+      aclFormula: "",
+      matchFunc: defaultMatchFunc,
+      permissions: parsePermissions('+R'),
+      permissionsText: '+R',
     }],
   },
   FullCopies: {

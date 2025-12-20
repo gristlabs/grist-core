@@ -3,7 +3,7 @@
  */
 import { assert, driver, Key, stackWrapFunc } from 'mocha-webdriver';
 import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet,
-         findTable, triggerAutoComplete } from 'test/nbrowser/aclTestUtils';
+         findTable, startEditingAccessRules, triggerAutoComplete } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server } from 'test/nbrowser/testServer';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
@@ -106,8 +106,7 @@ describe('AccessRules1', function() {
     // Load Access Rules UI.
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
+    await startEditingAccessRules();
 
     // Make FinancialsTable private to user1.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
@@ -120,11 +119,11 @@ describe('AccessRules1', function() {
     // Make RumorsColumn of ClientsTable private to user1.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /ClientsTable/).click();
-    await findTable(/ClientsTable/).find('.test-rule-table-menu-btn').click();
+    await findTable(/ClientsTable/).findWait('.test-rule-table-menu-btn', 300).click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
     ruleSet = findRuleSet(/ClientsTable/, 1);
 
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
       [
@@ -199,8 +198,7 @@ describe('AccessRules1', function() {
     // This tests behavior that broke after a bug was introduced.
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
     const ruleSet = findDefaultRuleSet(/FinancialsTable/);
     await gu.scrollIntoView(ruleSet);
     await enterRulePart(ruleSet, 1, `rec.id == 1`, 'Allow all');
@@ -221,8 +219,7 @@ describe('AccessRules1', function() {
   it('should support adding memos', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
+    await startEditingAccessRules();
 
     // Change the catch-all rule on ClientsTable to read-only permission, and give it a memo.
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
@@ -237,13 +234,9 @@ describe('AccessRules1', function() {
   it('should support removing memos', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
+    await startEditingAccessRules();
 
     // Delete the memo for the ClientsTable catch-all rule.
-    await gu.session().teamSite.user('user1').login();
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find('.test-rule-part-and-memo:nth-child(4) .test-rule-memo-remove').click();
     await driver.find('.test-rules-save').click();
@@ -256,8 +249,7 @@ describe('AccessRules1', function() {
   it('should not produce unnecessary user actions when changing rules', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
+    await startEditingAccessRules();
 
     // Revert a rule that was modified in an earlier test.
     let ruleSet = findDefaultRuleSet(/ClientsTable/);
@@ -313,8 +305,7 @@ describe('AccessRules1', function() {
   it('should report errors when typed-in rule is invalid', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
     const ruleSet = findDefaultRuleSet(/ClientsTable/);
     await ruleSet.find('.test-rule-part:nth-child(1) .test-rule-add').click();
     await enterRulePart(ruleSet, 1, `user.Access === 'owners'`, {R: 'allow'});
@@ -368,14 +359,13 @@ describe('AccessRules1', function() {
   it('should allow read control for columns with rec in formula', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
 
     // Add a column rule that uses rec but doesn't set read permission.
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
@@ -406,13 +396,13 @@ describe('AccessRules1', function() {
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
     let ruleSet = findRuleSet(/FinancialsTable/, 1);
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
     await gu.findOpenMenuItem('li', 'Year').click();
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'Income').click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone1"', {R: 'deny'});
 
@@ -420,21 +410,21 @@ describe('AccessRules1', function() {
     await findTable(/FinancialsTable/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
     ruleSet = findRuleSet(/FinancialsTable/, 2);
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     assert.deepEqual(
       await gu.findOpenMenuAllItems('li', el => el.getText()),
       ['Expenses', 'Income', 'Year']
     );
     await gu.findOpenMenuItem('li', 'Year').click();
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'Expenses').click();
     await enterRulePart(ruleSet, 1, 'user.Email == "noone2"', {R: 'allow'});
 
     // Check that trying to save throws an error.
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
-    await driver.findContent('.test-notifier-toast-wrapper',
-                             /Column Year appears .* table FinancialsTable .* might be order-dependent/);
+    await driver.findContentWait('.test-notifier-toast-wrapper',
+      /Column Year appears .* table FinancialsTable .* might be order-dependent/, 200);
     await gu.wipeToasts();
 
     // Tweak one rule to be compatible (no order dependency) with the other, and recheck.
@@ -448,6 +438,7 @@ describe('AccessRules1', function() {
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, {wait: false});
     await driver.findWait('.test-rule-set', 2000);
     await driver.find('.test-dp-add-new').doClick();
+    await gu.findOpenMenu();
     assert.includeMembers(await driver.findAll('.test-dp-add-new-menu > li.disabled', (imp) => imp.getText()), [
       "Add widget to page",
     ]);

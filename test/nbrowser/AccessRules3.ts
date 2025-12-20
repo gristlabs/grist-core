@@ -4,7 +4,7 @@
 import { assert, driver } from 'mocha-webdriver';
 import { assertChanged, assertSaved, enterRulePart, findDefaultRuleSet,
          findRuleSet, findRuleSetWait, findTableWait, getRules, hasExtraAdd, removeRules,
-         removeTable } from 'test/nbrowser/aclTestUtils';
+         removeTable, startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
@@ -38,9 +38,12 @@ describe("AccessRules3", function() {
       // Open Access Rules page.
       const mainSession = await gu.session().teamSite.user('user1').login();
       await mainSession.loadDoc(`/doc/${docId}`);
-      await driver.find('.test-tools-access-rules').click();
-      await driver.findWait('.test-rule-set', 2000);
+      await startEditingAccessRules();
+
+      // Save the initial rules.
+      await driver.find('.test-rules-save').click();
       await gu.waitForServer();
+      await assertSaved();
 
       // Check seed rule checkbox is unselected.
       const seedRule = await driver.find('div.test-rule-special-SeedRule');
@@ -164,8 +167,7 @@ describe("AccessRules3", function() {
       // Open Access Rules page.
       const mainSession = await gu.session().teamSite.user('user1').login();
       await mainSession.loadDoc(`/doc/${docId}`);
-      await driver.find('.test-tools-access-rules').click();
-      await driver.findWait('.test-rule-set', 2000);
+      await startEditingAccessRules();
 
       // Check seed rule checkbox is unselected.
       const seedRule = await driver.find('div.test-rule-special-SeedRule');
@@ -239,8 +241,7 @@ describe("AccessRules3", function() {
     it('can save and reload SeedRule special', async function() {
       const mainSession = await gu.session().teamSite.user('user1').login();
       await mainSession.loadDoc(`/doc/${docId}`);
-      await driver.find('.test-tools-access-rules').click();
-      await driver.findWait('.test-rule-set', 2000);
+      await startEditingAccessRules();
 
       // Initially nothing is selected and all is saved.
       let seedRule = await driver.find('div.test-rule-special-SeedRule');
@@ -320,8 +321,7 @@ describe("AccessRules3", function() {
       // Open Access Rules page.
       const mainSession = await gu.session().teamSite.user('user1').login();
       await mainSession.loadDoc(`/doc/${docId}`);
-      await driver.find('.test-tools-access-rules').click();
-      await driver.findWait('.test-rule-set', 2000);
+      await startEditingAccessRules();
 
       // Click the seed rule checkbox.
       const seedRule = await driver.find('div.test-rule-special-SeedRule');
@@ -360,7 +360,7 @@ describe("AccessRules3", function() {
           aclFormula: ["user.Access in [OWNER]", "user.Access in [OWNER]"],
           // Specifically, we care that this permissionsText includes only RU bits for column rules.
           permissionsText: ["+RU", "+CRUD"],
-          rulePos: [1/3, 2/3],
+          rulePos: [1/6, 1/3],
           memo: ["", ""],
         }],
       ]);

@@ -4,6 +4,7 @@
 import {ITestingHooks} from 'app/server/lib/ITestingHooks';
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
+import {assertChanged, assertSaved, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe("AccessRules4", function() {
@@ -114,7 +115,7 @@ describe("AccessRules4", function() {
     assert.deepEqual(await gu.getSectionTitles(), ['USERS']);
 
     // Add this table as an attribute.
-    await driver.findWait('.test-tools-access-rules', 100).click();
+    await startEditingAccessRules();
     await driver.findContentWait('button', /Add user attributes/, 2000).click();
     const userAttrRule = await driver.findWait('.test-rule-userattr', 200);
     await userAttrRule.find('.test-rule-userattr-name').click();
@@ -126,9 +127,11 @@ describe("AccessRules4", function() {
     await userAttrRule.find('.test-rule-userattr-col').click();
     await gu.findOpenMenu();
     await driver.sendKeys('Email', Key.ENTER);
+    await assertChanged();
     await driver.find('.test-rules-save').click();
     await gu.checkForErrors();
     await gu.waitForServer();
+    await assertSaved();
     await gu.openPage('Users');
 
     // Login as john

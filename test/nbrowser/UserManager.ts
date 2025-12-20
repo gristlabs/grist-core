@@ -858,7 +858,10 @@ describe('UserManager', function() {
     // Click it, and check that we are now on the Access Rules page.
     await accessRulesLink.click();
     await gu.testCurrentUrl(/^.+\/p\/acl$/);
-    assert(await driver.findWait('.test-rule-table', 3000).isPresent());
+
+    // These days we see the access rules intro screen (since on this doc there aren't access
+    // rules yet).
+    assert.equal(await driver.findWait('.test-enable-access-rules', 1000).isDisplayed(), true);
   });
 
 });

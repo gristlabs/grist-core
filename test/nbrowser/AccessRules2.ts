@@ -2,20 +2,25 @@
  * Test of the UI for Granular Access Control, part 2.
  */
 import escapeRegExp from 'lodash/escapeRegExp';
-import { assert, driver, Key, stackWrapFunc, WebElement } from 'mocha-webdriver';
+import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import { enterRulePart, findDefaultRuleSet, findDefaultRuleSetWait, findRuleSet, findRuleSetWait, findTable,
          findTableWait,
-         getRuleText} from 'test/nbrowser/aclTestUtils';
+         getRuleText,
+         startEditingAccessRules,
+} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-const isChecked = stackWrapFunc(async function(el: WebElement): Promise<boolean> {
+async function isChecked(el: WebElement): Promise<boolean> {
   return await el.getAttribute('checked') !== null;
-});
+}
 
-const isDisabled = stackWrapFunc(async function(el: WebElement): Promise<boolean> {
+async function isDisabled(el: WebElement): Promise<boolean> {
   return await el.getAttribute('disabled') !== null;
-});
+}
+
+// Just a shortcut.
+const isShown = (el: WebElement) => el.isDisplayed();
 
 describe("AccessRules2", function() {
   this.timeout(40000);
@@ -44,8 +49,9 @@ describe("AccessRules2", function() {
     // Open AccessRules page, and click Users button.
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
+    await startEditingAccessRules();
     await driver.findContentWait('button', /View as/, 3000).click();
+    await gu.findOpenMenu();
 
     const [email1, email2, email3] = ['user1', 'user2', 'user3'].map(u => gu.translateUser(u as any).email);
     // All users the doc is shared with should be listed, with correct Access.
@@ -82,7 +88,7 @@ describe("AccessRules2", function() {
 
     // Refresh list.
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
+    await startEditingAccessRules();
     await driver.findContentWait('button', /View as/, 3000).click();
     await gu.findOpenMenu();
 
@@ -154,6 +160,7 @@ describe("AccessRules2", function() {
 
     // select other user
     await driver.find('.test-view-as-banner .test-select-open').click();
+    await gu.findOpenMenu();
     await driver.findContent('.test-acl-user-item', gu.translateUser('user1').name).click();
 
     // check name changed
@@ -166,8 +173,7 @@ describe("AccessRules2", function() {
   it('should make all tables/columns available to editor of ACL rules', async function() {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
 
     // Add table rules for ClientsTable.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
@@ -179,9 +185,9 @@ describe("AccessRules2", function() {
     await findTableWait(/ClientsTable/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
     let ruleSet = findRuleSetWait(/ClientsTable/, 1);
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'First_Name').click();
-    await ruleSet.find('.test-rule-resource .test-select-open').click();
+    await ruleSet.findWait('.test-rule-resource .test-select-open', 300).click();
     await gu.findOpenMenuItem('li', 'Last_Name').click();
     await enterRulePart(ruleSet, 1, null, {R: 'deny'});
 
@@ -273,8 +279,7 @@ describe("AccessRules2", function() {
 
     // Now use the UI to add a user-attribute rule.
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await gu.waitForServer();
+    await startEditingAccessRules();
     await driver.findContentWait('button', /Add user attributes/, 2000).click();
     const userAttrRule = await driver.find('.test-rule-userattr');
     await userAttrRule.find('.test-rule-userattr-name').click();
@@ -282,7 +287,10 @@ describe("AccessRules2", function() {
 
     // Type 'Email' into the attribute ace editor, which has 'user.' prefilled.
     await userAttrRule.find('.test-rule-userattr-attr').click();
+    await driver.findContentWait('.ace_autocomplete', /Email/, 100);
     await driver.sendKeys("Email", Key.ENTER);
+    await gu.waitToPass(async () => assert.isFalse(await driver.find('.ace_autocomplete').isDisplayed()));
+    assert.equal(await userAttrRule.find('.test-rule-userattr-attr').getText(), 'user.Email');
 
     // Check that Table field offers a dropdown.
     await userAttrRule.find('.test-rule-userattr-table').click();
@@ -310,7 +318,7 @@ describe("AccessRules2", function() {
     }
     await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /ClientsTable/).click();
-    const ruleSet = findDefaultRuleSet(/ClientsTable/);
+    const ruleSet = findDefaultRuleSetWait(/ClientsTable/);
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     // newRec term in the following does nothing, it is just there to test renaming later.
     await enterRulePart(ruleSet, 1, `not user.MyAccess.SharedOnly or rec.Shared or newRec.Shared`,
@@ -324,6 +332,7 @@ describe("AccessRules2", function() {
 
     // Now toggle the value in the Access table.
     await gu.getPageItem('Access').click();
+    await gu.waitToPass(async () => assert.match(await gu.getCell({col: 'Email', rowNum: 1}).getText(), /chimpy/));
     await gu.getCell({col: 'SharedOnly', rowNum: 1}).find('.widget_checkbox').click();
     await gu.waitToPass(async () => {
       await gu.openPage('ClientsTable');
@@ -335,8 +344,7 @@ describe("AccessRules2", function() {
     // Load the page with rules.
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
 
     // ClientsTable rules, based on previous tests, includes an "Everyone Else" setting.
     assert.isTrue(await findTable(/ClientsTable/).isPresent());
@@ -412,8 +420,7 @@ describe("AccessRules2", function() {
 
     // Load the page with rules.
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
 
     // After the previous test case, we have these rules:
     // - UserAttribute rule "MyAccess" that looks up user.Email in ClientsTable.Email.
@@ -499,39 +506,49 @@ describe("AccessRules2", function() {
 
     // Load the page with rules.
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
 
     // Check that the special checkboxes are unchecked, and advanced UI is hidden.
-    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, true, false, false]);
+    // Also the 'Restrict copying' checkbox is hidden (it plays no role without 'View Access Rules').
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, false, false, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isShown), [true, true, true, false]);
     assert.deepEqual(await driver.findAll('.test-rule-special', el => el.find('.test-rule-set').isPresent()),
       [false, false, false, false]);
 
     // Mark the 'Allow everyone to view Access Rules' checkbox and save.
     await gu.scrollIntoView(driver.find('.test-rule-special-AccessRules .test-rule-special-checkbox')).click();
+
+    // It also causes the 'Restrict copying' permission to become visible.
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, false, true, true]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isShown), [true, true, true, true]);
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();
 
     // Verify that it's checked after saving.
-    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, true, true, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, false, true, true]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isShown), [true, true, true, true]);
 
     // Expand advanced UI and delete the added rule there.
     await gu.scrollIntoView(driver.find('.test-rule-special-AccessRules .test-rule-special-expand')).click();
     await driver.find('.test-rule-special-AccessRules .test-rule-part-and-memo:nth-child(1) .test-rule-remove').click();
 
     // The checkbox should now be unchecked.
-    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, true, false, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, false, false, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isShown), [true, true, true, false]);
 
     // Add a new non-standard rule
+    await driver.find('.test-rule-special-AccessRules .test-rule-special-expand').click();
     const ruleSet = await driver.find('.test-rule-special-AccessRules .test-rule-set');
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     await enterRulePart(ruleSet, 1, 'user.Access == EDITOR', {R: 'allow'});
 
     // The checkbox should now be disabled.
-    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, true, false, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, false, false, false]);
     assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isDisabled), [false, false, true, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isShown), [true, true, true, true]);
 
-    // Mark the checkbox for the other rule.
+    // Mark the checkbox for the other rule under "Special rules for templates" section.
+    await driver.find('.test-special-rules-templates-expand').click();
     await gu.scrollIntoView(driver.find('.test-rule-special-FullCopies .test-rule-special-checkbox')).click();
 
     // Save and reload the page.
@@ -541,12 +558,16 @@ describe("AccessRules2", function() {
     await driver.findWait('.test-rule-set', 5000);
 
     // Verify the state of the checkboxes.
-    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked), [false, true, false, true]);
-    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isDisabled), [false, false, true, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isChecked),
+      [false, false, false, false, true]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isDisabled),
+      [false, false, true, false, false]);
+    assert.deepEqual(await driver.findAll('.test-rule-special-checkbox', isShown),
+      [true, true, true, true, true]);
 
     // Check that the advanced UI is shown for only the non-standard rule.
     assert.deepEqual(await driver.findAll('.test-rule-special', el => el.find('.test-rule-set').isPresent()),
-      [false, false, true, false]);
+      [false, false, true, false, false]);
   });
 
   it('should allow opening rules when they refer to a deleted table', async function() {
@@ -556,8 +577,7 @@ describe("AccessRules2", function() {
 
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
     assert.match(await driver.find('.test-rule-table-header').getText(), / ClientsTable$/);
 
     // TODO: Something seems wrong about being able to remove a table to which one has no
@@ -601,19 +621,18 @@ describe("AccessRules2", function() {
 
     // Open access control rules.
     await mainSession.loadDoc(`/doc/${docId}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
 
     // Add a rule for TmpTable1.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /TmpTable1/, 3000).click();
-    let ruleSet = findDefaultRuleSet(/TmpTable1/);
+    let ruleSet = findDefaultRuleSetWait(/TmpTable1/);
     await enterRulePart(ruleSet, 1, null, 'Allow all');
 
     // Add a rule for columns of TmpTable2.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /TmpTable2/, 3000).click();
-    ruleSet = findDefaultRuleSet(/TmpTable2/);
+    ruleSet = findDefaultRuleSetWait(/TmpTable2/);
     await enterRulePart(ruleSet, 1, null, 'Allow all');
     await findTable(/TmpTable2/).find('.test-rule-table-menu-btn').click();
     await gu.findOpenMenuItem('li', /Add column rule/).click();
@@ -645,7 +664,9 @@ describe("AccessRules2", function() {
     assert.deepEqual(await driver.findAll('.test-rule-table-header', el => el.getText()),
                      ['Rules for table #Invalid (TmpTable1)',
                       'Rules for table TmpTable2',
-                      'Default rules', 'Special rules']);
+                      'Default rules',
+                      'Special rules (expand each rule to customize who it applies to)'
+                     ]);
 
     // Press the buttons we expect to be offered for clean-up.
     await driver.findContentWait('button', /Remove TmpTable1 rules/, 5000).click();
@@ -657,7 +678,8 @@ describe("AccessRules2", function() {
 
     // Check the list of rules looks cleaner.
     assert.deepEqual(await driver.findAll('.test-rule-table-header', el => el.getText()),
-                     ['Rules for table TmpTable2', 'Default rules', 'Special rules']);
+                     ['Rules for table TmpTable2', 'Default rules',
+                      'Special rules (expand each rule to customize who it applies to)']);
 
     // Check only the remaining column is mentioned.
     assert.deepEqual(await driver.findAll('.test-acl-column', el => el.getText()),
@@ -681,7 +703,8 @@ describe("AccessRules2", function() {
 
     // Check the list of rules looks cleaner.
     assert.deepEqual(await driver.findAll('.test-rule-table-header', el => el.getText()),
-                     ['Default rules', 'Special rules']);
+                     ['Default rules',
+                      'Special rules (expand each rule to customize who it applies to)']);
   });
 
   it.skip('should prevent combination of Public Edit access with granular ACLs', async function() {
@@ -693,8 +716,7 @@ describe("AccessRules2", function() {
 
     // Open rules. There should be no warning message.
     await mainSession.loadDoc(`/doc/${doc.id}`);
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);
+    await startEditingAccessRules();
     assert.equal(await driver.find('.test-access-rules-error').getText(), '');
 
     // Add a rule, and save.

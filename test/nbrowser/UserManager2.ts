@@ -1,5 +1,6 @@
 import {fromPairs} from 'lodash';
 import { assert, driver, Key, WebElement} from 'mocha-webdriver';
+import { startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
@@ -322,13 +323,9 @@ describe('UserManager2', function() {
     const session = await gu.session().personalSite.login();
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
 
-    // open access rules
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
-
     // start view-as mode
-    await driver.findContentWait('button', 'View as', 3000).click();
-    await driver.findContentWait('.test-acl-user-item', 'viewer@example.com', 100).click();
+    await gu.openAccessRulesDropdown();
+    await gu.waitToPass(() => gu.findOpenMenuItem('a', /Viewer/).click());
     await gu.waitForUrl(/aclAsUser/);
     await gu.waitForDocToLoad();
 
@@ -362,8 +359,7 @@ describe('UserManager2', function() {
 
     const testViewAs = async () => {
       // Open access rules
-      await driver.find('.test-tools-access-rules').click();
-      await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
+      await startEditingAccessRules();
       // Start view-as mode. (There was a bug here, where the the server returned an error, and
       // this button wasn't shown to the user. Error was caused by server which was trying to
       // get shared users from not persisted document).

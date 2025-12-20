@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import {assert, driver} from 'mocha-webdriver';
-import {enterRulePart, findDefaultRuleSet} from 'test/nbrowser/aclTestUtils';
+import {enterRulePart, findDefaultRuleSetWait, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
@@ -183,13 +183,12 @@ describe('SelectBySummary', function() {
     await gu.deleteWidgetWithData('TABLE1');
 
     // Open the ACL UI
-    await driver.find('.test-tools-access-rules').click();
-    await driver.findWait('.test-rule-set', 2000);    // Wait for initialization fetch to complete.
+    await startEditingAccessRules();
 
     // Deny all access to Table1.
     await driver.findContentWait('button', /Add table rules/, 2000).click();
     await gu.findOpenMenuItem('li', /Table1/, 3000).click();
-    const ruleSet = findDefaultRuleSet(/Table1/);
+    const ruleSet = findDefaultRuleSetWait(/Table1/);
     await enterRulePart(ruleSet, 1, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitForServer();

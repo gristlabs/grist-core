@@ -159,11 +159,8 @@ describe("links", function () {
       });
 
       it("include aclAsUser when viewing a document as another user", async function () {
-        await driver.find(".test-tools-access-rules").click();
-        await driver.findContentWait("button", /View as/, 3000).click();
-        await driver
-          .findContentWait(".test-acl-user-item", "editor1@example.com", 500)
-          .click();
+        await gu.openAccessRulesDropdown();
+        await gu.waitToPass(() => gu.findOpenMenuItem('a', /Editor 1/, 500).click());
         await gu.waitForDocToLoad();
         await assertSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/${urlId}/links/p/acl`)),

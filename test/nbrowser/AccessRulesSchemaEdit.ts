@@ -5,7 +5,7 @@ import { UserAPI } from 'app/common/UserAPI';
 import { TableRecordValue } from 'app/common/DocActions';
 import { assert, driver } from 'mocha-webdriver';
 import { assertChanged, assertSaved, enterRulePart,
-         findDefaultRuleSet, findTable, getRules } from 'test/nbrowser/aclTestUtils';
+         findDefaultRuleSet, findTable, getRules, startEditingAccessRules} from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 import pick = require('lodash/pick');
@@ -42,35 +42,29 @@ describe("AccessRulesSchemaEdit", function() {
     // Open Access Rules page.
     await loadAccessRulesPage(mainSession, docId);
 
-    // Check the schemaEdit checkbox is checked (editors allowed)
-    assert.equal(await getSchemaEditCheckbox().isSelected(), true);
+    // With the introduction flow, once access rules are shown, the schemaEdit checkbox is
+    // unchecked (editors disallowed, which is the recommended state).
+    assert.equal(await getSchemaEditCheckbox().isSelected(), false);
 
-    // Check that a warning is present.
-    assert.equal(await driver.find('.test-rule-schema-edit-warning').isDisplayed(), true);
+    // No warning, we should be in a good state.
+    assert.equal(await driver.find('.test-rule-schema-edit-warning').isPresent(), false);
 
     // Check that default rules don't show the schemaEdit bit.
     assert.deepEqual((await getRules(findTable('*')))[0],
       {res: 'All', formula: 'user.Access in [EDITOR, OWNER]', perm: '+R+U+C+D'});
 
-    // Check that an editor CAN make structure changes (default behavior is unchanged).
+    // Check that an editor CAN make structure changes: behavior is unchanged FOR NOW because we
+    // haven't saved yet.
     await assert.isFulfilled(editorApi.applyUserActions(docId, [["RenameTable", 'Table1', 'Renamed1']]));
 
-    // Uncheck the box.
-    await getSchemaEditCheckbox().click();
-    assert.equal(await getSchemaEditCheckbox().isSelected(), false);
-
-    // Check the warning is now absent.
-    assert.equal(await driver.find('.test-rule-schema-edit-warning').isPresent(), false);
-    await assertChanged();
-
-    // Save the changes.
+    // Save the rules as recommended.
     await saveRules();
 
-    // Check that it works: an editor cannot make structure changes.
+    // Check that an editor CANNOT make structure changes (default behavior changed by enabling // rules).
     await assert.isRejected(editorApi.applyUserActions(docId, [["RenameTable", 'Renamed1', 'Table1']]),
       /Blocked by table structure access rules/);
 
-    // Check that after reload, the box is unchecked and the warning is gone.
+    // Check that after reload, the box is still unchecked and still no warning.
     await reloadAccessRulesPage();
     assert.equal(await getSchemaEditCheckbox().isSelected(), false);
     assert.equal(await driver.find('.test-rule-schema-edit-warning').isPresent(), false);
@@ -82,17 +76,20 @@ describe("AccessRulesSchemaEdit", function() {
     assert.deepEqual(rules.map(r => pick(r.fields, "resource", "aclFormula", "permissionsText")),
       [{resource: defaultResourceRef, aclFormula: 'user.Access != OWNER', permissionsText: '-S'}]);
 
-    // Revert by checking the box again.
+    // Check the box.
     await getSchemaEditCheckbox().click();
     assert.equal(await getSchemaEditCheckbox().isSelected(), true);
 
-    // Check the warning is now present.
+    // Check that a warning is present.
     assert.equal(await driver.find('.test-rule-schema-edit-warning').isDisplayed(), true);
+    await assertChanged();
 
-    // Save the changes.
-    await saveRules();
+    // Save the changes. We happen to end up back on the intro page, since access rules now look
+    // like they've never been enabled. (This isn't a very intentional behavior but acceptable.)
+    await getSaveButton().click();
+    await gu.waitForServer();
 
-    // Check that it works: an editor can make structure changes again.
+    // Now an editor CAN make structure changes.
     await assert.isFulfilled(editorApi.applyUserActions(docId, [["RenameTable", 'Renamed1', 'Table1']]));
 
     // Check there are no rules left.
@@ -103,16 +100,24 @@ describe("AccessRulesSchemaEdit", function() {
     const mainDocApi = api.getDocAPI(docId);
     await loadAccessRulesPage(mainSession, docId);
 
-    // Check we are in the expected default state: checkbox is checked and a warning is present.
-    assert.equal(await getSchemaEditCheckbox().isSelected(), true);
-    assert.equal(await driver.find('.test-rule-schema-edit-warning').isPresent(), true);
+    // Check we are in the expected default state: checkbox is UNchecked and no warning.
+    assert.equal(await getSchemaEditCheckbox().isSelected(), false);
+    assert.equal(await driver.find('.test-rule-schema-edit-warning').isPresent(), false);
+
+    // Enable editors to make structure changes.
+    await getSchemaEditCheckbox().click();
+    assert.equal(await driver.findWait('.test-rule-schema-edit-warning', 200).isDisplayed(), true);
+
+    // We show a "Dismiss" link on the warning. This isn't really needed for the new flow,
+    // but is still appropriate for those who created access rules previously.
+    assert.equal(await driver.findContent('.test-rule-schema-edit-warning a', /Dismiss/).isPresent(), true);
 
     // Click "Dismiss", and save.
     await driver.findContent('.test-rule-schema-edit-warning a', /Dismiss/).click();
     await assertChanged();
     await saveRules();
 
-    // Check that an editor can still make structure changes.
+    // Check that an editor can make structure changes.
     await assert.isFulfilled(editorApi.applyUserActions(docId, [["RenameTable", 'Table1', 'Renamed2']]));
 
     // Check that after reload, the box is checked and warning is gone.
@@ -129,10 +134,12 @@ describe("AccessRulesSchemaEdit", function() {
 
     // Revert the rule change; wait for page to reload.
     await gu.undo();
-    await driver.findWait('.test-rule-set', 2000);
 
-    assert.equal(await getSchemaEditCheckbox().isSelected(), true);
-    assert.equal(await driver.find('.test-rule-schema-edit-warning').isPresent(), true);
+    // We should be back to seeing an intro to enable access rules. Check that now. (Note that
+    // reverting to the intro screen is fine here, but a different behavior would be fine too.)
+    assert.equal(await driver.findWait('.test-enable-access-rules', 500).isPresent(), true);
+
+    // Check that there are no more access rules on the document.
     assert.lengthOf(await mainDocApi.getRecords('_grist_ACLRules'), 0);
 
     // Let's revert also the table rename, to keep test cases independent.
@@ -220,7 +227,7 @@ async function saveRules() {
 }
 async function loadAccessRulesPage(session: gu.Session, docId: string) {
   await session.loadRelPath(`/doc/${docId}/p/acl`);
-  await driver.findWait('.test-rule-set', 5000);
+  await startEditingAccessRules();
 }
 async function reloadAccessRulesPage() {
   await driver.navigate().refresh();

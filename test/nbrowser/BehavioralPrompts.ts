@@ -103,11 +103,6 @@ describe('BehavioralPrompts', function() {
     await assertPromptTitle('Raw Data page');
   });
 
-  it('should be shown when opening the Access Rules page', async function() {
-    await driver.find('.test-tools-access-rules').click();
-    await assertPromptTitle('Access Rules');
-  });
-
   it('should be shown when opening the filter menu', async function() {
     await gu.openPage('Table1');
     await gu.openColumnMenu('A', 'Filter');
@@ -174,7 +169,7 @@ describe('BehavioralPrompts', function() {
       await session.loadDocMenu('/');
       await assertPromptTitle(null);
       await driver.find('.test-welcome-menu').click();
-      await driver.find('.test-welcome-menu-only-show-documents').click();
+      await driver.findWait('.test-welcome-menu-only-show-documents', 200).click();
       await gu.waitForServer();
       await assertPromptTitle(null);
       await gu.loadDocMenu('/');

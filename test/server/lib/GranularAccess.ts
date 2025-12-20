@@ -134,9 +134,12 @@ describe('GranularAccess', function() {
   });
 
   after(async function() {
-    const api = await home.createHomeApi('chimpy', 'docs');
-    await api.deleteOrg('testy');
-    await home.stop();
+    const messages = await testUtils.captureLog('error', async () => {
+      const api = await home.createHomeApi('chimpy', 'docs');
+      await api.deleteOrg('testy');
+      await home.stop();
+    });
+    assert.lengthOf(messages, 0);
     await globalUploadSet.cleanupAll();
     oldEnv.restore();
   });
@@ -1012,13 +1015,16 @@ describe('GranularAccess', function() {
     await assert.isFulfilled(editor.getDocAPI(docId).getRows('Public1'));
     await assert.isFulfilled(editor.getDocAPI(docId).getRows('Public2'));
 
-    // Owner and editor can download.
+    // Owner can download and copy.
     await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
-
-    // Owner and editor can download.
     await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
-    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
+
+    // Editor cannot download or copy. This used to be allowed, but since these operations reveal
+    // access rules, they are no longer allowed to non-owners by default.
+    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId),
+      /not authorized to download/);
+    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId),
+      /insufficient access to document to copy it entirely/i);
 
     // Owner can use AddColumn, editor can not.
     await assert.isFulfilled(owner.applyUserActions(docId, [
@@ -1076,6 +1082,98 @@ describe('GranularAccess', function() {
     await assert.isRejected(editor.applyUserActions(docId, [
       ["UpdateRecord", "_grist_Pages", 1, {indentation: 3}]
     ]));
+  });
+
+  it('non-owners need extra permissions for downloadDoc and copyDoc', async function() {
+    // It used to be that "canReadEverything" was enough to allow downloadDoc and copyDoc, but
+    // that bypassed the permission to allow viewing Access Rules themselves. Now, in addition to
+    // requiring "canReadEverything", copying and downloading requires two other permissions:
+    // "AccessRules" (to permit viewing rules) and "DocCopies". The UI automatically adds a
+    // restriction on "DocCopies" when "AccessRules" is granted, so the user has to make a
+    // conscious decision to allow it.
+
+    await freshDoc();
+
+    // With no rules, both Owner and Editor may download and copy
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
+
+    // Make some tables, and lock structure.
+    await owner.applyUserActions(docId, [
+      ['AddTable', 'Table1', [{id: 'A', type: 'Text'}]],
+      ['BulkAddRecord', 'Table1', [null, null], {A: ['Foo', 'Bar']}],
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*', colIds: '*'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: '-S',
+      }],
+    ]);
+
+    // Now only Owner may download and copy.
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId), /Forbidden/);
+
+    // Give "Access Rules" permission.
+    await owner.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*SPECIAL', colIds: 'AccessRules'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'True', permissionsText: '+R',
+      }],
+    ]);
+
+    // Now again, both Owner and Editor may download and copy.
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
+
+    // Add the "DocCopies" restriction.
+    const results = await owner.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: '*SPECIAL', colIds: 'DocCopies'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'user.Access != OWNER', permissionsText: '-R',
+      }],
+    ]);
+    const restrictionRuleId = results.retValues[1];
+
+    // Editor can no longer download or copy.
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId), /Forbidden/);
+
+    // Remove the restriction.
+    await owner.applyUserActions(docId, [
+      ['RemoveRecord', '_grist_ACLRules', restrictionRuleId],
+    ]);
+
+    // If we have ANY data restrictions, copies and downloads should still be disallowed, even
+    // though both "DocCopies" and "AccessRules" permissions are granted.
+    const result2 = await owner.applyUserActions(docId, [
+      ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: '*'}],
+      ['AddRecord', '_grist_ACLRules', null, {
+        resource: -1, aclFormula: 'rec.A == "Foo"', permissionsText: '-R',
+      }],
+    ]);
+    const dataRuleId = result2.retValues[1];
+
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isRejected((await editor.getWorkerAPI(docId)).downloadDoc(docId), /Forbidden/);
+    await assert.isRejected((await editor.getWorkerAPI(docId)).copyDoc(docId), /Forbidden/);
+
+    // If we update data so that it's all visible to the editor, then yes, with "DocCopies" and
+    // "AccessRules", they can now download. Test it by changing the rule from -R to +R-CUD.
+    await owner.applyUserActions(docId, [
+      ['UpdateRecord', '_grist_ACLRules', dataRuleId, {permissionsText: '+R-CUD'}],
+    ]);
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await owner.getWorkerAPI(docId)).copyDoc(docId));
+    await assert.isFulfilled((await editor.getWorkerAPI(docId)).downloadDoc(docId));
+    await assert.isFulfilled((await editor.getWorkerAPI(docId)).copyDoc(docId));
   });
 
   it('owner can edit rules without structure permission', async function() {

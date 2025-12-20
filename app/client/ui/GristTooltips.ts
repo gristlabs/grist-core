@@ -342,17 +342,6 @@ including summary tables and tables not included in page layouts.')),
     ),
     deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
   },
-  accessRules: {
-    popupType: 'tip',
-    title: () => t('Access Rules'),
-    content: (...args: DomElementArg[]) => cssTooltipContent(
-      dom('div', t('Access rules give you the power to create nuanced rules \
-to determine who can see or edit which parts of your document.')),
-      dom('div', cssLink({href: commonUrls.helpAccessRules, target: '_blank'}, t('Learn more.'))),
-      ...args,
-    ),
-    deploymentTypes: ['saas', 'core', 'enterprise', 'electron'],
-  },
   filterButtons: {
     popupType: 'tip',
     title: () => t('Pinning Filters'),

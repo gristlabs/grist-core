@@ -8,18 +8,22 @@ import {aclSelect} from 'app/client/aclui/ACLSelect';
 import {ACLUsersPopup} from 'app/client/aclui/ACLUsers';
 import {permissionsWidget} from 'app/client/aclui/PermissionsWidget';
 import {GristDoc} from 'app/client/components/GristDoc';
+import {inlineMarkdown, markdown} from 'app/client/lib/markdown';
 import {ISuggestionWithSubAttrs} from 'app/client/lib/Suggestions';
 import {logTelemetryEvent} from 'app/client/lib/telemetry';
 import {reportError, UserError} from 'app/client/models/errors';
 import {TableData} from 'app/client/models/TableData';
-import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
+import {withInfoTooltip} from 'app/client/ui/tooltips';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {squareCheckbox} from 'app/client/ui2018/checkbox';
-import {testId, theme} from 'app/client/ui2018/cssVars';
+import {mediaSmall, testId, theme} from 'app/client/ui2018/cssVars';
 import {textInput} from 'app/client/ui2018/editableLabel';
 import {cssIconButton, icon} from 'app/client/ui2018/icons';
+import {cssNestedLinks} from 'app/client/ui2018/links';
+import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItemAsync} from 'app/client/ui2018/menus';
+import {confirmModal} from 'app/client/ui2018/modals';
 import {
   AVAILABLE_BITS_COLUMNS,
   AVAILABLE_BITS_TABLES,
@@ -34,7 +38,9 @@ import {
   trimPermissions
 } from 'app/common/ACLPermissions';
 import {ACLRuleCollection, isSchemaEditResource, SPECIAL_RULES_TABLE_ID} from 'app/common/ACLRuleCollection';
+import {SpecialRuleName} from 'app/common/ACLRuleCollection';
 import {AclRuleProblem, AclTableDescription, getTableTitle} from 'app/common/ActiveDocAPI';
+import {commonUrls} from 'app/common/gristUrls';
 import {BulkColValues, getColValues, RowRecord, UserAction} from 'app/common/DocActions';
 import {
   RulePart,
@@ -50,6 +56,7 @@ import {
   PredicateFormulaProperties,
   typeCheckFormula,
 } from 'app/common/PredicateFormula';
+import {tokens} from 'app/common/ThemePrefs';
 import {SchemaTypes} from 'app/common/schema';
 import {MetaRowRecord} from 'app/common/TableData';
 import {
@@ -139,6 +146,7 @@ export class AccessRules extends Disposable {
   // section, and one is folded into the default rule section (for SeedRule).
   private _specialRulesWithDefault = Observable.create<SpecialRules|null>(this, null);
   private _specialRulesSeparate = Observable.create<SpecialRules|null>(this, null);
+  private _specialRulesTemplates = Observable.create<SpecialRules|null>(this, null);
 
   // Array of all UserAttribute rules.
   private _userAttrRules = this.autoDispose(obsArray<ObsUserAttributeRule>());
@@ -149,6 +157,13 @@ export class AccessRules extends Disposable {
 
   // Whether the save button should be enabled.
   private _savingEnabled: Computed<boolean>;
+
+  // Whether to show "loading", an intro screen, or the rules UI.
+  private _uiState = Observable.create<'loading'|'intro'|'rules'|'error'>(this, 'loading');
+
+  // Whether to show "Disable access rules" button: when there are no custom table rules or
+  // default rules (only possibly-changed special rules left).
+  private _showDisableRules: Computed<boolean>;
 
   // Whether a save is currently in progress.
   private _saving = Observable.create(this, false);
@@ -171,6 +186,7 @@ export class AccessRules extends Disposable {
       const tableRules = use(this._tableRules);
       const specialRulesWithDefault = use(this._specialRulesWithDefault);
       const specialRulesSeparate = use(this._specialRulesSeparate);
+      const specialRulesTemplates = use(this._specialRulesTemplates);
       const userAttr = use(this._userAttrRules);
       return Math.max(
         defRuleSet ? use(defRuleSet.ruleStatus) : RuleStatus.Unchanged,
@@ -182,7 +198,14 @@ export class AccessRules extends Disposable {
         ...userAttr.map(u => use(u.ruleStatus)),
         specialRulesWithDefault ? use(specialRulesWithDefault.ruleStatus) : RuleStatus.Unchanged,
         specialRulesSeparate ? use(specialRulesSeparate.ruleStatus) : RuleStatus.Unchanged,
+        specialRulesTemplates ? use(specialRulesTemplates.ruleStatus) : RuleStatus.Unchanged,
       );
+    });
+
+    this._showDisableRules = Computed.create(this, (use) => {
+      return Boolean(use(this._docDefaultRuleSet)?.hasOnlyBuiltInRules()) &&
+        use(this._tableRules).length === 0 &&
+        use(this._userAttrRules).length === 0;
     });
 
     this._sortedTableRules = Computed.create(this, (use) =>
@@ -248,14 +271,21 @@ export class AccessRules extends Disposable {
     this._errorMessage.set('');
     const rules = this._ruleCollection;
 
-    const [ , , aclResources] = await Promise.all([
-      rules.update(this.gristDoc.docData, {log: console, pullOutSchemaEdit: true}),
-      this._updateDocAccessData(),
-      this.gristDoc.docComm.getAclResources(),
-    ]);
-    this._aclResources = new Map(Object.entries(aclResources.tables));
-    this._ruleProblems.set(aclResources.problems);
-    if (this.isDisposed()) { return; }
+    try {
+      const [ , , aclResources] = await Promise.all([
+        rules.update(this.gristDoc.docData, {log: console, pullOutSchemaEdit: true}),
+        this._updateDocAccessData(),
+        this.gristDoc.docComm.getAclResources(),
+      ]);
+      if (this.isDisposed()) { return; }
+
+      this._aclResources = new Map(Object.entries(aclResources.tables));
+      this._ruleProblems.set(aclResources.problems);
+      this._uiState.set(rules.haveRules() ? 'rules' : 'intro');
+    } catch (e) {
+      this._uiState.set('error');
+      throw e;
+    }
 
     this._tableRules.set(
       rules.getAllTableIds()
@@ -264,17 +294,22 @@ export class AccessRules extends Disposable {
           tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId)))
     );
 
-    const withDefaultRules = ['SeedRule'];
-    const separateRules = ['SchemaEdit', 'FullCopies', 'AccessRules'];
+    const withDefaultRules: SpecialRuleName[] = ['SeedRule'];
+    const separateRules: SpecialRuleName[]  = ['SchemaEdit', 'AccessRules', 'DocCopies'];
+    const templateRules: SpecialRuleName[]  = ['FullCopies'];
 
     SpecialRules.create(
       this._specialRulesWithDefault, SPECIAL_RULES_TABLE_ID, this,
       filterRuleSets(withDefaultRules, rules.getAllColumnRuleSets(SPECIAL_RULES_TABLE_ID)),
       filterRuleSet(withDefaultRules, rules.getTableDefaultRuleSet(SPECIAL_RULES_TABLE_ID)));
-    SpecialRules.create(
+    SpecialRulesMain.create(
       this._specialRulesSeparate, SPECIAL_RULES_TABLE_ID, this,
       filterRuleSets(separateRules, rules.getAllColumnRuleSets(SPECIAL_RULES_TABLE_ID)),
       filterRuleSet(separateRules, rules.getTableDefaultRuleSet(SPECIAL_RULES_TABLE_ID)));
+    SpecialRulesTemplates.create(
+      this._specialRulesTemplates, SPECIAL_RULES_TABLE_ID, this,
+      filterRuleSets(templateRules, rules.getAllColumnRuleSets(SPECIAL_RULES_TABLE_ID)),
+      filterRuleSet(templateRules, rules.getTableDefaultRuleSet(SPECIAL_RULES_TABLE_ID)));
     DefaultObsRuleSet.create(this._docDefaultRuleSet, this, null, undefined, rules.getDocDefaultRuleSet());
     this._userAttrRules.set(
       Array.from(rules.getUserAttributeRules().values(), userAttr =>
@@ -304,6 +339,7 @@ export class AccessRules extends Disposable {
         [{tableId: '*', colIds: '*'}],
         this._specialRulesWithDefault.get()?.getResources() || [],
         this._specialRulesSeparate.get()?.getResources() || [],
+        this._specialRulesTemplates.get()?.getResources() || [],
         ...this._tableRules.get().map(tr => tr.getResources())
       )
         // Skip the fake "*SPECIAL:SchemaEdit" resource (frontend-specific); these rules are saved to the default
@@ -403,7 +439,9 @@ export class AccessRules extends Disposable {
       }
 
       // Re-populate the state from DocData once the records are synced.
-      await this.update();
+      if (!this.isDisposed()) {
+        await this.update();
+      }
     } finally {
       if (!this.isDisposed()) {
         this._saving.set(false);
@@ -412,10 +450,18 @@ export class AccessRules extends Disposable {
   }
 
   public buildDom() {
+    return dom.domComputed(this._uiState, uiState => {
+      switch (uiState) {
+        case 'loading': return cssLoading(loadingSpinner(), testId('access-rules-loading'));
+        case 'intro': return this._buildIntro();
+        case 'rules': return this._buildRulesDom();
+        case 'error': return this._buildError();
+      }
+    });
+  }
+
+  public _buildRulesDom() {
     return cssOuter(
-      dom('div', this.gristDoc.behavioralPromptsManager.attachPopup('accessRules', {
-        hideArrow: true,
-      })),
       cssAddTableRow(
         bigBasicButton({disabled: true}, dom.hide(this._savingEnabled),
           dom.text((use) => {
@@ -465,7 +511,9 @@ export class AccessRules extends Disposable {
       }, ruleProblems =>
         cssSection(
           cssRuleProblems(
-            this.buildRuleProblemsDom(ruleProblems)))),
+            this._buildRuleProblemsDom(ruleProblems)))
+      ),
+
       shadowScroll(
         dom.maybe(use => use(this._userAttrRules).length, () =>
           cssSection(
@@ -509,11 +557,18 @@ export class AccessRules extends Disposable {
           testId('rule-table'),
         ),
         dom.maybe(this._specialRulesSeparate, tableRules => tableRules.buildDom()),
+        dom.maybe(this._specialRulesTemplates, tableRules => tableRules.buildDom()),
+        dom.maybe(this._showDisableRules, () =>
+          cssDisableRulesButton(icon('Remove'), t('Disable Access Rules'),
+            dom.on('click', () => this._confirmDisableAccessRules()),
+            testId('disable-access-rules'),
+          )
+        ),
       ),
     );
   }
 
-  public buildRuleProblemsDom(ruleProblems: AclRuleProblem[]) {
+  public _buildRuleProblemsDom(ruleProblems: AclRuleProblem[]) {
     const buttons: Array<HTMLAnchorElement | HTMLButtonElement> = [];
     for (const problem of ruleProblems) {
       // Is the problem a missing table?
@@ -541,6 +596,7 @@ export class AccessRules extends Disposable {
       ...this._tableRules.get().map(tr => tr.getRules()),
       this._specialRulesWithDefault.get()?.getRules() || [],
       this._specialRulesSeparate.get()?.getRules() || [],
+      this._specialRulesTemplates.get()?.getRules() || [],
       this._docDefaultRuleSet.get()?.getRules('*') || []
     );
   }
@@ -602,6 +658,88 @@ export class AccessRules extends Disposable {
   // broad rights over the table/column contents.
   public getSeedRules(): ObsRulePart[] {
     return this._specialRulesWithDefault.get()?.getCustomRules('SeedRule') || [];
+  }
+
+  private _buildError() {
+    return cssIntroSection(
+      markdown(t(`\
+## Access Rules
+
+You don't have permission to view or edit access rules for this document.`
+      )),
+      cssErrorDetails('(Error: ', dom.text(this._errorMessage), ')')
+    );
+  }
+
+  private _buildIntro() {
+    return cssIntroSection(cssNestedLinks(
+      markdown(t(`\
+## Access Rules
+
+Basic access to this document is controlled using the 'Manage Users' option in the 'Share' \
+menu, where you can assign collaborator roles such as Owner, Editor, or Viewer.
+
+For more granular control, you can create Access Rules to limit who can view or edit specific
+tables, columns, or rows — useful for sensitive data or role-based permissions.
+[Learn more.]({{helpAccessRules}})`,
+        {helpAccessRules: commonUrls.helpAccessRules})
+      ),
+      cssIntroButton(
+        bigPrimaryButton('Enable Access Rules',
+          dom.on('click', () => this._confirmEnableAccessRules()),
+          testId('enable-access-rules'),
+        )
+      ),
+      testId('access-rules-intro'),
+    ));
+  }
+
+  private _confirmEnableAccessRules() {
+    confirmModal(
+      t('Enable Access Rules'),
+      t('Continue'),
+      () => this._doEnableAccessRules(),
+      {
+        explanation: markdown(t(`\
+After enabling Access Rules, Editors will no longer be able to change the structure of the
+document or edit formulas. Only Owners will be able to copy or download the document.
+
+These settings can be changed under 'Special rules'.`
+        )),
+      }
+    );
+  }
+
+  private _doEnableAccessRules() {
+    this._specialRulesSeparate.get()?.setToRecommended();
+    this._uiState.set('rules');
+  }
+
+  private _confirmDisableAccessRules() {
+    confirmModal(
+      t('Disable Access Rules'),
+      t('Disable and save'),
+      () => this._doDisableAccessRules(),
+      {
+        explanation: markdown(t(`\
+After disabling Access Rules, Editors will be able to change the structure of the document \
+and edit formulas. Editors and Viewers will be able to see all data in the document, \
+as well as copy or download it.`
+        )),
+      }
+    );
+  }
+
+  private _doDisableAccessRules() {
+    if (!this._showDisableRules.get()) {
+      // We should only be able to get here if there are no custom rules other than the special
+      // checkboxes. If we do, that's a sign of a bug.
+      throw new UserError("Clear existing custom rules first");
+    }
+    this._specialRulesWithDefault.get()?.clearRules();
+    this._specialRulesSeparate.get()?.clearRules();
+    this._specialRulesTemplates.get()?.clearRules();
+    return this.save();
   }
 
   private _getSampleRecord(tableId: string): InfoView {
@@ -713,7 +851,7 @@ class TableRules extends Disposable {
               private _colRuleSets?: RuleSet[], private _defRuleSet?: RuleSet) {
     super();
     this._columnRuleSets.set(this._colRuleSets?.map(rs =>
-      this._createColumnObsRuleSet(this._columnRuleSets, this._accessRules, this, rs,
+      this._createColumnObsRuleSet(this._columnRuleSets, rs,
         rs.colIds === '*' ? [] : rs.colIds)) || []);
 
     if (!this._colRuleSets) {
@@ -886,10 +1024,10 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
   }
 
   protected _createColumnObsRuleSet(
-    owner: IDisposableOwner, accessRules: AccessRules, tableRules: TableRules,
+    owner: IDisposableOwner,
     ruleSet: RuleSet|undefined, initialColIds: string[],
   ): ColumnObsRuleSet {
-    return ColumnObsRuleSet.create(owner, accessRules, tableRules, ruleSet, initialColIds);
+    return ColumnObsRuleSet.create(owner, this._accessRules, this, ruleSet, initialColIds);
   }
 
   private _addColumnRuleSet() {
@@ -913,7 +1051,10 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
 class SpecialRules extends TableRules {
   public buildDom() {
     return cssSection(
-      cssSectionHeading(t('Special rules'), testId('rule-table-header')),
+      cssSectionHeadingMarkdown(
+        dom('span', inlineMarkdown(t('**Special rules** (expand each rule to customize who it applies to)'))),
+        testId('rule-table-header')
+      ),
       this.buildCheckBoxes(),
       testId('rule-table'),
     );
@@ -934,16 +1075,75 @@ class SpecialRules extends TableRules {
       .map(rs => ({tableId: this.tableId, colIds: rs.getColIds()}));
   }
 
+  public setToRecommended() {
+    for (const colRuleSet of this.columnRuleSets.get()) {
+      if (colRuleSet instanceof SpecialObsRuleSet) {
+        colRuleSet.setToRecommended();
+      }
+    }
+  }
+
+  public clearRules() {
+    for (const colRuleSet of this.columnRuleSets.get()) {
+      if (colRuleSet instanceof SpecialObsRuleSet) {
+        colRuleSet.clearRules();
+      }
+    }
+  }
+
   protected _createColumnObsRuleSet(
-    owner: IDisposableOwner, accessRules: AccessRules, tableRules: TableRules,
+    owner: IDisposableOwner,
+    ruleSet: RuleSet|undefined, initialColIds: string[],
+  ): ColumnObsRuleSet {
+    return SpecialObsRuleSet.create(owner, this._accessRules, this, ruleSet, initialColIds);
+  }
+}
+
+class SpecialRulesMain extends SpecialRules {
+  private _denyCopies?: SpecialObsRuleSetDenyCopies;
+  private _allowAccessRules?: SpecialObsRuleSetAccessRules;
+
+  public get allowAccessRules() { return this._allowAccessRules; }
+
+  public onAccessRulesToggled(value: boolean) {
+    this._denyCopies?.onAccessRulesToggled(value);
+  }
+
+  protected _createColumnObsRuleSet(
+    owner: IDisposableOwner,
     ruleSet: RuleSet|undefined, initialColIds: string[],
   ): ColumnObsRuleSet {
     if (isEqual(ruleSet?.colIds, ['SchemaEdit'])) {
       // The special rule for "schemaEdit" permissions.
-      return SpecialSchemaObsRuleSet.create(owner, accessRules, tableRules, ruleSet, initialColIds);
+      return SpecialSchemaObsRuleSet.create(owner, this._accessRules, this, ruleSet, initialColIds);
+    } else if (isEqual(ruleSet?.colIds, ['AccessRules'])) {
+      return (this._allowAccessRules =
+        SpecialObsRuleSetAccessRules.create(owner, this._accessRules, this, ruleSet, initialColIds));
+    } else if (isEqual(ruleSet?.colIds, ['DocCopies'])) {
+      return (this._denyCopies =
+        SpecialObsRuleSetDenyCopies.create(owner, this._accessRules, this, ruleSet, initialColIds));
     } else {
-      return SpecialObsRuleSet.create(owner, accessRules, tableRules, ruleSet, initialColIds);
+      return SpecialObsRuleSet.create(owner, this._accessRules, this, ruleSet, initialColIds);
     }
+  }
+}
+
+class SpecialRulesTemplates extends SpecialRules {
+  private _isExpanded = Observable.create<boolean>(this, this.getResources().length > 0);
+
+  public buildDom() {
+    return cssSection(
+      cssSectionHeading(
+        cssSectionHeadingToggle(cssSectionHeadingToggleIcon('Expand'),
+          cssSectionHeadingToggle.cls('-expanded', this._isExpanded),
+          dom.on('click', () => this._isExpanded.set(!this._isExpanded.get())),
+          testId('special-rules-templates-expand'),
+        ),
+        t('Special rules for templates'),
+      ),
+      dom.maybe(this._isExpanded, () => this.buildCheckBoxes()),
+      testId('special-rules-templates'),
+    );
   }
 }
 
@@ -1280,18 +1480,28 @@ const schemaEditRules: {[key: string]: SpecialRuleBody} = {
   },
 };
 
-const specialRuleProperties: Record<string, SpecialRuleProperties> = {
+const specialRuleProperties: Record<SpecialRuleName, SpecialRuleProperties> = {
   AccessRules: {
     name: t('Permission to view Access Rules'),
-    description: t('Allow everyone to view Access Rules.'),
+    description: t('Allow everyone to view access rules.'),
     availableBits: ['read'],
     permissions: '+R',
     formula: 'True',
   },
+  DocCopies: {
+    name: t('Permission to access the document in full by unrestricted users'),
+    description: t(`Restrict non-Owners from copying or downloading the full document. \
+Note: this only affects users without read restrictions, since others will be restricted \
+regardless of this setting.`),
+    availableBits: ['read'],
+    permissions: '-R',
+    formula: 'user.Access != OWNER',
+  },
   FullCopies: {
-    name: t('Permission to access the document in full when needed'),
-    description: t(`Allow everyone to copy the entire document, or view it in full in fiddle mode.
-Useful for examples and templates, but not for sensitive data.`),
+    name: t('Permission to access the document in full by all users'),
+    description: t(`Circumvent all read restrictions and allow everyone to copy the entire document, \
+or view it in full in fiddle mode. \
+Only use for for examples and templates, not for documents with sensitive data.`),
     availableBits: ['read'],
     permissions: '+R',
     formula: 'True',
@@ -1305,16 +1515,16 @@ Useful for examples and templates, but not for sensitive data.`),
   },
   SchemaEdit: {
     name: t("Permission to edit document structure"),
-    description: t("Allow editors to edit structure (e.g., modify and delete tables, columns, \
-and layouts) and write formulas. Regardless of the permissions set at \
-the table and column level, formulas can still be edited and can access all data."),
+    description: t(`Allow Editors to edit structure (e.g. modify and delete tables, columns, and \
+layouts) and write formulas.  Important: if checked, Editors will be able to edit formulas, which can access \
+all data, regardless of table and column access rules!`),
     availableBits: ['schemaEdit'],
     ...schemaEditRules.denyEditors,
   },
 };
 
 function getSpecialRuleProperties(name: string): SpecialRuleProperties {
-  return specialRuleProperties[name] || {
+  return specialRuleProperties[name as SpecialRuleName] || {
     ...specialRuleProperties.AccessRules,
     name,
     description: name,
@@ -1322,22 +1532,23 @@ function getSpecialRuleProperties(name: string): SpecialRuleProperties {
 }
 
 class SpecialObsRuleSet extends ColumnObsRuleSet {
-  private _isExpanded = Observable.create<boolean>(this, false);
+  protected _isExpanded = Observable.create<boolean>(this, false);
+  protected _isNonStandard = this._createIsNonStandardObs(this);
+  protected _isChecked = this._createIsCheckedObs(this, this._isNonStandard);
+  protected _isNonEmpty = Computed.create<boolean>(this, use => use(this._isNonStandard) || use(this._isChecked));
 
   public get props() {
     return getSpecialRuleProperties(this.getColIds());
   }
 
+  public get isNonEmpty() { return this._isNonEmpty; }
+
   public buildRuleSetDom() {
-    const isNonStandard = this._createIsNonStandardObs();
-    const isChecked = this._createIsCheckedObs(isNonStandard);
-    if (isNonStandard.get()) {
+    if (this._isNonStandard.get()) {
       this._isExpanded.set(true);
     }
 
     return dom('div',
-      dom.autoDispose(isChecked),
-      dom.autoDispose(isNonStandard),
       cssRuleDescription(
         cssIconButton(icon('Expand'),
           dom.style('transform', (use) => use(this._isExpanded) ? 'rotate(90deg)' : ''),
@@ -1345,8 +1556,8 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
           testId('rule-special-expand'),
           {style: 'margin: -4px'},  // subtract padding to align better.
         ),
-        cssCheckbox(isChecked,
-          dom.prop('disabled', isNonStandard),
+        cssCheckbox(this._isChecked,
+          dom.prop('disabled', this._isNonStandard),
           testId('rule-special-checkbox'),
         ),
         this.props.description,
@@ -1393,10 +1604,18 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
 
   public removeRulePart(rulePart: ObsRulePart) {
     removeItem(this._body, rulePart);
-    if (this._body.get().length === 0) {
+    if (this._body.get().every(rule => rule.isBuiltInOrEmpty())) {
       this._isExpanded.set(false);
-      this._allowEveryone(false);
+      this._setToChecked(false);
     }
+  }
+
+  public setToRecommended() {
+    this._setToChecked(false);
+  }
+
+  public clearRules() {
+    this._body.splice(0);
   }
 
   protected _buildDomWarning(): DomContents {
@@ -1405,20 +1624,20 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
 
   // Observable for whether this ruleSet is "standard", i.e. checked or unchecked state, without
   // any strange rules that need to be shown expanded with the checkbox greyed out.
-  protected _createIsNonStandardObs(): Observable<boolean> {
-    return Computed.create(null, this._body, (use, body) =>
+  protected _createIsNonStandardObs(owner: IDisposableOwner): Observable<boolean> {
+    return Computed.create(owner, this._body, (use, body) =>
       !body.every(rule => rule.isBuiltInOrEmpty(use) || rule.matches(use, this.props.formula, this.props.permissions)));
   }
 
   // Observable for whether the checkbox should be shown as checked. Writing to it will update
   // rules so as to toggle the checkbox.
-  protected _createIsCheckedObs(isNonStandard: Observable<boolean>): Observable<boolean> {
-    return Computed.create(null, this._body,
+  protected _createIsCheckedObs(owner: IDisposableOwner, isNonStandard: Observable<boolean>): Observable<boolean> {
+    return Computed.create(owner, this._body,
       (use, body) => !use(isNonStandard) && !body.every(rule => rule.isBuiltInOrEmpty(use)))
-      .onWrite(val => this._allowEveryone(val));
+      .onWrite(val => this._setToChecked(val));
   }
 
-  private _allowEveryone(value: boolean) {
+  protected _setToChecked(value: boolean) {
     const builtInRules = this._body.get().filter(r => r.isBuiltIn());
     if (value) {
       const rulePart = makeRulePart(this.props);
@@ -1441,19 +1660,59 @@ function makeRulePart({permissions, formula}: SpecialRuleBody): RulePart {
   return rulePart;
 }
 
+class SpecialObsRuleSetAccessRules extends SpecialObsRuleSet {
+  constructor(accessRules: AccessRules, protected _tableRules: SpecialRulesMain, ruleSet: RuleSet|undefined,
+              initialColIds: string[]) {
+    super(accessRules, _tableRules, ruleSet, initialColIds);
+  }
+
+  public _setToChecked(value: boolean) {
+    super._setToChecked(value);
+    this._tableRules.onAccessRulesToggled(value);
+  }
+}
+
+class SpecialObsRuleSetDenyCopies extends SpecialObsRuleSet {
+  constructor(accessRules: AccessRules, protected _tableRules: SpecialRulesMain, ruleSet: RuleSet|undefined,
+              initialColIds: string[]) {
+    super(accessRules, _tableRules, ruleSet, initialColIds);
+  }
+
+  public onAccessRulesToggled(value: boolean) {
+    if (!this._isNonStandard.get()) {
+      this._setToChecked(value);
+    }
+  }
+
+  public buildRuleSetDom() {
+    return dom.update(
+      super.buildRuleSetDom(),
+      dom.show(use => {
+        const allowAccessRules = this._tableRules.allowAccessRules?.isNonEmpty;
+        return (allowAccessRules && use(allowAccessRules)) || use(this._isNonStandard);
+      }),
+    );
+  }
+}
+
 /**
  * SchemaEdit permissions are moved out to a special fake resource "*SPECIAL:SchemaEdit" in the
  * frontend, to be presented under their own checkbox option. Its behaviors are a bit different
  * from other checkbox options; the differences are in the overridden methods here.
  */
 class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
+  public setToRecommended() {
+    this._allowEditors(false);
+  }
+
   protected _buildDomWarning(): DomContents {
     return dom.maybe(
       (use) => use(this._body).every(rule => rule.isBuiltInOrEmpty(use)),
+      // TODO get rid of red disclaimer.
       () => cssError(
-        t("This default should be changed if editors' access is to be limited. "),
+        t("This options should be off if Editors' access is to be limited. "),
         dom('a', {style: 'color: inherit; text-decoration: underline'},
-          'Dismiss', dom.on('click', () => this._allowEditors('confirm'))),
+          'Dismiss.', dom.on('click', () => this._allowEditors('confirm'))),
         testId('rule-schema-edit-warning'),
       )
     );
@@ -1461,14 +1720,14 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
 
   // SchemaEdit rules support an extra "standard" state, where a no-op rule exists (explicit rule
   // allowing EDITORs SchemaEdit permission), in which case we don't show a warning.
-  protected _createIsNonStandardObs(): Observable<boolean> {
-    return Computed.create(null, this._body, (use, body) =>
+  protected _createIsNonStandardObs(owner: IDisposableOwner): Observable<boolean> {
+    return Computed.create(owner, this._body, (use, body) =>
       !body.every(rule => rule.isBuiltInOrEmpty(use) || rule.matches(use, this.props.formula, this.props.permissions)
         || rule.matches(use, schemaEditRules.allowEditors.formula, schemaEditRules.allowEditors.permissions)));
   }
 
-  protected _createIsCheckedObs(isNonStandard: Observable<boolean>): Observable<boolean> {
-    return Computed.create(null, this._body,
+  protected _createIsCheckedObs(owner: IDisposableOwner, isNonStandard: Observable<boolean>): Observable<boolean> {
+    return Computed.create(owner, this._body,
       (use, body) => body.every(rule => rule.isBuiltInOrEmpty(use)
         || rule.matches(use, schemaEditRules.allowEditors.formula, schemaEditRules.allowEditors.permissions)))
       .onWrite(val => this._allowEditors(val));
@@ -1902,7 +2161,7 @@ class ObsRulePart extends Disposable {
   }
 
   private async _setAclFormula(text: string, initial: boolean = false) {
-    if (text === this._aclFormula.get() && !initial) { return; }
+    if (text === this._aclFormula.get() && (!initial || this.isBuiltIn())) { return; }
     this._aclFormula.set(text);
     this._checkPending.set(true);
     this._formulaProperties.set({});
@@ -2142,6 +2401,26 @@ const cssSectionHeading = styled('div', `
   color: ${theme.lightText};
 `);
 
+const cssSectionHeadingMarkdown = styled(cssSectionHeading, `
+  font-weight: normal;
+`);
+
+const cssSectionHeadingToggle = styled(cssIconButton, `
+  margin-left: -4px;
+  margin-right: 8px;
+  width: unset;
+  height: unset;
+  padding: 0px;
+  &-expanded {
+    transform: rotate(90deg);
+  }
+`);
+
+const cssSectionHeadingToggleIcon = styled(icon, `
+  width: 24px;
+  height: 24px;
+`);
+
 const cssTableName = styled('span', `
   color: ${theme.text};
 `);
@@ -2264,6 +2543,7 @@ const cssRuleDescription = styled('div', `
   margin: 16px 0 8px 0;
   gap: 12px;
   white-space: pre-line;  /* preserve line breaks in long descriptions */
+  max-width: 60rem;       /* better to limit the line length for wide screens */
 `);
 
 const cssCheckbox = styled(squareCheckbox, `
@@ -2313,4 +2593,56 @@ const cssMemoIcon = styled(icon, `
 
 const cssSeedRule = styled('div', `
   margin-bottom: 16px;
+`);
+
+const cssLoading = styled('div', `
+  flex: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`);
+
+const cssErrorDetails = styled('div', `
+  color: ${tokens.secondary};
+  margin-top: 16px;
+`);
+
+const cssIntroSection = styled('div', `
+  padding: 24px;
+  width: 100%;
+  max-width: 750px;
+  margin: 16px auto;
+  color: ${theme.text};
+  font-size: ${tokens.introFontSize};
+  line-height: 1.6;
+
+  @media ${mediaSmall} {
+    & {
+      width: auto;
+      padding: 12px;
+      margin: 8px;
+    }
+  }
+`);
+
+const cssIntroButton = styled('div', `
+  margin-top: 32px;
+  text-align: center;
+`);
+
+
+const cssDisableRulesButton = styled(bigBasicButton, `
+  margin: 32px auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-color: ${tokens.secondary};
+  color:        ${tokens.secondary};
+  --icon-color: ${tokens.secondary};
+  &:hover {
+    border-color: ${tokens.error};
+    color:        ${tokens.error};
+    --icon-color: ${tokens.error};
+    x;
+  }
 `);

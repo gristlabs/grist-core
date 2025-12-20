@@ -98,7 +98,6 @@ export const BehavioralPrompt = StringUnion(
   'referenceColumns',
   'referenceColumnsConfig',
   'rawDataPage',
-  'accessRules',
   'filterButtons',
   'nestedFiltering',
   'pageWidgetPicker',
@@ -113,6 +112,7 @@ export const BehavioralPrompt = StringUnion(
   // 'formsAreHere',
   // 'newAssistant',
   // 'comments',
+  // 'accessRules',
 
 );
 export type BehavioralPrompt = typeof BehavioralPrompt.type;
