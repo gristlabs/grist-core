@@ -3,6 +3,7 @@ import { ApiError } from 'app/common/ApiError';
 import { normalizeEmail } from 'app/common/emails';
 import { PERSONAL_FREE_PLAN } from 'app/common/Features';
 import { buildUrlId } from 'app/common/gristUrls';
+import { isEmail } from 'app/common/gutil';
 import { UserOrgPrefs } from 'app/common/Prefs';
 import * as roles from 'app/common/roles';
 import { UserType } from 'app/common/User';
@@ -751,6 +752,9 @@ export class UsersManager {
       foundUsers = await this.getExistingUsersByLogin(emails, transaction);
       const emailUsers = new Map(foundUsers.map(user => [user.loginEmail, user]));
       for (const email of emails) {
+        if (!isEmail(email)) {
+          throw new ApiError("Invalid email address included", 400);
+        }
         const user = emailUsers.get(normalizeEmail(email));
         const role = emailMap[email];
         if (!user && role === null) {
