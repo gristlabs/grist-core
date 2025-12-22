@@ -81,7 +81,7 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
         // Do nothing, don't care about this error.
       }
       finally {
-        assert.equal(output.closed, end, `expected ${name} to be ${ end ? "closed" : "open" }`);
+        assert.equal(output.closed, end, `expected ${name} to be ${end ? "closed" : "open"}`);
       }
     };
 

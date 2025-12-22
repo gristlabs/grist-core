@@ -142,7 +142,7 @@ describe("ColorSelect", function() {
     assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
       [`Called: ${JSON.stringify(
         { fill: swatches[4], text: swatches[3],
-          underline: true, strikethrough: true }) }`]);
+          underline: true, strikethrough: true })}`]);
   });
 
   it('should allow to choose custom color', async function() {
