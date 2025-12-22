@@ -1149,7 +1149,7 @@ export class Importer extends DisposableWithEvents {
       dom.domComputed(this._unmatchedFieldsMap, (fields) => {
         const piles: HTMLElement[] = [];
         let count = 0;
-        for(const [info, list] of fields) {
+        for (const [info, list] of fields) {
           if (!list?.length) { continue; }
           count += list.length;
           piles.push(cssUnmatchedFieldsList(
@@ -1443,7 +1443,7 @@ export class Importer extends DisposableWithEvents {
             // or cancel import if GoogleDrive plugin is not configured.
             throw new GDriveUrlNotSupported(itemUrl);
           }
-          else if(permError?.message === AUTH_INTERRUPTED) {
+          else if (permError?.message === AUTH_INTERRUPTED) {
             // User closed the window - we assume he doesn't want to continue.
             throw new CancelledError();
           }

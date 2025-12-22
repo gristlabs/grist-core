@@ -1062,7 +1062,7 @@ export class DocWorkerApi {
     this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
       withDocTriggersLock(async (activeDoc, req, res) => {
         const registeredWebhooks: Array<WebhookSubscription> = [];
-        for(const webhook of req.body.webhooks) {
+        for (const webhook of req.body.webhooks) {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
           registeredWebhooks.push(registeredWebhook);
         }

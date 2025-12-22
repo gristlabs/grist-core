@@ -182,7 +182,7 @@ export class LinkingState extends Disposable {
         );
 
         //If any are undef (i.e. error in makeFilterObs), error out
-        if(resultFilters.some(f => f === undefined)) {
+        if (resultFilters.some(f => f === undefined)) {
           console.warn("LINKINGSTATE: some of filters are undefined", resultFilters);
           _filterState(EmptyFilterState);
           return;
@@ -286,7 +286,7 @@ export class LinkingState extends Disposable {
           const srcSecVersion = this._srcSection.lastCursorEdit();
 
           // If cursors haven't been initialized, cursor-linking doesn't make sense, so don't do it
-          if(srcSecVersion === SequenceNEVER) {
+          if (srcSecVersion === SequenceNEVER) {
             return [null, SequenceNEVER] as [UIRowId|null, SequenceNum];
           }
 
@@ -392,7 +392,7 @@ export class LinkingState extends Disposable {
     const tgtColId = tgtCol?.colId();
 
     //Assert: if both are null then it's a summary filter or same-table cursor-link, neither of which should go here
-    if(!srcColId && !tgtColId) {
+    if (!srcColId && !tgtColId) {
       throw Error("ERROR in _makeFilterObs: srcCol and tgtCol can't both be empty");
     }
 
@@ -454,12 +454,12 @@ export class LinkingState extends Disposable {
       // Coerce values into lists (FilterColValues wants output as a list, even if only 1 val)
       let filterValues: any[];
       let displayValues: any[];
-      if(!isSrcRefList) {
+      if (!isSrcRefList) {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
 
       }
-      else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], slice off the L
+      else if (isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], slice off the L
         filterValues = selectorCellVal.slice(1);
 
         //selectorValue and displayValue might not match up? Shouldn't happen, but let's yell loudly if it does
@@ -475,7 +475,7 @@ export class LinkingState extends Disposable {
       else { //isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
         filterValues = [];
         displayValues = [];
-        if(selectorCellVal !== null) { // should be null, but let's warn if it's not
+        if (selectorCellVal !== null) { // should be null, but let's warn if it's not
           console.warn("Error in LinkingState.makeFilterObs(), srcVal is reflist but has non-list non-null value");
         }
       }
@@ -561,7 +561,7 @@ export class LinkingState extends Disposable {
     table: TableRec, colId: string | undefined, owner: MultiHolder=this,
   ): ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
   {
-    if(colId === undefined) { //passthrough for id cols
+    if (colId === undefined) { //passthrough for id cols
       return (rowId: UIRowId | null) => { return rowId === 'new' ? null : rowId; };
     }
 
@@ -616,15 +616,15 @@ function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
  * @returns {ColumnRec} The corresponding column of tgtTable
  */
 function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): ColumnRec {
-  if(!isSummaryOf(srcGBCol.table(), tgtTable)) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
+  if (!isSummaryOf(srcGBCol.table(), tgtTable)) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
 
-  if(tgtTable.summarySourceTable() === 0) { //if direct summary
+  if (tgtTable.summarySourceTable() === 0) { //if direct summary
     return srcGBCol.summarySource();
   }
   else { // else summary->summary, match by colId
     const srcColId = srcGBCol.colId();
     const retVal = tgtTable.groupByColumns().find(tgtCol => tgtCol.colId() === srcColId); //should always exist
-    if(!retVal) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: summary table lacks groupby col"); }
+    if (!retVal) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: summary table lacks groupby col"); }
     return retVal;
   }
 }

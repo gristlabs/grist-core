@@ -865,14 +865,14 @@ export default class GridView extends BaseView {
       colStart = 0;
       colEnd = this.viewSection.viewFields().peekLength - 1;
     }
-    else if(this.cellSelector.isCurrentSelectType(selector.COL)) {
+    else if (this.cellSelector.isCurrentSelectType(selector.COL)) {
       rowStart = 0;
       rowEnd = this.getLastDataRowIndex();
     }
 
     // Start or end will be null if no fields are visible.
     if (colStart !== null && colEnd !== null) {
-      for(let i = colStart; i <= colEnd; i++) {
+      for (let i = colStart; i <= colEnd; i++) {
         const field = this.viewSection.viewFields().at(i)!;
         fields.push(field);
         colStyle[field.colId()] = this._getColStyle(i);
@@ -880,7 +880,7 @@ export default class GridView extends BaseView {
     }
 
     let rowId;
-    for(let j = rowStart; j <= rowEnd; j++) {
+    for (let j = rowStart; j <= rowEnd; j++) {
       rowId = this.viewData.getRowId(j);
       rowIds.push(rowId);
       rowStyle[rowId] = this._getRowStyle(j);
@@ -1048,7 +1048,7 @@ export default class GridView extends BaseView {
     // we want to show creator panel in some cases, but only when "rename panel" is dismissed
     const sub = this.currentEditingColumnIndex.subscribe((state) => {
       // if no column is edited we can assume that rename panel is closed
-      if(state<0){
+      if (state<0){
         options.onPopupClose?.();
         sub.dispose();
       }

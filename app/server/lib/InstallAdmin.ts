@@ -81,7 +81,7 @@ export class SimpleInstallAdmin extends InstallAdmin {
   }
 
   public override async getAdminUsers(req: express.Request): Promise<InstallAdminInfo[]> {
-    if(!this._installAdminEmail) {
+    if (!this._installAdminEmail) {
       return [{
         user: null,
         reason: req.t('admin.noDefaultEmail'),

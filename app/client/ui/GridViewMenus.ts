@@ -101,7 +101,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
           menuItem(
             async () => {
               await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: () => {
-                if(!colType.openCreatorPanel || isNarrowScreen()) { return; }
+                if (!colType.openCreatorPanel || isNarrowScreen()) { return; }
                 commands.allCommands.fieldTabOpen.run();
                 commands.allCommands.rightPanelOpen.run();
                 commands.allCommands.showPopup.run({popup: "referenceColumnsConfig"});
@@ -431,7 +431,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     referenceToSource: string,
     col: ColumnRec) {
     function formula() {
-      switch(fun) {
+      switch (fun) {
         case 'list': return `${referenceToSource}.${col.colId()}`;
         case 'average': return `ref = ${referenceToSource}\n` +
           `AVERAGE(ref.${col.colId()}) if ref else None`;
@@ -449,7 +449,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     }
 
     function type() {
-      switch(fun) {
+      switch (fun) {
         case 'average': return 'Numeric';
         case 'min': return col.type();
         case 'max': return col.type();
@@ -462,7 +462,7 @@ function buildLookupSection(gridView: GridView, index?: number){
     }
 
     function widgetOptions() {
-      switch(fun) {
+      switch (fun) {
         case 'percent': return {numMode: 'percent'};
         default: return {};
       }

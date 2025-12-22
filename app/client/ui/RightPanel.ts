@@ -620,7 +620,7 @@ export class RightPanel extends Disposable {
       const tgtTable = use(tgtSec.table);
 
       const lstate = use(tgtSec.linkingState);
-      if(lstate == null) { return null; }
+      if (lstate == null) { return null; }
 
       // if not filter-linking, this will be incorrect, but we don't use it then
       const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;

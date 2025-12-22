@@ -17,7 +17,7 @@ const t = makeT('ChoiceListEntry');
 
 class RenameMap implements Record<string, string> {
   constructor(tokens: ChoiceItem[]) {
-    for(const {label, previousLabel: id} of tokens.filter(x => x.previousLabel)) {
+    for (const {label, previousLabel: id} of tokens.filter(x => x.previousLabel)) {
       if (label === id) {
         continue;
       }

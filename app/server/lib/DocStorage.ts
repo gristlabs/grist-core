@@ -855,7 +855,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public async getFileInfo(fileIdent: string): Promise<FileInfo | null> {
     const row = await this.get(`SELECT ident, storageId, data FROM _gristsys_Files WHERE ident=?`, fileIdent);
-    if(!row) {
+    if (!row) {
       return null;
     }
 

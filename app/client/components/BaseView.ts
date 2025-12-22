@@ -961,7 +961,7 @@ export default class BaseView extends DisposableWithEvents {
     const lastSelectedIndex = this.viewData.getRowIndex(rowIds[length-1]);
     columns.manualSort = this._getRowInsertPos(lastSelectedIndex + 1, length);
     // Now copy all visible data.
-    for(const col of this.viewSection.columns.peek()) {
+    for (const col of this.viewSection.columns.peek()) {
       // But omit all formula columns (and empty ones).
       const colId = col.colId.peek();
       if (col.isFormula.peek()) {

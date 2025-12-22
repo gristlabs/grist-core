@@ -134,7 +134,7 @@ export class DocTutorial extends Disposable {
               dom('div', (elem) => { elem.innerHTML = slide.boxContent!; }),
             ),
             dom.on('click', (ev) => {
-              if((ev.target as HTMLElement).tagName !== 'IMG') {
+              if ((ev.target as HTMLElement).tagName !== 'IMG') {
                 return;
               }
 

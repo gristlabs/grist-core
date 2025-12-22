@@ -86,7 +86,7 @@ export class ViewFieldConfig {
       },
       write: (widget) => {
         // Go through all the fields, and reset them all.
-        for(const field of listFields()) {
+        for (const field of listFields()) {
           // Reset the entire JSON, so that all options revert to their defaults.
           const previous = field.widgetOptionsJson.peek();
           // We don't need to bundle anything (actions send in the same tick, are bundled
@@ -110,7 +110,7 @@ export class ViewFieldConfig {
       // Put all options of first widget in the Set, and then remove
       // them one by one, if they are not present in other fields.
       let options: Set<string>|null = null;
-      for(const field of fields) {
+      for (const field of fields) {
         // First get the data, and prepare initial set.
         const widget = field.widget() || '';
         const widgetOptions = UserType.typeDefs[field.column().pureType()]?.widgets[widget]?.options;
@@ -119,7 +119,7 @@ export class ViewFieldConfig {
         else {
           // And now remove options that are not common.
           const newOptions = new Set(Object.keys(widgetOptions));
-          for(const key of options) {
+          for (const key of options) {
             if (!newOptions.has(key)) {
               options.delete(key);
             }
@@ -143,7 +143,7 @@ export class ViewFieldConfig {
         const optionList = listFields().map(f => f.widgetOptionsJson());
         // And fill only those that are common
         const common = commonOptions();
-        for(const key of common) {
+        for (const key of common) {
           // Setting null means that this options is there, but has no value.
           result[key] = null;
           // If all columns have the same value, use it.
@@ -161,14 +161,14 @@ export class ViewFieldConfig {
         // our virtual widgetObject, which has nulls for mixed values.
         // If this option wasn't changed (set), we don't want to save it.
         value = {...value};
-        for(const key of Object.keys(value)) {
+        for (const key of Object.keys(value)) {
           if (value[key] === null) {
             delete value[key];
           }
         }
         // Now update all options, for all fields, by amending the options
         // object from the field/column.
-        for(const item of listFields()) {
+        for (const item of listFields()) {
           const previous = item.widgetOptionsJson.peek();
           setter(item.widgetOptionsJson, {
             ...previous,
@@ -216,7 +216,7 @@ export class ViewFieldConfig {
           // First get all widgetOption jsons from all columns/fields.
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
-          for(const key of ['textColor', 'fillColor', 'fontBold',
+          for (const key of ['textColor', 'fillColor', 'fontBold',
             'fontItalic', 'fontUnderline', 'fontStrikethrough']) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
@@ -235,14 +235,14 @@ export class ViewFieldConfig {
           // our virtual widgetObject, which has nulls for mixed values.
           // If this option wasn't changed (set), we don't want to save it.
           value = {...value};
-          for(const key of Object.keys(value)) {
+          for (const key of Object.keys(value)) {
             if (value[key] === null) {
               delete value[key];
             }
           }
           // Now update all options, for all fields, by amending the options
           // object from the field/column.
-          for(const item of fields) {
+          for (const item of fields) {
             const previous = item.widgetOptionsJson.peek();
             setter(item.widgetOptionsJson, {
               ...previous,
@@ -278,7 +278,7 @@ export class ViewFieldConfig {
           // First get all widgetOption jsons from all columns/fields.
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
-          for(const key of ['headerTextColor', 'headerFillColor', 'headerFontBold',
+          for (const key of ['headerTextColor', 'headerFillColor', 'headerFontBold',
             'headerFontItalic', 'headerFontUnderline', 'headerFontStrikethrough']) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
@@ -297,14 +297,14 @@ export class ViewFieldConfig {
           // our virtual widgetObject, which has nulls for mixed values.
           // If this option wasn't changed (set), we don't want to save it.
           value = {...value};
-          for(const key of Object.keys(value)) {
+          for (const key of Object.keys(value)) {
             if (value[key] === null) {
               delete value[key];
             }
           }
           // Now update all options, for all fields, by amending the options
           // object from the field/column.
-          for(const item of fields) {
+          for (const item of fields) {
             const previous = item.widgetOptionsJson.peek();
             setter(item.widgetOptionsJson, {
               ...previous,
@@ -405,7 +405,7 @@ function extendObservable(
   options: { [key: string]: (prop: string) => ko.PureComputed<boolean> },
 ) {
   const result = obs as any;
-  for(const key of Object.keys(options)) {
+  for (const key of Object.keys(options)) {
     const cacheKey = `__${key}`;
     result[cacheKey] = new Map();
     result[key] = (prop: string) => {

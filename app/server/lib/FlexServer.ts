@@ -1943,7 +1943,7 @@ export class FlexServer implements GristServer {
   }
 
   public setReady(value: boolean) {
-    if(value) {
+    if (value) {
       log.debug('FlexServer is ready');
     }
     else {

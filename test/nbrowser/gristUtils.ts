@@ -313,7 +313,7 @@ namespace gristUtils {
     const rowIndices = data.slice(1).map((row: number[]) => row[0]);
     const columnNames = data[0]?.slice(1) ?? [];
 
-    for(const col of columnNames) {
+    for (const col of columnNames) {
       const colIndex = columnNames.indexOf(col) + 1;
       const colValues = data.slice(1).map((row: string[]) => row[colIndex]);
       assert.deepEqual(
@@ -1243,7 +1243,7 @@ namespace gristUtils {
     const root: PageTree = {label: 'root', children: []};
     const stack: PageTree[] = [root];
     let current = 0;
-    for(const page of allPages) {
+    for (const page of allPages) {
       const label = await page.getText();
       const offset = await page.findClosest('.test-treeview-itemHeader').find('.test-treeview-offset');
       const level = parseInt((await offset.getCssValue('width')).replace("px", "")) / 10;
@@ -2045,7 +2045,7 @@ namespace gristUtils {
     const orgInput = await driver.find('.test-um-member-new input');
 
     const emails = Array.isArray(email) ? email : [email];
-    for(const e of emails) {
+    for (const e of emails) {
       await orgInput.sendKeys(e, Key.ENTER);
       if (role && role !== 'Viewer') {
         await driver.findContentWait('.test-um-member', e, 1000).find('.test-um-member-role').click();
@@ -2060,7 +2060,7 @@ namespace gristUtils {
     await driver.findWait('.test-user-icon', 5000).click();
     await driver.find('.test-dm-org-access').click();
     await driver.findWait('.test-um-members', 500);
-    for(const email of (Array.isArray(emails) ? emails : [emails])) {
+    for (const email of (Array.isArray(emails) ? emails : [emails])) {
       const userRow = await driver.findContent('.test-um-member', email);
       await userRow.find('.test-um-member-delete').click();
     }
@@ -2572,7 +2572,7 @@ namespace gristUtils {
  * transparent), or `color` unchanged if it's not a name.
  */
   export function nameToHex(color: string) {
-    switch(color) {
+    switch (color) {
       case 'red': color = '#FF0000'; break;
       case 'blue': color = '#0000FF'; break;
       case 'green': color = '#00FF00'; break;
@@ -3103,7 +3103,7 @@ namespace gristUtils {
   // Returns checked sort options for current column. Assumes the menu is opened.
   export async function getSortOptions(): Promise<SortOption[]> {
     const options: SortOption[] = [];
-    for(const option of SortOptions) {
+    for (const option of SortOptions) {
       const list = await driver.findAll(`.test-sort-config-option-${option} input:checked`);
       if (list.length) {
         options.push(option);
@@ -3116,7 +3116,7 @@ namespace gristUtils {
   // Returns enabled entries in sort menu. Assumes the menu is opened.
   export async function getEnabledOptions(): Promise<SortOption[]> {
     const options: SortOption[] = [];
-    for(const option of SortOptions) {
+    for (const option of SortOptions) {
       const list = await driver.findAll(`.test-sort-config-option-${option}:not(.disabled)`);
       if (list.length) {
         options.push(option);
@@ -3318,7 +3318,7 @@ namespace gristUtils {
  */
   export async function removeFilters(save = false) {
     const sectionFilter = await sortAndFilter();
-    for(const filter of await sectionFilter.filters()) {
+    for (const filter of await sectionFilter.filters()) {
       await filter.remove();
     }
     if (save) {
@@ -3604,7 +3604,7 @@ namespace gristUtils {
     // Test if the vars are already set, and if so, skip.
       if (Object.keys(vars).every(k => process.env[k] === vars[k])) { return; }
       oldEnv = new testUtils.EnvironmentSnapshot();
-      for(const key of Object.keys(vars)) {
+      for (const key of Object.keys(vars)) {
         if (vars[key] === undefined || vars[key] === null) {
           delete process.env[key];
         }

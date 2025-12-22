@@ -86,7 +86,7 @@ export enum AccessLevel {
 
 export function isSatisfied(current: AccessLevel, minimum: AccessLevel) {
   function ordered(level: AccessLevel) {
-    switch(level) {
+    switch (level) {
       case AccessLevel.none: return 0;
       case AccessLevel.read_table: return 1;
       case AccessLevel.full: return 2;

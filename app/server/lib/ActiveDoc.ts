@@ -1220,7 +1220,7 @@ export class ActiveDoc extends EventEmitter {
   @ActiveDoc.keepDocOpen
   public async addMissingFilesFromArchive(docSession: OptDocSession,
     tarFile: stream.Readable): Promise<ArchiveUploadResult> {
-    if(!await this.isOwner(docSession)) {
+    if (!await this.isOwner(docSession)) {
       throw new ApiError("Insufficient access to upload an attachment archive", 403);
     }
 
