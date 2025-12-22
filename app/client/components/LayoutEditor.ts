@@ -572,7 +572,7 @@ export class LayoutEditor extends Disposable {
   }
 
   public handleMouseDown(event: JQMouseEvent, elem: HTMLElement) {
-    const target = (event.target as HTMLElement);
+    const target = event.target as HTMLElement;
     if (event.button !== 0 || target?.classList.contains('ui-resizable-handle')) {
       return;
     }

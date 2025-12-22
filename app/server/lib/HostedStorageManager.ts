@@ -133,7 +133,7 @@ export class HostedStorageManager implements IDocStorageManager {
     createExternalStorage: ExternalStorageCreator,
     options: HostedStorageOptions = defaultOptions,
   ) {
-    const creator = ((purpose: ExternalStorageSettings['purpose']) => createExternalStorage(purpose, ''));
+    const creator = (purpose: ExternalStorageSettings['purpose']) => createExternalStorage(purpose, '');
     // We store documents either in a test store, or in an s3 store
     // at s3://<s3Bucket>/<s3Prefix><docId>.grist
     const externalStoreDoc = this._disableS3 ? undefined : creator('doc');

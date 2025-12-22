@@ -1840,14 +1840,14 @@ class ObsUserAttributeRule extends Disposable {
               setValue: text => this._setUserAttr(text),
               placeholder: '',
               getSuggestions: () => this._userAttrChoices.get().map(s => new Suggestion(s.value, s)),
-              customiseEditor: ((editor) => {
+              customiseEditor: (editor) => {
                 editor.on('focus', () => {
                   if (editor.getValue() == 'user.') {
                     // TODO this weirdly only works on the first click
                     (editor as any).completer?.showPopup(editor);
                   }
                 });
-              }),
+              },
             }),
             testId('rule-userattr-attr'),
           ),
@@ -2234,7 +2234,7 @@ class ObsRulePart extends Disposable {
  * TODO This is a general-purpose function, and should live in a separate module.
  */
 function syncRecords(tableData: TableData, newRecords: RowRecord[],
-  uniqueId: (r: RowRecord) => string = (r => String(r.id)),
+  uniqueId: (r: RowRecord) => string = r => String(r.id),
 ): {userActions: UserAction[], rowIdMap: Map<string, number>} {
   const oldRecords = tableData.getRecords();
   const rowIdMap = new Map<string, number>(oldRecords.map(r => [uniqueId(r), r.id]));

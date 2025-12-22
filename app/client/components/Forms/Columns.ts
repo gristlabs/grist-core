@@ -100,7 +100,7 @@ export class ColumnsModel extends BoxModel {
 
   public async deleteSelf(): Promise<void> {
     // Prepare all the fields that are children of this column for removal.
-    const fieldsToRemove = (Array.from(this.filter(b => b instanceof FieldModel)) as FieldModel[]);
+    const fieldsToRemove = Array.from(this.filter(b => b instanceof FieldModel)) as FieldModel[];
     const fieldIdsToRemove = fieldsToRemove.map(f => f.leaf.get());
 
     await this.parent?.save(async () => {

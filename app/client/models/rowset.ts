@@ -146,7 +146,7 @@ export class MappedRowSource extends RowSource {
     super();
 
     // Wrap mapperFunc to ensure arguments after the first one aren't passed on to it.
-    this._mapperFunc = (row => mapperFunc(row));
+    this._mapperFunc = row => mapperFunc(row);
 
     // Listen to the two event types a rowSource might produce, and map the rows in them.
     this.listenTo(parentRowSource, 'rowChange', (changeType: ChangeType, rows: RowList) => {

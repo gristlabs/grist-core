@@ -174,7 +174,7 @@ export function getDocScope(req: Request): DocScope {
  *     is limited to docs/workspaces that have been removed.
  */
 export function getScope(req: Request): Scope {
-  const {specialPermit, docAuth} = (req as RequestWithLogin);
+  const {specialPermit, docAuth} = req as RequestWithLogin;
   const urlId = req.params.did || req.params.docId || docAuth?.docId || undefined;
   const userId = getUserId(req);
   const org = (req as RequestWithOrg).org;
