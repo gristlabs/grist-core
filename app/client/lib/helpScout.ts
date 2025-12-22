@@ -142,7 +142,7 @@ function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
   lastRoute = route;
 
   Beacon("once", "open", () => {
-    const iframe = document.querySelector("#beacon-container iframe")!;
+    const iframe = document.querySelector<HTMLIFrameElement>("#beacon-container iframe")!;
     if (iframe) { iframe.focus(); }
     if (onOpen) { onOpen(); }
   });
@@ -153,7 +153,7 @@ function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
   Beacon("once", "ready", () => fixBeaconBaseHref());
 
   Beacon("once", "close", () => {
-    const iframe = document.querySelector("#beacon-container iframe")!;
+    const iframe = document.querySelector<HTMLIFrameElement>("#beacon-container iframe")!;
     if (iframe) { iframe.blur(); }
     Beacon("off", "article-viewed");
   });
@@ -212,7 +212,7 @@ function fixBeaconBaseHref() {
   //
   // Here we set a <base href> explicitly in the iframe to get consistent behavior of links
   // relative to the top page's URL (HelpScout then seems to handle clicks on them correctly).
-  const iframe = document.querySelector("#beacon-container iframe")!;
+  const iframe = document.querySelector<HTMLIFrameElement>("#beacon-container iframe")!;
   const iframeDoc = iframe?.contentDocument;
   if (iframeDoc && !iframeDoc.querySelector("head > base")) {
     iframeDoc.head.appendChild(dom("base", { href: "" }));

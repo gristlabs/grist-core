@@ -278,7 +278,7 @@ export class RightPanel extends Disposable {
   private _buildFieldContent(owner: MultiHolder) {
     const fieldBuilder = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
-      return vsi?.activeFieldBuilder();
+      return vsi?.activeFieldBuilder() ?? null;
     }));
 
     const selectedColumns = owner.autoDispose(ko.computed(() => {
@@ -1022,7 +1022,7 @@ export class RightPanel extends Disposable {
   private _buildQuestionContent(owner: MultiHolder) {
     const fieldBuilder = owner.autoDispose(ko.computed(() => {
       const vsi = this._gristDoc.viewModel.activeSection?.().viewInstance();
-      return vsi?.activeFieldBuilder();
+      return vsi?.activeFieldBuilder() ?? null;
     }));
 
     // Sorry for the acrobatics below, but grainjs are not reentred when the active section changes.

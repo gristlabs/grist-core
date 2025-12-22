@@ -3,7 +3,7 @@ import { TreeViewComponent } from "app/client/ui/TreeViewComponent";
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 
-import { dom, MutableObsArray, obsArray, observable, styled } from "grainjs";
+import { dom, obsArray, observable, styled } from "grainjs";
 import constant from "lodash/constant";
 
 const modelCalls = obsArray<string>();

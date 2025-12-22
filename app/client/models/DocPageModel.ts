@@ -150,8 +150,8 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
 
   public readonly currentUrlId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.urlId : undefined);
   public readonly currentDocId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.id : undefined);
-  public readonly currentWorkspace = Computed.create(this, this.currentDoc, (use, doc) => doc?.workspace);
-  public readonly currentOrg = Computed.create(this, this.currentWorkspace, (use, ws) => ws?.org);
+  public readonly currentWorkspace = Computed.create(this, this.currentDoc, (use, doc) => doc?.workspace ?? null);
+  public readonly currentOrg = Computed.create(this, this.currentWorkspace, (use, ws) => ws?.org ?? null);
   public readonly currentOrgName = Computed.create(this, this.currentOrg,
     (use, org) => getOrgNameOrGuest(org, this.appModel.currentUser));
 

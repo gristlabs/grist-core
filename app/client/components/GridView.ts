@@ -1489,7 +1489,8 @@ export default class GridView extends BaseView {
                     dom.on("contextmenu", (ev) => {
                     // This is a little hack to position the menu the same way as with a click
                       ev.preventDefault();
-                      const btn = (ev.currentTarget as HTMLElement).querySelector(".g-column-menu-btn")!;
+                      const btn = (ev.currentTarget as HTMLElement)
+                        .querySelector<HTMLButtonElement>(".g-column-menu-btn")!;
                       if (btn) { btn.click(); }
                     }),
                     dom("div.g-column-label",
@@ -1645,7 +1646,7 @@ export default class GridView extends BaseView {
             // This is a little hack to position the menu the same way as with a click,
             // the same hack as on a column menu.
             ev.preventDefault();
-            ((ev.currentTarget as HTMLElement).querySelector(".menu_toggle"))?.click();
+            ((ev.currentTarget as HTMLElement).querySelector<HTMLElement>(".menu_toggle"))?.click();
           }),
           (this.isPreview || this.gridOptions?.rowMenu === false) ? null : menuToggle(null,
             dom.on("click",
