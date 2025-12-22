@@ -72,7 +72,7 @@ function getCustomWidgetFrame() {
   return driver.findWait('iframe', 500);
 }
 
-describe('CustomWidgets', function () {
+describe('CustomWidgets', function() {
   this.timeout(20000);
   gu.bigScreen();
   const cleanup = setupTestSuite();
@@ -93,7 +93,7 @@ describe('CustomWidgets', function () {
     );
   }
 
-  before(async function () {
+  before(async function() {
     if (server.isExternalServer()) {
       this.skip();
     }
@@ -778,7 +778,7 @@ describe('CustomWidgets', function () {
   });
 
   describe('gristApiSupport', async () => {
-    beforeEach(async function () {
+    beforeEach(async function() {
       // We need to be sure that widget configuration panel is open all the time.
       await gu.toggleSidePanel('right', 'open');
       await recreatePanel();
@@ -932,10 +932,10 @@ describe('CustomWidgets', function () {
     });
   });
 
-  describe('Bundling', function () {
+  describe('Bundling', function() {
     let oldEnv: EnvironmentSnapshot;
 
-    before(async function () {
+    before(async function() {
       oldEnv = new EnvironmentSnapshot();
     });
 
@@ -947,7 +947,7 @@ describe('CustomWidgets', function () {
     });
 
     for (const variant of ['flat', 'nested'] as const) {
-      it(`can add widgets via plugins (${variant} layout)`, async function () {
+      it(`can add widgets via plugins (${variant} layout)`, async function() {
         // Double-check that using one external widget, we see
         // just that widget listed.
         widgets = [widget1];

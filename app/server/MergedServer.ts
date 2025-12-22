@@ -220,7 +220,7 @@ export class MergedServer {
         }
       }
     }
-    catch(e) {
+    catch (e) {
       await this.close();
       throw e;
     }

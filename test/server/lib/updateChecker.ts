@@ -21,7 +21,7 @@ describe('updateChecker', function() {
   const sandbox = sinon.createSandbox();
 
   function setupTestServer(mockResponse: LatestVersion) {
-    beforeEach(async function () {
+    beforeEach(async function() {
       oldServerEnv = new testUtils.EnvironmentSnapshot();
 
       // Stub out the fetch to the external version API endpoint so we
@@ -45,7 +45,7 @@ describe('updateChecker', function() {
       });
       const originalSetMethod = FlexServer.prototype.setLatestVersionAvailable;
       sandbox.stub(FlexServer.prototype, 'setLatestVersionAvailable')
-        .callsFake(function (this: FlexServer, ...args) {
+        .callsFake(function(this: FlexServer, ...args) {
           originalSetMethod.apply(this, args);
           setVersionResolved();
         });
@@ -60,7 +60,7 @@ describe('updateChecker', function() {
       await setVersionPromise;
     });
 
-    afterEach(async function () {
+    afterEach(async function() {
       await server.stop();
       oldServerEnv.restore();
       sandbox.restore();
@@ -80,7 +80,7 @@ describe('updateChecker', function() {
     };
     const { homeUrl } = setupTestServer(mockVersionResponse);
 
-    it('can get the latest available version information', async function () {
+    it('can get the latest available version information', async function() {
       const doc = await fetch(homeUrl());
       const pageBody = await doc.text();
       const config = getGristConfig(pageBody);
@@ -100,7 +100,7 @@ describe('updateChecker', function() {
     };
     const { homeUrl } = setupTestServer(mockVersionResponse);
 
-    it('can get the latest available version information', async function () {
+    it('can get the latest available version information', async function() {
       const doc = await fetch(homeUrl());
       const pageBody = await doc.text();
       const config = getGristConfig(pageBody);

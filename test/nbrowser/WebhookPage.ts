@@ -5,7 +5,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 
-describe('WebhookPage', function () {
+describe('WebhookPage', function() {
   this.timeout(60000);
   const cleanup = setupTestSuite();
   const clipboard = gu.getLockableClipboard();
@@ -16,7 +16,7 @@ describe('WebhookPage', function () {
   let doc: DocCreationInfo;
   let host: string;
 
-  before(async function () {
+  before(async function() {
     oldEnv = new EnvironmentSnapshot();
     host = new URL(server.getHost()).host;
     process.env.ALLOWED_WEBHOOK_DOMAINS = '*';
@@ -41,11 +41,11 @@ describe('WebhookPage', function () {
     });
   });
 
-  after(async function () {
+  after(async function() {
     oldEnv.restore();
   });
 
-  it('starts with an empty card', async function () {
+  it('starts with an empty card', async function() {
     await openWebhookPage();
     assert.equal(await gu.getCardListCount(), 1);  // includes empty card
     assert.sameDeepMembers(await gu.getCardFieldLabels(), [
@@ -63,7 +63,7 @@ describe('WebhookPage', function () {
     ]);
   });
 
-  it('can create a persistent webhook', async function () {
+  it('can create a persistent webhook', async function() {
     // Set up a webhook for Table1, and send it to Table2 (for ease of testing).
     await openWebhookPage();
     await setField(1, 'Event Types', 'add\nupdate\n');
@@ -116,7 +116,7 @@ describe('WebhookPage', function () {
     assert.lengthOf((await docApi.getRows('Table2')).A, 0);
   });
 
-  it('can create webhook with persistant header authorization', async function () {
+  it('can create webhook with persistant header authorization', async function() {
     // The webhook won't work because the header auth doesn't match the api key of the current test user.
     await openWebhookPage();
     await setField(1, 'Event Types', 'add\nupdate\n');
@@ -137,7 +137,7 @@ describe('WebhookPage', function () {
     await gu.waitForServer();
   });
 
-  it('can create two webhooks', async function () {
+  it('can create two webhooks', async function() {
     await openWebhookPage();
     await setField(1, 'Event Types', 'add\nupdate\n');
     await setField(1, 'URL', `http://${host}/api/docs/${doc.id}/tables/Table2/records?flat=1`);
@@ -181,7 +181,7 @@ describe('WebhookPage', function () {
     assert.lengthOf((await docApi.getRows('Table3')).A, 0);
   });
 
-  it('can create and repair a dud webhook', async function () {
+  it('can create and repair a dud webhook', async function() {
     await openWebhookPage();
     await setField(1, 'Event Types', 'add\nupdate\n');
     await setField(1, 'URL', `http://${host}/notathing`);
@@ -214,7 +214,7 @@ describe('WebhookPage', function () {
     assert.lengthOf((await docApi.getRows('Table2')).A, 0);
   });
 
-  it('can keep multiple sessions in sync', async function () {
+  it('can keep multiple sessions in sync', async function() {
     await openWebhookPage();
 
     // Open another tab.
@@ -291,7 +291,7 @@ describe('WebhookPage', function () {
     assert.equal(await getField(1, 'Memo'), '1234');
   });
 
-  it('does not allow adding webhooks to forks', async function () {
+  it('does not allow adding webhooks to forks', async function() {
     // First, let's make sure it's there to begin with.
     await gu.wipeToasts();
     await gu.openDocumentSettings();

@@ -3,8 +3,8 @@ import { assert } from 'chai';
 
 const { flipSort: flipColDirection, parseSortColRefs, reorderSortRefs } = Sort;
 
-describe('sortUtil', function () {
-  it('should parse column expressions', function () {
+describe('sortUtil', function() {
+  it('should parse column expressions', function() {
     assert.deepEqual(Sort.getColRef(1), 1);
     assert.deepEqual(Sort.getColRef(-1), 1);
     assert.deepEqual(Sort.getColRef('-1'), 1);
@@ -15,7 +15,7 @@ describe('sortUtil', function () {
     assert.deepEqual(Sort.getColRef('1:emptyLast;orderByChoice'), 1);
   });
 
-  it('should support finding', function () {
+  it('should support finding', function() {
     assert.equal(Sort.findCol([1, 2, 3], 1), 1);
     assert.equal(Sort.findCol([1, 2, 3], '1'), 1);
     assert.equal(Sort.findCol([1, 2, 3], '-1'), 1);
@@ -51,7 +51,7 @@ describe('sortUtil', function () {
     assert.isFalse(Sort.containsOnly(['1:emptyLast'], 1, Sort.DESC));
   });
 
-  it('should support swapping', function () {
+  it('should support swapping', function() {
     assert.deepEqual(Sort.swapColRef(1, 2), 2);
     assert.deepEqual(Sort.swapColRef(-1, 2), -2);
     assert.deepEqual(Sort.swapColRef('1', 2), 2);
@@ -59,7 +59,7 @@ describe('sortUtil', function () {
     assert.deepEqual(Sort.swapColRef('-1:emptyLast', 2), '-2:emptyLast');
   });
 
-  it('should create column expressions', function () {
+  it('should create column expressions', function() {
     assert.deepEqual(Sort.setColDirection(2, Sort.ASC), 2);
     assert.deepEqual(Sort.setColDirection(-2, Sort.ASC), 2);
     assert.deepEqual(Sort.setColDirection(-2, Sort.DESC), -2);
@@ -76,7 +76,7 @@ describe('sortUtil', function () {
     assert.deepEqual(Sort.setColDirection('2:emptyLast', Sort.DESC), '-2:emptyLast');
   });
 
-  it('should create column expressions for virtual ids', function () {
+  it('should create column expressions for virtual ids', function() {
     assert.deepEqual(Sort.setColDirection(VirtualId('test'), Sort.DESC), `-${VirtualId('test')}`);
     assert.deepEqual(Sort.setColDirection(VirtualId('test'), Sort.ASC), VirtualId('test'));
     assert.deepEqual(Sort.setColDirection(`-${VirtualId('test')}`, Sort.ASC), VirtualId('test'));
@@ -85,7 +85,7 @@ describe('sortUtil', function () {
 
   const empty = { emptyLast: false, orderByChoice: false, naturalSort: false };
 
-  it('should parse details', function () {
+  it('should parse details', function() {
     assert.deepEqual(Sort.specToDetails(2), { colRef: 2, direction: Sort.ASC });
     assert.deepEqual(Sort.specToDetails(-2), { colRef: 2, direction: Sort.DESC });
 
@@ -116,7 +116,7 @@ describe('sortUtil', function () {
     );
   });
 
-  it('should parse names', function () {
+  it('should parse names', function() {
     const cols = new Map(Object.entries({ a: 1, id: 0 }));
     assert.deepEqual(Sort.parseNames(['1'], cols), ['1']);
     assert.deepEqual(Sort.parseNames(['0'], cols), ['0']);
@@ -131,7 +131,7 @@ describe('sortUtil', function () {
     assert.throws(() => Sort.parseNames(['-a:flag'], new Map()));
   });
 
-  it('should produce correct results with flipColDirection', function () {
+  it('should produce correct results with flipColDirection', function() {
     // Should flip given sortRef.
     // Column direction should not matter
     assert.deepEqual(flipColDirection([1, 2, 3], 3), [1, 2, -3]);
@@ -148,7 +148,7 @@ describe('sortUtil', function () {
     assert.deepEqual(flipColDirection([-1], 2), [-1]);
   });
 
-  it('should produce correct results with parseSortColRefs', function () {
+  it('should produce correct results with parseSortColRefs', function() {
     // Should parse correctly.
     assert.deepEqual(parseSortColRefs('[1, 2, 3]'), [1, 2, 3]);
     assert.deepEqual(parseSortColRefs('[]'), []);
@@ -160,7 +160,7 @@ describe('sortUtil', function () {
     assert.deepEqual(parseSortColRefs('[12; 16; 18]'), []);
   });
 
-  it('should produce correct results with reorderSortRefs', function () {
+  it('should produce correct results with reorderSortRefs', function() {
     // Should reorder correctly.
     assert.deepEqual(reorderSortRefs([1, 2, 3], 2, 1), [2, 1, 3]);
     assert.deepEqual(reorderSortRefs([12, 2, -4, -5, 6, 8], -4, 8), [12, 2, -5, 6, -4, 8]);
@@ -175,7 +175,7 @@ describe('sortUtil', function () {
     assert.deepEqual(reorderSortRefs([-5, -4, 6], 3, null), [-5, -4, 6]);
   });
 
-  it('should flip columns', function () {
+  it('should flip columns', function() {
     assert.deepEqual(Sort.flipCol('1:emptyLast'), '-1:emptyLast');
     assert.deepEqual(Sort.flipCol('-1:emptyLast'), '1:emptyLast');
     assert.deepEqual(Sort.flipCol(2), -2);

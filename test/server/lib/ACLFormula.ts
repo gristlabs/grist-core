@@ -29,7 +29,7 @@ describe('ACLFormula', function() {
   type SetAndCompile = (aclFormula: string) => Promise<CompiledPredicateFormula>;
   let setAndCompile: SetAndCompile;
 
-  before(async function () {
+  before(async function() {
     const docName = 'docdata1';
     const activeDoc1 = await docTools.createDoc(docName);
 
@@ -56,7 +56,7 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({ Name: 'X@' }) }), false);
   });
 
-  it('should handle the "in" operator', async function () {
+  it('should handle the "in" operator', async function() {
     const compiled = await setAndCompile("user.Role in ('editors', 'owners')");
     assert.equal(compiled({ user: new User({ Role: 'editors' }) }), true);
     assert.equal(compiled({ user: new User({ Role: 'owners' }) }), true);
@@ -65,7 +65,7 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({}) }), false);
   });
 
-  it('should handle the "not in" operator', async function () {
+  it('should handle the "not in" operator', async function() {
     const compiled = await setAndCompile("user.Role not in ('editors', 'owners')");
     assert.equal(compiled({ user: new User({ Role: 'editors' }) }), false);
     assert.equal(compiled({ user: new User({ Role: 'owners' }) }), false);
@@ -90,7 +90,7 @@ describe('ACLFormula', function() {
     });
   });
 
-  it('should handle the "and" operator', async function () {
+  it('should handle the "and" operator', async function() {
     const compiled = await setAndCompile("rec.office == 'Seattle' and user.email in ['sally@', 'xie@']");
     assert.throws(() => compiled({ user: new User({ email: 'xie@' }) }), /Missing row data 'rec'/);
     assert.equal(compiled({ user: new User({ email: 'xie@' }), rec: V({}) }), false);
@@ -103,14 +103,14 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({}), rec: V({}) }), false);
   });
 
-  it('should handle the "or" operator', async function () {
+  it('should handle the "or" operator', async function() {
     const compiled = await setAndCompile('user.Email=="X@" or user.Email is None');
     assert.equal(compiled({ user: new User({ Email: 'X@' }) }), true);
     assert.equal(compiled({ user: new User({}) }), true);
     assert.equal(compiled({ user: new User({ Email: 'Y@' }) }), false);
   });
 
-  it('should handle a complex combination of operators', async function () {
+  it('should handle a complex combination of operators', async function() {
     // This is not particularly meaningful, but involves more combinations.
     const compiled = await setAndCompile(
       "user.IsAdmin or rec.assigned is None or (not newRec.HasDuplicates and rec.StatusIndex <= newRec.StatusIndex)");
@@ -139,7 +139,7 @@ describe('ACLFormula', function() {
       newRec: V({ HasDuplicates: true, StatusIndex: 17 }) }), false);
   });
 
-  it('should handle arithmetic tests', async function () {
+  it('should handle arithmetic tests', async function() {
     const compiled = await setAndCompile(
       "rec.A <= rec.B + 1 and rec.A >= rec.B - 1 and rec.A < rec.C * 2.5 and rec.A > rec.C / 2.5 and rec.A % 2 != 0");
     assert.equal(compiled({ user: new User({}), rec: V({ A: 3, B: 3, C: 3 }) }), true);
@@ -155,7 +155,7 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user: new User({}), rec: V({ A: 7.5, B: 7, C: 3 }) }), false);
   });
 
-  it('should handle "is" and "is not" operators', async function () {
+  it('should handle "is" and "is not" operators', async function() {
     const compiled = await setAndCompile(
       "rec.A is True or rec.B is not False");
     assert.equal(compiled({ user: new User({}), rec: V({ A: true }) }), true);
@@ -214,7 +214,7 @@ describe('ACLFormula', function() {
       /Not a function: 'rec.A'/);     // only explicitly supported functions are supported
   });
 
-  it('should handle nested attribute lookups', async function () {
+  it('should handle nested attribute lookups', async function() {
     const compiled = await setAndCompile('user.office.city == "New York"');
     assert.equal(compiled({ user: new User({ office: V({ city: "New York" }) }) }), true);
     assert.equal(compiled({ user: new User({ office: V({ city: "Boston" }) }) }), false);
@@ -224,7 +224,7 @@ describe('ACLFormula', function() {
     assert.throws(() => compiled({ user: new User({ office: null }) }), /No value for 'user.office'/);
   });
 
-  it('should not support unexpected attributes', async function () {
+  it('should not support unexpected attributes', async function() {
     let compiled = await setAndCompile("user.email.length == rec.A");
     assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: 3 }) }), false);
     assert.equal(compiled({ user: new User({ email: 'Foo' }), rec: V({ A: null }) }), false);
@@ -285,7 +285,7 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user, rec: V({ emails: undefined as any }) }), true);
   });
 
-  it('should decode cell values so that "in" is safe to use with lists', async function () {
+  it('should decode cell values so that "in" is safe to use with lists', async function() {
     const user = new User({ Email: 'L' });
 
     // A previous bug meant that the above user would always pass this formula,
@@ -313,7 +313,7 @@ describe('ACLFormula', function() {
     assert.equal(compiled({ user, rec: V({}) }), true);
   });
 
-  it('should allow comparing dates', async function () {
+  it('should allow comparing dates', async function() {
     const user = new User({});
 
     const compiled = await setAndCompile('rec.date1 < rec.date2');

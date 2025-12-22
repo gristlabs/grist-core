@@ -3,7 +3,7 @@ import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('RawData', function () {
+describe('RawData', function() {
   this.timeout(30000);
   let api: UserAPI;
   let doc: string;
@@ -14,7 +14,7 @@ describe('RawData', function () {
   setupTestSuite();
   gu.bigScreen();
   afterEach(() => gu.checkForErrors());
-  before(async function () {
+  before(async function() {
     await server.simulateLogin('Chimpy', 'chimpy@getgrist.com', 'nasa');
     const docInfo = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'World.grist');
     doc = docInfo.id;
@@ -23,7 +23,7 @@ describe('RawData', function () {
     revertAll = await gu.begin();
   });
 
-  it('shows all tables', async function () {
+  it('shows all tables', async function() {
     const uiTables = await getRawTableIds();
     const data = await api.getTable(doc, '_grist_Tables');
     const tables: string[] = data.tableId as string[];
@@ -32,13 +32,13 @@ describe('RawData', function () {
     assert.deepEqual(uiTables, tables);
   });
 
-  it('shows blank creator panel', async function () {
+  it('shows blank creator panel', async function() {
     await gu.toggleSidePanel('right', 'open');
     assert.isEmpty(await driver.find('.test-right-panel').getText());
     await gu.toggleSidePanel('right', 'close');
   });
 
-  it('shows row counts of all tables', async function () {
+  it('shows row counts of all tables', async function() {
     assert.deepEqual(await getRawTableRows(), [
       '4,079',
       '239',
@@ -47,7 +47,7 @@ describe('RawData', function () {
     ]);
   });
 
-  it('shows new table name', async function () {
+  it('shows new table name', async function() {
     await gu.renameTable('City', 'Town');
     const uiTables = await getRawTableIds();
     const data = await api.getTable(doc, '_grist_Tables');
@@ -57,7 +57,7 @@ describe('RawData', function () {
     assert.deepEqual(uiTables, tables);
   });
 
-  it('shows table preview', async function () {
+  it('shows table preview', async function() {
     // Open modal with grid
     await driver.findContent('.test-raw-data-table-title', 'Country').click();
     await gu.waitForServer();
@@ -96,7 +96,7 @@ describe('RawData', function () {
     assert.isFalse(await driver.find('.test-raw-data-overlay').isPresent());
   });
 
-  it('should rename table from modal window', async function () {
+  it('should rename table from modal window', async function() {
     // Open Country table.
     await driver.findContent('.test-raw-data-table-title', 'Country').click();
     await gu.waitForServer();
@@ -114,7 +114,7 @@ describe('RawData', function () {
     assert.deepEqual(tables, ['Town', 'Empire', 'CountryLanguage', 'Table1'].sort());
   });
 
-  it('should show table description', async function () {
+  it('should show table description', async function() {
     // Give Empire table a description.
     await gu.renameRawTable('Empire', undefined, 'My raw data table description.');
 
@@ -144,7 +144,7 @@ describe('RawData', function () {
     await gu.closeRawTable();
   });
 
-  it('should remove table', async function () {
+  it('should remove table', async function() {
     // Open menu for Town
     await openMenu('Town');
     // Click delete.
@@ -162,7 +162,7 @@ describe('RawData', function () {
     assert.deepEqual(tables, ['Empire', 'CountryLanguage', 'Table1'].sort());
   });
 
-  it('should duplicate table', async function () {
+  it('should duplicate table', async function() {
     await openMenu('Empire');
     await clickDuplicateTable();
     await driver.find('.test-duplicate-table-name').click();
@@ -190,7 +190,7 @@ describe('RawData', function () {
     assert.deepEqual(tables, ['Empire', 'Empire_Copy', 'CountryLanguage', 'Table1'].sort());
   });
 
-  it('should restore position when browser is refreshed', async function () {
+  it('should restore position when browser is refreshed', async function() {
     await driver.findContent('.test-raw-data-table-title', 'Empire').click();
     await gu.waitForServer();
     await gu.getCell(3, 2).click();
@@ -202,7 +202,7 @@ describe('RawData', function () {
     await driver.sendKeys(Key.ESCAPE);
   });
 
-  it('should restore last edit position when browser is refreshed', async function () {
+  it('should restore last edit position when browser is refreshed', async function() {
     await driver.findContent('.test-raw-data-table-title', 'Empire').click();
     await gu.waitForServer();
     await gu.getCell(2, 9).click();
@@ -218,7 +218,7 @@ describe('RawData', function () {
     await driver.sendKeys(Key.ESCAPE);
   });
 
-  it('should copy anchor link and restore', async function () {
+  it('should copy anchor link and restore', async function() {
     await driver.findContent('.test-raw-data-table-title', 'Empire').click();
     await gu.waitForServer();
     await (await gu.openRowMenu(10)).findContent('li', /Copy anchor link/).click();
@@ -236,7 +236,7 @@ describe('RawData', function () {
     await driver.sendKeys(Key.ESCAPE);
   });
 
-  it('should copy table name', async function () {
+  it('should copy table name', async function() {
     await driver.findContentWait('.test-raw-data-table-id', 'Empire', 1000).click();
     await gu.waitToPass(async () => {
       assert.equal((await gu.getTestState()).clipboard, 'Empire');
@@ -246,7 +246,7 @@ describe('RawData', function () {
     await waitForRawData();
   });
 
-  it('shows summary tables under Raw Data Tables', async function () {
+  it('shows summary tables under Raw Data Tables', async function() {
     // Add a few summary tables: 1 with no group-by columns, and 2 that
     // share the same group-by columns.
     for (let i = 0; i <= 2; i++) {
@@ -275,7 +275,7 @@ describe('RawData', function () {
     ]);
   });
 
-  it('shows Record Card button for all non-summary tables', async function () {
+  it('shows Record Card button for all non-summary tables', async function() {
     const displayed = await getRawTableRecordCardButtonsIsDisplayed();
     assert.deepEqual(displayed, [
       true,
@@ -296,7 +296,7 @@ describe('RawData', function () {
     ]);
   });
 
-  it('shows preview of summary table when clicked', async function () {
+  it('shows preview of summary table when clicked', async function() {
     // Open a summary table.
     await driver.findContent('.test-raw-data-table-title', 'CountryLanguage [by Country]').click();
     await gu.waitForServer();
@@ -318,7 +318,7 @@ describe('RawData', function () {
     assert.isFalse(await driver.find('.test-raw-data-overlay').isPresent());
   });
 
-  it('removes summary table when all sections referencing it are removed', async function () {
+  it('removes summary table when all sections referencing it are removed', async function() {
     // CountryLanguage [Totals] and CountryLanguage [by Country] respectively.
     await gu.removePage('New page');
     await gu.removePage('New page');
@@ -334,7 +334,7 @@ describe('RawData', function () {
     ]);
   });
 
-  it('removes summary table when source table is removed', async function () {
+  it('removes summary table when source table is removed', async function() {
     await removeRawTable('CountryLanguage');
     assert.deepEqual(await getRawTableTitles(), [
       'Empire',
@@ -351,7 +351,7 @@ describe('RawData', function () {
     ]);
   });
 
-  it('removes summary table when "Remove" menu item is clicked', async function () {
+  it('removes summary table when "Remove" menu item is clicked', async function() {
     const tableIds = await getRawTableIds();
     await removeRawTable(tableIds[tableIds.length - 1]);
 
@@ -364,7 +364,7 @@ describe('RawData', function () {
     ]);
   });
 
-  it('should stay on a page when undoing summary table', async function () {
+  it('should stay on a page when undoing summary table', async function() {
     // Undoing after converting a table to a summary table doesn't know
     // where to navigate, as section is removed and recreated during navigation
     // and it is not connected to any view for a brief moment - which makes that
@@ -393,7 +393,7 @@ describe('RawData', function () {
     await gu.checkForErrors();
   });
 
-  it('should remove all tables except one (including referenced summary table)', async function () {
+  it('should remove all tables except one (including referenced summary table)', async function() {
     // First we will add a new summary table for CountryLanguage table.
     // This table has a reference to the Country table, and Grist had a bug that
     // didn't allow to delete those tables - so here we will test if this is fixed.
@@ -499,7 +499,7 @@ describe('RawData', function () {
     assert.isFalse(await isRemovable('Table1'));
   });
 
-  it('should revert all without errors', async function () {
+  it('should revert all without errors', async function() {
     // Revert internally checks errors.
     await revertAll();
   });

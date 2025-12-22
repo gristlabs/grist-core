@@ -434,7 +434,7 @@ describe('AccessRules1', function() {
     assert.lengthOf(await gu.getToasts(), 0);
   });
 
-  it("'Add Widget to Page' should be disabled", async() => {
+  it("'Add Widget to Page' should be disabled", async () => {
     const mainSession = await gu.session().teamSite.user('user1').login();
     await mainSession.loadDoc(`/doc/${docId}/p/acl`, { wait: false });
     await driver.findWait('.test-rule-set', 2000);

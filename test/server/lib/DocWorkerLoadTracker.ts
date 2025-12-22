@@ -9,7 +9,7 @@ import { assert } from 'chai';
 import sinon from 'sinon';
 import tmp from 'tmp-promise';
 
-describe("DocWorkerLoadTracker", function () {
+describe("DocWorkerLoadTracker", function() {
   let docWorkerLoadTracker: DocWorkerLoadTracker;
   let docWorkerMap: IDocWorkerMap;
   let getTotalMemoryUsedStub: sinon.SinonStub;
@@ -21,11 +21,11 @@ describe("DocWorkerLoadTracker", function () {
     publicUrl: 'https://grist-public/some-path',
   };
 
-  before(function () {
+  before(function() {
     docWorkerMap = getDocWorkerMap();
   });
 
-  beforeEach(function () {
+  beforeEach(function() {
     getTotalMemoryUsedStub = sandbox.stub();
     const docManagerMock: IMemoryLoadEstimator = {
       getTotalMemoryUsedMB: getTotalMemoryUsedStub,
@@ -39,16 +39,16 @@ describe("DocWorkerLoadTracker", function () {
     docWorkerLoadTracker.stop();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     Object.assign(Deps, originalDeps);
     sandbox.restore();
   });
 
-  describe('getLoad()', function () {
+  describe('getLoad()', function() {
     let cleanupFiles: Array<() => void> = [];
     const registerCleanup = (cleanup: () => Promise<void>) => cleanupFiles.push(cleanup);
 
-    afterEach(function () {
+    afterEach(function() {
       for (const cleanup of cleanupFiles) {
         cleanup();
       }
@@ -102,7 +102,7 @@ describe("DocWorkerLoadTracker", function () {
       maxFromFile: bytesToMb(512),
       result: 128/512,
     }]) {
-      it(ctx.itMsg, async function () {
+      it(ctx.itMsg, async function() {
         ctx.setup?.();
         await Promise.all([
           mockValueInFile('docWorkerUsedMemoryBytesPath', ctx.usedFromFile),
@@ -113,7 +113,7 @@ describe("DocWorkerLoadTracker", function () {
       });
     }
 
-    it('should reject when the memory usage read from a file is not a number', async function () {
+    it('should reject when the memory usage read from a file is not a number', async function() {
       await Promise.all([
         mockValueInFile('docWorkerUsedMemoryBytesPath', 'Yikes, not a number'),
         mockValueInFile('docWorkerMaxMemoryBytesPath', bytesToMb(1024)),
@@ -123,7 +123,7 @@ describe("DocWorkerLoadTracker", function () {
       await assert.isRejected(docWorkerLoadTracker.getLoad(), /Unexpected value .* found in file.*Yikes/);
     });
 
-    it('should reject when the max memory available is specified but cannot be read', async function () {
+    it('should reject when the max memory available is specified but cannot be read', async function() {
       await mockValueInFile('docWorkerUsedMemoryBytesPath', bytesToMb(512));
       Deps.docWorkerMaxMemoryBytesPath = '/this/path/leads/nowhere';
 
@@ -131,11 +131,11 @@ describe("DocWorkerLoadTracker", function () {
     });
   });
 
-  describe('interval runner', function () {
+  describe('interval runner', function() {
     let getLoadStub: sinon.SinonStub;
     let setWorkerLoadStub: sinon.SinonStub;
     let logErrorStub: sinon.SinonStub;
-    beforeEach(function () {
+    beforeEach(function() {
       getLoadStub = sandbox.stub(docWorkerLoadTracker, 'getLoad').resolves(0);
       setWorkerLoadStub = sandbox.stub(docWorkerMap, 'setWorkerLoad').resolves(undefined);
       logErrorStub = sandbox.stub(docWorkerLoadTracker['_log'], 'error').returns(undefined);
@@ -143,14 +143,14 @@ describe("DocWorkerLoadTracker", function () {
 
     const triggerTimer = () => docWorkerLoadTracker['_interval']['_onTimeoutTriggered']();
 
-    it('should update the worker load when the timer is triggered', async function () {
+    it('should update the worker load when the timer is triggered', async function() {
       getLoadStub.resolves(0.42);
       await triggerTimer();
       assert.equal(setWorkerLoadStub.callCount, 1, 'setWorkerLoad should have been called to update the load value');
       assert.deepEqual(setWorkerLoadStub.firstCall.args, [docWorkerInfoMap, 0.42]);
     });
 
-    it('should log an error when the worker load cannot be computed', async function () {
+    it('should log an error when the worker load cannot be computed', async function() {
       const error = new Error('an error');
       getLoadStub.rejects(error);
       await triggerTimer();

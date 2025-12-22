@@ -8,22 +8,22 @@ import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import * as sinon from "sinon";
 
-describe("sanitizeUrl", function () {
+describe("sanitizeUrl", function() {
   let sandbox: sinon.SinonSandbox;
 
-  beforeEach(function () {
+  beforeEach(function() {
     // These grainjs browserGlobals are needed for using dom() in tests.
     const jsdomDoc = new JSDOM("<!doctype html><html><body></body></html>");
     sandbox = sinon.createSandbox();
     sandbox.stub(Deps, "DOMPurify").value(DOMPurify(jsdomDoc.window));
   });
 
-  afterEach(function () {
+  afterEach(function() {
     sandbox.restore();
   });
 
-  describe("sanitizeHttpUrl", function () {
-    it("returns the provided URL if valid", function () {
+  describe("sanitizeHttpUrl", function() {
+    it("returns the provided URL if valid", function() {
       assert.equal(
         sanitizeHttpUrl("https://example.com"),
         "https://example.com/",
@@ -34,7 +34,7 @@ describe("sanitizeUrl", function () {
       );
     });
 
-    it("returns null if the provided URL is invalid", function () {
+    it("returns null if the provided URL is invalid", function() {
       assert.isNull(sanitizeHttpUrl("www.example.com"));
       assert.isNull(sanitizeHttpUrl(""));
       assert.isNull(sanitizeHttpUrl("invalid"));
@@ -44,8 +44,8 @@ describe("sanitizeUrl", function () {
     });
   });
 
-  describe("sanitizeLinkUrl", function () {
-    it("returns the provided URL if valid", function () {
+  describe("sanitizeLinkUrl", function() {
+    it("returns the provided URL if valid", function() {
       assert.equal(
         sanitizeLinkUrl("https://example.com"),
         "https://example.com",
@@ -64,7 +64,7 @@ describe("sanitizeUrl", function () {
       );
     });
 
-    it("returns null if the provided URL is unsafe", function () {
+    it("returns null if the provided URL is unsafe", function() {
       assert.isNull(sanitizeLinkUrl("javascript:alert()"));
     });
   });

@@ -8,13 +8,13 @@ describe('HomeIntroWithoutPlayground', function() {
   gu.withEnvironmentSnapshot({ 'GRIST_ANON_PLAYGROUND': false });
 
   describe("Anonymous on merged-org", function() {
-    it('should show welcome page', async function () {
+    it('should show welcome page', async function() {
       const session = await gu.session().personalSite.anon.login();
       await session.loadDocMenu('/');
       assert.equal(await driver.find('.test-welcome-title').getText(), 'Welcome to Grist!');
     });
 
-    it('should not allow creating new documents', async function () {
+    it('should not allow creating new documents', async function() {
       const session = await gu.session().personalSite.anon.login();
       await session.loadDocMenu('/');
 

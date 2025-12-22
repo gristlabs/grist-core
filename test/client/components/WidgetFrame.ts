@@ -2,8 +2,8 @@ import { assert } from 'chai';
 import { MethodAccess } from 'app/client/components/WidgetFrame';
 import { AccessLevel } from 'app/common/CustomWidget';
 
-describe('WidgetFrame', function () {
-  it('should define access level per method', function () {
+describe('WidgetFrame', function() {
+  it('should define access level per method', function() {
     class SampleApi {
       public none() {
         return true;

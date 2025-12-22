@@ -12,7 +12,7 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
     return this._definition;
   }
 
-  private static _definition = (function () {
+  private static _definition = (function() {
     // Clone the Groups schema definition
     return new SchemaDefinition(
       "Role", "urn:ietf:params:scim:schemas:Grist:1.0:Role", "Role in Grist (Owner)", [

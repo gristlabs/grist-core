@@ -107,7 +107,7 @@ export class EditorMonitor extends Disposable {
 
 // typed listener for the Emitter class
 function typedListener(owner: IDisposableOwner) {
-  return function (emitter: Emitter, clb: (e: FieldEditorStateEvent) => any) {
+  return function(emitter: Emitter, clb: (e: FieldEditorStateEvent) => any) {
     owner.autoDispose(emitter.addListener(clb));
   };
 }

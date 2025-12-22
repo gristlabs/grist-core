@@ -29,7 +29,7 @@ describe('ManyFetches', function() {
   let docs: TestServer;
   let userApi: UserAPIImpl;
 
-  before(function () {
+  before(function() {
     if (!process.env.TEST_REDIS_URL) {
       return this.skip();
     }

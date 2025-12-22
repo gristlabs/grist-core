@@ -1978,7 +1978,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     try {
       await db.run('INSERT INTO _gristsys_Files (ident) VALUES (?)', fileIdent);
     }
-    catch(err) {
+    catch (err) {
       // If UNIQUE constraint failed, this ident must already exist.
       if (/^(SQLITE_CONSTRAINT: )?UNIQUE constraint failed/.test(err.message)) {
         return false;

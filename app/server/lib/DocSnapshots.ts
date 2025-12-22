@@ -123,7 +123,7 @@ export class DocSnapshotInventory implements IInventory {
    * Start keeping inventory for a new document.
    */
   public async create(key: string) {
-    await this._mutex.runExclusive(key, async() => {
+    await this._mutex.runExclusive(key, async () => {
       const fname = await this._getFilename(key);
       await this._saveToFile(fname, []);
       this._needFlush.add(key);
@@ -167,7 +167,7 @@ export class DocSnapshotInventory implements IInventory {
   public async uploadAndAdd(key: string,
     upload: () => Promise<{ snapshot?: ObjSnapshotWithMetadata,
       prevSnapshotId: string|null }>) {
-    await this._mutex.runExclusive(key, async() => {
+    await this._mutex.runExclusive(key, async () => {
       const { snapshot, prevSnapshotId } = await upload();
       if (!snapshot) {
         // the upload generated no snapshot, so there is nothing to do.
@@ -189,7 +189,7 @@ export class DocSnapshotInventory implements IInventory {
    * Make sure the latest state of the inventory is stored in S3.
    */
   public async flush(key: string) {
-    await this._mutex.runExclusive(key, async() => {
+    await this._mutex.runExclusive(key, async () => {
       await this._flush(key);
     });
   }
@@ -198,7 +198,7 @@ export class DocSnapshotInventory implements IInventory {
    * Wipe local cached state of the inventory.
    */
   public async clear(key: string) {
-    await this._mutex.runExclusive(key, async() => {
+    await this._mutex.runExclusive(key, async () => {
       await this._flush(key);
       const fname = await this._getFilename(key);
       // NOTE: fse.remove succeeds also when the file does not exist.
@@ -210,7 +210,7 @@ export class DocSnapshotInventory implements IInventory {
    * Remove a set of snapshots from the inventory, and then flush to S3.
    */
   public async remove(key: string, snapshotIds: string[]) {
-    await this._mutex.runExclusive(key, async() => {
+    await this._mutex.runExclusive(key, async () => {
       const current = await this._getSnapshots(key, null);
       const oldIds = new Set(snapshotIds);
       if (oldIds.size > 0) {
@@ -230,7 +230,7 @@ export class DocSnapshotInventory implements IInventory {
    * the most recent version listed is not the expected one.
    */
   public async versions(key: string, expectSnapshotId?: string|null): Promise<ObjSnapshotWithMetadata[]> {
-    return this._mutex.runExclusive(key, async() => {
+    return this._mutex.runExclusive(key, async () => {
       return await this._getSnapshots(key, expectSnapshotId || null);
     });
   }

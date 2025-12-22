@@ -24,7 +24,7 @@ export class ViewAsBanner extends Disposable {
   private _userOverride = this._docPageModel.userOverride;
   private _usersPopup = ACLUsersPopup.create(this, this._docPageModel, this._getUsersForViewAs.bind(this));
 
-  constructor (private _docPageModel: DocPageModel) {
+  constructor(private _docPageModel: DocPageModel) {
     super();
   }
 

@@ -2,16 +2,16 @@ import { assert } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('FilterLinkChain', function () {
+describe('FilterLinkChain', function() {
   this.timeout(10000);
   const cleanup = setupTestSuite();
 
-  before(async function () {
+  before(async function() {
     const session = await gu.session().teamSite.login();
     await session.tempDoc(cleanup, 'FilterLinkChain.grist');
   });
 
-  it('should work with chains of filter links', async function () {
+  it('should work with chains of filter links', async function() {
     async function checkCells(sectionName: string, cols: string[], expected: string[]) {
       assert.deepEqual(
         await gu.getVisibleGridCells({ section: sectionName, cols, rowNums: [1, 2] }),

@@ -10,29 +10,29 @@ import { TestProxyServer } from 'test/server/lib/helpers/TestProxyServer';
 import sinon from "sinon";
 import { assert } from "chai";
 
-describe("ProxyAgent", function () {
+describe("ProxyAgent", function() {
   let oldEnv: EnvironmentSnapshot;
   let warnStub: sinon.SinonStub;
   let sandbox: sinon.SinonSandbox;
 
   const proxyForTrustedUrlExample = 'https://localhost:9000';
   const proxyForUntrustedUrlExample = 'https://localhost:9001';
-  beforeEach(function () {
+  beforeEach(function() {
     oldEnv = new EnvironmentSnapshot();
     sandbox = sinon.createSandbox();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     sandbox?.restore();
     oldEnv.restore();
   });
 
-  describe('configuration', function () {
+  describe('configuration', function() {
     beforeEach(() => {
       warnStub = sandbox.stub(log, 'warn');
     });
 
-    it('should create a proxy agent for trusted URLs when using https_proxy env var', function () {
+    it('should create a proxy agent for trusted URLs when using https_proxy env var', function() {
       process.env.https_proxy = proxyForTrustedUrlExample;
 
       const proxyAgents = test_generateProxyAgents();
@@ -42,7 +42,7 @@ describe("ProxyAgent", function () {
       sinon.assert.notCalled(warnStub);
     });
 
-    it('should create a proxy agent for trusted URLs when using HTTPS_PROXY env var', function () {
+    it('should create a proxy agent for trusted URLs when using HTTPS_PROXY env var', function() {
       process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
 
       const proxyAgents = test_generateProxyAgents();
@@ -52,7 +52,7 @@ describe("ProxyAgent", function () {
       sinon.assert.notCalled(warnStub);
     });
 
-    it('should create a proxy agent for untrusted URLs when using GRIST_PROXY_FOR_UNTRUSTED_URLS env var', function () {
+    it('should create a proxy agent for untrusted URLs when using GRIST_PROXY_FOR_UNTRUSTED_URLS env var', function() {
       process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
 
       const proxyAgents = test_generateProxyAgents();
@@ -63,7 +63,7 @@ describe("ProxyAgent", function () {
     });
 
     it('should create both proxy agents for untrusted and trusted URLS using ' +
-      'GRIST_PROXY_FOR_UNTRUSTED_URLS and HTTPS_PROXY', function () {
+      'GRIST_PROXY_FOR_UNTRUSTED_URLS and HTTPS_PROXY', function() {
       process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = proxyForUntrustedUrlExample;
       process.env.HTTPS_PROXY = proxyForTrustedUrlExample;
 
@@ -75,7 +75,7 @@ describe("ProxyAgent", function () {
     });
 
     it('should create a proxy agent for untrusted URLs when using GRIST_HTTPS_PROXY env var ' +
-      'and show a deprecation message', function () {
+      'and show a deprecation message', function() {
       process.env.GRIST_HTTPS_PROXY = proxyForUntrustedUrlExample;
 
       const proxyAgents = test_generateProxyAgents();
@@ -87,7 +87,7 @@ describe("ProxyAgent", function () {
       );
     });
 
-    it('should create no proxy agent when GRIST_PROXY_FOR_UNTRUSTED_URLS is set to "direct"', function () {
+    it('should create no proxy agent when GRIST_PROXY_FOR_UNTRUSTED_URLS is set to "direct"', function() {
       process.env.GRIST_PROXY_FOR_UNTRUSTED_URLS = "direct";
 
       const proxyAgents = test_generateProxyAgents();
@@ -102,7 +102,7 @@ describe("ProxyAgent", function () {
     // Proxy server emulation to test possible behaviours of real life server
     let testProxyServer: TestProxyServer;
 
-    beforeEach(async function () {
+    beforeEach(async function() {
       // Set up a server and a proxy.
       const port = await getAvailablePort(22340);
       testProxyServer = await TestProxyServer.Prepare(port);

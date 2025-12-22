@@ -6,9 +6,9 @@ import { fromCallback, listenPromise } from 'app/server/lib/serverUtils';
 import { AddressInfo } from 'net';
 import httpProxy from 'http-proxy';
 
-describe(`GristSockets`, function () {
+describe(`GristSockets`, function() {
   for (const webSocketsSupported of [true, false]) {
-    describe(`when the networks ${webSocketsSupported ? "supports" : "does not support"} WebSockets`, function () {
+    describe(`when the networks ${webSocketsSupported ? "supports" : "does not support"} WebSockets`, function() {
       let server: http.Server | null;
       let serverPort: number;
       let socketServer: GristSocketServer | null;
@@ -17,12 +17,12 @@ describe(`GristSockets`, function () {
       let proxyPort: number;
       let wsAddress: string;
 
-      beforeEach(async function () {
+      beforeEach(async function() {
         await startSocketServer();
         await startProxyServer();
       });
 
-      afterEach(async function () {
+      afterEach(async function() {
         await stopProxyServer();
         await stopSocketServer();
       });
@@ -114,7 +114,7 @@ describe(`GristSockets`, function () {
         });
       }
 
-      it("should expose initial request", async function () {
+      it("should expose initial request", async function() {
         const connectionPromise = new Promise<http.IncomingMessage>((resolve) => {
           socketServer!.onconnection = (socket, req) => {
             resolve(req);
@@ -132,7 +132,7 @@ describe(`GristSockets`, function () {
         assert.equal(req.headers.cookie, "session=1234");
       });
 
-      it("should receive and send messages", async function () {
+      it("should receive and send messages", async function() {
         socketServer!.onconnection = (socket, req) => {
           socket.onmessage = (data) => {
             socket.send("hello, " + data);
@@ -144,7 +144,7 @@ describe(`GristSockets`, function () {
         clientWs.close();
       });
 
-      it("should invoke send callbacks", async function () {
+      it("should invoke send callbacks", async function() {
         const connectionPromise = new Promise<void>((resolve) => {
           socketServer!.onconnection = (socket, req) => {
             socket.send("hello", () => resolve());
@@ -155,7 +155,7 @@ describe(`GristSockets`, function () {
         clientWs.close();
       });
 
-      it("should emit close event for client", async function () {
+      it("should emit close event for client", async function() {
         const clientWs = await connectClient(wsAddress);
         const closePromise = new Promise<void>((resolve) => {
           clientWs.onclose = resolve;
@@ -164,7 +164,7 @@ describe(`GristSockets`, function () {
         await closePromise;
       });
 
-      it("should fail gracefully if verifyClient throws exception", async function () {
+      it("should fail gracefully if verifyClient throws exception", async function() {
         // Restart servers with a failing verifyClient method.
         await stopProxyServer();
         await stopSocketServer();

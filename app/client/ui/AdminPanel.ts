@@ -572,7 +572,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           if (controller.signal.aborted) { return; }
           actions.gotLatestVersion(result);
         }
-        catch(err) {
+        catch (err) {
           if (controller.signal.aborted) { return; }
           state.set(State.ERROR);
           reportError(err);

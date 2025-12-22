@@ -3,11 +3,11 @@ import { assert, driver, WebElementPromise } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('ApiConsole', function () {
+describe('ApiConsole', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
-  before(async function () {
+  before(async function() {
     const session = await gu.session().user('user1').login();
     await session.tempDoc(cleanup, 'Hello.grist');
     await gu.dismissWelcomeTourIfNeeded();

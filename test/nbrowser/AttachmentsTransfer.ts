@@ -86,7 +86,7 @@ describe("AttachmentsTransfer", function() {
       return fs.readdirSync(path.join(tmpAttachmentsFolder, dirs[0]));
     };
 
-    it("should show transfer menu", async function () {
+    it("should show transfer menu", async function() {
       await session.loadRelPath(`/doc/${docId}`);
 
       // Open document settings.
@@ -111,7 +111,7 @@ describe("AttachmentsTransfer", function() {
       await storageType.select('Internal');
     });
 
-    it("should show actions when some attachments are added", async function () {
+    it("should show actions when some attachments are added", async function() {
       // Upload four attachments.
       await gu.openPage('Table1');
       await gu.selectColumn('A');
@@ -147,7 +147,7 @@ describe("AttachmentsTransfer", function() {
       assert.isTrue(await startTransferButton().isDisplayed());
     });
 
-    it('should transfer files to external storage', async function () {
+    it('should transfer files to external storage', async function() {
       // First make sure that the tmp folder is empty.
       assert.lengthOf(files(), 0);
 
@@ -173,7 +173,7 @@ describe("AttachmentsTransfer", function() {
       assert.lengthOf(await messages(), 0);
     });
 
-    it('warns users downloading the doc that attachments are external', async function () {
+    it('warns users downloading the doc that attachments are external', async function() {
       try {
         await driver.find('.test-tb-share').click();
         await driver.findContentWait('.test-tb-share-option', /Download document/, 5000).click();
@@ -195,7 +195,7 @@ describe("AttachmentsTransfer", function() {
       }
     });
 
-    it('can download attachments', async function () {
+    it('can download attachments', async function() {
       try {
         await driver.find('.test-tb-share').click();
         await driver.findContentWait('.test-tb-share-option', /Download attachments/, 5000).click();
@@ -238,7 +238,7 @@ describe("AttachmentsTransfer", function() {
       }
     });
 
-    it('can upload attachments', async function () {
+    it('can upload attachments', async function() {
       const file = path.join(tmpDownloadsFolder, 'attachments.tar');
       await fileDialogUpload(file, async () => {
         await driver.find('.test-settings-upload-attachment-archive').click();
@@ -252,7 +252,7 @@ describe("AttachmentsTransfer", function() {
       await driver.findWait('.test-notifier-toast-close', 2000).click();
     });
 
-    it('should transfer files to internal storage', async function () {
+    it('should transfer files to internal storage', async function() {
       // Switch to internal.
       await storageType.select('Internal');
 
@@ -294,7 +294,7 @@ describe("AttachmentsTransfer", function() {
     });
 
     // Here we do the same stuff but with the API calls, and we expect that the UI will react to it.
-    it('user should be able to observe background actions', async function () {
+    it('user should be able to observe background actions', async function() {
       // Sanity check.
       assert.equal(await storageType.value(), 'Internal');
 

@@ -304,7 +304,7 @@ function wrapObject<T extends object>(impl: T, accessChecker: AccessChecker, acc
   return new Proxy(impl, {
     // This proxies all the calls to methods on the API.
     get(target: any, methodName: string) {
-      return function () {
+      return function() {
         if (methodName === 'then') {
           // Making a proxy for then invocation is not a good idea.
           return undefined;

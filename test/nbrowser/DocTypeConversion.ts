@@ -6,7 +6,7 @@ import { Button, button, element, label, option } from "test/nbrowser/elementUti
 
 type TypeLabels = "Regular" | "Template" | "Tutorial";
 
-describe("DocTypeConversion", function () {
+describe("DocTypeConversion", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
@@ -79,7 +79,7 @@ describe("DocTypeConversion", function () {
     assert.isFalse(await fiddleTag.present());
   }
 
-  it("should display the modal with only the current type selected", async function () {
+  it("should display the modal with only the current type selected", async function() {
     await gu.openDocumentSettings();
     // Make sure we see the Edit button of document type conversion.
     await assertExistsButton(editButton, "Edit");

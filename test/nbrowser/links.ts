@@ -3,7 +3,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupExternalSite } from 'test/server/customUtil';
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-describe("links", function () {
+describe("links", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   let session: gu.Session;
@@ -12,7 +12,7 @@ describe("links", function () {
 
   const externalSite = setupExternalSite('Dolphins are cool.');
 
-  before(async function () {
+  before(async function() {
     session = await gu.session().login();
     docId = await session.tempNewDoc(cleanup, "links");
     urlId = (await gu.getCurrentUrlId())!;
@@ -84,17 +84,17 @@ describe("links", function () {
       }
     }
 
-    describe(`in ${type} cells`, function () {
-      before(async function () {
+    describe(`in ${type} cells`, function() {
+      before(async function() {
         await gu.setFieldWidgetType(type);
         await gu.getCell(0, 1).click();
       });
 
-      beforeEach(async function () {
+      beforeEach(async function() {
         await gu.sendKeys(Key.chord(await gu.modKey(), Key.ARROW_UP));
       });
 
-      it("have absolute URLs", async function () {
+      it("have absolute URLs", async function() {
         // Previously, URLs in Markdown cells were treated as being relative to
         // the document origin if they were missing a scheme. This was inconsistent
         // with how HyperLink cells treated such URLs (with `http://` inferred).
@@ -112,7 +112,7 @@ describe("links", function () {
 
       it(`have ${
         type === "Markdown" ? "a null" : 'an "about:blank"'
-      } URL when invalid`, async function () {
+      } URL when invalid`, async function() {
         await gu.enterCell(makeLink("javascript:alert()"));
         if (type !== "TextBox") {
           assert.equal(
@@ -125,7 +125,7 @@ describe("links", function () {
         }
       });
 
-      it("open without reloading if the URL is in the same document", async function () {
+      it("open without reloading if the URL is in the same document", async function() {
         await assertSameDocumentLink(
           makeLink(server.getUrl(session.orgDomain, `/${urlId}/links/p/acl`)),
           new RegExp(`\\/${urlId}\\/links\\/p\\/acl$`),

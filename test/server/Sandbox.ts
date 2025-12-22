@@ -6,7 +6,7 @@ import { createSandbox, NSandbox } from 'app/server/lib/NSandbox';
 import { timeoutReached } from 'app/server/lib/serverUtils';
 import * as testUtils from 'test/server/testUtils';
 
-describe('Sandbox', function () {
+describe('Sandbox', function() {
   this.timeout(12000);
 
   const output: { stdout: string[], stderr: string[] } = {
@@ -29,12 +29,12 @@ describe('Sandbox', function () {
 
   testUtils.setTmpLogLevel('warn', capture);
 
-  beforeEach(function () {
+  beforeEach(function() {
     clear();
   });
 
-  describe("Basic operation", function () {
-    it("should echo hello world", async function () {
+  describe("Basic operation", function() {
+    it("should echo hello world", async function() {
       const sandbox = createSandbox('sandboxed', {});
       try {
         const result = await sandbox.pyCall(
@@ -47,7 +47,7 @@ describe('Sandbox', function () {
       }
     });
 
-    it("should handle exceptions", async function () {
+    it("should handle exceptions", async function() {
       const sandbox = createSandbox('sandboxed', {});
       try {
         await assert.isRejected(sandbox.pyCall(
@@ -64,8 +64,8 @@ describe('Sandbox', function () {
     });
   });
 
-  describe("sandbox.pyCall", function () {
-    it("should invoke python functions", async function () {
+  describe("sandbox.pyCall", function() {
+    it("should invoke python functions", async function() {
       const sandbox = createSandbox('sandboxed', {});
       // Startup can be noisy in logs, wait for it to be done
       // and for the sandbox to be available, then clear the logs.
@@ -84,7 +84,7 @@ describe('Sandbox', function () {
       }
     });
 
-    it("should fail when sandbox has exited", async function () {
+    it("should fail when sandbox has exited", async function() {
       const sandbox = createSandbox('sandboxed', {});
       try {
         // Normally pyCall should succeed.
@@ -112,7 +112,7 @@ describe('Sandbox', function () {
       }
     });
 
-    it("should get killed if sandbox refuses to exit", async function () {
+    it("should get killed if sandbox refuses to exit", async function() {
       const sandbox = createSandbox('sandboxed', {});
       const expectedRejection = assert.isRejected(
         sandbox.pyCall("test_operation", 100, "uppercase", "hello"),
@@ -122,7 +122,7 @@ describe('Sandbox', function () {
       await expectedRejection;
     });
 
-    it("should be reasonably quick with big data", async function () {
+    it("should be reasonably quick with big data", async function() {
       const sandbox = createSandbox('sandboxed', {});
       const bigString = new Array(1000001).join("*");
       assert.equal(bigString.length, 1000000);
@@ -150,17 +150,17 @@ describe('Sandbox', function () {
     });
   });
 
-  describe("sandbox restrictions", function () {
+  describe("sandbox restrictions", function() {
     let sandbox: NSandbox;
-    before(function () {
+    before(function() {
       sandbox = createSandbox('sandboxed', {}) as NSandbox;
     });
 
-    after(function () {
+    after(function() {
       return sandbox.shutdown();
     });
 
-    it("should only have access to directories inside the sandbox root", async function () {
+    it("should only have access to directories inside the sandbox root", async function() {
       const sandboxRoot = await sandbox.pyCall('test_get_sandbox_root');
       const sandboxDirs = await sandbox.pyCall('test_list_files', sandboxRoot, false);
       const hostDirs = getSubDirs(`${testUtils.appRoot}/sandbox/grist`, sandboxRoot);
@@ -175,7 +175,7 @@ describe('Sandbox', function () {
       assert.deepEqual(emptyTmp, ["/tmp"]);
     });
 
-    it("gvisor and macSandboxExec should have no write access to sandbox files", async function () {
+    it("gvisor and macSandboxExec should have no write access to sandbox files", async function() {
       if (!['gvisor', 'macSandboxExec'].includes(sandbox.getFlavor())) {
         this.skip();
       }
@@ -191,7 +191,7 @@ describe('Sandbox', function () {
       assert.notMatch(fileContents, /rambunctious/);
     });
 
-    it("pyodide writes to sandbox files should not survive outside the sandbox", async function () {
+    it("pyodide writes to sandbox files should not survive outside the sandbox", async function() {
       if (sandbox.getFlavor() !== 'pyodide') {
         this.skip();
       }
@@ -209,7 +209,7 @@ describe('Sandbox', function () {
       assert.notMatch(fileContents, /rambunctious/);
     });
 
-    it("should have write access to some directories", async function () {
+    it("should have write access to some directories", async function() {
       if (sandbox.getFlavor() === 'macSandboxExec') {
         // Mac sandbox doesn't allow this kind of tmpfs overlay.
         this.skip();
@@ -225,25 +225,25 @@ describe('Sandbox', function () {
     });
   });
 
-  describe('pyodide', function () {
-    before(function () {
+  describe('pyodide', function() {
+    before(function() {
       if (process.env.GRIST_SANDBOX_FLAVOR !== 'pyodide') {
         this.skip();
       }
     });
 
-    describe('execute via external node command', function () {
+    describe('execute via external node command', function() {
       let oldEnv: testUtils.EnvironmentSnapshot;
-      before(function () {
+      before(function() {
         oldEnv = new testUtils.EnvironmentSnapshot();
         process.env.GRIST_SANDBOX = process.execPath;
       });
 
-      after(function () {
+      after(function() {
         oldEnv?.restore();
       });
 
-      it("can create a pyodide sandbox by spawning", async function () {
+      it("can create a pyodide sandbox by spawning", async function() {
         const sandbox = createSandbox('sandboxed', {});
         try {
           const result = await sandbox.pyCall(

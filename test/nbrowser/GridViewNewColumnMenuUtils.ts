@@ -46,11 +46,11 @@ export async function collapsedHiddenColumns() {
 
 export function revertEach() {
   let revert: () => Promise<void>;
-  beforeEach(async function () {
+  beforeEach(async function() {
     revert = await gu.begin();
   });
 
-  gu.afterEachCleanup(async function () {
+  gu.afterEachCleanup(async function() {
     if (await isMenuPresent()) {
       await closeAddColumnMenu();
     }
@@ -60,11 +60,11 @@ export function revertEach() {
 
 export function revertThis() {
   let revert: () => Promise<void>;
-  before(async function () {
+  before(async function() {
     revert = await gu.begin();
   });
 
-  gu.afterCleanup(async function () {
+  gu.afterCleanup(async function() {
     if (await isMenuPresent()) {
       await closeAddColumnMenu();
     }

@@ -15,7 +15,7 @@ interface SelectionSummary {
   sum: string | null;
 }
 
-describe('SelectionSummary', function () {
+describe('SelectionSummary', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   gu.bigScreen('big');
@@ -70,14 +70,14 @@ describe('SelectionSummary', function () {
     await assertSelectionSummary(summary);
   }
 
-  it('does not display anything if only a single cell is selected', async function () {
+  it('does not display anything if only a single cell is selected', async function() {
     for (const [col, row] of [[0, 1], [2, 3]]) {
       await gu.getCell(col, row).click();
       await assertSelectionSummary(null);
     }
   });
 
-  it('displays sum if the selection contains numbers', async function () {
+  it('displays sum if the selection contains numbers', async function() {
     await selectAndAssert({ col: 0, row: 0 }, { col: 0, row: 6 }, {
       dimensions: '7⨯1',
       count: null,
@@ -101,7 +101,7 @@ describe('SelectionSummary', function () {
     });
   });
 
-  it('uses formatter of the first (leftmost) numeric column', async function () {
+  it('uses formatter of the first (leftmost) numeric column', async function() {
     // Column 0 is U.S. currency, while column 1 is just a plain decimal number.
     await selectAndAssert({ col: 0, row: 0 }, { col: 1, row: 6 }, {
       dimensions: '7⨯2',
@@ -121,7 +121,7 @@ describe('SelectionSummary', function () {
     });
   });
 
-  it("displays count if the selection doesn't contain numbers", async function () {
+  it("displays count if the selection doesn't contain numbers", async function() {
     await selectAndAssert({ col: 2, row: 0 }, { col: 2, row: 6 }, {
       dimensions: '7⨯1',
       count: 5,
@@ -148,7 +148,7 @@ describe('SelectionSummary', function () {
     });
   });
 
-  it('does not count false values', async function () {
+  it('does not count false values', async function() {
     // False values in boolean columns should not be included in count
     await selectAndAssert({ col: 2, row: 0 }, { col: 3, row: 5 }, {
       dimensions: '6⨯2',
@@ -157,7 +157,7 @@ describe('SelectionSummary', function () {
     });
   });
 
-  it('uses the show column of reference columns for computations', async function () {
+  it('uses the show column of reference columns for computations', async function() {
     // Column 6 is a Reference column pointing to column 0.
     await gu.sendKeys(Key.HOME);
     await selectAndAssert({ col: 6, row: 0 }, { col: 6, row: 6 }, {
@@ -176,7 +176,7 @@ describe('SelectionSummary', function () {
     });
   });
 
-  it('updates whenever the selection changes', async function () {
+  it('updates whenever the selection changes', async function() {
     // Scroll horizontally to the beginning of the table.
     await gu.sendKeys(Key.HOME);
 
@@ -198,7 +198,7 @@ describe('SelectionSummary', function () {
     });
   });
 
-  it('displays correct sum when all rows/columns are selected', async function () {
+  it('displays correct sum when all rows/columns are selected', async function() {
     await driver.find(".gridview_data_corner_overlay").click();
     await assertSelectionSummary({
       dimensions: '7⨯14',

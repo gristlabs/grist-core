@@ -34,7 +34,7 @@ describe('DocWorkerMap', function() {
   });
 
   for (const GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT of [0, 1]) {
-    describe(`with GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT=${GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT}`, function () {
+    describe(`with GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT=${GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT}`, function() {
       let oldEnv: testUtils.EnvironmentSnapshot;
 
       before(async function() {

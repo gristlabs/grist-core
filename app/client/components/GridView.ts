@@ -491,10 +491,10 @@ export default class GridView extends BaseView {
     shiftUp: function() { this._shiftSelect({ step: 1, direction: 'up' }); },
     shiftRight: function() { this._shiftSelect({ step: 1, direction: 'right' }); },
     shiftLeft: function() { this._shiftSelect({ step: 1, direction: 'left' }); },
-    ctrlShiftDown: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'down' }); },
-    ctrlShiftUp: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'up' }); },
-    ctrlShiftRight: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'right' }); },
-    ctrlShiftLeft: function () { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'left' }); },
+    ctrlShiftDown: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'down' }); },
+    ctrlShiftUp: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'up' }); },
+    ctrlShiftRight: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'right' }); },
+    ctrlShiftLeft: function() { this._shiftSelectUntilFirstOrLastNonEmptyCell({ direction: 'left' }); },
     fieldEditSave: function() { this.cursor.rowIndex(this.cursor.rowIndex()! + 1); },
     // Re-define editField after fieldEditSave to make it take precedence for the Enter key.
     editField: function(event?: KeyboardEvent) {
@@ -613,7 +613,7 @@ export default class GridView extends BaseView {
    * Gets the number of rows/columns until the first or last non-empty cell in the specified
    * `direction`.
    */
-  protected _stepsToContent ({ direction}: { direction: Direction }) {
+  protected _stepsToContent({ direction}: { direction: Direction }) {
     const colEnd = this.cellSelector.col.end();
     const rowEnd = this.cellSelector.row.end();
     const cursorCol = this.cursor.fieldIndex();
@@ -969,7 +969,7 @@ export default class GridView extends BaseView {
       const event = new CustomEvent('setCursor', { detail: [row, col], bubbles: true });
       this.scrollPane.dispatchEvent(event);
     }
-    catch(e) {
+    catch (e) {
       console.error(e);
       console.error("GridView.assignCursor expects a row/col header, or cell as an input.");
     }
@@ -1905,7 +1905,7 @@ export default class GridView extends BaseView {
   // buildDom needs some of the row/col/cell selector observables to exist beforehand
   // but we can't attach any of the mouse handlers in the Selector class until the
   // dom elements exist so we attach the selector handlers separately from instantiation
-  protected attachSelectorHandlers () {
+  protected attachSelectorHandlers() {
     const ignoreEvent = (event: MouseEvent, elem: HTMLElement) => (
       event.button !== 0 ||
       (event.target as HTMLElement).classList.contains('ui-resizable-handle') ||

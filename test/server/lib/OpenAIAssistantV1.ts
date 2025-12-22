@@ -24,7 +24,7 @@ chai.use(chaiAsPromised);
  */
 const LONGER_CONTEXT_MODEL_FOR_TEST = "fake";
 
-describe('OpenAIAssistantV1', function () {
+describe('OpenAIAssistantV1', function() {
   this.timeout(10000);
 
   const docTools = createDocTools({ persistAcrossCases: true });
@@ -50,7 +50,7 @@ describe('OpenAIAssistantV1', function () {
       ["AddTable", table2Id, [{ id: "A" }, { id: "B" }, { id: "C" }]],
     ]);
   });
-  after(async function () {
+  after(async function() {
     oldEnv.restore();
   });
 
@@ -81,7 +81,7 @@ describe('OpenAIAssistantV1', function () {
     sinon.replace(DEPS, 'delayTime', 1);
   });
 
-  afterEach(function () {
+  afterEach(function() {
     sinon.restore();
   });
 
@@ -92,7 +92,7 @@ describe('OpenAIAssistantV1', function () {
     );
   }
 
-  it('can suggest a formula', async function () {
+  it('can suggest a formula', async function() {
     const reply = "Here's a formula that adds columns A and B:\n\n" +
       "```python\na = int(rec.A)\nb=int(rec.B)\n\nreturn str(a + b)\n```" +
       "\n\nLet me know if there's anything else I can help with.";
@@ -143,7 +143,7 @@ describe('OpenAIAssistantV1', function () {
     );
   });
 
-  it('does not use the trusted proxy when not configured', async function () {
+  it('does not use the trusted proxy when not configured', async function() {
     const agentsFake = { trusted: undefined, untrusted: undefined };
     sinon.replace(DEPS, 'agents', agentsFake);
     await checkGetAssistance();
@@ -155,7 +155,7 @@ describe('OpenAIAssistantV1', function () {
     assert.isUndefined(request.agent);
   });
 
-  it('uses trusted proxy when configured', async function () {
+  it('uses trusted proxy when configured', async function() {
     const proxyURL = 'http://localhost-proxy:8080';
     process.env.HTTPS_PROXY=proxyURL;
     const trustedAgent = new GristProxyAgent(proxyURL);
@@ -170,7 +170,7 @@ describe('OpenAIAssistantV1', function () {
     assert.deepEqual(request.agent, trustedAgent);
   });
 
-  it('does not suggest anything if formula is invalid', async function () {
+  it('does not suggest anything if formula is invalid', async function() {
     const reply = "This isn't valid Python code:\n```python\nclass = 'foo'\n```";
     const replyMessage = {
       "role": "assistant",
@@ -201,7 +201,7 @@ describe('OpenAIAssistantV1', function () {
     );
   });
 
-  it('tries 3 times in case of network errors', async function () {
+  it('tries 3 times in case of network errors', async function() {
     fakeResponse = () => {
       throw new Error("Network error");
     };
@@ -214,7 +214,7 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(fakeFetch.callCount, 3);
   });
 
-  it('tries 3 times in case of bad status code', async function () {
+  it('tries 3 times in case of bad status code', async function() {
     fakeResponse = () => ({ status: 500 });
     await assert.isRejected(
       checkGetAssistance(),
@@ -225,7 +225,7 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(fakeFetch.callCount, 3);
   });
 
-  it('handles exceeded billing quota', async function () {
+  it('handles exceeded billing quota', async function() {
     fakeResponse = () => ({
       error: {
         code: "insufficient_quota",
@@ -240,7 +240,7 @@ describe('OpenAIAssistantV1', function () {
     assert.equal(fakeFetch.callCount, 1);
   });
 
-  it('switches to a longer model with no retries if the prompt is too long', async function () {
+  it('switches to a longer model with no retries if the prompt is too long', async function() {
     fakeResponse = () => ({
       error: {
         code: "context_length_exceeded",
@@ -258,7 +258,7 @@ describe('OpenAIAssistantV1', function () {
     ]);
   });
 
-  it('switches to a shorter prompt if the longer model exceeds its token limit', async function () {
+  it('switches to a shorter prompt if the longer model exceeds its token limit', async function() {
     fakeResponse = () => ({
       error: {
         code: "context_length_exceeded",
@@ -289,7 +289,7 @@ describe('OpenAIAssistantV1', function () {
     });
   });
 
-  it('switches to a longer model with no retries if the model runs out of tokens while responding', async function () {
+  it('switches to a longer model with no retries if the model runs out of tokens while responding', async function() {
     fakeResponse = () => ({
       "choices": [{
         "index": 0,
@@ -309,7 +309,7 @@ describe('OpenAIAssistantV1', function () {
     ]);
   });
 
-  it('suggests restarting conversation if the prompt is too long and there are past messages', async function () {
+  it('suggests restarting conversation if the prompt is too long and there are past messages', async function() {
     fakeResponse = () => ({
       error: {
         code: "context_length_exceeded",
@@ -333,7 +333,7 @@ describe('OpenAIAssistantV1', function () {
     ]);
   });
 
-  it('can switch to a longer model, retry, and succeed', async function () {
+  it('can switch to a longer model, retry, and succeed', async function() {
     fakeResponse = () => {
       if (fakeFetch.callCount === 1) {
         return {

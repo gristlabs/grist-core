@@ -2,7 +2,7 @@ import { assert, driver, stackWrapFunc } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('ExportSection', function () {
+describe('ExportSection', function() {
   this.timeout(20000);
   setupTestSuite();
 
@@ -25,12 +25,12 @@ describe('ExportSection', function () {
     await gu.waitForServer();
   });
 
-  before(async function () {
+  before(async function() {
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
     await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', "SortFilterIconTest.grist");
   });
 
-  it('should export unsaved filtered data', async function () {
+  it('should export unsaved filtered data', async function() {
     // open filters section
     await gu.toggleSidePanel('right', 'open');
     await driver.findWait('.test-right-tab-pagewidget', 1000).click();
@@ -54,7 +54,7 @@ Bananas,2,2019-07-18`;
     await gu.waitForServer();
   });
 
-  it('should export saved filtered data', async function () {
+  it('should export saved filtered data', async function() {
     // we will reuse results from previous test here
 
     // refresh the browser to reload everything
@@ -75,7 +75,7 @@ Apples,1,2019-07-17`;
     assert.equal(trim(csv), trim(expected));
   });
 
-  it('should respect filters on hidden columns', async function () {
+  it('should respect filters on hidden columns', async function() {
     // Refresh the browser to reload everything.
     await driver.navigate().refresh();
     await gu.waitForDocToLoad();

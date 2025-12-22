@@ -203,7 +203,7 @@ describe('OIDCConfig', () => {
       });
     });
 
-    describe('GRIST_OIDC_SP_HTTP_TIMEOUT', function () {
+    describe('GRIST_OIDC_SP_HTTP_TIMEOUT', function() {
       [
         {
           itMsg: 'when omitted should not override openid-client default value',
@@ -253,20 +253,20 @@ describe('OIDCConfig', () => {
       });
     });
 
-    describe('trusted proxy', function () {
+    describe('trusted proxy', function() {
       const proxyURL = 'http://localhost-proxy:8080';
       let setHttpOptionsDefaultsStub: Sinon.SinonStub;
-      beforeEach(function () {
+      beforeEach(function() {
         setHttpOptionsDefaultsStub = sandbox.stub(custom, 'setHttpOptionsDefaults');
       });
 
-      it('when not configured should use the default proxy', async function () {
+      it('when not configured should use the default proxy', async function() {
         setEnvVars();
         await OIDCConfigStubbed.buildWithStub();
         Sinon.assert.calledOnceWithExactly(setHttpOptionsDefaultsStub, {});
       });
 
-      it('when configured should use the trusted proxy', async function () {
+      it('when configured should use the trusted proxy', async function() {
         const trustedAgent = new GristProxyAgent(proxyURL);
         sandbox.stub(agents, 'trusted').value(trustedAgent);
         setEnvVars();
@@ -290,7 +290,7 @@ describe('OIDCConfig', () => {
       await checkRejection(promise, 'invalid');
     });
 
-    it('should successfully change the supported protections', async function () {
+    it('should successfully change the supported protections', async function() {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'NONCE';
       const config = await OIDCConfigStubbed.buildWithStub();
@@ -299,14 +299,14 @@ describe('OIDCConfig', () => {
       assert.isFalse(config.supportsProtection("STATE"));
     });
 
-    it('should reject when set to an empty string', async function () {
+    it('should reject when set to an empty string', async function() {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = '';
       const promise = OIDCConfigStubbed.buildWithStub();
       await checkRejection(promise, '');
     });
 
-    it('should accept to be set to "UNPROTECTED"', async function () {
+    it('should accept to be set to "UNPROTECTED"', async function() {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'UNPROTECTED';
       const config = await OIDCConfigStubbed.buildWithStub();
@@ -317,14 +317,14 @@ describe('OIDCConfig', () => {
       assert.match(logWarnStub.firstCall.args[0], /with no protection/);
     });
 
-    it('should reject when set to "UNPROTECTED,PKCE"', async function () {
+    it('should reject when set to "UNPROTECTED,PKCE"', async function() {
       setEnvVars();
       process.env.GRIST_OIDC_IDP_ENABLED_PROTECTIONS = 'UNPROTECTED,PKCE';
       const promise = OIDCConfigStubbed.buildWithStub();
       await checkRejection(promise, 'UNPROTECTED');
     });
 
-    it('if omitted, should default to "STATE,PKCE"', async function () {
+    it('if omitted, should default to "STATE,PKCE"', async function() {
       setEnvVars();
       const config = await OIDCConfigStubbed.buildWithStub();
       assert.isFalse(config.supportsProtection("NONCE"));
@@ -491,14 +491,14 @@ describe('OIDCConfig', () => {
     });
 
     function checkUserProfile(expectedUserProfile: object) {
-      return function ({ user}: { user: any }) {
+      return function({ user}: { user: any }) {
         assert.deepEqual(user.profile, expectedUserProfile,
           `user profile should have been populated with ${JSON.stringify(expectedUserProfile)}`);
       };
     }
 
     function checkRedirect(expectedRedirection: string) {
-      return function ({ fakeRes}: { fakeRes: any }) {
+      return function({ fakeRes}: { fakeRes: any }) {
         assert.deepEqual(fakeRes.redirect.firstCall.args, [expectedRedirection],
           `should have redirected to ${expectedRedirection}`);
       };
@@ -509,7 +509,7 @@ describe('OIDCConfig', () => {
         itMsg: 'should reject when no OIDC information is present in the session',
         session: {},
         expectedErrorMsg: /Missing OIDC information/,
-        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+        extraChecks: function({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
           Sinon.assert.calledWith(sendAppPageStub,
             Sinon.match.any,
             Sinon.match.any,
@@ -593,7 +593,7 @@ describe('OIDCConfig', () => {
           email_verified: false,
         },
         expectedErrorMsg: /email not verified for/,
-        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+        extraChecks: function({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
           assert.equal(sendAppPageStub.firstCall.lastArg.config.errMessage, 'oidc.emailNotVerifiedError');
         },
       },
@@ -739,7 +739,7 @@ describe('OIDCConfig', () => {
           email_verified: false,
         },
         expectedErrorMsg: /email not verified for/,
-        extraChecks: function ({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
+        extraChecks: function({ sendAppPageStub }: { sendAppPageStub: Sinon.SinonStub }) {
           Sinon.assert.calledWith(sendAppPageStub,
             Sinon.match.any,
             Sinon.match.any,
@@ -758,7 +758,7 @@ describe('OIDCConfig', () => {
           expires_in: 987654321,
           scope: 'fake-scope',
         },
-        extraChecks: function () {
+        extraChecks: function() {
           assert.isTrue(logDebugStub.called);
           assert.deepEqual(logDebugStub.firstCall.args, [
             'Got tokenSet: %o', {

@@ -331,7 +331,7 @@ const _authenticationProbe: Probe = {
 const _sessionSecretProbe: Probe = {
   id: 'session-secret',
   name: 'Session secret',
-  apply: async(server, req) => {
+  apply: async (server, req) => {
     const usingDefaultSessionSecret = server.create.sessionSecret() === DEFAULT_SESSION_SECRET;
     return {
       status: usingDefaultSessionSecret ? 'warning' : 'success',

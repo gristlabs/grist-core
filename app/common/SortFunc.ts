@@ -165,7 +165,7 @@ export class SortFunc {
  * const sorted = rows.sort(orderBy(row => row.name));
  */
 export function orderBy<T>(keyFunc: (row: T) => any, options: { desc?: boolean } = { desc: false }) {
-  return function (a: T, b: T) {
+  return function(a: T, b: T) {
     const val1 = keyFunc(a);
     const val2 = keyFunc(b);
     return typedCompare(val1, val2) * (options.desc ? -1 : 1);

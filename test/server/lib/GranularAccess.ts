@@ -1512,7 +1512,7 @@ describe('GranularAccess', function() {
     await assert.isFulfilled(owner.getDocAPI(docId).removeRows('Data', [1]));
   });
 
-  it('allows an editor to edit conditional formatting with a published form', async function () {
+  it('allows an editor to edit conditional formatting with a published form', async function() {
     await freshDoc();
 
     // Create a doc with a published form

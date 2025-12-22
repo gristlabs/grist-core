@@ -46,7 +46,7 @@ async function assertArchiveContainsTestFiles(archiveData: Buffer) {
 type ArchiveCreator = (entries: AsyncIterable<ArchiveEntry>, options?: ArchivePackingOptions) => Archive;
 
 function testArchive(type: string, makeArchive: ArchiveCreator) {
-  it(`should create a ${type} archive`, async function () {
+  it(`should create a ${type} archive`, async function() {
     const archive = makeArchive(generateTestArchiveContents());
     const output = new MemoryWritableStream();
     await archive.packInto(output);
@@ -54,7 +54,7 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
     await assertArchiveContainsTestFiles(archiveData);
   });
 
-  it('errors in archive.completed if the generator errors', async function () {
+  it('errors in archive.completed if the generator errors', async function() {
     async function* throwErrorGenerator() {
       throw new Error("Test error");
       yield { name: 'Test', size: 0, data: Buffer.from([]) };
@@ -66,7 +66,7 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
     await assert.isRejected(archive.packInto(output), "Test error");
   });
 
-  it('respects the "endDestStream" option', async function () {
+  it('respects the "endDestStream" option', async function() {
     async function* throwErrorGenerator() {
       throw new Error("Test error");
       yield { name: 'Test', size: 0, data: Buffer.from([]) };
@@ -77,7 +77,7 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
       try {
         await archive.packInto(output, { endDestStream: end });
       }
-      catch(err) {
+      catch (err) {
         // Do nothing, don't care about this error.
       }
       finally {
@@ -92,12 +92,12 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
   });
 }
 
-describe('Archive', function () {
-  describe('create_zip_archive', function () {
+describe('Archive', function() {
+  describe('create_zip_archive', function() {
     const creator: ArchiveCreator = entries => create_zip_archive({ store: true }, entries);
     testArchive('zip', creator);
   });
-  describe('create_tar_archive', function () {
+  describe('create_tar_archive', function() {
     const creator: ArchiveCreator = entries => create_tar_archive(entries);
     testArchive('tar', creator);
   });

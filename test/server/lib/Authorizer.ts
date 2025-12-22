@@ -116,7 +116,7 @@ describe('Authorizer', function() {
     assert.match(resp2.request.res.responseUrl, /\/doc\/sampledocid_2$/);
   });
 
-  it('viewer loads document without slug in the URL', async function () {
+  it('viewer loads document without slug in the URL', async function() {
     const docId = docs.Bananas.id;
     const resp = await axios.get(`${serverUrl}/o/pr/${docId}`, chimpy);
     assert.equal(resp.status, 200);
@@ -297,7 +297,7 @@ describe('Authorizer', function() {
     { method: 'API key', getAuth: async () => chimpy },
     { method: 'session cookie', getAuth: getChimpyCookie },
   ]) {
-    it(`forbids access to disabled users via ${method}`, async function () {
+    it(`forbids access to disabled users via ${method}`, async function() {
       const auth = await getAuth();
       const docId = docs.Bananas.id;
 

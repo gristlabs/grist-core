@@ -628,7 +628,7 @@ export class AttachmentFileManager extends EventEmitter {
     try {
       return await store.download(this._getDocPoolId(), fileIdent);
     }
-    catch(e) {
+    catch (e) {
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
   }

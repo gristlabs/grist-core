@@ -4,7 +4,7 @@ import { setupTestSuite } from 'test/nbrowser/testUtils';
 
 const defaultHeaderBackgroundColor = '#f7f7f7';
 
-describe('HeaderColor', function () {
+describe('HeaderColor', function() {
   this.timeout('20s');
   const cleanup = setupTestSuite();
 
@@ -14,7 +14,7 @@ describe('HeaderColor', function () {
     await mainSession.tempNewDoc(cleanup, 'HeaderColor');
   });
 
-  it('allows setting header colors in summary table', async function () {
+  it('allows setting header colors in summary table', async function() {
     const revert = await gu.begin();
     await gu.toggleSidePanel('left', 'close');
     // Add summary table.
@@ -41,7 +41,7 @@ describe('HeaderColor', function () {
     await revert();
   });
 
-  it('should save by clicking away', async function () {
+  it('should save by clicking away', async function() {
     // add records
     await gu.enterCell('a');
     await gu.enterCell('b');
@@ -71,7 +71,7 @@ describe('HeaderColor', function () {
     await gu.assertHeaderTextColor('B', 'black');
   });
 
-  it('should undo and redo colors when clicked away', async function () {
+  it('should undo and redo colors when clicked away', async function() {
     await gu.getCell('A', 1).click();
     // open color picker
     await gu.openHeaderColorPicker();
@@ -98,7 +98,7 @@ describe('HeaderColor', function () {
     await gu.assertHeaderTextColor('B', 'black');
   });
 
-  it('should work correctly on Grid view', async function () {
+  it('should work correctly on Grid view', async function() {
     const columnHeader = gu.getColumnHeader('C');
 
     await columnHeader.click();
@@ -117,7 +117,7 @@ describe('HeaderColor', function () {
     assert.equal(await columnHeader.getCssValue('background-color'), 'rgba(0, 0, 255, 1)');
   });
 
-  it('should not exist in Detail view', async function () {
+  it('should not exist in Detail view', async function() {
     // Color the A column in Grid View
     const columnHeader = gu.getColumnHeader('A');
     await columnHeader.click();

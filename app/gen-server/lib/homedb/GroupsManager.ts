@@ -115,7 +115,7 @@ export class GroupsManager {
     orgOnly: true,
   }];
 
-  public constructor (private _usersManager: UsersManager, private _runInTransaction: RunInTransaction) {}
+  public constructor(private _usersManager: UsersManager, private _runInTransaction: RunInTransaction) {}
 
   /**
    * Helper for adjusting acl inheritance rules. Given an array of top-level groups from the

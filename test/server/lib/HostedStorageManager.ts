@@ -1064,7 +1064,7 @@ describe('HostedStorageManager', function() {
       assert.isTrue(await fse.pathExists(path));
     });
 
-    it("does not overwrite remote doc on retriable error", async function () {
+    it("does not overwrite remote doc on retriable error", async function() {
       const testStore = new TestStore(
         tmpDir,
         workerId,
@@ -1110,7 +1110,7 @@ describe('HostedStorageManager', function() {
       });
     });
 
-    it("should fail immediately (without retries) on fatal error", async function () {
+    it("should fail immediately (without retries) on fatal error", async function() {
       const testStore = new TestStore(
         tmpDir,
         workerId,
@@ -1198,7 +1198,7 @@ describe('HostedStorageManager', function() {
           }
         }
         let running = true;
-        const writerThread = (async() => {
+        const writerThread = (async () => {
           while (running) {
             // If checking without pauses, null any pause before it
             // takes effect.

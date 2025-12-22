@@ -5,7 +5,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 import { server } from 'test/nbrowser/testServer';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('DocTour', function () {
+describe('DocTour', function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
 

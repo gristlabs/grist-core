@@ -25,7 +25,7 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
     try {
       userProfiles = await this._docComm.listActiveUserProfiles();
     }
-    catch(e) {
+    catch (e) {
       reportError(e);
       reportError(`Unable to fetch current active user list`);
     }

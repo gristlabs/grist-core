@@ -5,7 +5,7 @@ import * as gu from "test/nbrowser/gristUtils";
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { button, element, label, option } from "test/nbrowser/elementUtils";
 
-describe("Timing", function () {
+describe("Timing", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
@@ -38,7 +38,7 @@ describe("Timing", function () {
     assert.isFalse(await stopTiming.present());
   }
 
-  it("should allow to start session", async function () {
+  it("should allow to start session", async function() {
     await gu.openDocumentSettings();
     // Make sure we see the timing button.
     await assertOff();
@@ -115,7 +115,7 @@ describe("Timing", function () {
     await myTab.open();
   });
 
-  it("should allow to time the document load", async function () {
+  it("should allow to time the document load", async function() {
     await assertOff();
 
     await startTiming.click();

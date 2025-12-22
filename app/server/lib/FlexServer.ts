@@ -2129,7 +2129,7 @@ export class FlexServer implements GristServer {
     try {
       await this.getPubSubManager().publish(latestVersionChannel, JSON.stringify(latestVersionAvailable));
     }
-    catch(error) {
+    catch (error) {
       log.error(`Error publishing latest version`, { error, latestVersionAvailable });
     }
   }

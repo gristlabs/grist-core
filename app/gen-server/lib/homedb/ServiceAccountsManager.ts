@@ -9,7 +9,7 @@ import { EntityManager } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ServiceAccountsManager {
-  private get _connection () {
+  private get _connection() {
     return this._homeDb.connection;
   }
 

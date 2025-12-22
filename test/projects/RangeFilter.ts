@@ -120,7 +120,7 @@ describe('RangeFilter', function() {
     assert.equal(await fu.isOptionsVisible(), true);
   });
 
-  it('should handle Date column correctly', async function () {
+  it('should handle Date column correctly', async function() {
     await setFilterType('Date');
 
     // set min bound to 2022-04-05

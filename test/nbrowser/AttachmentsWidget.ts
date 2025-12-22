@@ -9,22 +9,22 @@ import fetch from "node-fetch";
 import * as gu from "test/nbrowser/gristUtils";
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-describe("AttachmentsWidget", function () {
+describe("AttachmentsWidget", function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   let docId: string;
   let session: gu.Session;
 
-  before(async function () {
+  before(async function() {
     session = await gu.session().user("user1").teamSite.login();
     docId = (await session.tempDoc(cleanup, "Hello.grist")).id;
   });
 
-  afterEach(async function () {
+  afterEach(async function() {
     await gu.checkForErrors();
   });
 
-  after(async function () {
+  after(async function() {
     // Close any open cell/attachments editor, to avoid an unload alert that would interfere with
     // the next test suite.
     await driver.sendKeys(Key.ESCAPE);
@@ -32,7 +32,7 @@ describe("AttachmentsWidget", function () {
 
   // Returns the 'title' attributes of all attachments in the given cell. These should be the
   // names of the attached files.
-  const getCellThumbnailTitles = stackWrapFunc(async function (
+  const getCellThumbnailTitles = stackWrapFunc(async function(
     cell: WebElement,
   ) {
     return await cell.findAll(".test-pw-thumbnail", el =>
@@ -40,7 +40,7 @@ describe("AttachmentsWidget", function () {
     );
   });
 
-  it("should include a functioning attachment widget", async function () {
+  it("should include a functioning attachment widget", async function() {
     await gu.toggleSidePanel("right", "open");
     await driver.find(".test-right-tab-field").click();
 
@@ -57,7 +57,7 @@ describe("AttachmentsWidget", function () {
     );
   });
 
-  it("should include a functioning upload button", async function () {
+  it("should include a functioning upload button", async function() {
     // Put 'foo1' in a cell, then replace it immediately with 'foo2'.
     // This is just setting up for testing undo behaviour below.
     await gu.getCell(1, 2).click();
@@ -149,7 +149,7 @@ describe("AttachmentsWidget", function () {
     await checkState(["PDF", "foo2"], false); // false: attachment metadata un-deleted
   });
 
-  it("should allow resizing thumbnails", async function () {
+  it("should allow resizing thumbnails", async function() {
     const slider = await driver.find(".test-pw-thumbnail-size");
     assert.equal(
       (await driver.findWait(".test-pw-thumbnail:last-child", 1000).getRect())
@@ -183,7 +183,7 @@ describe("AttachmentsWidget", function () {
     );
   });
 
-  it("should get correct headers from the server", async function () {
+  it("should get correct headers from the server", async function() {
     const cell: any = gu.getCell(0, 2);
     await cell.click();
     await driver.sendKeys(Key.ENTER);
@@ -231,7 +231,7 @@ describe("AttachmentsWidget", function () {
     await driver.find(".test-modal-dialog .test-pw-close").click();
   });
 
-  it("should allow editing the attachments list", async function () {
+  it("should allow editing the attachments list", async function() {
     let cell = gu.getCell(0, 2);
     assert.deepEqual(await getCellThumbnailTitles(cell), [
       "sample.pdf",
@@ -284,7 +284,7 @@ describe("AttachmentsWidget", function () {
     ]);
   });
 
-  it("should allow uploading to the add row", async function () {
+  it("should allow uploading to the add row", async function() {
     assert.equal(await gu.getCell({ col: 0, rowNum: 6 }).isPresent(), false);
     const cell = await gu.getCell({ col: 0, rowNum: 5 });
 
@@ -332,7 +332,7 @@ describe("AttachmentsWidget", function () {
     assert.equal(await gu.getCell({ col: 0, rowNum: 7 }).isPresent(), true);
   });
 
-  it("should not initialize as invalid when a row is added", async function () {
+  it("should not initialize as invalid when a row is added", async function() {
     // The first cell is invalid, just to check that the assert is correct.
     let cell = gu.getCell({ col: 0, rowNum: 1 });
     assert.equal(await cell.getText(), "hello");
@@ -349,7 +349,7 @@ describe("AttachmentsWidget", function () {
     await gu.undo();
   });
 
-  it("should open preview to double-clicked attachment", async function () {
+  it("should open preview to double-clicked attachment", async function() {
     const cell = gu.getCell({ col: 0, rowNum: 2 });
     assert.deepEqual(await getCellThumbnailTitles(cell), [
       "renamed.pdf",
@@ -379,7 +379,7 @@ describe("AttachmentsWidget", function () {
     await driver.sendKeys(Key.ESCAPE);
   });
 
-  it("should render various types of files appropriately", async function () {
+  it("should render various types of files appropriately", async function() {
     const cell = gu.getCell({ col: 0, rowNum: 2 });
     await cell.click();
     assert.deepEqual(await getCellThumbnailTitles(cell), [
@@ -496,7 +496,7 @@ describe("AttachmentsWidget", function () {
     ]);
   });
 
-  const checkClosing = async function (
+  const checkClosing = async function(
     shouldSave: boolean,
     trigger: () => Promise<void>,
   ) {
@@ -551,21 +551,21 @@ describe("AttachmentsWidget", function () {
     await ensureDialogIsClosed();
   };
 
-  it("should not save on Escape", async function () {
+  it("should not save on Escape", async function() {
     await checkClosing(false, () => driver.sendKeys(Key.ESCAPE));
   });
 
-  it("should save on Enter", async function () {
+  it("should save on Enter", async function() {
     await checkClosing(true, () => driver.sendKeys(Key.ENTER));
   });
 
-  it("should save on close button", async function () {
+  it("should save on close button", async function() {
     await checkClosing(true, () =>
       driver.find(".test-modal-dialog .test-pw-close").click(),
     );
   });
 
-  it("should preview images properly", async function () {
+  it("should preview images properly", async function() {
     const cell = await gu.getCell({ col: 0, rowNum: 2 });
     await cell.click();
     await gu.fileDialogUpload("uploads/image_with_script.svg", () =>
@@ -577,7 +577,7 @@ describe("AttachmentsWidget", function () {
     await gu.sendKeys(Key.ESCAPE);
   });
 
-  it("should show a loading indicator when uploading via the attachment icon", async function () {
+  it("should show a loading indicator when uploading via the attachment icon", async function() {
     const cell = await gu.getCell({ col: 0, rowNum: 3 });
     await driver.executeScript("window.testGrist = {fakeSlowUploads: true}");
     const thumbnailsCount = (await cell.findAll(".test-pw-thumbnail"))?.length || 0;
@@ -598,7 +598,7 @@ describe("AttachmentsWidget", function () {
     await gu.clearTestState();
   });
 
-  it("should show a loading indicator when uploading via the attachment editor", async function () {
+  it("should show a loading indicator when uploading via the attachment editor", async function() {
     const cell = await gu.getCell({ col: 0, rowNum: 3 });
     await driver.executeScript("window.testGrist = {fakeSlowUploads: true}");
     await gu.fileDialogUpload("uploads/grist.png", async () => {
@@ -620,7 +620,7 @@ describe("AttachmentsWidget", function () {
     await gu.clearTestState();
   });
 
-  it("should allow uploading from card view", async function () {
+  it("should allow uploading from card view", async function() {
     // This was a little broken - the click event on the upload icon would
     // trigger an edit action on the field if the field had focus prior
     // to the click, causing both the file picker and the editor to be
@@ -650,7 +650,7 @@ describe("AttachmentsWidget", function () {
   // Test that if we have a formula column that is attachment, it supports the same things as
   // a readonly attachment column. Only when user types something or press F2/Enter it opens the formula
   // editor
-  it("should show attachments editor for attachment formula column", async function () {
+  it("should show attachments editor for attachment formula column", async function() {
     const revert = await gu.begin();
     await gu.addNewPage('Table', 'Table1');
     await gu.sendActions([

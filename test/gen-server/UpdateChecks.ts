@@ -33,12 +33,12 @@ const headers = {
 };
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.
-describe("UpdateChecks", function () {
+describe("UpdateChecks", function() {
   testUtils.setTmpLogLevel("error");
 
   this.timeout("20s");
 
-  before(async function () {
+  before(async function() {
     testUtils.EnvironmentSnapshot.push();
     dockerHub = await dummyDockerHub();
     assert.equal((await fetch(dockerHub.url + "/tags")).status, 200);
@@ -65,18 +65,18 @@ describe("UpdateChecks", function () {
     await startInProcess(this);
   });
 
-  after(async function () {
+  after(async function() {
     sandbox.restore();
     await dockerHub.shutdown();
     await stop();
     testUtils.EnvironmentSnapshot.pop();
   });
 
-  afterEach(async function () {
+  afterEach(async function() {
     await testServer.server.getUpdateManager().clear();
   });
 
-  it("should read latest version as anonymous user in happy path", async function () {
+  it("should read latest version as anonymous user in happy path", async function() {
     setEndpoint(dockerHub.url + "/tags");
     const resp = await axios.get(`${homeUrl}/api/version`);
     assert.equal(resp.status, 200, `${homeUrl}/api/version`);
@@ -89,7 +89,7 @@ describe("UpdateChecks", function () {
     assert.deepEqual(resp2.data, result);
   });
 
-  it("should read latest version as existing user", async function () {
+  it("should read latest version as existing user", async function() {
     setEndpoint(dockerHub.url + "/tags");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 200);
@@ -97,14 +97,14 @@ describe("UpdateChecks", function () {
     assert.equal(result.latestVersion, "10");
   });
 
-  it("passes errors to client", async function () {
+  it("passes errors to client", async function() {
     setEndpoint(dockerHub.url + "/404");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: "Not Found" });
   });
 
-  it("retries on 429", async function () {
+  it("retries on 429", async function() {
     setEndpoint(dockerHub.url + "/429");
 
     // First make sure that mock works.
@@ -127,13 +127,13 @@ describe("UpdateChecks", function () {
     await check();
   });
 
-  it("throws when receives html", async function () {
+  it("throws when receives html", async function() {
     setEndpoint(dockerHub.url + "/html");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 500);
   });
 
-  it("caches data end errors", async function () {
+  it("caches data end errors", async function() {
     setEndpoint(dockerHub.url + "/error");
     const r1 = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(r1.status, 500);
@@ -172,7 +172,7 @@ describe("UpdateChecks", function () {
     assert.equal(r7.data.latestVersion, "4");
   });
 
-  it("can stop server when hangs", async function () {
+  it("can stop server when hangs", async function() {
     setEndpoint(dockerHub.url + "/hang");
     const handCalled = dockerHub.signal();
     const resp = axios
@@ -187,7 +187,7 @@ describe("UpdateChecks", function () {
     await startInProcess(this);
   });
 
-  it("dosent starts for non saas deployment", async function () {
+  it("dosent starts for non saas deployment", async function() {
     try {
       testUtils.EnvironmentSnapshot.push();
       Object.assign(process.env, {
@@ -207,14 +207,14 @@ describe("UpdateChecks", function () {
     await startInProcess(this);
   });
 
-  it("reports error when timeout happens", async function () {
+  it("reports error when timeout happens", async function() {
     setEndpoint(dockerHub.url + "/timeout");
     const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
     assert.equal(resp.status, 500);
     assert.match(resp.data.error, /timeout/);
   });
 
-  it("logs deploymentId, deploymentType, and currentVersion", async function () {
+  it("logs deploymentId, deploymentType, and currentVersion", async function() {
     logMessages.length = 0;
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";

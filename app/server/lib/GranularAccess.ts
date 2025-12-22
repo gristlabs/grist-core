@@ -473,7 +473,7 @@ export class GranularAccess implements GranularAccessForBundle {
       await this.getCellValue(docSession, cell, docData);
       return true;
     }
-    catch(err) {
+    catch (err) {
       if (err instanceof ErrorWithCode) { return false; }
       throw err;
     }

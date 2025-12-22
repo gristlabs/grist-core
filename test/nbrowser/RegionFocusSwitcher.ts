@@ -108,7 +108,7 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
   await assertPanelFocus('left');
 };
 
-describe("RegionFocusSwitcher", function () {
+describe("RegionFocusSwitcher", function() {
   this.timeout(60000);
   const cleanup = setupTestSuite();
 

@@ -38,7 +38,7 @@ describe('SamlConfig', () => {
       GRIST_SAML_SP_CERT: spCert,
     } : {};
 
-    beforeEach(async function () {
+    beforeEach(async function() {
       oldEnv = new testUtils.EnvironmentSnapshot();
       process.env.TYPEORM_DATABASE = ':memory:';
       process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = 'core';

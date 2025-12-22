@@ -65,7 +65,7 @@ export class DataRowModel extends BaseRowModel {
     try {
       return await this._table.sendTableAction(action);
     }
-    catch(ex) {
+    catch (ex) {
       if (ex.code === 'UNIQUE_REFERENCE_VIOLATION') {
         // Show modal to repeat the save.
         await buildReassignModal({

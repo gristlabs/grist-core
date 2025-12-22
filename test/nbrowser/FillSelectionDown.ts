@@ -6,7 +6,7 @@ function shiftClick(el: WebElement) {
   return driver.withActions(actions => actions.keyDown(Key.SHIFT).click(el).keyUp(Key.SHIFT));
 }
 
-describe('FillSelectionDown', function () {
+describe('FillSelectionDown', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 

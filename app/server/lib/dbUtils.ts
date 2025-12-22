@@ -57,7 +57,7 @@ export function getConnectionName() {
 let gristDataSource: DataSource | null = null;
 const connectionMutex = new Mutex();
 export async function getOrCreateConnection(): Promise<DataSource> {
-  return connectionMutex.runExclusive(async() => {
+  return connectionMutex.runExclusive(async () => {
     // If multiple servers are started within the same process, we
     // share the database connection.  This saves locking trouble
     // with Sqlite.

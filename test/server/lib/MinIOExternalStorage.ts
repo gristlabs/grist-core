@@ -6,7 +6,7 @@ import { MinIOExternalStorage } from "app/server/lib/MinIOExternalStorage";
 import { assert } from "chai";
 import { waitForIt } from "test/server/wait";
 
-describe("MinIOExternalStorage", function () {
+describe("MinIOExternalStorage", function() {
   const sandbox = sinon.createSandbox();
   const FakeClientClass = class extends minio.Client {
     public listObjects(
@@ -25,17 +25,17 @@ describe("MinIOExternalStorage", function () {
     secretKey: 'some-secretKey',
     region: 'some-region',
   };
-  afterEach(function () {
+  afterEach(function() {
     sandbox.restore();
   });
 
-  describe('upload()', function () {
+  describe('upload()', function() {
     const filename = "some-filename";
     let filestream: fse.ReadStream;
     let s3: sinon.SinonStubbedInstance<minio.Client>;
     let extStorage: MinIOExternalStorage;
 
-    beforeEach(function () {
+    beforeEach(function() {
       filestream = new stream.Readable() as any;
       sandbox.stub(fse, "lstat").resolves({} as any);
       sandbox.stub(fse, "createReadStream").withArgs(filename).returns(filestream as any);
@@ -48,7 +48,7 @@ describe("MinIOExternalStorage", function () {
       );
     });
 
-    it("should call putObject with the right arguments", async function () {
+    it("should call putObject with the right arguments", async function() {
       const putObjectPromise = sinon.promise<Awaited<ReturnType<typeof s3.putObject>>>();
       s3.putObject
         .withArgs(dummyBucket, "some-key", filestream, undefined, undefined)
@@ -67,7 +67,7 @@ describe("MinIOExternalStorage", function () {
         "filestream should be destroyed after putObject resolves");
     });
 
-    it("should close the file even if putObject fails", async function () {
+    it("should close the file even if putObject fails", async function() {
       s3.putObject.rejects(new Error("some-error"));
 
       await assert.isRejected(extStorage.upload("some-key", filename), "some-error");
@@ -76,7 +76,7 @@ describe("MinIOExternalStorage", function () {
     });
   });
 
-  describe('versions()', function () {
+  describe('versions()', function() {
     function makeFakeStream(listedObjects: object[]) {
       const fakeStream = new stream.Readable({ objectMode: true });
       const readSpy = sandbox.stub(fakeStream, "_read");
@@ -87,7 +87,7 @@ describe("MinIOExternalStorage", function () {
       return { fakeStream, readSpy };
     }
 
-    it("should call listObjects with the right arguments", async function () {
+    it("should call listObjects with the right arguments", async function() {
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
       const expectedRecursive = false;
@@ -107,7 +107,7 @@ describe("MinIOExternalStorage", function () {
     // and when the minio-js version used as a dependency includes that patch.
     //
     // For more context: https://github.com/gristlabs/grist-core/pull/577
-    it("should return versionId's as string when return snapshotId is an integer", async function () {
+    it("should return versionId's as string when return snapshotId is an integer", async function() {
       // given
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
@@ -133,7 +133,7 @@ describe("MinIOExternalStorage", function () {
       }]);
     });
 
-    it("should include markers only when asked through options", async function () {
+    it("should include markers only when asked through options", async function() {
       // given
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";
@@ -183,7 +183,7 @@ describe("MinIOExternalStorage", function () {
       }]);
     });
 
-    it("should reject when an error occurs while listing objects", function () {
+    it("should reject when an error occurs while listing objects", function() {
       // given
       const s3 = sandbox.createStubInstance(FakeClientClass);
       const key = "some-key";

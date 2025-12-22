@@ -656,7 +656,7 @@ describe('CustomView', function() {
     assert.equal(opinions['A'][0], 'do not zap plz');
   });
 
-  it('allows custom options for fetching data', async function () {
+  it('allows custom options for fetching data', async function() {
     const mainSession = await gu.session().teamSite.login();
     const doc = await mainSession.tempDoc(cleanup, 'FetchSelectedOptions.grist', { load: false });
     await mainSession.loadDoc(`/doc/${doc.id}`);

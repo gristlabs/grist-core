@@ -369,7 +369,7 @@ describe('AdminPanel', function() {
     assert.isNotEmpty(fakeServer.payload.installationId);
   });
 
-  it('should show a message if automatic version checking is missing', async function () {
+  it('should show a message if automatic version checking is missing', async function() {
     process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING='false';
     await server.restart(true);
     session = await gu.session().personalSite.login();

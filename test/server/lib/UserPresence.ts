@@ -63,7 +63,7 @@ describe('UserPresence', function() {
     return openTrackedClient(home.server, who.user.email, who.org?.domain || 'docs');
   }
 
-  before(async function () {
+  before(async function() {
     home = new TestServer(this);
     await home.start(['home', 'docs']);
     const api = await home.createHomeApi('chimpy', 'docs', true);
@@ -85,13 +85,13 @@ describe('UserPresence', function() {
     editor = await home.createHomeApi(Users.editor.username, TEST_ORG, true);
   });
 
-  after(async function () {
+  after(async function() {
     const api = await home.createHomeApi('chimpy', 'docs');
     await api.deleteOrg(TEST_ORG);
     await home.stop();
   });
 
-  afterEach(async function () {
+  afterEach(async function() {
     // Close all tracked clients to make sure the node process can exit normally.
     await Promise.all(clients.map(closeClient));
     clients = [];
@@ -141,14 +141,14 @@ describe('UserPresence', function() {
     );
 
     describe(`shows the correct profile details - public email ${currentPublicEmail}`, async function() {
-      before(async function () {
+      before(async function() {
         await owner.updateDocPermissions(docId, {
           users: _newPermissions,
         });
       });
 
       joiningTestCases.forEach(testCase =>
-        it(testCase.name, async function () {
+        it(testCase.name, async function() {
           const observerClient = await testCase.makeObserverClient();
           const joiningClient = await testCase.makeJoinerClient();
           await observerClient.openDocOnConnect(docId);
@@ -167,7 +167,7 @@ describe('UserPresence', function() {
     });
   });
 
-  describe("multiple user connections should only show once on the client", async function () {
+  describe("multiple user connections should only show once on the client", async function() {
     const testCombinations = [
       {
         name: "editor and owner",
@@ -184,7 +184,7 @@ describe('UserPresence', function() {
     ];
 
     testCombinations.forEach((testCase) => {
-      it(`only shows 1 message for multiple clients: ${testCase.name}`, async function () {
+      it(`only shows 1 message for multiple clients: ${testCase.name}`, async function() {
         const observerClient = await testCase.makeObserverClient();
         const otherClients = await Promise.all([
           testCase.makeJoinerClient(),
@@ -217,7 +217,7 @@ describe('UserPresence', function() {
     });
   });
 
-  describe("users without the correct permissions can't see other users", async function () {
+  describe("users without the correct permissions can't see other users", async function() {
     before(async () => {
       await owner.updateDocPermissions(docId, {
         users: {
@@ -250,7 +250,7 @@ describe('UserPresence', function() {
     ];
 
     testCases.forEach((testCase) => {
-      it(testCase.name, async function () {
+      it(testCase.name, async function() {
         const viewerClient = await testCase.makeObserverClient();
         const joiningClient = await getWebsocket(owner);
 

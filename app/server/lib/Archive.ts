@@ -75,7 +75,7 @@ async function addEntriesToZipArchive(archive: ZipStream, entries: AsyncIterable
 
 function addEntryToZipArchive(archive: ZipStream, file: ArchiveEntry): Promise<ZipArchiveEntry | undefined> {
   return new Promise((resolve, reject) => {
-    archive.on("error", function (err) {
+    archive.on("error", function(err) {
       reject(new Error(`Archive error: ${err}`, { cause: err }));
     });
     archive.entry(file.data, { name: file.name }, function(err, entry) {
@@ -150,7 +150,7 @@ export async function unpackTarArchive(
 
   const extractor = tar.extract();
 
-  extractor.on('entry', function (header, contentStream, next) {
+  extractor.on('entry', function(header, contentStream, next) {
     // Ensures contentStream is drained when onFile is finished.
     // Failure to drain contentStream will block the whole extraction.
     drainWhenSettled(contentStream,

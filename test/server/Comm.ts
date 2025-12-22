@@ -209,7 +209,7 @@ describe('Comm', function() {
       ]);
     });
 
-    it('should only log warning for malformed JSON data', async function () {
+    it('should only log warning for malformed JSON data', async function() {
       const logMessages  = await testUtils.captureLog('warn', async () => {
         ws.send('foobar');
       }, { waitForFirstLog: true });
@@ -218,7 +218,7 @@ describe('Comm', function() {
       ]);
     });
 
-    it('should log warning when null value is passed', async function () {
+    it('should log warning when null value is passed', async function() {
       const logMessages  = await testUtils.captureLog('warn', async () => {
         ws.send('null');
       }, { waitForFirstLog: true });
@@ -520,7 +520,7 @@ describe('Comm', function() {
   });
 
   describe("Allowed Origin", function() {
-    beforeEach(async function () {
+    beforeEach(async function() {
       await startComm(assortedMethods);
     });
 

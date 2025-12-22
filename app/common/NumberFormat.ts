@@ -76,7 +76,7 @@ const currencyDisplay = (function() {
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' });
     return 'narrowSymbol';
   }
-  catch(err) {
+  catch (err) {
     return 'symbol';
   }
 })();

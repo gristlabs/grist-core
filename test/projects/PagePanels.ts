@@ -532,7 +532,7 @@ describe('PagePanels', function() {
       assert.equal(await driver.find('.test-pp-left-resizer').isDisplayed(), false);
     });
 
-    it('should correctly overlap on this edge case', async function () {
+    it('should correctly overlap on this edge case', async function() {
       // move mouse in and wait for full expansion
       await driver.find('.test-pp-left-panel').mouseMove();
       await driver.sleep(500);

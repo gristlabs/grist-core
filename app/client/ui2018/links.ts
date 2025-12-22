@@ -102,7 +102,7 @@ export function makeLinks(text: string) {
     }
     return domElements;
   }
-  catch(ex) {
+  catch (ex) {
     // In case when something went wrong, simply log and return original text, as showing
     // links is not that important.
     console.warn("makeLinks failed", ex);

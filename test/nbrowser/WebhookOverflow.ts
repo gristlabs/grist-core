@@ -6,7 +6,7 @@ import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import { EnvironmentSnapshot } from 'test/server/testUtils';
 import { WebhookFields } from "app/common/Triggers";
 
-describe('WebhookOverflow', function () {
+describe('WebhookOverflow', function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();
   let session: gu.Session;
@@ -15,7 +15,7 @@ describe('WebhookOverflow', function () {
   let docApi: DocAPI;
   gu.bigScreen();
 
-  before(async function () {
+  before(async function() {
     oldEnv = new EnvironmentSnapshot();
     process.env.ALLOWED_WEBHOOK_DOMAINS = '*';
     process.env.GRIST_MAX_QUEUE_SIZE = '4';
@@ -40,7 +40,7 @@ describe('WebhookOverflow', function () {
     await docApi.addWebhook(webhookDetails);
   });
 
-  after(async function () {
+  after(async function() {
     oldEnv.restore();
     await server.restart();
   });
@@ -83,11 +83,11 @@ describe('WebhookOverflow', function () {
     }, 12500);
   }
 
-  it('should show a message when overflowed', async function () {
+  it('should show a message when overflowed', async function() {
     await overflowWebhook();
   });
 
-  it('message should disappear after clearing queue', async function () {
+  it('message should disappear after clearing queue', async function() {
     await openWebhookPageWithoutWaitForServer();
     assert.deepEqual(await getNumWaiting(), [2, 2]);
     await driver.findContent('button', /Clear queue/).click();
@@ -95,7 +95,7 @@ describe('WebhookOverflow', function () {
     assert.deepEqual(await getNumWaiting(), [0, 0]);
   });
 
-  it('should clear a single webhook queue when that webhook is disabled', async function () {
+  it('should clear a single webhook queue when that webhook is disabled', async function() {
     await overflowWebhook();
     await openWebhookPageWithoutWaitForServer();
     await gu.waitToPass(async () => {

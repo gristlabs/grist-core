@@ -2,12 +2,12 @@ import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { cleanupExtraWindows, setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('Create Team Site', function () {
+describe('Create Team Site', function() {
   this.timeout(20000);
   cleanupExtraWindows();
   const cleanup = setupTestSuite();
 
-  before(async function () {
+  before(async function() {
     const session = await gu.session().teamSite.login();
     await session.tempNewDoc(cleanup);
   });

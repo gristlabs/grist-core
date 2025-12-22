@@ -95,7 +95,7 @@ function makeUserApi(
   });
 }
 
-describe('DocApi', function () {
+describe('DocApi', function() {
   const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 
   this.timeout(30000);
@@ -103,7 +103,7 @@ describe('DocApi', function () {
   const sandbox = sinon.createSandbox();
   let oldEnv: testUtils.EnvironmentSnapshot;
 
-  before(async function () {
+  before(async function() {
     sandbox.stub(Deps, 'ACTIVEDOC_TIMEOUT').value(30);
     oldEnv = new testUtils.EnvironmentSnapshot();
     // The XLS test fails on Jenkins without this. Mysterious? Maybe a real problem or
@@ -190,7 +190,7 @@ describe('DocApi', function () {
         hasHomeApi = true;
       });
 
-      it(desc, async function () {
+      it(desc, async function() {
         const chimpy = makeConfig('Chimpy');
         // Launch ${limit} number of requests in parallel and see how
         // many are honored and how many return 429s. The timing of
@@ -226,7 +226,7 @@ describe('DocApi', function () {
       testDocApi({ webhooksTestPort });
     });
 
-    describe('behind a reverse-proxy', function () {
+    describe('behind a reverse-proxy', function() {
       async function setupServersWithProxy(
         suitename: string,
         { withAppHomeInternalUrl }: { withAppHomeInternalUrl: boolean },
@@ -280,7 +280,7 @@ describe('DocApi', function () {
 
       let proxy: TestServerReverseProxy;
 
-      describe('with APP_HOME_INTERNAL_URL set', function () {
+      describe('with APP_HOME_INTERNAL_URL set', function() {
         setup('behind-proxy-testdocs', async () => {
           ({ proxy, home, docs } = await setupServersWithProxy(suitename, { withAppHomeInternalUrl: true }));
         });
@@ -300,7 +300,7 @@ describe('DocApi', function () {
         return doc1.compareDoc(docId2);
       }
 
-      describe('specific tests with APP_HOME_INTERNAL_URL', function () {
+      describe('specific tests with APP_HOME_INTERNAL_URL', function() {
         setup('behind-proxy-with-apphomeinternalurl', async () => {
           // APP_HOME_INTERNAL_URL will be set by TestServer.
           ({ proxy, home, docs } = await setupServersWithProxy(suitename, { withAppHomeInternalUrl: true }));
@@ -308,20 +308,20 @@ describe('DocApi', function () {
 
         after(() => tearDown(proxy, [home, docs]));
 
-        it('should succeed to compare docs', async function () {
+        it('should succeed to compare docs', async function() {
           const res = await testCompareDocs(proxy, home);
           assert.exists(res);
         });
       });
 
-      describe('specific tests without APP_HOME_INTERNAL_URL', function () {
+      describe('specific tests without APP_HOME_INTERNAL_URL', function() {
         setup('behind-proxy-without-apphomeinternalurl', async () => {
           ({ proxy, home, docs } = await setupServersWithProxy(suitename, { withAppHomeInternalUrl: false }));
         });
 
         after(() => tearDown(proxy, [home, docs]));
 
-        it('should fail to compare docs', async function () {
+        it('should fail to compare docs', async function() {
           const promise = testCompareDocs(proxy, home);
           await assert.isRejected(promise, /TestServerReverseProxy: called public URL/);
         });
@@ -354,7 +354,7 @@ describe('DocApi', function () {
       };
     }
 
-    it("supports ascending sort", async function () {
+    it("supports ascending sort", async function() {
       assert.deepEqual(applyQueryParameters(makeExample(), { sort: ['color'] }, null), {
         id: [8, 7, 9, 1, 3, 2],
         color: ['black', 'blue', 'purple', 'red', 'white', 'yellow'],
@@ -362,7 +362,7 @@ describe('DocApi', function () {
       });
     });
 
-    it("supports descending sort", async function () {
+    it("supports descending sort", async function() {
       assert.deepEqual(applyQueryParameters(makeExample(), { sort: ['-id'] }, null), {
         id: [9, 8, 7, 3, 2, 1],
         color: ['purple', 'black', 'blue', 'white', 'yellow', 'red'],
@@ -370,7 +370,7 @@ describe('DocApi', function () {
       });
     });
 
-    it("supports multi-key sort", async function () {
+    it("supports multi-key sort", async function() {
       assert.deepEqual(applyQueryParameters(makeExample(), { sort: ['-spin', 'color'] }, null), {
         id: [8, 9, 1, 2, 7, 3],
         color: ['black', 'purple', 'red', 'yellow', 'blue', 'white'],
@@ -378,7 +378,7 @@ describe('DocApi', function () {
       });
     });
 
-    it("does not freak out sorting mixed data", async function () {
+    it("does not freak out sorting mixed data", async function() {
       const example = {
         id: [1, 2, 3, 4, 5, 6, 7, 8, 9],
         mixed: ['red', 'green', 'white', 2.5, 1, null, ['zing', 3] as any, 5, 'blue'],
@@ -389,12 +389,12 @@ describe('DocApi', function () {
       });
     });
 
-    it("supports limit", async function () {
+    it("supports limit", async function() {
       assert.deepEqual(applyQueryParameters(makeExample(), { limit: 1 }),
         { id: [1], color: ['red'], spin: ['up'] });
     });
 
-    it("supports sort and limit", async function () {
+    it("supports sort and limit", async function() {
       assert.deepEqual(applyQueryParameters(makeExample(), { sort: ['-color'], limit: 2 }, null),
         { id: [2, 3], color: ['yellow', 'white'], spin: ['up', 'down'] });
     });
@@ -409,7 +409,7 @@ function testDocApi(settings: {
   let chimpy: AxiosRequestConfig, kiwi: AxiosRequestConfig,
     charon: AxiosRequestConfig, nobody: AxiosRequestConfig, support: AxiosRequestConfig;
 
-  before(function () {
+  before(function() {
     chimpy = makeConfig('Chimpy');
     kiwi = makeConfig('Kiwi');
     charon = makeConfig('Charon');
@@ -548,7 +548,7 @@ function testDocApi(settings: {
 
   for (const content of ['with content', 'without content']) {
     for (const mode of ['logged in', 'anonymous']) {
-      it(`POST /api/docs ${content} can create unsaved docs when ${mode}`, async function () {
+      it(`POST /api/docs ${content} can create unsaved docs when ${mode}`, async function() {
         const user = (mode === 'logged in') ? chimpy : nobody;
         const formData = new FormData();
         formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
@@ -592,7 +592,7 @@ function testDocApi(settings: {
       });
     }
 
-    it(`POST /api/docs ${content} can create saved docs in workspaces`, async function () {
+    it(`POST /api/docs ${content} can create saved docs in workspaces`, async function() {
       // Make a workspace.
       const chimpyWs = await userApi.newWorkspace({ name: "Chimpy's Workspace" }, ORG_NAME);
 
@@ -641,7 +641,7 @@ function testDocApi(settings: {
       await userApi.deleteWorkspace(chimpyWs);
     });
 
-    it(`POST /api/docs ${content} fails if workspace access is denied`, async function () {
+    it(`POST /api/docs ${content} fails if workspace access is denied`, async function() {
       // Make a workspace.
       const chimpyWs = await userApi.newWorkspace({ name: "Chimpy's Workspace" }, ORG_NAME);
 
@@ -695,7 +695,7 @@ function testDocApi(settings: {
       await userApi.deleteWorkspace(chimpyWs);
     });
 
-    it(`POST /api/docs ${content} fails if workspace is soft-deleted`, async function () {
+    it(`POST /api/docs ${content} fails if workspace is soft-deleted`, async function() {
       // Make a workspace and promptly remove it.
       const chimpyWs = await userApi.newWorkspace({ name: "Chimpy's Workspace" }, ORG_NAME);
       await userApi.softDeleteWorkspace(chimpyWs);
@@ -723,7 +723,7 @@ function testDocApi(settings: {
       await userApi.deleteWorkspace(chimpyWs);
     });
 
-    it(`POST /api/docs ${content} fails if workspace does not exist`, async function () {
+    it(`POST /api/docs ${content} fails if workspace does not exist`, async function() {
       // Try to create a document in a non-existent workspace.
       const user = chimpy;
       const body = {
@@ -745,7 +745,7 @@ function testDocApi(settings: {
     });
   }
 
-  it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function () {
+  it("GET /docs/{did}/tables/{tid}/data retrieves data in column format", async function() {
     const data = {
       id: [1, 2, 3, 4],
       A: ['hello', '', '', ''],
@@ -763,7 +763,7 @@ function testDocApi(settings: {
     assert.deepEqual(respWithTableRef.data, data);
   });
 
-  it("GET /docs/{did}/tables/{tid}/records retrieves data in records format", async function () {
+  it("GET /docs/{did}/tables/{tid}/records retrieves data in records format", async function() {
     const data = {
       records:
         [
@@ -818,7 +818,7 @@ function testDocApi(settings: {
     assert.deepEqual(respWithTableRef.data, data);
   });
 
-  it('GET /docs/{did}/tables/{tid}/records honors the "hidden" param', async function () {
+  it('GET /docs/{did}/tables/{tid}/records honors the "hidden" param', async function() {
     const params = { hidden: true };
     const data = {
       id: 1,
@@ -845,7 +845,7 @@ function testDocApi(settings: {
     assert.deepEqual(respWithTableRef.data.records[0], data);
   });
 
-  it("GET /docs/{did}/tables/{tid}/records handles errors and hidden columns", async function () {
+  it("GET /docs/{did}/tables/{tid}/records handles errors and hidden columns", async function() {
     let resp = await axios.get(`${serverUrl}/api/docs/${docIds.ApiDataRecordsTest}/tables/Table1/records`, chimpy);
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data,
@@ -896,7 +896,7 @@ function testDocApi(settings: {
     );
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns retrieves columns", async function () {
+  it("GET /docs/{did}/tables/{tid}/columns retrieves columns", async function() {
     const data = {
       columns: [
         {
@@ -1019,7 +1019,7 @@ function testDocApi(settings: {
     assert.deepEqual(respWithTableRef.data, data);
   });
 
-  it('GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when "hidden" is set', async function () {
+  it('GET /docs/{did}/tables/{tid}/columns retrieves hidden columns when "hidden" is set', async function() {
     const params = { hidden: true };
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/columns`,
@@ -1034,7 +1034,7 @@ function testDocApi(settings: {
     });
   });
 
-  it("GET/POST/PATCH /docs/{did}/tables and /columns", async function () {
+  it("GET/POST/PATCH /docs/{did}/tables and /columns", async function() {
     // POST /tables: Create new tables
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/tables`, {
       tables: [
@@ -1288,7 +1288,7 @@ function testDocApi(settings: {
     assert.equal(resp.status, 200);
   });
 
-  describe("/docs/{did}/tables/{tid}/columns", function () {
+  describe("/docs/{did}/tables/{tid}/columns", function() {
     async function generateDocAndUrlForColumns(name: string) {
       const { tableUrl, docId } = await generateDocAndUrl(name);
       return {
@@ -1296,7 +1296,7 @@ function testDocApi(settings: {
         url: `${tableUrl}/columns`,
       };
     }
-    describe("PUT /docs/{did}/tables/{tid}/columns", function () {
+    describe("PUT /docs/{did}/tables/{tid}/columns", function() {
       async function getColumnFieldsMapById(url: string, params: any) {
         const result = await axios.get(url, { ...chimpy, params });
         assert.equal(result.status, 200);
@@ -1346,43 +1346,43 @@ function testDocApi(settings: {
         },
       };
 
-      it('should create new columns', async function () {
+      it('should create new columns', async function() {
         await checkPut([COLUMN_TO_ADD], {}, {
           A: {}, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields,
         });
       });
 
-      it('should update existing columns and create new ones', async function () {
+      it('should update existing columns and create new ones', async function() {
         await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], {}, {
           NewA: { type: "Numeric", label: "A" }, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields,
         });
       });
 
-      it('should only update existing columns when noadd is set', async function () {
+      it('should only update existing columns when noadd is set', async function() {
         await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], { noadd: "1" }, {
           NewA: { type: "Numeric" }, B: {}, C: {},
         });
       });
 
-      it('should only add columns when noupdate is set', async function () {
+      it('should only add columns when noupdate is set', async function() {
         await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], { noupdate: "1" }, {
           A: { type: "Any" }, B: {}, C: {}, Foo: COLUMN_TO_ADD.fields,
         });
       });
 
-      it('should remove existing columns if replaceall is set', async function () {
+      it('should remove existing columns if replaceall is set', async function() {
         await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], { replaceall: "1" }, {
           NewA: { type: "Numeric" }, Foo: COLUMN_TO_ADD.fields,
         });
       });
 
-      it('should NOT remove hidden columns even when replaceall is set', async function () {
+      it('should NOT remove hidden columns even when replaceall is set', async function() {
         await checkPut([COLUMN_TO_ADD, COLUMN_TO_UPDATE], { replaceall: "1" }, {
           manualSort: { type: "ManualSortPos" }, NewA: { type: "Numeric" }, Foo: COLUMN_TO_ADD.fields,
         }, { getParams: { hidden: true } });
       });
 
-      it('should forbid update by viewers', async function () {
+      it('should forbid update by viewers', async function() {
         // given
         const { url, docId } = await generateDocAndUrlForColumns('ColumnsPut');
         await userApi.updateDocPermissions(docId, { users: { 'kiwi@getgrist.com': 'viewers' } });
@@ -1408,7 +1408,7 @@ function testDocApi(settings: {
       });
     });
 
-    describe("DELETE /docs/{did}/tables/{tid}/columns/{colId}", function () {
+    describe("DELETE /docs/{did}/tables/{tid}/columns/{colId}", function() {
       it('should delete some column', async function() {
         const { url } = await generateDocAndUrlForColumns('ColumnDelete');
         const deleteUrl = url + '/A';
@@ -1452,31 +1452,31 @@ function testDocApi(settings: {
     });
   });
 
-  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function () {
+  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent doc", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/typotypotypo/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /document not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent table", async function () {
+  it("GET /docs/{did}/tables/{tid}/data returns 404 for non-existent table", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Typo1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /table not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent doc", async function () {
+  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent doc", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/typotypotypo/tables/Table1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /document not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent table", async function () {
+  it("GET /docs/{did}/tables/{tid}/columns returns 404 for non-existent table", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Typo1/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /table not found/i);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data supports filters", async function () {
+  it("GET /docs/{did}/tables/{tid}/data supports filters", async function() {
     function makeQuery(filters: { [colId: string]: any[] }) {
       const query = "filter=" + encodeURIComponent(JSON.stringify(filters));
       return axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data?${query}`, chimpy);
@@ -1531,7 +1531,7 @@ function testDocApi(settings: {
   });
 
   for (const mode of ['url', 'header']) {
-    it(`GET /docs/{did}/tables/{tid}/data supports sorts and limits in ${mode}`, async function () {
+    it(`GET /docs/{did}/tables/{tid}/data supports sorts and limits in ${mode}`, async function() {
       function makeQuery(sort: string[] | null, limit: number | null) {
         const url = new URL(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`);
         const config = makeConfig('chimpy');
@@ -1581,19 +1581,19 @@ function testDocApi(settings: {
     });
   }
 
-  it("GET /docs/{did}/tables/{tid}/data respects document permissions", async function () {
+  it("GET /docs/{did}/tables/{tid}/data respects document permissions", async function() {
     // as not part of any group kiwi cannot fetch Timesheets
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/data`, kiwi);
     assert.equal(resp.status, 403);
   });
 
-  it("GET /docs/{did}/tables/{tid}/data returns matches /not found/ for bad table id", async function () {
+  it("GET /docs/{did}/tables/{tid}/data returns matches /not found/ for bad table id", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /not found/);
   });
 
-  it("POST /docs/{did}/apply applies user actions", async function () {
+  it("POST /docs/{did}/apply applies user actions", async function() {
     const userActions = [
       ['AddTable', 'Foo', [{ id: 'A' }, { id: 'B' }]],
       ['BulkAddRecord', 'Foo', [1, 2], { A: ["Santa", "Bob"], B: [1, 11] }],
@@ -1605,7 +1605,7 @@ function testDocApi(settings: {
       { id: [1, 2], A: ['Santa', 'Bob'], B: ['1', '11'], manualSort: [1, 2] });
   });
 
-  it("POST /docs/{did}/apply respects document permissions", async function () {
+  it("POST /docs/{did}/apply respects document permissions", async function() {
     const userActions = [
       ['AddTable', 'FooBar', [{ id: 'A' }]],
     ];
@@ -1631,7 +1631,7 @@ function testDocApi(settings: {
     assert.match(resp.data.error, /not found/);
   });
 
-  it("POST /docs/{did}/tables/{tid}/data adds records", async function () {
+  it("POST /docs/{did}/tables/{tid}/data adds records", async function() {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
       A: ['Alice', 'Felix'],
       B: [2, 22],
@@ -1647,7 +1647,7 @@ function testDocApi(settings: {
     });
   });
 
-  it("POST /docs/{did}/tables/{tid}/records adds records", async function () {
+  it("POST /docs/{did}/tables/{tid}/records adds records", async function() {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
       records: [
         { fields: { A: 'John', B: 55 } },
@@ -1723,7 +1723,7 @@ function testDocApi(settings: {
       url: 'tables/Foo/records/delete',
     },
   ]) {
-    it(desc, async function () {
+    it(desc, async function() {
       let resp = await axios.post(
         `${serverUrl}/api/docs/${docIds.TestDoc}/${url}`,
         [3, 4, 5, 6],
@@ -1902,8 +1902,8 @@ function testDocApi(settings: {
     );
   });
 
-  describe("PUT /docs/{did}/tables/{tid}/records", async function () {
-    it("should add or update records", async function () {
+  describe("PUT /docs/{did}/tables/{tid}/records", async function() {
+    it("should add or update records", async function() {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({ name: 'BlankTest' }, wid);
@@ -2095,21 +2095,21 @@ function testDocApi(settings: {
           { records: [{ require: { no_such_column: 1 } }] }, chimpy));
     });
 
-    it("should 400 for an incorrect onmany parameter", async function () {
+    it("should 400 for an incorrect onmany parameter", async function() {
       checkError(400,
         /onmany parameter foo should be one of first,none,all/,
         await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
           { records: [{ require: { id: 1 } }] }, { ...chimpy, params: { onmany: "foo" } }));
     });
 
-    it("should 400 for an empty require without allow_empty_require", async function () {
+    it("should 400 for an empty require without allow_empty_require", async function() {
       checkError(400,
         /require is empty but allow_empty_require isn't set/,
         await axios.put(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`,
           { records: [{ require: {} }] }, chimpy));
     });
 
-    it("should validate request schema", async function () {
+    it("should validate request schema", async function() {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
       const test = async (payload: any, error: { error: string, details: { userError: string } }) => {
         const resp = await axios.put(url, payload, chimpy);
@@ -2136,7 +2136,7 @@ function testDocApi(settings: {
     });
   });
 
-  describe("POST /docs/{did}/tables/{tid}/records", async function () {
+  describe("POST /docs/{did}/tables/{tid}/records", async function() {
     it("POST should have good errors", async () => {
       checkError(404, /not found/,
         await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Bad_Foo_/data`,
@@ -2152,9 +2152,9 @@ function testDocApi(settings: {
           { A: ['Alice'], B: null }, chimpy));
     });
 
-    it("validates request schema", async function () {
+    it("validates request schema", async function() {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-      const test = async(payload: any, error: { error: string, details: { userError: string } }) => {
+      const test = async (payload: any, error: { error: string, details: { userError: string } }) => {
         const resp = await axios.post(url, payload, chimpy);
         checkError(400, error, resp);
       };
@@ -2178,7 +2178,7 @@ function testDocApi(settings: {
       await testField(['ZZ']);
     });
 
-    it("allows to create a blank record", async function () {
+    it("allows to create a blank record", async function() {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({ name: 'BlankTest' }, wid);
@@ -2189,7 +2189,7 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, { records: [{ id: 1 }, { id: 2 }] });
     });
 
-    it("allows to create partial records", async function () {
+    it("allows to create partial records", async function() {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({ name: 'BlankTest' }, wid);
@@ -2204,7 +2204,7 @@ function testDocApi(settings: {
         { id: [1, 2, 3], A: [1, null, null], B: [null, 2, null], C: [null, null, null] });
     });
 
-    it("allows CellValue as a field", async function () {
+    it("allows CellValue as a field", async function() {
       // create sample document
       const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({ name: 'PostTest' }, wid);
@@ -2240,7 +2240,7 @@ function testDocApi(settings: {
     });
   });
 
-  it("POST /docs/{did}/tables/{tid}/data respects document permissions", async function () {
+  it("POST /docs/{did}/tables/{tid}/data respects document permissions", async function() {
     let resp: AxiosResponse;
     const data = {
       A: ['Alice', 'Felix'],
@@ -2267,8 +2267,8 @@ function testDocApi(settings: {
     });
   });
 
-  describe("PATCH /docs/{did}/tables/{tid}/records", function () {
-    it("updates records", async function () {
+  describe("PATCH /docs/{did}/tables/{tid}/records", function() {
+    it("updates records", async function() {
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`, {
         records: [
           {
@@ -2317,7 +2317,7 @@ function testDocApi(settings: {
       });
     });
 
-    it("validates request schema", async function () {
+    it("validates request schema", async function() {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
       async function failsWithError(payload: any, error: { error: string, details?: { userError: string } }) {
         const resp = await axios.patch(url, payload, chimpy);
@@ -2361,7 +2361,7 @@ function testDocApi(settings: {
       await fieldIsNotValid(['ZZ']);
     });
 
-    it("allows CellValue as a field", async function () {
+    it("allows CellValue as a field", async function() {
       // create sample document for testing
       const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
       const docId = await userApi.newDoc({ name: 'PatchTest' }, wid);
@@ -2397,8 +2397,8 @@ function testDocApi(settings: {
     });
   });
 
-  describe("PATCH /docs/{did}/tables/{tid}/data", function () {
-    it("updates records", async function () {
+  describe("PATCH /docs/{did}/tables/{tid}/data", function() {
+    it("updates records", async function() {
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1],
         A: ['Santa Klaus'],
@@ -2414,7 +2414,7 @@ function testDocApi(settings: {
       });
     });
 
-    it("throws 400 for invalid row ids", async function () {
+    it("throws 400 for invalid row ids", async function() {
       // combination of valid and invalid ids fails
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1, 5],
@@ -2440,7 +2440,7 @@ function testDocApi(settings: {
       });
     });
 
-    it("throws 400 for invalid column", async function () {
+    it("throws 400 for invalid column", async function() {
       const resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1],
         A: ['Alice'],
@@ -2450,7 +2450,7 @@ function testDocApi(settings: {
       assert.match(resp.data.error, /Invalid column "C"/);
     });
 
-    it("respects document permissions", async function () {
+    it("respects document permissions", async function() {
       let resp: AxiosResponse;
       const data = {
         id: [1],
@@ -2498,8 +2498,8 @@ function testDocApi(settings: {
     return resp;
   }
 
-  describe('attachments', function () {
-    it("POST /docs/{did}/attachments adds attachments", async function () {
+  describe('attachments', function() {
+    it("POST /docs/{did}/attachments adds attachments", async function() {
       const uploadResp = await addAttachmentsToDoc(docIds.TestDoc, [
         { name: 'hello.doc', contents: 'foobar' },
         { name: 'world.jpg', contents: '123456' },
@@ -2513,7 +2513,7 @@ function testDocApi(settings: {
       assert.deepEqual(upload2Resp.data, [3]);
     });
 
-    it("GET /docs/{did}/attachments lists attachment metadata", async function () {
+    it("GET /docs/{did}/attachments lists attachment metadata", async function() {
       // Test that the usual /records query parameters like sort and filter also work
       const url = `${homeUrl}/api/docs/${docIds.TestDoc}/attachments?sort=-fileName&limit=2`;
       const resp = await axios.get(url, chimpy);
@@ -2530,14 +2530,14 @@ function testDocApi(settings: {
       );
     });
 
-    it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function () {
+    it("GET /docs/{did}/attachments/{id} returns attachment metadata", async function() {
       const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2`, chimpy);
       assert.equal(resp.status, 200);
       assert.include(resp.data, { fileName: "world.jpg", fileSize: 6 });
       assert.match(resp.data.timeUploaded, /^\d{4}-\d{2}-\d{2}T/);
     });
 
-    it("GET /docs/{did}/attachments/{id}/download downloads attachment contents", async function () {
+    it("GET /docs/{did}/attachments/{id}/download downloads attachment contents", async function() {
       const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/2/download`,
         { ...chimpy, responseType: 'arraybuffer' });
       assert.equal(resp.status, 200);
@@ -2559,7 +2559,7 @@ function testDocApi(settings: {
       }
     }
 
-    it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function () {
+    it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip", async function() {
       const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive`,
         { ...chimpy, responseType: 'arraybuffer' });
       assert.equal(resp.status, 200);
@@ -2580,7 +2580,7 @@ function testDocApi(settings: {
       ]);
     });
 
-    it("GET /docs/{did}/attachments/archive downloads all attachments as a .tar", async function () {
+    it("GET /docs/{did}/attachments/archive downloads all attachments as a .tar", async function() {
       const resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/archive?format=tar`,
         { ...chimpy, responseType: 'arraybuffer' });
       assert.equal(resp.status, 200);
@@ -2601,7 +2601,7 @@ function testDocApi(settings: {
       ]);
     });
 
-    it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function () {
+    it("GET /docs/{did}/attachments/{id}/download works after doc shutdown", async function() {
       // Check that we can download when ActiveDoc isn't currently open.
       let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/force-reload`, null, chimpy);
       assert.equal(resp.status, 200);
@@ -2614,7 +2614,7 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
-    it("GET /docs/{did}/attachments/{id}... returns 404 when attachment not found", async function () {
+    it("GET /docs/{did}/attachments/{id}... returns 404 when attachment not found", async function() {
       let resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/22`, chimpy);
       checkError(404, /Attachment not found: 22/, resp);
       resp = await axios.get(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments/moo`, chimpy);
@@ -2625,7 +2625,7 @@ function testDocApi(settings: {
       checkError(400, /parameter cannot be understood as an integer: moo/, resp);
     });
 
-    it("POST /docs/{did}/attachments produces reasonable errors", async function () {
+    it("POST /docs/{did}/attachments produces reasonable errors", async function() {
       // Check that it produces reasonable errors if we try to use it with non-form-data
       let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, [4, 5, 6], chimpy);
       assert.equal(resp.status, 415);     // Wrong content-type
@@ -2638,7 +2638,7 @@ function testDocApi(settings: {
       // TODO The error here is "stream ended unexpectedly", which isn't really reasonable.
     });
 
-    it("POST/GET /docs/{did}/attachments respect document permissions", async function () {
+    it("POST/GET /docs/{did}/attachments respect document permissions", async function() {
       const formData = new FormData();
       formData.append('upload', 'xyzzz', "wrong.png");
       let resp = await axios.post(`${homeUrl}/api/docs/${docIds.TestDoc}/attachments`, formData,
@@ -2652,7 +2652,7 @@ function testDocApi(settings: {
       checkError(403, /No view access/, resp);
     });
 
-    it("POST /docs/{did}/attachments respects untrusted content-type only if valid", async function () {
+    it("POST /docs/{did}/attachments respects untrusted content-type only if valid", async function() {
       const formData = new FormData();
       formData.append('upload', 'xyz', { filename: "foo", contentType: "application/pdf" });
       formData.append('upload', 'abc', { filename: "hello.png", contentType: "invalid/content-type" });
@@ -2683,7 +2683,7 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, 'def');
     });
 
-    it("POST /docs/{did}/attachments/updateUsed updates timeDeleted on metadata", async function () {
+    it("POST /docs/{did}/attachments/updateUsed updates timeDeleted on metadata", async function() {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({ name: 'TestDoc2' }, wid);
 
@@ -2809,7 +2809,7 @@ function testDocApi(settings: {
       );
     });
 
-    it("POST /docs/{did}/attachments/removeUnused removes unused attachments", async function () {
+    it("POST /docs/{did}/attachments/removeUnused removes unused attachments", async function() {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({ name: 'TestDoc3' }, wid);
       const docUrl = `${homeUrl}/api/docs/${docId}`;
@@ -2881,7 +2881,7 @@ function testDocApi(settings: {
         await userApi?.deleteDoc(docId);
       });
 
-      it("GET /docs/{did}/attachments/transferStatus reports idle transfer status", async function () {
+      it("GET /docs/{did}/attachments/transferStatus reports idle transfer status", async function() {
         const resp = await axios.get(`${docUrl}/attachments/transferStatus`, chimpy);
         assert.deepEqual(resp.data, {
           status: {
@@ -2894,12 +2894,12 @@ function testDocApi(settings: {
         });
       });
 
-      it("GET /docs/{did}/attachments/store gets the external store", async function () {
+      it("GET /docs/{did}/attachments/store gets the external store", async function() {
         const resp = await axios.get(`${docUrl}/attachments/store`, chimpy);
         assert.equal(resp.data.type, 'internal');
       });
 
-      it("POST /docs/{did}/attachments/store sets the external store", async function () {
+      it("POST /docs/{did}/attachments/store sets the external store", async function() {
         const postResp = await axios.post(`${docUrl}/attachments/store`, {
           type: 'external',
         }, chimpy);
@@ -2909,7 +2909,7 @@ function testDocApi(settings: {
         assert.equal(getResp.data.type, 'external');
       });
 
-      it("POST /docs/{did}/attachments/transferAll transfers all attachments", async function () {
+      it("POST /docs/{did}/attachments/transferAll transfers all attachments", async function() {
         const transferResp = await axios.post(`${docUrl}/attachments/transferAll`, {}, chimpy);
 
         assert.deepEqual(transferResp.data, {
@@ -2923,7 +2923,7 @@ function testDocApi(settings: {
         });
       });
 
-      it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip when external", async function () {
+      it("GET /docs/{did}/attachments/archive downloads all attachments as a .zip when external", async function() {
         const resp = await axios.get(`${docUrl}/attachments/archive`,
           { ...chimpy, responseType: 'arraybuffer' });
         assert.equal(resp.status, 200);
@@ -2943,7 +2943,7 @@ function testDocApi(settings: {
         ]);
       });
 
-      it("POST /docs/{did}/attachments/archive adds missing attachments from a .tar", async function () {
+      it("POST /docs/{did}/attachments/archive adds missing attachments from a .tar", async function() {
         const archiveResp = await axios.get(`${docUrl}/attachments/archive?format=tar`,
           { ...chimpy, responseType: 'arraybuffer' });
         assert.equal(archiveResp.status, 200, "can download the archive");
@@ -2981,7 +2981,7 @@ function testDocApi(settings: {
         }, "2 attachments should be added, 1 unused, no errors");
       });
 
-      it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function () {
+      it("POST /docs/{did}/attachments/archive errors if no .tar file is found", async function() {
         const badUploadForm = new FormData();
         badUploadForm.append("upload", "Random content", {
           filename: "AttachmentsAreHere.zip",
@@ -2993,7 +2993,7 @@ function testDocApi(settings: {
         assert.equal(tarUploadResp.status, 400, "should be a bad request");
       });
 
-      it("POST /docs/{did}/attachments/archive has a useful error if a bad file is used", async function () {
+      it("POST /docs/{did}/attachments/archive has a useful error if a bad file is used", async function() {
         const badUploadForm = new FormData();
         badUploadForm.append("upload", "Random content", {
           filename: "AttachmentsAreHere.tar",
@@ -3006,12 +3006,12 @@ function testDocApi(settings: {
         assert.deepEqual(tarUploadResp.data, { error: "File is not a valid .tar" });
       });
 
-      it("POST /docs/{did}/copy doesn't throw when the document has external attachments", async function () {
+      it("POST /docs/{did}/copy doesn't throw when the document has external attachments", async function() {
         const worker1 = await userApi.getWorkerAPI(docId);
         await worker1.copyDoc(docId, undefined, 'copy');
       });
 
-      it("POST /docs/{did} with sourceDocId can copy a document with external attachments", async function () {
+      it("POST /docs/{did} with sourceDocId can copy a document with external attachments", async function() {
         const chimpyWs = await userApi.newWorkspace({ name: "Chimpy's Workspace" }, ORG_NAME);
         const resp = await axios.post(`${homeUrl}/api/docs`, {
           sourceDocumentId: docId,
@@ -3026,7 +3026,7 @@ function testDocApi(settings: {
 
       it(
         `enables documents with external attachments from other installations to work when imported`,
-        async function () {
+        async function() {
           const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
           const formData = new FormData();
           formData.append(
@@ -3057,13 +3057,13 @@ function testDocApi(settings: {
     });
   });
 
-  it("GET /docs/{did}/download serves document", async function () {
+  it("GET /docs/{did}/download serves document", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download`, chimpy);
     assert.equal(resp.status, 200);
     assert.match(resp.data, /grist_Tables_column/);
   });
 
-  it("GET /docs/{did}/download respects permissions", async function () {
+  it("GET /docs/{did}/download respects permissions", async function() {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download`, kiwi);
     assert.equal(resp.status, 403);
@@ -3071,13 +3071,13 @@ function testDocApi(settings: {
   });
 
   // A tiny test that /copy doesn't throw.
-  it("POST /copy succeeds on a doc worker", async function () {
+  it("POST /copy succeeds on a doc worker", async function() {
     const docId = docIds.TestDoc;
     const worker1 = await userApi.getWorkerAPI(docId);
     await worker1.copyDoc(docId, undefined, 'copy');
   });
 
-  it("POST /docs/{did} with sourceDocId copies a document", async function () {
+  it("POST /docs/{did} with sourceDocId copies a document", async function() {
     const chimpyWs = await userApi.newWorkspace({ name: "Chimpy's Workspace" }, ORG_NAME);
     const resp = await axios.post(`${serverUrl}/api/docs`, {
       sourceDocumentId: docIds.TestDoc,
@@ -3089,7 +3089,7 @@ function testDocApi(settings: {
     assert.isString(resp.data);
   });
 
-  it("POST /docs/{did}/copy copies a document", async function () {
+  it("POST /docs/{did}/copy copies a document", async function() {
     const chimpyWs2 = await userApi.newWorkspace({ name: "Chimpy's Workspace 2" }, ORG_NAME);
     const resp = await axios.post(`${serverUrl}/api/docs/${docIds.TestDoc}/copy`, {
       documentName: 'copy of TestDoc',
@@ -3099,7 +3099,7 @@ function testDocApi(settings: {
     assert.isString(resp.data);
   });
 
-  it("GET /docs/{did}/download/csv serves CSV-encoded document", async function () {
+  it("GET /docs/{did}/download/csv serves CSV-encoded document", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/csv?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
@@ -3110,7 +3110,7 @@ function testDocApi(settings: {
   });
 
   it('GET /docs/{did}/download/csv with header=colId shows columns id in the header instead of their name',
-    async function () {
+    async function() {
       const { docUrl } = await generateDocAndUrl('csvWithColIdAsHeader');
       const AColRef = 2;
       const userActions = [
@@ -3128,34 +3128,34 @@ function testDocApi(settings: {
       assert.equal(csvResp.data, 'AColId,B,C\na1,b1,\n');
     });
 
-  it("GET /docs/{did}/download/csv respects permissions", async function () {
+  it("GET /docs/{did}/download/csv respects permissions", async function() {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
     assert.notEqual(resp.data, 'A,B,C,D,E\nhello,,,,HELLO\n,world,,,\n,,,,\n,,,,\n');
   });
 
-  it("GET /docs/{did}/download/csv returns 404 if tableId is invalid", async function () {
+  it("GET /docs/{did}/download/csv returns 404 if tableId is invalid", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=MissingTableId`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
   });
 
-  it("GET /docs/{did}/download/csv returns 404 if viewSectionId is invalid", async function () {
+  it("GET /docs/{did}/download/csv returns 404 if viewSectionId is invalid", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/csv?tableId=Table1&viewSection=9999`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
   });
 
-  it("GET /docs/{did}/download/csv returns 400 if tableId is missing", async function () {
+  it("GET /docs/{did}/download/csv returns 400 if tableId is missing", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/csv`, chimpy);
     assert.equal(resp.status, 400);
     assert.deepEqual(resp.data, { error: 'tableId parameter is required' });
   });
 
-  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function () {
+  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Foo`, chimpy);
     assert.equal(resp.status, 200);
     const expected = {
@@ -3187,7 +3187,7 @@ function testDocApi(settings: {
     assert.equal(resp2.data, 'A,B\nSanta,1\nBob,11\nAlice,2\nFelix,22\n');
   });
 
-  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document with header=colId", async function () {
+  it("GET /docs/{did}/download/table-schema serves table-schema-encoded document with header=colId", async function() {
     const { docUrl, tableUrl } = await generateDocAndUrl('tableSchemaWithColIdAsHeader');
     const columns = [
       {
@@ -3224,14 +3224,14 @@ function testDocApi(settings: {
     assert.deepInclude(resp.data, expected);
   });
 
-  it("GET /docs/{did}/download/table-schema respects permissions", async function () {
+  it("GET /docs/{did}/download/table-schema respects permissions", async function() {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, { "error": "No view access" });
   });
 
-  it("GET /docs/{did}/download/table-schema returns 404 if tableId is invalid", async function () {
+  it("GET /docs/{did}/download/table-schema returns 404 if tableId is invalid", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=MissingTableId`,
       chimpy,
@@ -3240,27 +3240,27 @@ function testDocApi(settings: {
     assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
   });
 
-  it("GET /docs/{did}/download/table-schema returns 400 if tableId is missing", async function () {
+  it("GET /docs/{did}/download/table-schema returns 400 if tableId is missing", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema`, chimpy);
     assert.equal(resp.status, 400);
     assert.deepEqual(resp.data, { error: 'tableId parameter is required' });
   });
 
-  it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function () {
+  it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/xlsx?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
     assert.notEqual(resp.data, null);
   });
 
-  it("GET /docs/{did}/download/xlsx respects permissions", async function () {
+  it("GET /docs/{did}/download/xlsx respects permissions", async function() {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
     assert.deepEqual(resp.data, { error: 'No view access' });
   });
 
-  it("GET /docs/{did}/download/xlsx returns 404 if tableId is invalid", async function () {
+  it("GET /docs/{did}/download/xlsx returns 404 if tableId is invalid", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=MissingTableId`,
       chimpy,
@@ -3269,21 +3269,21 @@ function testDocApi(settings: {
     assert.deepEqual(resp.data, { error: 'Table MissingTableId not found.' });
   });
 
-  it("GET /docs/{did}/download/xlsx returns 404 if viewSectionId is invalid", async function () {
+  it("GET /docs/{did}/download/xlsx returns 404 if viewSectionId is invalid", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx?tableId=Table1&viewSection=9999`, chimpy);
     assert.equal(resp.status, 404);
     assert.deepEqual(resp.data, { error: 'No record 9999 in table _grist_Views_section' });
   });
 
-  it("GET /docs/{did}/download/xlsx returns 200 if tableId is missing", async function () {
+  it("GET /docs/{did}/download/xlsx returns 200 if tableId is missing", async function() {
     const resp = await axios.get(
       `${serverUrl}/api/docs/${docIds.TestDoc}/download/xlsx`, chimpy);
     assert.equal(resp.status, 200);
     assert.notEqual(resp.data, null);
   });
 
-  it('POST /workspaces/{wid}/import handles empty filenames', async function () {
+  it('POST /workspaces/{wid}/import handles empty filenames', async function() {
     if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
@@ -3299,7 +3299,7 @@ function testDocApi(settings: {
     assert.notEqual(resp.data.id, '');
   });
 
-  it(`POST /workspaces/{wid}/import can import a new file`, async function () {
+  it(`POST /workspaces/{wid}/import can import a new file`, async function() {
     const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     const formData = new FormData();
     formData.append('upload', 'A,B\n1,2\n3,4\n', 'table1.csv');
@@ -3318,7 +3318,7 @@ function testDocApi(settings: {
     assert.deepEqual(contentResp.data, { id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4] });
   });
 
-  it("handles /s/ variants for shares", async function () {
+  it("handles /s/ variants for shares", async function() {
     const wid = (await userApi.getOrgWorkspaces('current')).find(w => w.name === 'Private')!.id;
     const docId = await userApi.newDoc({ name: 'BlankTest' }, wid);
     // const url = `${serverUrl}/api/docs/${docId}/tables/Table1/records`;
@@ -3355,7 +3355,7 @@ function testDocApi(settings: {
     assert.equal(resp.status, 404);
   });
 
-  it("document is protected during upload-and-import sequence", async function () {
+  it("document is protected during upload-and-import sequence", async function() {
     if (!process.env.TEST_REDIS_URL) {
       this.skip();
     }
@@ -3387,7 +3387,7 @@ function testDocApi(settings: {
     assert.equal(resp.status, 200);
   });
 
-  it('allows forced reloads', async function () {
+  it('allows forced reloads', async function() {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/force-reload`, null, chimpy);
     assert.equal(resp.status, 200);
     // Check that support cannot force a reload.
@@ -3403,7 +3403,7 @@ function testDocApi(settings: {
     }
   });
 
-  it('allows assignments', async function () {
+  it('allows assignments', async function() {
     let resp = await axios.post(`${serverUrl}/api/docs/${docIds.Timesheets}/assign`, null, chimpy);
     assert.equal(resp.status, 200);
     // Check that support cannot force an assignment.
@@ -3419,7 +3419,7 @@ function testDocApi(settings: {
     }
   });
 
-  it('honors urlIds', async function () {
+  it('honors urlIds', async function() {
     // Make a document with a urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({ name: 'testdoc1', urlId: 'urlid1' }, ws1);
@@ -3446,7 +3446,7 @@ function testDocApi(settings: {
     }
   });
 
-  it('filters urlIds by org', async function () {
+  it('filters urlIds by org', async function() {
     // Make two documents with same urlId
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({ name: 'testdoc1', urlId: 'urlid' }, ws1);
@@ -3474,7 +3474,7 @@ function testDocApi(settings: {
     }
   });
 
-  it('allows docId access to any document from merged org', async function () {
+  it('allows docId access to any document from merged org', async function() {
     // Make two documents
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({ name: 'testdoc1' }, ws1);
@@ -3504,7 +3504,7 @@ function testDocApi(settings: {
     }
   });
 
-  it("GET /docs/{did}/replace replaces one document with another", async function () {
+  it("GET /docs/{did}/replace replaces one document with another", async function() {
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const doc1 = await userApi.newDoc({ name: 'testdoc1' }, ws1);
     const doc2 = await userApi.newDoc({ name: 'testdoc2' }, ws1);
@@ -3570,14 +3570,14 @@ function testDocApi(settings: {
     }
   });
 
-  it("GET /docs/{did}/snapshots retrieves a list of snapshots", async function () {
+  it("GET /docs/{did}/snapshots retrieves a list of snapshots", async function() {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/snapshots`, chimpy);
     assert.equal(resp.status, 200);
     assert.isAtLeast(resp.data.snapshots.length, 1);
     assert.hasAllKeys(resp.data.snapshots[0], ['docId', 'lastModified', 'snapshotId']);
   });
 
-  it("POST /docs/{did}/states/remove removes old states", async function () {
+  it("POST /docs/{did}/states/remove removes old states", async function() {
     // Check doc has plenty of states.
     let resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/states`, chimpy);
     assert.equal(resp.status, 200);
@@ -3603,7 +3603,7 @@ function testDocApi(settings: {
     assert.equal(resp.data.states[0].h, states[0].h);
   });
 
-  it("GET /docs/{did1}/compare/{did2} tracks changes between docs", async function () {
+  it("GET /docs/{did1}/compare/{did2} tracks changes between docs", async function() {
     // Pass kiwi's headers as it contains both Authorization and Origin headers
     // if run behind a proxy, so we can ensure that the Origin header check is not made.
     const userApiServerUrl = docs.proxiedServer ? serverUrl : undefined;
@@ -3758,7 +3758,7 @@ function testDocApi(settings: {
     }
   });
 
-  it("GET /docs/{did}/compare tracks changes within a doc", async function () {
+  it("GET /docs/{did}/compare tracks changes within a doc", async function() {
     // Create a test document.
     const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
     const docId = await userApi.newDoc({ name: 'testdoc' }, ws1);
@@ -3841,7 +3841,7 @@ function testDocApi(settings: {
     });
   });
 
-  it('doc worker endpoints ignore any /dw/.../ prefix', async function () {
+  it('doc worker endpoints ignore any /dw/.../ prefix', async function() {
     if (docs.proxiedServer) {
       this.skip();
     }
@@ -3864,9 +3864,9 @@ function testDocApi(settings: {
     }
   });
 
-  describe('webhooks related endpoints', async function () {
+  describe('webhooks related endpoints', async function() {
     let serving: Serving;
-    before(async function () {
+    before(async function() {
       serving = await serveSomething((app) => {
         app.use(express.json());
         app.post('/200', ({ body }, res) => {
@@ -3876,7 +3876,7 @@ function testDocApi(settings: {
       }, webhooksTestPort);
     });
 
-    after(async function () {
+    after(async function() {
       await serving.shutdown();
     });
 
@@ -3906,7 +3906,7 @@ function testDocApi(settings: {
       return resp.data;
     }
 
-    it("GET /docs/{did}/webhooks retrieves a list of webhooks", async function () {
+    it("GET /docs/{did}/webhooks retrieves a list of webhooks", async function() {
       const registerResponse = await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1", eventTypes: ["add"], url: "https://example.com" } }] }, 200);
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
       try {
@@ -3922,7 +3922,7 @@ function testDocApi(settings: {
       }
     });
 
-    it("POST /docs/{did}/tables/{tid}/_subscribe validates inputs", async function () {
+    it("POST /docs/{did}/tables/{tid}/_subscribe validates inputs", async function() {
       await oldSubscribeCheck({}, 400, /eventTypes is missing/);
       await oldSubscribeCheck({ eventTypes: 0 }, 400, /url is missing/, /eventTypes is not an array/);
       await oldSubscribeCheck({ eventTypes: [] }, 400, /url is missing/);
@@ -3935,7 +3935,7 @@ function testDocApi(settings: {
     });
 
     // in this endpoint webhookID is in body, not in path, so it also should be verified
-    it("POST /docs/{did}/webhooks validates inputs", async function () {
+    it("POST /docs/{did}/webhooks validates inputs", async function() {
       await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1" } }] }, 400,
         /eventTypes is missing/);
       await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1", eventTypes: 0 } }] }, 400,
@@ -4012,7 +4012,7 @@ function testDocApi(settings: {
       return { unsubscribeKey, webhookId };
     }
 
-    it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for owners", async function () {
+    it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for owners", async function() {
       // Owner doesn't need unsubscribeKey.
       const { webhookId } = await subscribeWebhook();
 
@@ -4028,7 +4028,7 @@ function testDocApi(settings: {
       await check({ webhookId }, 404, `Webhook not found "${webhookId}"`);
     });
 
-    it("DELETE /docs/{did}/tables/webhooks validates inputs for owners", async function () {
+    it("DELETE /docs/{did}/tables/webhooks validates inputs for owners", async function() {
       // Owner doesn't need unsubscribeKey.
       const { webhookId } = await subscribeWebhook();
 
@@ -4081,7 +4081,7 @@ function testDocApi(settings: {
       assert.equal(webhookList.length, 3);
     });
 
-    it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
+    it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function() {
       const subscribeResponse = await subscribeWebhook();
 
       const delta = {
@@ -4116,7 +4116,7 @@ function testDocApi(settings: {
       await flushAuth();
     });
 
-    it("DELETE /docs/{did}/tables/webhooks should not be allowed for not-owner", async function () {
+    it("DELETE /docs/{did}/tables/webhooks should not be allowed for not-owner", async function() {
       const subscribeResponse = await subscribeWebhook();
       const check = userDeleteCheck.bind(null, kiwi);
 
@@ -4141,14 +4141,14 @@ function testDocApi(settings: {
   describe("Daily API Limit", () => {
     let redisClient: RedisClient;
 
-    before(async function () {
+    before(async function() {
       if (!process.env.TEST_REDIS_URL) {
         this.skip();
       }
       redisClient = createClient(process.env.TEST_REDIS_URL);
     });
 
-    it("limits daily API usage", async function () {
+    it("limits daily API usage", async function() {
       // Make a new document in a test product with a low daily limit
       const api = makeUserApi('testdailyapilimit', 'chimpy');
       const workspaceId = await getWorkspaceId(api, 'TestDailyApiLimitWs');
@@ -4177,7 +4177,7 @@ function testDocApi(settings: {
       }
     });
 
-    it("limits daily API usage and sets the correct keys in redis", async function () {
+    it("limits daily API usage and sets the correct keys in redis", async function() {
       this.retries(3);
       // Make a new document in a free team site, currently the only real product which limits daily API usage.
       const freeTeamApi = makeUserApi('freeteam', 'chimpy');
@@ -4258,7 +4258,7 @@ function testDocApi(settings: {
       }
     });
 
-    it("correctly allocates API requests based on the day, hour, and minute", async function () {
+    it("correctly allocates API requests based on the day, hour, and minute", async function() {
       const m = moment.utc("1999-12-31T23:59:59Z");
       const docId = "myDocId";
       const currentDay = docPeriodicApiUsageKey(docId, true, docApiUsagePeriods[0], m);
@@ -4301,7 +4301,7 @@ function testDocApi(settings: {
       check([nextDay, currentHour, currentMinute]);
     });
 
-    after(async function () {
+    after(async function() {
       if (process.env.TEST_REDIS_URL) {
         await redisClient.quitAsync();
       }
@@ -4444,7 +4444,7 @@ function testDocApi(settings: {
       return result.data.webhooks;
     }
 
-    before(async function () {
+    before(async function() {
       this.timeout(30000);
       requests = {
         "add,update": [],
@@ -4519,12 +4519,12 @@ function testDocApi(settings: {
       }, webhooksTestPort);
     });
 
-    after(async function () {
+    after(async function() {
       await serving.shutdown();
     });
 
-    describe('table endpoints', function () {
-      before(async function () {
+    describe('table endpoints', function() {
+      before(async function() {
         this.timeout(30000);
         // We rely on the REDIS server in this test.
         if (!process.env.TEST_REDIS_URL) {
@@ -4538,7 +4538,7 @@ function testDocApi(settings: {
         });
       });
 
-      beforeEach(function () {
+      beforeEach(function() {
         requests = {
           "add,update": [],
           "add": [],
@@ -4547,7 +4547,7 @@ function testDocApi(settings: {
         redisCalls = [];
       });
 
-      after(async function () {
+      after(async function() {
         if (process.env.TEST_REDIS_URL) {
           await redisMonitor.quitAsync();
         }
@@ -4600,7 +4600,7 @@ function testDocApi(settings: {
         watchedColIds: ["A", "B"],
       }].forEach((ctx) => {
         it(ctx.itMsg,
-          async function () {
+          async function() {
           // Create a test document.
             const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
             const docId = await userApi.newDoc({ name: 'testdoc' }, ws1);
@@ -4726,7 +4726,7 @@ function testDocApi(settings: {
         itMsg: "does trigger webhook that has been enable",
         enabled: true,
       }].forEach((ctx) => {
-        it(ctx.itMsg, async function () {
+        it(ctx.itMsg, async function() {
           // Create a test document.
           const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
           const docId = await userApi.newDoc({ name: 'testdoc' }, ws1);
@@ -4754,11 +4754,11 @@ function testDocApi(settings: {
       });
     });
 
-    describe("/webhooks endpoint", function () {
+    describe("/webhooks endpoint", function() {
       let docId: string;
       let doc: DocAPI;
       let stats: WebhookSummary[];
-      before(async function () {
+      before(async function() {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         docId = await userApi.newDoc({ name: 'testdoc2' }, ws1);
@@ -5275,7 +5275,7 @@ function testDocApi(settings: {
         await unsubscribe1();
       });
 
-      it('should not block document load (gh issue #799)', async function () {
+      it('should not block document load (gh issue #799)', async function() {
         // Create a test document.
         const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
         const docId = await userApi.newDoc({ name: 'testdoc5' }, ws1);
@@ -5408,8 +5408,8 @@ function testDocApi(settings: {
         await unsubscribe(docId, webhook4);
       });
 
-      describe('webhook update', function () {
-        it('should work correctly', async function () {
+      describe('webhook update', function() {
+        it('should work correctly', async function() {
           async function check(fields: any, status: number, error?: RegExp | string,
             expectedFieldsCallback?: (fields: any) => any) {
             const origFields = {
@@ -5533,7 +5533,7 @@ function testDocApi(settings: {
   });
 
   describe("Allowed Origin", () => {
-    it("should respond with correct CORS headers", async function () {
+    it("should respond with correct CORS headers", async function() {
       const wid = await getWorkspaceId(userApi, 'Private');
       const docId = await userApi.newDoc({ name: 'CorsTestDoc' }, wid);
       await userApi.updateDocPermissions(docId, {
@@ -5623,7 +5623,7 @@ function testDocApi(settings: {
     });
   });
 
-  it("GET /docs/{did}/sql is functional", async function () {
+  it("GET /docs/{did}/sql is functional", async function() {
     const query = 'select+*+from+Table1+order+by+id';
     const resp = await axios.get(`${homeUrl}/api/docs/${docIds.Timesheets}/sql?q=${query}`, chimpy);
     assert.equal(resp.status, 200);
@@ -5654,7 +5654,7 @@ function testDocApi(settings: {
     });
   });
 
-  it("POST /docs/{did}/sql is functional", async function () {
+  it("POST /docs/{did}/sql is functional", async function() {
     let resp = await axios.post(
       `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
       { sql: "select A from Table1 where id = ?", args: [1] },
@@ -5677,7 +5677,7 @@ function testDocApi(settings: {
     });
   });
 
-  it("POST /docs/{did}/sql has access control", async function () {
+  it("POST /docs/{did}/sql has access control", async function() {
     // Check non-viewer doesn't have access.
     const url = `${homeUrl}/api/docs/${docIds.Timesheets}/sql`;
     const query = { sql: "select A from Table1 where id = ?", args: [1] };
@@ -5723,7 +5723,7 @@ function testDocApi(settings: {
     }
   });
 
-  it("POST /docs/{did}/sql accepts only selects", async function () {
+  it("POST /docs/{did}/sql accepts only selects", async function() {
     async function check(accept: boolean, sql: string, ...args: any[]) {
       const resp = await axios.post(
         `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
@@ -5766,7 +5766,7 @@ function testDocApi(settings: {
     assert.lengthOf(records, 4);
   });
 
-  it("POST /docs/{did}/sql timeout is effective", async function () {
+  it("POST /docs/{did}/sql timeout is effective", async function() {
     const slowQuery = 'WITH RECURSIVE r(i) AS (VALUES(0) ' +
       'UNION ALL SELECT i FROM r  LIMIT 1000000) ' +
       'SELECT i FROM r WHERE i = 1';
@@ -5792,7 +5792,7 @@ const ORG_NAME = 'docs-1';
 function setup(name: string, cb: () => Promise<void>) {
   let api: UserAPIImpl;
 
-  before(async function () {
+  before(async function() {
     suitename = name;
     dataDir = path.join(tmpDir, `${suitename}-data`);
     await flushAllRedis();
@@ -5806,7 +5806,7 @@ function setup(name: string, cb: () => Promise<void>) {
     docIds.TestDoc = await api.newDoc({ name: 'TestDoc' }, wid);
   });
 
-  after(async function () {
+  after(async function() {
     // remove TestDoc
     await api.deleteDoc(docIds.TestDoc);
     delete docIds.TestDoc;

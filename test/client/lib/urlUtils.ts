@@ -3,17 +3,17 @@ import { assert } from "chai";
 import { popGlobals, pushGlobals } from "grainjs/dist/cjs/lib/browserGlobals";
 import { JSDOM } from "jsdom";
 
-describe("urlUtils", function () {
+describe("urlUtils", function() {
   let originalWindow: any;
 
-  beforeEach(function () {
+  beforeEach(function() {
     originalWindow = (global as any).window;
     const jsdomDoc = new JSDOM("<!doctype html><html><body></body></html>");
     (global as any).window = jsdomDoc.window;
     pushGlobals(jsdomDoc.window);
   });
 
-  afterEach(function () {
+  afterEach(function() {
     (global as any).window = originalWindow;
     popGlobals();
   });
@@ -22,8 +22,8 @@ describe("urlUtils", function () {
     (global as any).window = { location: { href } };
   }
 
-  describe("buildURL", function () {
-    it("returns appropriate urls", async function () {
+  describe("buildURL", function() {
+    it("returns appropriate urls", async function() {
       assert.equal(
         buildURL("/", {
           base: "https://example.com",
@@ -76,8 +76,8 @@ describe("urlUtils", function () {
     });
   });
 
-  describe("getLoginUrl", function () {
-    it("returns appropriate login urls", function () {
+  describe("getLoginUrl", function() {
+    it("returns appropriate login urls", function() {
       setWindowLocation("http://localhost:8080");
       assert.equal(getLoginUrl(), "http://localhost:8080/login?next=%2F");
       setWindowLocation("https://docs.getgrist.com/");
@@ -91,7 +91,7 @@ describe("urlUtils", function () {
       assert.equal(getLoginUrl(), "https://example.com/login?next=%2F");
     });
 
-    it("encodes redirect url in next param", function () {
+    it("encodes redirect url in next param", function() {
       setWindowLocation("http://localhost:8080/o/docs/foo");
       assert.equal(
         getLoginUrl(),
@@ -104,7 +104,7 @@ describe("urlUtils", function () {
       );
     });
 
-    it("includes query params and hashes in next param", function () {
+    it("includes query params and hashes in next param", function() {
       setWindowLocation(
         "https://foo.getgrist.com/Y5g3gBaX27D/With-Hash/p/1/#a1.s8.r2.c23",
       );
@@ -128,7 +128,7 @@ describe("urlUtils", function () {
       );
     });
 
-    it("skips encoding redirect url on signed-out page", function () {
+    it("skips encoding redirect url on signed-out page", function() {
       setWindowLocation("http://localhost:8080/o/docs/signed-out");
       assert.equal(
         getLoginUrl(),

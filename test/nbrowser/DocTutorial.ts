@@ -3,7 +3,7 @@ import { assert, driver, Key } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('DocTutorial', function () {
+describe('DocTutorial', function() {
   this.timeout(60000);
 
   gu.bigScreen('big');
@@ -30,7 +30,7 @@ describe('DocTutorial', function () {
     } });
   });
 
-  describe('when logged out', function () {
+  describe('when logged out', function() {
     before(async () => {
       viewerSession = await gu.session().anon.login();
     });
@@ -51,7 +51,7 @@ describe('DocTutorial', function () {
     });
   });
 
-  describe('when logged in', function () {
+  describe('when logged in', function() {
     let forkUrl: string;
 
     before(async () => {
@@ -588,7 +588,7 @@ describe('DocTutorial', function () {
     });
   });
 
-  describe('without tutorial flag set', function () {
+  describe('without tutorial flag set', function() {
     before(async () => {
       await api.updateDoc('grist-basics', { type: null });
       ownerSession = await gu.session().customTeamSite('templates').user('support').login();

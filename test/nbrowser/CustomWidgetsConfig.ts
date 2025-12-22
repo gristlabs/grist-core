@@ -127,7 +127,7 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
   await driver.sendKeys(Key.ESCAPE);
 }
 
-describe('CustomWidgetsConfig', function () {
+describe('CustomWidgetsConfig', function() {
   this.timeout('60s');
   const cleanup = setupTestSuite();
   let mainSession: gu.Session;
@@ -137,7 +137,7 @@ describe('CustomWidgetsConfig', function () {
 
   addToRepl('getOptions', getOptions);
 
-  before(async function () {
+  before(async function() {
     if (server.isExternalServer()) {
       this.skip();
     }
@@ -1004,8 +1004,8 @@ describe('CustomWidgetsConfig', function () {
   });
 
   for (const access of ['none', 'read table', 'full'] as const) {
-    describe(`with ${access} access`, function () {
-      before(function () {
+    describe(`with ${access} access`, function() {
+      before(function() {
         if (server.isExternalServer()) {
           this.skip();
         }
@@ -1143,7 +1143,7 @@ describe('CustomWidgetsConfig', function () {
     await refresh();
   });
 
-  it('should display the empty widget page if the URL is invalid', async function () {
+  it('should display the empty widget page if the URL is invalid', async function() {
     await gu.setCustomWidget(INVALID_URL_WIDGET);
     await widget.waitForFrame();
     assert.match(await widget.url(), /custom-widget\.html$/);

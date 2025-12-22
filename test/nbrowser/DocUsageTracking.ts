@@ -25,7 +25,7 @@ describe('DocUsageTracking', function() {
     api = session.createHomeApi();
   }
 
-  before(async function () {
+  before(async function() {
     await makeSessionAndLogin();
   });
 
@@ -47,7 +47,7 @@ describe('DocUsageTracking', function() {
   });
 
   function testAttachmentsUsage(getDocId: () => string, options: { external: boolean }) {
-    it('updates attachments size usage when uploading attachments', async function () {
+    it('updates attachments size usage when uploading attachments', async function() {
       const docId = getDocId();
       // Add a new 'Attachments' column of type Attachment to Table1.
       await gu.sendActions([['AddEmptyTable', "AttachmentsTable"]]);

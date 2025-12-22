@@ -1163,7 +1163,7 @@ describe('ActiveDoc', async function() {
     }
   });
 
-  it('sandbox passes in truthy custom values', async function () {
+  it('sandbox passes in truthy custom values', async function() {
     const env = new EnvironmentSnapshot();
     try {
       process.env.GRIST_TRUTHY_VALUES = 'meep';
@@ -1186,7 +1186,7 @@ describe('ActiveDoc', async function() {
     }
   });
 
-  it('sandbox passes in falsy custom values', async function () {
+  it('sandbox passes in falsy custom values', async function() {
     const env = new EnvironmentSnapshot();
     try {
       process.env.GRIST_FALSY_VALUES = 'moop';

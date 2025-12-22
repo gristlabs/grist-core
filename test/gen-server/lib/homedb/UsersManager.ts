@@ -29,10 +29,10 @@ import fetch from 'node-fetch';
 
 import { delay } from 'app/common/delay';
 
-describe('UsersManager', function () {
+describe('UsersManager', function() {
   this.timeout('3m');
 
-  describe('static method', function () {
+  describe('static method', function() {
     /**
      * Create a simple iterator of integer starting from 0 which is incremented every time we call next()
      */
@@ -99,8 +99,8 @@ describe('UsersManager', function () {
       return membersByResource.get(resource)!;
     }
 
-    describe('getResourceUsers()', function () {
-      it('should return all users from a single organization ACL', function () {
+    describe('getResourceUsers()', function() {
+      it('should return all users from a single organization ACL', function() {
         const resource = new Organization();
         const expectedUsers = populateSingleResourceWithMembers(resource, 5);
 
@@ -109,7 +109,7 @@ describe('UsersManager', function () {
         assert.deepEqual(result, expectedUsers);
       });
 
-      it('should return all users from all resources ACL', function () {
+      it('should return all users from all resources ACL', function() {
         const resources: Resource[] = [new Organization(), new Workspace(), new Document()];
         const membersByResource = populateResourcesWithMembers(resources, 5);
 
@@ -118,7 +118,7 @@ describe('UsersManager', function () {
         assert.deepEqual(result, [...membersByResource.values()].flat());
       });
 
-      it('should deduplicate the results', function () {
+      it('should deduplicate the results', function() {
         const resources: Resource[] = [new Organization(), new Workspace()];
         const membersByResource = populateResourcesWithMembers(resources, 1);
         const usersList = [...membersByResource.values()];
@@ -133,7 +133,7 @@ describe('UsersManager', function () {
         assert.deepEqual(result, expectedResult);
       });
 
-      it('should return users matching group names from all resources ACL', function () {
+      it('should return users matching group names from all resources ACL', function() {
         const someOrg = new Organization();
         const someWorkspace = new Workspace();
         const someDoc = new Document();
@@ -149,7 +149,7 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getUsersWithRole()', function () {
+    describe('getUsersWithRole()', function() {
       function makeGroups(groupDefinition: { [k in NonGuestGroup['name']]?: User[] | undefined }) {
         const entries = Object.entries(groupDefinition) as [NonGuestGroup['name'], User[] | undefined][];
 
@@ -163,7 +163,7 @@ describe('UsersManager', function () {
         });
       }
 
-      it('should retrieve no users if passed groups do not contain any', function () {
+      it('should retrieve no users if passed groups do not contain any', function() {
         const groups = makeGroups({
           'members': undefined,
         });
@@ -173,7 +173,7 @@ describe('UsersManager', function () {
         assert.deepEqual(result, new Map([['members', undefined]] as any));
       });
 
-      it('should retrieve users of passed groups', function () {
+      it('should retrieve users of passed groups', function() {
         const idxIt = makeUserIdIterator();
         const groupsUsersMap = {
           'editors': makeUsers(3, idxIt),
@@ -188,7 +188,7 @@ describe('UsersManager', function () {
         assert.deepEqual(result, new Map(Object.entries(groupsUsersMap)));
       });
 
-      it('should exclude users of given IDs', function () {
+      it('should exclude users of given IDs', function() {
         const groupUsersMap = {
           'editors': makeUsers(5),
         };
@@ -203,7 +203,7 @@ describe('UsersManager', function () {
     });
   });
 
-  describe('class method', function () {
+  describe('class method', function() {
     const NON_EXISTING_USER_ID = 10001337;
     let env: EnvironmentSnapshot;
     let db: HomeDBManager;
@@ -258,7 +258,7 @@ describe('UsersManager', function () {
       };
     }
 
-    before(async function () {
+    before(async function() {
       env = new EnvironmentSnapshot();
       process.env.TEST_CLEAN_DATABASE = 'true';
       setUpDB(this);
@@ -284,41 +284,41 @@ describe('UsersManager', function () {
       await db.initializeSpecialIds();
     });
 
-    after(async function () {
+    after(async function() {
       env?.restore();
       await removeConnection();
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
       sandbox = Sinon.createSandbox();
     });
 
-    afterEach(function () {
+    afterEach(function() {
       sandbox.restore();
     });
 
-    describe('Special User Ids', function () {
+    describe('Special User Ids', function() {
       const ANONYMOUS_USER_ID = 6;
       const PREVIEWER_USER_ID = 7;
       const EVERYONE_USER_ID = 8;
       const SUPPORT_USER_ID = 5;
-      it('getAnonymousUserId() should retrieve anonymous user id', function () {
+      it('getAnonymousUserId() should retrieve anonymous user id', function() {
         assert.strictEqual(db.getAnonymousUserId(), ANONYMOUS_USER_ID);
       });
 
-      it('getPreviewerUserId() should retrieve previewer user id', function () {
+      it('getPreviewerUserId() should retrieve previewer user id', function() {
         assert.strictEqual(db.getPreviewerUserId(), PREVIEWER_USER_ID);
       });
 
-      it("getEveryoneUserId() should retrieve 'everyone' user id", function () {
+      it("getEveryoneUserId() should retrieve 'everyone' user id", function() {
         assert.strictEqual(db.getEveryoneUserId(), EVERYONE_USER_ID);
       });
 
-      it("getSupportUserId() should retrieve 'support' user id", function () {
+      it("getSupportUserId() should retrieve 'support' user id", function() {
         assert.strictEqual(db.getSupportUserId(), SUPPORT_USER_ID);
       });
 
-      it("getSpecialUserIds() should retrieve all the special user ids", function () {
+      it("getSpecialUserIds() should retrieve all the special user ids", function() {
         assert.deepEqual(db.getSpecialUserIds(), [
           ANONYMOUS_USER_ID,
           PREVIEWER_USER_ID,
@@ -328,23 +328,23 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getUserByKey()', function () {
-      it('should return the user given their API Key', async function () {
+    describe('getUserByKey()', function() {
+      it('should return the user given their API Key', async function() {
         const user = await db.getUserByKey('api_key_for_chimpy');
 
         assert.strictEqual(user?.name, 'Chimpy', 'should retrieve Chimpy by their API key');
         assert.strictEqual(user?.logins?.[0].email, 'chimpy@getgrist.com');
       });
 
-      it('should return undefined if no user matches the API key', async function () {
+      it('should return undefined if no user matches the API key', async function() {
         const user = await db.getUserByKey('non-existing API key');
 
         assert.strictEqual(user, undefined);
       });
     });
 
-    describe('getUser()', async function () {
-      it('should retrieve a user by their ID', async function () {
+    describe('getUser()', async function() {
+      it('should retrieve a user by their ID', async function() {
         const user = await db.getUser(db.getSupportUserId());
         assertExists(user, 'Should have returned a user');
         assert.strictEqual(user.name, 'Support');
@@ -352,7 +352,7 @@ describe('UsersManager', function () {
         assert.notExists(user.prefs, "should not have retrieved user's prefs");
       });
 
-      it('should retrieve a user along with their prefs with `includePrefs` set to true', async function () {
+      it('should retrieve a user along with their prefs with `includePrefs` set to true', async function() {
         const expectedUser = await createUniqueUser('getuser-userwithprefs');
         const user = await db.getUser(expectedUser.id, { includePrefs: true });
         assertExists(user, "Should have retrieved the user");
@@ -366,13 +366,13 @@ describe('UsersManager', function () {
         }]);
       });
 
-      it('should return undefined when the id is not found', async function () {
+      it('should return undefined when the id is not found', async function() {
         assert.isUndefined(await db.getUser(NON_EXISTING_USER_ID));
       });
     });
 
-    describe('getFullUser()', function () {
-      it('should return the support user', async function () {
+    describe('getFullUser()', function() {
+      it('should return the support user', async function() {
         const supportId = db.getSupportUserId();
 
         const user = await db.getFullUser(supportId);
@@ -387,7 +387,7 @@ describe('UsersManager', function () {
         assert.notOk(user.anonymous, 'anonymous property should be falsy');
       });
 
-      it('should return the anonymous user', async function () {
+      it('should return the anonymous user', async function() {
         const anonId = db.getAnonymousUserId();
 
         const user = await db.getFullUser(anonId);
@@ -402,12 +402,12 @@ describe('UsersManager', function () {
         assert.notOk(user.isSupport, 'support property should be falsy');
       });
 
-      it('should reject when user is not found', async function () {
+      it('should reject when user is not found', async function() {
         await assert.isRejected(db.getFullUser(NON_EXISTING_USER_ID), "unable to find user");
       });
     });
 
-    describe('makeFullUser()', function () {
+    describe('makeFullUser()', function() {
       const someUserDisplayEmail = 'SomeUser@getgrist.com';
       const normalizedSomeUserEmail = 'someuser@getgrist.com';
       const someUserLocale = 'en-US';
@@ -448,7 +448,7 @@ describe('UsersManager', function () {
         });
       }
 
-      it('creates a FullUser from a User entity', function () {
+      it('creates a FullUser from a User entity', function() {
         const input = makeSomeUser();
 
         const fullUser = db.makeFullUser(input);
@@ -467,7 +467,7 @@ describe('UsersManager', function () {
         });
       });
 
-      it('sets `anonymous` property to true for anon@getgrist.com', function () {
+      it('sets `anonymous` property to true for anon@getgrist.com', function() {
         const anon = db.getAnonymousUser();
 
         const fullUser = db.makeFullUser(anon);
@@ -476,7 +476,7 @@ describe('UsersManager', function () {
         assert.notOk(fullUser.isSupport, "`isSupport` should be falsy");
       });
 
-      it('sets `isSupport` property to true for support account', async function () {
+      it('sets `isSupport` property to true for support account', async function() {
         const support = await db.getUser(db.getSupportUserId());
 
         const fullUser = db.makeFullUser(support!);
@@ -485,7 +485,7 @@ describe('UsersManager', function () {
         assert.notOk(fullUser.anonymous, "`anonymouse` should be falsy");
       });
 
-      it('should throw when no displayEmail exist for this user', function () {
+      it('should throw when no displayEmail exist for this user', function() {
         const input = makeSomeUser();
         input.logins[0].displayEmail = '';
 
@@ -496,14 +496,14 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('ensureExternalUser()', function () {
+    describe('ensureExternalUser()', function() {
       let managerSaveSpy: SinonSpy;
 
-      beforeEach(function () {
+      beforeEach(function() {
         managerSaveSpy = sandbox.spy(EntityManager.prototype, 'save');
       });
 
-      afterEach(function () {
+      afterEach(function() {
         managerSaveSpy.restore();
       });
 
@@ -523,7 +523,7 @@ describe('UsersManager', function () {
         return user;
       }
 
-      it('should not do anything if the user already exists and is up to date', async function () {
+      it('should not do anything if the user already exists and is up to date', async function() {
         await db.ensureExternalUser({
           name: 'Chimpy',
           email: 'chimpy@getgrist.com',
@@ -532,7 +532,7 @@ describe('UsersManager', function () {
         assert.isFalse(managerSaveSpy.called, 'manager.save() should not have been called');
       });
 
-      it('should save an unknown user', async function () {
+      it('should save an unknown user', async function() {
         const profile = makeProfile('ensureExternalUser-saves-an-unknown-user');
         await db.ensureExternalUser(profile);
         assert.isTrue(managerSaveSpy.called, 'manager.save() should have been called');
@@ -540,7 +540,7 @@ describe('UsersManager', function () {
         await checkUserInfo(profile);
       });
 
-      it('should update a user if they already exist in database', async function () {
+      it('should update a user if they already exist in database', async function() {
         const oldProfile = makeProfile('ensureexternaluser-updates-an-existing-user_old');
 
         await db.ensureExternalUser(oldProfile);
@@ -572,19 +572,19 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('updateUser()', function () {
+    describe('updateUser()', function() {
       let emitSpy: SinonSpy;
 
-      before(function () {
+      before(function() {
         emitSpy = Sinon.spy();
         notifier.on('firstLogin', emitSpy);
       });
 
-      after(function () {
+      after(function() {
         notifier.off('firstLogin', emitSpy);
       });
 
-      afterEach(function () {
+      afterEach(function() {
         emitSpy.resetHistory();
       });
 
@@ -592,7 +592,7 @@ describe('UsersManager', function () {
         assert.equal(emitSpy.callCount, 0, 'No event should have been emitted');
       }
 
-      it('should reject when user is not found', async function () {
+      it('should reject when user is not found', async function() {
         disableLoggingLevel('debug');
 
         const promise = db.updateUser(NON_EXISTING_USER_ID, { name: 'foobar' });
@@ -601,7 +601,7 @@ describe('UsersManager', function () {
         checkNoEventEmitted();
       });
 
-      it('should update a user name', async function () {
+      it('should update a user name', async function() {
         const emailLocalPart = 'updateUser-should-update-user-name';
         const createdUser = await createUniqueUser(emailLocalPart);
         assert.equal(createdUser.name, '');
@@ -614,7 +614,7 @@ describe('UsersManager', function () {
         assert.equal(updatedUser.name, userName);
       });
 
-      it('should not emit any event when isFirstTimeUser value has not changed', async function () {
+      it('should not emit any event when isFirstTimeUser value has not changed', async function() {
         const localPart = 'updateuser-should-not-emit-when-isfirsttimeuser-not-changed';
         const createdUser = await createUniqueUser(localPart);
         assert.equal(createdUser.isFirstTimeUser, true);
@@ -624,7 +624,7 @@ describe('UsersManager', function () {
         checkNoEventEmitted();
       });
 
-      it('should emit "firstLogin" event when isFirstTimeUser value has been toggled to false', async function () {
+      it('should emit "firstLogin" event when isFirstTimeUser value has been toggled to false', async function() {
         const localPart = 'updateuser-emits-firstlogin';
         const userName = 'user name';
         const newUser = await createUniqueUser(localPart);
@@ -643,8 +643,8 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('updateUserOptions()', function () {
-      it('should reject when user is not found', async function () {
+    describe('updateUserOptions()', function() {
+      it('should reject when user is not found', async function() {
         disableLoggingLevel('debug');
 
         const promise = db.updateUserOptions(NON_EXISTING_USER_ID, {});
@@ -652,7 +652,7 @@ describe('UsersManager', function () {
         await assert.isRejected(promise, 'unable to find user');
       });
 
-      it('should update user options', async function () {
+      it('should update user options', async function() {
         const localPart = 'updateuseroptions-updates-user-options';
         const createdUser = await createUniqueUser(localPart);
 
@@ -667,8 +667,8 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getExistingUserByLogin()', function () {
-      it('should return an existing user', async function () {
+    describe('getExistingUserByLogin()', function() {
+      it('should return an existing user', async function() {
         const retrievedUser = await db.getExistingUserByLogin(PREVIEWER_EMAIL);
         assertExists(retrievedUser);
 
@@ -676,13 +676,13 @@ describe('UsersManager', function () {
         assert.equal(retrievedUser.name, 'Preview');
       });
 
-      it('should normalize the passed user email', async function () {
+      it('should normalize the passed user email', async function() {
         const retrievedUser = await db.getExistingUserByLogin(PREVIEWER_EMAIL.toUpperCase());
 
         assertExists(retrievedUser);
       });
 
-      it('should return undefined when the user is not found', async function () {
+      it('should return undefined when the user is not found', async function() {
         const nonExistingEmail = 'i-dont-exist@getgrist.com';
 
         const retrievedUser = await db.getExistingUserByLogin(nonExistingEmail);
@@ -691,8 +691,8 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getExistingUsersByLogin()', function () {
-      it('should return existing users', async function () {
+    describe('getExistingUsersByLogin()', function() {
+      it('should return existing users', async function() {
         const emails = [PREVIEWER_EMAIL, EVERYONE_EMAIL];
         const retrievedUsers = await db.getExistingUsersByLogin(emails);
         assertExists(retrievedUsers);
@@ -703,21 +703,21 @@ describe('UsersManager', function () {
         assert.equal(retrievedUsers[1].name, 'Everyone');
       });
 
-      it('should normalize the passed users email', async function () {
+      it('should normalize the passed users email', async function() {
         const emails = [PREVIEWER_EMAIL.toUpperCase(), EVERYONE_EMAIL.toUpperCase()];
         const retrievedUsers = await db.getExistingUsersByLogin(emails);
 
         assert.lengthOf(retrievedUsers, 2);
       });
 
-      it('should return an empty array when no user is found', async function () {
+      it('should return an empty array when no user is found', async function() {
         const nonExistingEmails = ['i-dont-exist@getgrist.com', 'me-neither@getgrist.com'];
         const retrievedUsers = await db.getExistingUsersByLogin(nonExistingEmails);
 
         assert.isEmpty(retrievedUsers);
       });
 
-      it('should return an empty array when no emails/logins are given', async function () {
+      it('should return an empty array when no emails/logins are given', async function() {
         const emptyEmailsList: string[] = [];
         const retrievedUsers = await db.getExistingUsersByLogin(emptyEmailsList);
 
@@ -725,8 +725,8 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getUserByLogin()', function () {
-      it('should create a user when none exist with the corresponding email', async function () {
+    describe('getUserByLogin()', function() {
+      it('should create a user when none exist with the corresponding email', async function() {
         const localPart = ensureUnique('getuserbylogin-creates-user-when-not-already-exists');
         const email = makeEmail(localPart);
         assert.notExists(await db.getExistingUserByLogin(email));
@@ -743,7 +743,7 @@ describe('UsersManager', function () {
         assertBetween(before, user.lastConnectionAt?.getTime(), after);
       });
 
-      it('should create a personnal organization for the new user', async function () {
+      it('should create a personnal organization for the new user', async function() {
         const localPart = ensureUnique('getuserbylogin-creates-personnal-org');
 
         const user = await db.getUserByLogin(makeEmail(localPart));
@@ -753,12 +753,12 @@ describe('UsersManager', function () {
         assert.equal(org.data.name, 'Personal');
       });
 
-      it('should not create organizations for non-login emails', async function () {
+      it('should not create organizations for non-login emails', async function() {
         const user = await db.getUserByLogin(EVERYONE_EMAIL);
         assert.notExists(user.personalOrg);
       });
 
-      it('should force the creation of service users with emails having an ".invalid" tld', async function () {
+      it('should force the creation of service users with emails having an ".invalid" tld', async function() {
         disableLoggingLevel('debug');
         const legitEmail = ensureUnique('legit@serviceaccounts.invalid');
         const legitPromise = db.getUserByLogin(legitEmail, {}, 'service');
@@ -770,7 +770,7 @@ describe('UsersManager', function () {
           "Users of type service must have email like XXXXXX@serviceaccounts.invalid");
       });
 
-      it('should not update user information when no profile is passed', async function () {
+      it('should not update user information when no profile is passed', async function() {
         const localPart = ensureUnique('getuserbylogin-does-not-update-without-profile');
 
         const userFirstCall = await db.getUserByLogin(makeEmail(localPart));
@@ -780,7 +780,7 @@ describe('UsersManager', function () {
       });
 
       // FIXME: postgresql doesn't like fake timers.
-      it.skip('should update lastConnectionAt only for different days', async function () {
+      it.skip('should update lastConnectionAt only for different days', async function() {
         const fakeTimer = sandbox.useFakeTimers(0);
         const localPart = ensureUnique('getuserbylogin-updates-last_connection_at-for-different-days');
         let user = await db.getUserByLogin(makeEmail(localPart));
@@ -796,9 +796,9 @@ describe('UsersManager', function () {
         assert.match(String(user.lastConnectionAt), /^1970-01-02/);
       });
 
-      describe('when passing information to update (using `profile`)', function () {
+      describe('when passing information to update (using `profile`)', function() {
         // FIXME: postgresql doesn't like fake timers.
-        it.skip('should populate the firstTimeLogin and deduce the name from the email', async function () {
+        it.skip('should populate the firstTimeLogin and deduce the name from the email', async function() {
           const timers = sandbox.useFakeTimers(42_000);
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-first_time_login-and-name');
           const user = await db.getUserByLogin(makeEmail(localPart), {
@@ -811,7 +811,7 @@ describe('UsersManager', function () {
           timers.restore();
         });
 
-        it('should populate user with any passed information', async function () {
+        it('should populate user with any passed information', async function() {
           const localPart = ensureUnique('getuserbylogin-with-profile-populates-user-with-passed-info_OLD');
           await db.getUserByLogin(makeEmail(localPart));
           const originalNormalizedLoginEmail = makeEmail(localPart.toLowerCase());
@@ -839,7 +839,7 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getUserByLoginWithRetry()', async function () {
+    describe('getUserByLoginWithRetry()', async function() {
       async function ensureGetUserByLoginWithRetryWorks(localPart: string) {
         const email = makeEmail(localPart);
         const user = await db.getUserByLoginWithRetry(email);
@@ -854,18 +854,18 @@ describe('UsersManager', function () {
         return error;
       }
 
-      it('should work just like getUserByLogin', async function () {
+      it('should work just like getUserByLogin', async function() {
         await ensureGetUserByLoginWithRetryWorks( ensureUnique('getuserbyloginwithretry-works-like-getuserbylogin'));
       });
 
-      it('should make a second attempt on special error', async function () {
+      it('should make a second attempt on special error', async function() {
         sandbox.stub(UsersManager.prototype, 'getUserByLogin')
           .onFirstCall().throws(makeQueryFailedError())
           .callThrough();
         await ensureGetUserByLoginWithRetryWorks('getuserbyloginwithretry-makes-a-single-retry');
       });
 
-      it('should reject after 2 attempts', async function () {
+      it('should reject after 2 attempts', async function() {
         const secondError = makeQueryFailedError();
         sandbox.stub(UsersManager.prototype, 'getUserByLogin')
           .onFirstCall().throws(makeQueryFailedError())
@@ -878,7 +878,7 @@ describe('UsersManager', function () {
         await promise.catch(err => assert.equal(err, secondError));
       });
 
-      it('should reject immediately if the error is not a QueryFailedError', async function () {
+      it('should reject immediately if the error is not a QueryFailedError', async function() {
         const errorMsg = 'my error';
         sandbox.stub(UsersManager.prototype, 'getUserByLogin')
           .onFirstCall().rejects(new Error(errorMsg))
@@ -890,7 +890,7 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('deleteUser()', function () {
+    describe('deleteUser()', function() {
       function userHasPrefs(userId: number, manager: EntityManager) {
         return manager.exists(Pref, { where: { userId: userId } });
       }
@@ -903,7 +903,7 @@ describe('UsersManager', function () {
         assert.exists(await db.getUser(userId));
       }
 
-      it('should refuse to delete the account of someone else', async function () {
+      it('should refuse to delete the account of someone else', async function() {
         const userToDelete = await createUniqueUser('deleteuser-refuses-for-someone-else');
 
         const promise = db.deleteUser({ userId: 2 }, userToDelete.id);
@@ -912,7 +912,7 @@ describe('UsersManager', function () {
         await assertUserStillExistsInDb(userToDelete.id);
       });
 
-      it('should refuse to delete a non existing account', async function () {
+      it('should refuse to delete a non existing account', async function() {
         disableLoggingLevel('debug');
 
         const promise = db.deleteUser({ userId: NON_EXISTING_USER_ID }, NON_EXISTING_USER_ID);
@@ -920,7 +920,7 @@ describe('UsersManager', function () {
         await assert.isRejected(promise, 'user not found');
       });
 
-      it('should refuse to delete the account if the passed name is not matching', async function () {
+      it('should refuse to delete the account if the passed name is not matching', async function() {
         disableLoggingLevel('debug');
         const localPart = 'deleteuser-refuses-if-name-not-matching';
 
@@ -938,7 +938,7 @@ describe('UsersManager', function () {
         await assertUserStillExistsInDb(userToDelete.id);
       });
 
-      it('should remove the user and cleanup their info and personal organization', async function () {
+      it('should remove the user and cleanup their info and personal organization', async function() {
         const localPart = 'deleteuser-removes-user-and-cleanups-info';
         const userToDelete = await createUniqueUser(localPart, {
           profile: {
@@ -965,7 +965,7 @@ describe('UsersManager', function () {
         });
       });
 
-      it('should remove the user and their forks', async function () {
+      it('should remove the user and their forks', async function() {
         const localPart = 'deleteuser-removes-forks';
         const userToDelete = await createUniqueUser(localPart, {
           profile: {
@@ -1029,7 +1029,7 @@ describe('UsersManager', function () {
         assert.notExists(await db.getUser(userToDelete.id));
       });
 
-      it("should remove the user when passed name corresponds to the user's name", async function () {
+      it("should remove the user when passed name corresponds to the user's name", async function() {
         const userName = 'someone to delete';
         const localPart = 'deleteuser-removes-user-when-name-matches';
         const userToDelete = await createUniqueUser(localPart, {
@@ -1045,13 +1045,13 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('completeProfiles()', function () {
-      it('should return an empty array if no profiles are provided', async function () {
+    describe('completeProfiles()', function() {
+      it('should return an empty array if no profiles are provided', async function() {
         const res = await db.completeProfiles([]);
         assert.deepEqual(res, []);
       });
 
-      it("should complete a single user profile with looking by normalized address", async function () {
+      it("should complete a single user profile with looking by normalized address", async function() {
         const localPart = ensureUnique('completeprofiles-with-single-profile');
         const email = makeEmail(localPart);
         const emailUpperCase = email.toUpperCase();
@@ -1074,7 +1074,7 @@ describe('UsersManager', function () {
         }]);
       });
 
-      it('should complete several user profiles', async function () {
+      it('should complete several user profiles', async function() {
         const localPartPrefix = ensureUnique('completeprofiles-with-several-profiles');
         const seq = Array(10).fill(null).map((_, i) => i+1);
         const localParts = seq.map(i => `${localPartPrefix}_${i}`);
@@ -1097,8 +1097,8 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('overwriteUser()', function () {
-      it('should reject when user is not found', async function () {
+    describe('overwriteUser()', function() {
+      it('should reject when user is not found', async function() {
         disableLoggingLevel('debug');
 
         const promise = db.overwriteUser(NON_EXISTING_USER_ID, {
@@ -1109,7 +1109,7 @@ describe('UsersManager', function () {
         await assert.isRejected(promise, 'unable to find user to update');
       });
 
-      it('should update user information', async function () {
+      it('should update user information', async function() {
         const localPart = 'overwriteUser-updates-user-info';
         const newLocalPart = 'overwriteUser-updates-user-info-new';
         const user = await createUniqueUser(localPart);
@@ -1136,8 +1136,8 @@ describe('UsersManager', function () {
       });
     });
 
-    describe('getUsers()', function () {
-      it('should return all users with their logins', async function () {
+    describe('getUsers()', function() {
+      it('should return all users with their logins', async function() {
         const localPart = 'getUsers-user';
         const existingUser = await createUniqueUser(localPart);
         const users = await db.getUsers();
@@ -1160,12 +1160,12 @@ describe('UsersManager', function () {
     });
   });
 
-  describe('class method without db setup', function () {
+  describe('class method without db setup', function() {
     let db: HomeDBManager;
     let env: EnvironmentSnapshot;
 
-    describe('initializeSpecialIds()', function () {
-      before(async function () {
+    describe('initializeSpecialIds()', function() {
+      before(async function() {
         env = new EnvironmentSnapshot();
         process.env.TEST_CLEAN_DATABASE = 'true';
         setUpDB(this);
@@ -1175,12 +1175,12 @@ describe('UsersManager', function () {
         await updateDb(db.connection);
       });
 
-      after(async function () {
+      after(async function() {
         await removeConnection();
         env?.restore();
       });
 
-      it('should initialize special ids', async function () {
+      it('should initialize special ids', async function() {
         const specialAccounts = [
           { name: "Support", email: SUPPORT_EMAIL },
           { name: "Anonymous", email: ANONYMOUS_USER_EMAIL },
@@ -1212,7 +1212,7 @@ describe('UsersManager', function () {
    * This tests document deletion more thoroughly. Requires
    * Redis.
    */
-  describe('multi-worker', function () {
+  describe('multi-worker', function() {
     let server: MergedServer;
     let env: EnvironmentSnapshot;
     let db: HomeDBManager;
@@ -1241,8 +1241,8 @@ describe('UsersManager', function () {
       }
     });
 
-    describe('deleteUser()', function () {
-      it('should remove the user and their forks', async function () {
+    describe('deleteUser()', function() {
+      it('should remove the user and their forks', async function() {
         const apiKey = 'youllneverguess';
         const userToDelete = await db.getUserByLogin(
           'deleteuser-removes-forks-multi@getgrist.com',

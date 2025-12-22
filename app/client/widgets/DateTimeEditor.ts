@@ -84,7 +84,7 @@ export class DateTimeEditor extends DateEditor {
         this._timeInput.value = time;
         this._onChange();
       }
-      catch(e) {
+      catch (e) {
         console.error("DateTimeEditor can't restore its previous state");
       }
     }

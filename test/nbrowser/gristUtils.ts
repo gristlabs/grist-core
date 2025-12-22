@@ -1512,7 +1512,7 @@ namespace gristUtils {
       try {
         await test();
       }
-      catch(e) {
+      catch (e) {
         wasError = true;
         throw e;
       }

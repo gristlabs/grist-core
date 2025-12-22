@@ -17,7 +17,7 @@ describe('ACLRulesReader', function() {
   let activeDoc: ActiveDoc;
   let docData: DocData;
 
-  before(async function () {
+  before(async function() {
     activeDoc = await docTools.createDoc('ACLRulesReader');
     docData = activeDoc.docData!;
   });

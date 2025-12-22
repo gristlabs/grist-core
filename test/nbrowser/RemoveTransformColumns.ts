@@ -4,13 +4,13 @@ import { assert, driver } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from "test/nbrowser/testUtils";
 
-describe('RemoveTransformColumns', function () {
+describe('RemoveTransformColumns', function() {
   this.timeout(20000);
   setupTestSuite();
 
   let docAPI: DocAPI;
 
-  it('should remove transform columns when the doc shuts down', async function () {
+  it('should remove transform columns when the doc shuts down', async function() {
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
     const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'RemoveTransformColumns.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
@@ -35,7 +35,7 @@ describe('RemoveTransformColumns', function () {
     await gu.checkForErrors();
   });
 
-  it('should remove temporary tables when the doc shuts down', async function () {
+  it('should remove temporary tables when the doc shuts down', async function() {
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
     const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'Hello.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);
@@ -88,7 +88,7 @@ describe('RemoveTransformColumns', function () {
     await gu.checkForErrors();
   });
 
-  it('should remove temporary tables after failed import', async function () {
+  it('should remove temporary tables after failed import', async function() {
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
     const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon', 'Hello.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);

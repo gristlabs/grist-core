@@ -43,7 +43,7 @@ describe('Scim', () => {
     let oldEnv: testUtils.EnvironmentSnapshot;
     let server: TestServer;
 
-    before(async function () {
+    before(async function() {
       oldEnv = new testUtils.EnvironmentSnapshot();
       Object.assign(process.env, env);
       server = new TestServer(this);
@@ -62,17 +62,17 @@ describe('Scim', () => {
     };
   };
 
-  describe('when disabled', function () {
+  describe('when disabled', function() {
     const { scimUrl } = setupTestServer({});
 
-    it('should return 501 for /api/scim/v2/Users', async function () {
+    it('should return 501 for /api/scim/v2/Users', async function() {
       const res = await axios.get(scimUrl('/Users'), chimpy);
       assert.equal(res.status, 501);
       assert.deepEqual(res.data, { error: 'SCIM API is not enabled' });
     });
   });
 
-  describe('when enabled using GRIST_ENABLE_SCIM=1', function () {
+  describe('when enabled using GRIST_ENABLE_SCIM=1', function() {
     const { scimUrl, getDbManager, getServer } = setupTestServer({
       GRIST_ENABLE_SCIM: '1',
       GRIST_DEFAULT_EMAIL: 'chimpy@getgrist.com',
@@ -82,7 +82,7 @@ describe('Scim', () => {
     let logWarnStub: Sinon.SinonStub;
     let logErrorStub: Sinon.SinonStub;
 
-    before(async function () {
+    before(async function() {
       const userNames = Object.keys(USER_CONFIG_BY_NAME) as Array<keyof UserConfigByName>;
       for (const user of userNames) {
         userIdByName[user] = await getOrCreateUserId(user);
@@ -180,12 +180,12 @@ describe('Scim', () => {
         return axios[method](scimUrl(path), validBody, USER_CONFIG_BY_NAME[user]);
       }
 
-      it('should return 401 for anonymous', async function () {
+      it('should return 401 for anonymous', async function() {
         const res = await makeCallWith('anon');
         assert.equal(res.status, 401);
       });
 
-      it('should return 403 for kiwi', async function () {
+      it('should return 403 for kiwi', async function() {
         const res = await makeCallWith('kiwi');
         assert.deepEqual(res.data, {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -195,7 +195,7 @@ describe('Scim', () => {
         assert.equal(res.status, 403);
       });
 
-      it('should return a 500 in case of unknown Error', async function () {
+      it('should return a 500 in case of unknown Error', async function() {
         const sandbox = Sinon.createSandbox();
         try {
           const error = new Error('Some unexpected Error');
@@ -228,30 +228,30 @@ describe('Scim', () => {
       });
     }
 
-    describe('/Me', function () {
+    describe('/Me', function() {
       async function checkGetMeAs(user: keyof UserConfigByName, expected: any) {
         const res = await axios.get(scimUrl('/Me'), USER_CONFIG_BY_NAME[user]);
         assert.equal(res.status, 200);
         assert.deepInclude(res.data, expected);
       }
 
-      it(`should return the current user for chimpy`, async function () {
+      it(`should return the current user for chimpy`, async function() {
         return checkGetMeAs('chimpy', personaToSCIMMYUserWithId('chimpy'));
       });
 
-      it(`should return the current user for kiwi`, async function () {
+      it(`should return the current user for kiwi`, async function() {
         return checkGetMeAs('kiwi', personaToSCIMMYUserWithId('kiwi'));
       });
 
-      it('should return 401 for anonymous', async function () {
+      it('should return 401 for anonymous', async function() {
         const res = await axios.get(scimUrl('/Me'), anon);
         assert.equal(res.status, 401);
       });
     });
 
-    describe('/Users', function () {
-      describe('GET /Users/{id}', function () {
-        it('should return the user of id=1 for chimpy', async function () {
+    describe('/Users', function() {
+      describe('GET /Users/{id}', function() {
+        it('should return the user of id=1 for chimpy', async function() {
           const res = await axios.get(scimUrl('/Users/1'), chimpy);
 
           assert.equal(res.status, 200);
@@ -263,7 +263,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should return 404 when the user is not found', async function () {
+        it('should return 404 when the user is not found', async function() {
           const res = await axios.get(scimUrl('/Users/1000'), chimpy);
           assert.equal(res.status, 404);
           assert.deepEqual(res.data, {
@@ -273,7 +273,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should return 404 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function() {
           const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.get(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
@@ -287,8 +287,8 @@ describe('Scim', () => {
         checkCommonErrors('get', '/Users/1');
       });
 
-      describe('GET /Users', function () {
-        it('should return all users for chimpy', async function () {
+      describe('GET /Users', function() {
+        it('should return all users for chimpy', async function() {
           const res = await axios.get(scimUrl('/Users'), chimpy);
           assert.equal(res.status, 200);
           assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
@@ -296,7 +296,7 @@ describe('Scim', () => {
           assert.deepInclude(res.data.Resources, personaToSCIMMYUserWithId('kiwi'));
         });
 
-        it('should handle pagination', async function () {
+        it('should handle pagination', async function() {
           const endpointPaginated = '/Users?count=1&sortBy=id';
           {
             const firstPage = await axios.get(scimUrl(endpointPaginated), chimpy);
@@ -315,7 +315,7 @@ describe('Scim', () => {
           }
         });
 
-        it('should skip users of type other than "login"', async function () {
+        it('should skip users of type other than "login"', async function() {
           const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.get(scimUrl('/Users'), chimpy);
           assert.isEmpty(res.data.Resources.filter((user: any) => user.id === serviceUserId));
@@ -324,7 +324,7 @@ describe('Scim', () => {
         checkCommonErrors('get', '/Users');
       });
 
-      describe('POST /Users/.search', function () {
+      describe('POST /Users/.search', function() {
         const SEARCH_SCHEMA = 'urn:ietf:params:scim:api:messages:2.0:SearchRequest';
 
         const searchExample = {
@@ -333,7 +333,7 @@ describe('Scim', () => {
           sortOrder: 'descending',
         };
 
-        it('should return all users for chimpy order by userName in descending order', async function () {
+        it('should return all users for chimpy order by userName in descending order', async function() {
           const res = await axios.post(scimUrl('/Users/.search'), searchExample, chimpy);
           assert.equal(res.status, 200);
           assert.isAbove(res.data.totalResults, 0, 'should have retrieved some users');
@@ -345,12 +345,12 @@ describe('Scim', () => {
           assert.isBelow(indexOfKiwi, indexOfChimpy, 'kiwi should come before chimpy');
         });
 
-        it('should also allow access for user Charon (the one refered in GRIST_SCIM_EMAIL)', async function () {
+        it('should also allow access for user Charon (the one refered in GRIST_SCIM_EMAIL)', async function() {
           const res = await axios.post(scimUrl('/Users/.search'), searchExample, charon);
           assert.equal(res.status, 200);
         });
 
-        it('should filter the users by userName', async function () {
+        it('should filter the users by userName', async function() {
           const res = await axios.post(scimUrl('/Users/.search'), {
             schemas: [SEARCH_SCHEMA],
             attributes: ['userName'],
@@ -368,8 +368,8 @@ describe('Scim', () => {
         checkCommonErrors('post', '/Users/.search', searchExample);
       });
 
-      describe('POST /Users', function () { // Create a new users
-        it('should create a new user', async function () {
+      describe('POST /Users', function() { // Create a new users
+        it('should create a new user', async function() {
           await withUserName('newuser1', async (userName) => {
             const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), chimpy);
             assert.equal(res.status, 201);
@@ -380,7 +380,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should allow creating a new user given only their email passed as username', async function () {
+        it('should allow creating a new user given only their email passed as username', async function() {
           await withUserName('new.user2', async (userName) => {
             const res = await axios.post(scimUrl('/Users'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
@@ -392,14 +392,14 @@ describe('Scim', () => {
           });
         });
 
-        it('should also allow user Charon to create a user (the one refered in GRIST_SCIM_EMAIL)', async function () {
+        it('should also allow user Charon to create a user (the one refered in GRIST_SCIM_EMAIL)', async function() {
           await withUserName('new.user.by.charon', async (userName) => {
             const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId(userName), charon);
             assert.equal(res.status, 201);
           });
         });
 
-        it('should warn when passed email differs from username, and ignore the username', async function () {
+        it('should warn when passed email differs from username, and ignore the username', async function() {
           await withUserName('emails.value', async (userName) => {
             const res = await axios.post(scimUrl('/Users'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
@@ -428,7 +428,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should disallow creating a user with the same email', async function () {
+        it('should disallow creating a user with the same email', async function() {
           const res = await axios.post(scimUrl('/Users'), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -442,18 +442,18 @@ describe('Scim', () => {
         checkCommonErrors('post', '/Users', toSCIMUserWithoutId('some-user'));
       });
 
-      describe('PUT /Users/{id}', function () {
+      describe('PUT /Users/{id}', function() {
         let userToUpdateId: number;
         const userToUpdateEmailLocalPart = 'user-to-update';
 
-        beforeEach(async function () {
+        beforeEach(async function() {
           userToUpdateId = await getOrCreateUserId(userToUpdateEmailLocalPart);
         });
-        afterEach(async function () {
+        afterEach(async function() {
           await cleanupUser(userToUpdateId);
         });
 
-        it('should update an existing user', async function () {
+        it('should update an existing user', async function() {
           const userToUpdateProperties = {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
             userName: userToUpdateEmailLocalPart + '-now-updated@getgrist.com',
@@ -474,7 +474,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should warn when passed email differs from username', async function () {
+        it('should warn when passed email differs from username', async function() {
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
             userName: 'whatever@getgrist.com',
@@ -485,7 +485,7 @@ describe('Scim', () => {
           assert.match(logWarnStub.getCalls()[0].args[0], /differ from passed primary email/);
         });
 
-        it('should disallow updating a user with the same email as another user\'s', async function () {
+        it('should disallow updating a user with the same email as another user\'s', async function() {
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -496,7 +496,7 @@ describe('Scim', () => {
           assert.equal(res.status, 409);
         });
 
-        it('should return 404 when the user is not found', async function () {
+        it('should return 404 when the user is not found', async function() {
           const res = await axios.put(scimUrl('/Users/1000'), toSCIMUserWithoutId('whoever'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -506,7 +506,7 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
-        it('should return 404 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function() {
           const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.put(scimUrl(`/Users/${serviceUserId}`), toSCIMUserWithoutId('chimpy'), chimpy);
           assert.deepEqual(res.data, {
@@ -517,7 +517,7 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
-        it('should return 403 for system users', async function () {
+        it('should return 403 for system users', async function() {
           const data = toSCIMUserWithoutId('whoever');
           await checkOperationOnTechUserDisallowed({
             op: id => axios.put(scimUrl(`/Users/${id}`), data, chimpy),
@@ -525,7 +525,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should deduce the name from the displayEmail when not provided', async function () {
+        it('should deduce the name from the displayEmail when not provided', async function() {
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
             userName: 'my-email@getgrist.com',
@@ -539,7 +539,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should return 400 when the user id is malformed', async function () {
+        it('should return 400 when the user id is malformed', async function() {
           const res = await axios.put(scimUrl('/Users/not-an-id'), toSCIMUserWithoutId('whoever'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -550,7 +550,7 @@ describe('Scim', () => {
           assert.equal(res.status, 400);
         });
 
-        it('should normalize the passed email for the userName and keep the case for email.value', async function () {
+        it('should normalize the passed email for the userName and keep the case for email.value', async function() {
           const newEmail = 'my-EMAIL@getgrist.com';
           const res = await axios.put(scimUrl(`/Users/${userToUpdateId}`), {
             schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
@@ -569,13 +569,13 @@ describe('Scim', () => {
         checkCommonErrors('put', '/Users/1', toSCIMUserWithoutId('chimpy'));
       });
 
-      describe('PATCH /Users/{id}', function () {
+      describe('PATCH /Users/{id}', function() {
         let userToPatchId: number;
         const userToPatchEmailLocalPart = 'user-to-patch';
-        beforeEach(async function () {
+        beforeEach(async function() {
           userToPatchId = await getOrCreateUserId(userToPatchEmailLocalPart);
         });
-        afterEach(async function () {
+        afterEach(async function() {
           await cleanupUser(userToPatchId);
         });
 
@@ -592,7 +592,7 @@ describe('Scim', () => {
           }],
         });
 
-        it('should replace values of an existing user', async function () {
+        it('should replace values of an existing user', async function() {
           const newName = 'User to Patch new Name';
           const res = await axios.patch(scimUrl(`/Users/${userToPatchId}`), validPatchBody(newName), chimpy);
           assert.equal(res.status, 200);
@@ -606,7 +606,7 @@ describe('Scim', () => {
           });
         });
 
-        it('should return 404 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function() {
           const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.patch(scimUrl(`/Users/${serviceUserId}`), validPatchBody('whatever'), chimpy);
           assert.deepEqual(res.data, {
@@ -619,25 +619,25 @@ describe('Scim', () => {
         checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
       });
 
-      describe('DELETE /Users/{id}', function () {
+      describe('DELETE /Users/{id}', function() {
         let userToDeleteId: number;
         const userToDeleteEmailLocalPart = 'user-to-delete';
 
-        beforeEach(async function () {
+        beforeEach(async function() {
           userToDeleteId = await getOrCreateUserId(userToDeleteEmailLocalPart);
         });
-        afterEach(async function () {
+        afterEach(async function() {
           await cleanupUser(userToDeleteId);
         });
 
-        it('should delete a user', async function () {
+        it('should delete a user', async function() {
           const res = await axios.delete(scimUrl(`/Users/${userToDeleteId}`), chimpy);
           assert.equal(res.status, 204);
           const refreshedUser = await axios.get(scimUrl(`/Users/${userToDeleteId}`), chimpy);
           assert.equal(refreshedUser.status, 404);
         });
 
-        it('should return 404 when the user is not found', async function () {
+        it('should return 404 when the user is not found', async function() {
           const res = await axios.delete(scimUrl('/Users/1000'), chimpy);
           assert.deepEqual(res.data, {
             schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -647,7 +647,7 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
-        it('should return 404 when the user is not of type login', async function () {
+        it('should return 404 when the user is not of type login', async function() {
           const serviceUserId = await getOrCreateUserId('alfred', { type: 'service' });
           const res = await axios.delete(scimUrl(`/Users/${serviceUserId}`), chimpy);
           assert.deepEqual(res.data, {
@@ -658,7 +658,7 @@ describe('Scim', () => {
           assert.equal(res.status, 404);
         });
 
-        it('should return 403 for system users', async function () {
+        it('should return 403 for system users', async function() {
           await checkOperationOnTechUserDisallowed({
             op: id => axios.delete(scimUrl(`/Users/${id}`), chimpy),
             opType: 'deletion',
@@ -669,7 +669,7 @@ describe('Scim', () => {
       });
     });
 
-    describe('Groups and Roles', function () {
+    describe('Groups and Roles', function() {
       async function cleanupGroups() {
         const groupsToDelete = await getDbManager().connection.createQueryBuilder()
           .select('groups')
@@ -726,9 +726,9 @@ describe('Scim', () => {
         });
       }
 
-      describe('Groups', function () {
-        describe('GET /Groups/{id}', function () {
-          it(`should return a "${Group.TEAM_TYPE}" group for chimpy`, async function () {
+      describe('Groups', function() {
+        describe('GET /Groups/{id}', function() {
+          it(`should return a "${Group.TEAM_TYPE}" group for chimpy`, async function() {
             await withGroup(async (groupId, group) => {
               const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
 
@@ -745,7 +745,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 404 when the group is not found', async function () {
+          it('should return 404 when the group is not found', async function() {
             const nonExistingId = 10000000;
             const res = await axios.get(scimUrl(`/Groups/${nonExistingId}`), chimpy);
             assert.equal(res.status, 404);
@@ -756,7 +756,7 @@ describe('Scim', () => {
             });
           });
 
-          it(`should return 404 when the group is of type ${Group.ROLE_TYPE}`, async function () {
+          it(`should return 404 when the group is of type ${Group.ROLE_TYPE}`, async function() {
             await withRole(async (groupId, groupName) => {
               const res = await axios.get(scimUrl('/Groups/' + groupId), chimpy);
               assert.equal(res.status, 404);
@@ -768,7 +768,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 400 when the group id is malformed', async function () {
+          it('should return 400 when the group id is malformed', async function() {
             const res = await axios.get(scimUrl('/Groups/not-an-id'), chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -782,8 +782,8 @@ describe('Scim', () => {
           checkCommonErrors('get', '/Groups/1');
         });
 
-        describe('GET /Groups', function () {
-          it(`should return all ${Group.TEAM_TYPE} groups for chimpy`, async function () {
+        describe('GET /Groups', function() {
+          it(`should return all ${Group.TEAM_TYPE} groups for chimpy`, async function() {
             return withGroupNames(
               ['test-group1', 'test-group2', 'test-role-group'],
               async ([group1Name, group2Name, roleGroupName]) => {
@@ -831,8 +831,8 @@ describe('Scim', () => {
           checkCommonErrors('get', '/Groups');
         });
 
-        describe('POST /Groups', function () {
-          it(`should create a new group of type "${Group.TEAM_TYPE}"`, async function () {
+        describe('POST /Groups', function() {
+          it(`should create a new group of type "${Group.TEAM_TYPE}"`, async function() {
             await withGroupName('test-group', async (groupName) => {
               const res = await axios.post(scimUrl('/Groups'), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -857,7 +857,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should allow to create a group without members', function () {
+          it('should allow to create a group without members', function() {
             return withGroupName('test-group-without-members', async (groupName) => {
               const res = await axios.post(scimUrl('/Groups'), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -874,7 +874,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 400 when the group name is missing', async function () {
+          it('should return 400 when the group name is missing', async function() {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               members: [
@@ -890,7 +890,7 @@ describe('Scim', () => {
             assert.equal(res.status, 400);
           });
 
-          it('should return 409 when the group name is coliding with an existing group', async function () {
+          it('should return 409 when the group name is coliding with an existing group', async function() {
             await withGroupName('test-group', async (groupName) => {
               const existingGroupCreationRes = await axios.post(scimUrl('/Groups'), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -911,7 +911,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 400 when the group members contain an invalid user id', async function () {
+          it('should return 400 when the group members contain an invalid user id', async function() {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: 'test-group',
@@ -928,7 +928,7 @@ describe('Scim', () => {
             assert.equal(res.status, 400);
           });
 
-          it('should return 400 when the group members contain an invalid group id', async function () {
+          it('should return 400 when the group members contain an invalid group id', async function() {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: 'test-group',
@@ -945,7 +945,7 @@ describe('Scim', () => {
             assert.equal(res.status, 400);
           });
 
-          it('should return 404 when the group members contain a non-existing user id', async function () {
+          it('should return 404 when the group members contain a non-existing user id', async function() {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: 'test-group',
@@ -962,7 +962,7 @@ describe('Scim', () => {
             assert.equal(res.status, 404);
           });
 
-          it('should return 404 when the group members contain a non-existing group id', async function () {
+          it('should return 404 when the group members contain a non-existing group id', async function() {
             const res = await axios.post(scimUrl('/Groups'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: 'test-group',
@@ -978,7 +978,7 @@ describe('Scim', () => {
             assert.equal(res.status, 404);
           });
 
-          it('should return 400 when the group members contain other groups', async function () {
+          it('should return 400 when the group members contain other groups', async function() {
             await withRole(async (groupId) => {
               const res = await axios.post(scimUrl('/Groups'), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -1011,8 +1011,8 @@ describe('Scim', () => {
           });
         });
 
-        describe('PUT /Groups/{id}', function () {
-          it('should update an existing group', async function () {
+        describe('PUT /Groups/{id}', function() {
+          it('should update an existing group', async function() {
             return withGroup(async (groupId) => {
               const newGroupName = 'test-new-group-name';
               const res = await axios.put(scimUrl('/Groups/' + groupId), {
@@ -1035,7 +1035,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should update a group with members omitted', async function () {
+          it('should update a group with members omitted', async function() {
             return withGroup(async (groupId) => {
               const newGroupName = 'test-new-group-name';
               const res = await axios.put(scimUrl('/Groups/' + groupId), {
@@ -1053,7 +1053,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should refuse to alter a role', async function () {
+          it('should refuse to alter a role', async function() {
             return withRole(async (groupId) => {
               const res = await axios.put(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
@@ -1063,7 +1063,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 404 when the group is not found', async function () {
+          it('should return 404 when the group is not found', async function() {
             const res = await axios.put(scimUrl('/Groups/1000'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: 'New Group Name',
@@ -1079,7 +1079,7 @@ describe('Scim', () => {
             assert.equal(res.status, 404);
           });
 
-          it('should return 400 when the group id is malformed', async function () {
+          it('should return 400 when the group id is malformed', async function() {
             const res = await axios.put(scimUrl('/Groups/not-an-id'), {
               schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
               displayName: 'New Group Name',
@@ -1106,8 +1106,8 @@ describe('Scim', () => {
           });
         });
 
-        describe('PATCH /Groups/{id}', function () {
-          it('should update an existing group name', async function () {
+        describe('PATCH /Groups/{id}', function() {
+          it('should update an existing group name', async function() {
             return withGroup(async (groupId) => {
               const newGroupName = 'test-new-group-name';
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
@@ -1129,7 +1129,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should add a member to a group', async function () {
+          it('should add a member to a group', async function() {
             return withGroup(async (groupId) => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
@@ -1145,7 +1145,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should refuse to alter a role', async function () {
+          it('should refuse to alter a role', async function() {
             return withRole(async (groupId) => {
               const res = await axios.patch(scimUrl('/Groups/' + groupId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
@@ -1165,8 +1165,8 @@ describe('Scim', () => {
           });
         });
 
-        describe('DELETE /Groups/{id}', function () {
-          it('should delete a group', async function () {
+        describe('DELETE /Groups/{id}', function() {
+          it('should delete a group', async function() {
             return withGroup(async (groupId) => {
               const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
               assert.equal(res.status, 204);
@@ -1175,14 +1175,14 @@ describe('Scim', () => {
             });
           });
 
-          it('should refuse to delete a role', async function () {
+          it('should refuse to delete a role', async function() {
             return withRole(async (groupId) => {
               const res = await axios.delete(scimUrl('/Groups/' + groupId), chimpy);
               assert.equal(res.status, 404);
             });
           });
 
-          it('should return 404 when the group is not found', async function () {
+          it('should return 404 when the group is not found', async function() {
             const res = await axios.delete(scimUrl('/Groups/1000'), chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -1192,7 +1192,7 @@ describe('Scim', () => {
             assert.equal(res.status, 404);
           });
 
-          it('should return 400 when the group id is malformed', async function () {
+          it('should return 400 when the group id is malformed', async function() {
             const res = await axios.delete(scimUrl('/Groups/not-an-id'), chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -1207,9 +1207,9 @@ describe('Scim', () => {
         });
       });
 
-      describe('Roles', function () {
-        describe('GET /Roles/{id}', function () {
-          it(`should return a "${Group.ROLE_TYPE}" group for chimpy`, async function () {
+      describe('Roles', function() {
+        describe('GET /Roles/{id}', function() {
+          it(`should return a "${Group.ROLE_TYPE}" group for chimpy`, async function() {
             await withRole(async (roleId: string, role: Group) => {
               const res = await axios.get(scimUrl('/Roles/' + roleId), chimpy);
 
@@ -1226,7 +1226,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 404 when the role is not found', async function () {
+          it('should return 404 when the role is not found', async function() {
             const nonExistingId = 10000000;
             const res = await axios.get(scimUrl(`/Roles/${nonExistingId}`), chimpy);
             assert.equal(res.status, 404);
@@ -1237,7 +1237,7 @@ describe('Scim', () => {
             });
           });
 
-          it(`should return 404 when the role is of type ${Group.TEAM_TYPE}`, async function () {
+          it(`should return 404 when the role is of type ${Group.TEAM_TYPE}`, async function() {
             await withGroupName('test-group', async (groupName) => {
               const { id: roleId } = await getDbManager().createGroup({
                 name: groupName,
@@ -1255,7 +1255,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 400 when the role id is malformed', async function () {
+          it('should return 400 when the role id is malformed', async function() {
             const res = await axios.get(scimUrl('/Roles/not-an-id'), chimpy);
             assert.deepEqual(res.data, {
               schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
@@ -1269,8 +1269,8 @@ describe('Scim', () => {
           checkCommonErrors('get', '/Roles/1');
         });
 
-        describe('GET /Roles', function () {
-          it(`should return all ${Group.ROLE_TYPE} groups for chimpy`, async function () {
+        describe('GET /Roles', function() {
+          it(`should return all ${Group.ROLE_TYPE} groups for chimpy`, async function() {
             return withGroupNames(
               ['test-role1', 'test-role2', 'test-group'],
               async ([role1Name, role2Name, group1Name]) => {
@@ -1318,7 +1318,7 @@ describe('Scim', () => {
             );
           });
 
-          it('should return describe the docId, workspaceId and orgId associated to the Role', async function () {
+          it('should return describe the docId, workspaceId and orgId associated to the Role', async function() {
             const api = await getServer().createHomeApi('chimpy', 'docs', true);
             const newOrgId = await api.newOrg({ name: 'someOrg', domain: 'testy' });
             const newWsId = await api.newWorkspace({ name: 'someWs' }, newOrgId);
@@ -1338,8 +1338,8 @@ describe('Scim', () => {
           checkCommonErrors('get', '/Roles');
         });
 
-        describe('POST /Roles', function () {
-          it('should return 501 Not implemented', async function () {
+        describe('POST /Roles', function() {
+          it('should return 501 Not implemented', async function() {
             const res = await axios.post(scimUrl('/Roles'), {
               schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
               displayName: 'test-role',
@@ -1349,8 +1349,8 @@ describe('Scim', () => {
           });
         });
 
-        describe('PUT /Roles/{id}', function () {
-          it('should update the role\'s members', async function () {
+        describe('PUT /Roles/{id}', function() {
+          it('should update the role\'s members', async function() {
             return withRole(async (roleId) => {
               const res = await axios.put(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
@@ -1370,7 +1370,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should not update the role name', async function () {
+          it('should not update the role name', async function() {
             return withRole(async (roleId, role) => {
               const newName = 'new-name';
               const oldName = role.name;
@@ -1388,7 +1388,7 @@ describe('Scim', () => {
             });
           });
 
-          it('should return 404 when the role is not found', async function () {
+          it('should return 404 when the role is not found', async function() {
             const res = await axios.put(scimUrl('/Roles/1000'), {
               schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
               displayName: 'test-role',
@@ -1404,7 +1404,7 @@ describe('Scim', () => {
             assert.equal(res.status, 404);
           });
 
-          it('should return 400 when the role id is malformed', async function () {
+          it('should return 400 when the role id is malformed', async function() {
             const res = await axios.put(scimUrl('/Roles/not-an-id'), {
               schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
               displayName: 'test-role',
@@ -1421,7 +1421,7 @@ describe('Scim', () => {
             assert.equal(res.status, 400);
           });
 
-          it('should not update the docId, the wsId nor the orgId', async function () {
+          it('should not update the docId, the wsId nor the orgId', async function() {
             return withRole(async (roleId) => {
               const res = await axios.put(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:schemas:Grist:1.0:Role'],
@@ -1451,8 +1451,8 @@ describe('Scim', () => {
           });
         });
 
-        describe('PATCH /Roles/{id}', function () {
-          it('should update the role\'s members', async function () {
+        describe('PATCH /Roles/{id}', function() {
+          it('should update the role\'s members', async function() {
             return withRole(async (roleId, role) => {
               const res = await axios.patch(scimUrl('/Roles/' + roleId), {
                 schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
@@ -1480,8 +1480,8 @@ describe('Scim', () => {
           });
         });
 
-        describe('DELETE /Roles/{id}', function () {
-          it('should return 501 Not implemented', async function () {
+        describe('DELETE /Roles/{id}', function() {
+          it('should return 501 Not implemented', async function() {
             await withRole(async (roleId) => {
               const res = await axios.delete(scimUrl('/Roles/' + roleId), chimpy);
               assert.equal(res.status, 501);
@@ -1491,14 +1491,14 @@ describe('Scim', () => {
       });
     });
 
-    describe('POST /Bulk', function () {
+    describe('POST /Bulk', function() {
       let usersToCleanupEmails: string[];
 
-      beforeEach(async function () {
+      beforeEach(async function() {
         usersToCleanupEmails = [];
       });
 
-      afterEach(async function () {
+      afterEach(async function() {
         for (const email of usersToCleanupEmails) {
           const user = await getDbManager().getExistingUserByLogin(email);
           if (user) {
@@ -1507,7 +1507,7 @@ describe('Scim', () => {
         }
       });
 
-      it('should return statuses for each operation', async function () {
+      it('should return statuses for each operation', async function() {
         await withUserName('bulk-user3', async (bulkUserName) => {
           const putOnUnknownResource = { method: 'PUT', path: '/Users/1000', value: toSCIMUserWithoutId('chimpy') };
           const validCreateOperation = {
@@ -1566,7 +1566,7 @@ describe('Scim', () => {
         });
       });
 
-      it('should return 400 when no operations are provided', async function () {
+      it('should return 400 when no operations are provided', async function() {
         const res = await axios.post(scimUrl('/Bulk'), {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:BulkRequest'],
           Operations: [],
@@ -1580,7 +1580,7 @@ describe('Scim', () => {
         });
       });
 
-      it('should disallow accessing resources to kiwi', async function () {
+      it('should disallow accessing resources to kiwi', async function() {
         const creationOperation = {
           method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user4'), bulkId: '1',
         };
@@ -1627,7 +1627,7 @@ describe('Scim', () => {
         });
       });
 
-      it('should disallow accessing resources to anonymous', async function () {
+      it('should disallow accessing resources to anonymous', async function() {
         const creationOperation = {
           method: 'POST', path: '/Users', data: toSCIMUserWithoutId('bulk-user5'), bulkId: '1',
         };
@@ -1640,7 +1640,7 @@ describe('Scim', () => {
       });
     });
 
-    it('should allow fetching the Scim schema when autenticated', async function () {
+    it('should allow fetching the Scim schema when autenticated', async function() {
       const res = await axios.get(scimUrl('/Schemas'), kiwi);
       assert.equal(res.status, 200);
       assert.deepInclude(res.data, {
@@ -1655,7 +1655,7 @@ describe('Scim', () => {
       });
     });
 
-    it('should allow fetching the Scim resource types when autenticated', async function () {
+    it('should allow fetching the Scim resource types when autenticated', async function() {
       const res = await axios.get(scimUrl('/ResourceTypes'), kiwi);
       assert.equal(res.status, 200);
       assert.deepInclude(res.data, {
@@ -1669,7 +1669,7 @@ describe('Scim', () => {
       });
     });
 
-    it('should allow fetching the Scim service provider config when autenticated', async function () {
+    it('should allow fetching the Scim service provider config when autenticated', async function() {
       const res = await axios.get(scimUrl('/ServiceProviderConfig'), kiwi);
       assert.equal(res.status, 200);
       assert.deepInclude(res.data, {

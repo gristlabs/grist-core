@@ -210,7 +210,7 @@ class SaveCopyModal extends Disposable {
       this._pageModel.clearUnsavedChanges();
       await urlState().pushUrl({ org: org?.domain || undefined, doc, docPage: urlState().state.get().docPage });
     }
-    catch(err) {
+    catch (err) {
       // Convert access denied errors to normal Error to make it consistent with other endpoints.
       // TODO: Should not allow to click this button when user doesn't have permissions.
       if (err.status === 403) {

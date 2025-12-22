@@ -49,7 +49,7 @@ function backupEnvironmentVariables() {
 const webhooksTestPort = Number(process.env.WEBHOOK_TEST_PORT || 34365);
 const webhooksTestProxyPort = Number(process.env.WEBHOOK_TEST_PROXY_PORT || 22335);
 
-describe('Webhooks-Proxy', function () {
+describe('Webhooks-Proxy', function() {
   // A testDir of the form grist_test_{USER}_{SERVER_NAME}
   // - its a directory that will be base for all test related files and activities
   const username = process.env.USER || "nobody";
@@ -65,7 +65,7 @@ describe('Webhooks-Proxy', function () {
   function setupMockServers(name: string, tmpDir: string, cb: () => Promise<void>) {
     let api: UserAPIImpl;
 
-    before(async function () {
+    before(async function() {
       suitename = name;
       await cb();
 
@@ -75,7 +75,7 @@ describe('Webhooks-Proxy', function () {
       docIds.TestDoc = await api.newDoc({ name: 'TestDoc' }, wid);
     });
 
-    after(async function () {
+    after(async function() {
       // remove TestDoc
       await api.deleteDoc(docIds.TestDoc);
       delete docIds.TestDoc;
@@ -86,11 +86,11 @@ describe('Webhooks-Proxy', function () {
     });
   }
 
-  describe('Proxy is configured', function () {
+  describe('Proxy is configured', function() {
     runServerConfigurations({ GRIST_HTTPS_PROXY: `http://localhost:${webhooksTestProxyPort}` }, () => testWebhookProxy(true));
   });
 
-  describe('Proxy not configured', function () {
+  describe('Proxy not configured', function() {
     runServerConfigurations({ GRIST_HTTPS_PROXY: undefined }, () => testWebhookProxy(false));
   });
 
@@ -101,7 +101,7 @@ describe('Webhooks-Proxy', function () {
       ...additionaEnvConfiguration,
     };
 
-    before(async function () {
+    before(async function() {
       // Clear redis test database if redis is in use.
       if (process.env.TEST_REDIS_URL) {
         await cleanRedisDatabase();
@@ -149,7 +149,7 @@ describe('Webhooks-Proxy', function () {
   }
 
   function testWebhookProxy(shouldProxyBeCalled: boolean) {
-    describe('calling registered webhooks after data update', function () {
+    describe('calling registered webhooks after data update', function() {
       let serving: Serving;  // manages the test webhook server
       let testProxyServer: TestProxyServer;  // manages the test webhook server
 
@@ -204,7 +204,7 @@ describe('Webhooks-Proxy', function () {
         assert.equal(deleteResult.status, 200);
       }
 
-      before(async function () {
+      before(async function() {
         this.timeout(30000);
         serving = await serveSomething((app) => {
           app.use(express.json());
@@ -227,12 +227,12 @@ describe('Webhooks-Proxy', function () {
         testProxyServer = await TestProxyServer.Prepare(webhooksTestProxyPort);
       });
 
-      after(async function () {
+      after(async function() {
         await serving.shutdown();
         await testProxyServer.dispose();
       });
 
-      before(async function () {
+      before(async function() {
         this.timeout(30000);
 
         if (process.env.TEST_REDIS_URL) {
@@ -240,14 +240,14 @@ describe('Webhooks-Proxy', function () {
         }
       });
 
-      after(async function () {
+      after(async function() {
         if (process.env.TEST_REDIS_URL) {
           await redisMonitor.quitAsync();
         }
       });
 
       if (shouldProxyBeCalled) {
-        it("Should call proxy", async function () {
+        it("Should call proxy", async function() {
           //Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
           // intrested in it, only want to check if proxy was used
           await runTestCase();
@@ -255,7 +255,7 @@ describe('Webhooks-Proxy', function () {
         });
       }
       else {
-        it("Should not call proxy", async function () {
+        it("Should not call proxy", async function() {
           //Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
           // intrested in it, only want to check if proxy was used
           await runTestCase();

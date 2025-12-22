@@ -21,7 +21,7 @@ import {
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('GridViewNewColumnMenu', function () {
+describe('GridViewNewColumnMenu', function() {
   const STANDARD_WAITING_TIME = 1000;
   this.timeout('3m');
   const cleanup = setupTestSuite();
@@ -30,7 +30,7 @@ describe('GridViewNewColumnMenu', function () {
   let docId: string;
   let session: gu.Session;
 
-  before(async function () {
+  before(async function() {
     session = await gu.session().login({ showTips: true });
     api = session.createHomeApi();
     docId = await session.tempNewDoc(cleanup, 'ColumnMenu');
@@ -56,17 +56,17 @@ describe('GridViewNewColumnMenu', function () {
     ]);
   });
 
-  describe('sections', function () {
+  describe('sections', function() {
     revertEach();
 
-    it('looks ok for an empty document', async function () {
+    it('looks ok for an empty document', async function() {
       await clickAddColumn();
       await hasAddNewColumMenu();
       await hasShortcuts();
       await closeAddColumnMenu();
     });
 
-    it('has lookup columns', async function () {
+    it('has lookup columns', async function() {
       await gu.sendActions([
         // Create a table that we can reference to.
         ['AddTable', 'Reference', [
@@ -89,10 +89,10 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  describe('column creation', function () {
+  describe('column creation', function() {
     revertEach();
 
-    it('should show rename menu after a new column click', async function () {
+    it('should show rename menu after a new column click', async function() {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-add-new', STANDARD_WAITING_TIME).click();
       await gu.waitForServer();
@@ -100,7 +100,7 @@ describe('GridViewNewColumnMenu', function () {
       await closeAddColumnMenu();
     });
 
-    it('should create a new column', async function () {
+    it('should create a new column', async function() {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-add-new', STANDARD_WAITING_TIME).click();
       await gu.waitForServer();
@@ -119,7 +119,7 @@ describe('GridViewNewColumnMenu', function () {
       assert.lengthOf(columns2, 3, 'wrong number of columns');
     });
 
-    it('should support inserting before selected column', async function () {
+    it('should support inserting before selected column', async function() {
       await gu.openColumnMenu('A', 'Insert column to the left');
       await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
       await gu.sendKeys(Key.ENTER);
@@ -129,7 +129,7 @@ describe('GridViewNewColumnMenu', function () {
       assert.deepEqual(columns, ['D', 'A', 'B', 'C']);
     });
 
-    it('should support inserting after selected column', async function () {
+    it('should support inserting after selected column', async function() {
       await gu.openColumnMenu('A', 'Insert column to the right');
       await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
       await gu.sendKeys(Key.ENTER);
@@ -139,7 +139,7 @@ describe('GridViewNewColumnMenu', function () {
       assert.deepEqual(columns, ['A', 'D', 'B', 'C']);
     });
 
-    it('should support inserting after the last visible column', async function () {
+    it('should support inserting after the last visible column', async function() {
       await gu.openColumnMenu('C', 'Insert column to the right');
       await driver.findWait(".test-new-columns-menu", STANDARD_WAITING_TIME);
       await gu.sendKeys(Key.ENTER);
@@ -149,7 +149,7 @@ describe('GridViewNewColumnMenu', function () {
       assert.deepEqual(columns, ['A', 'B', 'C', 'D']);
     });
 
-    it('should skip showing menu when inserting with keyboard shortcuts', async function () {
+    it('should skip showing menu when inserting with keyboard shortcuts', async function() {
       await gu.sendKeys(Key.chord(Key.ALT, '='));
       await gu.waitForServer();
       assert.isFalse(await driver.find('.test-new-columns-menu').isPresent());
@@ -165,7 +165,7 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  describe('create column with type', function () {
+  describe('create column with type', function() {
     revertThis();
     const columnsThatShouldTriggerSideMenu = [
       "Reference",
@@ -186,10 +186,10 @@ describe('GridViewNewColumnMenu', function () {
       "Attachment",
     ].map(option => ({ type: option, testClass: option.toLowerCase().replace(' ', '-') }));
 
-    describe('on desktop', function () {
+    describe('on desktop', function() {
       gu.bigScreen();
 
-      it('should show "Add Column With type" option', async function () {
+      it('should show "Add Column With type" option', async function() {
         // open add new colum menu
         await clickAddColumn();
         // check if "Add Column With type" option is present
@@ -226,7 +226,7 @@ describe('GridViewNewColumnMenu', function () {
       });
 
       for (const option of optionsToBeDisplayed) {
-        it(`should allow to select column type ${option.type}`, async function () {
+        it(`should allow to select column type ${option.type}`, async function() {
           // open add new colum menu
           await clickAddColumn();
           // select "Add Column With type" option
@@ -322,7 +322,7 @@ describe('GridViewNewColumnMenu', function () {
       }
     });
 
-    describe('on mobile', function () {
+    describe('on mobile', function() {
       gu.narrowScreen();
       for (const optionsTriggeringMenu of optionsToBeDisplayed.filter(option =>
         columnsThatShouldTriggerSideMenu.includes(option.type))) {
@@ -364,7 +364,7 @@ describe('GridViewNewColumnMenu', function () {
       await gu.reloadDoc();
     });
 
-    it('should show "create formula column" option with tooltip', async function () {
+    it('should show "create formula column" option with tooltip', async function() {
       // open add new colum menu
       await clickAddColumn();
       // check if "create formula column" option is present
@@ -393,7 +393,7 @@ describe('GridViewNewColumnMenu', function () {
         'Tooltip link has wrong href');
     });
 
-    it('should allow to select formula column', async function () {
+    it('should allow to select formula column', async function() {
       // open column panel - we will need it later
       await gu.openColumnPanel();
       // open add new colum menu
@@ -416,10 +416,10 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  describe('hidden columns', function () {
+  describe('hidden columns', function() {
     revertThis();
 
-    it('hides hidden column section from < 5 columns', async function () {
+    it('hides hidden column section from < 5 columns', async function() {
       await gu.sendActions([
         ['AddVisibleColumn', 'Table1', 'New1', { type: 'Any' }],
         ['AddVisibleColumn', 'Table1', 'New2', { type: 'Any' }],
@@ -431,10 +431,10 @@ describe('GridViewNewColumnMenu', function () {
       await closeAddColumnMenu();
     });
 
-    describe('inline menu section', function () {
+    describe('inline menu section', function() {
       revertEach();
 
-      it('shows hidden section as inlined for 1 to 5 hidden columns', async function () {
+      it('shows hidden section as inlined for 1 to 5 hidden columns', async function() {
         // Check that the hidden section is present and has the expected columns.
         const checkSection = async (...columns: string[]) => {
           await clickAddColumn();
@@ -459,7 +459,7 @@ describe('GridViewNewColumnMenu', function () {
         await checkSection('A', 'B', 'C', 'New1', 'New2');
       });
 
-      it('should add hidden column at the end', async function () {
+      it('should add hidden column at the end', async function() {
         let columns = await gu.getColumnNames();
         assert.deepEqual(columns, ['A', 'B', 'C', 'New1', 'New2', 'New3']);
 
@@ -475,20 +475,20 @@ describe('GridViewNewColumnMenu', function () {
       });
     });
 
-    describe('submenu section', function () {
-      before(async function () {
+    describe('submenu section', function() {
+      before(async function() {
         await gu.sendActions([
           ['AddVisibleColumn', 'Table1', 'New4', { type: 'Any' }],
         ]);
       });
 
-      after(async function () {
+      after(async function() {
         await gu.sendActions([
           ['RemoveColumn', 'Table1', 'New4'],
         ]);
       });
 
-      it('more than 5 hidden columns, section should be in submenu', async function () {
+      it('more than 5 hidden columns, section should be in submenu', async function() {
         // Hide all columns except A.
         const columns = await gu.getColumnNames();
         for (const column of columns.slice(1)) {
@@ -533,7 +533,7 @@ describe('GridViewNewColumnMenu', function () {
         await gu.undo();
       });
 
-      it('submenu should be searchable', async function () {
+      it('submenu should be searchable', async function() {
         await clickAddColumn();
         await driver.find(".test-new-columns-menu-hidden-columns-menu").click();
         await driver.findWait('.test-searchable-menu-input', STANDARD_WAITING_TIME).click();
@@ -587,10 +587,10 @@ describe('GridViewNewColumnMenu', function () {
     "Name", "Age", "Hobby", "Employee", "Birthday date", "Member", "SeenAt", "Photo", "Fun", "Parent", "Children",
   ];
 
-  describe('lookups from Reference columns', function () {
+  describe('lookups from Reference columns', function() {
     revertThis();
 
-    before(async function () {
+    before(async function() {
       await gu.sendActions([
         ['AddVisibleColumn', 'Table1', 'Person', { type: 'Ref:Person' }],
         ['AddVisibleColumn', 'Table1', 'Employees', { type: 'RefList:Person' }],
@@ -620,7 +620,7 @@ describe('GridViewNewColumnMenu', function () {
       await gu.openPage('Table1');
     });
 
-    it('should show only 2 reference columns', async function () {
+    it('should show only 2 reference columns', async function() {
       await clickAddColumn();
       await gu.waitToPass(async () => {
         const labels =  await driver.findAll('.test-new-columns-menu-lookup', el => el.getText());
@@ -632,7 +632,7 @@ describe('GridViewNewColumnMenu', function () {
       await closeAddColumnMenu();
     });
 
-    it('should suggest to add every column from a reference', async function () {
+    it('should suggest to add every column from a reference', async function() {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-lookup-Person', STANDARD_WAITING_TIME).click();
       await gu.waitToPass(async () => {
@@ -644,7 +644,7 @@ describe('GridViewNewColumnMenu', function () {
 
     // Now add each column and make sure it is added with a proper name.
     for (const column of COLUMN_LABELS) {
-      it(`should insert ${column} with a proper name and type from a Ref column`, async function () {
+      it(`should insert ${column} with a proper name and type from a Ref column`, async function() {
         const revert = await gu.begin();
         await clickAddColumn();
         await driver.findWait('.test-new-columns-menu-lookup-Person', STANDARD_WAITING_TIME).click();
@@ -735,7 +735,7 @@ describe('GridViewNewColumnMenu', function () {
       });
     }
 
-    it('should suggest aggregations for RefList column', async function () {
+    it('should suggest aggregations for RefList column', async function() {
       await clickAddColumn();
       await driver.findWait('.test-new-columns-menu-lookup-Employees', STANDARD_WAITING_TIME).click();
       // Wait for the menu to appear.
@@ -772,7 +772,7 @@ describe('GridViewNewColumnMenu', function () {
 
     // Now test each aggregation.
     for (const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
-      it(`should insert ${column} with a proper name and type from a RefList column`, async function () {
+      it(`should insert ${column} with a proper name and type from a RefList column`, async function() {
         const colId = column.replace(" ", "_");
 
         await clickAddColumn();
@@ -861,10 +861,10 @@ describe('GridViewNewColumnMenu', function () {
     }
   });
 
-  describe('reverse lookups', function () {
+  describe('reverse lookups', function() {
     revertThis();
 
-    before(async function () {
+    before(async function() {
       // Reference the Person table once more
       await gu.sendActions([
         ['AddVisibleColumn', 'Person', 'Item', { type: 'Ref:Table1' }],
@@ -872,7 +872,7 @@ describe('GridViewNewColumnMenu', function () {
       ]);
     });
 
-    it('should show reverse lookups in the menu', async function () {
+    it('should show reverse lookups in the menu', async function() {
       await clickAddColumn();
       // Wait for any menu to show up.
       await driver.findWait('.test-new-columns-menu-revlookup', STANDARD_WAITING_TIME);
@@ -883,7 +883,7 @@ describe('GridViewNewColumnMenu', function () {
       ]);
     });
 
-    it('should show same list from Ref and RefList', async function () {
+    it('should show same list from Ref and RefList', async function() {
       await driver.findContent('.test-new-columns-menu-revlookup', 'Person [← Item]').mouseMove();
       // Wait for any menu to show up.
       await driver.findWait('.test-new-columns-menu-revlookup-column', STANDARD_WAITING_TIME);
@@ -934,9 +934,9 @@ describe('GridViewNewColumnMenu', function () {
       await gu.undo();
     });
 
-    describe('reverse lookups from Ref column', function () {
+    describe('reverse lookups from Ref column', function() {
       for (const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
-        it(`should properly add reverse lookup for ${column}`, async function () {
+        it(`should properly add reverse lookup for ${column}`, async function() {
           await clickAddColumn();
           await driver.findContentWait('.test-new-columns-menu-revlookup',
             'Person [← Item]',
@@ -1048,9 +1048,9 @@ describe('GridViewNewColumnMenu', function () {
       }
     });
 
-    describe('reverse lookups from RefList column', function () {
+    describe('reverse lookups from RefList column', function() {
       for (const column of ['Age', 'Member', 'Birthday date', 'SeenAt']) {
-        it(`should properly add reverse lookup for ${column}`, async function () {
+        it(`should properly add reverse lookup for ${column}`, async function() {
           await clickAddColumn();
           await driver.findContentWait(
             '.test-new-columns-menu-revlookup',
@@ -1160,11 +1160,11 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  describe('shortcuts', function () {
-    describe('Timestamp', function () {
+  describe('shortcuts', function() {
+    describe('Timestamp', function() {
       revertEach();
 
-      it('created at - should create new column with date triggered on create', async function () {
+      it('created at - should create new column with date triggered on create', async function() {
         await gu.openColumnPanel();
 
         await clickAddColumn();
@@ -1193,7 +1193,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.isNotEmpty(await driver.find(".test-tz-autocomplete input").value());
       });
 
-      it('modified at - should create new column with date triggered on change', async function () {
+      it('modified at - should create new column with date triggered on change', async function() {
         await clickAddColumn();
         await driver.findWait('.test-new-columns-menu-shortcuts-timestamp', STANDARD_WAITING_TIME).mouseMove();
         await driver.findWait('.test-new-columns-menu-shortcuts-timestamp-change', STANDARD_WAITING_TIME).click();
@@ -1222,10 +1222,10 @@ describe('GridViewNewColumnMenu', function () {
       });
     });
 
-    describe('Authorship', function () {
+    describe('Authorship', function() {
       revertEach();
 
-      it('created by - should create new column with author name triggered on create', async function () {
+      it('created by - should create new column with author name triggered on create', async function() {
         await gu.openColumnPanel();
 
         await clickAddColumn();
@@ -1253,7 +1253,7 @@ describe('GridViewNewColumnMenu', function () {
         await checkTypeAndFormula('Text', 'user.Name');
       });
 
-      it('modified by - should create new column with author name triggered on change', async function () {
+      it('modified by - should create new column with author name triggered on change', async function() {
         await gu.openColumnPanel();
 
         await clickAddColumn();
@@ -1283,8 +1283,8 @@ describe('GridViewNewColumnMenu', function () {
       });
     });
 
-    describe('Detect Duplicates in...', function () {
-      it('should show columns in a searchable sub-menu', async function () {
+    describe('Detect Duplicates in...', function() {
+      it('should show columns in a searchable sub-menu', async function() {
         await clickAddColumn();
         await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', STANDARD_WAITING_TIME).mouseMove();
         await gu.waitToPass(async () => {
@@ -1319,7 +1319,7 @@ describe('GridViewNewColumnMenu', function () {
         }, STANDARD_WAITING_TIME);
       });
 
-      it('should create new column that checks for duplicates in the specified column', async function () {
+      it('should create new column that checks for duplicates in the specified column', async function() {
         await clickAddColumn();
         await driver.findWait('.test-new-columns-menu-shortcuts-duplicates', STANDARD_WAITING_TIME).mouseMove();
         await driver.findContentWait('.test-searchable-menu li', 'A', 500).click();
@@ -1356,8 +1356,8 @@ describe('GridViewNewColumnMenu', function () {
       });
     });
 
-    describe('UUID', function () {
-      it('should create new column that generates a UUID on new record', async function () {
+    describe('UUID', function() {
+      it('should create new column that generates a UUID on new record', async function() {
         await gu.getCell(2, 1).click();
         await gu.sendKeys('A', Key.ENTER);
         await gu.waitForServer();
@@ -1380,8 +1380,8 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  describe('bug fixes', function () {
-    it("should not show hidden Ref columns", async function () {
+  describe('bug fixes', function() {
+    it("should not show hidden Ref columns", async function() {
       // Duplicate current tab and start transforming a column.
       const mainTab = await gu.myTab();
       const transformTab = await gu.duplicateTab();

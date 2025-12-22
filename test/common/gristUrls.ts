@@ -9,11 +9,11 @@ import * as testUtils from 'test/server/testUtils';
 describe('gristUrls', function() {
   let sandbox: Sinon.SinonSandbox;
 
-  beforeEach(function () {
+  beforeEach(function() {
     sandbox = Sinon.createSandbox();
   });
 
-  afterEach(function () {
+  afterEach(function() {
     sandbox.restore();
   });
 
@@ -99,11 +99,11 @@ describe('gristUrls', function() {
 
     let oldEnv: testUtils.EnvironmentSnapshot;
 
-    beforeEach(function () {
+    beforeEach(function() {
       oldEnv = new testUtils.EnvironmentSnapshot();
     });
 
-    afterEach(function () {
+    afterEach(function() {
       oldEnv.restore();
     });
 
@@ -167,15 +167,15 @@ describe('gristUrls', function() {
     });
   });
 
-  describe('getCommonUrls', function () {
-    it('should return the default URLs', function () {
+  describe('getCommonUrls', function() {
+    it('should return the default URLs', function() {
       const commonUrls = getCommonUrls();
       assert.isObject(commonUrls);
       assert.equal(commonUrls.help, "https://support.getgrist.com");
     });
 
-    describe("with GRIST_CUSTOM_COMMON_URLS env var set", function () {
-      it('should return the values set by the GRIST_CUSTOM_COMMON_URLS env var', function () {
+    describe("with GRIST_CUSTOM_COMMON_URLS env var set", function() {
+      it('should return the values set by the GRIST_CUSTOM_COMMON_URLS env var', function() {
         const customHelpCenterUrl = "http://custom.helpcenter";
         sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
           `{"help": "${customHelpCenterUrl}"}`);
@@ -185,19 +185,19 @@ describe('gristUrls', function() {
         assert.equal(commonUrls.helpAccessRules, "https://support.getgrist.com/access-rules");
       });
 
-      it('should throw when keys extraneous to the ICommonUrls interface are added', function () {
+      it('should throw when keys extraneous to the ICommonUrls interface are added', function() {
         const nonExistingKey = 'iDontExist';
         sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS',
           `{"${nonExistingKey}": "foo", "help": "https://getgrist.com"}`);
         assert.throws(() => getCommonUrls(), `value.${nonExistingKey} is extraneous`);
       });
 
-      it('should throw when the passed JSON is malformed', function () {
+      it('should throw when the passed JSON is malformed', function() {
         sandbox.define(process.env, 'GRIST_CUSTOM_COMMON_URLS', '{"malformed": 42');
         assert.throws(() => getCommonUrls(), 'The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed');
       });
 
-      it('should throw when keys has unexpected type', function () {
+      it('should throw when keys has unexpected type', function() {
         const regularValueKey = 'help';
         const numberValueKey = 'helpAccessRules';
         const objectValueKey = 'helpAssistant';
@@ -227,7 +227,7 @@ describe('gristUrls', function() {
         assert.throws(() => getCommonUrls(), buildExpectedErrRegEx(nullValueKey));
       });
 
-      it("should return the default URLs when the parsed value is not an object", function () {
+      it("should return the default URLs when the parsed value is not an object", function() {
         sandbox.define(process.env, "GRIST_CUSTOM_COMMON_URLS", "42");
         assert.deepEqual(getCommonUrls(), defaultCommonUrls);
         sandbox.restore();
@@ -236,8 +236,8 @@ describe('gristUrls', function() {
       });
     });
 
-    describe("client-side when customized by the admin", function () {
-      it("should read the admin-defined values gristConfig", function () {
+    describe("client-side when customized by the admin", function() {
+      it("should read the admin-defined values gristConfig", function() {
         sandbox.define(globalThis, 'window', {
           gristConfig: {
             adminDefinedUrls: JSON.stringify({

@@ -292,7 +292,7 @@ export class Sharing {
         // We are ok, we can store extra actions and report back the exception.
         return { result: { bundle: extraBundle, accessControl }, failure: applyExc };
       }
-      catch(rollbackExc) {
+      catch (rollbackExc) {
         this._log.error(docSession, "Failed to apply undo of rejected action", rollbackExc.message);
         await accessControl.finishedBundle();
         this._log.debug(docSession, "Sharing._applyActionsToDataEngine starting ActiveDoc.shutdown");

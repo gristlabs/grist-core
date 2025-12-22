@@ -11,14 +11,14 @@ import {
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-describe('GridViewNewColumnMenuDateHelpers', function () {
+describe('GridViewNewColumnMenuDateHelpers', function() {
   const STANDARD_WAITING_TIME = 1000;
   this.timeout('4m');
   const cleanup = setupTestSuite();
   gu.bigScreen();
   let session: gu.Session;
 
-  before(async function () {
+  before(async function() {
     session = await gu.session().login({ showTips: true });
     await session.tempNewDoc(cleanup, 'ColumnMenu');
     await gu.dismissBehavioralPrompts();
@@ -32,7 +32,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
     await gu.openColumnPanel();
   });
 
-  describe('menu', function () {
+  describe('menu', function() {
     afterEach(async function() {
       // Leave all columns except A, B, C
       const allColumns = await gu.getColumnNames();
@@ -263,7 +263,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
     ];
 
     for (const testCase of testCases) {
-      it(`has working ${testCase.menu} menu`, async function () {
+      it(`has working ${testCase.menu} menu`, async function() {
         // Add test column with proper type.
         await gu.sendActions([
           ['AddVisibleColumn', 'Table1', 'EventDate', {
@@ -315,10 +315,10 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
     }
   });
 
-  describe('general', function () {
+  describe('general', function() {
     revertEach();
 
-    it('should not show date helpers menu when no Date/DateTime columns exist', async function () {
+    it('should not show date helpers menu when no Date/DateTime columns exist', async function() {
       await gu.openColumnPanel();
       await clickAddColumn();
       await hasShortcuts();
@@ -327,7 +327,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       await closeAddColumnMenu();
     });
 
-    it('should show date helpers menu when Date columns exist', async function () {
+    it('should show date helpers menu when Date columns exist', async function() {
       // Add a Date column first
       await gu.sendActions([
         ['AddVisibleColumn', 'Table1', 'EventDate', { type: 'Date' }],
@@ -345,7 +345,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       await closeAddColumnMenu();
     });
 
-    it('should show date helpers menu when DateTime columns exist', async function () {
+    it('should show date helpers menu when DateTime columns exist', async function() {
       // Add a DateTime column
       await gu.sendActions([
         ['AddVisibleColumn', 'Table1', 'Timestamp', { type: 'DateTime:UTC' }],
@@ -358,7 +358,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       await closeAddColumnMenu();
     });
 
-    it('should work with multiple date columns', async function () {
+    it('should work with multiple date columns', async function() {
       await gu.sendActions([
         ['AddVisibleColumn', 'Table1', 'StartDate', { type: 'Date' }],
         ['AddVisibleColumn', 'Table1', 'EndDate', { type: 'DateTime:UTC' }],

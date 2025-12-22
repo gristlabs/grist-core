@@ -320,7 +320,7 @@ return c
     assert.closeTo(totalMsec, expectedTime, 500);
   });
 
-  describe("_onInactive", function () {
+  describe("_onInactive", function() {
     async function prepareVacuumableDoc() {
       const adoc = await docTools.loadFixtureDoc('World-v0.grist');
       const docSession = docTools.createFakeSession('owners');
@@ -350,7 +350,7 @@ return c
       SELECT n FROM recur;
     `;
 
-    it("should VACUUM a document before closing it", async function () {
+    it("should VACUUM a document before closing it", async function() {
       const adoc = await prepareVacuumableDoc();
       const storageManager = docTools.getStorageManager();
       const sizeBeforeShrink = await storageManager.getFsFileSize(adoc.docName);
@@ -363,7 +363,7 @@ return c
       sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
     });
 
-    it("should not mark as changed if VACUUM does not reduce size significantly", async function () {
+    it("should not mark as changed if VACUUM does not reduce size significantly", async function() {
       // Open a doc, do nothing particular and close it
       const adoc = await docTools.loadFixtureDoc('World-v0.grist');
       const storageManager = docTools.getStorageManager();
@@ -372,7 +372,7 @@ return c
       sinon.assert.notCalled(markAsChangedSpy);
     });
 
-    it('should close the document anyway if the VACUUM fails', async function () {
+    it('should close the document anyway if the VACUUM fails', async function() {
       const adoc = await docTools.loadFixtureDoc('World-v0.grist');
       const isDocOpen = async () => Boolean(await docTools.getDocManager().getActiveDoc(adoc.docName));
       assert.isTrue(await isDocOpen(), 'doc should be open');
@@ -393,7 +393,7 @@ return c
       assert.isFalse(await isDocOpen(), 'doc should be closed');
     });
 
-    it('should successfully vacuum when other long queries are still running', async function () {
+    it('should successfully vacuum when other long queries are still running', async function() {
       const adoc = await prepareVacuumableDoc();
       const storageManager = docTools.getStorageManager();
       await storageManager.flushDoc(adoc.docName);
@@ -403,12 +403,12 @@ return c
       sinon.assert.calledOnceWithExactly(markAsChangedSpy, adoc.docName);
     });
 
-    it('should successfully vacuum when other long queries are running while setting limit', async function () {
+    it('should successfully vacuum when other long queries are running while setting limit', async function() {
       const adoc = await prepareVacuumableDoc();
       const storageManager = docTools.getStorageManager();
       await storageManager.flushDoc(adoc.docName);
       const waitStub = sandbox.stub(sqlite3.Database.prototype as any, 'wait');
-      waitStub.callsFake(function (this: sqlite3.Database, callback?: (param: null) => void) {
+      waitStub.callsFake(function(this: sqlite3.Database, callback?: (param: null) => void) {
         waitStub.wrappedMethod.call(this, callback);
 
         // let's add the long query right after having invoked wait() and before configure()

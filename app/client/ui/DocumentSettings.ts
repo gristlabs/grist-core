@@ -142,7 +142,7 @@ export class DocSettingsPage extends Disposable {
                 await docPageModel.appModel.api.updateDoc(docId, { options: { proposedChanges: { acceptProposals } } });
                 window.location.reload();
               }
-              catch(e) {
+              catch (e) {
                 reportError(e);
               }
               finally {

@@ -173,7 +173,7 @@ export async function selectAndImport(
     // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
     await Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(null);
   }
-  catch(err1) {
+  catch (err1) {
     // If the url was a Google Drive Url, run the google drive plugin.
     if (!(err1 instanceof GDriveUrlNotSupported)) {
       reportError(err1);
@@ -187,7 +187,7 @@ export async function selectAndImport(
         try {
           await Importer.create(null, gristDoc, gdrivePlugin, createPreview).pickAndUploadSource(null);
         }
-        catch(err2) {
+        catch (err2) {
           reportError(err2);
         }
       }
@@ -1422,7 +1422,7 @@ export class Importer extends DisposableWithEvents {
     try {
       return await fetchURL(this._docComm, itemUrl);
     }
-    catch(err) {
+    catch (err) {
       // It is not a public file or the file id in the url is wrong,
       // but we have no way to check it, so we assume that it is private file
       // and ask the user for the permission (if we are configured to do so)
@@ -1433,7 +1433,7 @@ export class Importer extends DisposableWithEvents {
           const code = await getGoogleCodeForReading(this);
           options.googleAuthorizationCode = code;
         }
-        catch(permError) {
+        catch (permError) {
           if (permError?.message === ACCESS_DENIED) {
             // User declined to give us full readonly permission, fallback to GoogleDrive plugin
             // or cancel import if GoogleDrive plugin is not configured.

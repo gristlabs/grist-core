@@ -36,7 +36,7 @@ describe('CellFormat', function() {
       .matches('[class*=-selected]'), false);
   });
 
-  it('should open hyperlinks in new tabs only when needed', async function () {
+  it('should open hyperlinks in new tabs only when needed', async function() {
     api = session.createHomeApi();
     const currentUrl = await driver.getCurrentUrl();
     const urls = [

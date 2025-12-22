@@ -7,7 +7,7 @@ import { server, setupTestSuite } from "test/nbrowser/testUtils";
 import { serveSomething } from "test/server/customUtil";
 import { EnvironmentSnapshot } from "test/server/testUtils";
 
-describe('AttachedCustomWidget', function () {
+describe('AttachedCustomWidget', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
   let oldEnv: EnvironmentSnapshot;
@@ -59,7 +59,7 @@ describe('AttachedCustomWidget', function () {
     widgets = [widget1];
   }
 
-  before(async function () {
+  before(async function() {
     await buildWidgetServer();
     oldEnv = new EnvironmentSnapshot();
     process.env.GRIST_WIDGET_LIST_URL = `${widgetServerUrl}${manifestEndpoint}`;
@@ -69,7 +69,7 @@ describe('AttachedCustomWidget', function () {
     await session.tempDoc(cleanup, 'Hello.grist');
   });
 
-  after(async function () {
+  after(async function() {
     oldEnv.restore();
     await server.restart();
   });

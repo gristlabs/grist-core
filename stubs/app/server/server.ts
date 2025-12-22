@@ -73,7 +73,7 @@ async function setupDb() {
         includeSupport: false,
       }, org));
     }
-    catch(e) {
+    catch (e) {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }

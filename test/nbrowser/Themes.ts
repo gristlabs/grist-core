@@ -37,13 +37,13 @@ const assertAppliedTheme = async (expectedTheme: 'GristLight' | 'GristDark' | 'H
   );
 };
 
-describe('Themes', function () {
-  describe('with default env', function () {
+describe('Themes', function() {
+  describe('with default env', function() {
     this.timeout(20000);
 
     setupTestSuite();
 
-    beforeEach(async function () {
+    beforeEach(async function() {
       const session = await gu.session().teamSite.login();
       await session.loadDocMenu("/");
       await gu.openProfileSettingsPage();
@@ -54,7 +54,7 @@ describe('Themes', function () {
       await enableSyncWithOS();
     });
 
-    it('should follow OS preferences by default', async function () {
+    it('should follow OS preferences by default', async function() {
       // verify that the sync with OS checkbox is checked
       const syncWithOSCheckbox = await findSyncWithOSCheckbox();
       assert.isTrue(await syncWithOSCheckbox.isSelected());
@@ -107,7 +107,7 @@ describe('Themes', function () {
     });
   });
 
-  describe('with env APP_STATIC_INCLUDE_CUSTOM_CSS=true', function () {
+  describe('with env APP_STATIC_INCLUDE_CUSTOM_CSS=true', function() {
     this.timeout(60000);
     setupTestSuite();
 
@@ -115,7 +115,7 @@ describe('Themes', function () {
       'APP_STATIC_INCLUDE_CUSTOM_CSS': 'true',
     });
 
-    beforeEach(async function () {
+    beforeEach(async function() {
       const session = await gu.session().teamSite.login();
       await session.loadDocMenu("/");
       await gu.openProfileSettingsPage();
@@ -142,7 +142,7 @@ describe('Themes', function () {
     });
   });
 
-  describe('with env GRIST_HIDE_UI_ELEMENTS=themes', function () {
+  describe('with env GRIST_HIDE_UI_ELEMENTS=themes', function() {
     this.timeout(60000);
     setupTestSuite();
 
@@ -150,7 +150,7 @@ describe('Themes', function () {
       'GRIST_HIDE_UI_ELEMENTS': 'themes',
     });
 
-    beforeEach(async function () {
+    beforeEach(async function() {
       const session = await gu.session().teamSite.login();
       await session.loadDocMenu("/");
       await gu.openProfileSettingsPage();
@@ -161,7 +161,7 @@ describe('Themes', function () {
     });
   });
 
-  describe('with both envs (custom css enabled + themes disabled)', function () {
+  describe('with both envs (custom css enabled + themes disabled)', function() {
     this.timeout(60000);
     setupTestSuite();
 
@@ -170,7 +170,7 @@ describe('Themes', function () {
       'GRIST_HIDE_UI_ELEMENTS': 'themes',
     });
 
-    beforeEach(async function () {
+    beforeEach(async function() {
       const session = await gu.session().teamSite.login();
       await session.loadDocMenu("/");
       await gu.openProfileSettingsPage();

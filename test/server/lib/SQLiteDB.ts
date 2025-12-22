@@ -460,7 +460,7 @@ describe('SQLiteDB', function() {
     });
   });
 
-  it("should nest execTransaction calls robustly regardless of timing", async function () {
+  it("should nest execTransaction calls robustly regardless of timing", async function() {
     const sdb = await SQLiteDB.openDB(dbPath('testTrans5'), schemaInfo, OpenMode.OPEN_CREATE);
     await sdb.exec('INSERT INTO Foo (A,B) VALUES ("key", 1)');
     await Promise.all([

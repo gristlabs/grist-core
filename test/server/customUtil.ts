@@ -141,7 +141,7 @@ export async function startFakeUpdateServer() {
           isCritical: API.isCritical,
         });
       }
-      catch(ex) {
+      catch (ex) {
         next(ex);
       }
     });

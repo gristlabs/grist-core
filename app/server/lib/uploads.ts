@@ -90,7 +90,7 @@ export function addUploadRoute(
       }
       res.status(200).send(JSON.stringify(uploadResult));
     }
-    catch(err) {
+    catch (err) {
       if ((err as ApiError).status === 403) {
         res.status(403).json({ error: 'Insufficient access to document to copy it entirely' });
         return;
@@ -179,10 +179,10 @@ export async function parseMultipartFormRequest(
     ).catch(() => {}));
   });
   form.on('field', onField);
-  form.on('error', function (err: any) {
+  form.on('error', function(err: any) {
     rejectFinished(err);
   });
-  form.on('close', function () {
+  form.on('close', function() {
     resolveFinished();
   });
   form.parse(req);
@@ -485,7 +485,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
     return { uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])] };
   }
-  catch(err) {
+  catch (err) {
     if (err?.code === "EPROTO" || // https vs http error
       err?.code === "ECONNREFUSED" || // server does not listen
       err?.code === "ENOTFOUND") { // could not resolve domain

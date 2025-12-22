@@ -435,7 +435,7 @@ const styledTooltip = styled('div', `
 `);
 
 function cellTooltip(clb: () => any) {
-  return function (ctl: ITooltipControl) {
+  return function(ctl: ITooltipControl) {
     return styledTooltip(
       cssLink(t("Restore last edit"),
         dom.on('mousedown', (ev) => { ev.preventDefault(); ctl.close(); clb(); }),

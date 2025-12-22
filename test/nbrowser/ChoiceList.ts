@@ -804,7 +804,7 @@ describe('ChoiceList', function() {
   });
 
   for (const columnName of ["ChoiceList", "Choice"]) {
-    it(`should allow renaming tokens on ${columnName} column`, gu.revertChanges(async function () {
+    it(`should allow renaming tokens on ${columnName} column`, gu.revertChanges(async function() {
       // Helper that converts ChoiceList to choice-list
       const editorDashedName = columnName.toLowerCase().replace(/list/, "-list");
       // Add two new options: one, two.

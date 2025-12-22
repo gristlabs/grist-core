@@ -1350,7 +1350,7 @@ function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
   try {
     adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
   }
-  catch(e) {
+  catch (e) {
     throw new Error("The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed");
   }
 
