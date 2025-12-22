@@ -12,8 +12,8 @@ export function setupLocale(appRoot: string): i18n {
   // GRIST_LOCALES_DIR is set.
   const localeDir = process.env.GRIST_LOCALES_DIR || path.join(appRoot, 'static', 'locales');
   const preload: [string, string, string][] = [];
-  const supportedNamespaces: Set<string> = new Set();
-  const supportedLngs: Set<string> = new Set();
+  const supportedNamespaces = new Set<string>();
+  const supportedLngs = new Set<string>();
 
   for (const fileName of readdirSync(localeDir)) {
     const fullPath = path.join(localeDir, fileName);

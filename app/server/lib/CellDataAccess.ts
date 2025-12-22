@@ -302,9 +302,9 @@ export class CellData {
    * all actions that are needed to remove the cell and cell metadata.
    */
   public generatePatch(actions: DocAction[]) {
-    const removedCells: Set<number> = new Set();
-    const addedCells: Set<number> = new Set();
-    const updatedCells: Set<number> = new Set();
+    const removedCells = new Set<number>();
+    const addedCells = new Set<number>();
+    const updatedCells = new Set<number>();
     function applyCellAction(action: DataAction) {
       if (isSomeAddRecordAction(action)) {
         for (const id of getRowIdsFromDocAction(action)) {
@@ -343,7 +343,7 @@ export class CellData {
     // Scan all actions and collect all cell ids that are added, removed or updated.
     // When some rows are updated, include all cells for that row. Keep track of table
     // renames.
-    const updatedRows: Map<string, Set<number>> = new Map();
+    const updatedRows = new Map<string, Set<number>>();
     for (const action of actions) {
       if (action[0] === 'RenameTable') {
         updatedRows.set(action[2], updatedRows.get(action[1]) || new Set());

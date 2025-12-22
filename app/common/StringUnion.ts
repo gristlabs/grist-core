@@ -24,7 +24,7 @@ export class StringUnionError extends TypeError {
  */
 export const StringUnion = <UnionType extends string>(...values: UnionType[]) => {
   Object.freeze(values);
-  const valueSet: Set<string> = new Set(values);
+  const valueSet = new Set<string>(values);
 
   const guard = (value: string): value is UnionType => {
     return valueSet.has(value);

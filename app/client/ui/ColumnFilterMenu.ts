@@ -79,7 +79,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   const valueFormatter = opts.valueFormatter || (val => val?.toString() || '');
 
   // Map to keep track of displayed checkboxes
-  const checkboxMap: Map<CellValue, HTMLInputElement> = new Map();
+  const checkboxMap = new Map<CellValue, HTMLInputElement>();
 
   // Listen for changes to filterFunc, and update checkboxes accordingly. Debounce is needed to
   // prevent some weirdness when users click on a checkbox while focus was on a range input (causing
@@ -809,7 +809,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
 function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec | ColumnRec) {
   if (['Choice', 'ChoiceList'].includes(columnType)) {
     const options = fieldOrColumn.widgetOptionsJson.peek();
-    const choiceSet: Set<string> = new Set(options.choices || []);
+    const choiceSet = new Set<string>(options.choices || []);
     const choiceOptions: ChoiceOptions = options.choiceOptions || {};
 
     return (_key: CellValue, value: IFilterCount) => {

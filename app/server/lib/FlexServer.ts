@@ -132,7 +132,7 @@ export class FlexServer implements GristServer {
   public readonly create = create;
   public tagChecker: TagChecker;
   public app: express.Express;
-  public deps: Set<string> = new Set();
+  public deps = new Set<string>();
   public appRoot: string;
   public host: string;
   public tag: string;

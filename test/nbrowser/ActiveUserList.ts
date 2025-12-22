@@ -36,7 +36,7 @@ describe('ActiveUserList', async function() {
   let docId: string;
   let ownerSession: gu.Session;
   let ownerApi: UserAPI;
-  const windowsByUser: Map<gu.TestUser, Window[]> = new Map();
+  const windowsByUser = new Map<gu.TestUser, Window[]>();
 
   before(async () => {
     envSnapshot = new EnvironmentSnapshot();

@@ -107,7 +107,7 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
   public canShowRawData = Observable.create(this, false);
   public activeSectionId: ko.Computed<number | string>;
   public currentUser: Observable<ExtendedUser | null>;
-  private _tables: Map<string, TableSpec> = new Map();
+  private _tables = new Map<string, TableSpec>();
   constructor(public appModel: AppModel) {
     super();
 

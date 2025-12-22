@@ -10,7 +10,7 @@ import { LogMethods } from 'app/server/lib/LogMethods';
 import { fromPairs } from 'lodash';
 
 export class UserPresence {
-  private _presenceSessionsById: Map<string, UserPresenceSession> = new Map();
+  private _presenceSessionsById = new Map<string, UserPresenceSession>();
 
   private _log = new LogMethods('UserPresence ', (s: DocSession | null) => this._activeDoc.getLogMeta(s));
 
@@ -182,7 +182,7 @@ class UserPresenceSession {
   public readonly publicId: string;
   public get user() { return this._user; }
 
-  private _docSessions: Set<DocSession> = new Set();
+  private _docSessions = new Set<DocSession>();
   private _user: FullUser | null;
 
   constructor(initialSession: DocSession) {

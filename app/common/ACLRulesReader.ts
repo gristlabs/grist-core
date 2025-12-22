@@ -127,7 +127,7 @@ export class ACLRulesReader {
   private _sharesTable = this.docData.getMetaTable('_grist_Shares');
   private _hasShares = this._options.addShareRules && this._sharesTable.numRecords() > 0;
   /** Maps 'tableId:colId' to the comma-separated list of column IDs from the associated resource. */
-  private _resourceColIdsByTableAndColId: Map<string, string> = new Map();
+  private _resourceColIdsByTableAndColId = new Map<string, string>();
 
   public constructor(public docData: DocData, private _options: ACLRulesReaderOptions = {}) {
     this._checkResources();
@@ -155,7 +155,7 @@ export class ACLRulesReader {
   }
 
   private _checkResources() {
-    const allTableAndColIds: Set<string> = new Set();
+    const allTableAndColIds = new Set<string>();
     for (const resource of this._resourcesTable.getRecords()) {
       const { tableId, colIds } = resource;
       const tableAndColIds = `${tableId}:${colIds}`;

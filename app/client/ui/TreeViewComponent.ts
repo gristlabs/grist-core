@@ -112,7 +112,7 @@ export class TreeViewComponent extends Disposable {
   private readonly _dragging = observable(false);
   private readonly _isClosed: Computed<boolean>;
 
-  private _treeItemMap: Map<TreeItem, Element> = new Map();
+  private _treeItemMap = new Map<TreeItem, Element>();
   private _childrenDom: Observable<Node>;
 
   constructor(private _model: Observable<TreeModel>, options: TreeViewOptions) {

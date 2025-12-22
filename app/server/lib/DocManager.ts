@@ -67,18 +67,18 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * Maps docName to promise for ActiveDoc object. Most of the time the promise
    * will be long since resolved, with the resulting document cached.
    */
-  private _activeDocs: Map<string, Promise<ActiveDoc>> = new Map();
+  private _activeDocs = new Map<string, Promise<ActiveDoc>>();
 
   /**
    * Maps ActiveDoc to memory used in MB.
    */
-  private _memoryUsedMB: Map<ActiveDoc, number> = new Map();
+  private _memoryUsedMB = new Map<ActiveDoc, number>();
 
   /**
    * Maps docName to the SQLiteDB object, if available. The db may be
    * closed by the time you read or use it.
    */
-  private _sqliteDbs: Map<string, SQLiteDB> = new Map();
+  private _sqliteDbs = new Map<string, SQLiteDB>();
 
   // Remember recovery mode of documents.
   private _inRecovery = new MapWithTTL<string, boolean>(RECOVERY_CACHE_TTL);

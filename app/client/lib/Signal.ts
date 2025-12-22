@@ -82,7 +82,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
   /**
    * List of signals that we are listening to. Stored in a WeakSet to avoid memory leaks.
    */
-  private _listeners: WeakSet<Signal> = new WeakSet();
+  private _listeners = new WeakSet<Signal>();
 
   /**
    * Flag that can be changed by stateless() function. It won't hold last value (but can't be used in compute function).

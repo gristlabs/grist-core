@@ -107,7 +107,7 @@ export class AttachmentFileManager extends EventEmitter {
 
   // Maps file identifiers to their desired store. This may be the same as their current store,
   // in which case nothing will happen. Map ensures new requests override older pending transfers.
-  private _pendingFileTransfers: Map<string, AttachmentStoreId | undefined> = new Map();
+  private _pendingFileTransfers = new Map<string, AttachmentStoreId | undefined>();
   private _successes: number = 0;
   private _failures: number = 0;
   private _transferJob?: TransferJob;

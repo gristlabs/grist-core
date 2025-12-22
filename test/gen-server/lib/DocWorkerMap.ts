@@ -195,7 +195,7 @@ describe('DocWorkerMap', function() {
               await workerMap.setWorkerLoad(workers[i], workerLoads[i]);
             }
 
-            const assignmentCountByWorkerId: Map<string, number> = new Map();
+            const assignmentCountByWorkerId = new Map<string, number>();
             const docCount = 100;
 
             const assignDocuments = async () => {

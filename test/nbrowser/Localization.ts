@@ -48,8 +48,8 @@ describe("Localization", function() {
     // Should report all supported languages and namespaces.
     const localeDirectory = path.join(getAppRoot(), 'static', 'locales');
     // Read all file names from localeDirectory
-    const langs: Set<string> = new Set();
-    const namespaces: Set<string> = new Set();
+    const langs = new Set<string>();
+    const namespaces = new Set<string>();
     for (const file of fs.readdirSync(localeDirectory)) {
       // Make sure we see only valid files.
       assert.match(file, VALID_LOCALE_FORMAT);

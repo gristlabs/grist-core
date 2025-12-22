@@ -286,7 +286,7 @@ export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob
  * in future if needed.
  */
 class GristWorker {
-  private _jobs: Map<string, NodeJS.Timeout> = new Map();
+  private _jobs = new Map<string, NodeJS.Timeout>();
 
   public constructor(public queueName: string,
     private _callback: (job: GristJob) => Promise<void>) {

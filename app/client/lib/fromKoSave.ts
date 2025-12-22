@@ -4,7 +4,7 @@
  */
 import { IKnockoutObservable, KoWrapObs, Observable } from 'grainjs';
 
-const wrappers: WeakMap<IKnockoutObservable<any>, Observable<any>> = new WeakMap();
+const wrappers = new WeakMap<IKnockoutObservable<any>, Observable<any>>();
 
 /**
  * Returns a Grain.js observable which mirrors a Knockout observable.

@@ -52,7 +52,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
 
   // Storage of the underlying data. Each column is an array, all of the same length. Includes
   // 'id' column, containing a reference to _rowIdCol.
-  private _columns: Map<string, ColData> = new Map();
+  private _columns = new Map<string, ColData>();
 
   // Array of all ColData objects, omitting 'id'.
   private _colArray: ColData[] = [];
@@ -61,7 +61,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   private _rowIdCol: number[] = [];
 
   // Maps row id to index in the arrays in _columns. I.e. it's the inverse of _rowIdCol.
-  private _rowMap: Map<number, number> = new Map();
+  private _rowMap = new Map<number, number>();
 
   constructor(tableId: string, tableData: TableDataAction | null, colTypes: ColTypeMap) {
     super();

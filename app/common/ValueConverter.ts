@@ -62,7 +62,7 @@ class ListConverter extends ValueConverter {
   // Don't parse strings like "Smith, John" which may look like lists but represent a single choice.
   // TODO this works when the source is a Choice column, but not when it's a Reference to a Choice column.
   //   But the guessed choices are also broken in that case.
-  private _choices: Set<string> = new Set((this.formatter.widgetOpts as any).choices || []);
+  private _choices = new Set<string>((this.formatter.widgetOpts as any).choices || []);
 
   public convert(value: any): any {
     if (typeof value === "string" && !this._choices.has(value)) {

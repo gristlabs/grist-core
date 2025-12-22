@@ -208,7 +208,7 @@ interface FilterRowChanges {
  * does not maintain excluded rows, and does not allow changes to filterFunc.
  */
 export class BaseFilteredRowSource extends RowListener implements RowSource {
-  protected _matchingRows: Set<UIRowId> = new Set();   // Set of rows matching the filter.
+  protected _matchingRows = new Set<UIRowId>();   // Set of rows matching the filter.
 
   constructor(protected _filterFunc: RowFilterFunc<UIRowId>) {
     super();
@@ -314,7 +314,7 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
  * FilteredRowSource is also a RowListener, so to subscribe to a rowSource, use `subscribeTo()`.
  */
 export class FilteredRowSource extends BaseFilteredRowSource {
-  private _excludedRows: Set<UIRowId> = new Set();   // Set of rows NOT matching the filter.
+  private _excludedRows = new Set<UIRowId>();   // Set of rows NOT matching the filter.
 
   /**
    * Change the filter function. This may trigger 'remove' and 'add' events as necessary to indicate
@@ -361,7 +361,7 @@ export class FilteredRowSource extends BaseFilteredRowSource {
  * Private helper object that maintains a set of rows for a particular group.
  */
 class RowGroupHelper<Value> extends RowSource {
-  private _rows: Set<UIRowId> = new Set();
+  private _rows = new Set<UIRowId>();
   constructor(public readonly groupValue: Value) {
     super();
   }
@@ -403,10 +403,10 @@ function _addToMapOfArrays<K, V>(map: Map<K, V[]>, key: K, r: V): void {
  */
 export class RowGrouping<Value> extends RowListener {
   // Maps row identifiers to groupValues.
-  private _rowsToValues: Map<UIRowId, Value> = new Map();
+  private _rowsToValues = new Map<UIRowId, Value>();
 
   // Maps group values to RowGroupHelpers
-  private _valuesToGroups: Map<Value, RowGroupHelper<Value>> = new Map();
+  private _valuesToGroups = new Map<Value, RowGroupHelper<Value>>();
 
   constructor(private _groupFunc: (row: UIRowId) => Value) {
     super();
@@ -532,7 +532,7 @@ export class RowGrouping<Value> extends RowListener {
  * SortedRowSet re-emits 'rowNotify(rows, value)' events from RowSources that it subscribes to.
  */
 export class SortedRowSet extends RowListener {
-  private _allRows: Set<UIRowId> = new Set();
+  private _allRows = new Set<UIRowId>();
   private _isPaused: boolean = false;
   private _koArray: KoArray<UIRowId>;
   private _keepFunc?: (rowId: number | 'new') => boolean;
@@ -715,7 +715,7 @@ export class RowWatcher extends RowListener {
   public rowFilter: Observable<RowTester> = Observable.create(this, () => false);
   // We count the number of times the row is added or removed from the source.
   // In most cases row is added and removed only once.
-  private _rowCounter: Map<UIRowId, number> = new Map();
+  private _rowCounter = new Map<UIRowId, number>();
 
   public clear() {
     this._rowCounter.clear();

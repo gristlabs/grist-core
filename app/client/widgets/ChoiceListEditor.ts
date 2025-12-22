@@ -46,7 +46,7 @@ export class ChoiceListEditor extends NewBaseEditor {
 
   private _widgetOptionsJson = this.options.field.widgetOptionsJson.peek();
   private _choices: string[] = this._widgetOptionsJson.choices || [];
-  private _choicesSet: Set<string> = new Set(this._choices);
+  private _choicesSet = new Set<string>(this._choices);
   private _choiceOptionsByName: ChoiceOptions = this._widgetOptionsJson.choiceOptions || {};
 
   // Whether to include a button to show a new choice.

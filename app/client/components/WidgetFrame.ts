@@ -365,7 +365,7 @@ type MethodMatcher<T> = keyof T | '*';
  *  .require("read_table", "*") // for any other, require read_table
  */
 export class MethodAccess<T> implements AccessChecker {
-  private _accessMap: Map<MethodMatcher<T>, AccessLevel> = new Map();
+  private _accessMap = new Map<MethodMatcher<T>, AccessLevel>();
   constructor() {}
   public require(level: AccessLevel, method: MethodMatcher<T> = '*') {
     this._accessMap.set(method, level);
@@ -587,7 +587,7 @@ export class WidgetAPIImpl implements WidgetAPI {
   }
 }
 
-const COMMAND_MINIMUM_ACCESS_LEVELS: Map<CommandName, AccessLevel> = new Map([
+const COMMAND_MINIMUM_ACCESS_LEVELS = new Map<CommandName, AccessLevel>([
   ['undo', AccessLevel.full],
   ['redo', AccessLevel.full],
   ['viewAsCard', AccessLevel.read_table],

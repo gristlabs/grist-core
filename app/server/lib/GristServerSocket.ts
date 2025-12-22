@@ -19,7 +19,7 @@ export class GristServerSocketEIO extends GristServerSocket {
   // Engine.IO only invokes send() callbacks on success. We keep a map of
   // send callbacks for messages in flight so that we can invoke them for
   // any messages still unsent upon receiving a "close" event.
-  private _messageCallbacks: Map<number, (err: Error) => void> = new Map();
+  private _messageCallbacks = new Map<number, (err: Error) => void>();
 
   constructor(private _socket: EIO.Socket) { super(); }
 

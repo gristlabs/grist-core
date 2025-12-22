@@ -59,7 +59,7 @@ export interface IAttachmentStoreConfig {
  * E.g "22ec6867-67bc-414e-a707-da9204c84cab-my-s3" or "22ec6867-67bc-414e-a707-da9204c84cab-myFolder"
  */
 export class AttachmentStoreProvider implements IAttachmentStoreProvider {
-  private _storeDetailsById: Map<string, IAttachmentStoreConfig> = new Map();
+  private _storeDetailsById = new Map<string, IAttachmentStoreConfig>();
 
   constructor(
     storeConfigs: IAttachmentStoreConfig[],

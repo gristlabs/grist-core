@@ -84,7 +84,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   // This is a map from docId to the connection for the server that manages
   // that docId.  In classic Grist, which doesn't have fixed docIds or multiple
   // servers, the key is always "null".
-  private _connections: Map<string | null, GristWSConnection> = new Map();
+  private _connections = new Map<string | null, GristWSConnection>();
   private _collectedUserActions: UserAction[] | null;
   private _singleWorkerMode: boolean = getInitialDocAssignment() === null;  // is this classic Grist?
   private _reportError?: (err: Error) => void;  // optional callback for errors

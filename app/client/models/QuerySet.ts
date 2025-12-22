@@ -290,7 +290,7 @@ export class QuerySet extends BaseFilteredRowSource {
  * Helper for use in a DataTableModel to maintain all QuerySets.
  */
 export class TableQuerySets {
-  private _querySets: Set<QuerySet> = new Set();
+  private _querySets = new Set<QuerySet>();
 
   constructor(private _tableData: TableData) {}
 

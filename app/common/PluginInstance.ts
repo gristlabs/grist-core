@@ -101,7 +101,7 @@ export class PluginInstance {
   public unsafeNode?: BaseComponent;
   public safePython?: BaseComponent;
 
-  private  _renderTargets: Map<RenderTarget, TargetRenderFunc> = new Map();
+  private  _renderTargets = new Map<RenderTarget, TargetRenderFunc>();
 
   private _nextRenderTargetId = 0;
 

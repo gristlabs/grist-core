@@ -276,7 +276,7 @@ export interface UploadInfo {
 type CleanupCB = () => void | Promise<void>;
 
 export class UploadSet {
-  private _uploads: Map<number, UploadInfo> = new Map();
+  private _uploads = new Map<number, UploadInfo>();
   private _nextId: number = 0;
 
   /**

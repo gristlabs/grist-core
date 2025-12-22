@@ -20,7 +20,7 @@ import { ColTypeMap, MetaRowRecord, MetaTableData, TableData } from 'app/common/
 type FetchTableFunc = (tableId: string) => Promise<TableFetchResult>;
 
 export class DocData extends ActionDispatcher {
-  private _tables: Map<string, TableData> = new Map();
+  private _tables = new Map<string, TableData>();
 
   private _fetchTableFunc: (tableId: string) => Promise<TableDataAction>;
 

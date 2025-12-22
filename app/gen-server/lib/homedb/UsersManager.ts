@@ -904,8 +904,8 @@ export class UsersManager {
   // This method is used for checking limits on shares.
   // Excluded users are removed from the results.
   public getUserDifference(groupsA: Group[], groupsB: Group[]): Map<roles.NonGuestRole, User[]> {
-    const subtractSet: Set<number> =
-      new Set(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
+    const subtractSet =
+      new Set<number>(flatten(groupsB.map(grp => grp.memberUsers)).map(usr => usr.id));
     const result = new Map<roles.NonGuestRole, User[]>();
     for (const group of groupsA) {
       const name = group.name;

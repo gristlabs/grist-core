@@ -15,7 +15,7 @@ export interface IRefCountSub<Value> extends IDisposable {
 }
 
 export class RefCountMap<Key, Value> implements IDisposable {
-  private _map: Map<Key, RefCountValue<Value>> = new Map();
+  private _map = new Map<Key, RefCountValue<Value>>();
   private _createKey: (key: Key) => Value;
   private _disposeKey: (key: Key, value: Value) => void;
   private _gracePeriodMs: number;

@@ -231,7 +231,7 @@ export class SQLiteDB implements ISQLiteDB {
   // It is a bad idea to open the same database file multiple times, because simultaneous use can
   // cause SQLITE_BUSY errors, and artificial delays (default of 1 sec) when there is contention.
   // We keep track of open DB paths, and warn if one is opened multiple times.
-  private static _openPaths: Map<string, number> = new Map();
+  private static _openPaths = new Map<string, number>();
 
   // Convert the "create" function from schemaInfo into a DBMetadata object that describes the
   // tables, columns, and types. This is used for checking if an open database matches the
@@ -636,7 +636,7 @@ export class SQLiteDB implements ISQLiteDB {
 // Every SchemaInfo.create function determines a DB structure. We can get it by initializing a
 // dummy DB, and we use it to do sanity checking, in particular after migrations. To avoid
 // creating dummy DBs multiple times, the result is cached, keyed by the "create" function itself.
-const dbMetadataCache: Map<DBFunc, DBMetadata> = new Map();
+const dbMetadataCache = new Map<DBFunc, DBMetadata>();
 export interface DBMetadata {
   [tableName: string]: {
     [colName: string]: string;      // Maps column name to SQLite type, e.g. "TEXT".

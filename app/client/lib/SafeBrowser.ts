@@ -76,7 +76,7 @@ export class SafeBrowser extends BaseComponent {
   // All view processes. This is not used anymore to dispose all processes on deactivation (this is
   // now achieved using `this._mainProcess.autoDispose(...)`) but rather to be able to dispatch
   // events to all processes (such as doc actions which will need soon).
-  private _viewProcesses: Map<number, ClientProcess> = new Map();
+  private _viewProcesses = new Map<number, ClientProcess>();
   private _pluginId: string;
   private _pluginRpc: Rpc;
   private _mainProcess: WorkerProcess | undefined;

@@ -496,7 +496,7 @@ export class ActiveDocImport {
         formula.slice(1) : IMPORT_TRANSFORM_COLUMN_PREFIX + destCol.colId;
       return [srcColId, destCol.colId!];
     });
-    const srcToDestColIds: Map<string, string[]> = new Map();
+    const srcToDestColIds = new Map<string, string[]>();
     srcAndDestColIds.forEach(([srcColId, destColId]) => {
       if (!srcToDestColIds.has(srcColId)) {
         srcToDestColIds.set(srcColId, [destColId]);

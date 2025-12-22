@@ -3068,9 +3068,9 @@ const dummyAccessCheck: IAccessCheck = {
  * the table access multiple time.
  */
 class CellAccessHelper {
-  private _tableAccess: Map<string, boolean> = new Map();
-  private _rowPermInfo: Map<string, Map<number, PermissionInfo>> = new Map();
-  private _rows: Map<string, TableDataAction> = new Map();
+  private _tableAccess = new Map<string, boolean>();
+  private _rowPermInfo = new Map<string, Map<number, PermissionInfo>>();
+  private _rows = new Map<string, TableDataAction>();
   private _inputs!: PredicateFormulaInput;
 
   constructor(
@@ -3172,11 +3172,11 @@ export class CensorshipInfo {
     cellAccessInfo?: CellAccessHelper) {
     // Collect a list of censored columns (by "<tableRef> <colId>").
     const columnCode = (tableRef: number, colId: string) => `${tableRef} ${colId}`;
-    const censoredColumnCodes: Set<string> = new Set();
-    const tableRefToTableId: Map<number, string> = new Map();
-    const tableRefToIndex: Map<number, number> = new Map();
-    const columnRefToColId: Map<number, string> = new Map();
-    const uncensoredTables: Set<number> = new Set();
+    const censoredColumnCodes = new Set<string>();
+    const tableRefToTableId = new Map<number, string>();
+    const tableRefToIndex = new Map<number, number>();
+    const columnRefToColId = new Map<number, string>();
+    const uncensoredTables = new Set<number>();
     // Scan for forbidden tables.
     let rec = new RecordView(tables._grist_Tables, undefined);
     let ids = getRowIdsFromDocAction(tables._grist_Tables);
@@ -3400,7 +3400,7 @@ export function filterColValues(action: DataAction,
 
   // For bulk operations, censored cells require us to reorganize into a set of actions
   // with different columns.
-  const parts: Map<string, typeof action> = new Map();
+  const parts = new Map<string, typeof action>();
   let at = 0;
   for (let idx = 0; idx < rowIds.length; idx++) {
     if (!shouldFilterRow(idx)) {

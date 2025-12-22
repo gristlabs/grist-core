@@ -62,7 +62,7 @@ export class CommentWithMentions {
     for (const div of divs) {
       div.remove();
     }
-    const mentions: Set<string> = new Set();
+    const mentions = new Set<string>();
     const mentionElements = cloned.querySelectorAll('.grist-mention');
 
     for (const mention of mentionElements) {
