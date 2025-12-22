@@ -25,8 +25,8 @@ describe("NumberParse", function() {
     check("$1.23", 1.23);
     check("12.34%", 0.1234);
     check("1,234,567.89", 1234567.89);
-    check(".89", .89);
-    check(".89000", .89);
+    check(".89", 0.89);
+    check(".89000", 0.89);
     check("0089", 89);
 
     // The digit separator is ',' but spaces are always removed anyway

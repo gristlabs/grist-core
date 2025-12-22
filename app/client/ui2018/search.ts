@@ -22,7 +22,7 @@ export * from 'app/client/models/SearchModel';
 
 const t = makeT('search');
 
-const EXPAND_TIME = .5;
+const EXPAND_TIME = 0.5;
 
 const searchWrapper = styled('div', `
   display: flex;
