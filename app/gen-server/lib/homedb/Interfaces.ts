@@ -84,8 +84,8 @@ interface AccessChanges {
   publicAccess: roles.NonGuestRole | null;
   maxInheritedAccess: roles.BasicRole | null;
   users: (Pick<User, "id" | "name"> & { email?: string } & {
-      access: roles.NonGuestRole | null;
-    })[];
+    access: roles.NonGuestRole | null;
+  })[];
 }
 
 export type ServiceAccountProperties = Partial<Pick<ServiceAccount, "label" | "description" | "expiresAt">>;

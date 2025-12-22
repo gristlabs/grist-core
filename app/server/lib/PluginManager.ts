@@ -1,4 +1,3 @@
-
 import { DirectoryScanEntry, LocalPlugin } from "app/common/plugin";
 import log from "app/server/lib/log";
 import { readManifest } from "app/server/lib/manifest";

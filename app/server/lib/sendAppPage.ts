@@ -1,4 +1,3 @@
-
 import { AssistantConfig } from "app/common/Assistant";
 import {
   commonUrls,

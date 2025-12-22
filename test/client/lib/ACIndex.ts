@@ -4,10 +4,8 @@ import { fixturesRoot } from "test/server/testUtils";
 
 import * as path from "path";
 
-
 import { assert } from "chai";
 import * as fse from "fs-extra";
-
 
 /**
  * Set env ENABLE_TIMING_TESTS=1 to run the timing "tests". These don't assert anything but let
@@ -344,7 +342,6 @@ describe("ACIndex", function() {
         items = await getCities();
       });
 
-     
       it("main algorithm", function() {
         const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, { maxResults: 100 }));
         console.log(`Time to build index (${items.length} items): ${buildTime} ms`);

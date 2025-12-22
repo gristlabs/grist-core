@@ -72,7 +72,6 @@ const GRIST_ATTACHMENTS_THRESHOLD_MB = appSettings.section("attachmentStores").f
   defaultValue: 50,
 });
 
-
 // Check if a tableId is that of an ACL table.  Currently just _grist_ACLRules and
 // _grist_ACLResources are accepted.
 function isAclTable(tableId: string): boolean {

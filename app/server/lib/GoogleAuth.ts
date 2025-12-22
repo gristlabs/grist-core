@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { parseSubdomain } from "app/common/gristUrls";
 import { expressWrap } from "app/server/lib/expressWrap";

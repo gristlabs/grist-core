@@ -52,7 +52,6 @@
  *    just have a way to serialize the layout to and from a JSON blob.
  */
 
-
 import { BoxSpec } from "app/client/lib/BoxSpec";
 import { Disposable } from "app/client/lib/dispose";
 import dom, { detachNode, findAncestor } from "app/client/lib/dom";

@@ -154,7 +154,7 @@ export class CustomView extends BaseView {
         return false;
       }
       const rowIds = Object.entries(mappings).filter(f => f[1])
-        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId as number])
+        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId!])
         .flat();
       const redactedColumns = gristDoc.docModel.columns.rowModels.filter(r => !r.colId()).map(r => r.id());
       return rowIds.some(r => redactedColumns.includes(r));

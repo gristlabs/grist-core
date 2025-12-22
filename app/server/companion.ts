@@ -27,7 +27,7 @@ async function main() {
 
 if (require.main === module) {
   main().then(() => process.exit(0)).catch((e) => {
-       console.error(e);
+    console.error(e);
     process.exit(1);
   });
 }

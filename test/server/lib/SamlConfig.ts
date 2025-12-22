@@ -10,8 +10,6 @@ import * as cookie from "cookie";
 import * as fse from "fs-extra";
 import fetch from "node-fetch";
 
-
-
 describe("SamlConfig", () => {
   testUtils.setTmpLogLevel("error");
 

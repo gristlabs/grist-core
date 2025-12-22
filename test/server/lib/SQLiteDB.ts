@@ -5,7 +5,6 @@ import * as testUtils from "test/server/testUtils";
 
 import { join as pathJoin } from "path";
 
-
 import { assert } from "chai";
 import * as fse from "fs-extra";
 import { map, noop } from "lodash";

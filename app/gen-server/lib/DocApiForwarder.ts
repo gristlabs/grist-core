@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { SHARE_KEY_PREFIX } from "app/common/gristUrls";
 import { removeTrailingSlash } from "app/common/gutil";

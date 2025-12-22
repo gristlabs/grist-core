@@ -1,4 +1,3 @@
-
 import { getEnvContent } from "app/common/ActionBundle";
 import { ServerQuery } from "app/common/ActiveDocAPI";
 import { delay } from "app/common/delay";

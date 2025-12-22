@@ -16,7 +16,6 @@
 //   import {grist} from 'grist-api';
 //   grist.registerFunction();
 
-
 import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
   WidgetColumnMap } from "app/plugin/CustomSectionAPI";
 import {

@@ -1,4 +1,3 @@
-
 import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
 import log from "app/server/lib/log";
 import { createTmpDir } from "app/server/lib/uploads";

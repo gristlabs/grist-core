@@ -46,7 +46,7 @@ export class DocPluginManager {
         this.pluginsList.push(pluginInstance);
       }
       catch (err) {
-        console.error(          `DocPluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
+        console.error(`DocPluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
       }
     }
   }

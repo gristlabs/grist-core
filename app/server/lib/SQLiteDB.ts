@@ -67,7 +67,6 @@
  * "migrations" array, and modifying create() to create correct new documents.
  */
 
-
 import { delay } from "app/common/delay";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
 import { timeFormat } from "app/common/timeFormat";
@@ -87,7 +86,6 @@ import fromPairs from "lodash/fromPairs";
 import isEqual from "lodash/isEqual";
 import noop from "lodash/noop";
 import range from "lodash/range";
-
 
 export type { PreparedStatement, ResultRow, Statement };
 export type RunResult = MinRunResult;

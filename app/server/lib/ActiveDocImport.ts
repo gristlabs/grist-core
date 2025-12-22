@@ -1,7 +1,5 @@
 /*  Helper file to separate ActiveDoc import functions and convert them to TypeScript. */
 
-
-
 import { ColumnDelta, createEmptyActionSummary } from "app/common/ActionSummary";
 import { ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
   MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE,

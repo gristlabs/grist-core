@@ -31,7 +31,6 @@ import * as ko from "knockout";
 
 const t = makeT("App");
 
-
 const G = getBrowserGlobals("document", "window");
 
 export interface App extends DisposableWithEvents {

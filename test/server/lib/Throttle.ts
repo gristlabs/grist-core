@@ -4,11 +4,9 @@ import * as testUtils from "test/server/testUtils";
 
 import { ChildProcess, spawn } from "child_process";
 
-
 import { delay } from "bluebird";
 import { assert } from "chai";
 import pidusage from "pidusage";
-
 
 const testTiming: ThrottleTiming = {
   dutyCyclePositiveMs: 20,

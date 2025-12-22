@@ -1,4 +1,3 @@
-
 import { FilterColValues } from "app/common/ActiveDocAPI";
 import { ApiError } from "app/common/ApiError";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
@@ -10,7 +9,6 @@ import { promisify } from "util";
 import contentDisposition from "content-disposition";
 import { stringify } from "csv";
 import * as express from "express";
-
 
 const stringifyAsync = promisify(stringify);
 

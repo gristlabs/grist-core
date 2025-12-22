@@ -10,14 +10,12 @@ import * as http from "http";
 import path from "path";
 import { Writable } from "stream";
 
-
 import { delay } from "bluebird";
 import express from "express";
 import FormData from "form-data";
 import * as fse from "fs-extra";
 import httpProxy from "http-proxy";
 import fetch from "node-fetch";
-
 
 /**
  * This starts a server in a separate process.

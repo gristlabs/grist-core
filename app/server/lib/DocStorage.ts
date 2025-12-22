@@ -6,7 +6,6 @@
  * or "data set".
  */
 
-
 import { LocalActionBundle } from "app/common/ActionBundle";
 import { BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction } from "app/common/DocActions";
 import * as gristTypes from "app/common/gristTypes";

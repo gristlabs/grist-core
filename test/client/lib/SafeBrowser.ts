@@ -1,4 +1,3 @@
-
 import { ClientScope } from "app/client/components/ClientScope";
 import { Disposable } from "app/client/lib/dispose";
 import { ClientProcess, SafeBrowser } from "app/client/lib/SafeBrowser";
@@ -18,7 +17,6 @@ import { noop } from "lodash";
 import * as sinon from "sinon";
 import * as tic from "ts-interface-checker";
 import { createCheckers } from "ts-interface-checker";
-
 
 clientUtil.setTmpMochaGlobals();
 
@@ -155,7 +153,7 @@ describe("SafeBrowser", function() {
     const path: string = basename(url.parse(src).pathname!);
     const rpc = new Rpc({ logger: LOG_RPC ? {
       // let's prepend path to the console 'info' and 'warn' channels
-      info: console.info.bind(console, path),        warn: console.warn.bind(console, path),      } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc) });
+      info: console.info.bind(console, path),        warn: console.warn.bind(console, path)      } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc) });
     _rpc.setSendMessage(msg => rpc.receiveMessage(msg));
     const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
     function ready() {

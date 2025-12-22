@@ -1,4 +1,3 @@
-
 import { delay } from "app/common/delay";
 import { DocApiForwarder } from "app/gen-server/lib/DocApiForwarder";
 import { DocWorkerMap, getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
@@ -22,7 +21,6 @@ import FormData from "form-data";
 import defaultsDeep from "lodash/defaultsDeep";
 import morganLogger from "morgan";
 import sinon from "sinon";
-
 
 const chimpy = configForUser("Chimpy");
 const kiwi = configForUser("kiwi");

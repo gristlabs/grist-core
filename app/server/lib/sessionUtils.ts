@@ -1,4 +1,3 @@
-
 import { DocumentUsage } from "app/common/DocUsage";
 import { Role } from "app/common/roles";
 import { Document } from "app/gen-server/entity/Document";
@@ -130,5 +129,5 @@ export function getDocSessionAccessOrNull(docSession: OptDocSession): Role | nul
  * Get cached information about the document, if available.  May be stale.
  */
 export function getDocSessionCachedDoc(docSession: OptDocSession): Document | undefined {
-  return (docSession.req as RequestWithLogin)?.docAuth?.cachedDoc;
+  return (docSession.req)?.docAuth?.cachedDoc;
 }

@@ -4844,7 +4844,8 @@ export class HomeDBManager implements HomeDBAuth {
       if (typeof subValue === "number" || !subValue) {
         // Find the first special group for which the user has all permissions.
         value.access = this._groupsManager.getRoleFromPermissions(subValue || 0);
-        if (subValue & Permissions.PUBLIC) {          value.public = true;
+        if (subValue & Permissions.PUBLIC) {
+          value.public = true;
         }
       }
       else {

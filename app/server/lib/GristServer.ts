@@ -1,4 +1,3 @@
-
 import { ICustomWidget } from "app/common/CustomWidget";
 import { GristDeploymentType, GristLoadConfig, LatestVersionAvailable } from "app/common/gristUrls";
 import { LocalPlugin } from "app/common/plugin";

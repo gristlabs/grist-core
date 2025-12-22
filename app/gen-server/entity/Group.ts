@@ -5,7 +5,6 @@ import { User } from "app/gen-server/entity/User";
 import { BaseEntity, BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyToMany,
   OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
-
 @Entity({ name: "groups" })
 export class Group extends BaseEntity {
   public static readonly ROLE_TYPE = "role";

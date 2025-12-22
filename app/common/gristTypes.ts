@@ -4,7 +4,6 @@ import { GristObjCode, GristType } from "app/plugin/GristData";
 
 import isString from "lodash/isString";
 
-
 export type GristTypeInfo =
   { type: "DateTime", timezone: string } |
   { type: "Ref", tableId: string } |

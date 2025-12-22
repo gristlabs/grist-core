@@ -1,4 +1,3 @@
-
 import { handleSubmit } from "app/client/lib/formUtils";
 import { getLoginUrl, getSignupUrl } from "app/client/lib/urlUtils";
 import { AppModel } from "app/client/models/AppModel";

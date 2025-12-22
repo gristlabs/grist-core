@@ -2,7 +2,6 @@ import { tsvDecode, tsvEncode } from "app/common/tsvFormat";
 
 import { assert } from "chai";
 
-
 const sampleData = [
   ["plain value", "plain value"],
   ['quotes "inside" hello', 'quotes "inside" hello'],

@@ -1,4 +1,3 @@
-
 import { AccessLevel, ICustomWidget } from "app/common/CustomWidget";
 import { AccessTokenResult } from "app/plugin/GristAPI";
 import { TableOperations } from "app/plugin/TableOperations";

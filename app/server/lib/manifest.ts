@@ -1,4 +1,3 @@
-
 import { BarePlugin } from "app/plugin/PluginManifest";
 import PluginManifestTI from "app/plugin/PluginManifest-ti";
 

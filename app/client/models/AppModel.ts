@@ -271,7 +271,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
       AppModelImpl.create(this.appObs, this, user, org, orgError);
     }
     catch (err) {
-           console.log(`getSessionActive() failed: ${err}`);
+      console.log(`getSessionActive() failed: ${err}`);
       if (this.isDisposed()) { return; }
       AppModelImpl.create(this.appObs, this, null, null, { error: err.message, status: err.status || 500 });
     }

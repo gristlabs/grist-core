@@ -7,7 +7,6 @@
  * upload, and if that fails due to CORS, would fetch the file on the server side instead.
  */
 
-
 import { DocComm } from "app/client/components/DocComm";
 import { getTestState } from "app/client/lib/testState";
 import { UserError } from "app/client/models/errors";
@@ -165,7 +164,7 @@ async function uploadFormData(
     });
     xhr.addEventListener("load", () => {
       if (xhr.status !== 200) {
-               console.warn("Upload failed", xhr.status, xhr.responseText);
+        console.warn("Upload failed", xhr.status, xhr.responseText);
         const err = safeJsonParse(xhr.responseText, null);
         reject(new UserError("Upload failed: " + (err?.error || xhr.status)));
       }
@@ -196,7 +195,7 @@ export async function fetchURL(
     response = await window.fetch(url);
   }
   catch (err) {
-    console.log(      `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`,
+    console.log(`Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`,
     );
     return docComm.fetchURL(url, options);
   }

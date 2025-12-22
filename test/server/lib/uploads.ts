@@ -6,7 +6,6 @@ import { setTmpLogLevel } from "test/server/testUtils";
 import * as path from "path";
 import { Readable } from "stream";
 
-
 import { delay } from "bluebird";
 import { assert } from "chai";
 import * as fse from "fs-extra";
@@ -14,7 +13,6 @@ import noop from "lodash/noop";
 import pick from "lodash/pick";
 import { Response } from "node-fetch";
 import * as sinon from "sinon";
-
 
 describe("uploads", function() {
   setTmpLogLevel("warn");

@@ -1,4 +1,3 @@
-
 import { ActiveDoc } from "app/server/lib/ActiveDoc";
 import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";
 import { create } from "app/server/lib/create";
@@ -14,9 +13,7 @@ import * as util from "util";
 
 import * as fse from "fs-extra";
 
-
 const execFile = util.promisify(childProcess.execFile);
-
 
 /**
  * Output to stdout typescript code containing SQL strings for creating an empty document.

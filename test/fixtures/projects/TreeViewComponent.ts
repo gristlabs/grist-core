@@ -57,7 +57,7 @@ function buildTreeModel() {
 
 const treeModel = observable(buildTreeModel());
 
-const subFolderChildren = () => treeModel.get().children().get()[0].children() as MutableObsArray<TreeItem>;
+const subFolderChildren = () => treeModel.get().children().get()[0].children()!;
 
 function setupTest() {
   const isOpen = observable(true);

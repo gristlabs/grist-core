@@ -1,4 +1,3 @@
-
 import { Comm as ClientComm } from "app/client/components/Comm";
 import { GristClientSocket, GristClientSocketOptions } from "app/client/components/GristClientSocket";
 import { GristWSConnection, GristWSSettings } from "app/client/components/GristWSConnection";

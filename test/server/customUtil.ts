@@ -7,9 +7,7 @@ import * as http from "http";
 import { AddressInfo, Socket } from "net";
 import * as path from "path";
 
-
 import express from "express";
-
 
 // An alternative domain for localhost, to test links that look external. We have a record for
 // localtest.datagrist.com set up to point to localhost.

@@ -119,6 +119,6 @@ export function markAsSeen<T>(seenIdsObs: Observable<T[] | undefined>, itemId: T
   catch (e) {
     // If we fail to save this preference, it's probably not worth alerting the user about,
     // so just log to console.
-       console.warn("Failed to save preference in markAsSeen", e);
+    console.warn("Failed to save preference in markAsSeen", e);
   }
 }

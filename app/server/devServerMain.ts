@@ -18,7 +18,6 @@
  *
  */
 
-
 import { updateDb } from "app/server/lib/dbUtils";
 import { FlexServer } from "app/server/lib/FlexServer";
 import log from "app/server/lib/log";

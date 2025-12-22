@@ -1,4 +1,3 @@
-
 import { AttachmentTransferStatus, DocAttachmentsLocation } from "app/common/UserAPI";
 import {
   AttachmentFile,

@@ -1,4 +1,3 @@
-
 import * as commands from "app/client/components/commands";
 import { FormFieldRulesConfig } from "app/client/components/Forms/FormConfig";
 import { dragOverClass } from "app/client/lib/dom";

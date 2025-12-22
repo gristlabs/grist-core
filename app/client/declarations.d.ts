@@ -5,7 +5,6 @@ declare module "app/client/lib/dom";
 declare module "app/client/lib/koDom";
 declare module "app/client/lib/koForm";
 
-
 declare module "app/client/components/RecordLayout" {
   import { Disposable } from "app/client/lib/dispose";
 

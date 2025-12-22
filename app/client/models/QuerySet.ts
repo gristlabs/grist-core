@@ -270,7 +270,7 @@ export class QuerySet extends BaseFilteredRowSource {
 
         this.onDispose(() => {
           docComm.disposeQuerySet(data.querySubId).catch((err) => {
-                       console.log(`Promise rejected for disposeQuerySet: ${err.message}`);
+            console.log(`Promise rejected for disposeQuerySet: ${err.message}`);
           });
           tableQS.removeQuerySet(this);
         });

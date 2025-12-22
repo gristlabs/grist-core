@@ -1,4 +1,3 @@
-
 import { UserAPIImpl } from "app/common/UserAPI";
 import { WebhookSubscription } from "app/server/lib/DocApi";
 import { configForUser } from "test/gen-server/testUtils";

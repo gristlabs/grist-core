@@ -1,4 +1,3 @@
-
 import { InactivityTimer } from "app/common/InactivityTimer";
 import { LocalPlugin } from "app/common/plugin";
 import { BarePlugin } from "app/plugin/PluginManifest";

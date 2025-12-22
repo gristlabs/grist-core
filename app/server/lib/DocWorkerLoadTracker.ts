@@ -1,4 +1,3 @@
-
 import { clamp } from "app/common/gutil";
 import { Interval } from "app/common/Interval";
 import { DocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
@@ -9,7 +8,6 @@ import log from "app/server/lib/log";
 import { LogMethods } from "app/server/lib/LogMethods";
 
 import fs from "node:fs/promises";
-
 export const Deps = {
   docWorkerMaxMemoryMBForcedValue: appSettings
     .section("docWorker")

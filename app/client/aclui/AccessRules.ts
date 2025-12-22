@@ -75,7 +75,6 @@ import isEqual from "lodash/isEqual";
 
 const t = makeT("AccessRules");
 
-
 // Types for the rows in the ACL tables we use.
 type ResourceRec = SchemaTypes["_grist_ACLResources"] & { id?: number };
 type RuleRec = Partial<SchemaTypes["_grist_ACLRules"]> & { id?: number, resourceRec?: ResourceRec };

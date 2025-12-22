@@ -43,7 +43,6 @@ import {
 import { Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe } from "grainjs";
 import isEqual from "lodash/isEqual";
 
-
 const t = makeT("DocPageModel");
 
 export interface DocInfo extends Document {

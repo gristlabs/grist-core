@@ -135,8 +135,8 @@ export interface AuditEventDetails {
       public_access?: NonGuestRole | null;
       max_inherited_access?: BasicRole | null;
       users?: (Pick<User, "id" | "name"> & { email?: string } & {
-          access: NonGuestRole | null;
-        })[];
+        access: NonGuestRole | null;
+      })[];
     };
   };
   "document.clear_all_webhook_queues": {
@@ -268,8 +268,8 @@ export interface AuditEventDetails {
     site: Pick<Organization, "id" | "name" | "domain">;
     access_changes: {
       users: (Pick<User, "id" | "name"> & { email?: string } & {
-          access: NonGuestRole | null;
-        })[];
+        access: NonGuestRole | null;
+      })[];
     };
   };
   "site.create": {
@@ -307,8 +307,8 @@ export interface AuditEventDetails {
     access_changes: {
       max_inherited_access?: BasicRole | null;
       users?: (Pick<User, "id" | "name"> & { email?: string } & {
-          access: NonGuestRole | null;
-        })[];
+        access: NonGuestRole | null;
+      })[];
     };
   };
   "workspace.create": {

@@ -3,7 +3,6 @@
  * open, and what FD they are using.
  */
 
-
 import { CommDocEventType, CommMessage } from "app/common/CommTypes";
 import { arrayRemove, timeoutReached } from "app/common/gutil";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";

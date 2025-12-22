@@ -6,7 +6,7 @@ describe("LogSanitizer", () => {
   it("should return neutral logs untouched", (done) => {
     const exampleLog =
       "DocTriggers: Webhook responded with non-200 status status=404, attempt=1, docId=8x9U6xe4hNz8WaJCzAjDBM," +
-        " queueLength=8, drainingQueue=false, shuttingDown=false, sending=true, redisClient=true";
+      " queueLength=8, drainingQueue=false, shuttingDown=false, sending=true, redisClient=true";
     const sanitizer = new LogSanitizer();
     const sanitizedLog = sanitizer.sanitize(exampleLog);
     assert.equal(sanitizedLog, exampleLog);

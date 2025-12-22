@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { DEFAULT_HOME_SUBDOMAIN, isOrgInPathOnly, parseSubdomain, sanitizePathTail } from "app/common/gristUrls";
 import * as gutil from "app/common/gutil";

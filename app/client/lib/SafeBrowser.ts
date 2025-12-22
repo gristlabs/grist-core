@@ -27,7 +27,6 @@
 // Todo: plugin resources should not be made available on the server by default, but only after
 // activation.
 
-
 import { ClientScope } from "app/client/components/ClientScope";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { Disposable } from "app/client/lib/dispose";
@@ -265,7 +264,7 @@ export class ClientProcess extends Disposable {
 
   public receiveAction(action: any[]) {
     this._actionRouter.process(action)
-           .catch((err: any) => console.warn("ClientProcess[%s] receiveAction: failed with %s", this._src, err));
+      .catch((err: any) => console.warn("ClientProcess[%s] receiveAction: failed with %s", this._src, err));
   }
 }
 

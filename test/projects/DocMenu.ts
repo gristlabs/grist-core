@@ -596,7 +596,7 @@ async function testNameWithIcon(docName: string) {
   await driver.executeScript(() => {
     const emojiPicker = document.querySelector("em-emoji-picker")?.shadowRoot;
     const emojiSpan = Array.from(emojiPicker?.querySelectorAll("span") || [])
-      .find(el => el.textContent === "📋") as HTMLSpanElement;
+      .find(el => el.textContent === "📋")!;
     emojiSpan?.click();
   });
   await gu.waitForContent(".test-dm-doc-icon-preview", "📋");

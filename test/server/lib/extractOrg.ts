@@ -4,7 +4,6 @@ import { listenPromise } from "app/server/lib/serverUtils";
 import * as http from "http";
 import { AddressInfo } from "net";
 
-
 import { assert } from "chai";
 import express from "express";
 import { pick } from "lodash";

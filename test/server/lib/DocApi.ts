@@ -1,4 +1,3 @@
-
 import { ActionSummary } from "app/common/ActionSummary";
 import { BulkColValues, UserAction } from "app/common/DocActions";
 import { DocState } from "app/common/DocState";
@@ -49,7 +48,6 @@ import { AbortController } from "node-abort-controller";
 import fetch from "node-fetch";
 import { createClient, RedisClient } from "redis";
 import * as sinon from "sinon";
-
 
 // some doc ids
 const docIds: { [name: string]: string } = {

@@ -1,4 +1,3 @@
-
 import { delay } from "app/common/delay";
 import log from "app/server/lib/log";
 import { Throttle } from "app/server/lib/Throttle";
@@ -7,7 +6,6 @@ import * as childProcess from "child_process";
 import * as util from "util";
 
 import pidusage from "pidusage";
-
 
 const execFile = util.promisify(childProcess.execFile);
 

@@ -103,10 +103,12 @@ export class GristWSSettingsBrowser implements GristWSSettings {
   }
 
   public log(...args: any[]): void {
-    console.log(...args);    }
+    console.log(...args);
+  }
 
   public warn(...args: any[]): void {
-    console.warn(...args);   }
+    console.warn(...args);
+  }
 }
 
 /**

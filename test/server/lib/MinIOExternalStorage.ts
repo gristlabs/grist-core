@@ -8,7 +8,6 @@ import fse from "fs-extra";
 import * as minio from "minio";
 import sinon from "sinon";
 
-
 describe("MinIOExternalStorage", function() {
   const sandbox = sinon.createSandbox();
   const FakeClientClass = class extends minio.Client {

@@ -63,14 +63,14 @@ export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
  */
 export function typedCompare(val1: any, val2: any): number {
   let result: number, type1: string, array1: boolean;
-   if ((result = nativeCompare(type1 = typeof val1, typeof val2)) !== 0) {
+  if ((result = nativeCompare(type1 = typeof val1, typeof val2)) !== 0) {
     return result;
   }
   // We need to worry about Array comparisons because formulas returning Any may return null or
   // object values represented as arrays (e.g. ['D', ...] for dates). Comparing those without
   // distinguishing types would break the sort. Also, arrays need a special comparator.
   if (type1 === "object") {
-       if ((result = nativeCompare(array1 = val1 instanceof Array, val2 instanceof Array)) !== 0) {
+    if ((result = nativeCompare(array1 = val1 instanceof Array, val2 instanceof Array)) !== 0) {
       return result;
     }
     if (array1) {

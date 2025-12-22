@@ -20,7 +20,6 @@ import { Key, WebDriver, WebElement } from "mocha-webdriver";
 import fetch from "node-fetch";
 import { authenticator } from "otplib";
 
-
 export interface Server extends EventEmitter {
   driver: WebDriver;
   getTestingHooks(): Promise<TestingHooksClient>;

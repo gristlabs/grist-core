@@ -1,4 +1,3 @@
-
 import { DocStorage } from "app/server/lib/DocStorage";
 import { DocStorageManager } from "app/server/lib/DocStorageManager";
 import { OpenMode, SQLiteDB } from "app/server/lib/SQLiteDB";

@@ -1,4 +1,3 @@
-
 import { EngineCode } from "app/common/DocumentSettings";
 import { OptDocSession } from "app/server/lib/DocSession";
 import log from "app/server/lib/log";

@@ -9,7 +9,6 @@
 
 /* global before, after */
 
-
 import * as docUtils from "app/server/lib/docUtils";
 import log from "app/server/lib/log";
 import { getAppRoot } from "app/server/lib/places";

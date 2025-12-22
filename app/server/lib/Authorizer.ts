@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { OpenDocMode } from "app/common/DocListAPI";
 import { ErrorWithCode } from "app/common/ErrorWithCode";
@@ -207,7 +206,7 @@ export async function addRequestUser(
         return res.status(401).send("Bad request: invalid API key");
       }
       if (user.type === "service") {
-        const serviceAccount = (await dbManager.getServiceAccountByLoginWithOwner(user.loginEmail as string))!;
+        const serviceAccount = (await dbManager.getServiceAccountByLoginWithOwner(user.loginEmail!))!;
         if (serviceAccount.owner.disabledAt) {
           return res.status(403).send("Owner account is disabled");
         }
@@ -314,7 +313,6 @@ export async function addRequestUser(
     mreq.altSessionId = session?.altSessionId;
     if (!mreq.userId && session?.users && session.users.length > 0 &&
       mreq.org !== undefined) {
-
       // Prevent using custom-domain sessionID to authorize to a different domain, since
       // custom-domain owner could hijack such sessions.
       const allowedOrg = getAllowedOrgForSessionID(mreq.sessionID);

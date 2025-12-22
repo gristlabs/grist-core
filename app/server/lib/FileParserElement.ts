@@ -1,4 +1,3 @@
-
 import { PluginInstance } from "app/common/PluginInstance";
 import { ParseFileAPI } from "app/plugin/FileParserAPI";
 import { FileParser } from "app/plugin/PluginManifest";

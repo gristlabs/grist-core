@@ -26,7 +26,6 @@ import { driver, IMochaContext, IMochaServer } from "mocha-webdriver";
 import fetch from "node-fetch";
 import stripAnsi from "strip-ansi";
 
-
 const configPath = process.env.PROJECTS_WEBPACK_CONFIG || path.resolve(__dirname, "webpack.config.js");
 
 export class WebpackServer implements IMochaServer {
@@ -115,6 +114,7 @@ export class WebpackServer implements IMochaServer {
 }
 
 function logMessage(msg: string) {
-  console.error("[webpack-test-server] " + msg);  }
+  console.error("[webpack-test-server] " + msg);
+}
 
 export const server = new WebpackServer();

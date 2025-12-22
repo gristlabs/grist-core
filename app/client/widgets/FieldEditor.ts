@@ -118,7 +118,7 @@ export class FieldEditor extends Disposable {
         // If we typed '=' on an empty column, convert it to a formula. If on a formula column,
         // start editing ignoring the initial '='.
         this._isFormula  = true;
-        editValue = gutil.removePrefix(startVal, "=") as string;
+        editValue = gutil.removePrefix(startVal, "=")!;
       }
       else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
@@ -427,7 +427,7 @@ export class FieldEditor extends Disposable {
       else {
         const value = editor.getCellValue();
         if (col.isRealFormula()) {
-                   console.warn(t("It should be impossible to save a plain data value into a formula column"));
+          console.warn(t("It should be impossible to save a plain data value into a formula column"));
         }
         else {
           // This could still be an isFormula column if it's empty (isEmpty is true), but we don't

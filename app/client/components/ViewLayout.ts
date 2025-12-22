@@ -47,7 +47,6 @@ import debounce from "lodash/debounce";
 
 const t = makeT("ViewLayout");
 
-
 const viewSectionTypes: { [key: string]: any } = {
   "record": GridView,
   "detail": DetailView,

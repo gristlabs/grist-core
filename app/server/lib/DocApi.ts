@@ -1,4 +1,3 @@
-
 import { concatenateSummaries, summarizeAction } from "app/common/ActionSummarizer";
 import { createEmptyActionSummary } from "app/common/ActionSummary";
 import { QueryFilters } from "app/common/ActiveDocAPI";

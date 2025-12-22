@@ -9,14 +9,12 @@ import { ChildProcess, execFileSync, spawn } from "child_process";
 import { tmpdir } from "os";
 import * as path from "path";
 
-
 import axios from "axios";
 import { delay } from "bluebird";
 import { assert } from "chai";
 import FormData from "form-data";
 import * as fse from "fs-extra";
 import fetch from "node-fetch";
-
 
 /**
  * This suite tests that when we start node with limited memory, and then call openDoc on a doc

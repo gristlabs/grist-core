@@ -23,7 +23,6 @@ import log from "app/server/lib/log";
 
 import { AsyncLocalStorage } from "node:async_hooks";
 
-
 const asyncLocalStorage = new AsyncLocalStorage<InsightLogEntry>();
 
 export function insightLogDecorate(prefix: string, logIfLongerThanMs: number = 5000) {

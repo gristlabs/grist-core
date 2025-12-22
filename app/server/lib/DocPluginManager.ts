@@ -1,4 +1,3 @@
-
 import { ApplyUAResult } from "app/common/ActiveDocAPI";
 import { fromTableDataAction, TableColValues } from "app/common/DocActions";
 import * as gutil from "app/common/gutil";

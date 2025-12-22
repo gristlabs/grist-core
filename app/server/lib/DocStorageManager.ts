@@ -1,5 +1,3 @@
-
-
 import { DocEntry, DocEntryTag } from "app/common/DocListAPI";
 import { DocSnapshots } from "app/common/DocSnapshot";
 import { DocumentUsage } from "app/common/DocUsage";

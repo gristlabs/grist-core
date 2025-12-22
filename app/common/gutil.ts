@@ -713,7 +713,8 @@ export function sanitizeIdent(ident: string, prefix?: string) {
  * As with all micro-optimizations, only do this when the optimization matters.
  */
 export function cloneFunc(fn: Function): Function {      /* jshint evil:true */  // suppress eval warning.
-  return eval("(" + fn.toString() + ")");  }
+  return eval("(" + fn.toString() + ")");
+}
 
 /**
  * Generates a random id using a sequence of uppercase alphanumeric characters
@@ -870,7 +871,7 @@ export function isColorDark(hexColor: string, isDarkBelow: number = 220): boolea
   const c = hexColor.substring(1);  // strip #
   const rgb = parseInt(c, 16);      // convert rrggbb to decimal
   // Extract RGB components
-  const r = (rgb >> 16) & 0xff;      const g = (rgb >>  8) & 0xff;      const b = (rgb >>  0) & 0xff;    
+  const r = (rgb >> 16) & 0xff;      const g = (rgb >>  8) & 0xff;      const b = (rgb >>  0) & 0xff;
   const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;  // per ITU-R BT.709
   return luma < isDarkBelow;
 }

@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { AssistantProvider } from "app/common/Assistant";
 import { appSettings } from "app/server/lib/AppSettings";

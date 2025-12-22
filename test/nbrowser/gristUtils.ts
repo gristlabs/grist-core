@@ -38,7 +38,6 @@ import { stackWrapFunc, stackWrapOwnMethods, WebDriver } from "mocha-webdriver";
 import { assert, By, driver as driverOrig, error, Key, WebElement, WebElementPromise } from "mocha-webdriver";
 import { lock } from "proper-lockfile";
 
-
 import type { AssertionError } from "assert";
 import type { Cleanup } from "test/server/testCleanup";
 
@@ -1935,7 +1934,7 @@ namespace gristUtils {
       interval = args.shift() as number;
     }
     const keys = args as string[];
-       // Implementation follows the description of WebElement.sendKeys functionality at https://github.com/SeleniumHQ/selenium/blob/2f7727c314f943582f9f1b2a7e4d77ebdd64bdd3/javascript/node/selenium-webdriver/lib/webdriver.js#L2146
+    // Implementation follows the description of WebElement.sendKeys functionality at https://github.com/SeleniumHQ/selenium/blob/2f7727c314f943582f9f1b2a7e4d77ebdd64bdd3/javascript/node/selenium-webdriver/lib/webdriver.js#L2146
     await driver.withActions((a) => {
       const toRelease: string[] =  [];
       for (const part of keys) {
@@ -2703,7 +2702,7 @@ namespace gristUtils {
   export function rgbToHex(color: string) {
   // Next line extracts the 3 rgb components from a 'rgb(r, g, b)' string.
     const [r, g, b] = color.split(/[,()rgba]/).filter(c => c).map(parseFloat);
-       return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
   // Returns the `rgba( ... )` representation of a color given its hex representation `'#...'` . For

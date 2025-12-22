@@ -1,4 +1,3 @@
-
 import { ActionRouter } from "app/common/ActionRouter";
 import { LocalPlugin } from "app/common/plugin";
 import { BaseComponent, createRpcLogger, warnIfNotReady } from "app/common/PluginInstance";
@@ -13,7 +12,6 @@ import * as path from "path";
 
 import * as fse from "fs-extra";
 import { IMessage, IMsgCustom, IMsgRpcCall, Rpc } from "grain-rpc";
-
 
 // Error for not yet implemented api.
 class NotImplemented extends Error {

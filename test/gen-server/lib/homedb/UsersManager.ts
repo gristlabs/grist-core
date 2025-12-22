@@ -28,7 +28,6 @@ import Sinon, { SinonSandbox, SinonSpy } from "sinon";
 import { EntityManager } from "typeorm";
 import winston from "winston";
 
-
 describe("UsersManager", function() {
   this.timeout("3m");
 

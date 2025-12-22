@@ -4,7 +4,6 @@
  * change events.
  */
 
-
 import { ACLRuleCollection } from "app/common/ACLRuleCollection";
 import {
   getEnvContent,

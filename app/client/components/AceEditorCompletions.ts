@@ -131,7 +131,7 @@ function initCustomCompleter() {
       // current token is a function/identifier, and the next token is a lparen; if both are
       // true, we skip appending a "(" to each suggestion.
       const wordRange = session.getWordRange(pos.row, pos.column);
-      const token = session.getTokenAt(pos.row, wordRange.end.column) as Ace.Token;
+      const token = session.getTokenAt(pos.row, wordRange.end.column)!;
       const nextToken = session.getTokenAt(pos.row, wordRange.end.column + 1);
       const isRenamingFunc = ["function.support", "identifier"].includes(token.type) &&
         nextToken?.type === "paren.lparen";

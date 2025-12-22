@@ -10,8 +10,6 @@ import path from "path";
 import { assert, driver } from "mocha-webdriver";
 import fetch from "node-fetch";
 
-
-
 // We only support those formats for now:
 // en.client.json
 // en_US.client.json

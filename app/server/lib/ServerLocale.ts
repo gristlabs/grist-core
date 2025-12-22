@@ -9,7 +9,7 @@ import { parse as languageParser } from "accept-language-parser";
  * if unable to determine the locale.
  */
 export function localeFromRequest(req: IncomingMessage, defaultLocale: string = "en-US") {
-  const language = languageParser(req.headers["accept-language"] as string)[0];
+  const language = languageParser(req.headers["accept-language"]!)[0];
   if (!language) { return defaultLocale; }
 
   const locale = `${language.code}-${language.region}`;

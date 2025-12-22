@@ -1,4 +1,3 @@
-
 import { delay } from "app/common/delay";
 import { DocPrefs } from "app/common/Prefs";
 import { EDITOR, OWNER, Role, VIEWER } from "app/common/roles";

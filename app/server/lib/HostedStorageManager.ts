@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { mapGetOrSet } from "app/common/AsyncCreate";
 import { delay } from "app/common/delay";
@@ -796,7 +795,7 @@ export class HostedStorageManager implements IDocStorageManager {
       let changeMade: boolean = false;
       await this._inventory.uploadAndAdd(docId, async () => {
         const prevSnapshotId = this._latestVersions.get(docId) || null;
-        const newSnapshotId = await this._ext.upload(docId, tmpPath as string, metadata);
+        const newSnapshotId = await this._ext.upload(docId, tmpPath!, metadata);
         snapshotProgress.lastWindowDoneAt = Date.now();
         snapshotProgress.windowsDone++;
         if (newSnapshotId === Unchanged) {

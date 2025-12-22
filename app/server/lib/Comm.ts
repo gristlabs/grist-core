@@ -32,8 +32,6 @@
  * In other words, there is an opportunity for untangling and simplifying.
  */
 
-
-
 import { parseFirstUrlPart } from "app/common/gristUrls";
 import { safeJsonParse } from "app/common/gutil";
 import { UserProfile } from "app/common/LoginSessionAPI";

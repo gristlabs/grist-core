@@ -1,4 +1,3 @@
-
 import { ObjMetadata, ObjSnapshot, ObjSnapshotWithMetadata } from "app/common/DocSnapshot";
 import { ExternalStorageSupportingAttachments } from "app/server/lib/AttachmentStore";
 import { AttachmentStoreProvider } from "app/server/lib/AttachmentStoreProvider";

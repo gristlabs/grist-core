@@ -1,4 +1,3 @@
-
 import { IGristCoreConfig, loadGristCoreConfigFile } from "app/server/lib/configCore";
 import log from "app/server/lib/log";
 import { getInstanceRoot } from "app/server/lib/places";

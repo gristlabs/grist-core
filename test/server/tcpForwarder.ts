@@ -2,7 +2,6 @@ import { connect as connectSock, getAvailablePort, listenPromise } from "app/ser
 
 import { Server, Socket } from "net";
 
-
 // We'll test reconnects by making a connection through this TcpForwarder, which we'll use to
 // simulate disconnects.
 export class TcpForwarder {

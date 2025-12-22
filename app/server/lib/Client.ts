@@ -1,4 +1,3 @@
-
 import { BrowserSettings } from "app/common/BrowserSettings";
 import { CommClientConnect, CommMessage, CommResponse, CommResponseError } from "app/common/CommTypes";
 import { delay } from "app/common/delay";

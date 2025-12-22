@@ -1,4 +1,3 @@
-
 import { GristClientSocket } from "app/client/components/GristClientSocket";
 import { GristSocketServer, GristSocketServerOptions } from "app/server/lib/GristSocketServer";
 import { fromCallback, listenPromise } from "app/server/lib/serverUtils";

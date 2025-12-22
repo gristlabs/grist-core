@@ -4,10 +4,8 @@ import log from "app/server/lib/log";
 import { lstatSync, readdirSync, readFileSync } from "fs";
 import path from "path";
 
-
 import { createInstance, i18n } from "i18next";
 import { LanguageDetector } from "i18next-http-middleware";
-
 
 export function setupLocale(appRoot: string): i18n {
   // We are using custom instance and leave the global object intact.

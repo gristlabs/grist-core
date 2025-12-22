@@ -1,4 +1,3 @@
-
 import { isAffirmative } from "app/common/gutil";
 import { Role } from "app/common/roles";
 import { UserAPIImpl, UserProfile } from "app/common/UserAPI";

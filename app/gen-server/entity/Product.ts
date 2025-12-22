@@ -1,4 +1,3 @@
-
 import { Features, FREE_PLAN,
   isManagedPlan,
   PERSONAL_FREE_PLAN,

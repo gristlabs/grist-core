@@ -733,14 +733,14 @@ async function main() {
   }
   else if (cmd === "serve") {
     const home = await createServer(3000);
-       console.log(`Home API demo available at ${home.getOwnUrl()}`);
+    console.log(`Home API demo available at ${home.getOwnUrl()}`);
     return;
   }
-   console.log("Call with: init | migrate | revert | serve | benchmark");
+  console.log("Call with: init | migrate | revert | serve | benchmark");
 }
 
 if (require.main === module) {
   main().catch((e) => {
-       console.log(e);
+    console.log(e);
   });
 }

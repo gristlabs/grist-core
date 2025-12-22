@@ -16,7 +16,6 @@ import { getWeakestRole } from "app/common/roles";
 import { getGristConfig } from "app/common/urlUtils";
 import { Document, UserAPI } from "app/common/UserAPI";
 
-
 const MaxGristConfigAgeMs = 5000;
 
 export async function getDoc(api: UserAPI, docId: string): Promise<Document> {

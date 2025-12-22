@@ -370,7 +370,7 @@ describe("NumberParse", function() {
               }
               catch (e) {
                 // Handy information for understanding failures
-                               console.log({
+                console.log({
                   num, formatted, parsed, numMode, parser,
                   parts: formatter.formatToParts(num),
                   formattedChars: [...formatted].map(char => ({

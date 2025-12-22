@@ -108,7 +108,7 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
                 commands.allCommands.showPopup.run({ popup: "referenceColumnsConfig" });
               } });
             },
-            menuIcon(colType.icon as IconName),
+            menuIcon(colType.icon!),
             colType.displayName === "Reference" ?
               gridView.gristDoc.behavioralPromptsManager.attachPopup("referenceColumns", {
                 popupOptions: {

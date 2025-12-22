@@ -1,4 +1,3 @@
-
 import { Role } from "app/common/roles";
 import { getDocWorkerMap } from "app/gen-server/lib/DocWorkerMap";
 import { ActiveDoc } from "app/server/lib/ActiveDoc";

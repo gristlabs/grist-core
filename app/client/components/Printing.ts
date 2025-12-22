@@ -38,7 +38,7 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
       return;
     }
     catch (e) {
-           console.warn(`Failed to trigger print in CustomView: ${e}`);
+      console.warn(`Failed to trigger print in CustomView: ${e}`);
       // continue on to trying to print from outside, which should work OK for a single page.
     }
   }

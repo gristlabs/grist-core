@@ -1,4 +1,3 @@
-
 import { createEmptyOrgUsageSummary, OrgUsageSummary } from "app/common/DocUsage";
 import { TEAM_FREE_PLAN } from "app/common/Features";
 import { isAffirmative } from "app/common/gutil";

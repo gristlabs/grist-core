@@ -1,4 +1,3 @@
-
 import { ApiError } from "app/common/ApiError";
 import { ICustomWidget } from "app/common/CustomWidget";
 import { delay } from "app/common/delay";
@@ -994,7 +993,7 @@ export class FlexServer implements GristServer {
     if (this._check("api", "homedb", "json", "api-mw")) { return; }
 
     // ApiServer's constructor adds endpoints to the app.
-       new ApiServer(this, this.app, this._dbManager);
+    new ApiServer(this, this.app, this._dbManager);
   }
 
   public addScimApi() {

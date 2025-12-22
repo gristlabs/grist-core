@@ -9,9 +9,6 @@ import * as util from "util";
 import { assert } from "chai";
 import * as fse from "fs-extra";
 
-
-
-
 const execFile = util.promisify(childProcess.execFile);
 
 describe("generateInitialDocSql", function() {

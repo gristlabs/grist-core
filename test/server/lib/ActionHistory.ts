@@ -1,4 +1,3 @@
-
 import { LocalActionBundle } from "app/common/ActionBundle";
 import { ActionGroup, MinimalActionGroup } from "app/common/ActionGroup";
 import { DocState } from "app/common/DocState";

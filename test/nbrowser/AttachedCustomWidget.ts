@@ -1,4 +1,3 @@
-
 import { ICustomWidget } from "app/common/CustomWidget";
 import { getAppRoot } from "app/server/lib/places";
 import * as gu from "test/nbrowser/gristUtils";

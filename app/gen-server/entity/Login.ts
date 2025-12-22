@@ -12,7 +12,6 @@ import {
   PrimaryColumn,
 } from "typeorm";
 
-
 @Entity({ name: "logins" })
 export class Login extends BaseEntity {
   public static readonly SERVICE_ACCOUNTS_TLD = "serviceaccounts.invalid";

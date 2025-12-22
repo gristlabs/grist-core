@@ -159,11 +159,11 @@ function setupTest() {
     dom("h4", "Default"),
     primaryButton("Default menu",
       menu.menu(() => [
-               menu.menuItem(() => { console.log("Menu item: Hello"); }, "Log 'Hello'"),
+        menu.menuItem(() => { console.log("Menu item: Hello"); }, "Log 'Hello'"),
         menu.menuDivider(),
         menu.menuSubHeader("Subheader"),
         menu.menuItem(() => undefined, dom.cls("disabled", true), "Disabled"),
-               menu.menuItem(() => { console.log("Menu item: World"); }, "Log 'World'"),
+        menu.menuItem(() => { console.log("Menu item: World"); }, "Log 'World'"),
       ]),
     ),
     dom("h4", "Select menu"),

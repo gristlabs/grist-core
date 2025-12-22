@@ -38,7 +38,6 @@
  * turn, starting from the bottommost part, and make sure it gets inserted in the right level.
  */
 
-
 import { ContentBox, Layout, LayoutBox } from "app/client/components/Layout";
 import { get as getBrowserGlobals } from "app/client/lib/browserGlobals";
 import { Delay } from "app/client/lib/Delay";

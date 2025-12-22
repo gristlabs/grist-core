@@ -1,4 +1,3 @@
-
 import { prepareDatabase } from "test/server/lib/helpers/PrepareDatabase";
 import { TestServer } from "test/server/lib/helpers/TestServer";
 import { createTestDir, setTmpLogLevel } from "test/server/testUtils";

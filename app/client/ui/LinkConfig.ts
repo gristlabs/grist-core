@@ -1,4 +1,3 @@
-
 import { ColumnRec, ViewSectionRec } from "app/client/models/DocModel";
 import { getReferencedTableId } from "app/common/gristTypes";
 

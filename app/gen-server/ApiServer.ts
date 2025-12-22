@@ -1,5 +1,3 @@
-
-
 import { ApiError } from "app/common/ApiError";
 import { isAffirmative } from "app/common/gutil";
 import { FullUser } from "app/common/LoginSessionAPI";

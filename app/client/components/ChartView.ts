@@ -80,7 +80,6 @@ function isCategoryType(pureType: string): boolean {
   return !["Numeric", "Int", "Any", "Date", "DateTime"].includes(pureType);
 }
 
-
 // We use plotly's Datum to describe the type of values in cells. Cells may not match this
 // perfectly, but it's helpful for type-checking anyway.
 type RowPropGetter = (rowId: number) => Datum;
@@ -551,7 +550,7 @@ export class ChartConfig extends GrainJSDisposable {
 
   // The label to show for the first field in the axis configurator.
   private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef),
-    (_use, chartType) => firstFieldIsLabels(chartType) ? t("LABEL") : t("X-AXIS")
+    (_use, chartType) => firstFieldIsLabels(chartType) ? t("LABEL") : t("X-AXIS"),
   );
 
   // A computed that returns `this._section.chartTypeDef` and that takes care of removing the group

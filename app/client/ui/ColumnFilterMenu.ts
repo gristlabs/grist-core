@@ -99,7 +99,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   const isDateFilter = isDateLikeType(columnFilter.columnType);
   const selectedBoundObs = Observable.create<"min" | "max" | null>(owner, null);
   const viewTypeObs = Computed.create<IColumnFilterViewType>(owner,
-    use => isDateFilter && use(selectedBoundObs) ? "calendarView" : "listView"
+    use => isDateFilter && use(selectedBoundObs) ? "calendarView" : "listView",
   );
   const isMinSelected = Computed.create<boolean>(owner, use => use(selectedBoundObs) === "min")
     .onWrite(val => val ? selectedBoundObs.set("min") : selectedBoundObs.set("max"));
