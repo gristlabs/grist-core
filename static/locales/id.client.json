@@ -1658,7 +1658,12 @@
         "Schedule Call": "Jadwalkan Panggilan",
         "Schedule your {{freeCoachingCall}} with a member of our team.": "Jadwalkan {{freeCoachingCall}} Anda dengan anggota tim kami.",
         "You may also check out {{ourWeeklyWebinars}} to learn more about Grist.": "Anda juga dapat memeriksa {{ourWeeklyWebinars}} untuk mempelajari lebih lanjut tentang Grist.",
-        "our weekly webinars": "webinar mingguan kami"
+        "our weekly webinars": "webinar mingguan kami",
+        "Maybe later": "Mungkin nanti",
+        "Free coaching call": "Konsultasi gratis",
+        "Grist 101": "Grist 101",
+        "Schedule call": "Jadwalkan panggilan",
+        "You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users                navigate the fundamentals of Grist.": "Anda juga dapat melihat webinar pengantar kami, {{ourWeeklyWebinars}}, yang dirancang untuk membantu pengguna baru                memahami dasar-dasar Grist."
     },
     "FormView": {
         "Publish": "Publikasikan",
