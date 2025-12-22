@@ -1,4 +1,4 @@
-import {addToRepl, assert, driver, Key, stackWrapFunc} from 'mocha-webdriver';
+import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
@@ -9,14 +9,6 @@ async function getActiveCellPos() {
     await driver.find('.column_name.selected').getText(),
   ];
 }
-
-// Move mouse and wait to make sure tooltip is gone.
-const clearTooltip = stackWrapFunc(async (params?: {x?: number, y?: number}) => {
-  await driver.mouseMoveBy(params);
-  await gu.waitToPass(async () => {
-    assert.equal(await driver.find('.test-tooltip').isPresent(), false);
-  });
-});
 
 describe('Search', function() {
   this.timeout('25s');
@@ -156,7 +148,7 @@ describe('Search', function() {
     assert.equal(await gu.getActiveSectionTitle(), 'CITY');
     assert.deepEqual(await getActiveCellPos(), ['2614', 'Country']);
 
-    await clearTooltip({y: 100});
+    await gu.closeTooltip();
 
     // click option 'search all pages'
     await driver.find('.test-tb-search-option-all-pages').click();
@@ -165,7 +157,7 @@ describe('Search', function() {
     assert.equal(await driver.find('.test-tb-search-option-all-pages input').matches(':checked'), true);
 
     // make sure tooltip is gone
-    await clearTooltip({y: 100});
+    await gu.closeTooltip();
 
     // click next
     await gu.searchNext();
@@ -223,7 +215,7 @@ describe('Search', function() {
   it('should allow to find other hits when user switch pages', async () => {
 
     // clear tooltip
-    await clearTooltip({y: 100});
+    await gu.closeTooltip();
 
     // uncheck the multipage option
     await gu.toggleSearchAll();

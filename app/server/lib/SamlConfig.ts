@@ -60,9 +60,10 @@ import * as express from 'express';
 import * as fse from 'fs-extra';
 import * as saml2 from 'saml2-js';
 
+import {SAML_PROVIDER_KEY} from 'app/common/loginProviders';
 import {AppSettings} from 'app/server/lib/AppSettings';
 import {expressWrap} from 'app/server/lib/expressWrap';
-import {getSelectedLoginSystemType} from 'app/server/lib/gristSettings';
+import {createLoginProviderFactory, NotConfiguredError} from 'app/server/lib/loginSystemHelpers';
 import {GristLoginSystem, GristServer} from 'app/server/lib/GristServer';
 import log from 'app/server/lib/log';
 import {Permit} from 'app/server/lib/Permit';
@@ -97,12 +98,17 @@ export interface SamlConfig {
  * When reading from environment variables, the cert/key values are file paths,
  * so we read the file contents here.
  */
-export async function readSamlConfigFromSettings(settings: AppSettings): Promise<SamlConfig> {
-  const section = settings.section('login').section('system').section('saml');
+export function readSamlConfigFromSettings(settings: AppSettings): SamlConfig {
+  const section = settings.section('login').section('system').section(SAML_PROVIDER_KEY);
 
-  const spHost = section.flag('spHost').requireString({
-    envVar: 'GRIST_SAML_SP_HOST',
-  });
+  let spHost = '';
+  try {
+    spHost = section.flag('spHost').requireString({
+      envVar: 'GRIST_SAML_SP_HOST',
+    });
+  } catch (e) {
+    throw new NotConfiguredError((e as Error).message);
+  }
 
   const spKeyPath = section.flag('spKey').requireString({
     envVar: 'GRIST_SAML_SP_KEY',
@@ -135,10 +141,9 @@ export async function readSamlConfigFromSettings(settings: AppSettings): Promise
   })!;
 
   // Read the file contents from paths
-  const spKey = await fse.readFile(spKeyPath, {encoding: 'utf8'});
-  const spCert = await fse.readFile(spCertPath, {encoding: 'utf8'});
-  const idpCerts = await Promise.all(idpCertsPaths.map((p: string) =>
-    fse.readFile(p, {encoding: 'utf8'})));
+  const spKey = fse.readFileSync(spKeyPath, {encoding: 'utf8'});
+  const spCert = fse.readFileSync(spCertPath, {encoding: 'utf8'});
+  const idpCerts = idpCertsPaths.map((p: string) => fse.readFileSync(p, {encoding: 'utf8'}));
 
   return {
     spHost,
@@ -150,31 +155,6 @@ export async function readSamlConfigFromSettings(settings: AppSettings): Promise
     idpCerts,
     allowUnencrypted
   };
-}
-
-/**
- * Check if SAML is configured based on environment variables.
- */
-export function maybeSamlConfigured(settings: AppSettings): boolean {
-  const section = settings.section('login').section('system').section('saml');
-  const spHost = section.flag('spHost').readString({
-    envVar: 'GRIST_SAML_SP_HOST',
-  });
-  return !!spHost;
-}
-
-/**
- * Check if SAML is enabled either by explicit selection or by configuration.
- */
-export function isSamlEnabled(settings: AppSettings): boolean {
-  const selectedType = getSelectedLoginSystemType(settings);
-  if (selectedType === 'saml') {
-    return true;
-  }
-  if (selectedType) {
-    return false;
-  }
-  return maybeSamlConfigured(settings);
 }
 
 export class SamlBuilder {
@@ -411,14 +391,11 @@ function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
 /**
  * Return SAML login system if enabled, or undefined otherwise.
  */
-export async function getSamlLoginSystem(settings: AppSettings): Promise<GristLoginSystem | undefined> {
-  if (!isSamlEnabled(settings)) {
-    return undefined;
-  }
-
+async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> {
+  const samlConfig = readSamlConfigFromSettings(settings);
   return {
     async getMiddleware(gristServer: GristServer) {
-      const config = await SamlBuilder.build(gristServer, await readSamlConfigFromSettings(settings));
+      const config = await SamlBuilder.build(gristServer, samlConfig);
       return {
         getLoginRedirectUrl: config.getLoginRedirectUrl.bind(config),
         // For saml, always use regular login page, users are enrolled externally.
@@ -427,7 +404,7 @@ export async function getSamlLoginSystem(settings: AppSettings): Promise<GristLo
         getLogoutRedirectUrl: config.getLogoutRedirectUrl.bind(config),
         async addEndpoints(app: express.Express) {
           config.addSamlEndpoints(app, gristServer.getSessions());
-          return 'saml';
+          return SAML_PROVIDER_KEY;
         },
       };
     },
@@ -437,3 +414,8 @@ export async function getSamlLoginSystem(settings: AppSettings): Promise<GristLo
     },
   };
 }
+
+export const getSamlLoginSystem = createLoginProviderFactory(
+  SAML_PROVIDER_KEY,
+  getLoginSystem
+);

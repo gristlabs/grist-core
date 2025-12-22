@@ -349,6 +349,7 @@ describe('Authorizer', function() {
     // also set. (These variables are reset by our beforeEach/afterEach hooks.)
     process.env.GRIST_PROXY_AUTH_HEADER = 'X-email';
     process.env.GRIST_IGNORE_SESSION = 'true';
+    process.env.GRIST_TEST_SERVER_DEPLOYMENT_TYPE = 'enterprise';
     // We'll need a local setup for this test
     const localServer = new FlexServer(0, 'test docWorker');
     await activateServer(localServer, docTools.getDocManager());

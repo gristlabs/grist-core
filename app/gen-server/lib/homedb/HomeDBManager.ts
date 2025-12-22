@@ -346,15 +346,6 @@ export class HomeDBManager implements HomeDBAuth {
       .map(_grpDesc => _grpDesc.name) as roles.NonMemberRole[];
   }
 
-  /**
-   * Returns the application settings object.
-   * Currently returns the global appSettings, but in the future this could be enhanced
-   * to return settings from the database.
-   */
-  public getAppSettings() {
-    return appSettings;
-  }
-
   public setPrefix(prefix: string) {
     this._idPrefix = prefix;
   }

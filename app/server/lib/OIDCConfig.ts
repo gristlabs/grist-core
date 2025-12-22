@@ -66,12 +66,14 @@
  */
 
 import { UserProfile } from 'app/common/LoginSessionAPI';
+import { OIDC_PROVIDER_KEY } from 'app/common/loginProviders';
+import { OIDC_CALLBACK_ENDPOINT } from "app/common/OIDCCommon";
 import { StringUnionError } from 'app/common/StringUnion';
 import { appSettings, AppSettings } from 'app/server/lib/AppSettings';
 import { RequestWithLogin } from 'app/server/lib/Authorizer';
 import { SessionObj } from 'app/server/lib/BrowserSession';
-import { getSelectedLoginSystemType } from 'app/server/lib/gristSettings';
 import { GristLoginSystem, GristServer } from 'app/server/lib/GristServer';
+import { createLoginProviderFactory, NotConfiguredError } from 'app/server/lib/loginSystemHelpers';
 import log from 'app/server/lib/log';
 import { EnabledProtection, EnabledProtectionString, ProtectionsManager } from 'app/server/lib/oidc/Protections';
 import { agents } from 'app/server/lib/ProxyAgent';
@@ -81,11 +83,11 @@ import { Sessions } from 'app/server/lib/Sessions';
 
 import * as express from 'express';
 import pick from 'lodash/pick';
+
 import {
   Client, ClientMetadata, custom, Issuer, errors as OIDCError, TokenSet, UserinfoResponse
 } from 'openid-client';
 
-const CALLBACK_URL = '/oauth2/callback';
 
 function formatTokenForLogs(token: TokenSet) {
   const showValueInClear = ['token_type', 'expires_in', 'expires_at', 'scope'];
@@ -143,15 +145,20 @@ export interface OIDCConfig {
  * Structure follows what is defined in the app settings keys.
  */
 export function readOIDCConfigFromSettings(settings: AppSettings): OIDCConfig {
-  const section = settings.section('login').section('system').section('oidc');
+  const section = settings.section('login').section('system').section(OIDC_PROVIDER_KEY);
+
+  let issuerUrl = '';
+  try {
+    issuerUrl = section.flag('issuer').requireString({
+      envVar: 'GRIST_OIDC_IDP_ISSUER',
+    });
+  } catch (e) {
+    throw new NotConfiguredError((e as Error).message);
+  }
 
   const spHost = section.flag('spHost').requireString({
     envVar: 'GRIST_OIDC_SP_HOST',
     defaultValue: process.env.APP_HOME_URL,
-  });
-
-  const issuerUrl = section.flag('issuer').requireString({
-    envVar: 'GRIST_OIDC_IDP_ISSUER',
   });
 
   const clientId = section.flag('clientId').requireString({
@@ -244,41 +251,6 @@ function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionStr
   }
 }
 
-/**
- * Check if OIDC is configured based on environment variables.
- */
-function maybeOIDCConfigured(settings: AppSettings): boolean {
-  const section = settings.section('login').section('system').section('oidc');
-  const issuer = section.flag('issuer').readString({
-    envVar: 'GRIST_OIDC_IDP_ISSUER',
-  });
-  return !!issuer;
-}
-
-/**
- * Check if OIDC is enabled.
- *
- * Returns true if:
- * - GRIST_LOGIN_SYSTEM_TYPE is explicitly set to 'oidc', OR
- * - GRIST_LOGIN_SYSTEM_TYPE is not set AND the provider is configured
- */
-export function isOIDCEnabled(settings: AppSettings): boolean {
-  const selectedType = getSelectedLoginSystemType(settings);
-
-  // If explicitly selected, return true
-  if (selectedType === 'oidc') {
-    return true;
-  }
-
-  // If another system is explicitly selected, return false
-  if (selectedType) {
-    return false;
-  }
-
-  // If no system is selected, check if this provider is configured
-  return maybeOIDCConfigured(settings);
-}
-
 export class OIDCBuilder {
   /**
    * Handy alias to create an OIDCBuilder instance and initialize it.
@@ -308,7 +280,7 @@ export class OIDCBuilder {
   public async initOIDC(): Promise<void> {
     this._protectionManager = new ProtectionsManager(this._config.enabledProtections);
 
-    this._redirectUrl = new URL(CALLBACK_URL, this._config.spHost).href;
+    this._redirectUrl = new URL(OIDC_CALLBACK_ENDPOINT, this._config.spHost).href;
     custom.setHttpOptionsDefaults({
       ...(agents.trusted !== undefined ? {agent: agents.trusted} : {}),
       ...(this._config.httpTimeout !== undefined ? {timeout: this._config.httpTimeout} : {}),
@@ -330,7 +302,7 @@ export class OIDCBuilder {
   }
 
   public addEndpoints(app: express.Application, sessions: Sessions): void {
-    app.get(CALLBACK_URL, this.handleCallback.bind(this, sessions));
+    app.get(OIDC_CALLBACK_ENDPOINT, this.handleCallback.bind(this, sessions));
   }
 
   public async handleCallback(sessions: Sessions, req: express.Request, res: express.Response): Promise<void> {
@@ -441,14 +413,21 @@ export class OIDCBuilder {
   protected async _initClient({ issuerUrl, clientId, clientSecret, extraMetadata }:
     { issuerUrl: string, clientId: string, clientSecret: string, extraMetadata: Partial<ClientMetadata> }
   ): Promise<void> {
-    const issuer = await Issuer.discover(issuerUrl);
-    this._client = new issuer.Client({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uris: [this._redirectUrl],
-      response_types: ['code'],
-      ...extraMetadata,
-    });
+    try {
+      const issuer = await Issuer.discover(issuerUrl);
+      this._client = new issuer.Client({
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uris: [this._redirectUrl],
+        response_types: ['code'],
+        ...extraMetadata,
+      });
+    } catch (err) {
+      log.error(`Failed to initialize OIDC client for issuer ${issuerUrl}: ${(err as Error).stack}`, err);
+      throw new Error(
+        `Failed to initialize OIDC client for issuer ${issuerUrl}: ${(err as Error).message}`,
+      );
+    }
   }
 
   private _sendErrorPage(
@@ -524,14 +503,10 @@ export class OIDCBuilder {
  * - Passes the config to the builder
  * - Returns the login system
  */
-export async function getOIDCLoginSystem(settings: AppSettings): Promise<GristLoginSystem|undefined> {
-  if (!isOIDCEnabled(settings)) {
-    return undefined;
-  }
+async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> {
+  const config = readOIDCConfigFromSettings(settings);
   return {
     async getMiddleware(gristServer: GristServer) {
-      // Read config from settings
-      const config = readOIDCConfigFromSettings(settings);
       // Build the middleware using the config
       const oidcBuilder = await OIDCBuilder.build(gristServer.sendAppPage.bind(gristServer), config);
       return {
@@ -540,10 +515,15 @@ export async function getOIDCLoginSystem(settings: AppSettings): Promise<GristLo
         getLogoutRedirectUrl: oidcBuilder.getLogoutRedirectUrl.bind(oidcBuilder),
         async addEndpoints(app: express.Express) {
           oidcBuilder.addEndpoints(app, gristServer.getSessions());
-          return 'oidc';
+          return OIDC_PROVIDER_KEY;
         },
       };
     },
     async deleteUser() { },
   };
 }
+
+export const getOIDCLoginSystem = createLoginProviderFactory(
+  OIDC_PROVIDER_KEY,
+  getLoginSystem
+);

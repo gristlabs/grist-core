@@ -1,12 +1,13 @@
-import { ApiError } from 'app/common/ApiError';
-import { BootProbeIds, BootProbeResult } from 'app/common/BootProbe';
-import { removeTrailingSlash } from 'app/common/gutil';
-import { expressWrap, jsonErrorHandler } from 'app/server/lib/expressWrap';
-import { GristServer } from 'app/server/lib/GristServer';
+import {ApiError} from 'app/common/ApiError';
+import {BootProbeIds, BootProbeResult} from 'app/common/BootProbe';
+import {removeTrailingSlash} from 'app/common/gutil';
+import {appSettings} from 'app/server/lib/AppSettings';
+import {expressWrap, jsonErrorHandler} from 'app/server/lib/expressWrap';
+import {GristServer} from 'app/server/lib/GristServer';
+import {DEFAULT_SESSION_SECRET} from 'app/server/lib/ICreate';
 import * as express from 'express';
-import WS from 'ws';
 import fetch from 'node-fetch';
-import { DEFAULT_SESSION_SECRET } from 'app/server/lib/ICreate';
+import WS from 'ws';
 
 /**
  * Self-diagnostics useful when installing Grist.
@@ -27,6 +28,7 @@ export class BootProbes {
 
   public addEndpoints() {
     // Return a list of available probes.
+    // GET /api/probes
     this._app.use(`${this._base}/probes$`,
                   ...this._middleware,
                   expressWrap(async (_, res) => {
@@ -38,6 +40,7 @@ export class BootProbes {
     }));
 
     // Return result of running an individual probe.
+    // GET /api/probes/:probeId
     this._app.use(`${this._base}/probes/:probeId`,
                   ...this._middleware,
                   expressWrap(async (req, res) => {
@@ -297,12 +300,26 @@ const _authenticationProbe: Probe = {
   id: 'authentication',
   name: 'Authentication system',
   apply: async(server, req) => {
-    const loginSystemId = server.getInfo('loginMiddlewareComment');
+    // Check what provider is active, there is always one, even if there are errors.
+    const active = appSettings.section('login').flag('active').get();
+
+    if (!active) {
+      return {
+        status: 'fault',
+        verdict: 'No active authentication provider',
+      };
+    }
+
+    // Check if active provider has errors.
+    const error = appSettings.section('login').flag('error').get();
+    const provider = String(active);
+    const status = error ? 'fault' : provider === 'no-auth' ? 'warning' : 'success';
     return {
-      status: (loginSystemId != undefined) ? 'success' : 'fault',
+      status,
+      verdict: error ? String(error) : undefined,
       details: {
-        loginSystemId,
-      }
+        provider,
+      },
     };
   },
 };

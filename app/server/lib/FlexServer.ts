@@ -82,6 +82,7 @@ import * as shutdown from 'app/server/lib/shutdown';
 import {TagChecker} from 'app/server/lib/TagChecker';
 import {ITelemetry} from 'app/server/lib/Telemetry';
 import {startTestingHooks} from 'app/server/lib/TestingHooks';
+import {ErrorInLoginMiddleware} from 'app/server/lib/MinimalLogin';
 import {getTestLoginSystem} from 'app/server/lib/TestLogin';
 import {UpdateManager} from 'app/server/lib/UpdateManager';
 import {addUploadRoute} from 'app/server/lib/uploads';
@@ -201,7 +202,7 @@ export class FlexServer implements GristServer {
   private _getSignUpRedirectUrl: (req: express.Request, target: URL) => Promise<string>;
   private _getLogoutRedirectUrl: (req: express.Request, nextUrl: URL) => Promise<string>;
   private _sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
-  private _getLoginSystem: (dbManager: HomeDBManager) => Promise<GristLoginSystem>;
+  private _getLoginSystem: () => Promise<GristLoginSystem>;
   // Set once ready() is called
   private _isReady: boolean = false;
   private _updateManager: UpdateManager;
@@ -886,6 +887,7 @@ export class FlexServer implements GristServer {
     this.info.push(['database', getDatabaseUrl(this._dbManager.connection.options, false)]);
     // If the installation appears to be new, give it an id and a creation date.
     this._activations = new ActivationsManager(this._dbManager);
+    appSettings.setEnvVars((await this._activations.current()).prefs?.envVars || {});
     await this._activations.current();
     this._installAdmin = await this.create.createInstallAdmin(this._dbManager);
   }
@@ -1307,8 +1309,19 @@ export class FlexServer implements GristServer {
 
     // TODO: We could include a third mock provider of login/logout URLs for better tests. Or we
     // could create a mock SAML identity provider for testing this using the SAML flow.
-    const loginSystem = await this.resolveLoginSystem();
-    this._loginMiddleware = await loginSystem.getMiddleware(this);
+    try {
+      const loginSystem = await this.resolveLoginSystem();
+      this._loginMiddleware = await loginSystem.getMiddleware(this);
+    } catch (err) {
+      // We need to start even if login middleware fails to initialize, and report it so that admins
+      // can fix the problem using the admin UI.
+      log.error("Error initializing login middleware:", err);
+      appSettings.section('login').flag('error').set((err as Error).message);
+      // We don't fallback to MinimalLogin here, as it imposes some security risks if enabled
+      // unintentionally. This way, the admin is made aware of the problem and can take action using boot
+      // page instructions.
+      this._loginMiddleware = new ErrorInLoginMiddleware();
+    }
     this._getLoginRedirectUrl = tbind(this._loginMiddleware.getLoginRedirectUrl, this._loginMiddleware);
     this._getSignUpRedirectUrl = tbind(this._loginMiddleware.getSignUpRedirectUrl, this._loginMiddleware);
     this._getLogoutRedirectUrl = tbind(this._loginMiddleware.getLogoutRedirectUrl, this._loginMiddleware);
@@ -2079,7 +2092,7 @@ export class FlexServer implements GristServer {
     // Need to be an admin to change the Grist config
     const requireInstallAdmin = this.getInstallAdmin().getMiddlewareRequireAdmin();
 
-    const configBackendAPI = new ConfigBackendAPI();
+    const configBackendAPI = new ConfigBackendAPI(this.getActivations());
     configBackendAPI.addEndpoints(this.app, requireInstallAdmin);
 
     // Some configurations may add extra endpoints. This seems a fine time to add them.
@@ -2141,9 +2154,9 @@ export class FlexServer implements GristServer {
     }
   }
 
-  public resolveLoginSystem() {
+  public resolveLoginSystem(): Promise<GristLoginSystem> {
     return isTestLoginAllowed() ?
-      getTestLoginSystem() : this._getLoginSystem(this.getHomeDBManager());
+      getTestLoginSystem() : this._getLoginSystem();
   }
 
   public addUpdatesCheck() {

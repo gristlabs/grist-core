@@ -1,9 +1,17 @@
+import {textarea} from 'app/client/ui/inputs';
 import {hoverTooltip} from 'app/client/ui/tooltips';
 import {transition} from 'app/client/ui/transitions';
-import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
+import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
+import {components} from 'app/common/ThemePrefs';
 import {dom, DomContents, DomElementArg, IDisposableOwner, Observable, styled} from 'grainjs';
+
+export interface AdminPanelControls {
+  needsRestart: Observable<boolean>;
+  supportsRestart: Observable<boolean>;
+  restartGrist: () => Promise<void>;
+}
 
 export function HidableToggle(
   owner: IDisposableOwner,
@@ -97,7 +105,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   }
 }
 
-const cssSection = styled('div', `
+export const cssSection = styled('div', `
   padding: 24px;
   max-width: 750px;
   width: 100%;
@@ -117,7 +125,7 @@ const cssSection = styled('div', `
   }
 `);
 
-const cssSectionTitle = styled('div', `
+export const cssSectionTitle = styled('div', `
   height: 32px;
   line-height: 32px;
   margin-bottom: 8px;
@@ -125,7 +133,7 @@ const cssSectionTitle = styled('div', `
   font-weight: ${vars.headerControlTextWeight};
 `);
 
-const cssItem = styled('div', `
+export const cssItem = styled('div', `
   margin-top: 8px;
   container-type: inline-size;
   container-name: line;
@@ -250,4 +258,58 @@ export const cssValueLabel = styled('div', `
   color: ${theme.text};
   border: 1px solid ${theme.inputBorder};
   border-radius: ${vars.controlBorderRadius};
+`);
+
+export const cssTextArea = styled(textarea, `
+  color: ${theme.inputFg};
+  background-color: ${theme.inputBg};
+  border: 1px solid ${theme.inputBorder};
+  width: 100%;
+  padding: 8px 12px;
+  outline: none;
+  resize: none;
+  border-radius: 3px;
+
+  &::placeholder {
+    color: ${theme.inputPlaceholderFg};
+  }
+`);
+
+export const cssWell = styled('div', `
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  width: 100%;
+
+  &-warning {
+    border: 1px solid #ffb535;
+    background-color: #fff9ee;
+    --icon-color: #ffb535;
+  }
+
+  &-error {
+    border: 1px solid ${components.errorText};
+    background-color: ${components.toastErrorBg};
+    --icon-color: ${components.errorText};
+  }
+`);
+
+export const cssIconWrapper = styled('div', `
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 2px;
+`);
+
+export const cssWellContent = styled('div', `
+  color: ${theme.text};
+  font-size: ${vars.mediumFontSize};
+  line-height: 1.4;
+  & > p {
+    margin: 0px;
+  }
+  & > p + p {
+    margin-top: 8px;
+  }
 `);

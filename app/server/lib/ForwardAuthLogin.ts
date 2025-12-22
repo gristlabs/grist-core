@@ -5,11 +5,12 @@
  */
 
 import { ApiError } from 'app/common/ApiError';
+import { FORWARDAUTH_PROVIDER_KEY } from 'app/common/loginProviders';
 import { AppSettings } from 'app/server/lib/AppSettings';
 import { getRequestProfile } from 'app/server/lib/Authorizer';
 import { expressWrap } from 'app/server/lib/expressWrap';
-import { getSelectedLoginSystemType } from 'app/server/lib/gristSettings';
-import { GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession } from 'app/server/lib/GristServer';
+import {GristLoginMiddleware, GristLoginSystem, GristServer, setUserInSession} from 'app/server/lib/GristServer';
+import {createLoginProviderFactory, NotConfiguredError} from 'app/server/lib/loginSystemHelpers';
 import log from 'app/server/lib/log';
 import { optStringParam } from 'app/server/lib/requestUtils';
 import * as express from 'express';
@@ -87,18 +88,22 @@ export interface ForwardAuthConfig {
  * This reads configuration from env vars - should only be called when ForwardAuth is enabled.
  */
 export function readForwardAuthConfigFromSettings(settings: AppSettings): ForwardAuthConfig {
-  const section = settings.section('login').section('system').section('forwardAuth');
+  const section = settings.section('login').section('system').section(FORWARDAUTH_PROVIDER_KEY);
   const headerSetting = section.flag('header');
 
-  const header = headerSetting.requireString({
-    envVar: ['GRIST_FORWARD_AUTH_HEADER', 'GRIST_PROXY_AUTH_HEADER']
-  });
+  let header = '';
+  try {
+    header = headerSetting.requireString({
+      envVar: ['GRIST_FORWARD_AUTH_HEADER', 'GRIST_PROXY_AUTH_HEADER']
+    });
+  } catch (e) {
+    throw new NotConfiguredError((e as Error).message);
+  }
 
   if (headerSetting.describe().foundInEnvVar === 'GRIST_PROXY_AUTH_HEADER') {
     log.warn("GRIST_PROXY_AUTH_HEADER is deprecated; interpreted as a synonym of GRIST_FORWARD_AUTH_HEADER");
   }
 
-  section.flag('active').set(true);
   const logoutPath = section.flag('logoutPath').requireString({
     envVar: 'GRIST_FORWARD_AUTH_LOGOUT_PATH',
     defaultValue: '',
@@ -117,37 +122,8 @@ export function readForwardAuthConfigFromSettings(settings: AppSettings): Forwar
   return {header, logoutPath, loginPath, skipSession};
 }
 
-/**
- * Check if Forward Auth is configured based on environment variables.
- */
-export function isForwardAuthConfigured(settings: AppSettings): boolean {
-  const section = settings.section('login').section('system').section('forwardAuth');
-  const header = section.flag('header').readString({
-    envVar: ['GRIST_FORWARD_AUTH_HEADER', 'GRIST_PROXY_AUTH_HEADER']
-  });
-  return !!header;
-}
 
-/**
- * Check if Forward Auth is enabled either by explicit selection or by configuration.
- */
-export function isForwardAuthEnabled(settings: AppSettings): boolean {
-  const selectedType = getSelectedLoginSystemType(settings);
-  if (selectedType === 'forward-auth') {
-    return true;
-  } else if (selectedType) {
-    return false;
-  } else {
-    return isForwardAuthConfigured(settings);
-  }
-}
-
-
-export async function getForwardAuthLoginSystem(settings: AppSettings): Promise<GristLoginSystem | undefined> {
-  if (!isForwardAuthEnabled(settings)) {
-    return undefined;
-  }
-
+async function getLoginSystem(settings: AppSettings): Promise<GristLoginSystem> {
   const config = readForwardAuthConfigFromSettings(settings);
   const {header, logoutPath, loginPath, skipSession} = config;
 
@@ -182,7 +158,7 @@ export async function getForwardAuthLoginSystem(settings: AppSettings): Promise<
             }
             res.redirect(target.href);
           }));
-          return skipSession ? "forward-auth-skip-session" : "forward-auth";
+          return FORWARDAUTH_PROVIDER_KEY;
         },
       };
       if (skipSession) {
@@ -197,3 +173,8 @@ export async function getForwardAuthLoginSystem(settings: AppSettings): Promise<
     },
   };
 }
+
+export const getForwardAuthLoginSystem = createLoginProviderFactory(
+  FORWARDAUTH_PROVIDER_KEY,
+  getLoginSystem
+);

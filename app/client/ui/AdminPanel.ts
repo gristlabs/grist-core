@@ -2,36 +2,53 @@ import {buildHomeBanners} from 'app/client/components/Banners';
 import {makeT} from 'app/client/lib/localization';
 import {markdown} from 'app/client/lib/markdown';
 import {getTimeFromNow} from 'app/client/lib/timeUtils';
-import {AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
+import {AdminCheckRequest, AdminChecks, probeDetails, ProbeDetails} from 'app/client/models/AdminChecks';
 import {AppModel, getHomeUrl, reportError} from 'app/client/models/AppModel';
-import {App} from 'app/client/ui/App';
-import {cssEmail, cssUserInfo, cssUserName} from 'app/client/ui/AccountWidgetCss';
-import {createUserImage} from 'app/client/ui/UserImage';
 import {AuditLogsModel} from 'app/client/models/AuditLogsModel';
 import {urlState} from 'app/client/models/gristUrlState';
+import {cssEmail, cssUserInfo, cssUserName} from 'app/client/ui/AccountWidgetCss';
 import {showEnterpriseToggle} from 'app/client/ui/ActivationPage';
 import {buildAdminData} from 'app/client/ui/AdminControls';
 import {buildAdminLeftPanel, getPageNames} from 'app/client/ui/AdminLeftPanel';
-import {AdminSection, AdminSectionItem, cssValueLabel, HidableToggle} from 'app/client/ui/AdminPanelCss';
+import {
+  AdminPanelControls,
+  AdminSection,
+  AdminSectionItem,
+  cssSection,
+  cssSectionTitle,
+  cssValueLabel,
+  cssWell,
+  cssWellContent,
+  cssIconWrapper as cssWellIcon,
+  HidableToggle
+} from 'app/client/ui/AdminPanelCss';
 import {getAdminPanelName} from 'app/client/ui/AdminPanelName';
+import {App} from 'app/client/ui/App';
 import {AuditLogStreamingConfig, getDestinationDisplayName} from 'app/client/ui/AuditLogStreamingConfig';
+import {AuthenticationSection} from 'app/client/ui/AuthenticationSection';
 import {InstallConfigsAPI} from 'app/client/ui/ConfigsAPI';
 import {pagePanels} from 'app/client/ui/PagePanels';
 import {SupportGristPage} from 'app/client/ui/SupportGristPage';
 import {ToggleEnterpriseWidget} from 'app/client/ui/ToggleEnterpriseWidget';
 import {createTopBarHome} from 'app/client/ui/TopBar';
+import {createUserImage} from 'app/client/ui/UserImage';
 import {cssBreadcrumbs, separator} from 'app/client/ui2018/breadcrumbs';
-import {basicButton} from 'app/client/ui2018/buttons';
+import {basicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
+import {icon} from 'app/client/ui2018/icons';
 import {cssLink, makeLinks} from 'app/client/ui2018/links';
+import {confirmModal, spinnerModal} from 'app/client/ui2018/modals';
 import {toggleSwitch} from 'app/client/ui2018/toggleSwitch';
 import {BootProbeInfo, BootProbeResult, SandboxingBootProbeDetails} from 'app/common/BootProbe';
+import {ConfigAPI} from 'app/common/ConfigAPI';
+import {delay} from 'app/common/delay';
 import {AdminPanelPage, commonUrls, getPageTitleSuffix, LatestVersionAvailable} from 'app/common/gristUrls';
 import {InstallAPI, InstallAPIImpl} from 'app/common/InstallAPI';
 import {InstallAdminInfo} from 'app/common/LoginSessionAPI';
 import {getGristConfig} from 'app/common/urlUtils';
 import * as version from 'app/common/version';
 import {Computed, Disposable, dom, IDisposable, MultiHolder, Observable, styled, UseCBOwner} from 'grainjs';
+import {MINIMAL_PROVIDER_KEY} from 'app/common/loginProviders';
 
 const t = makeT('AdminPanel');
 
@@ -58,7 +75,6 @@ export class AdminPanel extends Disposable {
       app: this._appObj,
     });
   }
-
 
   private _buildMainHeader(pageObs: Computed<AdminPanelPage>) {
     const pageNames = getPageNames();
@@ -99,15 +115,31 @@ export class AdminPanel extends Disposable {
   }
 }
 
-class AdminInstallationPanel extends Disposable {
+class AdminInstallationPanel extends Disposable implements AdminPanelControls {
+  public needsRestart = Observable.create(this, false);
+  public supportsRestart = Observable.create(this, true);
   private _supportGrist = SupportGristPage.create(this, this._appModel);
   private _toggleEnterprise = ToggleEnterpriseWidget.create(this, this._appModel.notifier);
   private _checks: AdminChecks;
   private readonly _installAPI: InstallAPI = new InstallAPIImpl(getHomeUrl());
+  private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());
+  private _authCheck: Observable<AdminCheckRequest|undefined>;
+  private _loginProvider: Observable<string|undefined>;
 
   constructor(private _appModel: AppModel) {
     super();
     this._checks = new AdminChecks(this, this._installAPI);
+    this._authCheck = Computed.create(this, use => {
+      return this._checks.requestCheckById(use, 'authentication');
+    });
+    this._loginProvider = Computed.create(this, use => {
+      const req = use(this._authCheck);
+      const result = req ? use(req.result) : undefined;
+      if (result?.status === 'success') {
+        return result.details?.provider;
+      }
+      return undefined;
+    });
   }
 
   public buildDom() {
@@ -123,6 +155,35 @@ class AdminInstallationPanel extends Disposable {
       ? this._buildMainContentForAdmin()
       : this._buildMainContentForOthers()
     ]);
+  }
+
+  public async restartGrist(): Promise<void> {
+    confirmModal(
+      t('Restart Grist?'),
+      t('Restart'),
+      async () => {
+        try {
+          await spinnerModal(
+            t('Restarting Grist...'),
+            this._performRestart()
+          );
+        } catch (err) {
+          this.supportsRestart.set(false);
+          reportError(err as Error);
+        }
+      },
+      {
+        explanation: dom('div',
+          dom('p', t('Are you sure you want to restart Grist?')),
+          dom('p', t('This will apply any pending changes and briefly interrupt access for all users.')),
+        ),
+      }
+    );
+  }
+
+  private async _performRestart() {
+    await this._configAPI.restartServer();
+    await reloadSafe();
   }
 
   /**
@@ -147,6 +208,30 @@ Please log in as an administrator.`)),
 
   private _buildMainContentForAdmin() {
     return [
+      dom.maybe(this.needsRestart, () => [
+        cssSection(
+          cssSectionTitle(t('Restart Grist')),
+          cssWell(
+            cssWell.cls('-warning'),
+            cssWellIcon(icon('Warning')),
+            cssWellContent(
+              dom('p',
+                t(`Grist is running in an environment that doesn't support restarting from the admin panel.`),
+              ),
+              dom('p',
+                t('You can still restart Grist manually.'),
+                testId('admin-panel-restart-unsupported-warning'),
+              ),
+            )
+          ),
+          dom('p', t('Restart Grist to apply pending changes or resolve issues.')),
+          bigPrimaryButton(
+            t('Restart Grist'),
+            dom.on('click', () => this.restartGrist()),
+            testId('admin-panel-restart-button'),
+          ),
+        )
+      ]),
       dom.create(AdminSection, t('Support Grist'), [
         dom.create(AdminSectionItem, {
           id: 'telemetry',
@@ -187,7 +272,7 @@ Please log in as an administrator.`)),
           name: t('Authentication'),
           description: t('Current authentication method'),
           value: this._buildAuthenticationDisplay(),
-          expandedContent: this._buildAuthenticationNotice(),
+          expandedContent: this._buildAuthenticationPanelExtraContent(),
         }),
         dom.create(AdminSectionItem, {
           id: 'session',
@@ -350,33 +435,54 @@ Please log in as an administrator.`)),
   private _buildAuthenticationDisplay() {
     return dom.domComputed(
       use => {
-        const req = this._checks.requestCheckById(use, 'authentication');
+        const req = use(this._authCheck);
         const result = req ? use(req.result) : undefined;
         if (!result) {
-          return cssValueLabel(cssErrorText(t('unavailable')));
+          return cssValueLabel(
+            cssErrorText(t('unavailable')),
+            testId('admin-panel-value-label-error')
+          );
         }
 
-        const { status, details } = result;
+        const { status, details, verdict } = result;
         const success = status === 'success';
-        const loginSystemId = details?.loginSystemId;
 
-        if (!success || !loginSystemId) {
-          return cssValueLabel(cssErrorText(t('auth error')));
+        const provider = details?.provider ?? details?.label;
+
+        if (!success && !provider) {
+          return cssValueLabel(
+            cssErrorText(t('auth error')),
+            verdict ? {title: verdict} : undefined,
+            testId('admin-panel-value-label-error')
+          );
         }
 
-        if (loginSystemId === 'no-logins') {
-          return cssValueLabel(cssDangerText(t('no authentication')));
+        if (provider === MINIMAL_PROVIDER_KEY) {
+          return cssValueLabel(
+            cssDangerText(t('no authentication')),
+            verdict ? {title: verdict} : undefined,
+            testId('admin-panel-value-label-danger')
+          );
         }
 
-        return cssValueLabel(cssHappyText(loginSystemId));
+        if (!success) {
+          return cssValueLabel(
+            cssErrorText(t('auth error')),
+            verdict ? {title: t('error in {{provider}}: {{verdict}}', {provider, verdict})} : undefined,
+            testId('admin-panel-value-label-error')
+          );
+        }
+
+        return cssValueLabel(
+          cssHappyText(provider),
+          testId('admin-panel-value-label-success')
+        );
       }
     );
   }
 
-  private _buildAuthenticationNotice() {
-    return t('Grist allows different types of authentication to be configured, including SAML and OIDC. \
-We recommend enabling one of these if Grist is accessible over the network or being made available \
-to multiple people.');
+  private _buildAuthenticationPanelExtraContent() {
+    return dom.create(AuthenticationSection, this._loginProvider, this);
   }
 
   private _buildSessionSecretDisplay() {
@@ -925,4 +1031,21 @@ function _longCodeForExample() {
   return 'example-b' + 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/x/g, () => {
     return Math.floor(Math.random() * 16).toString(16);
   });
+}
+
+async function reloadSafe() {
+  // Reload the page.
+  const currentUrl = new URL(window.location.href);
+  // Clear search params to avoid re-triggering the configuration page.
+  currentUrl.search = '';
+  await delay(2000); // Allow UI to update before doing the work
+  let counter = 10;
+  while (counter-- > 0) {
+    const res = await fetch(window.location.href, {credentials: 'include'});
+    if (res.status === 200) {
+      break;
+    }
+    await delay(1000);
+  }
+  window.location.href = currentUrl.href;
 }

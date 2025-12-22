@@ -1,5 +1,6 @@
 import {TelemetryLevel} from 'app/common/Telemetry';
-import {assert, driver, Key, WebElement} from 'mocha-webdriver';
+import {assert, driver, Key} from 'mocha-webdriver';
+import {currentVersion, isEnabled, toggleItem, withExpandedItem} from 'test/nbrowser/AdminPanelTools';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {FakeUpdateServer, startFakeUpdateServer} from 'test/server/customUtil';
@@ -440,44 +441,4 @@ describe('AdminPanel', function() {
 async function assertTelemetryLevel(level: TelemetryLevel) {
   const telemetryLevel = await driver.executeScript('return window.gristConfig.telemetry?.telemetryLevel');
   assert.equal(telemetryLevel, level);
-}
-
-/**
- * Individual elements of the admin panel.
- */
-export function itemElement(itemId: string) {
-  return driver.findWait(`.test-admin-panel-item-${itemId}`, 1000);
-}
-
-export async function toggleItem(itemId: string) {
-  const header = itemElement(itemId).find(`.test-admin-panel-item-name-${itemId}`);
-  await header.click();
-  await driver.sleep(500);    // Time to expand or collapse.
-  return header;
-}
-
-export async function withExpandedItem(itemId: string, callback: () => Promise<void>) {
-  const header = await toggleItem(itemId);
-  await callback();
-  await header.click();
-  await driver.sleep(500);    // Time to collapse.
-}
-
-export async function clickSwitch(name: string) {
-  const toggle = driver.find(`.test-admin-panel-item-value-${name} .test-toggle-switch`);
-  await toggle.click();
-  await gu.waitForServer();
-}
-
-export async function isEnabled(switchElem: WebElement|string) {
-  if (typeof switchElem === 'string') {
-    switchElem = driver.find(`.test-admin-panel-item-value-${switchElem} .test-toggle-switch`);
-  }
-  return (await switchElem.find('input').getAttribute('checked')) === null ? false : true;
-}
-
-async function currentVersion() {
-  const currentVersionText = await driver.find(".test-admin-panel-item-value-version").getText();
-  const currentVersion = currentVersionText.match(/Version (.+)/)![1];
-  return currentVersion;
 }

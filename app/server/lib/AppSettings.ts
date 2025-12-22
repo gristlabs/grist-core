@@ -1,4 +1,6 @@
-import { isAffirmative, isNumber } from 'app/common/gutil';
+import {isAffirmative, isNumber} from 'app/common/gutil';
+
+type EnvFile = Record<string, string>;
 
 /**
  * A bundle of settings for the application. May contain
@@ -10,8 +12,24 @@ export class AppSettings {
   private _value?: JSONValue;
   private _children?: {[key: string]: AppSettings};
   private _info?: AppSettingQueryResult;
+  private _envFile?: EnvFile;
+  private get _root(): AppSettings {
+    return this._parent?._root ?? this;
+  }
 
-  public constructor(public readonly name: string) {}
+  public constructor(public readonly name: string, private _parent?: AppSettings) {
+
+  }
+
+  /**
+   * Set the env file stack to a specific value, replacing any previous stack.
+   */
+  public setEnvVars(envVars: EnvFile): void {
+    if (this._parent) {
+      throw new Error('setEnvFile should be called on root AppSettings object');
+    }
+    this._envFile = envVars;
+  }
 
   /* access the setting - undefined if not set */
   public get(): JSONValue|undefined {
@@ -65,22 +83,36 @@ export class AppSettings {
     this._info = undefined;
     let value = undefined;
     let found = false;
+    let source: 'env' | 'db' | undefined = undefined;
+
     const envVars = getEnvVarsFromQuery(query);
     if (!envVars.length) {
       throw new Error('could not find an environment variable to read');
     }
-    let envVar = envVars[0];
-    for (const synonym of envVars) {
-      value = process.env[synonym];
-      if (value !== undefined) {
-        envVar = synonym;
-        found = true;
-        break;
-      }
+
+    const sources = [{name: 'env', vars: process.env}];
+    if (this._root._envFile) {
+      sources.push({name: 'db', vars: this._root._envFile});
     }
+
+    let envVar = envVars[0];
+    for (const {name, vars} of sources) {
+      for (const synonym of envVars) {
+        value = vars[synonym];
+        if (value !== undefined) {
+          envVar = synonym;
+          found = true;
+          source = name as any;
+          break;
+        }
+      }
+      if (found) { break; }
+    }
+
     this._info = {
       envVar: found ? envVar : undefined,
       found,
+      source,
       query,
     };
     if (value !== undefined) {
@@ -214,7 +246,7 @@ export class AppSettings {
     if (!this._children) { this._children = {}; }
     let child = this._children[fname];
     if (!child) {
-      this._children[fname] = child = new AppSettings(fname);
+      this._children[fname] = child = new AppSettings(fname, this);
     }
     return child;
   }
@@ -237,9 +269,10 @@ export class AppSettings {
   public describe(): AppSettingDescription {
     return {
       name: this.name,
-      value: (this._info?.query.censor && this._value !== undefined) ? '*****' : this._value,
+      value: (this._info?.query?.censor && this._value !== undefined) ? '*****' : this._value,
       foundInEnvVar: this._info?.envVar,
-      wouldFindInEnvVar: this._info?.query.preferredEnvVar || getEnvVarsFromQuery(this._info?.query)[0],
+      source: this._info?.source,
+      wouldFindInEnvVar: this._info?.query.preferredEnvVar ? getEnvVarsFromQuery(this._info.query)[0] : undefined,
       usedDefault: this._value !== undefined && this._info !== undefined && !this._info?.found,
     };
   }
@@ -319,9 +352,10 @@ export interface AppSettingQueryNumber extends AppSettingQuery {
  * what query.
  */
 export interface AppSettingQueryResult {
-  envVar?: string;
   found: boolean;
   query: AppSettingQuery;
+  envVar?: string;
+  source?: 'env' | 'db';
 }
 
 /**
@@ -330,6 +364,7 @@ export interface AppSettingQueryResult {
 interface AppSettingDescription {
   name: string;            // name of the setting.
   value?: JSONValue;       // value of the setting, if available.
+  source?: 'env' | 'db';         // source of the setting, if available, available values: 'env', 'db'.
   foundInEnvVar?: string;  // environment variable the setting was read from, if available.
   wouldFindInEnvVar?: string;  // environment variable that would be checked for the setting.
   usedDefault: boolean;    // whether a default value was used for the setting.

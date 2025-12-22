@@ -1,6 +1,7 @@
-import {makeId} from 'app/server/lib/idUtils';
 import {Activation} from 'app/gen-server/entity/Activation';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
+import {makeId} from 'app/server/lib/idUtils';
+import pick from 'lodash/pick';
 import {EntityManager} from 'typeorm';
 
 /**
@@ -81,6 +82,27 @@ export class ActivationsManager {
         }, 'subquery')
         .getRawOne();
       return count;
+    });
+  }
+
+  /**
+   * Updates a key/value pair in the app env file stored in the activation record.
+   * TODO: Notify other servers that the env file has changed and they should refresh their copy of appSettings.
+   */
+  public async updateAppEnvFile(delta: Record<string, string|null>, transaction?: EntityManager) {
+    return await this._db.runInTransaction(transaction, async manager => {
+      const activation = await this.current(manager);
+      activation.prefs ??= {};
+      activation.prefs.envVars ??= {};
+      // For now we just support 1 key here, as this one is tested.
+      Object.assign(activation.prefs.envVars, pick(delta, "GRIST_LOGIN_SYSTEM_TYPE"));
+      // If any values are undefined or null, remove them.
+      for (const key of Object.keys(delta)) {
+        if (delta[key] === null || delta[key] === undefined) {
+          delete activation.prefs.envVars[key];
+        }
+      }
+      await manager.save(activation);
     });
   }
 
