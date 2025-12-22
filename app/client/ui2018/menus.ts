@@ -882,7 +882,7 @@ export function menuBuilder(definition: Array<MenuItem>) {
   return menu(ctl => [...buildMenuItems(definition)], {});
 }
 
-export function *buildMenuItems(current: Array<MenuItem>): IterableIterator<Element> {
+export function* buildMenuItems(current: Array<MenuItem>): IterableIterator<Element> {
   for (const item of current) {
     const isHeader = item.type === 'header' || item.header;
     // If this is header with submenu.

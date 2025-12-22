@@ -16,7 +16,7 @@ export type Size = 'small' | 'medium' | 'large';
 export function createUserImage(user: User, size: Size, ...args: DomElementArg[]): HTMLElement {
   return cssUserImage(
     cssUserImage.cls('-' + size),
-    ...(function*() {
+    ...(function* () {
       if (user === 'exampleUser') {
         yield [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')];
       }

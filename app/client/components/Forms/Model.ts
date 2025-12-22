@@ -380,7 +380,7 @@ export abstract class BoxModel extends Disposable {
     };
   }
 
-  public * traverse(): IterableIterator<BoxModel> {
+  public* traverse(): IterableIterator<BoxModel> {
     for (const child of this.kids()) {
       yield child;
       yield* child.traverse();
