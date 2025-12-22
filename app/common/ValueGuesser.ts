@@ -189,11 +189,11 @@ export function guessColInfo(
         NumberParse.fromSettings(docSettings).guessOptions(values),
       )
         .guess(values, docSettings) ||
-      new DateGuesser(guessDateFormat(values, timezone), timezone)
+        new DateGuesser(guessDateFormat(values, timezone), timezone)
         .guess(values, docSettings) ||
     // Don't return the same values back if there's no conversion to be done,
     // as they have to be serialized and transferred over a pipe to Python.
-      {colInfo: {type: 'Text'}}
+        {colInfo: {type: 'Text'}}
   );
 }
 
