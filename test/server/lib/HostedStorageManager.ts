@@ -656,7 +656,7 @@ describe('HostedStorageManager', function() {
         });
       });
 
-      it ('can delete a document', async function() {
+      it('can delete a document', async function() {
         const docId = `create-${uuidv4()}`;
         await workers.assignDocWorker(docId);
 
@@ -927,7 +927,7 @@ describe('HostedStorageManager', function() {
       });
 
       for (const wipeLocal of [false, true]) {
-        it (`can lose checksums without disruption with${wipeLocal ? '' : 'out'} local file wipe`, async function() {
+        it(`can lose checksums without disruption with${wipeLocal ? '' : 'out'} local file wipe`, async function() {
           const docId = `create-${uuidv4()}`;
           await workers.assignDocWorker(docId);
 

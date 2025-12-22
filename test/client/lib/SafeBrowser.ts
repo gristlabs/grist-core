@@ -311,7 +311,7 @@ const PROCESSES: TestProcesses = {
     // hit linting limit for number of classes in a single file :-)
     const myFoo = {
       foo(name: string): Promise<string> {
-        return new Promise<string> ((resolve) => {
+        return new Promise<string>((resolve) => {
           grist.rpc.once("message", (msg: any) => resolve(name + msg));
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           grist.api.render('view_client_scope', 'fullscreen');

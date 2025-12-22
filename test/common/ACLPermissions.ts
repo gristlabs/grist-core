@@ -123,7 +123,7 @@ describe("ACLPermissions", function() {
     assert.deepEqual(trim("none", ["read"]), "-R");
   });
 
-  it ('should allow summarization of permission sets', function() {
+  it('should allow summarization of permission sets', function() {
     assert.deepEqual(summarizePermissionSet(parsePermissions("+U-D")), 'mixed');
     assert.deepEqual(summarizePermissionSet(parsePermissions("+U+D")), 'allow');
     assert.deepEqual(summarizePermissionSet(parsePermissions("-U-D")), 'deny');
@@ -141,7 +141,7 @@ describe("ACLPermissions", function() {
     assert.deepEqual(summarizePermissionSet({...empty, read: 'denySome', update: 'deny'}), 'deny');
   });
 
-  it ('should allow summarization of permissions', function() {
+  it('should allow summarization of permissions', function() {
     assert.deepEqual(summarizePermissions(['allow', 'deny']), 'mixed');
     assert.deepEqual(summarizePermissions(['allow', 'allow']), 'allow');
     assert.deepEqual(summarizePermissions(['deny', 'allow']), 'mixed');

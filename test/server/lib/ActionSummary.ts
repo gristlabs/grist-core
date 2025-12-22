@@ -30,7 +30,7 @@ describe("ActionSummary", function() {
 
   const docTools = createDocTools();
 
-  it ('summarizes table-level changes', async function() {
+  it('summarizes table-level changes', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -56,7 +56,7 @@ describe("ActionSummary", function() {
                            ["-Ducks", "Frogs", "Moons"]);
   });
 
-  it ('summarizes column-level changes', async function() {
+  it('summarizes column-level changes', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -75,7 +75,7 @@ describe("ActionSummary", function() {
                             ["color", null]]);
   });
 
-  it ('summarizes row-level changes', async function() {
+  it('summarizes row-level changes', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -123,7 +123,7 @@ describe("ActionSummary", function() {
     });
   });
 
-  it ('produces reasonable tabular diffs', async function() {
+  it('produces reasonable tabular diffs', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -152,7 +152,7 @@ describe("ActionSummary", function() {
     assert.deepEqual(rows['-'].cellDeltas[cols.get('species')!], [['parrots'], null]);
   });
 
-  it ('produces reasonable tabular diffs of simple bulk actions', async function() {
+  it('produces reasonable tabular diffs of simple bulk actions', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -180,7 +180,7 @@ describe("ActionSummary", function() {
     assert.equal(1, rowTypes.filter(label => label === '...').length);
   });
 
-  it ('produces tabular diffs that separate out reused rowIds', async function() {
+  it('produces tabular diffs that separate out reused rowIds', async function() {
     const sum: ActionSummary = {
       tableRenames: [],
       tableDeltas: {
@@ -204,7 +204,7 @@ describe("ActionSummary", function() {
                             {type: "+", rowId: 1, cellDeltas: [[null, ["red"]]]}]);
   });
 
-  it ('summarizes ReplaceTableData actions', async function() {
+  it('summarizes ReplaceTableData actions', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -248,7 +248,7 @@ describe("ActionSummary", function() {
     });
   });
 
-  it ('summarizes changes in sample documents', async function() {
+  it('summarizes changes in sample documents', async function() {
     // The history of sample documents was crudely migrated from an older form,
     // so we check that diffs are generated for it.
     const doc = await docTools.loadFixtureDoc('Favorite_Films.grist');
@@ -265,7 +265,7 @@ describe("ActionSummary", function() {
                      [["Captain America"], ["Steve Rogers"]]);
   });
 
-  it ('includes adequate information about table deletions', async function() {
+  it('includes adequate information about table deletions', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc(':memory:');
     await doc.applyUserActions(session, [
@@ -285,7 +285,7 @@ describe("ActionSummary", function() {
     assert.deepEqual(columns["-color"][1], [["yellow"], null]);
   });
 
-  it ('can compose table renames', async function() {
+  it('can compose table renames', async function() {
     const summary1: ActionSummary = {
       tableRenames: [[null, 'Frogs'],        // created in summary1
                      ['Spaces', 'Spices'],   // renamed in s1
@@ -348,7 +348,7 @@ describe("ActionSummary", function() {
     assert.deepEqual(result, summary3);
   });
 
-  it ('can compose column renames', async function() {
+  it('can compose column renames', async function() {
     const summary1: ActionSummary = {
       tableRenames: [['Fish', 'Sharks']],
       tableDeltas: {
@@ -399,7 +399,7 @@ describe("ActionSummary", function() {
     assert.deepEqual(result, summary3);
   });
 
-  it ('can compose cell changes', async function() {
+  it('can compose cell changes', async function() {
     const summary1: ActionSummary = {
       tableRenames: [['Fish', 'Sharks']],
       tableDeltas: {
@@ -469,7 +469,7 @@ describe("ActionSummary", function() {
     assert.deepEqual(result, summary3);
   });
 
-  it ('can work through full history of a test file', async function() {
+  it('can work through full history of a test file', async function() {
     // At the time of writing, this fixture has 216 rows in its ActionHistory.
     const doc = await docTools.loadFixtureDoc('Favorite_Films.grist');
     const history = doc.getActionHistory();
@@ -504,7 +504,7 @@ describe("ActionSummary", function() {
                       [null, 'Title']]);
   });
 
-  it ('summarizes partially uncached changes consistently', async function() {
+  it('summarizes partially uncached changes consistently', async function() {
     const summary1: ActionSummary = {
       tableRenames: [['Fish', 'Sharks']],
       tableDeltas: {
@@ -591,7 +591,7 @@ describe("ActionSummary", function() {
     assert.deepEqual(result, summary3);
   });
 
-  it ('recognizes bulk removal', async function() {
+  it('recognizes bulk removal', async function() {
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     await doc.applyUserActions(session, [
@@ -610,7 +610,7 @@ describe("ActionSummary", function() {
     });
   });
 
-  it ('can preserve all rows or specific columns entirely if requested', async function() {
+  it('can preserve all rows or specific columns entirely if requested', async function() {
     // Make a document, and then as the last action add many rows.
     const session = docTools.createFakeSession();
     const doc: ActiveDoc = await docTools.createDoc('test.grist');

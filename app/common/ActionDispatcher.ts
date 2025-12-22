@@ -18,20 +18,20 @@ export abstract class ActionDispatcher {
     // In node 6 testing, this switch is 5+ times faster than looking up "on"+action[0].
     const a: any[] = action;
     switch (action[0]) {
-      case "AddRecord":        return this.onAddRecord       (action, a[1], a[2], a[3]);
-      case "UpdateRecord":     return this.onUpdateRecord    (action, a[1], a[2], a[3]);
-      case "RemoveRecord":     return this.onRemoveRecord    (action, a[1], a[2]);
-      case "BulkAddRecord":    return this.onBulkAddRecord   (action, a[1], a[2], a[3]);
+      case "AddRecord":        return this.onAddRecord(action, a[1], a[2], a[3]);
+      case "UpdateRecord":     return this.onUpdateRecord(action, a[1], a[2], a[3]);
+      case "RemoveRecord":     return this.onRemoveRecord(action, a[1], a[2]);
+      case "BulkAddRecord":    return this.onBulkAddRecord(action, a[1], a[2], a[3]);
       case "BulkUpdateRecord": return this.onBulkUpdateRecord(action, a[1], a[2], a[3]);
       case "BulkRemoveRecord": return this.onBulkRemoveRecord(action, a[1], a[2]);
       case "ReplaceTableData": return this.onReplaceTableData(action, a[1], a[2], a[3]);
-      case "AddColumn":        return this.onAddColumn       (action, a[1], a[2], a[3]);
-      case "RemoveColumn":     return this.onRemoveColumn    (action, a[1], a[2]);
-      case "RenameColumn":     return this.onRenameColumn    (action, a[1], a[2], a[3]);
-      case "ModifyColumn":     return this.onModifyColumn    (action, a[1], a[2], a[3]);
-      case "AddTable":         return this.onAddTable        (action, a[1], a[2]);
-      case "RemoveTable":      return this.onRemoveTable     (action, a[1]);
-      case "RenameTable":      return this.onRenameTable     (action, a[1], a[2]);
+      case "AddColumn":        return this.onAddColumn(action, a[1], a[2], a[3]);
+      case "RemoveColumn":     return this.onRemoveColumn(action, a[1], a[2]);
+      case "RenameColumn":     return this.onRenameColumn(action, a[1], a[2], a[3]);
+      case "ModifyColumn":     return this.onModifyColumn(action, a[1], a[2], a[3]);
+      case "AddTable":         return this.onAddTable(action, a[1], a[2]);
+      case "RemoveTable":      return this.onRemoveTable(action, a[1]);
+      case "RenameTable":      return this.onRenameTable(action, a[1], a[2]);
       default: throw new Error(`Received unknown action ${action[0]}`);
     }
   }

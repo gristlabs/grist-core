@@ -5646,7 +5646,7 @@ function testDocApi(settings: {
   });
 
 
-  it ("GET /docs/{did}/sql is functional", async function () {
+  it("GET /docs/{did}/sql is functional", async function () {
     const query = 'select+*+from+Table1+order+by+id';
     const resp = await axios.get(`${homeUrl}/api/docs/${docIds.Timesheets}/sql?q=${query}`, chimpy);
     assert.equal(resp.status, 200);
@@ -5677,7 +5677,7 @@ function testDocApi(settings: {
     });
   });
 
-  it ("POST /docs/{did}/sql is functional", async function () {
+  it("POST /docs/{did}/sql is functional", async function () {
     let resp = await axios.post(
       `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
       { sql: "select A from Table1 where id = ?", args: [1] },
@@ -5700,7 +5700,7 @@ function testDocApi(settings: {
     });
   });
 
-  it ("POST /docs/{did}/sql has access control", async function () {
+  it("POST /docs/{did}/sql has access control", async function () {
     // Check non-viewer doesn't have access.
     const url = `${homeUrl}/api/docs/${docIds.Timesheets}/sql`;
     const query = { sql: "select A from Table1 where id = ?", args: [1] };
@@ -5746,7 +5746,7 @@ function testDocApi(settings: {
     }
   });
 
-  it ("POST /docs/{did}/sql accepts only selects", async function () {
+  it("POST /docs/{did}/sql accepts only selects", async function () {
     async function check(accept: boolean, sql: string, ...args: any[]) {
       const resp = await axios.post(
         `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
@@ -5789,7 +5789,7 @@ function testDocApi(settings: {
     assert.lengthOf(records, 4);
   });
 
-  it ("POST /docs/{did}/sql timeout is effective", async function () {
+  it("POST /docs/{did}/sql timeout is effective", async function () {
     const slowQuery = 'WITH RECURSIVE r(i) AS (VALUES(0) ' +
         'UNION ALL SELECT i FROM r  LIMIT 1000000) ' +
         'SELECT i FROM r WHERE i = 1';

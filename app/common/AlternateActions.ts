@@ -50,11 +50,11 @@ export class AlternateActions {
     const a = action.map(item => item as any);
     switch (a[0]) {
       case "ApplyUndoActions": return this._doApplyUndoActions(a[1]);
-      case "AddRecord":        return this._doAddRecord       (a[1], a[2], a[3]);
-      case "BulkAddRecord":    return this._doBulkAddRecord   (a[1], a[2], a[3]);
-      case "UpdateRecord":     return this._doUpdateRecord    (a[1], a[2], a[3]);
+      case "AddRecord":        return this._doAddRecord(a[1], a[2], a[3]);
+      case "BulkAddRecord":    return this._doBulkAddRecord(a[1], a[2], a[3]);
+      case "UpdateRecord":     return this._doUpdateRecord(a[1], a[2], a[3]);
       case "BulkUpdateRecord": return this._doBulkUpdateRecord(a[1], a[2], a[3]);
-      case "RemoveRecord":     return this._doRemoveRecord    (a[1], a[2]);
+      case "RemoveRecord":     return this._doRemoveRecord(a[1], a[2]);
       case "BulkRemoveRecord": return this._doBulkRemoveRecord(a[1], a[2]);
       default: throw new Error(`Received unknown action ${action[0]}`);
     }

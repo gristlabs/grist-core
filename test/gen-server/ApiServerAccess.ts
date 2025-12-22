@@ -2263,7 +2263,7 @@ describe('ApiServerAccess', function() {
 
   describe('POST /api/profile/apikey', function() {
     let resp: AxiosResponse;
-    it ('fails if apiKey already set', async function() {
+    it('fails if apiKey already set', async function() {
       resp = await axios.post(`${homeUrl}/api/profile/apikey`, null, kiwi);
       assert.equal(resp.status, 400);
       assert.match(resp.data.error, /apikey is already set/);

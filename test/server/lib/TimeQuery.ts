@@ -21,7 +21,7 @@ describe("TimeQuery", function() {
 
   const docTools = createDocTools();
 
-  it ('can view state of table in past', async function() {
+  it('can view state of table in past', async function() {
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     const db = doc.docStorage;
     const cursor = new TimeCursor(new SQLiteTimeData(db));
@@ -63,7 +63,7 @@ describe("TimeQuery", function() {
     assert.sameDeepMembers(fish.all(), []);
   });
 
-  it ('can track column order and user-facing table name', async function() {
+  it('can track column order and user-facing table name', async function() {
     const doc: ActiveDoc = await docTools.createDoc('test.grist');
     const db = doc.docStorage;
     const cursor = new TimeCursor(new SQLiteTimeData(db));
@@ -115,7 +115,7 @@ describe("TimeQuery", function() {
                   /could not find/);
   });
 
-  it ('can handle renames', async function() {
+  it('can handle renames', async function() {
     this.timeout(10000);
 
     const doc: ActiveDoc = await docTools.createDoc('test.grist');

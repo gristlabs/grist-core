@@ -321,7 +321,7 @@ describe('CustomView', function() {
       const undoTestTitle = access === 'full'
         ? 'allows undo/redo via keyboard'
         : 'does not allow undo/redo via keyboard';
-      it (undoTestTitle, async function() {
+      it(undoTestTitle, async function() {
         const iframe = gu.getSection('Friends custom').find('iframe');
         await driver.switchTo().frame(iframe);
         await driver.findWait('body', 500).click();
