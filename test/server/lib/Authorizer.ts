@@ -429,7 +429,7 @@ describe('Authorizer', function() {
   });
 
   it('forbids access to stranger if GRIST_AUTO_USER=false by GRIST_FORWARD_AUTH_HEADER', async function() {
-    // These variables are reset by our beforeEach/afterEach hooks.
+    // These variables are reset by our beforeEach/afterEach hooks
     process.env.GRIST_AUTO_USER = 'false';
     process.env.GRIST_FORCE_LOGIN = 'true';
     process.env.GRIST_FORWARD_AUTH_HEADER = 'X-email';
