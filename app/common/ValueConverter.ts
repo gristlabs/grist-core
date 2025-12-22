@@ -12,7 +12,6 @@ import {
 import {CellValue, GristObjCode} from 'app/plugin/GristData';
 import { TableDataActionSet } from "app/common/DocActions";
 
-
 /**
  * Base class for converting values from one type to another with the convert() method.
  * Has a formatter for the source column

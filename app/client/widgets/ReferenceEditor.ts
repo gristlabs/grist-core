@@ -151,7 +151,6 @@ export function renderACItem(text: string, highlightFunc: HighlightFunc, isAddNe
   );
 }
 
-
 const cssRefEditor = styled('div', `
   & > .celleditor_text_editor, & > .celleditor_content_measure {
     padding-left: 18px;

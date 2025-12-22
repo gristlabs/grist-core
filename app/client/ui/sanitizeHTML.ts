@@ -55,7 +55,6 @@ function handleAfterSanitizeAttributes(node: Element) {
   }
 }
 
-
 function handleSanitizeTutorialElement(node: Node, data: createDOMPurifier.UponSanitizeElementHookEvent) {
   if (data.tagName !== 'iframe') { return; }
 

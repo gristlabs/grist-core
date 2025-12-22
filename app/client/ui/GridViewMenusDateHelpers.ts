@@ -90,7 +90,6 @@ const FORMULAS = {
   IS_WEEKEND: 'WEEKDAY($Column, 2) >= 6 if $Column else None',
 } as const;
 
-
 // Menu configuration, later on the menu is built out of it.
 const CONFIGURATION: Record<string, Section> = {
   quickPicks: {

@@ -199,7 +199,6 @@ describe('LinkingSelector', function() {
   });
 });
 
-
 interface CursorSelectorInfo {
   linkSelector: false | number;
   cursor: null | {rowNum: number, col: number};

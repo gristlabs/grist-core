@@ -38,7 +38,6 @@
  * turn, starting from the bottommost part, and make sure it gets inserted in the right level.
  */
 
-
 import {extend, noop, pick} from 'underscore';
 import {observable, removeNode, utils} from 'knockout';
 import assert from 'assert';
@@ -152,9 +151,6 @@ class Floater extends Disposable implements ContentBox {
     this.dom.style.top = (mouseEvent.clientY - this.mouseOffsetY) + 'px';
   }
 }
-
-
-
 
 //----------------------------------------------------------------------
 
@@ -737,7 +733,6 @@ export class LayoutEditor extends Disposable {
     // Sizing boxes vertically requires extra care that the sum of values doesn't change.
     this.targetBox.getDom(); // Make sure its dom is created.
 
-
     //console.log("onInsertBox %s -> %s", prevTargetBox, this.targetBox);
     let transitionPromiseResolve!: () => void;
     this.transitionPromise = new Promise(function(resolve, reject) {
@@ -772,7 +767,6 @@ export class LayoutEditor extends Disposable {
 
 extend(LayoutEditor.prototype, BackboneEvents);
 
-
 //----------------------------------------------------------------------
 
 /**
@@ -804,7 +798,6 @@ function snap(flexSize: number, sumPrev: number, sumAll: number) {
   const endEdge = round(sumPrev + flexSize, sumAll / NumSteps);
   return Math.min(endEdge, sumAll) - sumPrev;
 }
-
 
 /**
  * Resizes the given LayoutBox to transition it when it's supposed to expand or collapse. It only
@@ -873,7 +866,6 @@ function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string|DOMRect
       layoutBox.dom.style.flexGrow = prevFlexGrow;
     });
 }
-
 
 function adder(sum: number, box: LayoutBox) {
   return sum + box.flexSize.peek();

@@ -21,7 +21,6 @@ declare module "@gristlabs/sqlite3" {
   }
 }
 
-
 // Add declarations of the promisified methods of redis.
 // This is not exhaustive, there are a *lot* of methods.
 

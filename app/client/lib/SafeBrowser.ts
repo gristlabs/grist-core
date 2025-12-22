@@ -124,7 +124,6 @@ export class SafeBrowser extends BaseComponent {
     }
   }
 
-
   /**
    * Renders the file at path and returns its proc id. This is the SafeBrowser implementation for
    * the GristAPI's render(...) method, more details can be found at app/plugin/GristAPI.ts.
@@ -233,7 +232,6 @@ export class SafeBrowser extends BaseComponent {
     this._clientScope.servePlugin(this._pluginId, rpc);
     return rpc;
   }
-
 
 }
 

@@ -13,4 +13,3 @@ export class LoginsEmailsIndex1729754662550 implements MigrationInterface {
     await queryRunner.dropIndex("logins", "logins__email");
   }
 }
-

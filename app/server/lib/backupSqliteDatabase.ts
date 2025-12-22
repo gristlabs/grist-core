@@ -180,7 +180,6 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
   return dest;
 }
 
-
 /**
  * A summary of an event during a backup.  Emitted for test purposes, to check timing.
  */

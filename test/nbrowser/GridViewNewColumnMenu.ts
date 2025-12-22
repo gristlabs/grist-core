@@ -186,7 +186,6 @@ describe('GridViewNewColumnMenu', function () {
       "Attachment",
     ].map(option => ({type: option, testClass: option.toLowerCase().replace(' ', '-')}));
 
-
     describe('on desktop', function () {
       gu.bigScreen();
 
@@ -417,7 +416,6 @@ describe('GridViewNewColumnMenu', function () {
 
     });
   });
-
 
   describe('hidden columns', function () {
     revertThis();

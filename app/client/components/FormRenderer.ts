@@ -91,7 +91,6 @@ export function cleanFormLayoutSpec(
   };
 }
 
-
 /**
  * A renderer for a form layout.
  *

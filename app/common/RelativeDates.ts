@@ -28,7 +28,6 @@ export interface IPeriod {
 
 export const CURRENT_DATE: IRelativeDateSpec = [{quantity: 0, unit: 'day'}];
 
-
 export function isRelativeBound(bound?: number|IRelativeDateSpec): bound is IRelativeDateSpec {
   return !isUndefined(bound) && !isNumber(bound);
 }
@@ -161,7 +160,6 @@ export function isEquivalentRelativeDate(a: IPeriod|IPeriod[], b: IPeriod|IPerio
 
   return isEqual(compactA, compactB);
 }
-
 
 // Get the difference in unit of measurement. If unit is week, makes sure that two dates that are in
 // two different weeks are always at least 1 number apart. Same for month and year.

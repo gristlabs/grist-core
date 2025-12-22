@@ -21,7 +21,6 @@ export class AclRule extends BaseEntity {
   public group: Group;
 }
 
-
 @ChildEntity()
 export class AclRuleWs extends AclRule {
 
@@ -33,7 +32,6 @@ export class AclRuleWs extends AclRule {
   public workspaceId: number;
 }
 
-
 @ChildEntity()
 export class AclRuleOrg extends AclRule {
 
@@ -44,7 +42,6 @@ export class AclRuleOrg extends AclRule {
   @RelationId((aclRule: AclRuleOrg) => aclRule.organization)
   public orgId: number;
 }
-
 
 @ChildEntity()
 export class AclRuleDoc extends AclRule {

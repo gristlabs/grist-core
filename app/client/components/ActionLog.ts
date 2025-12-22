@@ -25,9 +25,7 @@ import {Disposable, dom, DomContents, fromKo, IDomComponent, makeTestId, styled}
 import * as ko from 'knockout';
 import takeWhile from 'lodash/takeWhile';
 
-
 const testId = makeTestId('test-actionlog-');
-
 
 /**
  *
@@ -289,7 +287,6 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
     this._pending.length = 0;
   }
 }
-
 
 /**
  * Factor out the display of a single action group, since that

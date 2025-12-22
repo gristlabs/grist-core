@@ -1009,7 +1009,6 @@ export class FlexServer implements GristServer {
     this.app.use('/api/scim', scimRouter);
   }
 
-
   public addBillingApi() {
     if (this._check('billing-api', 'homedb', 'json', 'api-mw')) { return; }
     this.getBilling().addEndpoints(this.app);
@@ -2474,7 +2473,6 @@ export class FlexServer implements GristServer {
     }
     return redirectUrl.href;
   }
-
 
   // Create and initialize the plugin manager
   private async _addPluginManager() {

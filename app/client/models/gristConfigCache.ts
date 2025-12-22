@@ -18,7 +18,6 @@ import {Document, UserAPI} from 'app/common/UserAPI';
 
 // tslint:disable:no-console
 
-
 const MaxGristConfigAgeMs = 5000;
 
 export async function getDoc(api: UserAPI, docId: string): Promise<Document> {

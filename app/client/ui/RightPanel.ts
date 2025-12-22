@@ -1141,8 +1141,6 @@ function disabledSection() {
   );
 }
 
-
-
 // This logic is copied from SidePane.js for building DOM from TabContent.
 // TODO It may not be needed after new-ui refactoring of the side-pane content.
 function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComponent) {
@@ -1206,7 +1204,6 @@ const cssRow = styled('div', `
     flex-shrink: revert;  /* allow checkbox labels to wrap in right-panel rows */
   }
 `);
-
 
 const cssButtonRow = styled(cssRow, `
   margin-left: 0;
@@ -1354,8 +1351,6 @@ const cssTabContents = styled('div', `
   overflow: auto;
 `);
 
-
-
 const cssDataLabel = styled('div', `
   flex: 0 0 81px;
   color: ${theme.lightText};
@@ -1374,7 +1369,6 @@ const cssContent = styled('div', `
 const cssList = styled(unstyledUl, `
   width: 100%;
 `);
-
 
 const cssListItem = styled('li', `
   background-color: ${theme.hover};
@@ -1423,7 +1417,6 @@ const cssTextInput = styled(textInput, `
 const cssSection = styled('div', `
   position: relative;
 `);
-
 
 //============ LinkInfo CSS ============
 

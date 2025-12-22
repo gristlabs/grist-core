@@ -34,7 +34,6 @@ export class BaseController {
     return filter ? filter.match(prefilteredResults) : prefilteredResults;
   }
 
-
   /**
    * Runs the passed callback and handles any errors that might occur.
    * Also checks if the user has access to the operation.

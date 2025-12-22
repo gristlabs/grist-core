@@ -75,7 +75,6 @@ function toSCIMMYMembers(group: Group): SCIMMY.Schemas.Group["members"] {
   ];
 }
 
-
 export function toSCIMMYGroup(group: Group): SCIMMY.Schemas.Group {
   return new SCIMMY.Schemas.Group({
     id: String(group.id),

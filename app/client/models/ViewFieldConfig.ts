@@ -43,7 +43,6 @@ export class ViewFieldConfig {
       return list.filter(f => !f.isDisposed() && !f.column().isDisposed());
     }));
 
-
     // Helper that lists all not disposed widgets. Many methods below gets all fields
     // list which still can contain disposed fields, this helper will filter them out.
     const listFields = () => this.fields().filter(f => !f.isDisposed());

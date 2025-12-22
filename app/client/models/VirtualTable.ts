@@ -51,7 +51,6 @@ export interface IExternalTable {
   afterAnySchemaChange?(editor: IEdit): Promise<void>;  // called after any schema change in the document.
 }
 
-
 // A counter to generate unique actionNums for undo actions.
 let _counterForUndoActions: number = 1;
 
@@ -171,7 +170,6 @@ export class VirtualTableData extends TableData {
     }
     return actions;
   }
-
 
   private async _doUndo(actionGroup: {
     action: ProcessedAction,

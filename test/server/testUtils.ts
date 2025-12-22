@@ -7,7 +7,6 @@
  *
  */
 
-
 /* global before, after */
 
 import * as _ from 'underscore';
@@ -57,8 +56,6 @@ export async function generateTmpFile(numLines: number, options: TmpOptions = {}
   }
   return writeTmpFile(data.join(""), options);
 }
-
-
 
 /**
  * Helper class to capture log output when we want to test it.
@@ -188,7 +185,6 @@ export async function captureLog(
   }
   return messages;
 }
-
 
 /**
  * Asserts that each string of stringArray matches the corresponding regex in regexArray.

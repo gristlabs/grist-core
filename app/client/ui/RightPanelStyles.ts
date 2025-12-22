@@ -27,7 +27,6 @@ export const cssLabelText = styled('span', `
   font-size: ${vars.xsmallFontSize};
 `);
 
-
 export const cssHelp = styled('div', `
   color: ${theme.lightText};
   margin: -8px 16px 12px 16px;

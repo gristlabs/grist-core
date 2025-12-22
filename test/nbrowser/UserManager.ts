@@ -16,7 +16,6 @@ const editWsAcls = stackWrapFunc(async function(wsName: string): Promise<void> {
   await driver.wait(() => driver.find('.test-um-members').isPresent(), 3000);
 });
 
-
 // Opens the doc acl edit menu for the given doc.
 const editDocAcls = stackWrapFunc(async function(docName: string): Promise<void> {
   // To prevent a common flakiness problem, wait for a potentially open modal dialog
@@ -852,7 +851,6 @@ describe('UserManager', function() {
     await session.tempDoc(cleanup, 'Hello.grist', {load: true});
     await driver.findWait('.test-tb-share', 2000).click();
     await driver.findContentWait('.test-tb-share-option', /Manage users/, 1000).click();
-
 
     // Check that Open Access Rules is shown.
     const accessRulesLink = await driver.findWait('.test-um-open-access-rules', 2000);

@@ -82,7 +82,6 @@ export interface ForwardAuthConfig {
   readonly skipSession: boolean;
 }
 
-
 /**
  * Read Forward Auth configuration from application settings.
  * This reads configuration from env vars - should only be called when ForwardAuth is enabled.

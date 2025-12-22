@@ -726,7 +726,6 @@ function displayCurrentType(
   );
 }
 
-
 const learnMore = () => t(
   '[Learn more.]({{learnLink}})',
   {learnLink: commonUrls.attachmentStorage},
@@ -873,7 +872,6 @@ const cssPrimarySmallLinkSettings = styled(cssPrimarySmallLink, `
 
 // This matches the style used in showProfileModal in app/client/ui/AccountWidget.
 
-
 // Check which engines can be selected in the UI, if any.
 export function getSupportedEngineChoices(): EngineCode[] {
   const gristConfig: Partial<GristLoadConfig> = window.gristConfig || {};
@@ -881,7 +879,6 @@ export function getSupportedEngineChoices(): EngineCode[] {
 }
 
 const TOOLTIP_KEY = 'copy-on-settings';
-
 
 function copyHandler(value: () => string, confirmation: string) {
   return dom.on('click', async (e, d) => {

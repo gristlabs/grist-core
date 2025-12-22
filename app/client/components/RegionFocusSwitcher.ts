@@ -664,7 +664,6 @@ const blurPanelChild = (panel: PanelRegion) => {
   }
 };
 
-
 const _focusLockHolder = Holder.create(null);
 
 const clearCurrentFocusLock = () => _focusLockHolder.clear();

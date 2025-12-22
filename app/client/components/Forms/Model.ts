@@ -105,7 +105,6 @@ export abstract class BoxModel extends Disposable {
    */
   public abstract render(...args: IDomArgs<HTMLElement>): HTMLElement;
 
-
   public removeChild(box: BoxModel) {
     const myIndex = this.children.get().indexOf(box);
     if (myIndex < 0) { throw new Error('Cannot remove box that is not in parent'); }
@@ -231,7 +230,6 @@ export abstract class BoxModel extends Disposable {
     this.children.splice(index, 0, newOne);
     return newOne;
   }
-
 
   /**
    * Replaces existing box with a new one, whenever it is found.

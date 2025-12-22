@@ -531,7 +531,6 @@ const cssDescriptionInfoTooltipButton = styled('div', `
   }
 `);
 
-
 const cssTooltip = styled('div', `
   position: absolute;
   z-index: ${vars.tooltipZIndex};      /* should be higher than a modal */

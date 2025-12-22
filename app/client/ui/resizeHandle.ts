@@ -95,7 +95,6 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
   };
 }
 
-
 // Compute the CSS width or height of the element. If element.style[prop] is set to it, it should
 // be unchanged. (Note that when an element has borders or padding, the size from
 // getBoundingClientRect() would be different, and isn't suitable for style[prop].)

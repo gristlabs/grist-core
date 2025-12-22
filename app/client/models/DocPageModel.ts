@@ -133,7 +133,6 @@ export interface ImportSource {
   action: () => void;
 }
 
-
 export class DocPageModelImpl extends Disposable implements DocPageModel {
   // Observable set to the instance of GristDoc once it's created.
   public readonly gristDoc = Observable.create<GristDocImpl|null>(this, null);
@@ -191,7 +190,6 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly docUsers = Observable.create<PermissionData|null>(this, null);
 
   private readonly _docUsersData = new MapWithTTL<'users', Promise<PermissionData>>(60 * 1000);
-
 
   // Combination of arguments needed to open a doc (docOrUrlId + openMod). It's obtained from the
   // URL, and when it changes, we need to re-open.
@@ -549,7 +547,6 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
     return docKey;
   }
 }
-
 
 function addMenu(importSources: ImportSource[], gristDoc: GristDoc, isReadonly: boolean): DomElementArg[] {
   const selectBy = gristDoc.selectBy.bind(gristDoc);

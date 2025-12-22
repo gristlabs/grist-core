@@ -72,7 +72,6 @@ export function aclColumnList(colIds: Observable<string[]>, validColIds: string[
   );
 }
 
-
 const cssColListWidget = styled('div', `
   display: flex;
   flex-direction: column;

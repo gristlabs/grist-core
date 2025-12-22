@@ -442,7 +442,6 @@ describe('ColumnFilterMenu', function() {
     await menu.findWait('.test-filter-menu-search-input', 100).click();
     await driver.sendKeys('App');
 
-
     // check search input is update to date
     assert.equal(await menu.find('.test-filter-menu-search-input').value(), 'App');
 

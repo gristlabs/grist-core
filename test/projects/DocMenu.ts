@@ -177,7 +177,6 @@ describe('DocMenu', function() {
     await testName('A (Copy) B', 'A', 'A (Copy) B');
   });
 
-
   it('should ignore emoji if icon is set', async function() {
     // Now special symbols like, they should be ignored if the second word starts with it.
     await testNameWithIcon('Foo Bar');
@@ -535,7 +534,6 @@ async function openAddNew() {
   await driver.find('.test-dm-add-new').click();
   await gu.findOpenMenu();
 }
-
 
 async function openDialog() {
   await gu.rightClick(driver.find('.test-dm-doc'));

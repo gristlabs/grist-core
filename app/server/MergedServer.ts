@@ -154,7 +154,6 @@ export class MergedServer {
     return this._serverTypes.includes(serverType);
   }
 
-
   public async run() {
 
     try {

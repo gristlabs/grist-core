@@ -8,7 +8,6 @@ describe('LeftPanel', function() {
   let mainSession: gu.Session;
   let docId: string;
 
-
   before(async function() {
     mainSession = await gu.session().teamSite.user('user1').login();
     docId = await mainSession.tempNewDoc(cleanup, 'LeftPanel.grist', {load: false});

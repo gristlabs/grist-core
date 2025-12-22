@@ -28,7 +28,6 @@ import flatMap from 'lodash/flatMap';
 
 const testId = makeTestId('test-custom-widget-');
 
-
 /**
  * This file contains a WidgetFrame and all its components.
  *

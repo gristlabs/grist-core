@@ -186,7 +186,6 @@ describe('PagePanels', function() {
       assert.equal(await isSidePanelOpen('left'), false);
     });
 
-
     it('left panel should overlap main content', async function() {
       // Open left panel again.
       await driver.find('.test-pp-left-opener-ns').click();
@@ -264,7 +263,6 @@ describe('PagePanels', function() {
       assert.equal(await isSidePanelOpen('right'), false);
     });
 
-
     it('should allow collapsing right panel if shown', async function() {
       // If no right panel, then no collapse icon.
       await driver.find('.test-pp-show-right').click();
@@ -311,7 +309,6 @@ describe('PagePanels', function() {
       await driver.sleep(500);
       assert.equal(await isSidePanelOpen('right'), true);
     });
-
 
     it('should not allow resizing right panel if shown', async function() {
       assert.equal(await isSidePanelOpen('right'), true);
@@ -385,7 +382,6 @@ describe('PagePanels', function() {
     const assertNoPicker = stackWrapFunc(async function() {
       assert.isFalse(await driver.find('.test-wselect-data').isPresent());
     });
-
 
     it('should trigger properly from the add new menu', async () => {
       // open picker from the add new menu
@@ -645,8 +641,6 @@ describe('PagePanels', function() {
 
   });
 });
-
-
 
 async function closeLeftPanel() {
   if ((await driver.find('.test-pp-left-panel').rect()).width > 50) {

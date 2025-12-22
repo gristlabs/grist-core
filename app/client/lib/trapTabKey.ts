@@ -173,7 +173,6 @@ function canHaveFocusableChildren(el: HTMLElement) {
   return !el.matches(':disabled,[hidden],[inert]');
 }
 
-
 function getNextChildEl(el: ParentNode, forward: boolean) {
   return forward ? el.firstElementChild : el.lastElementChild;
 }

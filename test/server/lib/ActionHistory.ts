@@ -198,7 +198,6 @@ const versions: Array<{name: string,
   },
 ];
 
-
 /** set action.actionHash and action.parentActionHash as appropriate for the given actions */
 function branchify(actions: LocalActionBundle[]) {
   let parentActionHash: string|null = null;
@@ -231,7 +230,6 @@ function makeBundle(actionNum: number, desc: string): LocalActionBundle {
     actionHash: null,
   } as LocalActionBundle;
 }
-
 
 for (const version of versions) {
 

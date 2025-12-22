@@ -408,7 +408,6 @@ export interface RowChanges {
   [rowId: number]: RowChange;
 }
 
-
 /**
  * This is used when we hit a cell that we know has changed but don't know its
  * value due to it being part of a bulk input.  This produces a cell that
@@ -452,7 +451,6 @@ function mergeColumn(present1: RowChanges, present2: RowChanges,
   }
   return e2.read();
 }
-
 
 /** Put list of numbers in ascending order, with duplicates removed. */
 function uniqueAndSorted(lst: number[]) {

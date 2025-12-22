@@ -249,7 +249,6 @@ export default class GridView extends BaseView {
       this._scrollColumnIntoView(idx);
     }));
 
-
     // Some observables for the scroll markers that show that the view is cut off on a side.
     this.scrollShadow = {
       left: this.isScrolledLeft,
@@ -943,14 +942,10 @@ export default class GridView extends BaseView {
       this.viewSection.viewFields().peekLength - 1);
   }
 
-
   // End of actions
-
-
 
   // ======================================================================================
   // GRIDVIEW PRIMITIVES (for manipulating grid, rows/cols, selections)
-
 
   /**
    * Assigns the cursor.rowIndex and cursor.fieldIndex observable to the correct row/column/cell
@@ -1197,10 +1192,8 @@ export default class GridView extends BaseView {
     });
   }
 
-
   // ======================================================================================
   // MISC HELPERS
-
 
   /**
    *  Returns the row index of the row whose top offset is closest to and
@@ -1461,7 +1454,6 @@ export default class GridView extends BaseView {
                     this.editingFormula() && !this.isReadonly &&
                     ko.unwrap(this.hoverColumn) === field._index(),
                   );
-
 
                   return dom(
                     'div.column_name.field',
@@ -2093,7 +2085,6 @@ export default class GridView extends BaseView {
   }
 
   // End of Dragging logic
-
 
   // ===========================================================================
   // CONTEXT MENUS

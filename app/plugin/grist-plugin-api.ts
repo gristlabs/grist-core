@@ -113,7 +113,6 @@ export const setSelectedRows = viewApi.setSelectedRows;
  */
 export const setCursorPos = viewApi.setCursorPos;
 
-
 /**
  * Same as {@link GristView.fetchSelectedTable | GristView.fetchSelectedTable},
  * but the option `keepEncoded` is `false` by default.
@@ -131,7 +130,6 @@ export async function fetchSelectedRecord(rowId: number, options: FetchSelectedO
   options = {...options, keepEncoded: options.keepEncoded || false};
   return await viewApi.fetchSelectedRecord(rowId, options);
 }
-
 
 /**
  * A collection of methods for fetching document data. The

@@ -245,7 +245,6 @@ export function beaconOpenMessage(options: IBeaconOpenOptions) {
   _beaconOpen(getBeaconUserObj(app), {...options, errors});
 }
 
-
 function getBeaconUserObj(appModel: AppModel|null): IUserObj|null {
   if (!appModel) { return null; }
 

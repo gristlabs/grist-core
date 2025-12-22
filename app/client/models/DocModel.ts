@@ -48,7 +48,6 @@ import {Disposable, toKo} from 'grainjs';
 import {UIRowId} from 'app/plugin/GristAPI';
 import {isNonNullish} from 'app/common/gutil';
 
-
 // Re-export all the entity types available. The recommended usage is like this:
 //    import {ColumnRec, ViewFieldRec} from 'app/client/models/DocModel';
 export type {ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, ValidationRec,
@@ -62,7 +61,6 @@ export type {ColumnRec, DocInfoRec, FilterRec, PageRec, TabBarRec, TableRec, Val
 export type IRowModel<TName extends keyof SchemaTypes> = MetaRowModel<TName> & {
   [ColId in keyof SchemaTypes[TName]]: KoSaveableObservable<SchemaTypes[TName][ColId]>;
 };
-
 
 /**
  * Returns an observable for an observable array of records from the given table.
@@ -85,7 +83,6 @@ export function recordSet<TRow extends MetaRowModel>(
   }, null, { pure: true });
 }
 
-
 /**
  * Returns an observable for a record from another table, selected using the passed-in observable
  * for a rowId. If rowId is invalid, returns the row model for the fake empty record.
@@ -98,7 +95,6 @@ export function refRecord<TRow extends MetaRowModel>(
   // Pass 'true' to getRowModel() to depend on the row version.
   return ko.pureComputed(() => tableModel.getRowModel(rowIdObs() || 0, true));
 }
-
 
 /**
  * Returns an observable with a list of records from another table, selected using RefList column.
@@ -291,8 +287,6 @@ export class DocModel extends Disposable {
     }
     return anyAmbiguity ? linkingRowIds.slice(1) : undefined;
   }
-
-
 
   // Turn the given columns into empty columns, losing any data stored in them.
   public async clearColumns(colRefs: number[], {keepType}: { keepType?: boolean } = {}): Promise<void> {

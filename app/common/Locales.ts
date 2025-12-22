@@ -72,7 +72,6 @@ catch {
 
 currencies = [...currencies].sort((a, b) => nativeCompare(a.code, b.code));
 
-
 export function getCountryCode(locale: string) {
   // We have some defaults defined.
   if (locale === 'en') { return 'US'; }

@@ -27,7 +27,6 @@ export interface PrefWithSource<T> {
 
 export type PrefSource = 'environment-variable' | 'preferences';
 
-
 export interface InstallAPI {
   getInstallPrefs(): Promise<InstallPrefsWithSources>;
   updateInstallPrefs(prefs: Partial<InstallPrefs>): Promise<void>;

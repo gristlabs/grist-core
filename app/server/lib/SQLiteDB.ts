@@ -261,7 +261,6 @@ export class SQLiteDB implements ISQLiteDB {
     return newCount;
   }
 
-
   private _prevTransaction: Promise<any> = Promise.resolve();
   private _migrationBackupPath: string|null = null;
   private _migrationError: Error|null = null;

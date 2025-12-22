@@ -109,7 +109,6 @@ export class PluginScreen extends Disposable {
   }
 }
 
-
 const cssModalOverrides = styled('div', `
   max-height: calc(100% - 32px);
   display: flex;

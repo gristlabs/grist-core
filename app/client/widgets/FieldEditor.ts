@@ -456,7 +456,6 @@ export class FieldEditor extends Disposable {
   }
 }
 
-
 /**
  * For an readonly editor, set up its cleanup:
  * - canceling on click-away (when focus returns to Grist "clipboard" element)

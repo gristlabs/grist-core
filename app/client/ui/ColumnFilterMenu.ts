@@ -549,7 +549,6 @@ function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
   );
 }
 
-
 /**
  * Builds a tri-state checkbox that summaries the state of all the `values`. The special value
  * `Future Values` which turns the filter into an inclusion filter or exclusion filter, can be

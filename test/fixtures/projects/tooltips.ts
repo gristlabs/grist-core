@@ -4,7 +4,6 @@ import {dom, observable, styled} from 'grainjs';
 import {withLocale} from 'test/fixtures/projects/helpers/withLocale';
 import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
 
-
 function setupTest() {
   const showTriggerObs = observable(true);
   return cssTestBox(

@@ -164,7 +164,6 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
       return state?.key?.daysLeft !== undefined && state.key.daysLeft <= 0;
     });
 
-
     const graceDays = Computed.create(owner, (use) => {
       const state = use(this._model.status);
       return state?.grace?.daysLeft ?? 0;
@@ -197,7 +196,6 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
     const exceeded = Computed.create(owner, (use) => {
       return use(isLimited) ? use(currentSeats) > use(maxSeats) : false;
     });
-
 
     return [
       cssParagraph(
@@ -334,7 +332,6 @@ activation key below.`, {
     ];
   }
 
-
   private _errorCopy() {
     return [
       cssParagraph(
@@ -430,7 +427,6 @@ const cssRowWithEdit = styled('div', `
   display: flex;
   justify-content: space-between;
 `);
-
 
 const cssTextLine = styled('div', `
   display: flex;

@@ -199,7 +199,6 @@ export function cleanupExtraWindows() {
   });
 }
 
-
 async function clearCurrentWindowStorage() {
   if ((await driver.getCurrentUrl()).startsWith('http')) {
     try {

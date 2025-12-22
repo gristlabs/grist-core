@@ -2,7 +2,6 @@ import {assert, driver, Key, until, WebElement} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
-
 describe('RecordLayout', function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();

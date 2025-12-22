@@ -6,7 +6,6 @@ import { Computed, Observable, observable } from 'grainjs';
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
-
 function setupTest() {
   const confirmed = observable(false);
   const isOpen = observable(false);

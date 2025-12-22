@@ -68,7 +68,6 @@ describe('SamlConfig', () => {
     });
   });
 
-
   describe('when enabled', () => {
     const { homeUrl, sessionUrl, getDbManager } = setupTestServer(true);
 

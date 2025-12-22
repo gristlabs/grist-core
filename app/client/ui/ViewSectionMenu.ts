@@ -227,7 +227,6 @@ function makeCustomOptions(section: ViewSectionRec) {
 
 const clsOldUI = styled('div', ``);
 
-
 export const cssMenu = styled('div', `
   display: flex;
   cursor: pointer;

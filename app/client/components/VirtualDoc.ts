@@ -303,7 +303,6 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
       }
     }
 
-
     // Now register this table with the docModel.
     this.autoDispose(new VirtualTableRegistration(this.docModel, ext));
 

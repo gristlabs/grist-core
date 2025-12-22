@@ -122,4 +122,3 @@ interface RequestError {
 }
 
 type Response = RequestError | SuccessfulResponse;
-

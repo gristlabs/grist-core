@@ -39,7 +39,6 @@ export class ActivationsManager {
     }, transaction);
   }
 
-
   public async updateGracePeriod(gracePeriodStarted: Date | null, transaction?: EntityManager): Promise<void> {
     await this._updateActivation((activation) => {
       activation.gracePeriodStart = gracePeriodStarted;

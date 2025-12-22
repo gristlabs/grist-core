@@ -98,7 +98,6 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
 export const {getPrefsObs: getUserOrgPrefsObs, getPrefObs: getUserOrgPrefObs} = makePrefFunctions('userOrgPrefs');
 export const {getPrefsObs: getUserPrefsObs, getPrefObs: getUserPrefObs} = makePrefFunctions('userPrefs');
 
-
 // For preferences that store a list of items (such as seen docTours), this helper updates the
 // preference to add itemId to it (e.g. to avoid auto-starting the docTour again in the future).
 // prefKey is used only to log a more informative warning on error.

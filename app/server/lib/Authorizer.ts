@@ -581,7 +581,6 @@ export async function getOrSetDocAuth(
   return mreq.docAuth;
 }
 
-
 export interface ResourceSummary {
   kind: 'doc';
   id: string|number;

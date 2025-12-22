@@ -40,4 +40,3 @@ export class GroupTypes1753088213255 implements MigrationInterface {
     await queryRunner.dropColumn('groups', 'type');
   }
 }
-

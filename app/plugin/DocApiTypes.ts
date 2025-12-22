@@ -121,7 +121,6 @@ export interface SqlPost {
   // limitations of API node-sqlite3 exposes.
 }
 
-
 export interface SetAttachmentStorePost {
   type: AttachmentStore
 }

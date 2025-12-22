@@ -571,7 +571,6 @@ describe('SQLiteDB', function() {
   });
 });
 
-
 // The schema we use in the tests.
 const schemaInfo: SchemaInfo = {
   async create(db: SQLiteDB) {

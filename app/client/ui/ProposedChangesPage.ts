@@ -432,7 +432,6 @@ export class ProposedChangesForkPage extends Disposable {
   }
 }
 
-
 class ActionLogPartInProposal extends ActionLogPart {
   public constructor(
     private _gristDoc: GristDoc,
@@ -683,7 +682,6 @@ const cssControlRow = styled('div', `
   display: flex;
   gap: 16px;
 `);
-
 
 const betaTag = styled('span', `
   text-transform: uppercase;

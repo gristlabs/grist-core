@@ -166,8 +166,6 @@ export class LayoutTray extends DisposableWithEvents {
     });
   }
 
-
-
   private _registerCommands() {
     const viewLayout = this.viewLayout;
     // Add custom commands for options in the menu.
@@ -414,7 +412,6 @@ class CollapsedDropZone extends Disposable {
     }
   }
 }
-
 
 /**
  * UI component that renders and owns all the collapsed leaves.
@@ -839,7 +836,6 @@ class ExternalLeaf extends Disposable implements Dropped {
       return box ? this as Dropped : null;
     }).distinct().pipe(this.model.drag);
 
-
     // When the external box is dropped, we will pretend that we were dropped.
     this._drop.map(x => this as Dropped|null).pipe(this.model.drop);
 
@@ -869,7 +865,6 @@ class ExternalLeaf extends Disposable implements Dropped {
         this.model.viewLayout.saveLayoutSpec().catch(reportError);
       }
     }));
-
 
     // We are responsible for saving the layout, when section is collapsed or expanded.
 
@@ -1184,7 +1179,6 @@ const cssVirtualZone = styled('div', `
   position: absolute;
   inset: 0;
 `);
-
 
 const cssFloaterWrapper = styled('div', `
   height: 40px;

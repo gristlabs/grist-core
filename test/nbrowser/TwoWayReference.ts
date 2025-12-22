@@ -59,7 +59,6 @@ describe('TwoWayReference', function() {
     await revert();
   });
 
-
   it('creates proper names when labels are not standard', async function() {
     const revert = await gu.begin();
     await gu.toggleSidePanel('left', 'close');
@@ -620,7 +619,6 @@ describe('TwoWayReference', function() {
     await checkInitial();
   });
 
-
   it('creates proper names when added multiple times', async function() {
     const revert = await gu.begin();
 
@@ -744,7 +742,6 @@ const removeModal = {
   checkUnlink: () => driver.findWait('.test-option-unlink', 100).click(),
   checkRemove: () => driver.findWait('.test-option-remove', 100).click(),
 };
-
 
 /**
  * Returns an array of column headers for each table in the document.

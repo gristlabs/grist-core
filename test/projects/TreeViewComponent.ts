@@ -156,7 +156,6 @@ describe('TreeViewComponent', () => {
     await driver.actions().release().perform();
   });
 
-
   it('should not be possible to drop above or below dragged item', async function() {
     await startDrag(/Page5/);
     await moveTo(/Page5/, {y: 1});

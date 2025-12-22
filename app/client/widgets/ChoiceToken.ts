@@ -14,7 +14,6 @@ export interface IChoiceTokenOptions extends Style {
   blank?: boolean;
 }
 
-
 /**
  * Creates a colored token representing a choice (e.g. Choice and Choice List values).
  *

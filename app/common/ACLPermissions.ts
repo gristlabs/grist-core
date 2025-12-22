@@ -10,7 +10,6 @@
 import fromPairs from 'lodash/fromPairs';
 import mapValues from 'lodash/mapValues';
 
-
 // A PermissionValue is the result of evaluating rules. It provides a definitive answer.
 export type PermissionValue = "allow" | "deny";
 
@@ -119,7 +118,6 @@ export function permissionSetToText(permissionSet: Partial<PartialPermissionSet>
   return REVERSE_ALIASES[perm] || perm;
 }
 
-
 /**
  * Replace allow/deny with allowSome/denySome to indicate dependence on rows.
  */
@@ -163,7 +161,6 @@ export function trimPermissions(
   }
   return trimmed;
 }
-
 
 /**
  * Merge a list of PermissionSets by combining individual bits.
@@ -215,11 +212,9 @@ export function summarizePermissions(perms: MixedPermissionValue[]): MixedPermis
   return perms.some(p => p !== perm) ? 'mixed' : perm;
 }
 
-
 function isEmpty(permissions: PartialPermissionSet): boolean {
   return Object.values(permissions).every(v => v === "");
 }
-
 
 /**
  * Divide up a PartialPermissionSet into two: one containing only the 'schemaEdit' permission bit,

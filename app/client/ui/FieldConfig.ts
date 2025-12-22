@@ -205,7 +205,6 @@ export function buildFormulaConfig(
     'Clear and reset', 'CrossSmall',
   );
 
-
   // Convert the given columns to data, saving the calculated values and unsetting the formulas.
   const convertIsFormula = async (colRefs: number[], opts: { toFormula: boolean, noRecalc?: boolean }) => {
     return gristDoc.docModel.columns.sendTableAction(
@@ -241,7 +240,6 @@ export function buildFormulaConfig(
         dom.cls(cssBlockedCursor.className, disableModify),
         dom.cls("disabled", disableModify)),
     );
-
 
   // Behavior label
   const behaviorName = Computed.create(owner, behavior, (use, type) => {

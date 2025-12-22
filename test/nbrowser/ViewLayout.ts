@@ -45,7 +45,6 @@ describe("ViewLayout", function() {
     await gu.checkForErrors();
   });
 
-
   it('should allow to rename a section', async () => {
     // rename `TABLE1`
     await gu.selectSectionByTitle('TABLE1');

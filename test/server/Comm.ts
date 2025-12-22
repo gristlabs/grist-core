@@ -27,7 +27,6 @@ import { Hosts, RequestOrgInfo } from 'app/server/lib/extractOrg';
 const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
 promisifyAll(SQLiteStore.prototype);
 
-
 // Just enough implementation of Hosts to be able to fake using a custom host.
 class FakeHosts {
 

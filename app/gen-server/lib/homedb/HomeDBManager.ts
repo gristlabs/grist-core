@@ -301,7 +301,6 @@ export class HomeDBManager implements HomeDBAuth {
   private _docAuthCache = new MapWithTTL<string, Promise<DocAuthResult>>(DOC_AUTH_CACHE_TTL);
   private _readonly: boolean = false;
 
-
   private get _dbType(): DatabaseType {
     return this._connection.driver.options.type;
   }

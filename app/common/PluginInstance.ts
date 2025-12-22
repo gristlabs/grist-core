@@ -8,7 +8,6 @@ import {BarePlugin} from 'app/plugin/PluginManifest';
 import {Implementation} from 'app/plugin/PluginManifest';
 import {RenderOptions, RenderTarget} from 'app/plugin/RenderOptions';
 
-
 export type ComponentKind = "safeBrowser" | "safePython" | "unsafeNode";
 
 // Describes a function that appends some html content to `containerElement` given some
@@ -88,7 +87,6 @@ export abstract class BaseComponent implements IForwarderDest {
 
   protected abstract activateImplementation(): Promise<void>;
 }
-
 
 /**
  * Node Implementation for the PluginElement interface. A PluginInstance take care of activation of

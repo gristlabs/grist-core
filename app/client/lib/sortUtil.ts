@@ -9,7 +9,6 @@ import { UIRowId } from 'app/plugin/GristAPI';
 import * as ko from 'knockout';
 import range from 'lodash/range';
 
-
 /**
  * Adds a column to the given sort spec, replacing its previous occurrence if
  * it's already in the sort spec.

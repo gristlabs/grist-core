@@ -64,7 +64,6 @@ export interface LatestVersion {
   updatedAt?: string;
 }
 
-
 export class UpdateManager {
 
   // Cache for the latest version of the client.
@@ -188,7 +187,6 @@ export class UpdateManager {
     this._abortController = new AbortController();
   }
 }
-
 
 type VersionChecker = (signal: AbortSignal) => Promise<LatestVersion>;
 

@@ -633,7 +633,6 @@ function toggle(obs: Observable<boolean>) {
   obs.set(!obs.get());
 }
 
-
 export function addTreeView(model: Observable<TreeModel>, options: TreeViewOptions) {
   return dom.create(TreeViewComponent, model, options);
 }
@@ -667,7 +666,6 @@ function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
     return {onMove, onStop};
   });
 }
-
 
 // Replaces the children of elem with children.
 function replaceChildren(elem: Element, ...children: Element[]) {

@@ -230,10 +230,8 @@ function setupTest() {
   );
 }
 
-
 const cssWrapper = styled('div', `
 `);
-
 
 // Load icons.css, wait for it to load, then build the page.
 initGristStyles();

@@ -161,7 +161,6 @@ export async function scrubUserFromBillingAccounts(removeUserId: number, newUser
   }
 }
 
-
 /**
  * Adds specified user to any guest groups for the resources of an org where the
  * user needs to be and is not already.

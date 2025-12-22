@@ -22,7 +22,6 @@ import { jsonErrorHandler } from 'app/server/lib/expressWrap';
 import log from 'app/server/lib/log';
 import * as testUtils from 'test/server/testUtils';
 
-
 const chimpy = configForUser('Chimpy');
 const kiwi = configForUser('kiwi');
 
@@ -139,7 +138,6 @@ describe('DocApiForwarder', function() {
     assert.equal(docWorkerStub.callCount, 0);
   });
 
-
   it('should forward POST /api/docs/:did/tables/:tid/data', async function() {
     resp = await axios.post(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`, {message: 'golden pears'}, chimpy);
     assert.equal(resp.status, 200);
@@ -152,7 +150,6 @@ describe('DocApiForwarder', function() {
     assert.equal(req.method, 'POST');
     assert.deepEqual(req.body, {message: 'golden pears'});
   });
-
 
   it('should forward PATCH /api/docs/:did/tables/:tid/data', async function() {
     resp = await axios.patch(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,

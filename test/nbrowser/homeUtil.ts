@@ -471,7 +471,6 @@ export class HomeUtil {
     });
   }
 
-
   // Make a home api instance with the given api key, for the specified org.
   // If no api key given, work anonymously.
   private _createHomeApiUsingApiKey(apiKey: string|null, org?: string): UserAPIImpl {

@@ -19,7 +19,6 @@ export interface IMargins {
 
 export type IRect = ISize & IMargins;
 
-
 // edgeMargin is how many pixels to leave before the edge of the browser window by default.
 // This is added to margins that may be passed into the constructor.
 const edgeMargin = 12;
@@ -27,7 +26,6 @@ const edgeMargin = 12;
 // How large the editor can get when it needs to shift to the left or upwards.
 const maxShiftWidth = 560;
 const maxShiftHeight = 400;
-
 
 /**
  * This class implements the placement and sizing of the cell editor, such as TextEditor and

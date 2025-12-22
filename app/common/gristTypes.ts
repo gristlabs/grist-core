@@ -41,7 +41,6 @@ const _defaultValues: {[key in GristType]: [CellValue, string]} = {
   'Text': ['',    "''"],
 };
 
-
 /**
  * Given a grist column type (e.g Text, Numeric, ...) returns the default value for that type.
  * If options.sqlFormatted is true, returns the representation of the value for SQLite.
@@ -83,7 +82,6 @@ export function reencodeAsAny(value: CellValue, typeInfo: GristTypeInfo): CellVa
   }
   return value;
 }
-
 
 /**
  * Returns whether a value (as received in a DocAction) represents a custom object.
@@ -230,7 +228,6 @@ export enum RecalcWhen {
   NEVER = 1,           // Don't calculate automatically (but user can trigger manually)
   MANUAL_UPDATES = 2,  // Calculate on new records and on manual updates to any data field.
 }
-
 
 /**
  * Converts SQL type strings produced by the Sequelize library into its corresponding

@@ -3,7 +3,6 @@ import {textarea} from 'app/client/ui/inputs';
 import {cssTextInput} from 'app/client/ui2018/editableLabel';
 import {IInputOptions, input, Observable, styled} from 'grainjs';
 
-
 export const cssRenamePopup = styled('div', `
   display: flex;
   flex-direction: column;

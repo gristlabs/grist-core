@@ -192,7 +192,6 @@ describe("LanguageSettings", function() {
   });
 });
 
-
 function languageMenu() {
   return gu.currentDriver().find('.test-account-page-language .test-select-open');
 }

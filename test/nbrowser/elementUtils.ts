@@ -45,4 +45,3 @@ export const option = (testId: string) => ({
     return 'true' === await this.element().findClosest("label").find("input[type='checkbox']").getAttribute('checked');
   },
 });
-

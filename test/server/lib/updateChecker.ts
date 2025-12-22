@@ -10,7 +10,6 @@ import fetch from 'node-fetch';
 import { FlexServer } from "app/server/lib/FlexServer";
 import { Timings } from "app/gen-server/lib/Housekeeper";
 
-
 const fakeVersionUrl = 'https://whatever.computer/version';
 describe('updateChecker', function() {
   testUtils.setTmpLogLevel('error');

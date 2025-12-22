@@ -11,7 +11,6 @@ function check(values: Array<string | null>, expectedResult: GuessResult) {
   assert.deepEqual(result, expectedResult);
 }
 
-
 describe("ValueGuesser", function() {
   it("should guess booleans and numbers correctly", function() {
     check(

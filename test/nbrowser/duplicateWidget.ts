@@ -112,7 +112,6 @@ describe("duplicateWidget", function() {
       await renameLastWidget('Widget 3');
     });
 
-
     it('preserves style rules', async function() {
       await gu.getSection('Widget 3').click();
       await gu.openWidgetPanel('widget');
@@ -150,7 +149,6 @@ describe("duplicateWidget", function() {
     });
   });
 });
-
 
 const CardListTheme = StringUnion('Form', 'Compact', 'Block');
 async function setCardListTheme(theme: typeof CardListTheme.type) {

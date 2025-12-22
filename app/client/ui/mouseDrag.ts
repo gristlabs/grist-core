@@ -11,7 +11,6 @@
  */
 import {dom, DomElementMethod, IDisposable} from "grainjs";
 
-
 export interface MouseDragHandler {
   onMove(moveEv: MouseEvent): void;
   onStop(endEv: MouseEvent): void;

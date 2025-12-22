@@ -68,7 +68,6 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   // which takes into account the default options for column's type.
   widgetOptionsJson: modelUtil.SaveableObjObservable<any>;
 
-
   disableModify: ko.Computed<boolean>;
   disableEditData: ko.Computed<boolean>;
 

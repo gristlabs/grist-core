@@ -16,7 +16,6 @@ export interface Serving {
   shutdown: () => Promise<void>;
 }
 
-
 // Adds static files from a directory.
 // By default exposes /fixture/sites
 export function addStatic(app: express.Express, rootDir?: string) {

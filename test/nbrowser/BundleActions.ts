@@ -10,7 +10,6 @@ import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 import {SQLiteDB} from 'app/server/lib/SQLiteDB';
 import fs from 'fs';
 
-
 describe('BundleActions', function() {
   this.timeout(30000);
   const cleanup = setupTestSuite();

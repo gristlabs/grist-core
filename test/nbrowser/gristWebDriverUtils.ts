@@ -155,7 +155,6 @@ export class GristWebDriverUtils {
       }
     }
 
-
     if (dontAdd) { return; }
 
     // add the widget

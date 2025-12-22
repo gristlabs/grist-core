@@ -10,7 +10,6 @@ const columnType = `DateTime:${timezone}`;
 
 describe('ColumnFilterFunc', function() {
 
-
   [
     {date: '2023-01-01 23:59:59', expected: false},
     {date: '2023-01-02 00:00:00', expected: true},

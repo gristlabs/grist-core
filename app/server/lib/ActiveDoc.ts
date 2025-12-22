@@ -251,7 +251,6 @@ interface UpdateUsageOptions {
   broadcastUsageToClients?: boolean;
 }
 
-
 /**
  * Represents an active document with the given name. The document isn't actually open until
  * either .loadDoc() or .createEmptyDoc() is called.
@@ -1299,7 +1298,6 @@ export class ActiveDoc extends EventEmitter {
   public async allAttachmentTransfersCompleted() {
     await this._attachmentFileManager.allTransfersCompleted();
   }
-
 
   public async setAttachmentStore(docSession: OptDocSession, id: string | undefined): Promise<void> {
     const docSettings = this._getDocumentSettings();

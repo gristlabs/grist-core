@@ -106,7 +106,6 @@ export interface ColumnDelta {
   [rowId: number]: CellDelta;
 }
 
-
 /** Create an ActionSummary for a period with no action */
 export function createEmptyActionSummary(): ActionSummary {
   return { tableRenames: [], tableDeltas: {} };
@@ -122,7 +121,6 @@ export function createEmptyTableDelta(): TableDelta {
     columnRenames: [],
   };
 }
-
 
 /**
  * Distill a summary further, into tabular form, for ease of rendering.

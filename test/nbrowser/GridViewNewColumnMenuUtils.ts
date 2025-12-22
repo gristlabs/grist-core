@@ -58,7 +58,6 @@ export function revertEach() {
   });
 }
 
-
 export function revertThis() {
   let revert: () => Promise<void>;
   before(async function () {

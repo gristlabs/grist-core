@@ -50,7 +50,6 @@ import * as fse from 'fs-extra';
 
 const ACCESS_GROUPS = ['owners', 'editors', 'viewers', 'guests', 'members'];
 
-
 export const testDailyApiLimitFeatures = {
   ...teamFreeFeatures,
   baseMaxApiUnitsPerDocumentPerDay: 3,

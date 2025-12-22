@@ -28,7 +28,6 @@ renderer.hr = ({raw}) => raw;
 renderer.html = ({raw}) => escape(raw);
 renderer.image = ({raw}) => raw;
 
-
 // Creator for a Marked instance that includes some extra features.
 const markedAsync = new AsyncCreate<Marked>(async () => {
   const highlight = await buildCodeHighlighter({ maxLines: 60 });

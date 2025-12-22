@@ -73,7 +73,6 @@ export function isAddTable(act: DocAction): act is AddTable { return act[0] === 
 export function isRemoveTable(act: DocAction): act is RemoveTable { return act[0] === 'RemoveTable'; }
 export function isRenameTable(act: DocAction): act is RenameTable { return act[0] === 'RenameTable'; }
 
-
 const SCHEMA_ACTIONS = new Set(['AddTable', 'RemoveTable', 'RenameTable', 'AddColumn',
   'RemoveColumn', 'RenameColumn', 'ModifyColumn']);
 

@@ -238,7 +238,6 @@ interface OperationStatus {
   callbacks: Array<(err?: Error) => void>;  // callbacks for notifications when op is done/fails
 }
 
-
 /**
  * History of an operation.
  */

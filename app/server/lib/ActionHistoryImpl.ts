@@ -56,7 +56,6 @@ export function decodeAction(blob: Buffer | Uint8Array): LocalActionBundle {
   return marshaller.loads(blob) as LocalActionBundle;
 }
 
-
 /**
  *
  * Decode an action from an ActionHistory row. Row must include body, actionNum, actionHash fields.
@@ -87,7 +86,6 @@ export function computeActionHash(action: LocalActionBundle): string {
   shaSum.update(buf);
   return shaSum.digest('hex');
 }
-
 
 /** The important identifiers associated with an action */
 interface ActionIdentifiers {

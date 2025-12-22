@@ -499,7 +499,6 @@ function getHelperCols(docData: DocData, tableId: string, colIds: string[], log:
   return result;
 }
 
-
 /**
  * Parse all ACL rules in the document from DocData into a list of RuleSets and of
  * UserAttributeRules. This is used by both client-side code and server-side.
@@ -574,7 +573,6 @@ function readAclRules(docData: DocData, {log, compile, enrichRulesForImplementat
   }
   return {ruleSets, userAttributes};
 }
-
 
 /**
  * In the UI, we present SchemaEdit rules in a separate section, even though in reality they live

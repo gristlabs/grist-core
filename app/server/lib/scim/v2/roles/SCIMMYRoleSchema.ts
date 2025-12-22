@@ -39,4 +39,3 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
     Object.assign(this, SCIMMYRoleSchema._definition.coerce(resource, direction, basepath, filters));
   }
 }
-

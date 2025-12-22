@@ -218,7 +218,6 @@ async function callWithRetry<T>(op: () => Promise<T>, options: {
   }
 }
 
-
 /*************************************************************
  * Patch 2
  * Watch out for parameter collisions, shout loudly if they
@@ -257,7 +256,6 @@ abstract class QueryBuilderPatched<T extends ObjectLiteral> extends QueryBuilder
 
 (QueryBuilder.prototype as any).setParameter = (QueryBuilderPatched.prototype as any).setParameter;
 (QueryBuilder.prototype as any).chain = (QueryBuilderPatched.prototype as any).chain;
-
 
 /*************************************************************
  * Patch 3

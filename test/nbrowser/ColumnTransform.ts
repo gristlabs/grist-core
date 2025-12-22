@@ -2,7 +2,6 @@ import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 import {assert, driver, Key} from 'mocha-webdriver';
 
-
 describe('ColumnTransform', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();

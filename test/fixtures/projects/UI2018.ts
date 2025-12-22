@@ -19,7 +19,6 @@ import noop from 'lodash/noop';
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
-
 function setupTest() {
   const actionText = observable('');
   const cssAction = dom('div',

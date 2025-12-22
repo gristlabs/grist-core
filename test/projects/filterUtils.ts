@@ -44,7 +44,6 @@ export function getSelectedOption() {
   return driver.findAll('.grist-floating-menu li[class*=-sel]', e => e.getText());
 }
 
-
 export function findBound(minMax: 'min'|'max') {
   return new WebElementPromise(driver, driver.find(`.test-filter-menu-${minMax}`));
 }

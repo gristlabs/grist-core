@@ -16,7 +16,6 @@ import {EmptySnapshotProgress, IDocStorageManager, SnapshotProgress} from 'app/s
 import {IShell} from 'app/server/lib/IShell';
 import log from 'app/server/lib/log';
 
-
 /**
  * DocStorageManager manages Grist documents. This implementation deals with files in the file
  * system. An alternative implementation could provide the same public methods to implement

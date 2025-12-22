@@ -36,7 +36,6 @@ import {createTmpDir, getGlobalPluginManager} from 'test/server/docTools';
 import {EnvironmentSnapshot, setTmpLogLevel, useFixtureDoc} from 'test/server/testUtils';
 import {waitForIt} from 'test/server/wait';
 
-
 import * as bluebird from 'bluebird';
 import {assert} from 'chai';
 import * as fse from 'fs-extra';
@@ -274,7 +273,6 @@ class SlowExternalStorage implements ExternalStorage {
   }
 }
 
-
 /**
  * A document store representing a doc worker's local store, for testing.
  * Uses TEST_S3_BUCKET and TEST_S3_PREFIX.  Objects in test bucket should be set up
@@ -392,7 +390,6 @@ class TestStore {
     return path.join(this._localDirectory, `${docId}.grist`);
   }
 }
-
 
 describe('HostedStorageManager', function() {
 

@@ -177,7 +177,6 @@ export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord|nul
     zipObject(colIds, colIds.map(() => blankRow))];
 }
 
-
 /**
  * Fills currently selected grid with the contents of the top row in that selection.
  */

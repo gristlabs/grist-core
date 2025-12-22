@@ -338,7 +338,6 @@ export const cssPlusIcon = styled(icon, `
  --icon-color: ${theme.controlPrimaryFg};
 `);
 
-
 export const cssColumns = styled('div', `
   display: grid;
   grid-template-columns: repeat(var(--css-columns-count), 1fr) 32px;
@@ -390,7 +389,6 @@ export const cssButtonGroup = styled('div', `
   padding-top: calc((40px - 24px) / 2);
   padding-bottom: calc((40px - 24px) / 2);
 `);
-
 
 export const cssSmallLinkButton = styled(basicButtonLink, `
   display: inline-flex;
@@ -558,7 +556,6 @@ export const cssDrag = styled(icon, `
     top: 16px;
   }
 `);
-
 
 export const cssPreview = styled('iframe', `
   height: 100%;

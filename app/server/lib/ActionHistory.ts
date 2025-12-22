@@ -160,7 +160,6 @@ export abstract class ActionHistory {
   public abstract deleteActions(keepN: number): Promise<void>;
 }
 
-
 /**
  * Convert an ActionBundle into an ActionGroup.  ActionGroups are the representation of
  * actions on the client.

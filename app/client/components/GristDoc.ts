@@ -886,7 +886,6 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     );
   }
 
-
   // Open the given page. Note that links to pages should use <a> elements together with setLinkUrl().
   public openDocPage(viewId: IDocPage) {
     return urlState().pushUrl({docPage: viewId});
@@ -1085,7 +1084,6 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
       }],
     );
   }
-
 
   // Returns the list of all the valid links to link from one of the sections in the active view to
   // the page widget 'widget'.
@@ -1399,7 +1397,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
       this.docPageModel.currentProduct.set(message.data.product ?? null);
     });
   }
-
 
   /**
    * Process actions received from the server by forwarding them to `docData.receiveAction()` and

@@ -93,7 +93,6 @@ describe('CommentAccess', function() {
     await cliOwner.openDocOnConnect(docId);
   }
 
-
   it('creates proper snapshot', async function() {
     await testDoc();
     const access = await getGranularAccess();

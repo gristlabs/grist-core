@@ -203,7 +203,6 @@ export function encodeObject(value: unknown): CellValue {
   return [GristObjCode.Unmarshallable, UnknownValue.safeRepr(value)];
 }
 
-
 /**
  * Given a Grist-encoded value, returns an object represented by it.
  * If the type code is unknown, or construction fails for any reason, returns an UnknownValue.

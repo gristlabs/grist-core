@@ -11,7 +11,6 @@ import {fixturesRoot} from 'test/server/testUtils';
  */
 const ENABLE_TIMING_TESTS = Boolean(process.env.ENABLE_TIMING_TESTS);
 
-
 interface TestACItem extends ACItem {
   text: string;
 }
@@ -32,7 +31,6 @@ const messy: TestACItem[] = [
   "", " \t", "  RED  ", "123", "-5.6", "red", "read ", "Bread", "#red", "\nred\n#red\nred", "\n\n", "REDIS/1",
 ].map(makeItem);
 
-
 describe('ACIndex', function() {
   it('should find items with matching words', function() {
     const items: ACItem[] = ["blue", "dark red", "reddish", "red", "orange", "yellow", "radical green"].map(
@@ -41,7 +39,6 @@ describe('ACIndex', function() {
     assert.deepEqual(acIndex.search("red").items.map(item => item.cleanText),
       ["red", "reddish", "dark red", "radical green", "blue"]);
   });
-
 
   it('should return first few items when search text is empty', function() {
     let acResult = new ACIndexImpl(colors).search("");
@@ -368,7 +365,6 @@ describe('ACIndex', function() {
     });
   }
 });
-
 
 // This is a brute force implementation of the same score-based search. It makes scoring logic
 // easier to understand.

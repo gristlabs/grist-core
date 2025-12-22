@@ -302,7 +302,6 @@ describe("GroupsManager", function () {
 
   });
 
-
   describe('getGroupsWithMembersByType()', function () {
     it('should return groups and members for roles', async function () {
       const groups = await db.getGroupsWithMembersByType(Group.ROLE_TYPE);

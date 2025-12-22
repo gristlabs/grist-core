@@ -76,7 +76,6 @@ export function textarea(
     }
   }) : null;
 
-
   return dom('textarea', ...args,
     value ? [
       dom.autoDispose(value),

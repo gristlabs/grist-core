@@ -31,7 +31,6 @@ const chimpyEmail = 'chimpy@getgrist.com';
 const kiwiEmail = 'kiwi@getgrist.com';
 const charonEmail = 'charon@getgrist.com';
 
-
 describe('AuthCaching', function() {
   this.timeout(10000);
   testUtils.setTmpLogLevel('error');

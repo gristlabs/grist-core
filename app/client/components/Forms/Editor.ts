@@ -76,7 +76,6 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
   const dragBelow = Observable.create(owner, false);
   const dragging = Observable.create(owner, false);
 
-
   return element = style.cssFieldEditor(
     testId('editor'),
 

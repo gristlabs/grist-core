@@ -191,7 +191,6 @@ function buildPrompt(tableNames: string[], onSave: (option: RemoveOption) => Pro
   });
 }
 
-
 function buildWarning(tables: string[]) {
   return cssWarning(
     dom.forEach(tables, tb => cssTableName(tb, testId('table'))),

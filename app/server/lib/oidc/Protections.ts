@@ -124,4 +124,3 @@ export class ProtectionsManager implements Protection {
     return this._enabledProtections.has(protection);
   }
 }
-

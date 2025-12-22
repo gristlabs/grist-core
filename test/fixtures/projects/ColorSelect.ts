@@ -22,7 +22,6 @@ function obsOption() {
  */
 class SaveableSetup extends Disposable {
 
-
   public savedTextColor = Observable.create(null, '#000000');
   public savedFillColor = Observable.create(null, '#FFFFFF');
 

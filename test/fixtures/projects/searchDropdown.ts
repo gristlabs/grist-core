@@ -14,7 +14,6 @@ const options = [
   + 'A very very long even longer than that nameeeeeee',
 ];
 
-
 function setupTest() {
   const logElem = dom('div');
 

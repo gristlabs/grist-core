@@ -21,7 +21,6 @@ describe('disabledAt', function() {
   let docId: string;
   let wsId: number;
 
-
   before(async function() {
     oldEnv = new EnvironmentSnapshot();
     process.env.GRIST_DEFAULT_EMAIL = gu.translateUser('support').email;
@@ -98,7 +97,6 @@ describe('disabledAt', function() {
     await gu.waitForMenuToClose();
   });
 
-
   it('allows owner to soft-delete and undelete disabled doc', async function() {
     await ownerApi.softDeleteDoc(docId);
     await assert.isRejected(ownerApi.getDoc(docId), /not found/);
@@ -108,18 +106,15 @@ describe('disabledAt', function() {
     assert.isUndefined(doc.removedAt);
   });
 
-
   it('prevents non-admin from enabling the document via API', async function() {
     await assert.isRejected(ownerApi.enableDoc(docId), /Access denied/);
   });
-
 
   it('lets admin enable the document via API', async function() {
     await adminApi.enableDoc(docId);
     const doc = await adminApi.getDoc(docId);
     assert.isUndefined(doc.disabledAt);
   });
-
 
   it('lets owner access and rename re-enabled document and see it in DocList', async function() {
     const docApi = ownerApi.getDocAPI(docId);

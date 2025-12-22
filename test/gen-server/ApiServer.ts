@@ -2131,7 +2131,6 @@ describe('ApiServer', function() {
     resp = await axios.post(`${homeUrl}/api/profile/user/name`, {name: 'babaganoush'}, chimpy);
     assert.equal(resp.status, 200);
 
-
     // check
     assert.equal(await getName(), "babaganoush");
 
@@ -2356,7 +2355,6 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 400);
       });
     });
-
 
     describe('Endpoint GET /api/service-accounts', function() {
       it('is operational', async function() {
@@ -2894,7 +2892,6 @@ describe('ApiServer', function() {
     });
   });
 });
-
 
 // Predict the next id that will be used for a table.
 // Only reliable if we haven't been deleting records in that table.

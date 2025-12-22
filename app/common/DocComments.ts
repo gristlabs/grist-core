@@ -44,7 +44,6 @@ export interface CommentContent {
   sectionId?: number|null;
 }
 
-
 /**
  * TODO: This is just a skeleton of what we need to extract comment data for notifications
  * purposes.
@@ -89,7 +88,6 @@ export function makeDocComment(
     mentions,
   };
 }
-
 
 type MentionChunk =
   | string
@@ -142,7 +140,6 @@ export function splitTextWithMentions(text: string): MentionChunk[] {
 
   return chunks;
 }
-
 
 function replaceMentionsInText(text: string) {
   // Very simple replacement of links mentions.

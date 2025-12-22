@@ -2,7 +2,6 @@ import { assert, driver, Key, WebElement } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 
-
 describe('CellColor', function() {
   this.timeout(20000);
   gu.bigScreen();
@@ -70,7 +69,6 @@ describe('CellColor', function() {
     await gu.assertCellFillColor('B', 1, 'transparent');
     await gu.assertCellTextColor('B', 1, 'black');
   });
-
 
   it('should work correctly on Grid view', async function() {
     let clip: WebElement;
@@ -307,7 +305,6 @@ describe('CellColor', function() {
     await driver.sendKeys(Key.DELETE);
     await gu.waitAppFocus();
 
-
     // open color picker
     await gu.openCellColorPicker();
 
@@ -420,7 +417,6 @@ describe('CellColor', function() {
     await gu.waitForServer();
 
   });
-
 
   it('should persist when changing cell format', async function() {
     // change to text type

@@ -96,7 +96,6 @@ interface TestAttachmentStore extends IAttachmentStore {
   finish(): void;
 }
 
-
 /** Creates a fake storage provider that doesn't finish the upload */
 export async function makeTestingControlledStore(
   name: string = "unfinished",
@@ -363,7 +362,6 @@ describe("AttachmentFileManager", function() {
         manager: alternateManager,
       };
     }
-
 
     it("should do nothing if the file exists", async function () {
       const files = await addTestFiles();
@@ -648,7 +646,6 @@ describe("AttachmentFileManager", function() {
     assert.isTrue(manager.transferStatus().isRunning);
     await manager.allTransfersCompleted();
     assert.isFalse(manager.transferStatus().isRunning);
-
 
     const destStore = (await defaultProvider.getStore(allStoreIds[1]))!;
     const poolId = getDocPoolIdFromDocInfo(docInfo);

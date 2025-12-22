@@ -8,7 +8,6 @@ import * as fu from "test/projects/filterUtils";
 const CURRENT_TIME = moment('2022-09-20T15:28:09.092Z');
 const now = () => moment(CURRENT_TIME);
 
-
 describe('DateRangeFilter', function() {
   setupTestSuite();
   addToRepl('fu', fu);
@@ -22,7 +21,6 @@ describe('DateRangeFilter', function() {
       assert(await driver.find('.test-filter-menu-search-input').hasFocus());
     });
   }
-
 
   async function testBoundShowCalendar(minMax: 'min'|'max') {
 
@@ -39,7 +37,6 @@ describe('DateRangeFilter', function() {
   beforeEach(async function() {
     await refresh();
   });
-
 
   it('should switch to calendar view when clicking on min bound', async function() {
     await testBoundShowCalendar('min');

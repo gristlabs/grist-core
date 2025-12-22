@@ -133,4 +133,3 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
     });
   }
 }
-

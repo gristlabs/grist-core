@@ -118,7 +118,6 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   ];
 }
 
-
 /**
  * Returns a list of menu items for a view section.
  */

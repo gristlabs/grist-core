@@ -31,7 +31,6 @@ describe("ColorSelect", function() {
     await driver.findWait('.test-reset', 100).click();
   });
 
-
   const checkSelectedColor = stackWrapFunc(async function(fill: string|null, text: string|null) {
 
     // check Text selected color
@@ -379,7 +378,6 @@ describe("ColorSelect", function() {
       // click the hex value
       await driver.find('.test-text-hex').click();
       await waitForSelection('.test-text-hex');
-
 
       // type in #FF00FF and press enter
       await driver.sendKeys(pink, Key.ENTER);

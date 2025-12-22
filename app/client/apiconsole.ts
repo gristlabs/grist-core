@@ -50,7 +50,6 @@ interface SpecActions {
   updateJsonSpec(spec: JsonSpec): unknown;
 }
 
-
 function applySpecActions(cb: (specActions: SpecActions, jsonSpec: JsonSpec) => void) {
   // Don't call actions directly within `wrapActions`, react/redux doesn't like it.
   setTimeout(() => {

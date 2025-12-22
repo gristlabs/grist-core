@@ -50,7 +50,6 @@ describe('Housekeeper', function() {
     return manager.findOneOrFail(Workspace, {where: {id: wsId}});
   }
 
-
   function daysAgo(days: number): Date {
     return moment().subtract(days, 'days').toDate();
   }

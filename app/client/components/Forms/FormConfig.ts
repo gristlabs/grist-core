@@ -123,7 +123,6 @@ function obsPropWithSaveOnWrite<Props extends object, Key extends keyof Props, V
     });
 }
 
-
 export class FormFieldRulesConfig extends Disposable {
   constructor(private _field: ViewFieldRec) {
     super();

@@ -137,7 +137,6 @@ export class NumericTextBox extends NTextBox {
     ];
   }
 
-
   public buildFormConfigDom(): DomContents {
     const format = fieldWithDefault<FormNumberFormat>(
       this.field.widgetOptionsJson.prop('formNumberFormat'),

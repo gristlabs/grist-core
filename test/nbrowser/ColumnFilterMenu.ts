@@ -572,7 +572,6 @@ describe('ColumnFilterMenu', function() {
       ]);
   }
 
-
   it('should show a working range filter for Date column', async function() {
     await testDateLikeColumn('Date');
   });

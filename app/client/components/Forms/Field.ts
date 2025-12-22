@@ -284,7 +284,6 @@ export abstract class Question extends Disposable {
   }
 }
 
-
 class TextModel extends Question {
   private _format = Computed.create<FormTextFormat>(this, (use) => {
     const field = use(this.field);
@@ -594,7 +593,6 @@ class RefListModel extends Question {
       return values.slice(0, 30);
     });
   }
-
 
   /**
    * Creates computed with all the data for the given column.

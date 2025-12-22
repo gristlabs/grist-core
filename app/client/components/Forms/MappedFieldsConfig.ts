@@ -176,7 +176,6 @@ export class MappedFieldsConfig extends Disposable {
     );
   }
 
-
   private _buildMappedField(props: {col: ColumnRec, selected: Observable<boolean>}) {
     const column = props.col;
     return cssDragRow(
@@ -218,7 +217,6 @@ const cssControlLabel = styled(unstyledButton, `
   cursor: pointer;
   line-height: 16px;
 `);
-
 
 // TODO: reuse them
 const cssDragRow = styled('div', `

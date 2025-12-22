@@ -202,7 +202,6 @@ export async function createUpload(fileNames: string[], accessId: string|null): 
   return globalUploadSet.registerUpload(files, tmpDir, cleanupCallback, accessId);
 }
 
-
 let _globalPluginManager: PluginManager|null = null;
 
 // Helper to create a singleton PluginManager. This includes loading built-in plugins. Since most

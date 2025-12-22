@@ -2042,7 +2042,6 @@ export class GranularAccess implements GranularAccessForBundle {
     return toRemove;
   }
 
-
   /**
    * Removes the toRemove rows (indexes, not row ids) from the rowIds list and from
    * the colValues structure.
@@ -3056,7 +3055,6 @@ export const accessChecks = {
   fatal: fromPairs(ALL_PERMISSION_PROPS.map(prop => [prop, new AccessCheck(prop, 'fatal')])),
 };
 
-
 // This AccessCheck allows everything.
 const dummyAccessCheck: IAccessCheck = {
   get() { return 'allow'; },
@@ -3141,7 +3139,6 @@ class CellAccessHelper {
     return ['TableData', tableId, [], {}] as TableDataAction;
   }
 }
-
 
 /**
  * Manage censoring metadata.
@@ -3511,7 +3508,6 @@ class TransformColumnPermissionInfo implements IPermissionInfo {
     return this._inner.getRuleCollection();
   }
 }
-
 
 /**
  * A version of DocSession that pretends to represent a particular user for the sake of applying

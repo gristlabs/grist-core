@@ -24,7 +24,6 @@ export {
   textBox,
 };
 
-
 /**
  * Create a checkbox accompanied by a label. The first argument should be the (possibly empty)
  * array of arguments to the checkbox; the rest goes into the label. E.g.

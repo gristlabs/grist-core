@@ -17,7 +17,6 @@ import * as testUtils from 'test/server/testUtils';
 
 const chimpy = configForUser('Chimpy');
 
-
 // some doc ids
 const docIds: { [name: string]: string } = {
   ApiDataRecordsTest: 'sampledocid_7',
@@ -87,7 +86,6 @@ describe('Webhooks-Proxy', function () {
     });
   }
 
-
   describe('Proxy is configured', function () {
     runServerConfigurations({GRIST_HTTPS_PROXY: `http://localhost:${webhooksTestProxyPort}`}, () => testWebhookProxy(true));
   });
@@ -96,7 +94,6 @@ describe('Webhooks-Proxy', function () {
     runServerConfigurations({GRIST_HTTPS_PROXY: undefined}, () => testWebhookProxy(false));
 
   });
-
 
   function runServerConfigurations(additionaEnvConfiguration: NodeJS.ProcessEnv, subTestCall: Function) {
     additionaEnvConfiguration = {
@@ -141,7 +138,6 @@ describe('Webhooks-Proxy', function () {
         subTestCall();
       });
 
-
       describe("should work directly with a docworker", async () => {
         setupMockServers('docs', tmpDir, async () => {
           home = await TestServer.startServer('home', tmpDir, suitename, additionaEnvConfiguration);
@@ -159,16 +155,13 @@ describe('Webhooks-Proxy', function () {
       let serving: Serving;  // manages the test webhook server
       let testProxyServer: TestProxyServer;  // manages the test webhook server
 
-
       let redisMonitor: any;
-
 
       // Create couple of promises that can be used to monitor
       // if the endpoint was called.
       const successCalled = signal();
       const createdCalled = signal();
       const notFoundCalled = signal();
-
 
       async function autoSubscribe(
         endpoint: string, docId: string, options?: {
@@ -212,7 +205,6 @@ describe('Webhooks-Proxy', function () {
         );
         assert.equal(deleteResult.status, 200);
       }
-
 
       before(async function () {
         this.timeout(30000);
@@ -274,7 +266,6 @@ describe('Webhooks-Proxy', function () {
           assert.isFalse(testProxyServer.wasProxyCalled());
         });
       }
-
 
       async function runTestCase() {
         //Create a test document.

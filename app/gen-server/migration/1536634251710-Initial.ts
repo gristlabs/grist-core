@@ -1,7 +1,6 @@
 import * as sqlUtils from "app/gen-server/sqlUtils";
 import {MigrationInterface, QueryRunner, Table} from "typeorm";
 
-
 export class Initial1536634251710 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
     // TypeORM doesn't currently help with types of created tables:

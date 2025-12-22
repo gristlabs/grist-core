@@ -401,7 +401,6 @@ function menuLabelWithBadge(label: string, toast: string) {
     cssListFun(toast));
 }
 
-
 function buildLookupSection(gridView: GridView, index?: number){
   function suggestAggregation(col: ColumnRec) {
     if (col.pureType() === 'Int' || col.pureType() === 'Numeric') {

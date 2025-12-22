@@ -28,7 +28,6 @@ import {AttachmentStore, AttachmentStoreDesc} from 'app/plugin/DocApiTypes';
 import {AxiosProgressEvent} from 'axios';
 import omitBy from 'lodash/omitBy';
 
-
 export type {FullUser, UserProfile};
 
 // Nominal email address of the anonymous user.
@@ -1386,7 +1385,6 @@ export interface AttachmentTransferStatus {
   };
   locationSummary: DocAttachmentsLocation;
 }
-
 
 /**
  * Represents information to build public doc worker url.

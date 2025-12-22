@@ -41,7 +41,6 @@ export function removePrefix(str: string, prefix: string): string|null {
   return startsWith(str, prefix) ? str.slice(prefix.length) : null;
 }
 
-
 // If str ends with suffix, removes it and returns what remains. Otherwise, returns null.
 export function removeSuffix(str: string, suffix: string): string|null {
   return endsWith(str, suffix) ? str.slice(0, str.length - suffix.length) : null;
@@ -232,7 +231,6 @@ export function maxsplit(str: string, sep: string, maxNumSplits: number): string
   return result;
 }
 
-
 // Compare arrays of scalars for equality.
 export function arraysEqual(a: any[], b: any[]): boolean {
   if (a === b) {
@@ -251,7 +249,6 @@ export function arraysEqual(a: any[], b: any[]): boolean {
   return true;
 }
 
-
 // Gives a set representing the set difference a - b.
 export function setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
   const c = new Set<T>();
@@ -266,7 +263,6 @@ export function indexOf<T>(arrayLike: ArrayLike<T>, item: T): number {
   return Array.prototype.indexOf.call(arrayLike, item);
 }
 
-
 /**
  * Removes a value from the given array. Only the first instance is removed.
  * Returns true on success, false if the value was not found.
@@ -279,7 +275,6 @@ export function arrayRemove<T>(array: T[], value: T): boolean {
   array.splice(index, 1);
   return true;
 }
-
 
 /**
  * Inserts value into the array before nextValue, or at the end if nextValue is not found.
@@ -294,7 +289,6 @@ export function arrayInsertBefore<T>(array: T[], value: T, nextValue: T): void {
   }
 }
 
-
 /**
  * Extends the first array with the second. Like native push, but adds all values in anotherArray.
  */
@@ -303,7 +297,6 @@ export function arrayExtend<T>(array: T[], anotherArray: T[]): void {
     array.push(anotherArray[i]);
   }
 }
-
 
 /**
  * Copies count items from fromArray to toArray, copying in a forward direction (which matters
@@ -330,7 +323,6 @@ export function arrayCopyForward<T>(toArray: T[], toStart: number,
   }
 }
 
-
 /**
  * Copies count items from fromArray to toArray, copying in a backward direction (which matters
  * when the arrays are the same and source and destination indices overlap).
@@ -356,7 +348,6 @@ export function arrayCopyBackward<T>(toArray: T[], toStart: number,
   }
 }
 
-
 /**
  * Appends a slice of fromArray to the end of toArray.
  *
@@ -373,7 +364,6 @@ export function arrayAppend<T>(toArray: T[], fromArray: ArrayLike<T>, fromStart:
     arrayCopyForward(toArray, len, fromArray, fromStart, count);
   }
 }
-
 
 /**
  * Splices array arrToInsert into target starting at the given start index.
@@ -400,7 +390,6 @@ export function arraySplice<T>(target: T[], start: number, arrToInsert: ArrayLik
   }
   return target;
 }
-
 
 // Type for a compare func that returns a positive, negative, or zero value, as used for sorting.
 export type CompareFunc<T> = (a: T, b: T) => number;
@@ -455,7 +444,6 @@ export function countIf<T>(array: ReadonlyArray<T>, callback: (item: T) => boole
   });
   return count;
 }
-
 
 /**
  * For two parallel arrays, calls mapFunc(a[i], b[i]) for each pair of corresponding elements, and
@@ -515,7 +503,6 @@ export function multiCompareFunc<T, U>(sortKeyFuncs: ReadonlyArray<(a: T) => U>,
   };
 }
 
-
 export function nativeCompare<T>(a: T, b: T): number {
   return (a < b ? -1 : (a > b ? 1 : 0));
 }
@@ -546,7 +533,6 @@ export function setDefault<K, V>(mapInst: Map<K, V>, key: K, val: V): V {
   return mapInst.get(key)!;
 }
 
-
 /**
  * Similar to Python's `setdefault`: returns the key `key` from `mapInst`, or if it's not there, sets
  * it to the result buildValue().
@@ -555,7 +541,6 @@ export function getSetMapValue<K, V>(mapInst: Map<K, V>, key: K, buildValue: () 
   if (!mapInst.has(key)) { mapInst.set(key, buildValue()); }
   return mapInst.get(key)!;
 }
-
 
 /**
  * If key is in mapInst, remove it and return its value, else return `undefined`.
@@ -590,7 +575,6 @@ export function isSubset(smaller: Set<any>, larger: Set<any>): boolean {
   }
   return true;
 }
-
 
 /**
  * Merges the contents of two or more objects together into the first object, recursing into
@@ -628,7 +612,6 @@ export function deepExtend(target: any, _varArgObjects: any): any {
   return target;
 }
 
-
 /**
  * Returns a human-readable string containing a number of bytes, KB, or MB.
  * @param {Number} bytes. Number of bytes.
@@ -645,7 +628,6 @@ export function byteString(bytes: number): string {
     return (bytes / 1024 / 1024).toFixed(1) + 'MB';
   }
 }
-
 
 /**
  * Creates a new object mapping each key in keysArray to the value returned by callback.
@@ -722,7 +704,6 @@ export function sanitizeIdent(ident: string, prefix?: string) {
   return ident;
 }
 
-
 /**
  * Clone a function, returning a function object that represents a brand new function with the
  * same code. If the same function is used with different argument types, it would prevent JS V8
@@ -735,7 +716,6 @@ export function cloneFunc(fn: Function): Function {     // tslint:disable-line:b
   /* jshint evil:true */  // suppress eval warning.
   return eval('(' + fn.toString() + ')');   // tslint:disable-line:no-eval
 }
-
 
 /**
  * Generates a random id using a sequence of uppercase alphanumeric characters
@@ -852,7 +832,6 @@ export async function waitGrainObs<T>(observable: Observable<T>,
   return res;
 }
 
-
 // `dom.style` does not work here because custom css property (ie: `--foo`) needs to be set using
 // `style.setProperty` (credit: https://vanseodesign.com/css/custom-properties-and-javascript/).
 // TODO: consider making PR to fix `dom.style` in grainjs.
@@ -861,7 +840,6 @@ export function inlineStyle(property: string, valueObs: BindableValue<any>): Dom
     elem.style.setProperty(property, String(val ?? ''));
   });
 }
-
 
 /**
  * Class to maintain a chain of promise-returning callbacks. All scheduled callbacks will be

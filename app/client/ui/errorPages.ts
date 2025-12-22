@@ -124,7 +124,6 @@ export function createUnsubscribedPage(
     ]);
   }
 
-
   // Extract details from errDetails
   const docName = errDetails?.docName || t('this document');
   const notification = errDetails?.notification;
@@ -203,7 +202,6 @@ export function createUnsubscribedPage(
     ),
   ]);
 }
-
 
 /**
  * Creates a "Page not found" page.

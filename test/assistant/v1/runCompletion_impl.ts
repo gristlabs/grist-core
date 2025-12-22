@@ -26,7 +26,6 @@
  *  rm test/assistant/data/cache/*
  */
 
-
 import { ActiveDoc, Deps as ActiveDocDeps } from "app/server/lib/ActiveDoc";
 import log from 'app/server/lib/log';
 import { configureOpenAIAssistantV1 } from "app/server/lib/configureOpenAIAssistantV1";

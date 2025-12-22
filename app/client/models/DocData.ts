@@ -280,7 +280,6 @@ class BundleSender {
   }
 }
 
-
 /**
  * Options to startBundlingAction().
  */

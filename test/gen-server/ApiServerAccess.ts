@@ -2194,7 +2194,6 @@ describe('ApiServerAccess', function() {
     assert.equal(fishResp3.status, 200);
     assert.deepEqual(userCountUpdates[fishOrgId as number], [1, 2, 3]);
 
-
     // Change workspace permissions ==>
     const clOrgId = await dbManager.testGetId('Chimpyland');
     const publicWsId = await dbManager.testGetId('Public');
@@ -2324,7 +2323,6 @@ describe('ApiServerAccess', function() {
 
   });
 });
-
 
 async function testAllowNonOwnersToRemoveThemselves(url: string) {
   // Add a viewer and an editor.

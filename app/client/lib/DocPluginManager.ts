@@ -1,4 +1,3 @@
-
 import {ClientScope} from 'app/client/components/ClientScope';
 import {SafeBrowser} from 'app/client/lib/SafeBrowser';
 import {ActiveDocAPI} from 'app/common/ActiveDocAPI';

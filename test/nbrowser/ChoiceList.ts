@@ -123,7 +123,6 @@ async function renameEntry(from: string, to: string) {
   await gu.sendKeys(Key.ENTER);
 }
 
-
 async function clickEntry(label: string) {
   const entry = await driver.findWait(`.test-choice-list-entry .test-token-label[value='${label}']`, 100);
   await entry.click();
@@ -302,7 +301,6 @@ describe('ChoiceList', function() {
     await gu.waitForServer();
     assert.equal(await driver.find('.cell_editor').isPresent(), false);
     assert.equal(await gu.getCell({rowNum: 1, col: 'B'}).getText(), 'Blue\nGreen\nBlack');
-
 
     // Starting to type names without accents should match the actual choices
     await gu.addColumn("Accents");

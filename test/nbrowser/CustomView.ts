@@ -568,7 +568,6 @@ describe('CustomView', function() {
     assert.equal(await driver.find('#match').getText(), 'true');
   });
 
-
   it('respect access rules', async function() {
     // Create a Favorite Films copy, with access rules on columns, rows, and tables.
     const mainSession = await gu.session().teamSite.login();

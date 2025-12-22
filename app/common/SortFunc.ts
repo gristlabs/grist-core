@@ -52,7 +52,6 @@ export const emptyCompare = (next: Comparator) => (val1: any, val2: any) => {
   return next(val1, val2);
 };
 
-
 /**
  * Compare two cell values, paying attention to types and values. Note that native JS comparison
  * can't be used for sorting because it isn't transitive across types (e.g. both 1 < "2" and "2" <

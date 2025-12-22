@@ -212,7 +212,6 @@ describe('UsersManager', function () {
     const docDeletes: Array<string> = [];
     const uniqueLocalPart = new Set<string>();
 
-
     function ensureUnique(localPart: string) {
       if (uniqueLocalPart.has(localPart)) {
         throw new Error('passed localPart is already used elsewhere');
@@ -425,7 +424,6 @@ describe('UsersManager', function () {
         user: new User(),
         userId: SOME_USER_ID,
       };
-
 
       function makeSomeUser() {
         return User.create({

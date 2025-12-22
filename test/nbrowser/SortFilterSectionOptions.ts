@@ -511,7 +511,6 @@ describe('SortFilterSectionOptions', function() {
     await menu.sendKeys(Key.ESCAPE);
   });
 
-
   it('should close sort&filter menu when clicking Save/Revert', async () => {
     // open the sort&filter dropdown
     const menu = await gu.openSectionMenu('sortAndFilter');

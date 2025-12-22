@@ -40,7 +40,6 @@ describe('DocStorageQuery', function() {
     dbCalls.length = 0;
   });
 
-
   async function getFetchQueryDbCalls(docStorage: DocStorage, query: ExpandedQuery) {
     dbCalls.length = 0;
     await docStorage.fetchQuery(query);
@@ -145,7 +144,6 @@ describe('DocStorageQuery', function() {
     ]);
   });
 });
-
 
 /**
  * Clever function to match an array of arrays, with some dynamically generated parts of

@@ -26,7 +26,6 @@ interface PrepColInfo {
   rules: gristTypes.RefListValue
 }
 
-
 /**
  * Returns the suggested full type for `column` given a desired pure type to convert it to.
  * Specifically, a pure type of "DateTime" returns a full type of "DateTime:{timezone}", and "Ref"
@@ -101,7 +100,6 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
   }
   return null;
 }
-
 
 // Given info about the original column, and the type of the new one, returns a promise for the
 // ColInfo to use for the transform column. Note that isFormula will be set to true, and formula
@@ -288,7 +286,6 @@ export function guessWidgetOptionsSync(options: {
   }
   return widgetOptions;
 }
-
 
 // Given the transformCol, calls (if needed) a user action to update its displayCol.
 export async function setDisplayFormula(

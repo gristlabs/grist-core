@@ -673,7 +673,6 @@ describe('MultiColumn', function() {
     });
   }
 
-
   describe(`test for Date column`, function() {
     beforeEach(async () => {
       await gu.addColumn('Left', 'Date');
@@ -830,7 +829,6 @@ describe('MultiColumn', function() {
       }
     });
   }
-
 
   describe(`test for Attachment column`, function() {
     beforeEach(async () => {
@@ -1134,7 +1132,6 @@ async function wrap(state?: boolean) {
   return false;
 }
 
-
 // Many controls works the same as any column for wrapping and alignment.
 async function commonTestsForAny(right: string) {
   await selectColumns('Left', 'Right');
@@ -1229,7 +1226,6 @@ async function alignment(value?: 'left' | 'right' | 'center') {
   return null;
 }
 
-
 async function dateFormatDisabled() {
   const format = await driver.find('[data-test-id=Widget_dateFormat]');
   return await format.matches(".disabled");
@@ -1284,8 +1280,6 @@ async function toggleDerived() {
   await driver.find(".test-field-derive-id").click();
   await gu.waitForServer();
 }
-
-
 
 async function wrapDisabled() {
   return (await driver.find(".test-tb-wrap-text > div").matches('[class*=disabled]'));
@@ -1367,7 +1361,6 @@ async function modDecimals(selector: string, value?: number|null) {
     await gu.waitForServer();
   }
 }
-
 
 async function numMode(value?: 'currency' | 'percent' | 'exp' | 'decimal') {
   const mode = await driver.findAll(".test-numeric-mode");

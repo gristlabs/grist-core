@@ -146,7 +146,6 @@ export const PRODUCTS: IProduct[] = [
   },
 ];
 
-
 /**
  * Get names of products for different situations.
  */

@@ -534,7 +534,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   this.table = refRecord(docModel.tables, this.tableRef);
 
-
   // The user-friendly name of the table, which is the same as tableId for non-summary tables,
   // and is 'tableId[groupByCols...]' for summary tables.
   // Consist of 3 parts
@@ -1017,7 +1016,6 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       await docModel.viewFields.sendTableAction(action);
     }
   };
-
 
   this.hideViewMenu = ko.observable(false);
   this.canRename = ko.observable<boolean|undefined>(undefined);

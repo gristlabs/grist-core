@@ -103,7 +103,6 @@ describe('FormView1', function() {
     }
     await gu.waitForServer();
 
-
     // Now open the form in external window.
     await clipboard.lockAndPerform(async (cb) => {
       const shareButton = await driver.find(`.test-forms-share`);
@@ -1266,7 +1265,6 @@ describe('FormView1', function() {
       assert.deepEqual(await labels(), ['A', 'Choice', 'B', 'C']);
       assert.deepEqual(await hiddenColumns(), []);
 
-
       // Now hide it using menu.
       await question('Choice').rightClick();
       await clickMenu('Hide');
@@ -1585,7 +1583,6 @@ describe('FormView1', function() {
       );
       await gu.waitForServer();
       assert.deepEqual(await labels(), ['A', 'B', 'C', 'D']);
-
 
       assert.equal(await elementCount('column'), 3);
       assert.equal(await element('column', 1).type(), 'Placeholder');

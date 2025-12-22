@@ -3,4 +3,3 @@ export interface RequestContext {
   isAdmin: boolean;
   isScimUser: boolean;
 }
-

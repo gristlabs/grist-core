@@ -398,7 +398,6 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
   Object.assign(uploadInfo, {files, tmpDir, cleanupCallback});
 }
 
-
 interface TmpDirResult {
   tmpDir: string;
   cleanupCallback: CleanupCB;

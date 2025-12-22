@@ -35,7 +35,6 @@ export class TimingPage extends DisposableWithEvents {
       initialFocus: true,
     });
 
-
     if (this._gristDoc.isTimingOn.get() === false) {
       // Just redirect back to the settings page.
       this._openSettings();

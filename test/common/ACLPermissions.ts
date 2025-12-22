@@ -76,7 +76,6 @@ describe("ACLPermissions", function() {
     assert.equal(merge("-S", "+RU-CD"), "+RU-CDS");
   }
 
-
   it('should merge PartialPermissionSets', function() {
     function merge(a: Partial<PartialPermissionSet>, b: Partial<PartialPermissionSet>): PartialPermissionSet {
       return mergePartialPermissions({...empty, ...a}, {...empty, ...b});

@@ -373,7 +373,6 @@ export class CommandGroup extends Disposable {
   }
 }
 
-
 type BoundedFunc<T> = (this: T, ...args: any[]) => any;
 type BoundedMap<T> = { [key in CommandName]?: BoundedFunc<T> };
 

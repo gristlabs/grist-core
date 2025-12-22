@@ -38,7 +38,6 @@ function getInitialData(): PermissionData {
   };
 }
 
-
 function setupTest() {
   const lastDelta = observable<PermissionDelta>({});
   const activeUser = {id: 5, email: 'test-usermanager@getgrist.com', name: 'Test'};

@@ -98,7 +98,6 @@ describe("SelectBy", function() {
     assert.equal(await driver.find('.test-wselect-selectby').isPresent(), true);
     assert.lengthOf(await driver.findAll('.test-wselect-selectby option'), 7);
 
-
     // Create a page with with charts and custom widget and then check that no linking is offered
     await gu.addNewPage(/Chart/, /Table1/);
     await gu.addNewSection(/Custom/, /Table2/, {customWidget: /Custom URL/});

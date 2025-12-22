@@ -425,7 +425,6 @@ describe('FormulaAutocomplete', function() {
   });
 });
 
-
 async function startFormulaAutocomplete(formula: string) {
   await gu.waitAppFocus();
   await driver.sendKeys("=");

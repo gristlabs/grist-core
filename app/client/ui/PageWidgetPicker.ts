@@ -86,7 +86,6 @@ export function toPageWidget(section: ViewSectionRec): IPageWidget {
   };
 }
 
-
 export interface IOptions extends ISelectOptions {
 
   // the initial selected value, we call the function when the popup get triggered
@@ -278,7 +277,6 @@ export type IWidgetValueObs = {
   [P in keyof IPageWidget]: Observable<IPageWidget[P]>;
 };
 
-
 export interface ISelectOptions {
   // the button's label
   buttonLabel?: string;
@@ -302,7 +300,6 @@ const finalListOfCustomWidgetToShow =  permittedCustomWidgets.filter(a =>
 const sectionTypes: IWidgetType[] = [
   'record', 'single', 'detail', 'form', 'chart', ...finalListOfCustomWidgetToShow, 'custom',
 ];
-
 
 // Returns dom that let a user select a page widget. User can select a widget type (id: 'grid',
 // 'card', ...), one of `tables` and optionally some of the `columns` of the selected table if she

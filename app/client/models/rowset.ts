@@ -396,7 +396,6 @@ function _addToMapOfArrays<K, V>(map: Map<K, V[]>, key: K, r: V): void {
   arr.push(r);
 }
 
-
 /**
  * RowGrouping is a RowListener which groups rows by the results of _groupFunc(row) and exposes
  * per-group RowSources via getGroup(val).
@@ -575,7 +574,6 @@ export class SortedRowSet extends RowListener {
       this._koArray.assign(Array.from(this._koArray.peek()).sort(this._compareFunc));
     }
   }
-
 
   public onAddRows(rows: RowList) {
     for (const r of rows) {
@@ -774,7 +772,6 @@ function _allRowsSorted<T>(array: T[], allRows: Set<T>, sortedRows: Iterable<T>,
   }
   return true;
 }
-
 
 /**
  * Track rows that should temporarily be visible even if they don't match filters.

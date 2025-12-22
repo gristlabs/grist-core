@@ -354,7 +354,6 @@ export class WebhookPage extends DisposableWithEvents {
   public sharedTable: VirtualTableRegistration;
   private _webhookExternalTable: WebhookExternalTable;
 
-
   constructor(public gristDoc: GristDoc) {
     super();
     //this._webhooks = observableArray<WebhookSummary>();
@@ -364,8 +363,6 @@ export class WebhookPage extends DisposableWithEvents {
       await table.lazySync();
     });
   }
-
-
 
   public buildDom() {
     const viewSectionModel = this.gristDoc.docModel.viewSections.getRowModel('vt_webhook_fs1' as any);
@@ -429,7 +426,6 @@ const cssContainer = styled('div', `
     }
   }
 `);
-
 
 /**
  * Actions needed to create the virtual table about webhooks, and a

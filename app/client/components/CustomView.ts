@@ -381,7 +381,6 @@ export class CustomView extends BaseView {
   }
 }
 
-
 // helper to build the notification's frame.
 function buildNotification(...args: any[]) {
   return dom('div.custom_view_notification.bg-warning', dom('p', ...args));

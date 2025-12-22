@@ -116,7 +116,6 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     this._words = allWords;
   }
 
-
   // The main search function. SearchText will be cleaned (trimmed and lowercased) at the start.
   // Empty search text returns the first N items in the search universe.
   public search(searchText: string): ACResults<Item> {
@@ -238,7 +237,6 @@ export class ACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
   }
 }
 
-
 export type BuildHighlightFunc = (match: string) => DomContents;
 
 /**
@@ -251,7 +249,6 @@ export function buildHighlightedDom(
   const parts = highlightFunc(text);
   return parts.map((part, k) => k % 2 ? highlight(part) : part);
 }
-
 
 // Same as wordSepRegexp, but with capturing parentheses.
 const wordSepRegexpParen = new RegExp(`(${wordSepRegexp.source})`);

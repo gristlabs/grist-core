@@ -481,7 +481,6 @@ const renderer = new marked.Renderer();
 
 renderer.link = ({href, text}) => gristIconLink(constructUrl(href), text).outerHTML;
 
-
 /**
  * A chat conversation. It is responsible for keeping the history of the chat and
  * sending messages to the AI.

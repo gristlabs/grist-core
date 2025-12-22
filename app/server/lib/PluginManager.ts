@@ -44,7 +44,6 @@ export class PluginManager {
   private _validPlugins: LocalPlugin[] = [];
   private _entries: DirectoryScanEntry[] = [];
 
-
   /**
    * @param {string} userRoot: path to user's grist directory; `null` is allowed, to only uses built in plugins.
    *
@@ -125,7 +124,6 @@ export class PluginManager {
     return this._validPlugins;
   }
 
-
   private _logScanningReport() {
     const invalidPlugins = this._entries.filter( entry => entry.errors);
     if (invalidPlugins.length) {
@@ -141,7 +139,6 @@ export class PluginManager {
     }
   }
 }
-
 
 async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled"): Promise<DirectoryScanEntry[]> {
   const plugins: DirectoryScanEntry[] = [];

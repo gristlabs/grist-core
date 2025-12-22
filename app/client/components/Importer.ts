@@ -67,7 +67,6 @@ const t = makeT('Importer');
 // Custom testId that can be appended conditionally.
 const testId = makeTestId('test-importer-');
 
-
 // We expect a function for creating the preview GridView, to avoid the need to require the
 // GridView module here. That brings many dependencies, making a simple test fixture difficult.
 type CreatePreviewFunc = (vs: ViewSectionRec) => GridView;
@@ -123,7 +122,6 @@ function toggleCustomized(info: SourceInfo, colId: string, on: boolean): void {
   }
   info.customizedColumns.set(new Set(customizedColumns));
 }
-
 
 /**
  * UI state for each imported table (file). Maps table id to the info object.
@@ -233,7 +231,6 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
   await Importer.create(null, gristDoc, null, createPreview).pickAndUploadSource(uploadResult);
 }
-
 
 /**
  * Importer manages an import files to Grist tables and shows Preview
@@ -1539,7 +1536,6 @@ const cssBorderBottom = styled('div', `
   width: 100%;
 `);
 
-
 const cssFileTypeIcon = styled('div', `
   background: ${theme.importerInactiveFileBg};
   color: ${theme.importerInactiveFileFg};
@@ -1677,7 +1673,6 @@ const cssConfigPanel = styled('div', `
     transform: translateX(-100%);
   }
 `);
-
 
 const cssPreviewColumn = styled('div', `
   display: flex;
@@ -1817,7 +1812,6 @@ const cssImportButtonsLine = styled('div', `
   align-items: flex-start;
 `);
 
-
 const cssTitle = styled('span._cssToFrom', `
   color: ${theme.darkText};
   text-transform: uppercase;
@@ -1923,7 +1917,6 @@ const cssIcon180 = styled(icon, `
 const cssGreenIcon = styled(`div`, `
 --icon-color: ${theme.accentIcon};
 `);
-
 
 const cssColumnMappingNav = styled('span', `
   text-transform: uppercase;

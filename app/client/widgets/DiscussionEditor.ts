@@ -276,7 +276,6 @@ export class CommentPopup extends Disposable {
   }
 }
 
-
 /**
  * Monitor for discarded comments. It will show a popup with an undo button for 10 seconds to
  * restore the discarded comment and move the cursor to the cell.
@@ -308,7 +307,6 @@ export class CommentMonitor extends Disposable {
     );
   }
 }
-
 
 /**
  * Component for starting discussion on a cell. Displays simple textbox and a button to start discussion.
@@ -362,7 +360,6 @@ class EmptyThread extends Disposable {
     this.props.closeClicked?.();
   }
 }
-
 
 /**
  * Main component for displaying discussion on a popup.
@@ -455,7 +452,6 @@ class SingleThread extends Disposable implements IDomComponent {
     );
   }
 
-
   private _onCancelEdit() {
     if (this._commentInEdit.get()) {
       this._commentInEdit.get()?.setEditing(false);
@@ -495,7 +491,6 @@ class SingleThread extends Disposable implements IDomComponent {
     return cssReplyBox(this._entry.buildDom());
   }
 }
-
 
 /**
  * List of comments (each can have multiple replies), used in discussion panel.
@@ -1197,8 +1192,6 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
   }
 }
 
-
-
 function buildAvatar(user: FullUser | null, ...args: DomElementArg[]) {
   return cssAvatar(user, 'small', ...args);
 }
@@ -1206,8 +1199,6 @@ function buildAvatar(user: FullUser | null, ...args: DomElementArg[]) {
 function buildNick(user: {name: string} | null, ...args: DomArg<HTMLElement>[]) {
   return cssNick(user?.name ?? 'Anonymous', ...args);
 }
-
-
 
 // // Helper binding function to handle click outside an element. Takes into account floating menus.
 // function onClickOutside(content: HTMLElement, click: () => void) {
@@ -1264,7 +1255,6 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
   }
 }
 
-
 function stopPropagation(ev: Event) {
   ev.stopPropagation();
 }
@@ -1276,7 +1266,6 @@ function withStop(handler: () => any) {
   };
 }
 
-
 const cssAvatar = styled(createUserImage, `
   flex: none;
   margin-top: 2px;
@@ -1287,7 +1276,6 @@ const cssCommentPopup = styled('div', `
   max-width: min(350px, calc(100vw - 10px));
   max-height: min(600px, calc(100vh - 10px));
 `);
-
 
 const cssDiscussionPanel = styled('div', `
   display: flex;
@@ -1549,7 +1537,6 @@ const cssNick = styled('div', `
     font-size: 12px;
   }
 `);
-
 
 const cssResolvedBlock = styled('div', `
   margin-top: 5px;

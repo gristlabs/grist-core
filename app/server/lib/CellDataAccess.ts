@@ -30,7 +30,6 @@ import { MetaRowRecord, SingleCell } from 'app/common/TableData';
 import { GristObjCode } from 'app/plugin/GristData';
 import { isEqual } from 'lodash';
 
-
 /**
  * Tests if the user can modify cell's data. Will modify the docData
  * to reflect the changes that are done by actions (without reverting if one of the actions fails).
@@ -61,7 +60,6 @@ export async function applyAndCheckActionsForCells(
   // can be partially updated, so we won't be able to determine what cells they
   // are attached to. We will assume that bundle has a complete set of information, and
   // with this assumption we will skip such actions, and wait for the whole cell to form.
-
 
   // Create a view for current state.
   const cellData = new CellData(docData);
@@ -194,7 +192,6 @@ export async function applyAndCheckActionsForCells(
 export function isCellDataAction(a: DocAction): a is DataAction {
   return getTableId(a) === '_grist_Cells' && isDataAction(a);
 }
-
 
 interface SingleCellInfo extends SingleCell {
   userRef: string;

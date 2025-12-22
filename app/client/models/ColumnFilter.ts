@@ -143,7 +143,6 @@ export class ColumnFilter extends Disposable {
     return isRelativeBound(value) ? relativeDateToUnixTimestamp(value) : value;
   }
 
-
   private _updateState(): void {
     this.filterFunc.set(makeFilterFunc(this._getState(), this._columnType));
   }

@@ -68,7 +68,6 @@ export class DocPluginManager {
   private _tmpDir: string;
   private _pluginInstances: PluginInstance[];
 
-
   constructor(
     private _localPlugins: LocalPlugin[],
     private _appRoot: string,

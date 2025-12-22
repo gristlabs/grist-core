@@ -96,7 +96,6 @@ export function leftPanelBasic(appModel: AppModel, panelOpen: Observable<boolean
   );
 }
 
-
 export const cssLeftPanel = styled('div', `
   flex: 1 1 0px;
   font-size: ${vars.mediumFontSize};
@@ -111,7 +110,6 @@ export const cssScrollPane = styled('div', `
   flex-direction: column;
 `);
 
-
 export const cssTools = styled('nav', `
   flex: none;
   margin-top: auto;
@@ -119,12 +117,10 @@ export const cssTools = styled('nav', `
   cursor: default;
 `);
 
-
 export const cssHomeTools = styled(cssTools, `
   padding-top: 0px;
   border-top: 1px solid ${theme.pagePanelsBorder};
 `);
-
 
 export const cssSectionHeader = styled('div', `
   margin: 24px 0 8px 24px;

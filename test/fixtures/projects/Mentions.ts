@@ -83,7 +83,6 @@ function buildDom(init: string) {
   ];
 }
 
-
 const cssAway = styled('div', `
   position: absolute;
   top: 0;
@@ -130,4 +129,3 @@ const cssCenter = styled('div', `
 
 
 `);
-

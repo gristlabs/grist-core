@@ -275,7 +275,6 @@ const cssLabel = styled('label', `
   margin-bottom: 0.3em;
 `);
 
-
 const cssWide = styled('div', `
   min-width: 760px;
   @media ${mediaSmall} {
@@ -295,7 +294,6 @@ const cssField = styled('div', `
   margin: 4px 0;
   min-width: 120px;
 `);
-
 
 const cssButtonsRow = styled('div', `
   display: flex;

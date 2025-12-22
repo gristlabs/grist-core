@@ -77,7 +77,6 @@ export class TrivialDocStorageManager implements IDocStorageManager {
   public async getFsFileSize(): Promise<number> { throw new Error('no'); }
 }
 
-
 /**
  * Some summary information about how snapshot generation is going.
  * Any times are in ms.

@@ -42,7 +42,6 @@ export function bitOr(dbType: DatabaseType, column: string, bits: number): strin
   }
 }
 
-
 /**
  * Checks if a set of columns contains only the given ids (or null).
  * Uses array containment operator on postgres (with array_remove to deal with nulls),

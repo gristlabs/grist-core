@@ -342,7 +342,6 @@ const cssDetailsRow = styled('div', `
   gap: 8px;
 `);
 
-
 // Holds dots menu (which is 24px x 24px)
 const cssTableButtons = styled('div', `
   display: flex;

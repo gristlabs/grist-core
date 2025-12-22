@@ -110,7 +110,6 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     super();
     this.viewModel = this.docModel.views.getRowModel(viewId);
 
-
     // A Map from viewSection RowModels to corresponding View class instances.
     // TODO add a test that creating / deleting a section creates/destroys one instance, and
     // switching pages destroys all instances.
@@ -125,7 +124,6 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
     this.layout = this.autoDispose(Layout.create(this.layoutSpec(),
       this._buildLeafContent.bind(this), true));
-
 
     // When the layoutSpec changes by some means other than the layout editor, rebuild.
     // This includes adding/removing sections and undo/redo.

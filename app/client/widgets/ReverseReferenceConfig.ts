@@ -199,7 +199,6 @@ const cssContent = styled('div', `
   flex: 1;
 `);
 
-
 const cssFlexRow = styled('div', `
   display: flex;
   align-items: center;

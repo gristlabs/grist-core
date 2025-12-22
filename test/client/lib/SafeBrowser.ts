@@ -224,7 +224,6 @@ interface GristModule {
   ready(): void;
 }
 
-
 /**
  * The safeBrowser's script needed for test.
  */

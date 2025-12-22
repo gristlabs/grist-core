@@ -75,7 +75,6 @@ export interface IBillingDiscount {
   end_timestamp_ms: number|null;
 }
 
-
 export interface IBillingSubscription {
   // All standard plan options.
   plans: IBillingPlan[];

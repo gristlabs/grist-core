@@ -115,7 +115,6 @@ describe('DocApi', function () {
     // Create the tmp dir removing any previous one
     await prepareFilesystemDirectoryForTests(tmpDir);
 
-
     // Let's create a sqlite db that we can share with servers that run in other processes, hence
     // not an in-memory db. Running seed.ts directly might not take in account the most recent value
     // for TYPEORM_DATABASE, because ormconfig.js may already have been loaded with a different
@@ -3254,7 +3253,6 @@ function testDocApi(settings: {
     assert.deepEqual(resp.data, {error: 'tableId parameter is required'});
   });
 
-
   it("GET /docs/{did}/download/xlsx serves XLSX-encoded document", async function () {
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/download/xlsx?tableId=Table1`, chimpy);
     assert.equal(resp.status, 200);
@@ -4048,7 +4046,6 @@ function testDocApi(settings: {
 
       await check("", 404, /not found/, new RegExp(`/api/docs/${docIds.Timesheets}/webhooks/`));
 
-
       // Actually unsubscribe
       await check(webhookId, 200);
 
@@ -4142,7 +4139,6 @@ function testDocApi(settings: {
 
       // Actually unsubscribe with the same unsubscribeKey that was returned by registration - it shouldn't be accepted
       await check(subscribeResponse.webhookId, 403, /No owner access/);
-
 
       // Remove editor access
       delta.users['kiwi@getgrist.com'] = null;
@@ -5644,7 +5640,6 @@ function testDocApi(settings: {
     });
 
   });
-
 
   it("GET /docs/{did}/sql is functional", async function () {
     const query = 'select+*+from+Table1+order+by+id';

@@ -114,7 +114,6 @@ function allowOtherOrgs(doc: Document, app: AppModel): boolean {
   return false;
 }
 
-
 /**
  * Ask user for the destination and new name, and make a copy of the doc using those.
  */
@@ -426,7 +425,6 @@ export function downloadAttachmentsModal(doc: Document, pageModel: DocPageModel)
       const format = use(formatObs);
       return docApi.getDownloadAttachmentsArchiveUrl({ format });
     });
-
 
     return [
       cssModalTitle(t(`Download attachments`)),

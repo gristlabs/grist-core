@@ -104,8 +104,6 @@ export function searchableMenu(
   ];
 }
 
-
-
 // TODO Weasel doesn't allow other options for submenus, but probably should.
 export type ISubMenuOptions =
   weasel.ISubMenuOptions &
@@ -583,7 +581,6 @@ export const menuText = styled('div', `
   cursor: default;
 `);
 
-
 export const menuItem = styled(weasel.menuItem, menuItemStyle);
 
 export const menuItemLink = styled(weasel.menuItemLink, menuItemStyle);
@@ -593,7 +590,6 @@ export function menuItemTrimmed(
   action: (item: HTMLElement, ev: Event) => void, label: string, ...args: DomElementArg[]) {
   return menuItem(action, cssEllipsisLabel(label), ...args);
 }
-
 
 /**
  * A version of menuItem which runs the action on next tick, allowing the menu to close even when
@@ -677,7 +673,6 @@ const cssSelectBtnLink = styled('div', `
     box-shadow: initial;
   }
 `);
-
 
 export const cssOptionRow = styled('span', `
   display: flex;
@@ -860,7 +855,6 @@ const cssMenuSearchInput = styled('input', `
 `);
 
 type MenuDefinition = Array<MenuItem>;
-
 
 interface MenuItem {
   label?: string;

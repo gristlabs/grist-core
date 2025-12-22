@@ -662,7 +662,6 @@ export const legacyVarsMapping: {old: string, new: string}[] = [
   {old: '--grist-logo-size', new: tokens.logoSize.var()},
 ];
 
-
 /**
  * Helper that converts a theme file object to a "theme css vars" object
  *
@@ -724,8 +723,6 @@ export const convertThemeKeysToCssVars = (theme: Theme): ThemeWithCssVars => {
     },
   };
 };
-
-
 
 /**
  * tokens that a given theme must always define

@@ -358,7 +358,6 @@ const cssSizeLabel = styled('div', `
   margin-right: 9px;
 `);
 
-
 const cssFileType = styled('div', `
   height: 100%;
   width: 100%;

@@ -404,4 +404,3 @@ const FIRST_PAGE = (tempServer: Serving) => ({
   count: 0,
   next: tempServer.url + "/next",
 });
-

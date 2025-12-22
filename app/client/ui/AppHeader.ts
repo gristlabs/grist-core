@@ -102,7 +102,6 @@ export class AppHeader extends Disposable {
       ? dom.style('background-image', customImage ? `url(${customImage})` : '')
       : avatar();
 
-
     // Maybe we should show custom logo and make it wide (without site switcher).
     const productFlavor = getTheme(this._appModel.topAppModel.productFlavor);
     const content = () => productFlavor.wideLogo
@@ -274,7 +273,6 @@ export function productPill(org: Organization|null, options: {large?: boolean} =
     pillTag,
     testId('product-pill'));
 }
-
 
 const cssAppHeader = styled('header._cssAppHeader', `
   width: 100%;

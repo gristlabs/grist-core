@@ -5,7 +5,6 @@ import {ICustomWidget} from 'app/common/CustomWidget';
 
 export class PredefinedCustomSectionConfig extends CustomSectionConfig {
 
-
   constructor(section: ViewSectionRec, gristDoc: GristDoc) {
     super(section, gristDoc);
   }

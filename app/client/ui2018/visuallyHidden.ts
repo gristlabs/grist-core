@@ -46,7 +46,6 @@ export const visuallyHidden = styled('div', `
   }
 `);
 
-
 /**
  * Visually hides an element but show it when it gets keyboard focus.
  * Useful for things like skip links.

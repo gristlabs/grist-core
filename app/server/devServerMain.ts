@@ -159,7 +159,6 @@ export async function main() {
   await homeServer.flexServer.addTestingHooks(workers);
 }
 
-
 if (require.main === module) {
   main().catch((e) => {
     log.error("devServer failed to start %s", e);

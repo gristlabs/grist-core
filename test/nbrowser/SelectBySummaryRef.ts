@@ -167,7 +167,6 @@ describe('SelectBySummaryRef', function() {
 
 });
 
-
 // Check that the 'Select by' menu in the right panel for the section has the expected options
 async function checkRightPanelSelectByOptions(section: string, expected: string[]) {
   await gu.openSelectByForSection(section);

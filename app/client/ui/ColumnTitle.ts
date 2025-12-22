@@ -17,7 +17,6 @@ import {Computed, dom, IKnockoutReadObservable, makeTestId, Observable, styled} 
 import * as ko from 'knockout';
 import {IOpenController, PopupControl, setPopupToCreateDom} from 'popweasel';
 
-
 const testId = makeTestId('test-column-title-');
 const t = makeT('ColumnTitle');
 

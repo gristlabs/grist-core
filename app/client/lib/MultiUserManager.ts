@@ -103,7 +103,6 @@ function buildRolesSelect(
   );
 }
 
-
 function buildEmailsTextarea(
   emailListObs: Observable<string>,
   isValidObs: Observable<boolean>,
@@ -116,7 +115,6 @@ function buildEmailsTextarea(
     ...args,
   );
 }
-
 
 const cssTitle = styled(cssModalTitle, `
   margin: 40px 64px 0 64px;

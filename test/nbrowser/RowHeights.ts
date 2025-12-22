@@ -125,7 +125,6 @@ describe('RowHeights', function() {
     assert.deepEqual(heightsInLines, expectedRowHeights);
   }
 
-
   it('should not offer row height option in other views', async function() {
     // While it could be useful for cards, it would need an adjusted design, and isn't currently
     // supported.

@@ -60,7 +60,6 @@ export class ClientColumnGetters implements ColumnGetters {
   }
 }
 
-
 export class ClientColumnGettersByColId implements ColumnGettersByColId {
   constructor(private _tableData: TableData) {
   }

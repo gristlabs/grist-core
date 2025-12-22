@@ -8,7 +8,6 @@ import fs from "fs";
 import os from "os";
 import path from 'path';
 
-
 // We only support those formats for now:
 // en.client.json
 // en_US.client.json

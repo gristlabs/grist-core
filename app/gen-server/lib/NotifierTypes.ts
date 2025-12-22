@@ -154,7 +154,6 @@ export const TemplateName = StringUnion(
 );
 export type TemplateName = typeof TemplateName.type;
 
-
 export interface SendGridMailWithTemplateId extends SendGridMail {
   template_id: string;
 }

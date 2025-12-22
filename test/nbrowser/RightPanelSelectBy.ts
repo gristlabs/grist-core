@@ -62,7 +62,6 @@ describe('RightPanelSelectBy', function() {
     await gu.undo();
   });
 
-
   it('should disallow creating cycles if not cursor-linked', async function() {
 
     //Link "films record" by "performances record"
@@ -81,7 +80,6 @@ describe('RightPanelSelectBy', function() {
     // undo, the operation from the previous test; link is expected to be unset for next test
     await gu.undo();
   });
-
 
   it('should not allow selecting from a chart or custom sections', async function() {
     // open the 'Films' page
@@ -182,7 +180,6 @@ describe('RightPanelSelectBy', function() {
 
     await gu.undo(2);
   });
-
 
   it('should have linked card for friends', async () => {
     // Open the All page.

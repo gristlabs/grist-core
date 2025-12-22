@@ -19,7 +19,6 @@ const MAX_TWO_DIGIT_YEAR = new Date().getFullYear() + TWO_DIGIT_YEAR_THRESHOLD -
   return year + (year > MAX_TWO_DIGIT_YEAR ? 1900 : 2000);
 };
 
-
 // Order of formats to try if the date cannot be parsed as the currently set format.
 // Formats are parsed in momentjs strict mode, but separator matching and the MM/DD
 // two digit requirement are ignored. Also, partial completion is permitted, so formats
@@ -219,7 +218,6 @@ export function parseDateTime(dateTime: string, options: ParseOptions): number |
   return moment.tz(dateTime, fullFormat, true, timezone).valueOf() / 1000;
 }
 
-
 // Helper function to get the partial format string based on the input. Momentjs has a feature
 // which allows defaulting to the current year, month and/or day if not accounted for in the
 // parser. We remove any parts of the parser not given in the input to take advantage of this
@@ -279,7 +277,6 @@ function _buildVariations(dateFormat: string, date: string) {
   }
   return variations;
 }
-
 
 // Based on private calculateOffset in moment source code.
 function calculateOffset(tzMatch: string[]): string {

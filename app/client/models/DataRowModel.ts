@@ -91,7 +91,6 @@ export class DataRowModel extends BaseRowModel {
     }
   }
 
-
   /**
    * Assign the DataRowModel to a different row of the table. This is primarily used with koDomScrolly,
    * when scrolling is accomplished by reusing a few rows of DOM and their underying RowModels.

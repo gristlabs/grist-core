@@ -7,7 +7,6 @@ import moment from 'moment-timezone';
 const valueFormatter = (val: any) => moment(val * 1000).format('YYYY-MM-DD');
 const toGristDate = (val: moment.Moment) => Math.floor(val.valueOf() / 1000);
 
-
 function getOptions(date: string) {
   const m = moment(date);
   const dateUTC = moment.utc([m.year(), m.month(), m.date()]);
@@ -52,7 +51,6 @@ describe('RelativeDatesOptions', function() {
       checkOption(getOptions('2022-09-10'), '16 days ago', [{quantity: -16, unit: 'day'}]);
 
       checkOption(getOptions('2022-06-28'), '90 days ago', [{quantity: -90, unit: 'day'}]);
-
 
       // check no options of the form 'X days ago'
       optionNotIncluded(getOptions('2022-06-27'), '91 days ago');
@@ -165,7 +163,6 @@ describe('RelativeDatesOptions', function() {
       checkOption(getOptions('2022-12-31'), 'Last day of 3 months from now', [
         {quantity: 3, unit: 'month', endOf: true}]);
     });
-
 
   });
 });

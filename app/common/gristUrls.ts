@@ -166,7 +166,6 @@ export const getCommonUrls = () => withAdminDefinedUrls({
 
 export const commonUrls = getCommonUrls();
 
-
 /**
  * Values representable in a URL. The current state is available as urlState().state observable
  * in client. Updates to this state are expected by functions such as makeUrl() and setLinkUrl().
@@ -786,7 +785,6 @@ export function parseSubdomainStrictly(host: string|undefined): {org?: string, b
   return {};
 }
 
-
 /**
  * For a packaged version of Grist that requires activation, this
  * summarizes the current state. Not applicable to grist-core.
@@ -1036,7 +1034,6 @@ export interface TelemetryConfig {
 
 export const GristDeploymentTypes = StringUnion('saas', 'core', 'enterprise', 'electron', 'static');
 export type GristDeploymentType = typeof GristDeploymentTypes.type;
-
 
 // Acceptable org subdomains are alphanumeric (hyphen also allowed) and of
 // non-zero length.

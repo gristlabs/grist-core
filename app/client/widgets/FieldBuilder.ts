@@ -56,7 +56,6 @@ import * as _ from 'underscore';
 const testId = makeTestId('test-fbuilder-');
 const t = makeT('FieldBuilder');
 
-
 // Creates a FieldBuilder object for each field in viewFields
 export function createAllFieldWidgets(gristDoc: GristDoc, viewFields: ko.Computed<KoArray<ViewFieldRec>>,
   cursor: Cursor, options: { isPreview?: boolean } = {}) {
@@ -962,7 +961,6 @@ export class FieldBuilder extends Disposable {
 const cssTypeSelectMenu = styled('div', `
   max-height: 500px;
 `);
-
 
 // Simple helper that removes transparency from a HEX or rgba color.
 // User can set a transparent fill color using doc actions, but we don't want to show it well

@@ -136,7 +136,6 @@ namespace gristUtils {
     return new RegExp(`^${escapeRegExp(value)}`);
   }
 
-
   /**
  * Helper function that creates a regular expression to match the anywhere in of the string.
  */
@@ -224,7 +223,6 @@ namespace gristUtils {
   export async function waitForUrl(pattern: RegExp|string, waitMs: number = 2000) {
     await driver.wait(() => testCurrentUrl(pattern), waitMs, `waiting for url ${pattern}`);
   }
-
 
   export async function dismissWelcomeTourIfNeeded() {
     const elem = driver.find('.test-onboarding-close');
@@ -362,7 +360,6 @@ namespace gristUtils {
     return result as string[];
   }
 
-
   /**
  * Returns the visible cells of the DetailView in the given field (using column name) at the
  * given row numbers (1-indexed). For example:
@@ -407,7 +404,6 @@ namespace gristUtils {
     )));
   }
 
-
   /**
  * Returns a visible DetailView cell, for the given record and field.
  */
@@ -435,14 +431,12 @@ namespace gristUtils {
     return getDetailCell({col, rowNum: 1, section});
   }
 
-
   /**
  * Returns the cell containing the cursor in the active section, works for both Grid and Detail.
  */
   export function getActiveCell(): WebElementPromise {
     return driver.find('.active_section .selected_cursor').findClosest('.g_record_detail_value,.field');
   }
-
 
   /**
  * Returns a visible GridView row from the active section.
@@ -564,7 +558,6 @@ namespace gristUtils {
       assert.isFalse(await driver.find('.active_section .col_indicator_line').isDisplayed());
     });
   }
-
 
   export async function getColumnWidth(colOptions: string|IColHeader) {
     return (await getColumnHeader(colOptions).rect()).width;
@@ -692,7 +685,6 @@ namespace gristUtils {
       throw err;
     }
   }
-
 
   /**
  * Type keys in the currently active cell, then hit Enter to save, and wait for the server.
@@ -1341,7 +1333,6 @@ namespace gristUtils {
   }
 
   export type WidgetType = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom';
-
 
   export async function changeWidget(type: WidgetType) {
     await openWidgetPanel();
@@ -2670,7 +2661,6 @@ namespace gristUtils {
     await assertFillColor(element, color);
   }
 
-
   /**
  * Opens a cell color picker, either the default one or the one for a specific style rule.
  */
@@ -2982,8 +2972,6 @@ namespace gristUtils {
     await findOpenMenuItem('.test-select-row', col, 100).click();
     await waitForServer();
   }
-
-
 
   /**
  * Returns "Data from table" setting value of a reference column.
@@ -3443,7 +3431,6 @@ namespace gristUtils {
     }
   }
 
-
   /**
  * Confirms that anchor link was used for navigation.
  */
@@ -3700,7 +3687,6 @@ namespace gristUtils {
     assert.equal(await driver.find('iframe#youtube-player-dQw4w9WgXcQ').isPresent(), expected);
   }
 
-
   export function produceUncaughtError(message: string) {
   // Simply throwing an error from driver.executeScript() may produce a sanitized "Script error",
   // depending on browser/webdriver version. This is a trick to ensure the uncaught error is
@@ -3828,7 +3814,6 @@ namespace gristUtils {
       await widgetAccess(access as AccessLevel);
     }
   }
-
 
   /**
  * Recently, driver.switchTo().window() has become a little flakey,
@@ -4116,8 +4101,6 @@ namespace gristUtils {
     await driver.find('.test-modal-confirm').click();
     await waitForServer();
   }
-
-
 
   export async function waitForTrue(check: () => Promise<boolean>, timeMs: number = 4000) {
     await waitToPass(async () => {

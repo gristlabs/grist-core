@@ -1,4 +1,3 @@
-
 /**
  * Code authored by Kitty Giraudel for a11y-dialog https://github.com/KittyGiraudel/a11y-dialog, thanks to her!
  *

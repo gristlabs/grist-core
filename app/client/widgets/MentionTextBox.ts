@@ -26,7 +26,6 @@ import {
 const testId = makeTestId('test-mention-textbox-');
 const t = makeT('MentionTextBox');
 
-
 /**
  * Some not-so-old Firefox ESR versions (<= 128) don't support "plaintext-only" as contenteditable value.
  *
@@ -166,7 +165,6 @@ export function buildMentionTextBox(
     };
   }
 
-
   const element = cssContentEditable(
     dom.autoDispose(owner),
     dom.on('input', (_: Event, el: HTMLElement) => setHtml(el)),
@@ -235,7 +233,6 @@ function enforceNotEditableChildren(element: HTMLElement) {
   });
   fillAttribute();
 }
-
 
 interface MentionPickerProps {
   parent: HTMLElement;

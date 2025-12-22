@@ -18,7 +18,6 @@ const t = makeT('NotifyUI');
 
 const testId = makeTestId('test-notifier-');
 
-
 function buildAction(action: NotifyAction, item: Notification, options: IBeaconOpenOptions): HTMLElement|null {
   const appModel = options.appModel;
   switch (action) {
@@ -209,7 +208,6 @@ function buildConnectStateButton(state: ConnectState): Element {
   }
 }
 
-
 const cssDropdownWrapper = styled('div', `
   background-color: ${theme.notificationsPanelBodyBg};
   border: 1px solid ${theme.notificationsPanelBorder};
@@ -369,7 +367,6 @@ const cssToastWrapper = styled('div', `
     padding: 16px 20px;
   }
 `);
-
 
 const cssToastText = styled('div', `
   .${cssToastWrapper.className}-memo & {

@@ -20,7 +20,6 @@ describe("AttachmentsTransfer", function() {
   let reqHeaders: { Authorization: string } | undefined;
   let api: DocAPI;
 
-
   before(async function() {
     tmpDownloadsFolder = await createTmpDir();
 
@@ -228,7 +227,6 @@ describe("AttachmentsTransfer", function() {
           assert.include(await fse.readdir(tmpDownloadsFolder), fileName, "attachments file wasn't downloaded");
         };
 
-
         await selectFormat(/.tar/);
         await gu.waitToPass(() => testDownloadLink({format: 'tar'}), 500);
         await selectFormat(/.zip/);
@@ -294,7 +292,6 @@ describe("AttachmentsTransfer", function() {
       assert.lengthOf(await messages(), 0);
       assert.equal(await storageType.value(), 'Internal');
     });
-
 
     // Here we do the same stuff but with the API calls, and we expect that the UI will react to it.
     it('user should be able to observe background actions', async function () {
@@ -369,7 +366,6 @@ describe("AttachmentsTransfer", function() {
 
 });
 
-
 const storageType = gu.buildSelectComponent('.test-settings-transfer-storage-select');
 
 const messages = () => driver.findAll('.test-settings-transfer-message', e => e.getText());
@@ -402,7 +398,6 @@ const WAIT = true;
 const transferSpinner = (wait = false) => wait
   ? driver.findWait('.test-settings-transfer-spinner', 500)
   : driver.find('.test-settings-transfer-spinner');
-
 
 async function waitForDisplay(fn: () => WebElementPromise) {
   await gu.waitToPass(async () => {

@@ -5,7 +5,6 @@
  *
  */
 
-
 /**
  * Pairs of before/after values of cells. Values, when present, are nested in a trivial
  * list since they can be literally anything - null, undefined, etc.  Otherwise they

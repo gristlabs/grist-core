@@ -21,7 +21,6 @@ import {isFullReferencingType, isVersions} from 'app/common/gristTypes';
 import {UIRowId} from 'app/plugin/GristAPI';
 import {Computed, dom, styled} from 'grainjs';
 
-
 const t = makeT('Reference');
 
 /**

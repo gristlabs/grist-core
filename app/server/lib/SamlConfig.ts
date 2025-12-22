@@ -329,7 +329,6 @@ export class SamlBuilder {
       };
     }
 
-
     await permitStore.removePermit(relayState);
     return {
       sessionId: state.sessionId,

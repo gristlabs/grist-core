@@ -13,7 +13,6 @@ import merge from 'lodash/merge';
 import maxSize from 'popper-max-size-modifier';
 import {cssMenu} from 'popweasel';
 
-
 export interface IAutocompleteOptions<Item extends ACItem> {
   // If provided, applies the css class to the menu container. Could be multiple, space-separated.
   menuCssClass?: string;
@@ -227,7 +226,6 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   }
 }
 
-
 // The maxSize modifiers follow recommendations at https://www.npmjs.com/package/popper-max-size-modifier
 const calcMaxSize = {
   ...maxSize,
@@ -256,7 +254,6 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
     {name: "computeStyles", options: {gpuAcceleration: false}},
   ],
 };
-
 
 /**
  * Helper that finds the container according to attachElem. Null means

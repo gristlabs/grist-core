@@ -58,7 +58,6 @@ export const nameToWidget = {
   'DateTimeEditor': DateTimeEditor,
 };
 
-
 export interface WidgetConstructor {create: (...args: any[]) => NewAbstractWidget}
 
 /** return a good class to instantiate for viewing a widget/type combination */

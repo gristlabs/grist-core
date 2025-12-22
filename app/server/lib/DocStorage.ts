@@ -6,7 +6,6 @@
  * or "data set".
  */
 
-
 import {LocalActionBundle} from 'app/common/ActionBundle';
 import {BulkColValues, DocAction, TableColValues, TableDataAction, toTableDataAction} from 'app/common/DocActions';
 import * as gristTypes from 'app/common/gristTypes';
@@ -794,7 +793,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     log.debug('DocStorage shutdown success');
   }
 
-
   /**
    * Attaches the file to the document.
    *
@@ -1194,7 +1192,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this.run(sql, rowId);
   }
 
-
   /**
    * Internal helper to process ReplaceTableData action. It is identical to BulkAddRecord, but
    * deletes all data from the table first.
@@ -1288,7 +1285,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._alterColumn(tableId, colId, colId, colInfo.type);
   }
 
-
   /**
    * Internal helper to process RemoveColumn action.
    *
@@ -1324,7 +1320,6 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         );
       });
   }
-
 
   /**
    * Internal helper to process RenameTable action.

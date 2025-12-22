@@ -28,7 +28,6 @@ class RenameMap implements Record<string, string> {
   [key: string]: string;
 }
 
-
 class ChoiceItem implements IToken {
   public static from(item: ChoiceItem) {
     return new ChoiceItem(item.label, item.previousLabel, item.options);
@@ -206,7 +205,6 @@ export class ChoiceListEntry extends Disposable {
         const someValues = Computed.create(holder, this._values, (_use, values) =>
           values.length <= maxRows ? values : values.slice(0, maxRows - 1));
         const noChoices = Computed.create(holder, someValues, (_use, values) => values.length === 0);
-
 
         return cssVerticalFlex(
           dom.autoDispose(holder),
@@ -424,7 +422,6 @@ export class ChoiceListEntry extends Disposable {
     ];
   }
 }
-
 
 // Helper to focus on the token input and select/scroll to the bottom
 function focus(elem: HTMLInputElement) {

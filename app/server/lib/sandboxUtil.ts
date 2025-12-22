@@ -4,7 +4,6 @@
 import * as MemBuffer from 'app/common/MemBuffer';
 import log from 'app/server/lib/log';
 
-
 /**
  * SandboxError is an error type for reporting errors forwarded from the sandbox.
  */
@@ -13,7 +12,6 @@ export class SandboxError extends Error {
     super("[Sandbox] " + (message || 'Python reported an error'));
   }
 }
-
 
 /**
  * Special msgCode values that precede msgBody to indicate what kind of message it is.
@@ -25,7 +23,6 @@ export class SandboxError extends Error {
 export const CALL = null;
 export const DATA = true;
 export const EXC = false;
-
 
 /**
  * Returns a function that takes data buffers and logs them to log.info() with the given prefix.

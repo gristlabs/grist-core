@@ -38,7 +38,6 @@ describe("Timing", function () {
     assert.isFalse(await stopTiming.present());
   }
 
-
   it("should allow to start session", async function () {
     await gu.openDocumentSettings();
     // Make sure we see the timing button.

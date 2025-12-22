@@ -47,7 +47,6 @@ export interface TreeModel extends TreeNode {
   children(): ObsArray<TreeItem>;
 }
 
-
 // A tree record has an id and an indentation field.
 export interface TreeRecord {
   id: number;
@@ -64,7 +63,6 @@ export interface TreeTableData {
 
 // describes a function that builds dom for a particular record
 type DomBuilder = (id: number, item: TreeItemRecord) => HTMLElement;
-
 
 // Returns a list of the records from table that is suitable to build the tree model, ie: records
 // are sorted by .posKey, and .indentation starts at 0 for the first records and can only increase
@@ -86,7 +84,6 @@ export function fixIndents(records: TreeRecord[]) {
     return {...rec, indentation};
   }) as TreeRecord[];
 }
-
 
 // build a tree model from a grist table storing tree view data
 export function fromTableData(table: TreeTableData, buildDom: DomBuilder, oldModel?: TreeModelRecord) {

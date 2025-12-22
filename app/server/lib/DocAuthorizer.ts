@@ -5,7 +5,6 @@ import {assertAccess} from 'app/server/lib/Authorizer';
 import {AuthSession} from 'app/server/lib/AuthSession';
 import {Role} from 'app/common/roles';
 
-
 /**
  *
  * Handle authorization for a single document accessed by a given user.

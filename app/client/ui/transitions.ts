@@ -84,7 +84,6 @@ export function prepareForTransition(elem: HTMLElement, prepare: () => void) {
   elem.style.transitionProperty = prior;
 }
 
-
 /**
  * Helper for waiting for an active transition to end. Beyond listening to 'transitionend', it
  * does a few things:

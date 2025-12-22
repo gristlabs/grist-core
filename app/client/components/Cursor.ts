@@ -3,7 +3,6 @@
  * currently selected cell.
  */
 
-
 import BaseView from 'app/client/components/BaseView';
 import * as commands from 'app/client/components/commands';
 import {DataRowModel} from 'app/client/models/DataRowModel';
@@ -34,7 +33,6 @@ function nextSequenceNum() { // First call to this func should return 1
 //   - Number.MAX_SAFE_INTEGER is 9,007,199,254,740,991 (9 * 10^15)
 //   - even at 1000 cursor-edits per second, it would take ~300,000 yrs to overflow
 //   - Plus it's client-side, so that's a single continuous 300-millenia-long session, which would be impressive uptime
-
 
 /**
  * Cursor represents the location of the cursor in the viewsection. It is maintained by BaseView,
@@ -221,9 +219,6 @@ export class Cursor extends Disposable {
       this._silentUpdatesFlag = false;
     }
   }
-
-
-
 
   public setLive(isLive: boolean): void {
     this._isLive(isLive);

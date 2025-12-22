@@ -28,7 +28,6 @@ export function fromCallback<T>(nodeFunc: NodeCallbackFunc<T>): Promise<T> {
   return _fromCallback(nodeFunc);
 }
 
-
 /**
  * Finds and returns a promise for the first available TCP port.
  * @param {Number} firstPort: First port number to check, defaults to 8000.
@@ -83,7 +82,6 @@ export function isPathWithin(outer: string, inner: string): boolean {
   const firstDir = index < 0 ? rel : rel.slice(0, index);
   return firstDir !== "..";
 }
-
 
 /**
  * Returns a promise that's resolved when `child` exits, or rejected if it could not be started.
@@ -190,7 +188,6 @@ export function getPubSubPrefix(): string {
   return `db-${dbNumber}-`;
 }
 
-
 /**
  * Calculates the period when the yearly subscription is expected to reset its usage. The period tells us
  * where we expected the reset date to be. Start date is inclusive, end date is exclusive.
@@ -236,7 +233,6 @@ export function expectedResetDate(startMs: number, endMs: number, now?: number):
   // We expect the reset date only if we are after first period.
   const current = periods.slice(1).find(p => p.has(nowMs));
   return current?.[0] ?? null;
-
 
   function period(start: number, end: number) {
     return Object.assign([start, end] as [number, number], {

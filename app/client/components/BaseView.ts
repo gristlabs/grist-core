@@ -311,7 +311,6 @@ export default class BaseView extends DisposableWithEvents {
     this._isPrinting = ko.observable(false);
   }
 
-
   /**
    * These commands are common to GridView and DetailView.
    *
@@ -374,7 +373,6 @@ export default class BaseView extends DisposableWithEvents {
     },
   };
 
-
   /**
    * Returns a selection of the selected rows and cols.  By default this will just
    * be one row and one column as multiple cell selection is not supported.
@@ -388,7 +386,6 @@ export default class BaseView extends DisposableWithEvents {
       {},
     );
   }
-
 
   protected selectedRows(): number[] {
     return [];
@@ -486,7 +483,6 @@ export default class BaseView extends DisposableWithEvents {
     builder.buildEditorDom(this.editRowModel, lazyRow, options || {});
   }
 
-
   /**
    * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
    */
@@ -507,7 +503,6 @@ export default class BaseView extends DisposableWithEvents {
     builder.buildDiscussionPopup(this.editRowModel, lazyRow, text);
     return true;
   }
-
 
   /**
    * Move the floating RowModel for editing to the current cursor position, and return it.
@@ -641,7 +636,6 @@ export default class BaseView extends DisposableWithEvents {
     return this.tableModel.sendTableActions(actions.map(a => this._enhanceAction(a)), optDesc);
   }
 
-
   /**
    * Shortcut for `.tableModel.tableData.sendTableAction`, which also sets default values
    * determined by the current section-linking filter, if any.
@@ -649,7 +643,6 @@ export default class BaseView extends DisposableWithEvents {
   protected sendTableAction(action: UserAction, optDesc?: string) {
     return action ? this.tableModel.sendTableAction(this._enhanceAction(action), optDesc) : null;
   }
-
 
   /**
    * Inserts the current date/time into the selected cell if the cell is of a compatible type
@@ -694,7 +687,6 @@ export default class BaseView extends DisposableWithEvents {
     this.editRowModel.assign(rowId);
     return this.editRowModel.cells[column.colId()].setAndSave(value);
   }
-
 
   /**
    * Override the saving of field values to add some extra processing:

@@ -90,7 +90,6 @@ function expandCard(card: HTMLElement, collapsedRect: DOMRect) {
   });
 }
 
-
 const cssCard = styled('div', `
   position: absolute;
   left: 24px;

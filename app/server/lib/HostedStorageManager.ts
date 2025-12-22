@@ -589,7 +589,6 @@ export class HostedStorageManager implements IDocStorageManager {
     return (await fse.stat(this.getPath(docName))).size;
   }
 
-
   /**
    * This is called when a document was edited by the user.
    */
@@ -905,4 +904,3 @@ export class HostedStorageManager implements IDocStorageManager {
     });
   }
 }
-

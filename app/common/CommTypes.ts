@@ -11,7 +11,6 @@ export const ValidEvent = StringUnion(
   'docUsage', 'docChatter', 'docUserPresenceUpdate', 'clientConnect');
 export type ValidEvent = typeof ValidEvent.type;
 
-
 /**
  * A request in the appropriate form for sending to the server.
  */
@@ -92,7 +91,6 @@ export interface CommDocUserAction extends CommMessageBase {
     error?: string;
   };
 }
-
 
 export enum WebhookMessageType {
   Update = 'webhookUpdate',

@@ -55,7 +55,6 @@ export function buildCollapsedSectionDom(options: {
   );
 }
 
-
 export function buildViewSectionDom(options: {
   gristDoc: GristDoc,
   sectionRowId: number,
@@ -204,7 +203,6 @@ const cssViewLeafInactive = styled('div', `
     }
   }
 `);
-
 
 // z-index ensure it's above the resizer line, since it's hard to grab otherwise
 const cssDragIcon = styled(icon, `

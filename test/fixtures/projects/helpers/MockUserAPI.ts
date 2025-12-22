@@ -364,7 +364,6 @@ export class MockUserAPI implements UserAPI, DocWorkerAPI {
     };
   }
 
-
   public async getDocAccess(docId: string): Promise<PermissionData> {
     // TODO: Implement as mock
     return {

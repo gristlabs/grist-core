@@ -3,7 +3,6 @@ import {MetaTableData, TableData} from 'app/common/TableData';
 import {assert} from 'chai';
 import {unzip, zipObject} from 'lodash';
 
-
 describe('TableData', function() {
   const sampleData: TableDataAction = ["TableData", "Foo", [1, 4, 5, 7], {
     city: ['New York', 'Boston', 'Boston', 'Seattle'],

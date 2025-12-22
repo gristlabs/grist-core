@@ -436,7 +436,6 @@ export class AppModelImpl extends Disposable implements AppModel {
     }
   }
 
-
   public async showNewSiteModal(plan?: PlanSelection) {
     if (this.planName) {
       await buildNewSiteModal(this, {

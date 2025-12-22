@@ -2,7 +2,6 @@ import {addToRepl, assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {server, setupTestSuite} from 'test/nbrowser/testUtils';
 
-
 async function getActiveCellPos() {
   return [
     await driver.find('.gridview_data_row_num.selected').getText(),

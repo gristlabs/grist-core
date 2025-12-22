@@ -829,7 +829,6 @@ export class ApiServer {
     return {...fullUser, loginMethod, allowGoogleLogin};
   }
 
-
   /**
    * Run a query, and, if it is denied and the user is the support or admin
    * user, rerun the query with permission to view the current

@@ -490,7 +490,6 @@ const cssSkipTipsCheckbox = styled(labeledSquareCheckbox, `
   line-height: normal;
 `);
 
-
 const cssSkipTipsCheckboxLabel = styled('span', `
   color: ${theme.lightText};
 `);

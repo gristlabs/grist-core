@@ -204,4 +204,3 @@ export class DocClients extends EventEmitter {
     this.emit('clientRemoved', session);
   }
 }
-

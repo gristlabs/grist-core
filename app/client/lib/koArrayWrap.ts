@@ -15,7 +15,6 @@ export function createObsArray<T>(
   return setDisposeOwner(owner, new KoWrapObsArray(koArray));
 }
 
-
 /**
  * An Observable that wraps a Knockout observable, created via fromKo(). It keeps minimal overhead
  * when unused by only subscribing to the wrapped observable while it itself has subscriptions.

@@ -98,7 +98,6 @@ describe('HeaderColor', function () {
     await gu.assertHeaderTextColor('B', 'black');
   });
 
-
   it('should work correctly on Grid view', async function () {
     const columnHeader = gu.getColumnHeader('C');
 

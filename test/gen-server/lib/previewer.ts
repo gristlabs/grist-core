@@ -7,7 +7,6 @@ import {TestServer} from 'test/gen-server/apiUtils';
 import {configForUser} from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
-
 const previewer = configForUser('thumbnail');
 
 function permit(permitKey: string): AxiosRequestConfig {

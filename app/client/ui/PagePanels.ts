@@ -193,7 +193,6 @@ export function pagePanels(page: PageContents) {
         // opening left panel on hover
         dom.on('mouseenter', (evt1, elem) => {
 
-
           if (left.panelOpen.get()
 
             // when no opener should not auto-expand
@@ -201,8 +200,6 @@ export function pagePanels(page: PageContents) {
 
             // if user is resizing the window, don't expand.
             || isScreenResizingObs.get()) { return; }
-
-
 
           let isMouseInsideLeftPane = true;
           let isFocusInsideLeftPane = false;

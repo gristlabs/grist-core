@@ -166,7 +166,6 @@ function makeFullMomentFormat(mFormat: string): string {
   return safeFormat;
 }
 
-
 let availableLocaleSet: Set<string>|undefined;
 const loadedLocaleMap = new Map<string, string>();    // Maps requested locale to the one to use.
 

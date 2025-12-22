@@ -652,7 +652,6 @@ describe('ChartView1', function() {
     assert.lengthOf(data, 1);
     await gu.undo(1);
 
-
     await gu.undo(3);
   });
 

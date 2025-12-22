@@ -104,4 +104,3 @@ describe('createConfigValue', () => {
     assert.equal(configValueWithDefault.get(), 333);
   });
 });
-

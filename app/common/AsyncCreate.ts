@@ -46,7 +46,6 @@ export class AsyncCreate<T> {
   }
 }
 
-
 /**
  * A simpler version of AsyncCreate: given an async function f, returns another function that will
  * call f once, and cache and return its value. On failure the result is cleared, so that
@@ -60,7 +59,6 @@ export function asyncOnce<T>(createFunc: () => Promise<T>): () => Promise<T> {
   }
   return () => (value || (value = clearOnError(createFunc.call(null))));
 }
-
 
 /**
  * Supports a usage similar to AsyncCreate in a Map. Returns map.get(key) if it is set to a
@@ -151,7 +149,6 @@ export class MapWithTTL<K, V> extends Map<K, V> {
   }
 }
 
-
 /**
  * Just like MapWithTTL, but supports an extra callback to call when a value expires.
  */
@@ -165,7 +162,6 @@ export class MapWithCustomExpire<K, V> extends MapWithTTL<K, V> {
     return super.expire(key);
   }
 }
-
 
 /**
  * Sometimes it is desirable to cache either fulfilled or rejected

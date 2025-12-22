@@ -110,7 +110,6 @@ export async function printViewSection(layout: any, viewSection: ViewSectionRec)
   setTimeout(() => window.print(), 0);
 }
 
-
 /**
  * Produces a div with all requested rows using the same renderRow() function as used with scrolly
  * for dynamically rendered views. This is used for printing, so these rows do not subscribe to

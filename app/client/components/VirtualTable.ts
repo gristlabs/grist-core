@@ -143,7 +143,6 @@ export class VirtualTable extends Disposable {
     // by reverse engineering the calls that are made in the Grist codebase. The goal here is to remove this code
     // completely and allow basic Grist components to work without GristDoc.
 
-
     // First is the DocComm. We don't need to implement all methods, just the ones that are used by the VirtualTable.
     const docComm: DocComm = {
       fetchTable: async () => null,
@@ -169,7 +168,6 @@ export class VirtualTable extends Disposable {
     const docData = new DocData(docComm, metaWithData);
     const docDataCache = new DocDataCache();
     docDataCache.docData = docData;
-
 
     // _grist_DocInfo
 

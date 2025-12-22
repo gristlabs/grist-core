@@ -1261,7 +1261,6 @@ describe('ActiveDoc', async function() {
       }
     }
 
-
     it('can enforce internal attachments limit', async function() {
 
       // Add a tight limit, make sure adding attachments fails.

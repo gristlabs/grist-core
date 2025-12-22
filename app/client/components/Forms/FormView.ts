@@ -97,7 +97,6 @@ export class FormView extends BaseView {
 
     this.bundle = clb => this.gristDoc.docData.bundleActions('Saving form layout', clb, {nestInActiveBundle: true});
 
-
     this.selectedBox.addListener((v) => {
       if (!v) { return; }
       const colRef = Number(v.prop('leaf').get());

@@ -38,7 +38,6 @@ import type {Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
   PlotData as PlotlyPlotData} from 'plotly.js';
 import {makeT} from 'app/client/lib/localization';
 
-
 let Plotly: PlotlyType;
 
 // When charting multiple series based on user data, limit the number of series given to plotly.
@@ -136,7 +135,6 @@ interface DataOptions extends Data {
 // Convert a list of Series into a set of Plotly traces.
 type ChartFunc = (series: Series[], options: ChartOptions, dataOptions?: DataOptions) => PlotData;
 
-
 // Helper for converting numeric Date/DateTime values (seconds since Epoch) to JS Date objects for
 // use with plotly.
 function dateGetter(getter: RowPropGetter): RowPropGetter {
@@ -149,7 +147,6 @@ function dateGetter(getter: RowPropGetter): RowPropGetter {
     return val ? new Date(val).toISOString() : null;
   };
 }
-
 
 // List of column types whose values are encoded has list, ie: ['L', 'foo', ...]. Such values
 // require special treatment to show correctly in charts.
@@ -953,7 +950,6 @@ export class ChartConfig extends GrainJSDisposable {
     return columns;
   }
 
-
 }
 
 // Row for a numeric option. User can change value using spinners or directly using keyboard. In
@@ -1181,7 +1177,6 @@ export const chartTypes: {[name: string]: ChartFunc} = {
     };
   },
 
-
   donut(series: Series[], options: ChartOptions, dataOptions: DataOptions = {}): PlotData {
     const hole = isNumber(options.donutHoleSize) ? options.donutHoleSize : DONUT_DEFAULT_HOLE_SIZE;
     const annotations: Array<Partial<Annotations>> = [];
@@ -1234,7 +1229,6 @@ export const chartTypes: {[name: string]: ChartFunc} = {
     };
   },
 };
-
 
 /**
  * Assumes a list of series of the form [xValues, yValues1, yValues2, ...]. Remove from all series
@@ -1291,7 +1285,6 @@ function kaplanMeierPlot(survivalValues: number[]): Array<{x: number, y: number}
   }
   return points;
 }
-
 
 const cssRowLabel = styled('div', `
   flex: 1 0 0px;
@@ -1357,7 +1350,6 @@ const cssNumberWithSpinner = styled('div', `
 const cssNumberInput = styled('input', `
   width: 55px;
 `);
-
 
 const cssSpinners = styled('input', `
   width: 19px;

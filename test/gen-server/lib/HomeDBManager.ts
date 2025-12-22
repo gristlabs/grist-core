@@ -394,7 +394,6 @@ describe('HomeDBManager', function() {
     // Check that the new document has the same features as the original.
     assert.deepEqual(newRead.workspace.org.billingAccount.getFeatures(), getAnonymousFeatures());
 
-
     // Open document using share key.
     const share = new Share();
     share.docId = addedDoc.id;

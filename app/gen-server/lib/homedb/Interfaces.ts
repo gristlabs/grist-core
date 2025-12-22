@@ -113,7 +113,6 @@ export interface DocAuthResult {
   cachedDoc?: Document;       // For cases where stale info is ok.
 }
 
-
 // Defines a subset of HomeDBManager used for logins. In practice we still just pass around
 // the full HomeDBManager, but this makes it easier to know which of its methods matter.
 export interface HomeDBAuth {

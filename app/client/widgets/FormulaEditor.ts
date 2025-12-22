@@ -37,7 +37,6 @@ export interface IFormulaEditorOptions extends Options {
   canDetach?: boolean;
 }
 
-
 /**
  * Required parameters:
  * @param {RowModel} options.field: ViewSectionField (i.e. column) being edited.

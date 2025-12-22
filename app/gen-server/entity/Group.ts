@@ -35,7 +35,6 @@ export class Group extends BaseEntity {
   @OneToOne(type => AclRule, aclRule => aclRule.group)
   public aclRule: AclRule;
 
-
   @Column({type: String, enum: [Group.ROLE_TYPE, Group.TEAM_TYPE], default: Group.ROLE_TYPE,
     // Disabling nullable and select is necessary for the code to be run with older versions of the database.
     // Especially it is required for testing the migrations.
@@ -59,5 +58,3 @@ export class Group extends BaseEntity {
     }
   }
 }
-
-

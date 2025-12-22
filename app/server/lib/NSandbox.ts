@@ -377,7 +377,6 @@ export class NSandbox implements ISandbox {
     }
   }
 
-
   private _close() {
     this._control?.prepareToClose();    // ?. operator in case _control failed to get initialized.
     if (!this._isWriteClosed) {
@@ -398,12 +397,10 @@ export class NSandbox implements ISandbox {
     }
   }
 
-
   private _onError(err: Error) {
     this._close();
     log.rawWarn(`Sandbox could not be spawned: ${err}`, this._logMeta);
   }
-
 
   /**
    * Send a message to the sandbox process with the given message code and data.
@@ -442,7 +439,6 @@ export class NSandbox implements ISandbox {
       this._onSandboxMsg(value[0], value[1], buf.length);
     });
   }
-
 
   /**
    * Process the closing of the pipe by the sandboxed process.

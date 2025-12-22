@@ -5,7 +5,6 @@ import {jsonObservable} from 'app/client/models/modelUtil';
 import * as modelUtil from 'app/client/models/modelUtil';
 import {ColumnRec, DocModel, IRowModel, recordSet, refRecord, TableRec} from 'app/client/models/DocModel';
 
-
 export interface CellRec extends IRowModel<"_grist_Cells"> {
   column: ko.Computed<ColumnRec>;
   table: ko.Computed<TableRec>;

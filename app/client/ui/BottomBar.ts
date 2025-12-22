@@ -3,7 +3,6 @@ import {testId} from 'app/client/ui2018/cssVars';
 import {tokens} from 'app/common/ThemePrefs';
 import {dom, MultiHolder, Observable, styled} from 'grainjs';
 
-
 export function createBottomBarDoc(owner: MultiHolder, pageModel: DocPageModel, leftPanelOpen: Observable<boolean>,
   rightPanelOpen: Observable<boolean>) {
   return dom.maybe(pageModel.gristDoc, gristDoc => (

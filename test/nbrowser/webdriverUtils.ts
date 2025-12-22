@@ -3,7 +3,6 @@ import {assert, driver} from 'mocha-webdriver';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
-
 export async function fetchScreenshotAndLogs(test: Mocha.Runnable|undefined) {
   const dir = process.env.MOCHA_WEBDRIVER_LOGDIR!;
   assert.isOk(dir, "driverLogging: MOCHA_WEBDRIVER_LOGDIR not set");

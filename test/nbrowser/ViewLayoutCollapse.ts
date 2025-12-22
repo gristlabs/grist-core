@@ -163,7 +163,6 @@ describe("ViewLayoutCollapse", function() {
       });
     });
 
-
     // Make sure we don't have an error.
     await gu.checkForErrors();
     await revert();
@@ -264,7 +263,6 @@ describe("ViewLayoutCollapse", function() {
     await revert();
   });
 
-
   it('fix: should support searching', async function() {
     // Collapse Companies section (a first one).
     await collapseByMenu(COMPANIES);
@@ -308,7 +306,6 @@ describe("ViewLayoutCollapse", function() {
     // Recreate document (can't undo).
     await session.tempDoc(cleanup, 'Investment Research (smaller).grist');
   });
-
 
   it('fix: should not dispose the instance when drag is cancelled', async function() {
     const revert = await gu.begin();
@@ -368,7 +365,6 @@ describe("ViewLayoutCollapse", function() {
     await waitForSave();
     await revert();
   });
-
 
   it('fix: should work when the page is refreshed', async function() {
     const revert = await gu.begin();
@@ -1081,7 +1077,6 @@ async function move(element: WebElementPromise|WebElement, offset: {x?: number, 
   if (offset.y) { offset.y = Math.round(offset.y); }
   await driver.withActions(actions => actions.move({origin: element, ...offset}));
 }
-
 
 function getDragElement(section: string) {
   return gu.getSection(section).find('.viewsection_drag_indicator');

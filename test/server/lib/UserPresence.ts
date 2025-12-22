@@ -287,4 +287,3 @@ async function waitForMatchingMessage(client: GristClient, checkMessage: (msg: a
     }
   }
 }
-

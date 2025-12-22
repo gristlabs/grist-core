@@ -4,7 +4,6 @@ import { startEditingAccessRules } from 'test/nbrowser/aclTestUtils';
 import * as gu from 'test/nbrowser/gristUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
-
 describe('UserManager2', function() {
   this.timeout('4m');
   const cleanup = setupTestSuite();

@@ -89,4 +89,3 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
     port2.close();
   }
 }
-

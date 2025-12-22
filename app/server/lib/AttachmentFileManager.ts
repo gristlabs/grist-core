@@ -16,7 +16,6 @@ import {EventEmitter} from 'events';
 import * as stream from 'node:stream';
 import {AbortController} from 'node-abort-controller';
 
-
 export interface AddFileResult {
   fileIdent: string;
   isNewFile: boolean;

@@ -84,7 +84,6 @@ export class ChoiceListEditor extends NewBaseEditor {
     this.commandGroup = this.autoDispose(createGroup(options.commands, null, true));
     this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
 
-
     // If starting to edit by typing in a string, ignore previous tokens.
     const cellValue = decodeObject(options.cellValue);
     const startLabels: unknown[] = options.editValue !== undefined || !Array.isArray(cellValue) ? [] : cellValue;

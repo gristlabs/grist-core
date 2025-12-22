@@ -237,7 +237,6 @@ describe('removedAt', function() {
       assert.deepEqual(docNames(await xapi.getOrgWorkspaces('current')), []);
     });
 
-
     // This checks that the following problem is fixed:
     //   If a document is deleted in a workspace with many other documents, the
     //   deletion used to take an unreasonable length of time.

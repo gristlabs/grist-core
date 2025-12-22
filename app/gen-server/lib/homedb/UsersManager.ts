@@ -699,7 +699,6 @@ export class UsersManager {
     return await User.find({relations: ["logins"]});
   }
 
-
   /**
    * ==================================
    *
@@ -923,7 +922,6 @@ export class UsersManager {
     }
     return members;
   }
-
 
   // For the moment only the support user can add both everyone@ and anon@ to a
   // resource, since that allows spam. TODO: enhance or remove.

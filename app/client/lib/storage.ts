@@ -26,7 +26,6 @@ export function getSessionStorage(): Storage {
   return _sessionStorage;
 }
 
-
 let _storage: Storage|undefined;
 let _sessionStorage: Storage|undefined;
 

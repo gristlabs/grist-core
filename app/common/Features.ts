@@ -248,7 +248,6 @@ export const PERSONAL_LEGACY_PLAN = 'starter';
 // by default all installation have it. When Stripe updates it, it will be synchronized with Grist.
 export const TEAM_PLAN = 'team';
 
-
 export const displayPlanName: { [key: string]: string } = {
   [PERSONAL_FREE_PLAN]: 'Free Personal',
   [TEAM_FREE_PLAN]: 'Team Free',

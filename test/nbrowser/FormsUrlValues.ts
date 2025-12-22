@@ -36,7 +36,6 @@ describe('FormsUrlValues', function() {
     ['Field_RefList', 'Carol'],           // Note how we set multiple values of a ref list.
   ]);
 
-
   it('setup', async function() {
     const session = await gu.session().login();
 
@@ -95,7 +94,6 @@ describe('FormsUrlValues', function() {
     await driver.find(`.test-forms-share`).click();
     formLink = await driver.findWait('.test-forms-link', 200).getAttribute('value');
   });
-
 
   it('should not be affected by url values that are not enabled', async function() {
     // Construct a form URL with some parameters filled in. They shouldn't work yet.
@@ -285,7 +283,6 @@ describe('FormsUrlValues', function() {
     });
   });
 
-
   it('should allow hiding fields and still accept url values in them', async function() {
     // Hide half of the fields in the form.
     for (const field of [
@@ -353,7 +350,6 @@ describe('FormsUrlValues', function() {
     });
   });
 });
-
 
 // Various helpers.
 

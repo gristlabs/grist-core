@@ -80,7 +80,6 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
     return deps.map(dep => use(docModel.columns.getRowModel(dep)?.label)).join(", ");
   });
 
-
   const changesDisabled = Computed.create(owner, (use) => {
     return Boolean(
       (options.disabled && use(options.disabled)) ||
@@ -252,7 +251,6 @@ const cssSelectSummary = styled('div', `
     color: ${theme.selectButtonPlaceholderFg};
   }
 `);
-
 
 const cssSelectorMenu = styled(cssMenu, `
   display: flex;

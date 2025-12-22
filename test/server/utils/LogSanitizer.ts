@@ -21,9 +21,6 @@ describe("LogSanitizer", () => {
     done();
   });
 
-
-
-
   it("should sanitize redis webhooks rpush logs", (done) => {
     const exampleLog = {
       command: "RPUSH",

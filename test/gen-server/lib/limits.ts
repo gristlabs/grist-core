@@ -411,7 +411,6 @@ describe('limits', function() {
       users: {'viewer7@getgrist.com': 'viewers'},
     }), /No more external document shares/);
 
-
     // Try smuggling in a doc that exceeds limits
     const beyond = await dbManager.testGetId('Beyond') as string;
     await nasa.updateDocPermissions(beyond, {

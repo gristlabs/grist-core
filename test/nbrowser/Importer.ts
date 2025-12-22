@@ -483,7 +483,6 @@ describe('Importer', function() {
       await gu.checkForErrors();
     });
 
-
     it('should not throw an error when a column in the preview is clicked', async function() {
       // A bug was previously causing an error to be thrown whenever a column header was
       // clicked while merge columns were set.
@@ -939,7 +938,6 @@ describe('Importer', function() {
           'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
           'BUS540',      'Capstone',            '',                    '01/13/2021',      ['false', 'true', undefined],
           '',            '',                    '',                    '',                '']);
-
 
       // Uncheck 'Update existing records', and check that the preview no longer shows a diff.
       await driver.find('.test-importer-update-existing-records').click();

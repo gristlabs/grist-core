@@ -19,7 +19,6 @@ import mapValues from 'lodash/mapValues';
 import pick from 'lodash/pick';
 import pickBy from 'lodash/pickBy';
 
-
 // Descriptive string enum for each case of linking
 // Currently used for rendering user-facing link info
 // TODO JV: Eventually, switching the main block of linking logic in LinkingState constructor to be a big
@@ -47,7 +46,6 @@ function FilterStateToColValues(fs: FilterState) { return pick(fs, ['filters', '
 //Since we're not making full objects for these, need to define sensible "empty" values here
 export const EmptyFilterState: FilterState = {filters: {}, filterLabels: {}, operations: {}, colTypes: {}};
 export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(EmptyFilterState);
-
 
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
@@ -331,7 +329,6 @@ export class LinkingState extends Disposable {
     }
     // ======= End of cursor linking
 
-
     // Make filterColValues, which is just the filtering-relevant parts of filterState
     // (it's used in places that don't need the user-facing labels, e.g. CSV export)
     this.filterColValues = (this.filterState) ?
@@ -362,7 +359,6 @@ export class LinkingState extends Disposable {
     const srcRowId = this._srcSection.activeRowId();
     return srcRowId === 'new' || srcRowId === null;
   }
-
 
   /**
    * Makes a standard filter link (summary tables and cursor links handled separately)

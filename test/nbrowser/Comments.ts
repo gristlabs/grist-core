@@ -165,7 +165,6 @@ describe('Comments', function() {
     // Remove the 'p' parameter.
     anchor = anchor.replace(/\/p\/\d+/, '');
 
-
     // Now open this link.
     await driver.get('about:blank'); // to make sure we are not reusing the same page
     await driver.sleep(100);
@@ -476,7 +475,6 @@ describe('Comments', function() {
     await asUser(ham);
     await asUser(kiwi, false);
 
-
     // Now we have this situation:
     // For org:
     // - Chimpy - owner
@@ -543,7 +541,6 @@ describe('Comments', function() {
     await asOwner();
     await session.resetSite();
   });
-
 
   it('should be able to delete tables and columns as editors', async function() {
     docId = await session.tempNewDoc(cleanup, 'Hello3');
@@ -667,7 +664,6 @@ describe('Comments', function() {
     await gu.sendKeys(Key.ESCAPE);
     await assertNoPopup();
   });
-
 
   it('should support all editor buttons on empty comment editor', async function() {
     await asSupport();
@@ -1859,7 +1855,6 @@ async function openPanel() {
   await driver.sleep(500);
 }
 
-
 function _mapCommentsToText(data: any) {
   return (data).sort((a: any, b: any) => a.id - b.id).map((r: any) => {
     if (Array.isArray(r.content)) {
@@ -1909,7 +1904,6 @@ function waitForEditor(which: EditorType) {
 async function menuOptions() {
   return await gu.findOpenMenuAllItems('li', e => e.getText());
 }
-
 
 /**
  * Gets disabled items from mention list.
@@ -2178,7 +2172,6 @@ async function waitForMentionList() {
   await gu.findOpenMenu();
   await driver.findWait(".test-mention-textbox-acitem", 1000);
 }
-
 
 /**
  * Gets disabled items from mention list.

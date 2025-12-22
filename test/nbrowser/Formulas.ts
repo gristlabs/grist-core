@@ -6,7 +6,6 @@ async function checkHasLinkStyle(elem: WebElement, yesNo: boolean) {
   assert.equal(await elem.getCssValue('text-decoration-line'), yesNo ? 'underline' : 'none');
 }
 
-
 describe('Formulas', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();

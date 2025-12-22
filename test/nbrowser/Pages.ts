@@ -71,7 +71,6 @@ describe('Pages', function() {
       },
     ]);
 
-
     // Now hide User_Leads
     await hideTable("User_Leads");
     await gu.reloadDoc();
@@ -129,7 +128,6 @@ describe('Pages', function() {
     ]);
     await gu.undo();
   });
-
 
   it('should list all pages in document', async () => {
 
@@ -435,7 +433,6 @@ describe('Pages', function() {
     // check selected page
     assert.match(await selectedPage(), /Overview/);
 
-
     // next page
     await nextPage();
 
@@ -682,7 +679,6 @@ describe('Pages', function() {
     assert.deepEqual(await gu.getSectionTitles(), ['TABLE C', 'TABLE D', 'TABLE1']);
   });
 
-
   async function hideTable(tableId: string) {
     await api.applyUserActions(doc.id, [
       ['AddRecord', '_grist_ACLResources', -1, {tableId, colIds: '*'}],
@@ -705,7 +701,6 @@ async function movePage(page: RegExp, target: {before: RegExp}|{after: RegExp}|{
     })
     .release());
 }
-
 
 async function insertPage(page: RegExp, into: RegExp) {
   await driver.withActions(actions => actions

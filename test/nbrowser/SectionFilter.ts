@@ -240,7 +240,6 @@ describe('SectionFilter', function() {
       await menu.find('.test-filter-menu-cancel-btn').click();
     });
 
-
     it('should properly filter numbers', async () => {
       assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2, 3, 4, 5, 6, 7, 8]),
         ['5.00', '6.00', '7.00', '-1.00', 'foo', '0.00', '', '']);

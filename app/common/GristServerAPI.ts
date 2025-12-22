@@ -10,7 +10,6 @@ export interface GristServerAPI extends
   UserAPI,
   MiscAPI {}
 
-
 interface UserAPI {
   /**
    * Gets the Grist configuration from the server.

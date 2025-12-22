@@ -21,7 +21,6 @@ export function documentCursor(type: 'ns-resize' | 'grabbing'): IDisposable {
   return cursorOwner;
 }
 
-
 /**
  * Helper function to create a movable element.
  * @param options Handlers for the movable element.

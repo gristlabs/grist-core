@@ -106,7 +106,6 @@ describe('editableLabel', function() {
         ['Called: BlurTest', 'Resolved']);
     });
 
-
     it("should not make a save call on Escape", async function() {
       // Click, hit Escape.
       await driver.find('.test-edit-label').doClick().sendKeys(Key.ESCAPE);

@@ -86,7 +86,6 @@ export function handleGristLinkClick(ev: MouseEvent, elem: HTMLAnchorElement) {
   urlState().pushUrl(newUrlState).catch(reportError);
 }
 
-
 /**
  * Generates dom contents out of a text with clickable links.
  */

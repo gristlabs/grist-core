@@ -22,7 +22,6 @@ export interface WebhookFields {
 export type WebhookBatchStatus = 'success'|'failure'|'rejected';
 export type WebhookStatus = 'idle'|'sending'|'retrying'|'postponed'|'error'|'invalid';
 
-
 // WebhookSubscribe should be `Omit<WebhookFields, 'tableId'>` (because subscribe endpoint read
 // tableId from the url) but generics are not yet supported by ts-interface-builder
 export interface WebhookSubscribe {
@@ -35,7 +34,6 @@ export interface WebhookSubscribe {
   name?: string;
   memo?: string;
 }
-
 
 export interface  WebhookSummaryCollection {
   webhooks: Array<WebhookSummary>;
@@ -76,7 +74,6 @@ export interface WebhookPatch {
   name?: string;
   memo?: string;
 }
-
 
 export interface WebhookUsage {
   // As minimum we need number of waiting events and status (by default pending).

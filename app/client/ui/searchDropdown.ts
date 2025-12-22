@@ -13,7 +13,6 @@ import { Disposable, dom, DomElementMethod, IOptionFull, makeTestId, Observable,
 import mergeWith from "lodash/mergeWith";
 import { cssMenuItem, defaultMenuOptions, IOpenController, IPopupOptions, setPopupToFunc } from "popweasel";
 
-
 const t = makeT('searchDropdown');
 
 const testId = makeTestId('test-sd-');

@@ -68,7 +68,6 @@ export async function selectPicker(options: SelectFileOptions) {
   return files;
 }
 
-
 // Helper to convert SelectFileOptions to the browser's FileDialogOptions.
 function getFileDialogOptions(options: SelectFileOptions): FileDialogOptions {
   const resOptions: FileDialogOptions = {};

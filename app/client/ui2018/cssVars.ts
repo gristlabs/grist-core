@@ -148,7 +148,6 @@ export const vars = {
   ...zIndexes,
 };
 
-
 /**
  * @deprecated Consume and update the {@link components} object directly
  * when handling component-specific theme variables.

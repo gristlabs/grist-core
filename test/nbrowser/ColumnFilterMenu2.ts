@@ -2,7 +2,6 @@ import * as gu from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from "test/nbrowser/testUtils";
 import { assert, driver, Key } from 'mocha-webdriver';
 
-
 function getItems() {
   return driver.findAll('.test-filter-menu-list label', async e => ({
     checked: await e.find('input').isSelected(),
@@ -127,7 +126,6 @@ describe('ColumnFilterMenu2', function() {
     await gu.sendKeys(Key.ESCAPE);
     await driver.find('.test-section-menu-small-btn-revert').click();
   });
-
 
   it('should strip markdown content for Text columns', async () => {
     /** Gets labels rendered in the filter menu */

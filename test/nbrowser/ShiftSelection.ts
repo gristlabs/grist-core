@@ -97,7 +97,6 @@ describe('ShiftSelection', function () {
     assert.deepEqual(currentSelection, expected);
   }
 
-
   it('Shift+Up extends the selection up', async function () {
     await gu.getCell(1, 2).click();
     await gu.sendKeys(Key.chord(Key.SHIFT, Key.UP));

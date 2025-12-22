@@ -13,8 +13,6 @@ import fromPairs from 'lodash/fromPairs';
 
 export interface ColTypeMap { [colId: string]: string; }
 
-
-
 type UIRowFunc<T> = (rowId: UIRowId) => T;
 
 interface ColData {

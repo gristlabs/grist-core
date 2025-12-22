@@ -85,7 +85,6 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
     menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"),
       disableForReadonlyView),
 
-
     menuDivider(),
 
     // deletes

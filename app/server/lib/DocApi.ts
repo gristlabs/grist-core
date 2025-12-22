@@ -2708,7 +2708,6 @@ export interface QueryParameters {
   limit?: number;   // Limit on number of rows to return.
 }
 
-
 /**
  * Extract a sort parameter from a request, if present.  Follows
  * https://jsonapi.org/format/#fetching-sorting for want of a better
@@ -2960,7 +2959,6 @@ export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
   res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));
   return streamXLSX(activeDoc, req, res, options);
 }
-
 
 /**
  *

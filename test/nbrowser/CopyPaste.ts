@@ -572,7 +572,6 @@ describe('CopyPaste', function() {
   });
 });
 
-
 // mapper for getVisibleGridCells to get both text and whether the cell is invalid (pink).
 // Invalid cells mean text that was not parsed to the column type.
 async function mapper(el: WebElement) {

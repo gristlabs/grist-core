@@ -2,7 +2,6 @@ import { addToRepl, assert, driver, stackWrapFunc } from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 
-
 describe('VisibleFieldsConfig', function() {
   this.timeout(20000);
   setupTestSuite();
@@ -15,7 +14,6 @@ describe('VisibleFieldsConfig', function() {
   async function isSelected(state: 'visible'|'hidden', content: RegExp): Promise<boolean> {
     return Boolean(await findField(state, content).find('input').getAttribute('checked'));
   }
-
 
   it('should support hiding/revealing a column with single click', async function() {
     // create new document
@@ -85,7 +83,6 @@ describe('VisibleFieldsConfig', function() {
     // check 'C', 'B', 'A' are visible
     assert.deepEqual(await driver.findAll('.g-column-label', e => e.getText()), ['C', 'B', 'A']);
   });
-
 
   it('should allow to hide multiple columns', async function() {
 
@@ -232,7 +229,6 @@ describe('VisibleFieldsConfig', function() {
       stackWrapFunc(testMultiSelection)('visible');
     });
 
-
     describe('hidden fields', function() {
 
       it('initialize test', async function() {
@@ -253,7 +249,6 @@ describe('VisibleFieldsConfig', function() {
     });
 
   });
-
 
   function testMultiSelection(state: 'hidden'|'visible') {
 

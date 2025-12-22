@@ -194,7 +194,6 @@ describe('gristUrlState', function() {
     });
   });
 
-
   it('should produce correct results with prod config', async function() {
     mockWindow.location = new URL('https://bar.example.com/ws/10/') as unknown as Location;
     const state = UrlState.create(null, mockWindow, prod);

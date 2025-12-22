@@ -6,7 +6,6 @@ import { Button, button, element, label, option} from "test/nbrowser/elementUtil
 
 type TypeLabels = "Regular" | "Template" | "Tutorial";
 
-
 describe("DocTypeConversion", function () {
   this.timeout(20000);
   const cleanup = setupTestSuite();

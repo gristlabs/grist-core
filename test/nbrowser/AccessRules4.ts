@@ -60,7 +60,6 @@ describe("AccessRules4", function() {
     assert.equal(await gu.getCell('User_Access', 1).getText(), gu.translateUser('user1').email);
     assert.isFalse(await gu.getCell('Toggle', 1).find('.widget_checkmark').isDisplayed());
 
-
     await gu.getCell('Another', 1).click();
     await gu.enterCell('owner');
     await gu.getCell('Toggle', 1).mouseMove();
@@ -70,7 +69,6 @@ describe("AccessRules4", function() {
     assert.equal(await gu.getCell('Another', 1).getText(), 'owner');
     assert.equal(await gu.getCell('User_Access', 1).getText(), gu.translateUser('user1').email);
     assert.isTrue(await gu.getCell('Toggle', 1).find('.widget_checkmark').isDisplayed());
-
 
     // Now login as user2.
     const userSession = await gu.session().teamSite.user('user2').login();
@@ -198,7 +196,6 @@ describe("AccessRules4", function() {
     assert.equal(await gu.getCell('A', 1).getText(), 'New record');
   });
 });
-
 
 async function viewAs(user: string) {
   await gu.openAccessRulesDropdown();

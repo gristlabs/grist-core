@@ -130,8 +130,6 @@ describe('RangeFilter', function() {
     function parseDate(s: string) { return Number(new Date(s)) / 1000; }
     assert.equal(await driver.find('.fixture-json').getText(), `{"min":${parseDate("2022-04-05")}}`);
 
-
-
     // check checkboxes states
     await fu.switchToDefaultView();
     assert.equal(await isSelected('2022-01-05'), false);
@@ -140,7 +138,6 @@ describe('RangeFilter', function() {
 
     // set max bound to 2022-04-12
     await fu.setBound('max', '2022-04-12');
-
 
     // check state is {"min":1649116800,"max"}
     await fu.switchToDefaultView();

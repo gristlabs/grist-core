@@ -122,7 +122,6 @@ export class UserPresence {
   }
 }
 
-
 interface UserIdRoleMap {
   [id: string]: roles.Role | null
 }

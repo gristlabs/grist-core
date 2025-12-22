@@ -84,7 +84,6 @@ export async function selectXAxis(name: string, opt: {noWait?: boolean} = {}) {
   }
 }
 
-
 export async function setYAxis(names: string[]) {
   // let's first remove all yaxis and then add new ones
   const toRemove = await driver.findAll('.test-chart-y-axis', e => e.getText());

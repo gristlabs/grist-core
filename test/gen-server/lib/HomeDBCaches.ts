@@ -25,7 +25,6 @@ describe('HomeDBCaches', function() {
   testUtils.setTmpLogLevel('error');
   const cleanup = setupCleanup();
 
-
   let homeDb: HomeDBManager;
   let caches: HomeDBCaches;
   let entities: Awaited<ReturnType<typeof createTestFixture>>;
@@ -73,14 +72,12 @@ describe('HomeDBCaches', function() {
     sandbox.restore();
   });
 
-
   // Turn a full PermissionData into a simple {Name: Access} map, for shorter asserts.
   function shortDocAccessResult(result: QueryResult<PermissionData>) {
     const {maxInheritedRole, users} = homeDb.unwrapQueryResult(result);
     assert.strictEqual(maxInheritedRole, null);     // Because we expect flattened results.
     return Object.fromEntries(users.map(u => [u.name, u.access]));
   }
-
 
   it('should cache and expire docAccess values', async function() {
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
@@ -129,7 +126,6 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(shortDocAccessResult(await caches.getDocAccess(entities.docManual.id)), expect2);
     assert.deepEqual(rawCallSpy.callCount, 4);
   });
-
 
   it('should cache invalidate docAccess values on access changes', async function() {
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
@@ -185,7 +181,6 @@ describe('HomeDBCaches', function() {
     assert.deepEqual(rawCallSpy.callCount, 5);      // No extra underlying calls here.
   });
 
-
   it('should invalidate docAccess values when doc is moved', async function() {
     const rawCallSpy = sandbox.spy(HomeDBManager.prototype, 'getDocAccess');
     const alice = entities.users['Alice'];
@@ -234,7 +229,6 @@ describe('HomeDBCaches', function() {
       {Alice: OWNER, Bob: OWNER, Carol: EDITOR, Dave: VIEWER});
     assert.deepEqual(rawCallSpy.callCount, 5);      // Two more underlying call.
 
-
     // Also, making a change to wsEng should affect 2 docs.
     await homeDb.updateWorkspacePermissions({userId: alice.id}, entities.wsEng.id, {maxInheritedRole: null});
     // Prepare an undo after this test case.
@@ -247,7 +241,6 @@ describe('HomeDBCaches', function() {
       {Alice: OWNER, Bob: OWNER});                // Bob remains as the explicitly added original creator.
     assert.deepEqual(rawCallSpy.callCount, 7);    // Two more underlying call.
   });
-
 
   it('happens not to invalidate on user name changes', async function() {
     // Here's an example of a change that does not invalidate: if a user changes their name, we
@@ -278,7 +271,6 @@ describe('HomeDBCaches', function() {
       {Alice: OWNER, Robert: OWNER, Carol: EDITOR});
     assert.deepEqual(rawCallSpy.callCount, 2);
   });
-
 
   function samplePrefs(num: number): DocPrefs {
     return {foo: {num}} as DocPrefs;
@@ -320,7 +312,6 @@ describe('HomeDBCaches', function() {
       {currentUser: {foo: undefined} as any});
     assert.deepEqual(Array.from(await caches.getDocPrefs(entities.docDesignSpec.id)), [[bob.id, {}]]);
   });
-
 
   it('should invalidate across servers', async function() {
     // The Redis operation is mainly tested in PubSubCache and PubSubManager. This is a small but
@@ -365,7 +356,6 @@ describe('HomeDBCaches', function() {
     assert.isBelow(Date.now(), changedAt + CachesDeps.DocAccessCacheTTL);
   });
 });
-
 
 /**
  * Creates a Home DB fixture, and returns its entities, structured as follows:

@@ -15,7 +15,6 @@ import {encodeObject} from 'app/plugin/objtypes';
 import flatMap from 'lodash/flatMap';
 import mapValues from 'lodash/mapValues';
 
-
 export class ValueParser {
   constructor(public type: string, public widgetOpts: FormatOptions, public docSettings: DocumentSettings) {
   }
@@ -66,7 +65,6 @@ class DateTimeParser extends ValueParser {
     return parseDateTime(value, this.widgetOpts);
   }
 }
-
 
 class ChoiceListParser extends ValueParser {
   public cleanParse(value: string): string[] | null {

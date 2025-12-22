@@ -50,7 +50,6 @@ export interface GristQueueScope {
    */
   add(name: string, data: any, options?: JobAddOptions): Promise<void>;
 
-
   /**
    * Add a job handler for all jobs regardless of name.
    * Handlers given by handleName take priority, but no

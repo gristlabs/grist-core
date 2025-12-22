@@ -46,7 +46,6 @@ const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
     endOf: true,
   }]];
 
-
 export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (val: any) => string,
 ): Array<{label: string, spec: IRangeBoundType}> {
   return relativeDateOptionsSpec(value)
@@ -134,7 +133,6 @@ export function getMatchingDoubleRelativeDate(
 export function formatBoundOption(bound: IRangeBoundType, valueFormatter: (val: any) => string): string {
   return isRelativeBound(bound) ? formatRelBounds(bound) : valueFormatter(bound);
 }
-
 
 // Update relativeDate to match the new date picked by user.
 export function updateRelativeDate(relativeDate: IRelativeDateSpec, date: number): IRelativeDateSpec|number {
