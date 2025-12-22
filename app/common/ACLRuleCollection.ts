@@ -9,7 +9,7 @@ import { CompiledPredicateFormula, ParsedPredicateFormula } from 'app/common/Pre
 import { MetaRowRecord } from 'app/common/TableData';
 import { decodeObject } from 'app/plugin/objtypes';
 
-export type ILogger = Pick<Console, 'log'|'debug'|'info'|'warn'|'error'>;
+export type ILogger = Pick<Console, 'log' | 'debug' | 'info' | 'warn' | 'error'>;
 
 const defaultMatchFunc: CompiledPredicateFormula = () => true;
 
@@ -131,7 +131,7 @@ const EMERGENCY_RULE_SET: RuleSet = {
 export class ACLRuleCollection {
   // Store error if one occurs while reading rules.  Rules are replaced with emergency rules
   // in this case.
-  public ruleError: Error|undefined;
+  public ruleError: Error | undefined;
 
   // In the absence of rules, some checks are skipped. For now this is important to maintain all
   // existing behavior. TODO should make sure checking access against default rules is equivalent
@@ -166,7 +166,7 @@ export class ACLRuleCollection {
   }
 
   // Return the RuleSet for "tableId:colId", or undefined if there isn't one for this column.
-  public getColumnRuleSet(tableId: string, colId: string): RuleSet|undefined {
+  public getColumnRuleSet(tableId: string, colId: string): RuleSet | undefined {
     if (tableId === SPECIAL_RULES_TABLE_ID) { return this._specialRuleSets.get(colId); }
     return this._tableColumnMap.get(`${tableId}:${colId}`);
   }
@@ -177,7 +177,7 @@ export class ACLRuleCollection {
   }
 
   // Return the RuleSet for "tableId:*".
-  public getTableDefaultRuleSet(tableId: string): RuleSet|undefined {
+  public getTableDefaultRuleSet(tableId: string): RuleSet | undefined {
     return this._tableRuleSets.get(tableId);
   }
 
@@ -587,8 +587,8 @@ function readAclRules(docData: DocData, { log, compile, enrichRulesForImplementa
  */
 function splitSchemaEditRulePart(rulePart: RulePart): { schemaEdit?: RulePart, nonSchemaEdit?: RulePart } {
   const p = splitSchemaEditPermissionSet(rulePart.permissions);
-  let schemaEdit: RulePart|undefined;
-  let nonSchemaEdit: RulePart|undefined;
+  let schemaEdit: RulePart | undefined;
+  let nonSchemaEdit: RulePart | undefined;
   if (p.schemaEdit) {
     schemaEdit = { ...rulePart,
       permissions: p.schemaEdit,

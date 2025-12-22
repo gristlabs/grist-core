@@ -22,7 +22,7 @@ describe('UserManager', () => {
     }
   }
 
-  async function getRenderedMembers(): Promise<Array<[string, string|null]>> {
+  async function getRenderedMembers(): Promise<Array<[string, string | null]>> {
     const members = await driver.findAll('.test-um-member');
     return await Promise.all(members.map(m => Promise.all([
       getMemberEmail(m),
@@ -30,7 +30,7 @@ describe('UserManager', () => {
     ])));
   }
 
-  async function getMemberRole(memberElem: WebElement): Promise<string|null> {
+  async function getMemberRole(memberElem: WebElement): Promise<string | null> {
     const roleElem = memberElem.find('.test-um-member-role');
     const exists = await roleElem.isPresent();
     return exists ? roleElem.getText() : null;

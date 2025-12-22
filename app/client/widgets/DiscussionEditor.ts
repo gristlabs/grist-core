@@ -210,7 +210,7 @@ export class CommentPopup extends Disposable {
     cell: DiscussionModel,
     gristDoc: GristDoc,
     cursorPos: CursorPos,
-    initialText?: CommentWithMentions|null,
+    initialText?: CommentWithMentions | null,
     closeClicked: () => void;
   }) {
     super();
@@ -316,7 +316,7 @@ class EmptyThread extends Disposable {
 
   constructor(public props: {
     text: Observable<CommentWithMentions>,
-    access: Observable<PermissionData|null>,
+    access: Observable<PermissionData | null>,
     currentUserId: number,
     closeClicked: () => void,
     onSave: (text: CommentWithMentions) => void
@@ -386,7 +386,7 @@ class SingleThread extends Disposable implements IDomComponent {
   constructor(public props: {
     text: Observable<CommentWithMentions>,
     cell: DiscussionModel,
-    access: Observable<PermissionData|null>,
+    access: Observable<PermissionData | null>,
     gristDoc: GristDoc,
     cursorPos: CursorPos,
     closeClicked?: () => void,
@@ -506,7 +506,7 @@ class MultiThreads extends Disposable implements IDomComponent {
   private _comments: Observable<CellRec[]>;
   private _commentsToRender: Observable<CellRec[]>;
   private _truncated: Observable<boolean>;
-  private _access: Observable<PermissionData|null>;
+  private _access: Observable<PermissionData | null>;
 
   constructor(private _props: {
     cell: DiscussionModel,
@@ -604,11 +604,11 @@ class Comment extends Disposable {
   constructor(
     public props: {
       comment: CellRec,
-      access: Observable<PermissionData|null>,
+      access: Observable<PermissionData | null>,
       cell: DiscussionModel,
       gristDoc: GristDoc,
       cursorPos?: CursorPos,
-      parent?: CellRec|null,
+      parent?: CellRec | null,
       panel?: boolean,
       args?: DomArg<HTMLDivElement>[]
     }) {
@@ -889,7 +889,7 @@ class CommentEntry extends Disposable {
     buttons?: string[], // Additional buttons to show.
     editorArgs?: DomArg<HTMLElement>[]
     args?: DomArg<HTMLDivElement>[],
-    access: Observable<PermissionData|null>,
+    access: Observable<PermissionData | null>,
     currentUserId: number,
     onClick?: (button: string) => void,
     onSave?: (m: CommentWithMentions) => void,

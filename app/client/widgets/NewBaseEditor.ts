@@ -19,7 +19,7 @@ export interface Options {
   gristDoc: GristDoc;
   cellValue: CellValue;
   rowId: number;
-  formulaError?: Observable<CellValue|undefined>;
+  formulaError?: Observable<CellValue | undefined>;
   editValue?: string;
   cursorPos: number;
   commands: IEditorCommandGroup;
@@ -50,7 +50,7 @@ export abstract class NewBaseEditor extends Disposable {
    * updated to new-style Disposables.
    */
   public static create<T extends new (...args: any[]) => any, Opt extends Options>(
-    this: T, owner: IDisposableOwner|null, options: Opt): InstanceType<T>;
+    this: T, owner: IDisposableOwner | null, options: Opt): InstanceType<T>;
   public static create<T extends new (...args: any[]) => any, Opt extends Options>(
     this: T, options: Opt): InstanceType<T>;
   public static create(ownerOrOptions: any, options?: any): NewBaseEditor {
@@ -64,10 +64,10 @@ export abstract class NewBaseEditor extends Disposable {
    * returns the value to save. E.g. on typing <enter>, CheckBoxEditor toggles value without opening.
    */
   public static skipEditor(
-    typedVal: string|undefined,
+    typedVal: string | undefined,
     origVal: CellValue,
     options?: { event?: Event },
-  ): CellValue|undefined {
+  ): CellValue | undefined {
     return undefined;
   }
 
@@ -97,13 +97,13 @@ export abstract class NewBaseEditor extends Disposable {
   /**
    * Called to detach the editor and show it in the floating popup.
    */
-  public detach(): HTMLElement|null { return null; }
+  public detach(): HTMLElement | null { return null; }
 
   /**
    * Returns DOM container with the editor, typically present and attached after attach() has been
    * called.
    */
-  public getDom(): HTMLElement|null { return null; }
+  public getDom(): HTMLElement | null { return null; }
 
   /**
    * Called to get the value to save back to the cell.

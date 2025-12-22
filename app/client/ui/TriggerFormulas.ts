@@ -24,7 +24,7 @@ const t = makeT('TriggerFormulas');
  * Build UI to select triggers for formulas in data columns (such for default values).
  */
 export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, options: {
-  notTrigger?: Observable<boolean>|null // if column is not yet a trigger,
+  notTrigger?: Observable<boolean> | null // if column is not yet a trigger,
   disabled?: Observable<boolean>
 }) {
   // Set up observables to translate between the UI representation of triggers, and what we
@@ -62,7 +62,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
     .onWrite(toggleApplyOnChanges);
 
   // Helper to update column's recalcWhen and recalcDeps properties.
-  async function setRecalc(when: RecalcWhen, deps: number[]|null) {
+  async function setRecalc(when: RecalcWhen, deps: number[] | null) {
     if (when !== column.recalcWhen.peek() || deps !== column.recalcDeps.peek()) {
       return column._table.sendTableAction(
         ["UpdateRecord", column.id.peek(), { recalcWhen: when, recalcDeps: encodeObject(deps) }],
@@ -75,7 +75,7 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
     if (use(column.recalcWhen) === RecalcWhen.MANUAL_UPDATES) {
       return t("Any field");
     }
-    const deps = decodeObject(use(column.recalcDeps)) as number[]|null;
+    const deps = decodeObject(use(column.recalcDeps)) as number[] | null;
     if (!deps || deps.length === 0) { return ''; }
     return deps.map(dep => use(docModel.columns.getRowModel(dep)?.label)).join(", ");
   });
@@ -131,13 +131,13 @@ export function buildFormulaTriggers(owner: MultiHolder, column: ColumnRec, opti
 }
 
 function buildTriggerSelectors(ctl: IOpenController, tableRec: TableRec, column: ColumnRec,
-  setRecalc: (when: RecalcWhen, deps: number[]|null) => Promise<void>,
+  setRecalc: (when: RecalcWhen, deps: number[] | null) => Promise<void>,
 ) {
   // ctl may be used as an owner for disposable object. Just give is a clearer name for this.
   const owner: IDisposableOwner = ctl;
 
   // The initial set of selected columns (as a set of rowIds).
-  const initialDeps = new Set(decodeObject(column.recalcDeps.peek()) as number[]|null);
+  const initialDeps = new Set(decodeObject(column.recalcDeps.peek()) as number[] | null);
 
   // State of the "Any field" checkbox.
   const allUpdates = Observable.create(owner, column.recalcWhen.peek() === RecalcWhen.MANUAL_UPDATES);

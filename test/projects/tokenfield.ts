@@ -35,7 +35,7 @@ describe('tokenfield', function() {
     await driver.withActions(a => a.keyDown(key).click(elem).keyUp(key));
   });
 
-  const dragToken = stackWrapFunc(async function(type: TFType, dragLabel: string, destLabel: string|null) {
+  const dragToken = stackWrapFunc(async function(type: TFType, dragLabel: string, destLabel: string | null) {
     await driver.findContent(`.test-tokenfield-${type} .test-tokenfield-token`, dragLabel).mouseMove();
     await driver.mouseDown();
     if (destLabel) {

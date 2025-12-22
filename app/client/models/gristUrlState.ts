@@ -37,7 +37,7 @@ import { CellValue } from "app/plugin/GristData";
 export function urlState(): UrlState<IGristUrlState> {
   return _urlState || (_urlState = new UrlState(window, new UrlStateImpl(window as any)));
 }
-let _urlState: UrlState<IGristUrlState>|undefined;
+let _urlState: UrlState<IGristUrlState> | undefined;
 
 /**
  * Returns url parameters appropriate for the specified document.

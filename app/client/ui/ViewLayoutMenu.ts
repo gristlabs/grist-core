@@ -22,7 +22,7 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
   const cursorRow = viewInstance.cursor.rowIndex.peek();
   // get row id from current data
   // rowId can be string - it is wrongly typed in cursor and in viewData
-  const rowId = (cursorRow !== null ? viewInstance.viewData.getRowId(cursorRow) : null) as string|null|number;
+  const rowId = (cursorRow !== null ? viewInstance.viewData.getRowId(cursorRow) : null) as string | null | number;
   const isAddRow = rowId === 'new';
 
   const contextMenu = [

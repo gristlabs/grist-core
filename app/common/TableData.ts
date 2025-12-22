@@ -63,7 +63,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   // Maps row id to index in the arrays in _columns. I.e. it's the inverse of _rowIdCol.
   private _rowMap: Map<number, number> = new Map();
 
-  constructor(tableId: string, tableData: TableDataAction|null, colTypes: ColTypeMap) {
+  constructor(tableId: string, tableData: TableDataAction | null, colTypes: ColTypeMap) {
     super();
     this._tableId = tableId;
 
@@ -106,7 +106,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   /**
    * Populates the data for this table. Returns the array of old rowIds that were loaded before.
    */
-  public loadData(tableData: TableDataAction|ReplaceTableData): number[] {
+  public loadData(tableData: TableDataAction | ReplaceTableData): number[] {
     const rowIds: number[] = tableData[2];
     const colValues: BulkColValues = tableData[3];
     const oldRowIds: number[] = this._rowIdCol.slice(0);
@@ -162,7 +162,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   /**
    * Returns the specified value from this table.
    */
-  public getValue(rowId: UIRowId, colId: string): CellValue|undefined {
+  public getValue(rowId: UIRowId, colId: string): CellValue | undefined {
     const colData = this._columns.get(colId);
     const index = this._rowMap.get(rowId as number);    // rowId of 'new' will not be found.
     return colData && index !== undefined ? colData.values[index] : undefined;
@@ -176,7 +176,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Returns the index of the given rowId, if it exists, in the same unstable order that's
    * returned by getRowIds() and getColValues().
    */
-  public getRowIdIndex(rowId: UIRowId): number|undefined {
+  public getRowIdIndex(rowId: UIRowId): number | undefined {
     return this._rowMap.get(rowId as number);
   }
 
@@ -184,7 +184,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Given a column name, returns a function that takes a rowId and returns the value for that
    * column of that row. The returned function is faster than getValue() calls.
    */
-  public getRowPropFunc(colId: string): UIRowFunc<CellValue|undefined> {
+  public getRowPropFunc(colId: string): UIRowFunc<CellValue | undefined> {
     const colData = this._columns.get(colId);
     if (!colData) { return () => undefined; }
     const values = colData.values;
@@ -236,7 +236,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * all arrays returned by getColValues() and getRowIds() are parallel to each other, i.e. the
    * values at the same index correspond to the same record.
    */
-  public getColValues(colId: string): ReadonlyArray<CellValue>|undefined {
+  public getColValues(colId: string): ReadonlyArray<CellValue> | undefined {
     const colData = this._columns.get(colId);
     return colData ? colData.values : undefined;
   }
@@ -245,7 +245,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Returns a limited-sized set of distinct values from a column. If count is given, limits how many
    * distinct values are returned.
    */
-  public getDistinctValues(colId: string, count: number = Infinity): Set<CellValue>|undefined {
+  public getDistinctValues(colId: string, count: number = Infinity): Set<CellValue> | undefined {
     const valColumn = this.getColValues(colId);
     if (!valColumn) { return undefined; }
     return getDistinctValues(valColumn, count);
@@ -297,7 +297,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
   /**
    * Returns the given columns type, if the column exists, or undefined otherwise.
    */
-  public getColType(colId: string): string|undefined {
+  public getColType(colId: string): string | undefined {
     const colData = this._columns.get(colId);
     return colData ? colData.type : undefined;
   }
@@ -328,7 +328,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     return records;
   }
 
-  public filterRowIds(properties: { [key: string]: CellValue|undefined }): number[] {
+  public filterRowIds(properties: { [key: string]: CellValue | undefined }): number[] {
     return this._filterRowIndices(properties).map(i => this._rowIdCol[i]);
   }
 
@@ -336,7 +336,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Builds and returns the list of records in this table that match the given properties object.
    * Properties may include 'id' and any table columns. Returned records are not sorted.
    */
-  public filterRecords(properties: { [key: string]: CellValue|undefined }): RowRecord[] {
+  public filterRecords(properties: { [key: string]: CellValue | undefined }): RowRecord[] {
     const rowIndices: number[] = this._filterRowIndices(properties);
 
     // Convert the array of indices to an array of RowRecords.
@@ -365,7 +365,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Returns a record object for the row where colValue is found in the column with the given
    * colId. If there are multiple matches, it is unspecified which will be returned.
    */
-  public findRecord(colId: string, colValue: CellValue): RowRecord|undefined {
+  public findRecord(colId: string, colValue: CellValue): RowRecord | undefined {
     const searchColData = this._columns.get(colId);
     if (!searchColData) { return undefined; }
     const index = searchColData.values.indexOf(colValue);
@@ -544,7 +544,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
     this._isLoaded = false;
   }
 
-  private _filterRowIndices(properties: { [key: string]: CellValue|undefined }): number[] {
+  private _filterRowIndices(properties: { [key: string]: CellValue | undefined }): number[] {
     const rowIndices: number[] = [];
     // Array of {col: arrayOfColValues, value: valueToMatch}
     const props = Object.keys(properties).map(p => ({ col: this._columns.get(p)!, value: properties[p] }));
@@ -617,7 +617,7 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
 
   public findRecord<ColId extends MetaColId<TableId>>(
     colId: ColId, colValue: MetaRowRecord<TableId>[ColId],
-  ): MetaRowRecord<TableId>|undefined {
+  ): MetaRowRecord<TableId> | undefined {
     return super.findRecord(colId, colValue) as any;
   }
 }

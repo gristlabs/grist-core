@@ -41,7 +41,7 @@ export const NoLink = linkId({
 });
 
 // Represents the differents way to reference to a section for linking
-type MaybeSection = ViewSectionRec|IPageWidget;
+type MaybeSection = ViewSectionRec | IPageWidget;
 
 // Returns a list of options with all links that link one of the `source` section to the `target`
 // section. Each `opt.value` is a unique identifier (see: linkId() and linkFromId() for more

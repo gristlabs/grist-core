@@ -2,7 +2,7 @@ export * from 'test/server/customUtil';
 import { driver } from "mocha-webdriver";
 import { gu } from 'test/nbrowser/gristUtil-nbrowser';
 
-export async function setAccess(option: "none"|"read table"|"full") {
+export async function setAccess(option: "none" | "read table" | "full") {
   const text = {
     "none": "No document access",
     "read table": "Read selected table",

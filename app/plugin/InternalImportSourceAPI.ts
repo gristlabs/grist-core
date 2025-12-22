@@ -20,5 +20,5 @@ export interface InternalImportSourceAPI {
    * import panel. Or it can be ignored and use `'fullscreen'` in-place. It is used in
    * `grist.addImporter(...)` according to the value of the `mode` argument.
    */
-  getImportSource(inlineTarget: RenderTarget): Promise<ImportSource|undefined>;
+  getImportSource(inlineTarget: RenderTarget): Promise<ImportSource | undefined>;
 }

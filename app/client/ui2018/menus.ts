@@ -24,7 +24,7 @@ export interface IOptionFull<T> {
   icon?: IconName;
 }
 
-let _lastOpenedController: weasel.IOpenController|null = null;
+let _lastOpenedController: weasel.IOpenController | null = null;
 
 // Close opened menu if any, otherwise do nothing.
 // WARN: current implementation does not handle submenus correctly. Does not seem a problem as of

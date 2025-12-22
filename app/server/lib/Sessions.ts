@@ -47,7 +47,7 @@ export class Sessions {
   /**
    * Get or create a session given the session id and organization name.
    */
-  public getOrCreateSession(sid: string, org: string|undefined, userSelector: string = ''): ScopedSession {
+  public getOrCreateSession(sid: string, org: string | undefined, userSelector: string = ''): ScopedSession {
     org = org || '';
     const key = this._getSessionOrgKey(sid, org, userSelector);
     if (!this._sessions.has(key)) {
@@ -66,7 +66,7 @@ export class Sessions {
    */
   public clearCacheIfNeeded(options?: {
     email?: string,
-    org?: string|null,
+    org?: string | null,
     sessionID?: string,
   }) {
     if (!(process.env.GRIST_HOST || process.env.GRIST_HOSTED)) {
@@ -77,14 +77,14 @@ export class Sessions {
   /**
    * Returns the sessionId from the signed grist cookie.
    */
-  public getSessionIdFromCookie(gristCookie: string): string|false {
+  public getSessionIdFromCookie(gristCookie: string): string | false {
     return cookieParser.signedCookie(gristCookie, this._sessionSecret);
   }
 
   /**
    * Get the session id from the grist cookie.  Returns null if no cookie found.
    */
-  public getSessionIdFromRequest(req: Request|IncomingMessage): string|null {
+  public getSessionIdFromRequest(req: Request | IncomingMessage): string | null {
     if (req.headers.cookie) {
       const cookies = cookie.parse(req.headers.cookie);
       const sessionId = this.getSessionIdFromCookie(cookies[cookieName]);

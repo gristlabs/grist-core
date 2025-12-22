@@ -64,7 +64,7 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
 
 // Fetch the org this request was made for, or null if it isn't tied to a particular org.
 // Early middleware should have put the org in the request object for us.
-export function getOrgFromRequest(req: Request): string|null {
+export function getOrgFromRequest(req: Request): string | null {
   return (req as RequestWithOrg).org || null;
 }
 
@@ -72,7 +72,7 @@ export function getOrgFromRequest(req: Request): string|null {
  * Compute the signature of the user's email address using HelpScout's secret key, to prove to
  * HelpScout the user identity for identifying customer information and conversation history.
  */
-function helpScoutSign(email: string): string|undefined {
+function helpScoutSign(email: string): string | undefined {
   const secretKey = process.env.HELP_SCOUT_SECRET_KEY_V2;
   if (!secretKey) { return undefined; }
   return crypto.createHmac('sha256', secretKey).update(email).digest('hex');
@@ -87,8 +87,8 @@ function helpScoutSign(email: string): string|undefined {
  *     in the url
  *   - If there is no identifier available, a 400 error is thrown.
  */
-export function getOrgKey(req: Request): string|number {
-  let orgKey: string|null = stringParam(req.params.oid, 'oid');
+export function getOrgKey(req: Request): string | number {
+  let orgKey: string | null = stringParam(req.params.oid, 'oid');
   if (orgKey === 'current') {
     orgKey = getOrgFromRequest(req);
   }
@@ -839,7 +839,7 @@ export class ApiServer {
    * part of what is returned by the query.
    */
   private async _withPrivilegedViewForUser<T>(
-    org: string|number, req: express.Request,
+    org: string | number, req: express.Request,
     op: (scope: Scope) => Promise<QueryResult<T>>,
   ): Promise<QueryResult<T>> {
     const scope = getScope(req);

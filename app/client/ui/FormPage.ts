@@ -19,7 +19,7 @@ const testId = makeTestId('test-form-');
 
 export class FormPage extends Disposable {
   private readonly _model: FormModel = new FormModelImpl();
-  private readonly _error = Observable.create<string|null>(this, null);
+  private readonly _error = Observable.create<string | null>(this, null);
 
   constructor() {
     super();
@@ -117,7 +117,7 @@ export class FormPage extends Disposable {
     this._error.set(t('There was an error submitting your form. Please try again.'));
     if (!(e instanceof ApiError) || e.status >= 500) {
       // If it doesn't look like a user error (i.e. a 4XX HTTP response), report it.
-      reportError(e as Error|string);
+      reportError(e as Error | string);
     }
   }
 }

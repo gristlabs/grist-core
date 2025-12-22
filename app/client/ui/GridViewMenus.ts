@@ -108,13 +108,13 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
               } });
             },
             menuIcon(colType.icon as IconName),
-            colType.displayName === 'Reference'?
+            colType.displayName === 'Reference' ?
               gridView.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
                 popupOptions: {
                   attach: `.${menuCssClass}`,
                   placement: 'left-start',
                 },
-              }):null,
+              }) : null,
             colType.displayName,
             testId(`new-columns-menu-add-${colType.testIdName}`)),
         ),
@@ -484,7 +484,7 @@ function buildLookupSection(gridView: GridView, index?: number) {
       const cleanText = col.label().trim().toLowerCase();
 
       // Next the label we will show.
-      let label: string|HTMLElement;
+      let label: string | HTMLElement;
       // For Ref column we will just show the column name.
       if (ref.pureType() === 'Ref') {
         label = col.label();
@@ -706,11 +706,11 @@ export interface IMultiColumnContextMenu {
   // true for some columns, but not all.
   numColumns: number;
   numFrozen: number;
-  disableModify: boolean|'mixed';  // If the columns are read-only. Mixed for multiple columns where some are read-only.
+  disableModify: boolean | 'mixed';  // If the columns are read-only. Mixed for multiple columns where some are read-only.
   isReadonly: boolean;
   isRaw: boolean;
   isFiltered: boolean;            // If this view shows a proper subset of all rows in the table.
-  isFormula: boolean|'mixed';
+  isFormula: boolean | 'mixed';
   columnIndices: number[];
   totalColumnCount: number;
   disableFrozenMenu?: boolean;
@@ -722,7 +722,7 @@ interface IColumnContextMenu extends IMultiColumnContextMenu {
   colRowId: number;
 }
 
-export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewFieldRec) => boolean): boolean|"mixed" {
+export function calcFieldsCondition(fields: ViewFieldRec[], condition: (f: ViewFieldRec) => boolean): boolean | "mixed" {
   return fields.every(condition) ? true : (fields.some(condition) ? "mixed" : false);
 }
 
@@ -815,7 +815,7 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
   const nameHideColumns = t('Hide {{count}} columns', { count: num });
   const frozenMenu = options.disableFrozenMenu ? null : freezeMenuItemCmd(options);
   return [
-    frozenMenu ? [frozenMenu, menuDivider()]: null,
+    frozenMenu ? [frozenMenu, menuDivider()] : null,
     // Offered only when selection includes formula columns, and converts only those.
     (options.isFormula ?
       menuItemCmd(allCommands.convertFormulasToData, t("Convert formula to data"),
@@ -865,7 +865,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
   }
 
   const isNormalColumn = length === 1 && (firstColumnIndex + 1) > numFrozen;
-  const isFrozenColumn = length === 1 && (firstColumnIndex+ 1) <= numFrozen;
+  const isFrozenColumn = length === 1 && (firstColumnIndex + 1) <= numFrozen;
   const isSet = length > 1;
   const isLastFrozenSet = isSet && lastColumnIndex + 1 === numFrozen;
   const isFirstNormalSet = isSet && firstColumnIndex === numFrozen;
@@ -959,7 +959,7 @@ function freezeMenuItemCmd(options: IMultiColumnContextMenu) {
 // Returns 'Add to sort' is there are columns in the sort spec but colId is not part of it. Returns
 // undefined if colId is the only column in the spec. Otherwise returns `Sorted (#N)` where #N is
 // the position (1 based) of colId in the spec.
-function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undefined {
+function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string | undefined {
   const columnsInSpec = sortSpec.map(n => Sort.getColRef(n));
   if (sortSpec.length !== 0 && !isEqual(columnsInSpec, [colId])) {
     const index = columnsInSpec.indexOf(colId);

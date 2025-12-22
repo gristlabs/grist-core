@@ -9,7 +9,7 @@ import * as gu from 'test/nbrowser/gristUtils';
 export const getParseOptionInput = stackWrapFunc((labelRE: RegExp): WebElementPromise =>
   driver.findContent('.test-parseopts-opt', labelRE).find('input'));
 
-type CellDiff = string|[string|undefined, string|undefined, string|undefined];
+type CellDiff = string | [string | undefined, string | undefined, string | undefined];
 
 /**
  * Returns preview diff cell values when the importer is updating existing records.
@@ -101,7 +101,7 @@ export async function openTableMapping() {
 /**
  * Opens the menu for the destination column, by clicking the source.
  */
-export async function openSource(text: string|RegExp) {
+export async function openSource(text: string | RegExp) {
   await driver.findContent('.test-importer-column-match-destination', text)
     .findClosest('.test-importer-column-match-source-destination')
     .find('.test-importer-column-match-source').click();

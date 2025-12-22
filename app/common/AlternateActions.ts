@@ -113,7 +113,7 @@ export class AlternateActions {
 
   private async _doAddRecord(
     tableId: string,
-    rowId: number|null,
+    rowId: number | null,
     colValues: ColValues,
   ): Promise<ProcessedAction> {
     if (rowId === null) {
@@ -131,7 +131,7 @@ export class AlternateActions {
 
   private async _doBulkAddRecord(
     tableId: string,
-    rowIds: Array<number|null>,
+    rowIds: Array<number | null>,
     colValues: BulkColValues,
   ): Promise<ProcessedAction> {
     // When unset, we will set the rowId values to count up from the greatest

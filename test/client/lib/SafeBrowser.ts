@@ -191,7 +191,7 @@ describe('SafeBrowser', function() {
     return { safeBrowser, pluginRpc: pluginInstance.rpc };
   }
 
-  function processByName(name: string): ClientProcess|undefined {
+  function processByName(name: string): ClientProcess | undefined {
     const procInfo = browserProcesses.find(p => (p.path === name));
     return procInfo ? procInfo.proc : undefined;
   }

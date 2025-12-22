@@ -37,12 +37,12 @@ export function endsWith(str: string, suffix: string): boolean {
 }
 
 // If str starts with prefix, removes it and returns what remains. Otherwise, returns null.
-export function removePrefix(str: string, prefix: string): string|null {
+export function removePrefix(str: string, prefix: string): string | null {
   return startsWith(str, prefix) ? str.slice(prefix.length) : null;
 }
 
 // If str ends with suffix, removes it and returns what remains. Otherwise, returns null.
-export function removeSuffix(str: string, suffix: string): string|null {
+export function removeSuffix(str: string, suffix: string): string | null {
   return endsWith(str, suffix) ? str.slice(0, str.length - suffix.length) : null;
 }
 
@@ -116,7 +116,7 @@ export function roundDownToMultiple(n: number, m: number): number {
 /**
  * Returns the first argument unless it's undefined, in which case returns the second one.
  */
-export function undefDefault<T>(x: T|undefined, y: T): T {
+export function undefDefault<T>(x: T | undefined, y: T): T {
   return (x !== void 0) ? x : y;
 }
 
@@ -195,7 +195,7 @@ export function safeJsonParse(json: string, defaultVal: any): any {
  * Just like encodeURIComponent, but does not encode slashes. Slashes don't hurt to be included in
  * URL parameters, and look much friendlier not encoded.
  */
-export function encodeQueryParam(str: string|number|undefined): string {
+export function encodeQueryParam(str: string | number | undefined): string {
   return encodeURIComponent(String(str === undefined ? null : str)).replace(/%2F/g, '/');
 }
 
@@ -203,7 +203,7 @@ export function encodeQueryParam(str: string|number|undefined): string {
  * Encode an object into a querystring ("key=value&key2=value2").
  * This is similar to JQuery's $.param, but only works on shallow objects.
  */
-export function encodeQueryParams(obj: { [key: string]: string|number|undefined }): string {
+export function encodeQueryParams(obj: { [key: string]: string | number | undefined }): string {
   return Object.keys(obj).map((k: string) => encodeQueryParam(k) + '=' + encodeQueryParam(obj[k])).join('&');
 }
 
@@ -547,7 +547,7 @@ export function getSetMapValue<K, V>(mapInst: Map<K, V>, key: K, buildValue: () 
  * @param {Map} mapInst: Instance of Map.
  * @param {Object} key: Key into the map to remove.
  */
-export function popFromMap<K, V>(mapInst: Map<K, V>, key: K): V|undefined {
+export function popFromMap<K, V>(mapInst: Map<K, V>, key: K): V | undefined {
   const value = mapInst.get(key);
   mapInst.delete(key);
   return value;
@@ -743,8 +743,8 @@ export function genRandomId(len: number, optPrefix?: string): string {
  *  Defaults to the identity function.
  */
 export function sortedScan<T, U>(arrA: ArrayLike<T>, arrB: ArrayLike<U>,
-  callback: (a: T|null, B: U|null) => void,
-  optKeyFunc?: (item: T|U) => any) {
+  callback: (a: T | null, B: U | null) => void,
+  optKeyFunc?: (item: T | U) => any) {
   const keyFunc = optKeyFunc || identity;
   let i = 0, j = 0;
   while (i < arrA.length || j < arrB.length) {
@@ -818,7 +818,7 @@ export async function waitGrainObs<T>(observable: Observable<T>): Promise<NonNul
 export async function waitGrainObs<T>(observable: Observable<T>, predicate?: (value: T) => boolean): Promise<T>;
 export async function waitGrainObs<T>(observable: Observable<T>,
   predicate: (value: T) => boolean = Boolean): Promise<T> {
-  let sub: Listener|undefined;
+  let sub: Listener | undefined;
   const res: T = await new Promise((resolve, _reject) => {
     const value = observable.get();
     if (predicate(value)) { return resolve(value); }
@@ -847,7 +847,7 @@ export function inlineStyle(property: string, valueObs: BindableValue<any>): Dom
  * already-scheduled callbacks will be skipped, but newly-scheduled ones will be run.
  */
 export class PromiseChain<T> {
-  private _last: Promise<T|void> = Promise.resolve();
+  private _last: Promise<T | void> = Promise.resolve();
 
   // Adds a callback to the chain. If the callback runs, the return value is the return value of
   // the callback. If it's skipped due to a failure earlier in the chain, the return value is the
@@ -989,7 +989,7 @@ export function useBindable<T>(use: UseCBOwner, obs: BindableValue<T>): T {
 /**
  * Useful helper for simple boolean negation.
  */
-export const not = (obs: Observable<any>|IKnockoutReadObservable<any>|boolean|undefined|null) => (use: UseCBOwner) =>  {
+export const not = (obs: Observable<any> | IKnockoutReadObservable<any> | boolean | undefined | null) => (use: UseCBOwner) =>  {
   if (typeof obs === 'boolean') { return !obs; }
   if (obs === null || obs === undefined) { return true; }
   return !use(obs);

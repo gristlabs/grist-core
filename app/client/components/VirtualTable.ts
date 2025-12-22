@@ -395,7 +395,7 @@ class InMemoryGristDoc extends Disposable {
     this.app?.trigger('clipboard_focus', null);
   }
 
-  public getLinkingRowIds(sectionId: number): UIRowId[]|undefined {
+  public getLinkingRowIds(sectionId: number): UIRowId[] | undefined {
     throw new Error('Anchor links are not supported in virtual tables.');
   }
 }

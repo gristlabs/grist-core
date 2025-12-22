@@ -148,8 +148,8 @@ export async function formSchema(): Promise<FormElement[]> {
 
   async function inspect(el: WebElement): Promise<FormElement> {
     const type = await el.getAttribute('data-box-model');
-    let label: string|undefined;
-    let content: string|undefined;
+    let label: string | undefined;
+    let content: string | undefined;
 
     if (type === 'Field') {
       label = await el.find('.test-forms-label').getText();

@@ -5,9 +5,9 @@
  * given to the service account.
  */
 interface ServiceAccountAllOptional {
-  label: string|undefined;
-  description: string|undefined;
-  expiresAt: string|undefined; // ISO date string
+  label: string | undefined;
+  description: string | undefined;
+  expiresAt: string | undefined; // ISO date string
 }
 
 export interface ServiceAccountApiResponse {

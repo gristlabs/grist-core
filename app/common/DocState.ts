@@ -21,7 +21,7 @@ export interface DocStates {
 export interface DocStateComparison {
   left: DocState;         // left / local document
   right: DocState;        // right / remote document
-  parent: DocState|null;  // most recent common ancestor of left and right
+  parent: DocState | null;  // most recent common ancestor of left and right
   // summary of the relationship between the two documents.
   //        same: documents have the same most recent state
   //        left: the left document has actions not yet in the right

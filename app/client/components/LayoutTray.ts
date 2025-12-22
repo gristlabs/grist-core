@@ -26,15 +26,15 @@ type JQMouseEvent = JQuery.MouseEventBase | MouseEvent;
 export class LayoutTray extends DisposableWithEvents {
   // We and LayoutEditor will emit this event with the box that is being dragged. When the
   // drag is over there will be another event with null.
-  public drag = Signal.create<Dropped|null>(this, null);
+  public drag = Signal.create<Dropped | null>(this, null);
   // Event for dropping, contains a dropped element.
-  public drop = Signal.create<Dropped|null>(this, null);
+  public drop = Signal.create<Dropped | null>(this, null);
   // Monitor if the cursor is over the our tray.
   public hovering = Signal.create(this, false);
   // If the drag is active and the mouse is over the tray make a signal..
   public over = Signal.compute(this, on => Boolean(on(this.drag) && on(this.hovering)));
   // Mouse events during dragging (without a state).
-  public dragging = Signal.create<MouseEvent|null>(this, null);
+  public dragging = Signal.create<MouseEvent | null>(this, null);
   // Create a layout to actually render the collapsed sections.
   public layout = CollapsedLayout.create(this, this);
   // Whether we are active (have a dotted border, that indicates we are ready to receive a drop)
@@ -116,8 +116,8 @@ export class LayoutTray extends DisposableWithEvents {
   /**
    * Builds a popup for a maximized section.
    */
-  public buildPopup(owner: IDisposableOwner, selected: Observable<number|null>, close: () => void) {
-    const section = Observable.create<number|null>(owner, null);
+  public buildPopup(owner: IDisposableOwner, selected: Observable<number | null>, close: () => void) {
+    const section = Observable.create<number | null>(owner, null);
     owner.autoDispose(selected.addListener((cur, prev) => {
       if (prev) {
         this.layout.getBox(prev)?.attach();
@@ -159,7 +159,7 @@ export class LayoutTray extends DisposableWithEvents {
     );
   }
 
-  public buildContentDom(id: string|number) {
+  public buildContentDom(id: string | number) {
     return buildCollapsedSectionDom({
       gristDoc: this.viewLayout.gristDoc,
       sectionRowId: id,
@@ -262,7 +262,7 @@ class CollapsedDropZone extends Disposable {
   }
 
   public buildDom() {
-    const obsRects = Observable.create(this, [] as Array<VRect|null>);
+    const obsRects = Observable.create(this, [] as Array<VRect | null>);
     return (this._rootElement = cssVirtualZone(
       // We are only rendered when mouse is over the tray and it has some dragged leaf with it.
       dom.maybeOwned(this.model.over.state, (owner) => {
@@ -328,7 +328,7 @@ class CollapsedDropZone extends Disposable {
 
   private _calculate(parentRect: DOMRect) {
     const boxes = this.model.layout.all();
-    const rects: Array<VRect|null> = [];
+    const rects: Array<VRect | null> = [];
     // Boxes can be wrapped, we will detect the line offset.
     let lineOffset = 12;
     // We will always have at least one box, so we can use it to get the height.
@@ -451,9 +451,9 @@ class CollapsedLayout extends Disposable {
     return removed;
   }
 
-  public addBox(id: number|Leaf, index?: number) {
+  public addBox(id: number | Leaf, index?: number) {
     index ??= -1;
-    const box = typeof id === 'number' ? CollapsedLeaf.create(this.holder, this.model, id): id;
+    const box = typeof id === 'number' ? CollapsedLeaf.create(this.holder, this.model, id) : id;
     if (typeof id !== 'number') {
       this.holder.autoDispose(box);
     }
@@ -501,8 +501,8 @@ class CollapsedLayout extends Disposable {
     return this._boxes.get().map(l => l.id.get()).filter(x => x && typeof x === 'number');
   }
 
-  public getBox(leaf: number): CollapsedLeaf|undefined {
-    return this._boxes.get().find(l => l.id.get() === leaf) as CollapsedLeaf|undefined;
+  public getBox(leaf: number): CollapsedLeaf | undefined {
+    return this._boxes.get().find(l => l.id.get() === leaf) as CollapsedLeaf | undefined;
   }
 
   public buildDom() {
@@ -516,7 +516,7 @@ class CollapsedLayout extends Disposable {
 }
 
 interface Draggable {
-  dragStart?: (ev: DragEvent, floater: MiniFloater) => Draggable|null;
+  dragStart?: (ev: DragEvent, floater: MiniFloater) => Draggable | null;
   dragEnd?: (ev: DragEvent, floater: MiniFloater) => void;
   drag?: (ev: DragEvent, floater: MiniFloater) => void;
   drop?: (ev: DragEvent, floater: MiniFloater) => void;
@@ -533,7 +533,7 @@ interface Dropped {
 abstract class Leaf extends Disposable {
   public id = Observable.create(this, 0);
   public rootElement: HTMLElement;
-  public buildDom(): HTMLElement|null {
+  public buildDom(): HTMLElement | null {
     return null;
   }
 }
@@ -626,10 +626,10 @@ class TargetLeaf extends EmptyLeaf {
 class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   // The content of the leaf that is rendered. Stored in an observable so that we can update it when the
   // content changes or put it in the floater.
-  private _content: Observable<HTMLElement|null> = Observable.create(this, null);
+  private _content: Observable<HTMLElement | null> = Observable.create(this, null);
 
   // Computed to get the view instance from the viewSection.
-  private _viewInstance: Computed<BaseView|null>;
+  private _viewInstance: Computed<BaseView | null>;
 
   // An observable for the dom that holds the viewInstance and displays it in a hidden element.
   // This is owned by this leaf and is disposed separately from the dom that is returned by buildDom. Like a
@@ -637,7 +637,7 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
   // When a leaf is removed from the dom (e.g. when we remove the collapsed section or move it to the main area)
   // the dom of this element is disposed, but the hidden element stays with this instance and can be disposed
   // later on, giving anyone a chance to grab the viewInstance and display it somewhere else.
-  private _hiddenViewInstance: Observable<HTMLElement|null> = Observable.create(this, null);
+  private _hiddenViewInstance: Observable<HTMLElement | null> = Observable.create(this, null);
 
   // Helper to keeping track of the index of the leaf in the layout.
   private _indexWhenDragged = 0;
@@ -770,7 +770,7 @@ class CollapsedLeaf extends Leaf implements Draggable, Dropped {
  * while it is dragged.
  */
 class MiniFloater extends Disposable {
-  public content: Observable<HTMLElement|null> = Observable.create(this, null);
+  public content: Observable<HTMLElement | null> = Observable.create(this, null);
   public rootElement: HTMLElement;
   constructor() {
     super();
@@ -837,7 +837,7 @@ class ExternalLeaf extends Disposable implements Dropped {
     }).distinct().pipe(this.model.drag);
 
     // When the external box is dropped, we will pretend that we were dropped.
-    this._drop.map(x => this as Dropped|null).pipe(this.model.drop);
+    this._drop.map(x => this as Dropped | null).pipe(this.model.drop);
 
     // Listen to the inDrag state in the model, if the dragged element is not us, update
     // target hits. Otherwise target hits will be updated by the viewLayout.
@@ -936,10 +936,10 @@ class ExternalLeaf extends Disposable implements Dropped {
     // We will replace floater just after it starts till it is about to be dropped.
     const period = Signal.fromEvents(model, model.viewLayout.layoutEditor, 'dragStart', 'dragStop');
     const overEditor = Signal.compute(model, on => Boolean(on(period) && on(model.over))).distinct();
-    let lastContent: HTMLElement|null = null;
-    let lastTransform: string|null = null;
-    let lastX: number|null = null;
-    let lastY: number|null = null;
+    let lastContent: HTMLElement | null = null;
+    let lastTransform: string | null = null;
+    let lastX: number | null = null;
+    let lastY: number | null = null;
     // When the external box is on top of the tray, we need to replace the content to be much smaller.
     model.autoDispose(
       overEditor.listen((over) => {
@@ -1029,7 +1029,7 @@ function syncHover(obs: Signal) {
  * Helper function that renders an element from an observable, but prevents it from being disposed.
  * Used to keep viewInstance from being disposed when it is added as a child in various containers.
  */
-function detachedNode(node: Observable<HTMLElement|null>) {
+function detachedNode(node: Observable<HTMLElement | null>) {
   return [
     // When disposing DOM, grainjs goes over children first, then the parent. This dummy node will
     // gets its disposer called, which will detach node before the disposer gets to it.
@@ -1041,7 +1041,7 @@ function detachedNode(node: Observable<HTMLElement|null>) {
 /**
  * Finds element that is marked as draggable from the mouse event.
  */
-function findDraggable(ev: EventTarget|null) {
+function findDraggable(ev: EventTarget | null) {
   if (ev instanceof HTMLElement) {
     const target = ev.closest(".draggable-handle")?.closest(".draggable");
     return !target ? null : dom.getData(target, 'draggable') as Draggable;
@@ -1071,10 +1071,10 @@ function useDragging() {
     // This is a inspired by LayoutEditor.ts.
     let justStarted = false;
     let isDragging = false;
-    let dragged: Draggable|null = null;
-    let floater: MiniFloater|null = null;
-    let downX: number|null = null;
-    let downY: number|null = null;
+    let dragged: Draggable | null = null;
+    let floater: MiniFloater | null = null;
+    let downX: number | null = null;
+    let downY: number | null = null;
     const listener = (ev: JQMouseEvent) => {
       switch (ev.type) {
         case 'mousedown':

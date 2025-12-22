@@ -244,7 +244,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
   }
 
   private async _save(rowId: UIRowId, value: KoSaveableObservable<CellValue>,
-    uploadResult: UploadResult|null,
+    uploadResult: UploadResult | null,
   ): Promise<void> {
     if (!uploadResult) { return; }
 

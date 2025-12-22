@@ -44,7 +44,7 @@ export function addOrgToPath(path: string, page: string, skipIfInDomain: boolean
 /**
  * Expands an endpoint path to a full url anchored to the given doc worker base url.
  */
-export function docUrl(docWorkerUrl: string|null|undefined, path?: string) {
+export function docUrl(docWorkerUrl: string | null | undefined, path?: string) {
   const base = document.querySelector('base');
   const baseHref = base && base.href;
   const baseUrl = new URL(docWorkerUrl || baseHref || window.location.origin);
@@ -59,7 +59,7 @@ export function getOriginUrl(path: string) {
 
 // Return a string docId if server has provided one (as in hosted Grist), otherwise null
 // (as in classic Grist).
-export function getInitialDocAssignment(): string|null {
+export function getInitialDocAssignment(): string | null {
   return getGristConfig().assignmentId || null;
 }
 

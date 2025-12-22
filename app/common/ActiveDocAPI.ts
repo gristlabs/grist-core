@@ -81,7 +81,7 @@ export interface TransformColumn {
   /**
    * Column id to update (null for a new table).
    */
-  colId: string|null;
+  colId: string | null;
   /**
    * Type of the column (important for new columns).
    */
@@ -111,7 +111,7 @@ export interface ImportTableResult {
   uploadFileIndex: number;      // Index into upload.files array, for the file responsible for this table.
   origTableName: string;
   transformSectionRef: number;
-  destTableId: string|null;
+  destTableId: string | null;
 }
 
 export interface ImportOptions {
@@ -121,7 +121,7 @@ export interface ImportOptions {
 
 export interface MergeOptionsMap {
   // Map of original GristTable name of imported table to its merge options, if any.
-  [origTableName: string]: MergeOptions|undefined;
+  [origTableName: string]: MergeOptions | undefined;
 }
 
 export interface MergeOptions {
@@ -336,7 +336,7 @@ export interface TimingStatus {
    * If disabled then 'disabled', else 'active' or 'pending'. Pending means that the engine is busy
    * and can't respond to confirm the status (but it used to be active before that).
    */
-  status: 'active'|'pending'|'disabled';
+  status: 'active' | 'pending' | 'disabled';
   /**
    * Will be undefined if we can't get the timing info (e.g. if the document is locked by other call).
    * Otherwise, contains the intermediate results gathered so far.
@@ -522,7 +522,7 @@ export interface ActiveDocAPI {
   /**
    * Get a share info associated with the document.
    */
-  getShare(linkId: string): Promise<RemoteShareInfo|null>;
+  getShare(linkId: string): Promise<RemoteShareInfo | null>;
 
   /**
    * Starts collecting timing information from formula evaluations.
@@ -537,7 +537,7 @@ export interface ActiveDocAPI {
   /**
    * Get assistant state associated with the document.
    */
-  getAssistantState(id: string): Promise<AssistantState|null>;
+  getAssistantState(id: string): Promise<AssistantState | null>;
 
   /**
    * Lists users that currently have the doc open.

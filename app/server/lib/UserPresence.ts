@@ -12,7 +12,7 @@ import { fromPairs } from 'lodash';
 export class UserPresence {
   private _presenceSessionsById: Map<string, UserPresenceSession> = new Map();
 
-  private _log = new LogMethods('UserPresence ', (s: DocSession|null) => this._activeDoc.getLogMeta(s));
+  private _log = new LogMethods('UserPresence ', (s: DocSession | null) => this._activeDoc.getLogMeta(s));
 
   constructor(private _docClients: DocClients) {
     this._docClients.addClientAddedListener(this._onNewDocSession.bind(this));

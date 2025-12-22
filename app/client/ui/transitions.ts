@@ -42,7 +42,7 @@ export interface ITransitionLogic<T = void> {
 
 export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>): DomElementMethod {
   const { prepare, run, finish } = trans;
-  let watcher: TransitionWatcher|null = null;
+  let watcher: TransitionWatcher | null = null;
   let firstCall = true;
   return elem => subscribeElem<T>(elem, obs, (val) => {
     // First call is initialization, don't treat it as a transition

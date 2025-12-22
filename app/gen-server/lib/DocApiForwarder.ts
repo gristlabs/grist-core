@@ -90,9 +90,9 @@ export class DocApiForwarder {
   }
 
   private async _forwardToDocWorker(
-    withDocId: boolean, role: 'viewers'|null, req: express.Request, res: express.Response,
+    withDocId: boolean, role: 'viewers' | null, req: express.Request, res: express.Response,
   ): Promise<void> {
-    let docId: string|null = null;
+    let docId: string | null = null;
     if (withDocId) {
       const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager,
         this._gristServer, req.params.docId);

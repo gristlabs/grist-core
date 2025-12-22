@@ -13,7 +13,7 @@
  * Unknown values appear when they are omitted from summaries of bulk actions, and those
  * summaries are then merged with others.
  */
-export type CellDelta = [[any]|"?"|null, [any]|"?"|null];
+export type CellDelta = [[any] | "?" | null, [any] | "?" | null];
 
 /** a special column indicating what changes happened on row (addition, update, removal) */
 export type RowChangeType = string;

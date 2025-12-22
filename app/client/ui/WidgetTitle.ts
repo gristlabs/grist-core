@@ -278,8 +278,8 @@ function buildRenameTitlePopup(ctrl: IOpenController, vs: ViewSectionRec, option
   // Create this group and attach it to the popup and all inputs.
   const commandGroup = commands.createGroup({ ...myCommands }, ctrl, true);
 
-  let tableInput: HTMLInputElement|undefined;
-  let widgetInput: HTMLInputElement|undefined;
+  let tableInput: HTMLInputElement | undefined;
+  let widgetInput: HTMLInputElement | undefined;
   let descInput: HTMLTextAreaElement | undefined;
   return cssRenamePopup(
     // Create a FocusLayer to keep focus in this popup while it's active, and prevent keyboard

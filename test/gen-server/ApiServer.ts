@@ -100,7 +100,7 @@ describe('ApiServer', function() {
 
   for (const users of [['anon'], ['anon', 'everyone'], ['everyone']]) {
     it(`GET /api/orgs reports something for anonymous with org available to ${users.join(', ')}`, async function() {
-      const addUsers: { [key: string]: 'viewers'|'owners' } = {};
+      const addUsers: { [key: string]: 'viewers' | 'owners' } = {};
       const removeUsers: { [key: string]: null } = {};
       for (const user of users) {
         const email = `${user}@getgrist.com`;
@@ -2271,7 +2271,7 @@ describe('ApiServer', function() {
       return resp.data as ServiceAccountCreationResponse;
     }
 
-    function requestConfigWithKey(key: string|undefined) {
+    function requestConfigWithKey(key: string | undefined) {
       assert.isDefined(key);
       return configForApiKey(key);
     }
@@ -2895,7 +2895,7 @@ describe('ApiServer', function() {
 // Only reliable if we haven't been deleting records in that table.
 // Could make reliable by using sqlite_sequence in sqlite and the equivalent
 // in postgres.
-async function getNextId(dbManager: HomeDBManager, table: 'orgs'|'workspaces') {
+async function getNextId(dbManager: HomeDBManager, table: 'orgs' | 'workspaces') {
   // Check current top org id.
   const row = await dbManager.connection.query(`select max(id) as id from ${table}`);
   const id = row[0]['id'];

@@ -88,8 +88,8 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
   constructor(
     public readonly storageManager: IDocStorageManager,
-    public readonly pluginManager: PluginManager|null,
-    private _homeDbManager: HomeDBManager|null,
+    public readonly pluginManager: PluginManager | null,
+    private _homeDbManager: HomeDBManager | null,
     private _attachmentStoreProvider: IAttachmentStoreProvider,
     public gristServer: GristServer,
   ) {
@@ -295,7 +295,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * @returns {Promise:String} The name of the deleted Grist document.
    *
    */
-  public async deleteDoc(client: Client|null, docName: string, deletePermanently: boolean): Promise<string> {
+  public async deleteDoc(client: Client | null, docName: string, deletePermanently: boolean): Promise<string> {
     log.debug('DocManager.deleteDoc starting for %s', docName);
     const docPromise = this._activeDocs.get(docName);
     if (docPromise) {
@@ -483,7 +483,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   }
 
   // Access a document by name.
-  public getActiveDoc(docName: string): Promise<ActiveDoc>|undefined {
+  public getActiveDoc(docName: string): Promise<ActiveDoc> | undefined {
     return this._activeDocs.get(docName);
   }
 
@@ -509,7 +509,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * Get the SQLiteDB backing an ActiveDoc, if there is one right
    * now. If you get one, remember it could be closed at any time.
    */
-  public getSQLiteDB(docName: string): SQLiteDB|undefined {
+  public getSQLiteDB(docName: string): SQLiteDB | undefined {
     return this._sqliteDbs.get(docName);
   }
 
@@ -575,7 +575,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     });
   }
 
-  public makeAccessId(userId: number|null): string|null {
+  public makeAccessId(userId: number | null): string | null {
     return makeAccessId(this.gristServer, userId);
   }
 
@@ -708,7 +708,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    */
   private async _doImportDoc(docSession: OptDocSession, uploadInfo: UploadInfo,
     options: {
-      naming: 'classic'|'saved'|'unsaved',
+      naming: 'classic' | 'saved' | 'unsaved',
       register?: (docId: string, uploadBaseFilename: string) => Promise<void>,
       userId?: number,
     }): Promise<DocCreationInfo> {

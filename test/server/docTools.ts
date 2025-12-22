@@ -196,13 +196,13 @@ export async function createFile(dirPath: string, name: string): Promise<FileUpl
  * globalUploadSet, and returns its uploadId. The upload is registered with the given accessId
  * (userId), and the same id must be used to retrieve it.
  */
-export async function createUpload(fileNames: string[], accessId: string|null): Promise<number> {
+export async function createUpload(fileNames: string[], accessId: string | null): Promise<number> {
   const { tmpDir, cleanupCallback } = await createTmpUploadDir({});
   const files = await Promise.all(fileNames.map(name => createFile(tmpDir, name)));
   return globalUploadSet.registerUpload(files, tmpDir, cleanupCallback, accessId);
 }
 
-let _globalPluginManager: PluginManager|null = null;
+let _globalPluginManager: PluginManager | null = null;
 
 // Helper to create a singleton PluginManager. This includes loading built-in plugins. Since most
 // tests don't make any use of it, it's fine to reuse a single one. For tests that need a custom

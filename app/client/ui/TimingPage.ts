@@ -14,7 +14,7 @@ const t = makeT('TimingPage');
 const testId = makeTestId('test-timing-page-');
 
 export class TimingPage extends DisposableWithEvents {
-  private _data: Observable<FormulaTimingInfo[]|null> = Observable.create(this, null);
+  private _data: Observable<FormulaTimingInfo[] | null> = Observable.create(this, null);
   private _doc = VirtualDoc.create(this, this._gristDoc.appModel);
 
   constructor(private _gristDoc: GristDoc) {

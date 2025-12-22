@@ -207,6 +207,6 @@ async function mapper(el: WebElement) {
   return text;
 }
 
-function findColumnMenuItem(label: RegExp|string) {
+function findColumnMenuItem(label: RegExp | string) {
   return driver.findContentWait('.test-importer-column-match-menu-item', label, 100);
 }

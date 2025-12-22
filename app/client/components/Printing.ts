@@ -6,9 +6,9 @@ import { ViewSectionRec } from 'app/client/models/DocModel';
 import { prefersColorSchemeDark, prefersColorSchemeDarkObs } from 'app/client/ui2018/theme';
 import { dom } from 'grainjs';
 
-type RowId = number|'new';
+type RowId = number | 'new';
 
-function getViewSectionContent(viewInstance: BaseView|null) {
+function getViewSectionContent(viewInstance: BaseView | null) {
   const sectionElem = viewInstance?.viewPane?.closest('.viewsection_content');
   if (!sectionElem) {
     throw new Error("No page widget to print");

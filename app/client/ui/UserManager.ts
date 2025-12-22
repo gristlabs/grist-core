@@ -48,9 +48,9 @@ const t = makeT('UserManager');
 
 export interface IUserManagerOptions {
   permissionData: Promise<PermissionData>;
-  activeUser: FullUser|null;
+  activeUser: FullUser | null;
   resourceType: ResourceType;
-  resourceId: string|number;
+  resourceId: string | number;
   resource?: Resource;
   docPageModel?: DocPageModel;
   appModel?: AppModel;  // If present, we offer access to a nested team-level dialog.
@@ -79,7 +79,7 @@ async function getModel(options: IUserManagerOptions): Promise<UserManagerModelI
  * the UserManager menu with save and cancel buttons.
  */
 export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOptions) {
-  const modelObs: Observable<UserManagerModel|null|"slow"> = observable(null);
+  const modelObs: Observable<UserManagerModel | null | "slow"> = observable(null);
 
   async function onConfirm(ctl: IModalControl) {
     const model = modelObs.get();
@@ -136,7 +136,7 @@ from someone else with sufficient access to the {{resourceType}}.`, { resourceTy
 }
 
 function buildUserManagerModal(
-  modelObs: Observable<UserManagerModel|null|"slow">,
+  modelObs: Observable<UserManagerModel | null | "slow">,
   onConfirm: (ctl: IModalControl) => Promise<void>,
   options: IUserManagerOptions,
 ) {
@@ -552,8 +552,8 @@ export class UserManager extends Disposable {
 
   // Returns a div containing a button that opens a menu to choose between roles.
   private _memberRoleSelector(
-    role: Observable<string|null>,
-    inherited: Observable<roles.Role|null>,
+    role: Observable<string | null>,
+    inherited: Observable<roles.Role | null>,
     isActiveUser: boolean,
     allRolesOverride?: IOrgMemberSelectOption[],
   ) {
@@ -687,7 +687,7 @@ function getFullUser(member: IEditableMember): FullUser {
 }
 
 // Create a "Copy Link" button.
-function makeCopyBtn(linkToCopy: string|undefined, ...domArgs: DomElementArg[]) {
+function makeCopyBtn(linkToCopy: string | undefined, ...domArgs: DomElementArg[]) {
   return linkToCopy && cssCopyBtn(cssCopyIcon('Copy'), t('Copy link'),
     dom.on('click', (ev, elem) => copyLink(elem, linkToCopy)),
     testId('um-copy-link'),

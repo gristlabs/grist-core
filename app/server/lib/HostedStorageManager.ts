@@ -76,7 +76,7 @@ const defaultOptions: HostedStorageOptions = {
  */
 export class HostedStorageManager implements IDocStorageManager {
   // Handles pushing doc metadata changes when the doc is updated.
-  private _metadataManager: HostedMetadataManager|null = null;
+  private _metadataManager: HostedMetadataManager | null = null;
 
   // Maps docId to the promise for when the document is present on the local filesystem.
   private _localFiles = new Map<string, Promise<boolean>>();
@@ -116,7 +116,7 @@ export class HostedStorageManager implements IDocStorageManager {
   private _latestVersions = new Map<string, string>();
   private _latestMetaVersions = new Map<string, string>();
 
-  private _log = new LogMethods('HostedStorageManager ', (docId: string|null) => ({ docId }));
+  private _log = new LogMethods('HostedStorageManager ', (docId: string | null) => ({ docId }));
 
   /**
    * Initialize with the given root directory, which should be a fully-resolved path.
@@ -215,7 +215,7 @@ export class HostedStorageManager implements IDocStorageManager {
   }
 
   // We don't deal with sample docs
-  public getSampleDocPath(sampleDocName: string): string|null { return null; }
+  public getSampleDocPath(sampleDocName: string): string | null { return null; }
 
   /**
    * Translates a possibly non-canonical docName to a canonical one. Returns a bare docId,
@@ -534,7 +534,7 @@ export class HostedStorageManager implements IDocStorageManager {
    */
   public scheduleUsageUpdate(
     docName: string,
-    docUsage: DocumentUsage|null,
+    docUsage: DocumentUsage | null,
     minimizeDelay = false,
   ): void {
     const { forkId, snapshotId } = parseUrlId(docName);
@@ -772,7 +772,7 @@ export class HostedStorageManager implements IDocStorageManager {
    * Send a document to S3.
    */
   private async _pushToS3(docId: string): Promise<void> {
-    let tmpPath: string|null = null;
+    let tmpPath: string | null = null;
 
     const snapshotProgress = this.getSnapshotProgress(docId);
     try {

@@ -58,10 +58,10 @@ export interface GristServer extends StorageCoordinator {
   getHomeInternalUrl(relPath?: string): string;
   getHomeUrlByDocId(docId: string, relPath?: string): Promise<string>;
   getOwnUrl(): string;
-  getOrgUrl(orgKey: string|number): Promise<string>;
+  getOrgUrl(orgKey: string | number): Promise<string>;
   getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
-  getResourceUrl(resource: Organization|Workspace|Document,
-    purpose?: 'api'|'html'): Promise<string>;
+  getResourceUrl(resource: Organization | Workspace | Document,
+    purpose?: 'api' | 'html'): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;
   getExternalPermitStore(): IPermitStore;
@@ -78,25 +78,25 @@ export interface GristServer extends StorageCoordinator {
   getWidgetRepository(): IWidgetRepository;
   hasNotifier(): boolean;
   getNotifier(): INotifier;
-  getDocNotificationManager(): IDocNotificationManager|undefined;
+  getDocNotificationManager(): IDocNotificationManager | undefined;
   getPubSubManager(): IPubSubManager;
-  getAssistant(): IAssistant|undefined;
+  getAssistant(): IAssistant | undefined;
   getDocTemplate(): Promise<DocTemplate>;
   getTag(): string;
   sendAppPage(req: express.Request, resp: express.Response, options: ISendAppPageOptions): Promise<void>;
   getAccessTokens(): IAccessTokens;
   resolveLoginSystem(): Promise<GristLoginSystem>;
-  getPluginUrl(): string|undefined;
+  getPluginUrl(): string | undefined;
   getPlugins(): LocalPlugin[];
   servesPlugins(): boolean;
   getBundledWidgets(): ICustomWidget[];
-  getBootKey(): string|undefined;
+  getBootKey(): string | undefined;
   getSandboxInfo(): Promise<SandboxInfo>;
   getInfo(key: string): any;
   getJobs(): GristJobs;
   getBilling(): IBilling;
   getDoomTool(): Promise<Doom>;
-  getLatestVersionAvailable(): LatestVersionAvailable|undefined;
+  getLatestVersionAvailable(): LatestVersionAvailable | undefined;
   setLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): void
   publishLatestVersionAvailable(latestVersionAvailable: LatestVersionAvailable): Promise<void>;
   setRestrictedMode(restrictedMode?: boolean): void;
@@ -134,7 +134,7 @@ export interface GristLoginMiddleware {
   // is identified by a session cookie. When given, overrideProfile() will be called first to
   // extract the profile from each request. Result can be a profile, or null if anonymous
   // (sessions will then not be used), or undefined to fall back to using session info.
-  overrideProfile?(req: express.Request|IncomingMessage): Promise<UserProfile|null|undefined>;
+  overrideProfile?(req: express.Request | IncomingMessage): Promise<UserProfile | null | undefined>;
   // Called on first visit to an app page after a signup, for reporting or telemetry purposes.
   onFirstVisit?(req: express.Request): void;
 }
@@ -193,7 +193,7 @@ export function createDummyGristServer(): GristServer {
     getTelemetry() { return createDummyTelemetry(); },
     getWidgetRepository() { throw new Error('no widget repository'); },
     getNotifier() { throw new Error('no notifier'); },
-    getDocNotificationManager(): IDocNotificationManager|undefined { return undefined; },
+    getDocNotificationManager(): IDocNotificationManager | undefined { return undefined; },
     getPubSubManager(): IPubSubManager { throw new Error('no PubSubManager'); },
     hasNotifier() { return false; },
     getAssistant() { return undefined; },

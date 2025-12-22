@@ -244,7 +244,7 @@ function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionStr
   }
   catch (e) {
     if (e instanceof StringUnionError) {
-      throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.`+
+      throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.` +
         ` Expected at least one of these values: "${e.values.join(",")}"`,
       );
     }
@@ -402,7 +402,7 @@ export class OIDCBuilder {
     }
     // Ignore redirectUrl because OIDC providers don't allow variable redirect URIs
     const stableRedirectUri = new URL('/signed-out', getOriginUrl(req)).href;
-    const session: SessionObj|undefined = (req as RequestWithLogin).session;
+    const session: SessionObj | undefined = (req as RequestWithLogin).session;
     return this._client.endSessionUrl({
       post_logout_redirect_uri: stableRedirectUri,
       id_token_hint: session?.oidc?.idToken,

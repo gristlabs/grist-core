@@ -66,7 +66,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
     });
   }
 
-  public async get(sql: string, ...params: any[]): Promise<ResultRow|undefined> {
+  public async get(sql: string, ...params: any[]): Promise<ResultRow | undefined> {
     return fromCallback(cb => this._db.get(sql, ...params, cb));
   }
 
@@ -75,7 +75,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
   }
 
   public async prepare(sql: string): Promise<PreparedStatement> {
-    let stmt: sqlite3.Statement|undefined;
+    let stmt: sqlite3.Statement | undefined;
     // The original interface is a little strange; we resolve to Statement if prepare() succeeded.
     await fromCallback((cb) => { stmt = this._db.prepare(sql, cb); }).then(() => stmt);
     if (!stmt) { throw new Error('could not prepare statement'); }

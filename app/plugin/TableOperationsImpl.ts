@@ -23,8 +23,8 @@ export class TableOperationsImpl implements TableOperations {
 
   public create(records: Types.NewRecord, options?: OpOptions): Promise<Types.MinimalRecord>;
   public create(records: Types.NewRecord[], options?: OpOptions): Promise<Types.MinimalRecord[]>;
-  public async create(recordsOrRecord: Types.NewRecord[]|Types.NewRecord,
-    options?: OpOptions): Promise<Types.MinimalRecord[]|Types.MinimalRecord> {
+  public async create(recordsOrRecord: Types.NewRecord[] | Types.NewRecord,
+    options?: OpOptions): Promise<Types.MinimalRecord[] | Types.MinimalRecord> {
     return await withRecords(recordsOrRecord, async (records) => {
       const postRecords = convertToBulkColValues(records);
       // postRecords can be an empty object, in that case we will create empty records.
@@ -33,7 +33,7 @@ export class TableOperationsImpl implements TableOperations {
     });
   }
 
-  public async update(recordOrRecords: Types.Record|Types.Record[], options?: OpOptions) {
+  public async update(recordOrRecords: Types.Record | Types.Record[], options?: OpOptions) {
     await withRecords(recordOrRecords, async (records) => {
       if (!areSameFields(records)) {
         this._platform.throwError('PATCH', 'requires all records to have same fields', 400);
@@ -49,7 +49,7 @@ export class TableOperationsImpl implements TableOperations {
     });
   }
 
-  public async upsert(recordOrRecords: Types.AddOrUpdateRecord|Types.AddOrUpdateRecord[],
+  public async upsert(recordOrRecords: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
     upsertOptions?: UpsertOptions): Promise<void> {
     await withRecords(recordOrRecords, async (records) => {
       const tableId = await this._platform.getTableId();
@@ -81,7 +81,7 @@ export class TableOperationsImpl implements TableOperations {
     });
   }
 
-  public async destroy(recordIdOrRecordIds: Types.RecordId|Types.RecordId[]): Promise<void> {
+  public async destroy(recordIdOrRecordIds: Types.RecordId | Types.RecordId[]): Promise<void> {
     await withRecords(recordIdOrRecordIds, async (recordIds) => {
       const tableId = await this._platform.getTableId();
       const actions = [['BulkRemoveRecord', tableId, recordIds]];
@@ -176,7 +176,7 @@ export function areSameFields(records: Array<Types.Record | Types.NewRecord>) {
  * be a single object or a list. If input is empty list, return the empty list.
  * If input is a single object, return a single object. Otherwise return a list.
  */
-async function withRecords<T, T2>(recordsOrRecord: T[]|T, op: (records: T[]) => Promise<T2[]>): Promise<T2|T2[]> {
+async function withRecords<T, T2>(recordsOrRecord: T[] | T, op: (records: T[]) => Promise<T2[]>): Promise<T2 | T2[]> {
   const records = Array.isArray(recordsOrRecord) ? recordsOrRecord : [recordsOrRecord];
   const result = records.length == 0 ? [] : await op(records);
   return Array.isArray(recordsOrRecord) ? result : result[0];

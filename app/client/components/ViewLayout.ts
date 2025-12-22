@@ -96,7 +96,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   public docModel = this.gristDoc.docModel;
   public viewModel: ViewRec;
   public layoutSpec: ko.Computed<BoxSpec>;
-  public maximized: Observable<number|null>;
+  public maximized: Observable<number | null>;
   public isResizing = Observable.create(this, false);
   public layout: Layout;
   public layoutEditor: LayoutEditor;
@@ -182,7 +182,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
         box.dom!.classList.remove(classActive);
         box.dom!.classList.remove("transition");
       });
-      let elem: Element|null = this.layout.getLeafBox(id)?.dom || null;
+      let elem: Element | null = this.layout.getLeafBox(id)?.dom || null;
       while (elem?.matches('.layout_box')) {
         elem.classList.remove(classInactive);
         elem.classList.add(classActive);

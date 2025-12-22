@@ -67,7 +67,7 @@ export class FormulaAssistant extends Disposable {
    * This is like `_chatPanelBodyClientHeight`, but updated only for the purposes of
    * being able to collapse and expand the panel to a known height.
    */
-  private _lastChatPanelHeight: number|undefined;
+  private _lastChatPanelHeight: number | undefined;
   /** True if the chat panel is being resized via dragging. */
   private _isResizing = Observable.create(this, false);
 

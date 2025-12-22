@@ -34,7 +34,7 @@ export type ClientRemovedEventListener = (session: DocSession) => void;
 
 export class DocClients extends EventEmitter {
   private _docSessions: DocSession[] = [];
-  private _log = new LogMethods('DocClients ', (s: DocSession|null) => this.activeDoc.getLogMeta(s));
+  private _log = new LogMethods('DocClients ', (s: DocSession | null) => this.activeDoc.getLogMeta(s));
 
   constructor(
     public readonly activeDoc: ActiveDoc,
@@ -111,7 +111,7 @@ export class DocClients extends EventEmitter {
    * @param {Object} messageData: The data for this type of message.
    * @param {Object} filterMessage: Optional callback to filter message per client.
    */
-  public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
+  public async broadcastDocMessage(client: Client | null, type: CommDocEventType, messageData: any,
     filterMessage?: (docSession: DocSession,
       messageData: any) => Promise<any>): Promise<void> {
     const send = async (target: DocSession) => {
@@ -154,7 +154,7 @@ export class DocClients extends EventEmitter {
   private async _prepareMessage(
     target: DocSession, type: CommDocEventType, messageData: any,
     filterMessage?: (docSession: DocSession, messageData: any) => Promise<any>,
-  ): Promise<{ type: CommDocEventType, data: unknown }|undefined> {
+  ): Promise<{ type: CommDocEventType, data: unknown } | undefined> {
     try {
       // Make sure user still has view access.
       await target.authorizer.assertAccess('viewers');

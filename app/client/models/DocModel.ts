@@ -89,7 +89,7 @@ export function recordSet<TRow extends MetaRowModel>(
  * @param {ko.observable} rowIdObs: An observable for the row id to look up.
  */
 export function refRecord<TRow extends MetaRowModel>(
-  tableModel: MetaTableModel<TRow>, rowIdObs: ko.Observable<number>|ko.Computed<number>,
+  tableModel: MetaTableModel<TRow>, rowIdObs: ko.Observable<number> | ko.Computed<number>,
 ): ko.Computed<TRow> {
   // Pass 'true' to getRowModel() to depend on the row version.
   return ko.pureComputed(() => tableModel.getRowModel(rowIdObs() || 0, true));
@@ -101,10 +101,10 @@ export function refRecord<TRow extends MetaRowModel>(
  * @param {ko.observable} rowsIdObs: An observable with a RefList value.
  */
 export function refListRecords<TRow extends MetaRowModel>(
-  tableModel: MetaTableModel<TRow>, rowsIdObs: ko.Observable<RefListValue>|ko.Computed<RefListValue>,
+  tableModel: MetaTableModel<TRow>, rowsIdObs: ko.Observable<RefListValue> | ko.Computed<RefListValue>,
 ) {
   return ko.pureComputed(() => {
-    const ids = decodeObject(rowsIdObs()) as number[]|null;
+    const ids = decodeObject(rowsIdObs()) as number[] | null;
     if (!Array.isArray(ids)) {
       return [];
     }
@@ -270,7 +270,7 @@ export class DocModel extends Disposable {
    * method is intended for when there is ambiguity such as when RefList linking is involved.
    * In other cases, returns undefined.
    */
-  public getLinkingRowIds(sectionId: number): UIRowId[]|undefined {
+  public getLinkingRowIds(sectionId: number): UIRowId[] | undefined {
     const linkingRowIds: UIRowId[] = [];
     let anyAmbiguity = false;
     let section = this.viewSections.getRowModel(sectionId);

@@ -210,13 +210,13 @@ export function setHoverTooltip(
   const tipContentFunc = typeof tipContent === 'function' ? tipContent : () => tipContent;
 
   // Controller for closing the tooltip, if one is open.
-  let tipControl: ITooltipControl|undefined;
+  let tipControl: ITooltipControl | undefined;
 
   // A marker, that the tooltip should be closed, but we are waiting for the mouseup event.
   const POSTPONED = Symbol();
 
   // Timer to open or close the tooltip, depending on whether tipControl is set.
-  let timer: ReturnType<typeof setTimeout>|undefined|typeof POSTPONED;
+  let timer: ReturnType<typeof setTimeout> | undefined | typeof POSTPONED;
 
   // To allow user select text, we will monitor if the selection has started in the tooltip (by listening
   // to the mousedown event). If it has and mouse goes outside, we will mark that the tooltip should be closed.
@@ -244,7 +244,7 @@ export function setHoverTooltip(
     if (timer !== POSTPONED) { clearTimeout(timer); }
     timer = undefined;
   }
-  function resetTimer(func: () => void, delay: number|typeof POSTPONED) {
+  function resetTimer(func: () => void, delay: number | typeof POSTPONED) {
     clearTimer();
     timer = delay === POSTPONED ? POSTPONED : setTimeout(func, delay);
   }

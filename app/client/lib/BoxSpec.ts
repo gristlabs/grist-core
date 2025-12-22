@@ -3,7 +3,7 @@ import { dom } from 'grainjs';
 import * as _ from 'underscore';
 
 export interface BoxSpec {
-  leaf?: string|number;
+  leaf?: string | number;
   size?: number;
   children?: BoxSpec[];
   collapsed?: BoxSpec[];

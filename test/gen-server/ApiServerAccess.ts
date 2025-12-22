@@ -23,8 +23,8 @@ let server: TestServer;
 let dbManager: HomeDBManager;
 let homeUrl: string;
 let userCountUpdates: { [orgId: number]: number[] } = {};
-let lastMail: SendGridMailWithTemplateId|null = null;
-let lastMailDesc: string|null = null;
+let lastMail: SendGridMailWithTemplateId | null = null;
+let lastMailDesc: string | null = null;
 const sandbox = sinon.createSandbox();
 
 const chimpy = configForUser('Chimpy');
@@ -51,7 +51,7 @@ describe('ApiServerAccess', function() {
 
   testUtils.setTmpLogLevel('error');
 
-  let notificationsConfig: SendGridConfig|undefined;
+  let notificationsConfig: SendGridConfig | undefined;
   before(async function() {
     server = new TestServer(this);
     homeUrl = await server.start(['home', 'docs']);
@@ -1883,7 +1883,7 @@ describe('ApiServerAccess', function() {
 
     // Turns users from PermissionData into a mapping from email address to [access, parentAccess],
     // for more concise comparisons below.
-    function compactAccess(data: PermissionData): { [email: string]: [Role|null, Role|null] } {
+    function compactAccess(data: PermissionData): { [email: string]: [Role | null, Role | null] } {
       return fromPairs(data.users.map(u => [u.email, [u.access, u.parentAccess || null]]));
     }
 
@@ -2376,7 +2376,7 @@ async function realAccess(view: UserAPI, email: string, doc: string) {
   return effective;
 }
 
-async function breakInheritance(api: UserAPI, docWs: string|number) {
+async function breakInheritance(api: UserAPI, docWs: string | number) {
   if (typeof docWs === 'number') {
     await api.updateWorkspacePermissions(docWs, {
       maxInheritedRole: null,

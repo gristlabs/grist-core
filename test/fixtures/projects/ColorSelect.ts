@@ -14,7 +14,7 @@ function optionToString(value?: boolean) {
 }
 
 function obsOption() {
-  return Observable.create(null, undefined) as Observable<boolean|undefined>;
+  return Observable.create(null, undefined) as Observable<boolean | undefined>;
 }
 
 /**

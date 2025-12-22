@@ -157,7 +157,7 @@ describe('OpenAIAssistantV1', function() {
 
   it('uses trusted proxy when configured', async function() {
     const proxyURL = 'http://localhost-proxy:8080';
-    process.env.HTTPS_PROXY=proxyURL;
+    process.env.HTTPS_PROXY = proxyURL;
     const trustedAgent = new GristProxyAgent(proxyURL);
     const agentsFake = { trusted: trustedAgent, untrusted: undefined };
     sinon.replace(DEPS, 'agents', agentsFake);

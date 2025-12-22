@@ -79,7 +79,7 @@ export class ServiceAccountsManager {
   public async getServiceAccount(
     serviceAccountId: number,
     transaction?: EntityManager,
-  ): Promise<ServiceAccount|null> {
+  ): Promise<ServiceAccount | null> {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
         .where("serviceAccount.id = :id", { id: serviceAccountId })
@@ -93,7 +93,7 @@ export class ServiceAccountsManager {
   public async getServiceAccountByLoginWithOwner(
     serviceAccountLogin: string,
     transaction?: EntityManager,
-  ): Promise<ServiceAccount|null> {
+  ): Promise<ServiceAccount | null> {
     return await this._runInTransaction(transaction, async (manager) => {
       return await this._buildServiceAccountQuery(manager)
         .innerJoinAndSelect("serviceAccount.owner", "owner")
@@ -221,7 +221,7 @@ export class ServiceAccountsManager {
    * its ownership.
    */
   private _assertExistingAndOwned(
-    serviceAccount: ServiceAccount|null, expectedOwnerId: number|undefined,
+    serviceAccount: ServiceAccount | null, expectedOwnerId: number | undefined,
   ): asserts serviceAccount is ServiceAccount {
     this._assertExisting(serviceAccount);
     if (expectedOwnerId !== undefined && serviceAccount.ownerId !== expectedOwnerId) {
@@ -229,7 +229,7 @@ export class ServiceAccountsManager {
     }
   }
 
-  private _assertExisting(serviceAccount: ServiceAccount|null): asserts serviceAccount is ServiceAccount {
+  private _assertExisting(serviceAccount: ServiceAccount | null): asserts serviceAccount is ServiceAccount {
     if (serviceAccount === null) {
       throw new ApiError("This Service Account does not exist", 404);
     }

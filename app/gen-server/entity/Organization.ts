@@ -68,7 +68,7 @@ export class Organization extends Resource {
 
   // For custom domains, this is the preferred host associated with this org/team.
   @Column({ name: 'host', type: 'text', nullable: true })
-  public host: string|null;
+  public host: string | null;
 
   // Any prefs relevant to the org and user.  This relation is marked to not result
   // in saves, since OneToMany saves in TypeORM are not reliable - see e.g. later

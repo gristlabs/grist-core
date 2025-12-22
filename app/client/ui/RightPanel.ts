@@ -94,7 +94,7 @@ export class RightPanel extends Disposable {
 
   // If the panel is showing a tool, such as Action Log, instead of the usual section/field
   // configuration, this will be set to the tool's header and content.
-  private _extraTool: Observable<IExtraTool|null>;
+  private _extraTool: Observable<IExtraTool | null>;
 
   // Which of the two standard top tabs (page widget or field) is selected, or was last selected.
   private _topTab = createSessionObs(this, "rightTopTab", "pageWidget", TopTab.guard);
@@ -106,7 +106,7 @@ export class RightPanel extends Disposable {
 
   // Which type of page widget is active, e.g. "record" or "chart". This affects the names and
   // icons in the top tab.
-  private _pageWidgetType = Computed.create<IWidgetType|null>(this, (use) => {
+  private _pageWidgetType = Computed.create<IWidgetType | null>(this, (use) => {
     const section: ViewSectionRec = use(this._gristDoc.viewModel.activeSection);
     return (use(section.parentKey) || null) as IWidgetType;
   });
@@ -332,7 +332,7 @@ export class RightPanel extends Disposable {
               origColumn, this._gristDoc, this._activateFormulaEditor.bind(this)),
           ),
           cssSeparator(),
-          dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
+          dom.maybe<FieldBuilder | null>(fieldBuilder, builder => [
             cssLabel(t("COLUMN TYPE")),
             cssSection(
               builder.buildSelectTypeDom(),
@@ -357,7 +357,7 @@ export class RightPanel extends Disposable {
               cssSeparator(),
             ]),
             cssLabel(t("TRANSFORM")),
-            dom.maybe<FieldBuilder|null>(fieldBuilder, builder => builder.buildTransformDom()),
+            dom.maybe<FieldBuilder | null>(fieldBuilder, builder => builder.buildTransformDom()),
             testId('panel-transform'),
           ),
           this._disableIfReadonly(),
@@ -461,8 +461,8 @@ export class RightPanel extends Disposable {
     ];
   }
 
-  private _createViewConfigTab(owner: MultiHolder): Observable<null|ViewConfigTab> {
-    const viewConfigTab = Observable.create<null|ViewConfigTab>(owner, null);
+  private _createViewConfigTab(owner: MultiHolder): Observable<null | ViewConfigTab> {
+    const viewConfigTab = Observable.create<null | ViewConfigTab>(owner, null);
     const gristDoc = this._gristDoc;
     imports.loadViewPane()
       .then((ViewPane) => {
@@ -622,7 +622,7 @@ export class RightPanel extends Disposable {
       if (lstate == null) { return null; }
 
       // if not filter-linking, this will be incorrect, but we don't use it then
-      const lfilter = lstate.filterState ? use(lstate.filterState): EmptyFilterState;
+      const lfilter = lstate.filterState ? use(lstate.filterState) : EmptyFilterState;
 
       // If it's null then no cursor-link is set, but in that case we won't show the string anyway.
       const cursorPos = lstate.cursorPos ? use(lstate.cursorPos) : 0;
@@ -667,7 +667,7 @@ export class RightPanel extends Disposable {
                   dom("td", operationSymbol, dom.style('padding', '0 2px 0 2px')),
                   dom("td", cssLinkInfoValuesBox(
                     isFullReferencingType(lfilter.colTypes[colId]) ?
-                      cssLinkInfoIcon("FieldReference"): null,
+                      cssLinkInfoIcon("FieldReference") : null,
                     `${vals.join(', ')}`)),
                 );
               }
@@ -1082,7 +1082,7 @@ export class RightPanel extends Disposable {
               testId('field-label'),
             ),
           ),
-          dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
+          dom.maybe<FieldBuilder | null>(fieldBuilder, builder => [
             cssSeparator(),
             cssLabel(t("COLUMN TYPE")),
             cssSection(
@@ -1142,7 +1142,7 @@ function disabledSection() {
 
 // This logic is copied from SidePane.js for building DOM from TabContent.
 // TODO It may not be needed after new-ui refactoring of the side-pane content.
-function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComponent) {
+function tabContentToDom(content: Observable<TabContent[]> | TabContent[] | IDomComponent) {
   function buildItemDom(item: any) {
     return dom('div.config_item',
       dom.show(item.showObs || true),
@@ -1446,7 +1446,7 @@ const cssLinkInfoPanel = styled('div', `
 `);
 
 // Center table / values box inside LinkInfoPanel
-const cssLinkInfoBody= styled('div', `
+const cssLinkInfoBody = styled('div', `
   margin: 2px 0 2px 0;
   align-self: center;
 `);

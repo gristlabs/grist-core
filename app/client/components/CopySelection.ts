@@ -16,13 +16,13 @@ export class CopySelection {
   public readonly colIds = this.fields.map(f => f.colId());
   public readonly colRefs = this.fields.map(f => f.colRef());
   public readonly displayColIds = this.fields.map(f => f.displayColModel().colId());
-  public readonly rowStyle: { [r: number]: object }|undefined;
-  public readonly colStyle: { [c: string]: object }|undefined;
+  public readonly rowStyle: { [r: number]: object } | undefined;
+  public readonly colStyle: { [c: string]: object } | undefined;
 
   public readonly columns: Array<{
     colId: string,
     fmtGetter: (rowId: UIRowId) => string,
-    rawGetter: (rowId: UIRowId) => CellValue|undefined,
+    rawGetter: (rowId: UIRowId) => CellValue | undefined,
   }>;
 
   constructor(tableData: TableData, public readonly rowIds: UIRowId[], public readonly fields: ViewFieldRec[],

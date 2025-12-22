@@ -20,7 +20,7 @@ export function makeId(): string {
  * and the id of a reference document (the trunk).
  * If the userId is null, the user will be treated as the anonymous user.
  */
-export function makeForkIds(options: { userId: number|null, isAnonymous: boolean,
+export function makeForkIds(options: { userId: number | null, isAnonymous: boolean,
   trunkDocId: string, trunkUrlId: string }): ForkResult {
   const forkId = makeId();
   const forkUserId = options.isAnonymous ? undefined :

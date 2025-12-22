@@ -53,7 +53,7 @@ export async function insightLogWrap<T>(
   }
 }
 
-export function insightLogEntry(): InsightLogEntry|undefined {
+export function insightLogEntry(): InsightLogEntry | undefined {
   return asyncLocalStorage.getStore();
 }
 

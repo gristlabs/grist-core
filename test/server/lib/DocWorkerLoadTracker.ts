@@ -56,8 +56,8 @@ describe("DocWorkerLoadTracker", function() {
     });
 
     async function mockValueInFile(
-      depsProperty: 'docWorkerUsedMemoryBytesPath'|'docWorkerMaxMemoryBytesPath',
-      value: number|string|undefined): Promise<void> {
+      depsProperty: 'docWorkerUsedMemoryBytesPath' | 'docWorkerMaxMemoryBytesPath',
+      value: number | string | undefined): Promise<void> {
       if (value !== undefined) {
         const { path, cleanup } = await tmp.file();
         registerCleanup(cleanup);
@@ -78,12 +78,12 @@ describe("DocWorkerLoadTracker", function() {
       },
       maxFromFile: bytesToMb(512),
       usedFromFile: bytesToMb(128),
-      result: 128/1024,
+      result: 128 / 1024,
     }, {
       itMsg: 'should otherwise retrieve max memory using GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH',
       maxFromFile: bytesToMb(512),
       usedFromFile: bytesToMb(128),
-      result: 128/512,
+      result: 128 / 512,
     }, {
       itMsg: 'should consider value "max" in GRIST_DOC_WORKER_MAX_MEMORY_BYTES_PATH as Infinite',
       maxFromFile: 'max',
@@ -100,7 +100,7 @@ describe("DocWorkerLoadTracker", function() {
         getTotalMemoryUsedStub.returns(128);
       },
       maxFromFile: bytesToMb(512),
-      result: 128/512,
+      result: 128 / 512,
     }]) {
       it(ctx.itMsg, async function() {
         ctx.setup?.();

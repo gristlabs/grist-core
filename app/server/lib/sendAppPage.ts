@@ -69,11 +69,11 @@ export interface ISendAppPageOptions {
 }
 
 export interface MakeGristConfigOptions {
-  homeUrl: string|null;
+  homeUrl: string | null;
   extra: Partial<GristLoadConfig>;
   baseDomain?: string;
   req?: express.Request;
-  server?: GristServer|null;
+  server?: GristServer | null;
 }
 
 export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfig {
@@ -82,7 +82,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
   const pluginUrl = process.env.APP_UNTRUSTED_URL || 'http://plugins.invalid';
   const pathOnly = (process.env.GRIST_ORG_IN_PATH === "true") ||
     (homeUrl && new URL(homeUrl).hostname === 'localhost') || false;
-  const mreq = req as RequestWithOrg|undefined;
+  const mreq = req as RequestWithOrg | undefined;
 
   // Configure form framing behavior.
 
@@ -117,7 +117,7 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
       ((server?.getBundledWidgets().length || 0) > 0),
     survey: Boolean(process.env.DOC_ID_NEW_USER_INFO),
     tagManagerId: process.env.GOOGLE_TAG_MANAGER_ID,
-    activation: (req as RequestWithLogin|undefined)?.activation,
+    activation: (req as RequestWithLogin | undefined)?.activation,
     latestVersionAvailable: server?.getLatestVersionAvailable(),
     automaticVersionCheckingAllowed: isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING),
     enableCustomCss: isAffirmative(process.env.APP_STATIC_INCLUDE_CUSTOM_CSS),
@@ -269,7 +269,7 @@ function getFeatures(): IFeature[] {
   return Features.checkAll(difference(enabledFeatures, disabledFeatures));
 }
 
-function getAssistantConfig(gristServer?: GristServer|null): AssistantConfig|undefined {
+function getAssistantConfig(gristServer?: GristServer | null): AssistantConfig | undefined {
   const assistant = gristServer?.getAssistant();
   if (!assistant) {
     return undefined;
@@ -279,7 +279,7 @@ function getAssistantConfig(gristServer?: GristServer|null): AssistantConfig|und
   return { provider, version };
 }
 
-function getPermittedCustomWidgets(gristServer?: GristServer|null): IAttachedCustomWidget[] {
+function getPermittedCustomWidgets(gristServer?: GristServer | null): IAttachedCustomWidget[] {
   if (!process.env.PERMITTED_CUSTOM_WIDGETS && gristServer) {
     // The PERMITTED_CUSTOM_WIDGETS environment variable is a bit of
     // a drag. If there are bundled widgets that overlap with widgets
@@ -312,7 +312,7 @@ function configuredPageTitleSuffix() {
  * Note: The string returned is escaped and safe to insert into HTML.
  *
  */
-function getDocName(config: GristLoadConfig): string|null {
+function getDocName(config: GristLoadConfig): string | null {
   const maybeDoc = getDocFromConfig(config);
 
   return maybeDoc && escapeExpression(maybeDoc.name);

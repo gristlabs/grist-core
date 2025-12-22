@@ -72,7 +72,7 @@ export function pagePanels(page: PageContents) {
   let contentTopDom: HTMLElement;
   let onLeftTransitionFinish = noop;
 
-  let regionFocusSwitcher: RegionFocusSwitcher|undefined;
+  let regionFocusSwitcher: RegionFocusSwitcher | undefined;
   // Create a RegionFocusSwitcher when we have a valid appObj (some tests don't include one).
   if (appObj && appObj.topAppModel) {
     regionFocusSwitcher = RegionFocusSwitcher.create(null, appObj);

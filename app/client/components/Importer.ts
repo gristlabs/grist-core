@@ -98,13 +98,13 @@ export interface SourceInfo {
    * When user selects Existing table, new formula columns are created that look like the selected table, and this
    * section contains those formula columns.
    */
-  transformSection: Observable<ViewSectionRec|null>;
+  transformSection: Observable<ViewSectionRec | null>;
   /** The destination table id, selected by the user. Can be null for skip and empty string for `New table`  */
   destTableId: Observable<DestId>;
   /** True if there is at least one request in progress to create a new transform section. */
   isLoadingSection: Observable<boolean>;
   /** Reference to last promise for the GenImporterView action (which creates `transformSection`). */
-  lastGenImporterViewPromise: Promise<any>|null;
+  lastGenImporterViewPromise: Promise<any> | null;
   /** Selected view, can be table mapping or column mapping, used only in UI. */
   selectedView: Observable<ViewType>;
   /** List of columns that were customized (have custom formulas) */
@@ -127,7 +127,7 @@ function toggleCustomized(info: SourceInfo, colId: string, on: boolean): void {
  * UI state for each imported table (file). Maps table id to the info object.
  */
 interface MergeOptionsStateMap {
-  [hiddenTableId: string]: MergeOptionsState|undefined;
+  [hiddenTableId: string]: MergeOptionsState | undefined;
 }
 
 /**
@@ -202,7 +202,7 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   // In case of using built-in file picker we want to get upload result before instantiating Importer
   // because if the user dismisses the dialog without picking a file,
   // there is no good way to detect this and dispose Importer.
-  let uploadResult: UploadResult|null = null;
+  let uploadResult: UploadResult | null = null;
   // Use the built-in file picker. On electron, it uses the native file selector (without
   // actually uploading anything), which is why this requires a slightly different flow.
   const files: File[] = await openFilePicker({
@@ -256,7 +256,7 @@ export class Importer extends DisposableWithEvents {
   /**
    * Currently selected table to import (a file or a tab in excel).
    */
-  private _sourceInfoSelected = Observable.create<SourceInfo|null>(this, null);
+  private _sourceInfoSelected = Observable.create<SourceInfo | null>(this, null);
 
   // Owner of the observables in the _sourceInfoArray
   private readonly _sourceInfoHolder = Holder.create(this);
@@ -270,7 +270,7 @@ export class Importer extends DisposableWithEvents {
    *
    * We need a helper to make sure section is in good state before showing it to the user.
    */
-  private _previewViewSection: Observable<ViewSectionRec|null> =
+  private _previewViewSection: Observable<ViewSectionRec | null> =
     Computed.create(this, this._sourceInfoSelected, (use, info) => {
       if (!info) { return null; }
 
@@ -286,7 +286,7 @@ export class Importer extends DisposableWithEvents {
    */
   private _isLoadingDiff = Observable.create(this, false);
   // Promise for the most recent generateImportDiff action.
-  private _lastGenImportDiffPromise: Promise<any>|null = null;
+  private _lastGenImportDiffPromise: Promise<any> | null = null;
 
   private _debouncedUpdateDiff = debounce(this._updateDiff, 1000, { leading: true, trailing: true });
 
@@ -315,7 +315,7 @@ export class Importer extends DisposableWithEvents {
    *
    * This is helper that makes sure that those fields from the transformSection are in a good state to show.
    */
-  private _transformFields: Computed<ViewFieldRec[]|null> = Computed.create(
+  private _transformFields: Computed<ViewFieldRec[] | null> = Computed.create(
     this, this._sourceInfoSelected, (use, info) => {
       const section = info && use(info.transformSection);
       if (!section || use(section._isDeleted)) { return null; }
@@ -360,9 +360,9 @@ export class Importer extends DisposableWithEvents {
    * In other words, this is a list of GRIST COLUMNS that are not mapped to any SOURCE COLUMNS, so
    * columns that won't be imported.
    */
-  private _unmatchedFieldsMap: Computed<Map<SourceInfo, string[]|null>> = Computed.create(this, (use) => {
+  private _unmatchedFieldsMap: Computed<Map<SourceInfo, string[] | null>> = Computed.create(this, (use) => {
     const sources = use(this._sourceInfoArray);
-    const result = new Map<SourceInfo, string[]|null>();
+    const result = new Map<SourceInfo, string[] | null>();
     const unmatched = (info: SourceInfo) => {
       // If Skip import selected, ignore.
       if (use(info.destTableId) === SKIP_TABLE) { return null; }
@@ -384,7 +384,7 @@ export class Importer extends DisposableWithEvents {
 
   constructor(private _gristDoc: GristDoc,
     // null tells to use the built-in file picker.
-    private _importSourceElem: ImportSourceElement|null,
+    private _importSourceElem: ImportSourceElement | null,
     private _createPreview: CreatePreviewFunc) {
     super();
     const label = _importSourceElem?.importSource.label || t("Import from file");
@@ -400,7 +400,7 @@ export class Importer extends DisposableWithEvents {
   /*
    * Uploads file to the server using the built-in file picker or a plugin instance.
    */
-  public async pickAndUploadSource(uploadResult: UploadResult|null = null) {
+  public async pickAndUploadSource(uploadResult: UploadResult | null = null) {
     try {
       if (!this._importSourceElem) {
         // Use upload result if it was passed in or the built-in file picker.
@@ -563,7 +563,7 @@ export class Importer extends DisposableWithEvents {
     };
   }
 
-  private _getMergeOptionsForSource(sourceInfo: SourceInfo): MergeOptions|undefined {
+  private _getMergeOptionsForSource(sourceInfo: SourceInfo): MergeOptions | undefined {
     const mergeOptions = this._mergeOptions[sourceInfo.hiddenTableId];
     if (!mergeOptions) { return undefined; }
 
@@ -1239,7 +1239,7 @@ export class Importer extends DisposableWithEvents {
   /**
    * Updates the formula on column `colRef` to `formula`, when user wants to match it to a source column.
    */
-  private async _setColumnFormula(transformCol: ColumnRec, formula: string|null, info: SourceInfo) {
+  private async _setColumnFormula(transformCol: ColumnRec, formula: string | null, info: SourceInfo) {
     const transformColRef = transformCol.id();
     const customized = info.customizedColumns.get();
     customized.delete(transformCol.colId());

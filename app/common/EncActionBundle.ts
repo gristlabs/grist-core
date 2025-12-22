@@ -64,8 +64,8 @@ export interface EncEnvelopeFromHub extends Envelope {
 // sending ActionBundle to the hub, and one for receiving from the hub.
 export interface EncActionBundle<EncEnvelope> {
   actionNum: number;
-  actionHash: string|null;
-  parentActionHash: string|null;
+  actionHash: string | null;
+  parentActionHash: string | null;
   envelopes: EncEnvelope[];
 }
 

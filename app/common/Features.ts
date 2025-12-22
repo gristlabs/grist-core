@@ -119,7 +119,7 @@ export interface Features {
  * // Use features from the document, for any missing features use billingAccount features and then product features.
  * - mergedFeatures(document, billingAccount, product),
  */
-export function mergedFeatures(resource: Features|null, ...defaults: (Features|null)[]): Features {
+export function mergedFeatures(resource: Features | null, ...defaults: (Features | null)[]): Features {
   return [resource, ...defaults].filter(Boolean).reduce((acc: Features, f) => defaultsDeep(acc, f), {});
 }
 

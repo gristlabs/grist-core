@@ -29,9 +29,9 @@ export class SCIMMYRoleSchema extends SCIMMY.Types.Schema {
   })();
 
   public displayName: string;
-  public docId: string|undefined;
-  public workspaceId: number|undefined;
-  public orgId: number|undefined;
+  public docId: string | undefined;
+  public workspaceId: number | undefined;
+  public orgId: number | undefined;
   public members: SCIMMY.Schemas.Group["members"];
 
   constructor(resource: object, direction = "both", basepath?: string, filters?: SCIMMY.Types.Filter) {

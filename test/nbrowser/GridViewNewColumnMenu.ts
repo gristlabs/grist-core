@@ -312,7 +312,7 @@ describe('GridViewNewColumnMenu', function() {
             await driver.findContentWait(
               '.test-behavioral-prompt-title',
               'Reference Columns',
-              STANDARD_WAITING_TIME*2,
+              STANDARD_WAITING_TIME * 2,
             ).isDisplayed(),
           ), 5000);
           await gu.dismissBehavioralPrompts();
@@ -946,7 +946,7 @@ describe('GridViewNewColumnMenu', function() {
           // This is submenu so expand it.
           await driver.findContentWait('.test-new-columns-menu-revlookup-submenu',
             new RegExp("^" + column),
-            STANDARD_WAITING_TIME*3,
+            STANDARD_WAITING_TIME * 3,
           ).mouseMove();
 
           // Wait for any function to appear.

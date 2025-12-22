@@ -15,7 +15,7 @@ export interface AdminPanelControls {
 
 export function HidableToggle(
   owner: IDisposableOwner,
-  value: Observable<boolean|null>,
+  value: Observable<boolean | null>,
   options: { labelId?: string } = {},
 ) {
   return toggleSwitch(value, {
@@ -37,9 +37,9 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
   description?: DomContents,
   value?: DomElementArg,
   expandedContent?: DomContents,
-  disabled?: false|string,
+  disabled?: false | string,
 }) {
-  let item: HTMLDivElement|undefined;
+  let item: HTMLDivElement | undefined;
   const itemContent = (...prefix: DomContents[]) => [
     item = cssItemName(
       ...prefix,

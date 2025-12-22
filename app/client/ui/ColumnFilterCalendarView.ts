@@ -132,7 +132,7 @@ export class ColumnFilterCalendarView extends Disposable {
 
   // Update val with date. Returns the new updated value. Useful to update bounds' value after users
   // have picked new value from calendar.
-  private _updateBoundValue(val: IRelativeDateSpec|number|undefined, date: number) {
+  private _updateBoundValue(val: IRelativeDateSpec | number | undefined, date: number) {
     return isRelativeBound(val) ? updateRelativeDate(val, date) : date;
   }
 

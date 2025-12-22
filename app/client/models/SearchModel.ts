@@ -58,7 +58,7 @@ class Stepper<T> {
 
   // Doing await at every step adds a ton of overhead; we can optimize by returning and waiting on
   // Promises only when needed.
-  public next(step: number, nextArrayFunc: () => Promise<void>|void): Promise<void>|void {
+  public next(step: number, nextArrayFunc: () => Promise<void> | void): Promise<void> | void {
     this.index += step;
     if (!this.inRange()) {
       // If index reached the end of the array, take a step at a higher level to get a new array.
@@ -88,7 +88,7 @@ interface IFinder {
   startPosition: SearchPosition;   // position at which to stop searching for a new match
   abort(): void;                   // abort current search
   matchNext(step: number): Promise<void>;      // next match
-  nextField(step: number): Promise<void>|void; // move the current position
+  nextField(step: number): Promise<void> | void; // move the current position
   getCurrentPosition(): SearchPosition;        // get the current position
 }
 
@@ -178,7 +178,7 @@ class FinderImpl implements IFinder {
   private _fieldFormatters: [ViewFieldRec, BaseFormatter][];
   private _pagesSwitched: number = 0;
   private _aborted = false;
-  private _clearCursorHighlight: (() => void)|undefined;
+  private _clearCursorHighlight: (() => void) | undefined;
 
   constructor(private _gristDoc: GristDoc, value: string, private _openDocPageCB: DocPageOpener,
     public multiPage: Observable<boolean>, private _onPageChange?: () => void) {
@@ -287,7 +287,7 @@ class FinderImpl implements IFinder {
     await this._highlight();
   }
 
-  public nextField(step: number): Promise<void>|void {
+  public nextField(step: number): Promise<void> | void {
     return this._fieldStepper.next(step, () => this._nextRow(step));
   }
 
@@ -468,7 +468,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   public readonly allLabel: Computed<string>;
 
   private _isRestartNeeded = false;
-  private _finder: IFinder|null = null;
+  private _finder: IFinder | null = null;
   private _onPageChange: (() => void) | undefined;
   constructor(private _gristDoc: GristDoc) {
     super();

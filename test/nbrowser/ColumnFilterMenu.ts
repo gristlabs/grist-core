@@ -506,7 +506,7 @@ describe('ColumnFilterMenu', function() {
     await gu.sendKeys(Key.ESCAPE);
   });
 
-  async function testDateLikeColumn(colId: 'Date'|'DateTime') {
+  async function testDateLikeColumn(colId: 'Date' | 'DateTime') {
     const timeChunk = colId === 'DateTime' ? ' 12:00am' : '';
     const colRegex = new RegExp(colId + '\\b');
 

@@ -9,7 +9,7 @@ import { waitForIt } from 'test/server/wait';
 describe('HealthCheck', function() {
   testUtils.setTmpLogLevel('error');
 
-  for (const serverType of ['home', 'docs'] as Array<'home'|'docs'>) {
+  for (const serverType of ['home', 'docs'] as Array<'home' | 'docs'>) {
     describe(serverType, function() {
       let server: TestServer;
       let oldEnv: testUtils.EnvironmentSnapshot;

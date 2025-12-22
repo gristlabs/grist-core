@@ -55,7 +55,7 @@ export class GridOptions extends Disposable {
 // Returns a grainjs observable that reflects the value of obs a knockout saveable observable. The
 // returned observable will set and save obs to the given value when written. If the obs.save() call
 // fails, then it gets reset to its previous value.
-function setSaveValueFromKo(owner: IDisposableOwner, obs: KoSaveableObservable<boolean|undefined>) {
+function setSaveValueFromKo(owner: IDisposableOwner, obs: KoSaveableObservable<boolean | undefined>) {
   const ret = Computed.create(null, use => use(obs) ?? false);
   ret.onWrite(async (val) => {
     await setSaveValue(obs, val);

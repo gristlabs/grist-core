@@ -14,7 +14,7 @@ export interface DocInfoRec extends IRowModel<"_grist_DocInfo"> {
    * Note: You shouldn't change it directly. There is a docAPI endpoint to modify it (which notifies other
    * client about transfer job status also).
    */
-  attachmentStoreId: modelUtil.KoSaveableObservable<string|undefined>;
+  attachmentStoreId: modelUtil.KoSaveableObservable<string | undefined>;
 }
 
 export function createDocInfoRec(this: DocInfoRec, docModel: DocModel): void {

@@ -90,14 +90,14 @@ interface JqueryUI {
   originalSize: { width: number, height: number };
 }
 
-type LeafId = string|number;
+type LeafId = string | number;
 
 /**
  * The Floater class represents a floating version of the element being dragged around. Its size
  * corresponds to the box being dragged. It lets the user see what's being repositioned.
  */
 class Floater extends Disposable implements ContentBox {
-  public leafId: ko.Observable<LeafId|null>;
+  public leafId: ko.Observable<LeafId | null>;
   public leafContent: ko.Observable<Element | null>;
   public fillWindow: boolean;
   public dom: HTMLElement;
@@ -106,7 +106,7 @@ class Floater extends Disposable implements ContentBox {
   public lastMouseEvent: JQMouseEvent | null;
 
   public create(fillWindow?: boolean) {
-    this.leafId = observable<LeafId|null>(null);
+    this.leafId = observable<LeafId | null>(null);
     this.leafContent = observable<Element | null>(null);
     this.fillWindow = fillWindow || false;
 
@@ -161,7 +161,7 @@ class Floater extends Disposable implements ContentBox {
  */
 class DropOverlay extends Disposable {
   public overlayElem: HTMLElement;
-  public overlayRect: DOMRect|null;
+  public overlayRect: DOMRect | null;
   public hBorder: number | null;
   public vBorder: number | null;
   public create() {
@@ -230,11 +230,11 @@ class DropTargeter extends Disposable {
   public trigger: BackboneEvents["trigger"];
   public stopListening: BackboneEvents["stopListening"];
   public rootElem: HTMLElement;
-  public targetsDom: HTMLElement|null;
+  public targetsDom: HTMLElement | null;
   public currentBox: LayoutBox | null;
   public currentAffinity: number | null;
   public delayedInsertion: Delay;
-  public activeTarget: TargetPart|null;
+  public activeTarget: TargetPart | null;
 
   public create(rootElem: HTMLElement) {
     this.rootElem = rootElem;
@@ -262,7 +262,7 @@ class DropTargeter extends Disposable {
   }
 
   public updateTargetHints(
-    layoutBox: LayoutBox|null,
+    layoutBox: LayoutBox | null,
     affinity: number,
     overlay: DropOverlay,
     prevTargetBox?: LayoutBox,
@@ -418,8 +418,8 @@ export class LayoutEditor extends Disposable {
 
   public transitionPromise: Promise<void>;
   public trashDelay: Delay;
-  public originalBox: LayoutBox|null;
-  public targetBox: LayoutBox|null;
+  public originalBox: LayoutBox | null;
+  public targetBox: LayoutBox | null;
   public boundMouseDown: (ev: JQMouseEvent, el: HTMLElement) => void;
   public boundMouseMove: (ev: JQMouseEvent, el: HTMLElement) => void;
   public boundMouseUp: (ev: JQMouseEvent, el: HTMLElement) => void;
@@ -808,7 +808,7 @@ function snap(flexSize: number, sumPrev: number, sumAll: number) {
  *    'collapse': collapse to empty size.
  *    'current': set and explicit value for the relevant style, which is needed for transitions.
  */
-function resizeLayoutBox(layoutBox: LayoutBox, sizeRect: string|DOMRect) {
+function resizeLayoutBox(layoutBox: LayoutBox, sizeRect: string | DOMRect) {
   const reset = (sizeRect === 'reset');
   const collapse = (sizeRect === 'collapse');
   if (sizeRect === 'current') {
@@ -823,7 +823,7 @@ function resizeLayoutBox(layoutBox: LayoutBox, sizeRect: string|DOMRect) {
   layoutBox.dom!.style.opacity = collapse ? '0.0' : '1.0';
 }
 
-function rectDesc(rect: string|DOMRect) {
+function rectDesc(rect: string | DOMRect) {
   return (typeof rect === 'string') ? rect :
     Math.floor(rect.width) + "x" + Math.floor(rect.height);
 }
@@ -832,7 +832,7 @@ function rectDesc(rect: string|DOMRect) {
  * Resizes the given LayoutBox smoothly from starting to ending position, where startRect and
  * endRect are one of the values documented in 'resizeLayoutBox'.
  */
-function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string|DOMRect, endRect: string|DOMRect) {
+function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string | DOMRect, endRect: string | DOMRect) {
   if (layoutBox.isDomDetached()) {
     return Promise.resolve();
   }

@@ -785,7 +785,7 @@ describe('FormView1', function() {
       });
       // Remove all records.
       await gu.sendActions([
-        ['BulkRemoveRecord', 'Table1', twoLettersCombination.map((_, i) => i+1)],
+        ['BulkRemoveRecord', 'Table1', twoLettersCombination.map((_, i) => i + 1)],
       ]);
       await removeForm();
     });

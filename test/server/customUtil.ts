@@ -46,7 +46,7 @@ export function serveCustomViews(): Promise<Serving> {
   return serveStatic(path.resolve(fixturesRoot, "sites"));
 }
 
-export async function serveSomething(setup: (app: express.Express) => void, port= 0): Promise<Serving> {
+export async function serveSomething(setup: (app: express.Express) => void, port = 0): Promise<Serving> {
   const app = express();
   const server = http.createServer(app);
   await listenPromise(server.listen(port));
@@ -98,7 +98,7 @@ export class Defer {
 }
 
 export async function startFakeUpdateServer() {
-  let mutex: Defer|null = null;
+  let mutex: Defer | null = null;
   const API: FakeUpdateServer = {
     latestVersion: bumpVersion(installedVersion),
     isCritical: false,
@@ -125,7 +125,7 @@ export async function startFakeUpdateServer() {
     },
   };
 
-  let server: Serving|null = await serveSomething((app) => {
+  let server: Serving | null = await serveSomething((app) => {
     app.use(express.json());
     app.post('/version', async (req, res, next) => {
       API.payload = req.body;

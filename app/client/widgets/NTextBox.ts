@@ -67,7 +67,7 @@ export class NTextBox extends NewAbstractWidget {
       this.field.widgetOptionsJson.prop('formTextFormat'),
       'singleline',
     );
-    const lineCount = fieldWithDefault<number|"">(
+    const lineCount = fieldWithDefault<number | "">(
       this.field.widgetOptionsJson.prop('formTextLineCount'),
       '',
     );

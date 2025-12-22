@@ -58,7 +58,7 @@ export function buildWelcomeSitePicker(owner: IDisposableOwner, appModel: AppMod
 
 // TODO This works but not for opening a link in a new tab. We currently lack and endpoint that
 // would enable opening a link as a particular user, or to switch user and open as them.
-async function switchToPersonalUrl(ev: MouseEvent, appModel: AppModel, org: string|undefined, user: FullUser) {
+async function switchToPersonalUrl(ev: MouseEvent, appModel: AppModel, org: string | undefined, user: FullUser) {
   // Only handle plain-vanilla clicks.
   if (ev.shiftKey || ev.metaKey || ev.ctrlKey || ev.altKey) { return; }
   ev.preventDefault();

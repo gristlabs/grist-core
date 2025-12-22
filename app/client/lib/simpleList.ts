@@ -108,9 +108,9 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
     this._mouseOver?.reset();
   }
 
-  private _findTargetItem(target: EventTarget|null): number {
+  private _findTargetItem(target: EventTarget | null): number {
     // Find immediate child of this._menuContent which is an ancestor of ev.target.
-    const elem = findAncestorChild(this._menuContent, target as Element|null);
+    const elem = findAncestorChild(this._menuContent, target as Element | null);
     if (elem?.classList.contains('disabled')) { return -1; }
     return Array.prototype.indexOf.call(this._menuContent.children, elem);
   }

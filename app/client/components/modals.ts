@@ -273,11 +273,11 @@ function buildArrow() {
   );
 }
 
-function sideSelectorChunk(side: 'top'|'bottom'|'left'|'right') {
+function sideSelectorChunk(side: 'top' | 'bottom' | 'left' | 'right') {
   return `.${cssModalTooltip.className}[x-placement^=${side}]`;
 }
 
-function fadeInFromSide(side: 'top'|'bottom'|'left'|'right') {
+function fadeInFromSide(side: 'top' | 'bottom' | 'left' | 'right') {
   let startPosition: string;
   switch (side) {
     case 'top': {

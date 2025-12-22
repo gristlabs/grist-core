@@ -54,7 +54,7 @@ export interface CommonProperties {
 export const commonPropertyKeys = ['createdAt', 'name', 'updatedAt'];
 
 export interface OrganizationProperties extends CommonProperties {
-  domain: string|null;
+  domain: string | null;
   // Organization includes preferences relevant to interacting with its content.
   userOrgPrefs?: UserOrgPrefs;  // Preferences specific to user and org
   orgPrefs?: OrgPrefs;          // Preferences specific to org (but not a particular user)
@@ -66,9 +66,9 @@ export const organizationPropertyKeys = [...commonPropertyKeys, 'domain',
 // Basic information about an organization, excluding the user's access level
 export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
   id: number;
-  owner: FullUser|null;
+  owner: FullUser | null;
   billingAccount?: BillingAccount;
-  host: string|null;  // if set, org's preferred domain (e.g. www.thing.com)
+  host: string | null;  // if set, org's preferred domain (e.g. www.thing.com)
 }
 
 // Organization information plus the user's access level
@@ -105,7 +105,7 @@ export function getOrgName(org: Organization): string {
  * Returns whether the given org is the templates org, which contains the public
  * templates and tutorials.
  */
-export function isTemplatesOrg(org: { domain: Organization['domain'] }|null): boolean {
+export function isTemplatesOrg(org: { domain: Organization['domain'] } | null): boolean {
   if (!org) { return false; }
 
   const { templateOrg } = getGristConfig();
@@ -141,16 +141,16 @@ export type DocumentType = typeof DOCTYPE_NORMAL | typeof DOCTYPE_TEMPLATE | typ
 // "Non-core" means bundled into a single options column in the database.
 // TODO: consider smoothing over this distinction in the API.
 export interface DocumentOptions {
-  description?: string|null;
-  icon?: string|null;
-  openMode?: OpenDocMode|null;
-  externalId?: string|null;  // A slot for storing an externally maintained id.
+  description?: string | null;
+  icon?: string | null;
+  openMode?: OpenDocMode | null;
+  externalId?: string | null;  // A slot for storing an externally maintained id.
   // Not used in grist-core, but handy for Electron app.
-  tutorial?: TutorialMetadata|null;
-  appearance?: DocumentAppearance|null;
+  tutorial?: TutorialMetadata | null;
+  appearance?: DocumentAppearance | null;
   // Whether search engines should index this document. Defaults to `false`.
   allowIndex?: boolean;
-  proposedChanges?: ProposedChanges|null;
+  proposedChanges?: ProposedChanges | null;
 }
 
 export interface TutorialMetadata {
@@ -159,21 +159,21 @@ export interface TutorialMetadata {
 }
 
 interface DocumentAppearance {
-  icon?: DocumentIcon|null;
+  icon?: DocumentIcon | null;
 }
 
 interface DocumentIcon {
   backgroundColor?: string;
   color?: string;
-  emoji?: string|null;
+  emoji?: string | null;
 }
 
 export interface DocumentProperties extends CommonProperties {
   isPinned: boolean;
-  urlId: string|null;
-  trunkId: string|null;
-  type: DocumentType|null;
-  options: DocumentOptions|null;
+  urlId: string | null;
+  trunkId: string | null;
+  type: DocumentType | null;
+  options: DocumentOptions | null;
 }
 
 export interface ProposedChanges {
@@ -194,7 +194,7 @@ export interface Document extends DocumentProperties {
   id: string;
   workspace: Workspace;
   access: roles.Role;
-  trunkAccess?: roles.Role|null;
+  trunkAccess?: roles.Role | null;
   forks?: Fork[];
 }
 
@@ -202,7 +202,7 @@ export interface Fork {
   id: string;
   trunkId: string;
   updatedAt: string;  // ISO date string
-  options: DocumentOptions|null;
+  options: DocumentOptions | null;
 }
 
 export interface ProposalComparison {
@@ -219,7 +219,7 @@ export interface Proposal {
   status: ProposalStatus;
   createdAt: string;  // ISO date string
   updatedAt: string;  // ISO date string
-  appliedAt: string|null;  // ISO date string
+  appliedAt: string | null;  // ISO date string
   srcDocId: string;
   srcDoc: Document & {
     creator: FullUser
@@ -245,10 +245,10 @@ export interface UserOptions {
 }
 
 export interface PermissionDelta {
-  maxInheritedRole?: roles.BasicRole|null;
+  maxInheritedRole?: roles.BasicRole | null;
   users?: {
     // Maps from email to group name, or null to inherit.
-    [email: string]: roles.NonGuestRole|null
+    [email: string]: roles.NonGuestRole | null
   };
 }
 
@@ -257,7 +257,7 @@ export interface PermissionData {
   personal?: true;
   // True if current user is a public member.
   public?: boolean;
-  maxInheritedRole?: roles.BasicRole|null;
+  maxInheritedRole?: roles.BasicRole | null;
   users: UserAccessData[];
 }
 
@@ -267,20 +267,20 @@ export interface ManagerDelta {
     // To add a manager, link their email to 'managers'.
     // To remove a manager, link their email to null.
     // This format is used to rhyme with the ACL PermissionDelta format.
-    [email: string]: 'managers'|null
+    [email: string]: 'managers' | null
   };
 }
 
 export interface UserAccess {
   // Represents the user's direct access to the resource of interest. Lack of access to a resource
   // is represented by a null value.
-  access: roles.Role|null;
+  access: roles.Role | null;
   // A user's parentAccess represent their effective inheritable access to the direct parent of the resource
   // of interest. The user's effective access to the resource of interest can be determined based
   // on the user's parentAccess, the maxInheritedRole setting of the resource and the user's direct
   // access to the resource. Lack of access to the parent resource is represented by a null value.
   // If parent has non-inheritable access, this should be null.
-  parentAccess?: roles.BasicRole|null;
+  parentAccess?: roles.BasicRole | null;
 }
 
 // Information about a user and their access to an unspecified resource of interest.
@@ -288,18 +288,18 @@ export interface UserAccessData extends UserAccess {
   id: number;
   name: string;
   email: string;
-  ref?: string|null;
-  picture?: string|null; // When present, a url to a public image of unspecified dimensions.
-  orgAccess?: roles.BasicRole|null;
+  ref?: string | null;
+  picture?: string | null; // When present, a url to a public image of unspecified dimensions.
+  orgAccess?: roles.BasicRole | null;
   anonymous?: boolean;    // If set to true, the user is the anonymous user.
   isMember?: boolean;
-  disabledAt?: Date|null; // If not null, the user is disabled
+  disabledAt?: Date | null; // If not null, the user is disabled
 }
 
 /**
  * Combines access, parentAccess, and maxInheritedRole info into the resulting access role.
  */
-export function getRealAccess(user: UserAccess, inherited: { maxInheritedRole?: roles.BasicRole|null }): roles.Role|null {
+export function getRealAccess(user: UserAccess, inherited: { maxInheritedRole?: roles.BasicRole | null }): roles.Role | null {
   const inheritedAccess = roles.getWeakestRole(user.parentAccess || null, inherited.maxInheritedRole || null);
   return roles.getStrongestRole(user.access, inheritedAccess);
 }
@@ -321,7 +321,7 @@ export interface ExtendedUser extends FullUser {
 
 export interface ActiveSessionInfo {
   user: ExtendedUser;
-  org: Organization|null;
+  org: Organization | null;
   orgError?: OrgError;
 }
 
@@ -375,7 +375,7 @@ export interface CopyDocOptions {
 }
 
 export interface RenameDocOptions {
-  icon?: DocumentIcon|null;
+  icon?: DocumentIcon | null;
 }
 
 export interface UserAPI {
@@ -384,23 +384,23 @@ export interface UserAPI {
   getSessionAll(): Promise<{ users: FullUser[], orgs: Organization[] }>;
   getOrgs(merged?: boolean): Promise<Organization[]>;
   getWorkspace(workspaceId: number): Promise<Workspace>;
-  getOrg(orgId: number|string): Promise<Organization>;
-  getOrgWorkspaces(orgId: number|string, includeSupport?: boolean): Promise<Workspace[]>;
-  getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary>;
+  getOrg(orgId: number | string): Promise<Organization>;
+  getOrgWorkspaces(orgId: number | string, includeSupport?: boolean): Promise<Workspace[]>;
+  getOrgUsageSummary(orgId: number | string): Promise<OrgUsageSummary>;
   getTemplates(): Promise<Workspace[]>;
   getTemplate(docId: string): Promise<Document>;
   getDoc(docId: string): Promise<Document>;
   newOrg(props: Partial<OrganizationProperties>): Promise<number>;
-  newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number>;
+  newWorkspace(props: Partial<WorkspaceProperties>, orgId: number | string): Promise<number>;
   newDoc(props: Partial<DocumentProperties>, workspaceId: number): Promise<string>;
   newUnsavedDoc(options?: { timezone?: string }): Promise<string>;
   copyDoc(sourceDocumentId: string, workspaceId: number, options: CopyDocOptions): Promise<string>;
-  renameOrg(orgId: number|string, name: string): Promise<void>;
+  renameOrg(orgId: number | string, name: string): Promise<void>;
   renameWorkspace(workspaceId: number, name: string): Promise<void>;
   renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void>;
-  updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void>;
+  updateOrg(orgId: number | string, props: Partial<OrganizationProperties>): Promise<void>;
   updateDoc(docId: string, props: Partial<DocumentProperties>): Promise<void>;
-  deleteOrg(orgId: number|string): Promise<void>;
+  deleteOrg(orgId: number | string): Promise<void>;
   deleteWorkspace(workspaceId: number): Promise<void>;     // delete workspace permanently
   softDeleteWorkspace(workspaceId: number): Promise<void>; // soft-delete workspace
   undeleteWorkspace(workspaceId: number): Promise<void>;   // recover soft-deleted workspace
@@ -409,10 +409,10 @@ export interface UserAPI {
   undeleteDoc(docId: string): Promise<void>;    // recover soft-deleted doc
   disableDoc(docId: string): Promise<void>;     // (admin-only) remove all access to doc except deletion
   enableDoc(docId: string): Promise<void>;      // (admin-only) recover disabled doc
-  updateOrgPermissions(orgId: number|string, delta: PermissionDelta): Promise<void>;
+  updateOrgPermissions(orgId: number | string, delta: PermissionDelta): Promise<void>;
   updateWorkspacePermissions(workspaceId: number, delta: PermissionDelta): Promise<void>;
   updateDocPermissions(docId: string, delta: PermissionDelta): Promise<void>;
-  getOrgAccess(orgId: number|string): Promise<PermissionData>;
+  getOrgAccess(orgId: number | string): Promise<PermissionData>;
   getWorkspaceAccess(workspaceId: number): Promise<PermissionData>;
   getDocAccess(docId: string): Promise<PermissionData>;
   pinDoc(docId: string): Promise<void>;
@@ -420,7 +420,7 @@ export interface UserAPI {
   moveDoc(docId: string, workspaceId: number): Promise<void>;
   getUserProfile(): Promise<FullUser>;
   updateUserName(name: string): Promise<void>;
-  updateUserLocale(locale: string|null): Promise<void>;
+  updateUserLocale(locale: string | null): Promise<void>;
   updateAllowGoogleLogin(allowGoogleLogin: boolean): Promise<void>;
   disableUser(userId: number): Promise<void>;
   enableUser(userId: number): Promise<void>;
@@ -654,16 +654,16 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     return this.requestJson(`${this._url}/api/workspaces/${workspaceId}`, { method: 'GET' });
   }
 
-  public async getOrg(orgId: number|string): Promise<Organization> {
+  public async getOrg(orgId: number | string): Promise<Organization> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}`, { method: 'GET' });
   }
 
-  public async getOrgWorkspaces(orgId: number|string, includeSupport = true): Promise<Workspace[]> {
+  public async getOrgWorkspaces(orgId: number | string, includeSupport = true): Promise<Workspace[]> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces?includeSupport=${includeSupport ? 1 : 0}`,
       { method: 'GET' });
   }
 
-  public async getOrgUsageSummary(orgId: number|string): Promise<OrgUsageSummary> {
+  public async getOrgUsageSummary(orgId: number | string): Promise<OrgUsageSummary> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/usage`, { method: 'GET' });
   }
 
@@ -690,7 +690,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async newWorkspace(props: Partial<WorkspaceProperties>, orgId: number|string): Promise<number> {
+  public async newWorkspace(props: Partial<WorkspaceProperties>, orgId: number | string): Promise<number> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/workspaces`, {
       method: 'POST',
       body: JSON.stringify(props),
@@ -726,7 +726,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async renameOrg(orgId: number|string, name: string): Promise<void> {
+  public async renameOrg(orgId: number | string, name: string): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}`, {
       method: 'PATCH',
       body: JSON.stringify({ name }),
@@ -747,7 +747,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async updateOrg(orgId: number|string, props: Partial<OrganizationProperties>): Promise<void> {
+  public async updateOrg(orgId: number | string, props: Partial<OrganizationProperties>): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}`, {
       method: 'PATCH',
       body: JSON.stringify(props),
@@ -761,7 +761,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async deleteOrg(orgId: number|string): Promise<void> {
+  public async deleteOrg(orgId: number | string): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}/force-delete`, { method: 'DELETE' });
   }
 
@@ -797,7 +797,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     await this.request(`${this._url}/api/docs/${docId}/enable`, { method: 'POST' });
   }
 
-  public async updateOrgPermissions(orgId: number|string, delta: PermissionDelta): Promise<void> {
+  public async updateOrgPermissions(orgId: number | string, delta: PermissionDelta): Promise<void> {
     await this.request(`${this._url}/api/orgs/${orgId}/access`, {
       method: 'PATCH',
       body: JSON.stringify({ delta }),
@@ -818,7 +818,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async getOrgAccess(orgId: number|string): Promise<PermissionData> {
+  public async getOrgAccess(orgId: number | string): Promise<PermissionData> {
     return this.requestJson(`${this._url}/api/orgs/${orgId}/access`, { method: 'GET' });
   }
 
@@ -860,7 +860,7 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
     });
   }
 
-  public async updateUserLocale(locale: string|null): Promise<void> {
+  public async updateUserLocale(locale: string | null): Promise<void> {
     await this.request(`${this._url}/api/profile/user/locale`, {
       method: 'POST',
       body: JSON.stringify({ locale }),

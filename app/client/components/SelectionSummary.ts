@@ -184,7 +184,7 @@ export class SelectionSummary extends Disposable {
         let countNumeric = 0;
         let countNonEmpty = 0;
         let sum = 0;
-        let sumFormatter: BaseFormatter|null = null;
+        let sumFormatter: BaseFormatter | null = null;
         const rowIndices: number[] = [];
         for (let r = rowRange.begin; r < rowRange.end; r++) {
           const rowId = rowArray[r];

@@ -56,7 +56,7 @@ export interface SendGridPersonalization {
  * is the information we choose to send to an email template for invites.
  */
 export interface SendGridInviteTemplate {
-  type: 'invite'|'billingManagerInvite';
+  type: 'invite' | 'billingManagerInvite';
   user: FullUser;
   host: FullUser;
   resource: SendGridInviteResource;
@@ -82,7 +82,7 @@ export interface SendGridInviteAccess {
 
 // Common parameters included in emails to active billing managers.
 export interface SendGridBillingTemplate {
-  type: 'billing'|'memberChange',
+  type: 'billing' | 'memberChange',
   org: { id: number, name: string };
   orgUrl: string;
   billingUrl: string;
@@ -141,7 +141,7 @@ export type DocNotificationEvent = typeof DocNotificationEvents.type;
 
 export interface DocNotificationTemplateBase {
   // senderAuthorName may be set when there is a single author, to use in the email's "From" field.
-  senderAuthorName: string|null;
+  senderAuthorName: string | null;
 }
 
 export const TemplateName = StringUnion(

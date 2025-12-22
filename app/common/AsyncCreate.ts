@@ -35,7 +35,7 @@ export class AsyncCreate<T> {
   }
 
   /** Returns the value if it's set and successful, or undefined otherwise. */
-  public async getIfValid(): Promise<T|undefined> {
+  public async getIfValid(): Promise<T | undefined> {
     return this._value ? this._value.catch(() => undefined) : undefined;
   }
 
@@ -52,7 +52,7 @@ export class AsyncCreate<T> {
  * subsequent calls will attempt calling f again.
  */
 export function asyncOnce<T>(createFunc: () => Promise<T>): () => Promise<T> {
-  let value: Promise<T>|undefined;
+  let value: Promise<T> | undefined;
   function clearOnError(p: Promise<T>): Promise<T> {
     p.catch(() => { value = undefined; });
     return p;

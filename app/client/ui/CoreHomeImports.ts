@@ -12,7 +12,7 @@ import { uploadFiles } from 'app/client/lib/uploads';
 /**
  * Imports a document and returns its docId, or null if no files were selected.
  */
-export async function docImport(app: AppModel, workspaceId: number|"unsaved"): Promise<string|null> {
+export async function docImport(app: AppModel, workspaceId: number | "unsaved"): Promise<string | null> {
   // We use openFilePicker() and uploadFiles() separately, rather than the selectFiles() helper,
   // because we only want to connect to a docWorker if there are in fact any files to upload.
 

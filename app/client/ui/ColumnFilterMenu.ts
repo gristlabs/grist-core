@@ -66,7 +66,7 @@ export interface IFilterMenuOptions {
 
 const testId = makeTestId('test-filter-menu-');
 
-export type IColumnFilterViewType = 'listView'|'calendarView';
+export type IColumnFilterViewType = 'listView' | 'calendarView';
 
 /**
  * Returns the DOM content for the column filter menu.
@@ -96,7 +96,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
   const isSearchingObs = Computed.create(owner, use => Boolean(use(searchValueObs)));
   const showRangeFilter = isNumberType(columnFilter.columnType) || isDateLikeType(columnFilter.columnType);
   const isDateFilter = isDateLikeType(columnFilter.columnType);
-  const selectedBoundObs = Observable.create<'min'|'max'|null>(owner, null);
+  const selectedBoundObs = Observable.create<'min' | 'max' | null>(owner, null);
   const viewTypeObs = Computed.create<IColumnFilterViewType>(owner,
     use => isDateFilter && use(selectedBoundObs) ? 'calendarView' : 'listView'
   );
@@ -410,7 +410,7 @@ export interface IRangeInputOptions {
 }
 
 // The range input with the preset links.
-function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: IRangeInputOptions,
+function rangeInput(obs: Observable<number | undefined | IRelativeDateSpec>, opts: IRangeInputOptions,
   ...args: DomArg<HTMLDivElement>[]) {
   const buildInput = () => [
     dom.maybe(use => isRelativeBound(use(obs)), () => relativeToken(obs, opts)),
@@ -441,7 +441,7 @@ function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: I
 }
 
 // Attach the date options dropdown to elem.
-function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|undefined|IRelativeDateSpec>,
+function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number | undefined | IRelativeDateSpec>,
   opts: IRangeInputOptions) {
   const popupCtl = relativeDatesControl(elem, obs, {
     ...opts,
@@ -482,7 +482,7 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|un
   ]);
 }
 
-function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
+function numericInput(obs: Observable<number | undefined | IRelativeDateSpec>,
   opts: IRangeInputOptions,
   ...args: DomArg<HTMLDivElement>[]) {
   const valueParser = opts.valueParser || Number;
@@ -529,7 +529,7 @@ function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
   );
 }
 
-function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
+function relativeToken(obs: Observable<number | undefined | IRelativeDateSpec>,
   opts: IRangeInputOptions) {
   return cssTokenContainer(
     cssTokenToken(
@@ -560,7 +560,7 @@ function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
  * checkbox is unchecked, or in the Indeterminate state, it does check all the values, and if the
  * `switchFilterType` is true it also converts the filter into an exclusion filter.
  */
-function buildSummary(label: string|Computed<string>, values: Array<[CellValue, IFilterCount]>,
+function buildSummary(label: string | Computed<string>, values: Array<[CellValue, IFilterCount]>,
   switchFilterType: boolean, model: ColumnFilterMenuModel) {
   const columnFilter = model.columnFilter;
   const checkboxState = Computed.create(
@@ -628,7 +628,7 @@ function formatUniqueCount(values: Array<[CellValue, IFilterCount]>) {
  * and `ChoiceList` type of column, the map is initialized with all possible values in order to make
  * sure they get shown to the user.
  */
-function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue, IFilterCount> {
+function getEmptyCountMap(fieldOrColumn: ViewFieldRec | ColumnRec): Map<CellValue, IFilterCount> {
   const columnType = fieldOrColumn.origCol().type();
   let values: any[] = [];
   if (columnType === 'Bool') {
@@ -696,7 +696,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
   const valueFormatter = isDateLikeType(visibleColumnType) ?
     (val: any) => colFormatter.formatAny(val) : undefined;
 
-  function getFilterFunc(col: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
+  function getFilterFunc(col: ViewFieldRec | ColumnRec, colFilter: ColumnFilterFunc | null) {
     return col.getRowId() === fieldOrColumn.getRowId() ? null : colFilter;
   }
   const filterFunc = Computed.create(null, use => sectionFilter.buildFilterFunc(getFilterFunc, use));
@@ -773,7 +773,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
  * Used by ColumnFilterMenu to compute counts of unique cell
  * values and display them with an appropriate label.
  */
-function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: ViewFieldRec|ColumnRec) {
+function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: ViewFieldRec | ColumnRec) {
   const keyMapFunc = tableData.getRowPropFunc(fieldOrColumn.colId());
   const labelGetter = tableData.getRowPropFunc(fieldOrColumn.displayColModel().colId());
   const formatter = fieldOrColumn.visibleColFormatter();
@@ -806,7 +806,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
  * column types by rendering their values as colored tokens instead of
  * text.
  */
-function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec|ColumnRec) {
+function getRenderFunc(columnType: string, fieldOrColumn: ViewFieldRec | ColumnRec) {
   if (['Choice', 'ChoiceList'].includes(columnType)) {
     const options = fieldOrColumn.widgetOptionsJson.peek();
     const choiceSet: Set<string> = new Set(options.choices || []);

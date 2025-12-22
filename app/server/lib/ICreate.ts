@@ -67,10 +67,10 @@ export interface ICreate {
   ): Promise<IDocStorageManager>;
 
   Billing(dbManager: HomeDBManager, gristConfig: GristServer): IBilling;
-  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined;
+  Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier | undefined;
   AuditLogger(dbManager: HomeDBManager, gristConfig: GristServer): IAuditLogger;
   Telemetry(dbManager: HomeDBManager, gristConfig: GristServer): ITelemetry;
-  Assistant(gristConfig: GristServer): IAssistant|undefined;
+  Assistant(gristConfig: GristServer): IAssistant | undefined;
 
   NSandbox(options: ISandboxCreationOptions): ISandbox;
 
@@ -86,7 +86,7 @@ export interface ICreate {
   // Return a string containing 1 or more HTML tags to insert into the head element of every
   // static page.
   getExtraHeadHtml?(): string;
-  getStorageOptions?(name: string): ICreateStorageOptions|undefined;
+  getStorageOptions?(name: string): ICreateStorageOptions | undefined;
   getAttachmentStoreOptions(): { [key: string]: ICreateAttachmentStoreOptions | undefined };
   getSqliteVariant?(): SqliteVariant;
   getSandboxVariants?(): Record<string, SpawnFn>;
@@ -95,8 +95,8 @@ export interface ICreate {
 
   addExtraHomeEndpoints(gristServer: GristServer, app: Express): void;
   areAdminControlsAvailable(): boolean;
-  createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined;
-  startProcessMonitor(telemetry: ITelemetry): StopCallback|undefined;
+  createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined;
+  startProcessMonitor(telemetry: ITelemetry): StopCallback | undefined;
 }
 
 type StopCallback = () => void;
@@ -105,7 +105,7 @@ export interface ICreateStorageOptions {
   name: string;
   check(): boolean;
   checkBackend?(): Promise<void>;
-  create(purpose: 'doc'|'meta'|'attachments', extraPrefix: string): ExternalStorage|undefined;
+  create(purpose: 'doc' | 'meta' | 'attachments', extraPrefix: string): ExternalStorage | undefined;
 }
 
 export interface ICreateAttachmentStoreOptions {
@@ -134,11 +134,11 @@ export class BaseCreate implements ICreate {
     return new EmptyBilling();
   }
 
-  public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier|undefined {
+  public Notifier(dbManager: HomeDBManager, gristConfig: GristServer): INotifier | undefined {
     return undefined;
   }
 
-  public ExternalStorage(...[purpose, extraPrefix]: Parameters<ExternalStorageCreator>): ExternalStorage|undefined {
+  public ExternalStorage(...[purpose, extraPrefix]: Parameters<ExternalStorageCreator>): ExternalStorage | undefined {
     for (const s of this._storage) {
       if (s.check()) {
         return s.create(purpose, extraPrefix);
@@ -155,7 +155,7 @@ export class BaseCreate implements ICreate {
     return createDummyTelemetry();
   }
 
-  public Assistant(gristConfig: GristServer): IAssistant|undefined {
+  public Assistant(gristConfig: GristServer): IAssistant | undefined {
     return undefined;
   }
 
@@ -247,7 +247,7 @@ export class BaseCreate implements ICreate {
 
   public addExtraHomeEndpoints(gristServer: GristServer, app: Express) {}
   public areAdminControlsAvailable(): boolean { return false; }
-  public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager|undefined {
+  public createDocNotificationManager(gristServer: GristServer): IDocNotificationManager | undefined {
     return undefined;
   }
 

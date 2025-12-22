@@ -33,7 +33,7 @@ const t = makeT('AccountPage');
 export class AccountPage extends Disposable {
   private readonly _currentPage = Computed.create(this, urlState().state, (_use, s) => s.account);
   private _apiKey = Observable.create<string>(this, '');
-  private _userObs = Observable.create<FullUser|null>(this, null);
+  private _userObs = Observable.create<FullUser | null>(this, null);
   private _isEditingName = Observable.create(this, false);
   private _nameEdit = Observable.create<string>(this, '');
   private _isNameValid = Computed.create(this, this._nameEdit, (_use, val) => checkName(val));

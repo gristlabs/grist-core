@@ -37,7 +37,7 @@ function buildDom(init: string) {
     ],
   };
 
-  const access = observable<PermissionData|null>(data);
+  const access = observable<PermissionData | null>(data);
 
   // Exposed for debugging purposes.
   (window as any).loadData = () => {

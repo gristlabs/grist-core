@@ -81,22 +81,22 @@ export class Client {
 
   public browserSettings: BrowserSettings = {};
 
-  private _log = new LogMethods('Client ', (extra?: object|null) => this.getLogMeta(extra || {}));
+  private _log = new LogMethods('Client ', (extra?: object | null) => this.getLogMeta(extra || {}));
 
   // Maps docFDs to DocSession objects.
-  private _docFDs: Array<DocSession|null> = [];
+  private _docFDs: Array<DocSession | null> = [];
 
   private _missedMessages = new Map<number, string>();
   private _missedMessagesTotalLength: number = 0;
-  private _destroyTimer: NodeJS.Timeout|null = null;
+  private _destroyTimer: NodeJS.Timeout | null = null;
   private _destroyed: boolean = false;
-  private _websocket: GristServerSocket|null = null;
-  private _req: IncomingMessage|null = null;
+  private _websocket: GristServerSocket | null = null;
+  private _req: IncomingMessage | null = null;
   private _authSession: AuthSession = AuthSession.unauthenticated();
   private _nextSeqId: number = 0;     // Next sequence-ID for messages sent to the client
 
   // Identifier for the current GristWSConnection object connected to this client.
-  private _counter: string|null = null;
+  private _counter: string | null = null;
   private _i18Instance?: i18n;
 
   constructor(
@@ -121,7 +121,7 @@ export class Client {
   public setConnection(options: {
     websocket: GristServerSocket;
     req: IncomingMessage;
-    counter: string|null;
+    counter: string | null;
     browserSettings: BrowserSettings;
     authSession: AuthSession;
   }) {
@@ -142,7 +142,7 @@ export class Client {
     return this._authSession;
   }
 
-  public getConnectionRequest(): IncomingMessage|null {
+  public getConnectionRequest(): IncomingMessage | null {
     return this._req;
   }
 
@@ -205,7 +205,7 @@ export class Client {
    * Sends a message to the client. If the send fails in a way that the message can't get queued
    * (e.g. due to an unexpected exception in code), logs an error and interrupts the connection.
    */
-  public async sendMessageOrInterrupt(messageObj: CommMessage|CommResponse|CommResponseError): Promise<void> {
+  public async sendMessageOrInterrupt(messageObj: CommMessage | CommResponse | CommResponseError): Promise<void> {
     try {
       await this.sendMessage(messageObj);
     }
@@ -218,7 +218,7 @@ export class Client {
   /**
    * Sends a message to the client, queuing it up on failure or if the client is disconnected.
    */
-  public async sendMessage(messageObj: CommMessage|CommResponse|CommResponseError): Promise<void> {
+  public async sendMessage(messageObj: CommMessage | CommResponse | CommResponseError): Promise<void> {
     if (this._destroyed) {
       return;
     }
@@ -305,14 +305,14 @@ export class Client {
    * See comments at the top of app/server/lib/Comm.ts for some relevant notes.
    */
   public async sendConnectMessage(
-    newClient: boolean, reuseClient: boolean, lastSeqId: number|null, parts: Partial<CommClientConnect>,
+    newClient: boolean, reuseClient: boolean, lastSeqId: number | null, parts: Partial<CommClientConnect>,
   ): Promise<void> {
     if (this._destroyTimer) {
       clearTimeout(this._destroyTimer);
       this._destroyTimer = null;
     }
 
-    let missedMessages: string[]|undefined = undefined;
+    let missedMessages: string[] | undefined = undefined;
     let seamlessReconnect = false;
     if (!newClient && reuseClient && await this._isAuthorized()) {
       // Websocket-level reconnect: existing browser tab reconnected to an existing Client object.
@@ -329,7 +329,7 @@ export class Client {
     this._missedMessages.clear();
     this._missedMessagesTotalLength = 0;
 
-    let docsClosed: number|null = null;
+    let docsClosed: number | null = null;
     if (!seamlessReconnect) {
       // The browser client can't recover from missed messages and will need to reopen docs. Close
       // all docs we kept open. If it's a new Client object, this is a no-op.
@@ -379,7 +379,7 @@ export class Client {
   }
 
   // Get messages in order of their key in the _missedMessages map.
-  public getMissedMessages(lastSeqId: number|null): string[]|undefined {
+  public getMissedMessages(lastSeqId: number | null): string[] | undefined {
     const result: string[] = [];
     if (lastSeqId !== null) {
       for (let i = lastSeqId + 1; i < this._nextSeqId; i++) {
@@ -441,7 +441,7 @@ export class Client {
       });
       return;
     }
-    let response: CommResponse|CommResponseError;
+    let response: CommResponse | CommResponseError;
     const method = this._methods.get(request.method);
     if (!method) {
       this._log.info(null, "onMessage: unknown method", shortDesc(message));

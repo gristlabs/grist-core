@@ -24,7 +24,7 @@ const t = makeT('SupportGristNudge');
  * Users can dismiss this button.
  */
 export class SupportGristButton extends Disposable {
-  private readonly _showButton: Computed<null|'link'|'expand'>;
+  private readonly _showButton: Computed<null | 'link' | 'expand'>;
   private readonly _telemetryModel: TelemetryModel = TelemetryModelImpl.create(this, this._appModel);
 
   constructor(private _appModel: AppModel) {

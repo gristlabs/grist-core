@@ -20,11 +20,11 @@ const MAX_COUNT = 20;
  */
 export class ActionCounter extends dispose.Disposable {
   // The full count from the base action.
-  public count: Observable<number|'...'>;
+  public count: Observable<number | '...'>;
 
   // The count from the marked actionNum, if there is one
   // (otherwise is same as `count`).
-  public countFromMark: Observable<number|'...'>;
+  public countFromMark: Observable<number | '...'>;
 
   public isUndoBlocked: Observable<boolean>;
 
@@ -41,7 +41,7 @@ export class ActionCounter extends dispose.Disposable {
   private _count: number;
 
   // The current marked actionNum, if any.
-  private _actionNumMark: number|null;
+  private _actionNumMark: number | null;
 
   // The offset to the count at the marked actionNum, or 0.
   private _countOffset: number;
@@ -138,7 +138,7 @@ export class ActionCounter extends dispose.Disposable {
     this.countFromMark.set(this._truncated(this._count + this._countOffset));
   }
 
-  private _truncated(value: number): number|'...' {
+  private _truncated(value: number): number | '...' {
     return (value > MAX_COUNT) ? '...' : value;
   }
 }

@@ -74,7 +74,7 @@ export interface IOnBoardingMsg {
   urlState?: IGristUrlState;
 }
 
-let _isTourActiveObs: Observable<boolean>|undefined;
+let _isTourActiveObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether some tour is currently active.
 //
@@ -121,7 +121,7 @@ class OnBoardingError extends Error {
 let ctlIndex = 0;
 
 class OnBoardingPopupsCtl extends Disposable {
-  private _openPopupCtl: { close: () => void }|undefined;
+  private _openPopupCtl: { close: () => void } | undefined;
   private _overlay: HTMLElement;
   private _arrowEl = buildArrow();
 
@@ -355,7 +355,7 @@ const Container = styled('div', `
   outline: unset;
 `);
 
-function sideSelectorChunk(side: 'top'|'bottom'|'left'|'right') {
+function sideSelectorChunk(side: 'top' | 'bottom' | 'left' | 'right') {
   return `.${Container.className}[data-popper-placement^=${side}]`;
 }
 

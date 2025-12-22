@@ -31,11 +31,11 @@ function loadExternal() {
 // Start loading scripts early (before waiting for AppModel to get initialized).
 const externalScriptsPromise = loadExternal();
 
-let swaggerUI: SwaggerUI|null = null;
+let swaggerUI: SwaggerUI | null = null;
 
 // Define a few types to allow for type-checking.
 
-type ParamValue = string|number|null;
+type ParamValue = string | number | null;
 
 interface Example {
   value: ParamValue;

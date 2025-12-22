@@ -54,7 +54,7 @@ interface DocEntry {
   access: NonGuestRole;
   isPinned: boolean;
   age?: number;         // age in seconds
-  options?: DocumentOptions|null;
+  options?: DocumentOptions | null;
 }
 
 interface DocStore {

@@ -25,7 +25,7 @@ monkeyPatchDatepicker();
 export class DateEditor extends NTextEditor {
   protected safeFormat: string;     // Format that specifies a complete date.
 
-  private _dateFormat: string|undefined = this.options.field.widgetOptionsJson.peek().dateFormat;
+  private _dateFormat: string | undefined = this.options.field.widgetOptionsJson.peek().dateFormat;
   private _locale = detectCurrentLang();
   private _keyboardNav = false;     // Whether keyboard navigation is active for the datepicker.
 
@@ -74,9 +74,9 @@ export class DateEditor extends NTextEditor {
   }
 
   // Moment value formatting helper.
-  protected formatValue(value: CellValue, formatString: string|undefined, shouldFallBackToValue: boolean) {
+  protected formatValue(value: CellValue, formatString: string | undefined, shouldFallBackToValue: boolean) {
     if (typeof value === 'number' && formatString) {
-      return moment.tz(value*1000, this.timezone).format(formatString);
+      return moment.tz(value * 1000, this.timezone).format(formatString);
     }
     else {
       // If value is AltText, return it unchanged. This way we can see it and edit in the editor.
@@ -134,7 +134,7 @@ export class DateEditor extends NTextEditor {
 
     datePickerWidget.on('show', () => {
       // A workaround to allow clicking in the datepicker without losing focus.
-      const datepickerElem: HTMLElement|null = document.querySelector('.datepicker');
+      const datepickerElem: HTMLElement | null = document.querySelector('.datepicker');
       if (datepickerElem) {
         dom.update(datepickerElem,
           dom.attr('tabIndex', '0'),      // allows datepicker to gain focus
@@ -166,7 +166,7 @@ function makeFullMomentFormat(mFormat: string): string {
   return safeFormat;
 }
 
-let availableLocaleSet: Set<string>|undefined;
+let availableLocaleSet: Set<string> | undefined;
 const loadedLocaleMap = new Map<string, string>();    // Maps requested locale to the one to use.
 
 // Datepicker supports many languages. They just need to be loaded. Here we load the language we

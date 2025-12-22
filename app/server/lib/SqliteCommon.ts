@@ -33,7 +33,7 @@ export interface MinDB {
   // used if there are multiple.
   //   https://www.sqlite.org/c3ref/prepare.html
   run(sql: string, ...params: any[]): Promise<MinRunResult>;
-  get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
+  get(sql: string, ...params: any[]): Promise<ResultRow | undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
   prepare(sql: string, ...params: any[]): Promise<PreparedStatement>;
   runAndGetId(sql: string, ...params: any[]): Promise<number>;

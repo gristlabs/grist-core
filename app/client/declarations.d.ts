@@ -31,7 +31,7 @@ declare module "app/client/components/RecordLayout" {
     public editLayout(rowIndex: number): void;
     // FIXME: DataRowModel is unresolved.
     // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    public buildLayoutDom(row: DataRowModel|undefined, optCreateEditor?: boolean): HTMLElement;
+    public buildLayoutDom(row: DataRowModel | undefined, optCreateEditor?: boolean): HTMLElement;
   }
   export = RecordLayout;
 }
@@ -74,7 +74,7 @@ declare module "app/client/models/BaseRowModel" {
   namespace BaseRowModel {}
   class BaseRowModel extends Disposable {
     public id: ko.Computed<number>;
-    public _index: ko.Observable<number|null>;
+    public _index: ko.Observable<number | null>;
     public _table: TableModel;
     protected _rowId: number | 'new' | null;
     protected _fields: string[];
@@ -90,12 +90,12 @@ declare module "app/client/models/MetaRowModel" {
   import { SchemaTypes } from 'app/common/schema';
 
   type NPartial<T> = {
-    [P in keyof T]?: T[P]|null;
+    [P in keyof T]?: T[P] | null;
   };
   type Values<T> = T extends keyof SchemaTypes ? NPartial<SchemaTypes[T]> : ColValues;
 
   namespace MetaRowModel {}
-  class MetaRowModel<TName extends (keyof SchemaTypes)|undefined = undefined> extends BaseRowModel {
+  class MetaRowModel<TName extends (keyof SchemaTypes) | undefined = undefined> extends BaseRowModel {
     public _isDeleted: ko.Observable<boolean>;
     public events: { trigger: (key: string) => void };
     public updateColValues(colValues: Values<TName>): Promise<void>;
@@ -120,7 +120,7 @@ declare module "app/client/models/modelUtil" {
   }
 
   function addSaveInterface<T>(
-    obs: ko.Observable<T>|ko.Computed<T>,
+    obs: ko.Observable<T> | ko.Computed<T>,
     saveFunc: (value: T) => Promise<void>): KoSaveableObservable<T>;
 
   interface ObjObservable<T extends object> extends ko.Observable<T> {
@@ -135,19 +135,19 @@ declare module "app/client/models/modelUtil" {
 
   function objObservable<T>(obs: ko.KoSaveableObservable<T>): SaveableObjObservable<T>;
   function objObservable<T>(obs: ko.Observable<T>): ObjObservable<T>;
-  function jsonObservable(obs: KoSaveableObservable<string|undefined>,
+  function jsonObservable(obs: KoSaveableObservable<string | undefined>,
     modifierFunc?: any, optContext?: any): SaveableObjObservable<any>;
-  function jsonObservable(obs: ko.Observable<string>|ko.Computed<string>,
+  function jsonObservable(obs: ko.Observable<string> | ko.Computed<string>,
     modifierFunc?: any, optContext?: any): ObjObservable<any>;
 
-  function fieldWithDefault<T>(fieldObs: KoSaveableObservable<T|undefined>, defaultOrFunc: T | (() => T)):
+  function fieldWithDefault<T>(fieldObs: KoSaveableObservable<T | undefined>, defaultOrFunc: T | (() => T)):
   KoSaveableObservable<T>;
 
   function customValue<T>(obs: KoSaveableObservable<T>): CustomComputed<T>;
 
   function savingComputed<T>(options: {
     read: () => T,
-    write: (setter: (obs: ko.Observable<T|undefined>, val: T) => void, val: T) => void;
+    write: (setter: (obs: ko.Observable<T | undefined>, val: T) => void, val: T) => void;
   }): KoSaveableObservable<T>;
 
   function customComputed<T>(options: {
@@ -198,7 +198,7 @@ declare module "app/client/models/MetaTableModel" {
     public loadData(): void;
     public getRowModel(rowId: number, dependOnVersion?: boolean): RowModel;
     public getEmptyRowModel(): RowModel;
-    public createFloatingRowModel(rowIdObs: ko.Observable<number>|ko.Computed<number>): RowModel;
+    public createFloatingRowModel(rowIdObs: ko.Observable<number> | ko.Computed<number>): RowModel;
     public createRowGroupModel(groupValue: CellValue, options: { groupBy: string, sortBy: string }): KoArray<RowModel>;
     public createAllRowsModel(sortColId: string): KoArray<RowModel>;
     public _createRowSetModel(rowSource: RowSource, sortColId: string): KoArray<RowModel>;
@@ -220,8 +220,8 @@ declare module "app/client/models/DataTableModel" {
       getRowId(index: number): UIRowId;
       getRowIndex(rowId: UIRowId): number;
       getRowIndexWithSub(rowId: UIRowId): number;
-      getRowModel(rowId: UIRowId): T|undefined;
-      setFloatingRowModel(rowModel: T, index: number|null): void;
+      getRowModel(rowId: UIRowId): T | undefined;
+      setFloatingRowModel(rowModel: T, index: number | null): void;
     }
   }
 

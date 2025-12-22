@@ -16,7 +16,7 @@ export const Deps = { DocAccessCacheTTL, DocPrefsCacheTTL };
 
 export class HomeDBCaches {
   private _docAccessCache: PubSubCache<string, QueryResult<PermissionData>>;
-  private _docPrefsCache: PubSubCache<string, Map<number|null, DocPrefs>>;
+  private _docPrefsCache: PubSubCache<string, Map<number | null, DocPrefs>>;
 
   constructor(
     private readonly _homeDb: HomeDBManager,
@@ -29,7 +29,7 @@ export class HomeDBCaches {
       ttlMs: Deps.DocAccessCacheTTL,
     });
 
-    this._docPrefsCache = new PubSubCache<string, Map<number|null, DocPrefs>>({
+    this._docPrefsCache = new PubSubCache<string, Map<number | null, DocPrefs>>({
       pubSubManager,
       fetch: docId => this._homeDb.getDocPrefsForUsers(docId, 'any'),
       getChannel: docId => `docPrefsCache:${docId}`,

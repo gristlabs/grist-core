@@ -166,7 +166,7 @@ export async function buildReassignModal(options: {
   // List of problems we found in actions.
   const problems: Problem[] = [];
   const uniqueColumns: ColumnRec[] = [];
-  const newOwners = new Set<number|null>();
+  const newOwners = new Set<number | null>();
 
   // We will hold changes in references, so that we can clear the action itself.
   const newValues = new Map<string, Map<number, number>>();

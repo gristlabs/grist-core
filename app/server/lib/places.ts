@@ -9,7 +9,7 @@ import * as path from 'path';
  */
 export const codeRoot = path.dirname(path.dirname(path.dirname(__dirname)));
 
-let _cachedAppRoot: string|undefined;
+let _cachedAppRoot: string | undefined;
 
 /**
  * Returns the appRoot, i.e. the directory containing ./sandbox, ./node_modules,

@@ -17,7 +17,7 @@ const FLOATING_POPUP_WIDTH_PX = 436;
 
 export interface IFloatingOwner extends IDisposableOwner {
   detach(): HTMLElement;
-  attach(content: HTMLElement): Promise<void>|void;
+  attach(content: HTMLElement): Promise<void> | void;
 }
 
 export interface FloatingEditorOptions {

@@ -152,7 +152,7 @@ export class Throttle {
   /**
    * Read the last cpu usage sample made, for test purposes.
    */
-  public get testStats(): MeterSample|undefined {
+  public get testStats(): MeterSample | undefined {
     return this._sample;
   }
 

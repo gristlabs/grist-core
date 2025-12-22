@@ -46,7 +46,7 @@ interface RenderOptions {
 // Call render() synchronously if possible, or asynchronously otherwise. Aside from the first
 // batch of renders, this will always be synchronous. This matters for printing, where we
 // prepare a view in "beforeprint" callback, and async renders take place too late.
-let markedResolved: Marked|undefined;
+let markedResolved: Marked | undefined;
 function domAsyncOrDirect(
   render: (markedObj: Marked) => DomContents,
   options: RenderOptions = {},

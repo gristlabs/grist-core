@@ -32,7 +32,7 @@ describe('ActionHistoryMemory', function() {
   // range() of this length
 
   let serverProcess: ChildProcess;
-  let serverExitPromise: Promise<number|string>;
+  let serverExitPromise: Promise<number | string>;
   let serverUrl: string;
   let serverPort: number;
 

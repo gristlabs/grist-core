@@ -220,7 +220,7 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
     { multiArgs: true });
 
   // 'upload' is the name of the form field containing file data.
-  let upload: UploadResult|undefined;
+  let upload: UploadResult | undefined;
   if (formFiles.upload) {
     const uploadedFiles: FileUploadInfo[] = [];
     for (const file of formFiles.upload) {
@@ -265,15 +265,15 @@ export interface UploadInfo {
 
   files: FileUploadInfo[];      // List of all files included in the upload.
 
-  tmpDir: string|null;          // Temporary directory to remove, containing this upload.
+  tmpDir: string | null;          // Temporary directory to remove, containing this upload.
   // If present, all files must be direct children of this directory.
 
   cleanupCallback: CleanupCB;   // Callback to clean up this upload, including removing tmpDir.
   cleanupTimer: InactivityTimer;
-  accessId: string|null;          // Optional identifier for access control purposes.
+  accessId: string | null;          // Optional identifier for access control purposes.
 }
 
-type CleanupCB = () => void|Promise<void>;
+type CleanupCB = () => void | Promise<void>;
 
 export class UploadSet {
   private _uploads: Map<number, UploadInfo> = new Map();
@@ -282,8 +282,8 @@ export class UploadSet {
   /**
    * Register a new upload.
    */
-  public registerUpload(files: FileUploadInfo[], tmpDir: string|null, cleanupCallback: CleanupCB,
-    accessId: string|null): number {
+  public registerUpload(files: FileUploadInfo[], tmpDir: string | null, cleanupCallback: CleanupCB,
+    accessId: string | null): number {
     const uploadId = this._nextId++;
     const cleanupTimer = new InactivityTimer(() => this.cleanup(uploadId), Deps.INACTIVITY_CLEANUP_MS);
     this._uploads.set(uploadId, { uploadId, files, tmpDir, cleanupCallback, cleanupTimer, accessId });
@@ -294,7 +294,7 @@ export class UploadSet {
   /**
    * Returns full info for the given uploadId, if authorized.
    */
-  public getUploadInfo(uploadId: number, accessId: string|null): UploadInfo {
+  public getUploadInfo(uploadId: number, accessId: string | null): UploadInfo {
     const info = this._getUploadInfoWithoutAuthorization(uploadId);
     if (info.accessId !== accessId) {
       throw new ApiError('access denied', 403);
@@ -337,7 +337,7 @@ export class UploadSet {
    * Changes the name of an uploaded file. It is an error to use if the upload set has more than one
    * file and it will throw.
    */
-  public changeUploadName(uploadId: number, accessId: string|null, name: string) {
+  public changeUploadName(uploadId: number, accessId: string | null, name: string) {
     const info = this.getUploadInfo(uploadId, accessId);
     if (info.files.length > 1) {
       throw new Error("UploadSet.changeUploadName cannot operate on multiple files");
@@ -434,7 +434,7 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
 /**
  * Register a new upload with resource fetched from a public url. Returns corresponding UploadInfo.
  */
-export async function fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
+export async function fetchURL(url: string, accessId: string | null, options?: FetchUrlOptions): Promise<UploadResult> {
   return _fetchURL(url, accessId, { fileName: path.basename(url), ...options });
 }
 
@@ -442,7 +442,7 @@ export async function fetchURL(url: string, accessId: string|null, options?: Fet
  * Register a new upload with resource fetched from a url, optionally including credentials in
  * request. Returns corresponding UploadInfo.
  */
-async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlOptions): Promise<UploadResult> {
+async function _fetchURL(url: string, accessId: string | null, options?: FetchUrlOptions): Promise<UploadResult> {
   try {
     const code = options?.googleAuthorizationCode;
     let fileName = options?.fileName ?? '';
@@ -504,7 +504,7 @@ export async function fetchDoc(
   docWorkerMap: IDocWorkerMap,
   urlId: string,
   req: Request,
-  accessId: string|null,
+  accessId: string | null,
   template: boolean,
 ): Promise<UploadResult> {
   // Prepare headers that preserve credentials of current user.
@@ -561,7 +561,7 @@ async function _checkForError(response: FetchResponse) {
  * Adding host information makes workers sharing a process more useful models of
  * full-blown isolated workers.
  */
-export function makeAccessId(worker: string|Request|GristServer, userId: number|null): string|null {
+export function makeAccessId(worker: string | Request | GristServer, userId: number | null): string | null {
   if (isSingleUserMode()) { return null; }
   if (userId === null) { return null; }
   let host: string;

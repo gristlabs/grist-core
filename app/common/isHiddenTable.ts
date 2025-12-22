@@ -6,7 +6,7 @@ import { UIRowId } from 'app/plugin/GristAPI';
  * normally be hidden from the user (e.g. as an option in the page-widget picker).
  */
 export function isHiddenTable(tablesData: TableData, tableRef: UIRowId): boolean {
-  const tableId = tablesData.getValue(tableRef, 'tableId') as string|undefined;
+  const tableId = tablesData.getValue(tableRef, 'tableId') as string | undefined;
   // The `!tableId` check covers the case of censored tables (see isTableCensored() below).
   return !tableId || isSummaryTable(tablesData, tableRef) || tableId.startsWith('GristHidden_');
 }

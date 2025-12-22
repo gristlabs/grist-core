@@ -20,7 +20,7 @@ const G = getBrowserGlobals('document', 'DOMParser');
  * @{param} {number} numInserts - number of new fields to insert
  */
 export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1,
-): Array<number|null> {
+): Array<number | null> {
   const rightPos = (index < viewFields.peekLength) ? viewFields.at(index)!.parentPos() : null;
   return Array(numInserts).fill(rightPos);
 }
@@ -47,9 +47,9 @@ export function makePasteText(tableData: TableData, selection: CopySelection, in
  * Hash of the current docId to allow checking if copying and pasting is happening in the same document,
  * without leaking the actual docId which may allow others to access the document.
  */
-export function getDocIdHash(): string|undefined {
+export function getDocIdHash(): string | undefined {
   // We might not have global gristDocPageModel (e.g. for virtual tables).
-  const docId: string|undefined = window.gristDocPageModel?.currentDocId.get();
+  const docId: string | undefined = window.gristDocPageModel?.currentDocId.get();
   return docId && simpleStringHash(docId);
 }
 
@@ -98,9 +98,9 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
 
 export interface RichPasteObject {
   displayValue: string;
-  docIdHash?: string|null;
-  colType?: string|null;  // Column type of the source column.
-  colRef?: number|null;
+  docIdHash?: string | null;
+  colType?: string | null;  // Column type of the source column.
+  colRef?: number | null;
   rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
 }
 
@@ -141,7 +141,7 @@ export function parsePasteHtml(data: string): RichPasteObject[][] {
 }
 
 // Helper function to add css style properties to an html tag
-function _styleAttr(style: object|undefined) {
+function _styleAttr(style: object | undefined) {
   if (typeof style !== 'object') {
     return '';
   }
@@ -155,7 +155,7 @@ function _styleAttr(style: object|undefined) {
 * See GridView.js getSelection and DetailView.js getSelection.
 * @returns {Object} BulkUpdateRecord action
 */
-export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord|null {
+export function makeDeleteAction(selection: CopySelection): BulkUpdateRecord | null {
   // If the selection includes the "new" row, ignore that one.
   const rowIds = selection.rowIds.filter((r): r is number => (typeof r === 'number'));
   if (rowIds.length === 0) {

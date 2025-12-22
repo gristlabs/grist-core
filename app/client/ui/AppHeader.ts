@@ -24,7 +24,7 @@ const testId = makeTestId('test-dm-');
 
 // Maps a name of a Product (from app/gen-server/entity/Product.ts) to a tag (pill) to show next
 // to the org name.
-const productPills: { [name: string]: string|null } = {
+const productPills: { [name: string]: string | null } = {
   // TODO We don't label paid team plans with a tag yet, but we should label as "Pro" once we
   // update our pricing pages to refer to paid team plans as Pro plans.
   "professional": null,   // Deprecated but used in development.
@@ -74,7 +74,7 @@ export class AppHeader extends Disposable {
 
   constructor(
     private _appModel: AppModel,
-    private _docPageModel?: DocPageModel|null) {
+    private _docPageModel?: DocPageModel | null) {
     super();
   }
 
@@ -217,7 +217,7 @@ export class AppHeader extends Disposable {
   private _getAppLogoOrgNameAndLink(params: {
     availableOrgs: Organization[],
     currentOrgName: string,
-    lastVisitedOrgDomain: string|null,
+    lastVisitedOrgDomain: string | null,
   }): AppLogoOrgNameAndLink {
     const {
       currentValidUser,
@@ -259,7 +259,7 @@ export class AppHeader extends Disposable {
   }
 }
 
-export function productPill(org: Organization|null, options: { large?: boolean } = {}): DomContents {
+export function productPill(org: Organization | null, options: { large?: boolean } = {}): DomContents {
   if (!org || isTemplatesOrg(org)) {
     return null;
   }

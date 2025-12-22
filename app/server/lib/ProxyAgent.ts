@@ -82,7 +82,7 @@ export const agents = generateProxyAgents();
  * Here are written thoughts and doubts about this function:
  * https://github.com/gristlabs/grist-core/pull/1363#discussion_r2034871615
  */
-export async function fetchUntrustedWithAgent(requestUrl: URL|string, options?: Omit<RequestInit, 'agent'>) {
+export async function fetchUntrustedWithAgent(requestUrl: URL | string, options?: Omit<RequestInit, 'agent'>) {
   const agent = agents.untrusted;
   if (!agent) {
     // No proxy is configured, just use the default agent.

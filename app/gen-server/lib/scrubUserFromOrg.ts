@@ -230,8 +230,8 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
 }
 
 interface Mention {
-  id: string|number;       // id of resource
-  kind: 'org'|'ws'|'doc';  // type of resource
+  id: string | number;       // id of resource
+  kind: 'org' | 'ws' | 'doc';  // type of resource
   user_id: number;         // id of user in group
   group_id: number;        // id of group
   name: string;            // name of group

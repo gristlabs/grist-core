@@ -3,8 +3,8 @@ import { dom, observable, styled } from "grainjs";
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 
 function setupTest() {
-  const width1 = observable<number|null>(null);
-  const width2 = observable<number|null>(null);
+  const width1 = observable<number | null>(null);
+  const width2 = observable<number | null>(null);
   return [
     testBox(
       dom('div.test-left',

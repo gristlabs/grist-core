@@ -15,7 +15,7 @@ export async function selectChartType(chartType: string) {
   return gu.waitForServer();
 }
 
-export async function getChartData(chartElem?: WebElement|string): Promise<ChartData> {
+export async function getChartData(chartElem?: WebElement | string): Promise<ChartData> {
   if (isString(chartElem) || isUndefined(chartElem)) {
     const section = isString(chartElem) ?
       await gu.getSection(chartElem) :
@@ -32,7 +32,7 @@ export function checkAxisRange({ layout }: ChartData, xMin: number, xMax: number
   assert.closeTo(layout.yaxis.range![1], yMax, yMax * 0.1);
 }
 
-export function getAxisTitle(axis: Partial<LayoutAxis>): string|undefined {
+export function getAxisTitle(axis: Partial<LayoutAxis>): string | undefined {
   return axis.title && (axis.title as any).text;
 }
 
@@ -45,8 +45,8 @@ export async function removeYAxis(name: string) {
   await gu.waitForServer();
 }
 
-export async function checkAxisConfig(expected: { groupingByColumn?: string|false,
-  xaxis: string|undefined, yaxis: string[] }) {
+export async function checkAxisConfig(expected: { groupingByColumn?: string | false,
+  xaxis: string | undefined, yaxis: string[] }) {
   const isGroupByPresent = await driver.find('.test-chart-group-by-column').isPresent();
   let groupingByColumn = isGroupByPresent ? await driver.find('.test-chart-group-by-column').getText() : false;
   if (groupingByColumn === 'Pick a column') {
@@ -60,7 +60,7 @@ export async function checkAxisConfig(expected: { groupingByColumn?: string|fals
   }, { ...expected, groupingByColumn: expected.groupingByColumn || false });
 }
 
-export async function setSplitSeries(name: string|false, section?: string) {
+export async function setSplitSeries(name: string | false, section?: string) {
   await gu.openSectionMenu('viewLayout', section);
   await gu.findOpenMenuItem('li', 'Widget options').click();
 

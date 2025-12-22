@@ -47,12 +47,12 @@ export interface WidgetFrameOptions {
   /**
    * Url of external page. Iframe is rebuild each time the URL changes.
    */
-  url: string|null;
+  url: string | null;
   /**
    * ID of widget, if known. When set, the url for the specified widget
    * in the WidgetRepository, if found, will take precedence.
    */
-  widgetId?: string|null;
+  widgetId?: string | null;
   /**
    * ID of the plugin that provided the widget (if it came from a plugin).
    */
@@ -102,7 +102,7 @@ export class WidgetFrame extends DisposableWithEvents {
   private _readyCalled = Observable.create(this, false);
   // Whether the iframe is visible.
   private _visible = Observable.create(this, !this._options.showAfterReady);
-  private readonly _widget = Observable.create<ICustomWidget|null>(this, null);
+  private readonly _widget = Observable.create<ICustomWidget | null>(this, null);
 
   private _url: Observable<string>;
   /**
@@ -507,7 +507,7 @@ export class GristViewImpl implements GristView {
     this._baseView.viewSection.selectedRows([]);
   }
 
-  public async setSelectedRows(rowIds: number[]|null): Promise<void> {
+  public async setSelectedRows(rowIds: number[] | null): Promise<void> {
     this._baseView.viewSection.selectedRows(rowIds);
   }
 
@@ -797,7 +797,7 @@ export class CustomSectionAPIImpl extends Disposable implements CustomSectionAPI
     super();
   }
 
-  public async mappings(): Promise<WidgetColumnMap|null> {
+  public async mappings(): Promise<WidgetColumnMap | null> {
     return this._section.mappedColumns.peek();
   }
 

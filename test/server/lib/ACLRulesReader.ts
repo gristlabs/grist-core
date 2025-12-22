@@ -429,7 +429,7 @@ describe('ACLRulesReader', function() {
 });
 
 interface ACLResourceAndRules {
-  resource: MetaRowRecord<'_grist_ACLResources'>|undefined;
+  resource: MetaRowRecord<'_grist_ACLResources'> | undefined;
   rules: { aclFormula: CellValue, permissionsText: CellValue }[];
 }
 

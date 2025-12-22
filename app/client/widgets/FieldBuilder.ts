@@ -147,7 +147,7 @@ export class FieldBuilder extends Disposable {
     this._availableTypes = Computed.create(this, (use) => {
       const isFormula = use(this.origColumn.isFormula);
       const types: Array<IOptionFull<string>> = [];
-      _.each(UserType.typeDefs, (def: any, key: string|number) => {
+      _.each(UserType.typeDefs, (def: any, key: string | number) => {
         const o: IOptionFull<string> = {
           value: key as string,
           label: def.label,
@@ -232,7 +232,7 @@ export class FieldBuilder extends Disposable {
 
     this.autoDispose(commands.createGroup({
       showPopup: (args: any) => {
-        if (args.popup==='referenceColumnsConfig') {
+        if (args.popup === 'referenceColumnsConfig') {
           this._showRefConfigPopup(true);
         }
       },
@@ -824,7 +824,7 @@ export class FieldBuilder extends Disposable {
   public buildDiscussionPopup(
     editRow: DataRowModel,
     mainRowModel: DataRowModel,
-    text: CommentWithMentions|null,
+    text: CommentWithMentions | null,
   ) {
     const holder = this.gristDoc.fieldEditorHolder;
     const cellElem: Element = this._rowMap.get(mainRowModel)!;

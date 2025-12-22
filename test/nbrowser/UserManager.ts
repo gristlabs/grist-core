@@ -35,7 +35,7 @@ const editDocAclsShareMenu = stackWrapFunc(async function(): Promise<void> {
 
 // Asserts that the user's role in the open acl edit menu is as given. If the given roleLabel is undefined,
 // asserts that the user is not shown in the menu or was deleted.
-async function assertRole(name: string, roleLabel: string|null, inherited: boolean|null) {
+async function assertRole(name: string, roleLabel: string | null, inherited: boolean | null) {
   const row = driver.findContent('.test-um-member', new RegExp(`${name}@getgrist.com`));
   if (!roleLabel) {
     assert.isTrue(!(await row.isPresent()) || await row.find(".test-um-member-undo").isPresent());

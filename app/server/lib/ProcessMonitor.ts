@@ -5,7 +5,7 @@ const MEMORY_DELTA_FRACTION = 0.1;      // fraction by which usage should change
 const CPU_DELTA_FRACTION = 0.1;         // by how much cpu usage should change to get reported
 const MONITOR_LOG_PERIOD_MS = 600_000;  // log usage at least this often
 
-let _timer: NodeJS.Timeout|undefined;
+let _timer: NodeJS.Timeout | undefined;
 let _lastTickTime: number = Date.now();
 let _lastReportTime: number = 0;
 let _lastReportedHeapUsed: number = 0;
@@ -68,8 +68,8 @@ function monitor(telemetry: ITelemetry) {
   ) {
     telemetry.logEvent(null, 'processMonitor', {
       full: {
-        heapUsedMB: Math.round(memoryUsage.heapUsed/1024/1024),
-        heapTotalMB: Math.round(memoryUsage.heapTotal/1024/1024),
+        heapUsedMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+        heapTotalMB: Math.round(memoryUsage.heapTotal / 1024 / 1024),
         cpuAverage: Math.round(cpuAverage * 100) / 100,
         intervalMs,
       },

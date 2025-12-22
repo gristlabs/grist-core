@@ -213,7 +213,7 @@ export function decodeObject(value: CellValue): unknown {
   }
   const code: string = value[0];
   const args: any[] = value.slice(1);
-  let err: Error|undefined;
+  let err: Error | undefined;
   try {
     switch (code) {
       case 'D': return GristDateTime.fromGristValue(args[0], String(args[1]));

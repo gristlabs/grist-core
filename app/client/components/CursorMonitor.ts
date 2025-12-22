@@ -161,7 +161,7 @@ class StorageWrapper {
 }
 
 export function oneTimeListener<T>(obs: Observable<T>, handler: (value: T) => any) {
-  let listener: Listener|null = obs.addListener((value) => {
+  let listener: Listener | null = obs.addListener((value) => {
     setImmediate(dispose);
     handler(value);
   });

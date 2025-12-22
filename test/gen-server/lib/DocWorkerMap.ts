@@ -101,7 +101,7 @@ describe('DocWorkerMap', function() {
 
           await workers.setWorkerAvailability('worker1', true);
 
-          let assignment: DocStatus|null = await workers.assignDocWorker('a-doc');
+          let assignment: DocStatus | null = await workers.assignDocWorker('a-doc');
           assert.equal(assignment.docWorker.id, 'worker1');
 
           await workers.setWorkerAvailability('worker2', true);

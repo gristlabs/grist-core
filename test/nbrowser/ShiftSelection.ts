@@ -34,7 +34,7 @@ describe('ShiftSelection', function() {
     await session.tempDoc(cleanup, 'ShiftSelection.grist');
   });
 
-  async function getSelectionRange(parent: WebElement, selector: string): Promise<SelectionRange|undefined> {
+  async function getSelectionRange(parent: WebElement, selector: string): Promise<SelectionRange | undefined> {
     let start, end;
 
     let selectionActive = false;
@@ -69,7 +69,7 @@ describe('ShiftSelection', function() {
     };
   }
 
-  async function getSelectedCells(): Promise<CellSelection|undefined> {
+  async function getSelectedCells(): Promise<CellSelection | undefined> {
     const activeSection = await driver.find('.active_section');
 
     const colSelection = await getSelectionRange(activeSection, '.column_names .column_name');
@@ -92,7 +92,7 @@ describe('ShiftSelection', function() {
     };
   }
 
-  async function assertCellSelection(expected: CellSelection|undefined) {
+  async function assertCellSelection(expected: CellSelection | undefined) {
     const currentSelection = await getSelectedCells();
     assert.deepEqual(currentSelection, expected);
   }

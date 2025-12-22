@@ -121,7 +121,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     this._elections.clear();
   }
 
-  public async getElection(name: string, durationInMs: number): Promise<string|null> {
+  public async getElection(name: string, durationInMs: number): Promise<string | null> {
     if (this._elections.get(name)) { return null; }
     const key = uuidv4();
     this._elections.setWithCustomTTL(name, key, durationInMs);
@@ -142,11 +142,11 @@ class DummyDocWorkerMap implements IDocWorkerMap {
     return null;
   }
 
-  public async getWorkerGroup(workerId: string): Promise<string|null> {
+  public async getWorkerGroup(workerId: string): Promise<string | null> {
     return null;
   }
 
-  public async getDocGroup(docId: string): Promise<string|null> {
+  public async getDocGroup(docId: string): Promise<string | null> {
     return null;
   }
 
@@ -312,7 +312,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     log.info(`DocWorkerMap.setWorkerAvailability ${workerId} ${available}`);
     const group = await this._client.getAsync(`worker-${workerId}-group`) || DEFAULT_GROUP;
     if (available) {
-      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo | null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
       // TODO: remove `workers-available-${group}`.
       await this._client.saddAsync(`workers-available-${group}`, workerId);
@@ -377,7 +377,7 @@ export class DocWorkerMap implements IDocWorkerMap {
    * should be treated as a hint, and clients should be prepared to be
    * refused and need to retry.
    */
-  public async getDocWorker(docId: string): Promise<DocStatus|null> {
+  public async getDocWorker(docId: string): Promise<DocStatus | null> {
     const { doc } = await this._getDocAndChecksum(docId);
     return doc;
   }
@@ -407,7 +407,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       try {
         const _workerId = await this._getAvailableWorkerId(DEFAULT_GROUP);
         if (!_workerId) { throw new Error('no doc worker available'); }
-        const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo|null;
+        const docWorker = await this._client.hgetallAsync(`worker-${_workerId}`) as DocWorkerInfo | null;
         if (!docWorker) { throw new Error('no doc worker contact info available'); }
         log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${docWorker.id}`);
         return {
@@ -467,7 +467,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       }
 
       // Look up how to contact the worker.
-      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo|null;
+      const docWorker = await this._client.hgetallAsync(`worker-${workerId}`) as DocWorkerInfo | null;
       if (!docWorker) { throw new Error('no doc worker contact info available'); }
 
       // We can now construct a DocStatus, preserving any existing checksum.
@@ -527,7 +527,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         await client.setexAsync(key, Math.ceil(duration / 1000.0), JSON.stringify(permit));
         return key;
       },
-      async getPermit(key: string): Promise<Permit|null> {
+      async getPermit(key: string): Promise<Permit | null> {
         if (!checkPermitKey(key, prefix)) { throw new Error('permit could not be read'); }
         const result = await client.getAsync(key);
         return result && JSON.parse(result);
@@ -551,7 +551,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
-  public async getElection(name: string, durationInMs: number): Promise<string|null> {
+  public async getElection(name: string, durationInMs: number): Promise<string | null> {
     // Could use "set nx" for election, but redis docs don't encourage that any more,
     // favoring redlock:
     //   https://redis.io/commands/setnx#design-pattern-locking-with-codesetnxcode
@@ -586,11 +586,11 @@ export class DocWorkerMap implements IDocWorkerMap {
     }
   }
 
-  public async getWorkerGroup(workerId: string): Promise<string|null> {
+  public async getWorkerGroup(workerId: string): Promise<string | null> {
     return this._client.getAsync(`worker-${workerId}-group`);
   }
 
-  public async getDocGroup(docId: string): Promise<string|null> {
+  public async getDocGroup(docId: string): Promise<string | null> {
     return this._client.getAsync(`doc-${docId}-group`);
   }
 
@@ -611,14 +611,14 @@ export class DocWorkerMap implements IDocWorkerMap {
    * Return as a decoded DocStatus and a checksum.
    */
   private async _getDocAndChecksum(docId: string): Promise<{
-    doc: DocStatus|null,
-    checksum: string|null,
+    doc: DocStatus | null,
+    checksum: string | null,
   }> {
     // Fetch the various elements that go into making a DocStatus
     const props = await this._client.multi()
       .hgetall(`doc-${docId}`)
       .get(`doc-${docId}-checksum`)
-      .execAsync() as [{ [key: string]: any }|null, string|null]|null;
+      .execAsync() as [{ [key: string]: any } | null, string | null] | null;
     // Fields are JSON encoded since redis cannot store them directly.
     const doc = props?.[0] ? mapValues(props[0], val => JSON.parse(val)) as DocStatus : null;
     // Redis cannot store a null value, so we encode it as 'null', which does
@@ -636,7 +636,7 @@ export class DocWorkerMap implements IDocWorkerMap {
    * biased towards workers with lower load. Otherwise, selection will
    * be random.
    */
-  private async _getAvailableWorkerId(group: string): Promise<string|null> {
+  private async _getAvailableWorkerId(group: string): Promise<string | null> {
     // TODO: Make weighted random selection the default and remove feature flag.
     if (isAffirmative(process.env.GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT)) {
       return await this._getAvailableWorkerIdByLoad(group);
@@ -653,7 +653,7 @@ export class DocWorkerMap implements IDocWorkerMap {
    * Workers are chosen using weighted random selection, where weights are
    * the complement of the load on a worker (`0.0` to `1.0` inclusive).
    */
-  private async _getAvailableWorkerIdByLoad(group: string): Promise<string|null> {
+  private async _getAvailableWorkerIdByLoad(group: string): Promise<string | null> {
     log.debug(`DocWorkerMap._getAvailableWorkerIdByLoad ${group}`);
     const script = `
       local workers = redis.call("ZRANGE", KEYS[1], 0, -1, "WITHSCORES")
@@ -710,7 +710,7 @@ export class DocWorkerMap implements IDocWorkerMap {
 }
 
 // If we don't have redis available and use a DummyDocWorker, it should be a singleton.
-let dummyDocWorkerMap: DummyDocWorkerMap|null = null;
+let dummyDocWorkerMap: DummyDocWorkerMap | null = null;
 
 export function getDocWorkerMap(): IDocWorkerMap {
   if (process.env.REDIS_URL) {

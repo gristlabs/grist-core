@@ -233,7 +233,7 @@ async function reloadAccessRulesPage() {
   await driver.navigate().refresh();
   await driver.findWait('.test-rule-set', 5000);
 }
-async function getDefaultResourceRec(api: UserAPI, docId: string): Promise<TableRecordValue|undefined> {
+async function getDefaultResourceRec(api: UserAPI, docId: string): Promise<TableRecordValue | undefined> {
   const records = await api.getDocAPI(docId).getRecords('_grist_ACLResources', { filters: { tableId: ['*'] } });
   return records[0];
 }

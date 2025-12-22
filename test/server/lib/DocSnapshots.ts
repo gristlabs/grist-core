@@ -34,7 +34,7 @@ describe('DocSnapshots', async function() {
       return total;
     }
 
-    function maxDiff(snapshots: ObjSnapshot[], scale: 'days'|'hours'): number {
+    function maxDiff(snapshots: ObjSnapshot[], scale: 'days' | 'hours'): number {
       let result: number = 0;
       for (const [index, snapshot] of snapshots.slice(1).entries()) {
         const prev = snapshots[index];

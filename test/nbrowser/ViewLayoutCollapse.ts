@@ -1071,7 +1071,7 @@ async function mainSectionTitles() {
   return await driver.findAll('.layout_root .test-viewsection-title', e => e.getText());
 }
 
-async function move(element: WebElementPromise|WebElement, offset: { x?: number, y?: number } = { x: 0, y: 0 }) {
+async function move(element: WebElementPromise | WebElement, offset: { x?: number, y?: number } = { x: 0, y: 0 }) {
   // With current version of webdriver, a fractional values will get ignored, so round to nearest.
   if (offset.x) { offset.x = Math.round(offset.x); }
   if (offset.y) { offset.y = Math.round(offset.y); }

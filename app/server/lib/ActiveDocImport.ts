@@ -418,8 +418,8 @@ export class ActiveDocImport {
   private async _transformAndFinishImport(
     docSession: OptDocSession,
     hiddenTableId: string, destTableId: string,
-    intoNewTable: boolean, transformRule: TransformRule|null,
-    mergeOptions: MergeOptions|null,
+    intoNewTable: boolean, transformRule: TransformRule | null,
+    mergeOptions: MergeOptions | null,
   ): Promise<string> {
     log.info("ActiveDocImport._transformAndFinishImport(%s, %s, %s, %s, %s)",
       hiddenTableId, destTableId, intoNewTable, transformRule, mergeOptions);

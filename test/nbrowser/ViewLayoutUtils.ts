@@ -32,12 +32,12 @@ export async function sectionIsExpanded() {
 /**
  * Opens the section menu for a collapsed section.
  */
-export async function openCollapsedSectionMenu(section: string|RegExp) {
+export async function openCollapsedSectionMenu(section: string | RegExp) {
   await getCollapsedSection(section).find(`.test-section-menu-viewLayout`).click();
   await gu.findOpenMenu(100);
 }
 
-export function getCollapsedSection(section: string|RegExp) {
+export function getCollapsedSection(section: string | RegExp) {
   if (typeof section === 'string') {
     section = gu.exactMatch(section, 'i');
   }

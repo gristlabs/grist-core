@@ -7,7 +7,7 @@ import { UserInfo } from 'app/common/User';
 import { FullUser } from 'app/common/UserAPI';
 
 // Possible flavors of items in a list of documents.
-export type DocEntryTag = ''|'sample'|'invite'|'shared';
+export type DocEntryTag = '' | 'sample' | 'invite' | 'shared';
 
 export const OpenDocMode = StringUnion(
   'default',  // open doc with user's maximal access level
@@ -83,8 +83,8 @@ export interface OpenLocalDocResult {
 }
 
 export interface UserOverride {
-  user: FullUser|null;
-  access: Role|null;
+  user: FullUser | null;
+  access: Role | null;
 }
 
 export interface DocListAPI {

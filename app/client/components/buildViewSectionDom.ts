@@ -20,7 +20,7 @@ const t = makeT('ViewSection');
 
 export function buildCollapsedSectionDom(options: {
   gristDoc: GristDoc,
-  sectionRowId: number|string,
+  sectionRowId: number | string,
 }, ...domArgs: DomElementArg[]) {
   const { gristDoc, sectionRowId } = options;
   if (typeof sectionRowId === 'string') {
@@ -99,7 +99,7 @@ export function buildViewSectionDom(options: {
     dom.cls('active_section', vs.hasFocus),
     dom.cls('active_section--no-focus', use => !vs.isDisposed() && use(vs.hasFocus) && !use(vs.hasRegionFocus)),
     dom.cls('active_section--no-indicator', use => !focusable || (!vs.isDisposed() && !use(vs.hasVisibleFocus))),
-    dom.maybe<BaseView|null>(use => use(vs.viewInstance), viewInstance => dom('div.viewsection_title.flexhbox',
+    dom.maybe<BaseView | null>(use => use(vs.viewInstance), viewInstance => dom('div.viewsection_title.flexhbox',
       cssDragIcon('DragDrop',
         dom.cls("viewsection_drag_indicator"),
         // Makes element grabbable only if grist is not readonly.
@@ -121,7 +121,7 @@ export function buildViewSectionDom(options: {
         ),
     )),
     hideTitleControls === true ? null : dom.create(filterBar, gristDoc, vs),
-    dom.maybe<BaseView|null>(vs.viewInstance, viewInstance => [
+    dom.maybe<BaseView | null>(vs.viewInstance, viewInstance => [
       dom('div.view_data_pane_container.flexvbox',
         cssResizing.cls('', isResizing),
         dom.maybe(viewInstance.disableEditing, () =>

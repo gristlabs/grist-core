@@ -14,7 +14,7 @@ export class CellStyle extends Disposable {
   constructor(
     private _field: ViewFieldRec,
     private _gristDoc: GristDoc,
-    private _defaultTextColor: string|undefined,
+    private _defaultTextColor: string | undefined,
   ) {
     super();
   }

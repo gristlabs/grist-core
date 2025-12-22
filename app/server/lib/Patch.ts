@@ -14,8 +14,8 @@ import { ActiveDoc } from 'app/server/lib/ActiveDoc';
 import { OptDocSession } from 'app/server/lib/DocSession';
 
 export class Patch {
-  private _otherId: number|undefined;
-  private _linkId: number|undefined;
+  private _otherId: number | undefined;
+  private _linkId: number | undefined;
   private _columnsByTableIdAndColId: Record<string, Record<string, MetaRowRecord<'_grist_Tables_column'>>> = {};
   private _columns: MetaTableData<'_grist_Tables_column'>;
   private _tables: MetaTableData<'_grist_Tables'>;

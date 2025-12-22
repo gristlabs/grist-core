@@ -98,12 +98,12 @@ export function tString(key: string, args?: any, instance = i18next): string {
 // We will try to infer result from the arguments passed to `t` function.
 // For plain objects we expect string as a result. If any property doesn't look as a plain value
 // we assume that it might be a dom node and the result is DomContents.
-type InferResult<T> = T extends Record<string, string | number | boolean>|undefined|null ? string : DomContents;
+type InferResult<T> = T extends Record<string, string | number | boolean> | undefined | null ? string : DomContents;
 
 /**
  * Resolves the translation of the given key and substitutes. Supports dom elements interpolation.
  */
-export function t<T extends Record<string, any>>(key: string, args?: T|null, instance = i18next): InferResult<T> {
+export function t<T extends Record<string, any>>(key: string, args?: T | null, instance = i18next): InferResult<T> {
   return domT(key, args, instance.t);
 }
 
@@ -162,9 +162,9 @@ function isLikeDomContents(value: any): boolean {
  */
 export function makeT(scope: string, instance?: typeof i18next) {
   // Can't create the scopedInstance yet as it might not be initialized.
-  let scopedInstance: null|typeof i18next = null;
-  let scopedResolver: null|typeof i18next.t = null;
-  return function<T extends Record<string, any>>(key: string, args?: T|null) {
+  let scopedInstance: null | typeof i18next = null;
+  let scopedResolver: null | typeof i18next.t = null;
+  return function<T extends Record<string, any>>(key: string, args?: T | null) {
     // Create a scoped instance with disabled namespace and nested features.
     // This enables keys like `key1.key2:key3` to be resolved properly.
     if (!scopedInstance) {

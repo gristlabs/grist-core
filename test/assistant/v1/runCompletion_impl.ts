@@ -134,7 +134,7 @@ export async function runCompletion() {
     DEPS.fetch = ((info, init) =>
       fetcher.fetch(info, init)) as typeof DEPS.fetch;
 
-    let activeDoc: ActiveDoc|undefined;
+    let activeDoc: ActiveDoc | undefined;
     for (const rec of records) {
       let success: boolean = false;
       let suggestedActions: AssistanceResponseV1['suggestedActions'] | undefined;

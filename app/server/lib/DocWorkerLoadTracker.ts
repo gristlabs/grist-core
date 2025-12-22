@@ -132,7 +132,7 @@ export class DocWorkerLoadTracker {
    */
   private async _readValueFromFileInMB(
     filePath: string,
-    valueProcessor?: (val: string) => number|undefined,
+    valueProcessor?: (val: string) => number | undefined,
   ): Promise<number> {
     const rawVal = await fs.readFile(filePath, "utf-8");
     const valInBytes = valueProcessor?.(rawVal) ?? parseInt(rawVal, 10);
@@ -143,7 +143,7 @@ export class DocWorkerLoadTracker {
       );
     }
 
-    return valInBytes / 1024**2;
+    return valInBytes / 1024 ** 2;
   }
 
   /**

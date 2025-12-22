@@ -59,7 +59,7 @@ export class UsersManager {
   // Returns all first-level memberUsers in the resources. Requires all resources' aclRules, groups
   // and memberUsers to be populated.
   // If optRoles is provided, only checks membership in resource groups with the given roles.
-  public static getResourceUsers(res: Resource|Resource[], optRoles?: string[]): User[] {
+  public static getResourceUsers(res: Resource | Resource[], optRoles?: string[]): User[] {
     res = Array.isArray(res) ? res : [res];
     const users: { [uid: string]: User } = {};
     let resAcls: AclRule[] = flatten(res.map(_res => _res.aclRules as AclRule[]));
@@ -163,7 +163,7 @@ export class UsersManager {
     return id;
   }
 
-  public async getUserByKey(apiKey: string): Promise<User|undefined> {
+  public async getUserByKey(apiKey: string): Promise<User | undefined> {
     // Include logins relation for Authorization convenience.
     return await User.findOne({ where: { apiKey }, relations: ["logins"] }) || undefined;
   }
@@ -171,7 +171,7 @@ export class UsersManager {
   public async getUserByRef(
     ref: string,
     options: { manager?: EntityManager; relations?: string[] } = {},
-  ): Promise<User|undefined> {
+  ): Promise<User | undefined> {
     const { manager, relations = ["logins"] } = options;
     const user = await this._runInTransaction(manager, m => m.findOne(User, { where: { ref }, relations }));
     return user || undefined;
@@ -180,7 +180,7 @@ export class UsersManager {
   public async getUser(
     userId: number,
     options: { includePrefs?: boolean } = {},
-  ): Promise<User|undefined> {
+  ): Promise<User | undefined> {
     const { includePrefs } = options;
     const relations = ["logins"];
     if (includePrefs) { relations.push("prefs"); }
@@ -384,7 +384,7 @@ export class UsersManager {
   public async getExistingUserByLogin(
     email: string,
     manager?: EntityManager,
-  ): Promise<User|undefined> {
+  ): Promise<User | undefined> {
     return await this._buildExistingUsersByLoginRequest([email], manager)
       .getOne() || undefined;
   }
@@ -729,7 +729,7 @@ export class UsersManager {
     }
     // Lookup the email access changes and move them to the users object.
     const notFoundUserEmailDelta: { [email: string]: roles.NonGuestRole } = {};
-    const foundUserIdDelta: { [userId: string]: roles.NonGuestRole|null } = {};
+    const foundUserIdDelta: { [userId: string]: roles.NonGuestRole | null } = {};
     if (hasInherit) {
       // Verify maxInheritedRole
       const role = delta.maxInheritedRole;
@@ -1004,7 +1004,7 @@ export class UsersManager {
     // displayEmail will be seeded from this value.
     const displayEmails: { [email: string]: string } = {};
     // This will be our output.
-    const users: { [email: string]: roles.NonGuestRole|null } = {};
+    const users: { [email: string]: roles.NonGuestRole | null } = {};
     for (const displayEmail of Object.keys(delta.users).sort()) {
       const email = normalizeEmail(displayEmail);
       const role = delta.users[displayEmail];

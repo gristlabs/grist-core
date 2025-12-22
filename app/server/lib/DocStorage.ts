@@ -58,7 +58,7 @@ export function getSqliteMode() {
     .section('sqlite').flag('mode').readString({
       envVar: 'GRIST_SQLITE_MODE',
       acceptedValues: ['wal', 'sync'],
-    }) as 'wal'|'sync'|undefined;
+    }) as 'wal' | 'sync' | undefined;
 }
 
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
@@ -486,7 +486,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   private static _encodeValue(
     marshaller: marshal.Marshaller, gristType: string, sqlType: string, val: any,
-  ): Uint8Array|string|number|boolean|null {
+  ): Uint8Array | string | number | boolean | null {
     const marshalled = () => {
       marshaller.marshal(val);
       return marshaller.dump();
@@ -602,7 +602,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * 'affinities', but they are helpful as comments.  Type names chosen from:
    *   https://www.sqlite.org/datatype3.html#affinity_name_examples
    */
-  private static _getSqlType(colType: string|null): string {
+  private static _getSqlType(colType: string | null): string {
     switch (colType) {
       case 'Bool':
         return 'BOOLEAN';
@@ -645,7 +645,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * Result is one of NUMERIC, INTEGER, TEXT, or BLOB.
    * We don't use REAL, the only remaining affinity.
    */
-  private static _getAffinity(colType: string|null): string {
+  private static _getAffinity(colType: string | null): string {
     switch (colType) {
       case 'TEXT':
         return 'TEXT';
@@ -665,13 +665,13 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   // ======================================================================
 
   public docPath: string; // path to document file on disk
-  private _db: SQLiteDB|null|undefined; // database handle
+  private _db: SQLiteDB | null | undefined; // database handle
 
   // Maintains { tableId: { colId: gristType } } mapping for all tables, including grist metadata
   // tables (obtained from auto-generated schema.js).
   private _docSchema: { [tableId: string]: { [colId: string]: string } };
 
-  private _cachedDataSize: number|null = null;
+  private _cachedDataSize: number | null = null;
 
   public constructor(public storageManager: IDocStorageManager, public docName: string) {
     this.docPath = this.storageManager.getPath(docName);
@@ -916,7 +916,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   /**
    * Look up Grist type of column.
    */
-  public getColumnType(tableId: string, colId: string): string|undefined {
+  public getColumnType(tableId: string, colId: string): string | undefined {
     return this._docSchema[tableId]?.[colId];
   }
 
@@ -925,7 +925,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public async fetchActionData(tableId: string, rowIds: number[], colIds?: string[]): Promise<TableDataAction> {
     const colSpec = colIds ? ['id', ...colIds].map(c => quoteIdent(c)).join(', ') : '*';
-    let fullValues: TableColValues|undefined;
+    let fullValues: TableColValues | undefined;
 
     // There is a limit to the number of arguments that may be passed in, so fetch data in chunks.
     for (const rowIdChunk of chunk(rowIds, maxSQLiteVariables)) {
@@ -1535,7 +1535,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._getDB().interrupt();
   }
 
-  public getOptions(): MinDBOptions|undefined {
+  public getOptions(): MinDBOptions | undefined {
     return this._getDB().getOptions();
   }
 
@@ -1555,7 +1555,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     return this._getDB().prepare(sql);
   }
 
-  public get(sql: string, ...args: any[]): Promise<ResultRow|undefined> {
+  public get(sql: string, ...args: any[]): Promise<ResultRow | undefined> {
     return this._getDB().get(sql, ...args);
   }
 
@@ -1755,7 +1755,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * @return {Promise<string|null>} New table SQL, or null when nothing changed or colId is missing.
    */
   private async _rebuildTableSql(tableId: string, colId: string, newColId: string,
-    newColType: string|null = null): Promise<RebuildResult|null> {
+    newColType: string | null = null): Promise<RebuildResult | null> {
     // This returns rows with (at least) {name, type, dflt_value}.
     assert(newColId, 'newColId required');
     let infoRows = await this.all(`PRAGMA table_info(${quoteIdent(tableId)})`);
@@ -1814,7 +1814,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   }
 
   private async _alterColumn(tableId: string, colId: string, newColId: string,
-    newColType: string|null = null): Promise<void> {
+    newColType: string | null = null): Promise<void> {
     const result = await this._rebuildTableSql(tableId, colId, newColId, newColType);
     if (result) {
       const q = quoteIdent;
@@ -1957,7 +1957,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
   // If an action can have manualSort removed, go ahead and do it (after cloning),
   // otherwise return null.
-  private _considerWithoutManualSort(act: DocAction): DocAction|null {
+  private _considerWithoutManualSort(act: DocAction): DocAction | null {
     if (act[0] === 'AddRecord' || act[0] === 'UpdateRecord' ||
       act[0] === 'BulkAddRecord' || act[0] === 'BulkUpdateRecord' &&
       'manualSort' in act[3]) {

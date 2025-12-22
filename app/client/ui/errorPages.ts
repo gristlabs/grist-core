@@ -97,8 +97,8 @@ export function createAccountDeletedPage(appModel: AppModel) {
 
 export function createUnsubscribedPage(
   appModel: AppModel,
-  errMessage: string|undefined,
-  errDetails: Record<string, string|undefined> | undefined,
+  errMessage: string | undefined,
+  errDetails: Record<string, string | undefined> | undefined,
 ) {
   document.title = t("Unsubscribed{{suffix}}", { suffix: getPageTitleSuffix(getGristConfig()) });
   const docUrl = errDetails?.docUrl;

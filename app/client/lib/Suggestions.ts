@@ -52,7 +52,7 @@ export function expandAndFilterSuggestions(
 // examine higher-level suggestions and their subattributes. E.g. if suggestions don't include
 // an exact match for "foo.bar.baz", but include an exact match for "foo.bar", then its
 // subAttributes() result will be checked for "baz", which would be considered an exact match.
-function findMatchingSuggestion(text: string, suggestions: ISuggestionWithSubAttrs[]): ISuggestionWithSubAttrs|null {
+function findMatchingSuggestion(text: string, suggestions: ISuggestionWithSubAttrs[]): ISuggestionWithSubAttrs | null {
   const match = suggestions.find(s => s.value === text);
   if (match) { return match; }
   if (!text.includes(".")) { return null; }

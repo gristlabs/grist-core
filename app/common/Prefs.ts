@@ -58,7 +58,7 @@ export interface UserOrgPrefs extends Prefs {
 
 export interface OrgPrefs extends Prefs {
   /* The URL (might be data url) of the custom logo to use for the org. */
-  customLogoUrl?: string|null;
+  customLogoUrl?: string | null;
 }
 
 export interface DocPrefs {

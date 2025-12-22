@@ -28,7 +28,7 @@ export function autoSelect() {
  */
 export const AsyncComputed = {
   create<T>(owner: IDisposableOwner, cb: (use: UseCB) => Promise<T>): AsyncComputed<T> {
-    const backend: Observable<T|undefined> = Observable.create(owner, undefined);
+    const backend: Observable<T | undefined> = Observable.create(owner, undefined);
     const dirty = Observable.create(owner, true);
     const computed: Computed<Promise<T>> = Computed.create(owner, cb as any);
     let ticket = 0;
@@ -49,7 +49,7 @@ export const AsyncComputed = {
     });
   },
 };
-export interface AsyncComputed<T> extends Observable<T|undefined> {
+export interface AsyncComputed<T> extends Observable<T | undefined> {
   /**
    * Whether computed wasn't updated yet.
    */
@@ -127,7 +127,7 @@ export function onClickOutsideElem(elem: Node, click: () => void) {
  * Helper function which returns the direct child of ancestor which is an ancestor of elem, or
  * null if elem is not a descendant of ancestor.
  */
-export function findAncestorChild(ancestor: Element, elem: Element|null): Element|null {
+export function findAncestorChild(ancestor: Element, elem: Element | null): Element | null {
   while (elem && elem.parentElement !== ancestor) {
     elem = elem.parentElement;
   }
@@ -141,8 +141,8 @@ export function findAncestorChild(ancestor: Element, elem: Element|null): Elemen
  * Returns an object with a reset() method, which restarts the wait for mousemove.
  */
 export function attachMouseOverOnMove<T extends EventTarget>(elem: T, callback: EventCB<MouseEvent, T>) {
-  let lis: IDisposable|undefined;
-  function setListener(eventType: 'mouseover'|'mousemove', cb: EventCB<MouseEvent, T>) {
+  let lis: IDisposable | undefined;
+  function setListener(eventType: 'mouseover' | 'mousemove', cb: EventCB<MouseEvent, T>) {
     if (lis) { lis.dispose(); }
     lis = dom.onElem(elem, eventType, cb);
   }

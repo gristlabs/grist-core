@@ -58,7 +58,7 @@ describe('Telemetry', function() {
         process.env.GRIST_DEFAULT_EMAIL = 'chimpy@getgrist.com';
         server = new TestServer(this);
         homeUrl = await server.start();
-        if (settingSource ==='preferences') {
+        if (settingSource === 'preferences') {
           await axios.patch(`${homeUrl}/api/install/prefs`, {
             telemetry: { telemetryLevel },
           }, chimpy);

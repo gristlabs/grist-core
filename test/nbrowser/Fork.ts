@@ -63,7 +63,7 @@ describe("Fork", function() {
   // Run tests with both regular docId and a custom urlId in URL, to make sure
   // ids are kept straight during forking.
 
-  for (const idType of ['urlId', 'docId'] as Array<'docId'|'urlId'>) {
+  for (const idType of ['urlId', 'docId'] as Array<'docId' | 'urlId'>) {
     describe(`with ${idType} in url`, function() {
       before(async function() {
         // Chimpy imports a document

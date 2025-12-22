@@ -87,7 +87,7 @@ export class AccessTokens implements IAccessTokens {
   // tokens must be honored. Cache is of a list of secrets. It is important to allow multiple
   // secrets so we can change the secret we are signing with and still honor tokens signed with
   // a previous secret.
-  constructor(cli: RedisClient|null, private _factor: number = 10) {
+  constructor(cli: RedisClient | null, private _factor: number = 10) {
     this._store = cli ? new RedisAccessTokenSignerStore(cli) : new InMemoryAccessTokenSignerStore();
     this._dtMsec = Deps.TOKEN_TTL_MSECS;
     this._reads = new MapWithTTL<string, string[]>(this._dtMsec * _factor * 0.5);

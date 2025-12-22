@@ -2,7 +2,7 @@ import { getGristConfig } from 'app/common/urlUtils';
 import { localStorageJsonObs } from 'app/client/lib/localStorageObs';
 import { Observable } from 'grainjs';
 
-let _PERMITTED_CUSTOM_WIDGETS: Observable<string[]>|undefined;
+let _PERMITTED_CUSTOM_WIDGETS: Observable<string[]> | undefined;
 
 export function PERMITTED_CUSTOM_WIDGETS(): Observable<string[]> {
   if (!_PERMITTED_CUSTOM_WIDGETS) {

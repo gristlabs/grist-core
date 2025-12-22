@@ -3,7 +3,7 @@
  */
 import { BarePlugin, Implementation } from 'app/plugin/PluginManifest';
 
-export type LocalPluginKind = "installed"|"builtIn";
+export type LocalPluginKind = "installed" | "builtIn";
 
 export interface ImplDescription {
   localPluginId: string;

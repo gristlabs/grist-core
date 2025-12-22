@@ -51,7 +51,7 @@ async function activateServer(home: FlexServer, docManager: DocManager) {
 const chimpy = configForUser('Chimpy');
 const charon = configForUser('Charon');
 
-const fixtures: { [docName: string]: string|null } = {
+const fixtures: { [docName: string]: string | null } = {
   Bananas: 'Hello.grist',
   Pluto: 'Hello.grist',
 };

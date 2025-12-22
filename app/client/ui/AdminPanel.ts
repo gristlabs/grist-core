@@ -55,7 +55,7 @@ const t = makeT('AdminPanel');
 // A fortnight of milliseconds is the default time after which we
 // consider a version check to be stale. It's a big number, but we're
 // still far away from the max at Number.MAX_SAFE_INTEGER
-const STALE_VERSION_CHECK_TIME_IN_MS = 14*24*60*60*1000;
+const STALE_VERSION_CHECK_TIME_IN_MS = 14 * 24 * 60 * 60 * 1000;
 
 export class AdminPanel extends Disposable {
   private _page = Computed.create<AdminPanelPage>(this, use => use(urlState().state).adminPanel || 'admin');
@@ -343,7 +343,7 @@ Please log in as an administrator.`)),
         const req = this._checks.requestCheckById(use, 'sandboxing');
         const result = req ? use(req.result) : undefined;
         const success = result?.status === 'success';
-        const details = result?.details as SandboxingBootProbeDetails|undefined;
+        const details = result?.details as SandboxingBootProbeDetails | undefined;
         if (!details) {
           // Sandbox details get filled out relatively slowly if
           // this is first time on admin panel. So show "checking"
@@ -546,7 +546,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
     const state: Observable<State> = Observable.create(owner, State.NEVER);
 
     // The background task that checks for updates, can be disposed (cancelled) when needed.
-    let backgroundTask: IDisposable|null = null;
+    let backgroundTask: IDisposable | null = null;
 
     // By default we link to the Docker Hub releases page, but the
     // endpoint might say something different.
@@ -762,7 +762,7 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
    */
   private _buildProbeItem(info: BootProbeInfo,
     result: BootProbeResult,
-    details: ProbeDetails|undefined) {
+    details: ProbeDetails | undefined) {
     const status = this._encodeSuccess(result);
     return dom.create(AdminSectionItem, {
       id: `probe-${info.id}`,

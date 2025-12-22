@@ -227,7 +227,7 @@ export class Telemetry implements ITelemetry {
 
   private _prepareToLogEvent(
     event: TelemetryEvent,
-  ): { checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel }|undefined {
+  ): { checkTelemetryEvent: TelemetryEventChecker, telemetryLevel: TelemetryLevel } | undefined {
     if (!this._checkTelemetryEvent) {
       this._logger.error(null, 'telemetry event checker is undefined');
       return;

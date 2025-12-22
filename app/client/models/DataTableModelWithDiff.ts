@@ -29,7 +29,7 @@ export class ExtraRows {
   /**
    * Map back from a possibly synthetic row id to an original strictly-positive row id.
    */
-  public static interpretRowId(rowId: number): { type: 'remote-add'|'local-remove'|'shared'|'skipped', id: number } {
+  public static interpretRowId(rowId: number): { type: 'remote-add' | 'local-remove' | 'shared' | 'skipped', id: number } {
     if (rowId >= 0) { return { type: 'shared', id: rowId }; }
     else if (rowId === ROW_ID_SKIP) { return { type: 'skipped', id: rowId }; }
     else if (rowId % 2 !== 0) { return { type: 'remote-add', id: -(rowId + 1) / 2 }; }
@@ -192,7 +192,7 @@ export class TableDataWithDiff {
   public getRowPropFunc(colId: string) {
     const fn = this.core.getRowPropFunc(colId);
     if (!fn) { return fn; }
-    return (rowId: number|"new") => {
+    return (rowId: number | "new") => {
       if (rowId !== 'new' && (rowId < 0 || this._updates.has(rowId))) {
         return this.getValue(rowId, colId);
       }
@@ -200,8 +200,8 @@ export class TableDataWithDiff {
     };
   }
 
-  public getKeepFunc(): undefined | ((rowId: number|"new") => boolean) {
-    return (rowId: number|'new') => {
+  public getKeepFunc(): undefined | ((rowId: number | "new") => boolean) {
+    return (rowId: number | 'new') => {
       return rowId === 'new' || this._updates.has(rowId) || rowId < 0 ||
         this._leftRemovals.has(rowId) || this._rightRemovals.has(rowId);
     };
@@ -218,7 +218,7 @@ export class TableDataWithDiff {
   /**
    * Intercept requests for updated cells or cells from remote rows.
    */
-  public getValue(rowId: number, colId: string): CellValue|undefined {
+  public getValue(rowId: number, colId: string): CellValue | undefined {
     if (rowId === ROW_ID_SKIP && colId !== 'id') {
       return [GristObjCode.Skip];
     }

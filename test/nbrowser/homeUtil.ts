@@ -260,7 +260,7 @@ export class HomeUtil {
    * Returns the current Grist session-id (for the selenium browser accessing this server),
    * or null if there is no session.
    */
-  public async getGristSid(): Promise<string|null> {
+  public async getGristSid(): Promise<string | null> {
     // Load a cheap page on our server to get the session-id cookie from browser.
     await this.driver.get(`${this.server.getHost()}/test/session`);
     await this._acceptAlertIfPresent();
@@ -327,13 +327,13 @@ export class HomeUtil {
 
   // A helper to create a UserAPI instance for a given useranme and org, that targets the home server
   // Username can be null for anonymous access.
-  public createHomeApi(username: string|null, org: string, email?: string): UserAPIImpl {
+  public createHomeApi(username: string | null, org: string, email?: string): UserAPIImpl {
     return this.createApi(UserAPIImpl, username, org, email);
   }
 
   public createApi<T extends BaseAPI>(
     creator: APIConstructor<T>,
-    username: string|null,
+    username: string | null,
     org: string,
     email?: string,
   ): T {
@@ -341,7 +341,7 @@ export class HomeUtil {
     return this._createApiUsingApiKey(creator, apiKey, org);
   }
 
-  public getApiKey(username: string|null, email?: string): string | null {
+  public getApiKey(username: string | null, email?: string): string | null {
     const name = (username || '').toLowerCase();
     const apiKey = username && ((email && this._apiKey.get(email)) || `api_key_for_${name}`);
     return apiKey;
@@ -461,7 +461,7 @@ export class HomeUtil {
   // If no api key given, work anonymously.
   private _createApiUsingApiKey<T extends BaseAPI>(
     creator: APIConstructor<T>,
-    apiKey: string|null,
+    apiKey: string | null,
     org?: string): T {
     const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined;
     return new creator(org ? this.server.getUrl(org, '') : this.server.getHost(), {
@@ -473,7 +473,7 @@ export class HomeUtil {
 
   // Make a home api instance with the given api key, for the specified org.
   // If no api key given, work anonymously.
-  private _createHomeApiUsingApiKey(apiKey: string|null, org?: string): UserAPIImpl {
+  private _createHomeApiUsingApiKey(apiKey: string | null, org?: string): UserAPIImpl {
     return this._createApiUsingApiKey(UserAPIImpl, apiKey, org);
   }
 

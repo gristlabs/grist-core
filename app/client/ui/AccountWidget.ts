@@ -60,7 +60,7 @@ export class AccountWidget extends Disposable {
     );
   }
 
-  private _buildAccountMenuButton(user: FullUser|null) {
+  private _buildAccountMenuButton(user: FullUser | null) {
     return cssUserIcon(
       createUserImage(user, 'medium', testId('user-icon')),
       menu(() => this._makeAccountMenu(user), { placement: 'bottom-end' }),
@@ -106,7 +106,7 @@ export class AccountWidget extends Disposable {
    * Renders the content of the account menu, with a list of available orgs, settings, and sign-out.
    * Note that `user` should NOT be anonymous (none of the items are really relevant).
    */
-  private _makeAccountMenu(user: FullUser|null): DomElementArg[] {
+  private _makeAccountMenu(user: FullUser | null): DomElementArg[] {
     const currentOrg = this._appModel.currentOrg;
 
     // The 'Document settings' item, when there is an open document.

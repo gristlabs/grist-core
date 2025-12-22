@@ -65,7 +65,7 @@ export function buildColFilter(filterJson: string | undefined,
 // optional mod argument that let you modify date as a moment instance.
 function changeTimezone(date: IRangeBoundType,
   timezone: string,
-  mod: (m: Moment) => void = noop): number|undefined {
+  mod: (m: Moment) => void = noop): number | undefined {
   if (date === undefined) { return undefined; }
   const val = isRelativeBound(date) ? relativeDateToUnixTimestamp(date) : date;
   const m = moment.tz(val * 1000, timezone);

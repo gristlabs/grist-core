@@ -151,7 +151,7 @@ export abstract class BoxModel extends Disposable {
    * - child: it will add it as a child.
    * - swap: swaps with the box
    */
-  public willAccept(box?: FormLayoutNode|BoxModel|null): 'sibling' | 'child' | 'swap' | null {
+  public willAccept(box?: FormLayoutNode | BoxModel | null): 'sibling' | 'child' | 'swap' | null {
     // If myself and the dropped element share the same parent, and the parent is a column
     // element, just swap us.
     if (this.parent && box instanceof BoxModel && this.parent === box?.parent && box.parent?.type === 'Columns') {
@@ -168,7 +168,7 @@ export abstract class BoxModel extends Disposable {
    * Accepts box from clipboard and inserts it before this box or if this is a container box, then
    * as a first child. Default implementation is to insert before self.
    */
-  public accept(dropped: FormLayoutNode, hint: 'above'|'below' = 'above') {
+  public accept(dropped: FormLayoutNode, hint: 'above' | 'below' = 'above') {
     // Get the box that was dropped.
     if (!dropped) { return null; }
     if (dropped.id === this.id) {
@@ -233,7 +233,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * Replaces existing box with a new one, whenever it is found.
    */
-  public replace(existing: BoxModel, newOne: FormLayoutNode|BoxModel) {
+  public replace(existing: BoxModel, newOne: FormLayoutNode | BoxModel) {
     const index = this.children.get().indexOf(existing);
     if (index < 0) { throw new Error('Cannot replace box that is not in parent'); }
     const model = newOne instanceof BoxModel ? newOne : BoxModel.new(newOne, this);
@@ -288,7 +288,7 @@ export abstract class BoxModel extends Disposable {
   /**
    * Finds a box with a given id in the tree.
    */
-  public find(droppedId: string|undefined|null): BoxModel | null {
+  public find(droppedId: string | undefined | null): BoxModel | null {
     if (!droppedId) { return null; }
     for (const child of this.kids()) {
       if (child.id === droppedId) { return child; }
@@ -432,7 +432,7 @@ export function unwrap<T>(val: T | Computed<T>): T {
   return val instanceof Computed ? val.get() : val;
 }
 
-export function parseBox(text: string): FormLayoutNode|null {
+export function parseBox(text: string): FormLayoutNode | null {
   try {
     const json = JSON.parse(text);
     return json && typeof json === 'object' && json.type ? json : null;

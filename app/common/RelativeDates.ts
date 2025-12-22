@@ -22,13 +22,13 @@ export type IRelativeDateSpec = IPeriod[];
 // false or missing then it will target the first day (of the week, month or year).
 export interface IPeriod {
   quantity: number;
-  unit: 'day'|'week'|'month'|'year';
+  unit: 'day' | 'week' | 'month' | 'year';
   endOf?: boolean;
 }
 
 export const CURRENT_DATE: IRelativeDateSpec = [{ quantity: 0, unit: 'day' }];
 
-export function isRelativeBound(bound?: number|IRelativeDateSpec): bound is IRelativeDateSpec {
+export function isRelativeBound(bound?: number | IRelativeDateSpec): bound is IRelativeDateSpec {
   return !isUndefined(bound) && !isNumber(bound);
 }
 
@@ -147,7 +147,7 @@ function formatReference(period: IPeriod): string {
   return `${n} ${unit}${plurals} ${quantity < 1 ? 'ago' : 'from now'}`;
 }
 
-export function isEquivalentRelativeDate(a: IPeriod|IPeriod[], b: IPeriod|IPeriod[]) {
+export function isEquivalentRelativeDate(a: IPeriod | IPeriod[], b: IPeriod | IPeriod[]) {
   a = Array.isArray(a) ? a : [a];
   b = Array.isArray(b) ? b : [b];
   if (a.length === 2 && a[1].quantity === 0) { a = [a[0]]; }
@@ -161,6 +161,6 @@ export function isEquivalentRelativeDate(a: IPeriod|IPeriod[], b: IPeriod|IPerio
 
 // Get the difference in unit of measurement. If unit is week, makes sure that two dates that are in
 // two different weeks are always at least 1 number apart. Same for month and year.
-export function diffUnit(a: moment.Moment, b: moment.Moment, unit: 'day'|'week'|'month'|'year') {
+export function diffUnit(a: moment.Moment, b: moment.Moment, unit: 'day' | 'week' | 'month' | 'year') {
   return a.clone().startOf(unit).diff(b.clone().startOf(unit), unit);
 }

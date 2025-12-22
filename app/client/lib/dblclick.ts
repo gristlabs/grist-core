@@ -29,7 +29,7 @@ export function onDblClickMatchElem(elem: EventTarget, selector: string, callbac
   });
 
   let lastTapTime = 0;
-  let lastTapElem: EventTarget|null = null;
+  let lastTapElem: EventTarget | null = null;
   dom.onMatchElem(elem, selector, 'touchend', (ev, _elem) => {
     const currentTime = Date.now();
     const tapLength = currentTime - lastTapTime;

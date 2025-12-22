@@ -39,7 +39,7 @@ export interface IUserObj {
   jobTitle?: string;
   avatar?: string;
   signature?: string;
-  [customKey: string]: string|number|boolean|null|undefined;
+  [customKey: string]: string | number | boolean | null | undefined;
 }
 
 interface IFormObj {
@@ -47,7 +47,7 @@ interface IFormObj {
   email?: string;
   subject?: string;
   text?: string;
-  fields?: Array<{ id: number, value: string|number|boolean }>;
+  fields?: Array<{ id: number, value: string | number | boolean }>;
 }
 
 interface ISessionData {
@@ -70,7 +70,7 @@ export function Beacon(method: 'navigate', route: string): void;
 export function Beacon(method: 'identify', userObj: IUserObj): void;
 export function Beacon(method: 'prefill', formObj: IFormObj): void;
 export function Beacon(method: 'config', configObj: object): void;
-export function Beacon(method: 'on'|'once', event: string,
+export function Beacon(method: 'on' | 'once', event: string,
   callback: (attrs?: ICallbackAttributes) => void): void;
 export function Beacon(method: 'off', event: string, callback?: () => void): void;
 export function Beacon(method: 'session-data', data: ISessionData): void;
@@ -89,7 +89,7 @@ _beacon.readyQueue = [] as unknown[];
 
 function initBeacon(): void {
   if (!(window as any).Beacon) {
-    const gristConfig: GristLoadConfig|undefined = window.gristConfig;
+    const gristConfig: GristLoadConfig | undefined = window.gristConfig;
     const beaconId = gristConfig && gristConfig.helpScoutBeaconId;
     if (beaconId) {
       (window as any).Beacon = _beacon;
@@ -117,7 +117,7 @@ function initBeacon(): void {
 }
 
 let lastOpenType: 'error' | 'message' = 'message';
-let lastRoute: BeaconRoute|null = null;
+let lastRoute: BeaconRoute | null = null;
 
 /**
  * Helper to open a beacon, taking care of setting focus appropriately. Calls optional onOpen
@@ -125,7 +125,7 @@ let lastRoute: BeaconRoute|null = null;
  * If errors is given, prepares a form for submitting an error report, and includes stack traces
  * into the session-data.
  */
-function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
+function _beaconOpen(userObj: IUserObj | null, options: IBeaconOpenOptions) {
   const { onOpen, errors } = options;
 
   // The beacon remembers its content, so reset it when switching between reporting errors and
@@ -221,7 +221,7 @@ function fixBeaconBaseHref() {
 }
 
 export interface IBeaconOpenOptions {
-  appModel: AppModel|null;
+  appModel: AppModel | null;
   includeAppErrors?: boolean;
   onOpen?: () => void;
   errors?: IAppError[];
@@ -245,7 +245,7 @@ export function beaconOpenMessage(options: IBeaconOpenOptions) {
   _beaconOpen(getBeaconUserObj(app), { ...options, errors });
 }
 
-function getBeaconUserObj(appModel: AppModel|null): IUserObj|null {
+function getBeaconUserObj(appModel: AppModel | null): IUserObj | null {
   if (!appModel) { return null; }
 
   // ActiveSessionInfo["user"] includes optional helpScoutSignature too.

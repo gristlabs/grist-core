@@ -19,7 +19,7 @@ import IORedis from "ioredis";
  * Creates a new PubSubManager, either redis-based or in-memory, depending on whether redisUrl is
  * truthy. E.g. createPubSubManager(process.env.REDIS_URL).
  */
-export function createPubSubManager(redisUrl: string|undefined): IPubSubManager {
+export function createPubSubManager(redisUrl: string | undefined): IPubSubManager {
   return redisUrl ?
     new PubSubManagerRedis(redisUrl) :
     new PubSubManagerNoRedis();

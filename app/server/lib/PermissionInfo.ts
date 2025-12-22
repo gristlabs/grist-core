@@ -16,7 +16,7 @@ import { mapValues } from 'lodash';
  */
 export interface PermissionSetWithContextOf<T = PermissionSet> {
   perms: T;
-  ruleType: 'full'|'table'|'column'|'row';
+  ruleType: 'full' | 'table' | 'column' | 'row';
   getMemos: () => MemoSet;
 }
 
@@ -68,7 +68,7 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
 
   // Merge the results for a particular column, falling back to table and doc defaults.
   public getColumnAspect(tableId: string, colId: string): MixedT {
-    const ruleSet: RuleSet|undefined = this._acls.getColumnRuleSet(tableId, colId);
+    const ruleSet: RuleSet | undefined = this._acls.getColumnRuleSet(tableId, colId);
     return ruleSet ? this._processColumnRule(ruleSet) : this._getTableDefaultAspect(tableId);
   }
 
@@ -101,7 +101,7 @@ abstract class RuleInfo<MixedT extends TableT, TableT> {
   protected abstract _mergeFullAccess(access: TableT[]): MixedT;
 
   private _getTableDefaultAspect(tableId: string): MixedT {
-    const ruleSet: RuleSet|undefined = this._acls.getTableDefaultRuleSet(tableId);
+    const ruleSet: RuleSet | undefined = this._acls.getTableDefaultRuleSet(tableId);
     return ruleSet ? this._processRule(ruleSet, () => this._getDocDefaultAspect()) :
       this._getDocDefaultAspect();
   }

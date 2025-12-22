@@ -85,7 +85,7 @@ export class NumericTextBox extends NTextBox {
     // Mode and Sign behave as toggles: clicking a selected on deselects it.
     const setMode = (val: NumMode) => setSave('numMode', val !== numMode.get() ? val : undefined);
     const setSign = (val: NumSign) => setSave('numSign', val !== numSign.get() ? val : undefined);
-    const setCurrency = (val: string|undefined) => setSave('currency', val);
+    const setCurrency = (val: string | undefined) => setSave('currency', val);
 
     const disabledStyle = cssButtonSelect.cls('-disabled', disabled);
 

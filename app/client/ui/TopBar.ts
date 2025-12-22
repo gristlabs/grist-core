@@ -57,7 +57,7 @@ export function createTopBarDoc(owner: MultiHolder, appModel: AppModel, pageMode
   const displayNameWs = Computed.create(owner, pageModel.currentWorkspace,
     (use, ws) => ws ? { ...ws, name: workspaceName(appModel, ws) } : ws);
 
-  const moduleObs = Observable.create<typeof searchModule|null>(owner, null);
+  const moduleObs = Observable.create<typeof searchModule | null>(owner, null);
   loadSearch().then(module => moduleObs.set(module)).catch(reportError);
 
   // Observable to decide whether to include the searchBar into this page. It doesn't work on

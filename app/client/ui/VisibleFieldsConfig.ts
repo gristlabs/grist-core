@@ -23,7 +23,7 @@ import isEqual from "lodash/isEqual";
 const testId = makeTestId('test-vfc-');
 const t = makeT('VisibleFieldsConfig');
 
-export type IField = ViewFieldRec|ColumnRec;
+export type IField = ViewFieldRec | ColumnRec;
 
 interface DraggableFieldsOption {
   // an object holding options for the draggable list, see koForm.js for more detail on the accepted
@@ -43,7 +43,7 @@ interface DraggableFieldsOption {
   freeze?: Observable<boolean>;
 
   // the itemCreateFunc callback passed to kf.draggableList for the visible fields.
-  itemCreateFunc(field: IField): Element|undefined;
+  itemCreateFunc(field: IField): Element | undefined;
 }
 
 /**
@@ -320,7 +320,7 @@ export class VisibleFieldsConfig extends Disposable {
     await this._section.removeField(field.getRowId());
   }
 
-  public async addField(column: IField, nextField: ViewFieldRec|null = null) {
+  public async addField(column: IField, nextField: ViewFieldRec | null = null) {
     const exists = this._section.viewFields.peek().peek()
       .findIndex(f => f.column.peek().getRowId() === column.id.peek());
     if (exists !== -1) {
@@ -336,7 +336,7 @@ export class VisibleFieldsConfig extends Disposable {
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
 
-  public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec|null) {
+  public changeFieldPosition(field: ViewFieldRec, nextField: ViewFieldRec | null) {
     const parentPos = getFieldNewPosition(this._section.viewFields.peek(), field, nextField);
     const vsfAction = ['UpdateRecord', field.id.peek(), { parentPos }];
     return this._gristDoc.docModel.viewFields.sendTableAction(vsfAction);
@@ -459,12 +459,12 @@ export class VisibleFieldsConfig extends Disposable {
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
-  nextField: ViewFieldRec|null): number|null {
+  nextField: ViewFieldRec | null): number | null {
   const index = getItemIndex(fields, nextField);
   return tableUtil.fieldInsertPositions(fields, index, 1)[0];
 }
 
-function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec|null): number {
+function getItemIndex(collection: KoArray<ViewFieldRec>, item: ViewFieldRec | null): number {
   if (item !== null) {
     return collection.peek().indexOf(item);
   }

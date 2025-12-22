@@ -135,7 +135,7 @@ export function buildFormulaConfig(
   // - empty: isFormula and formula == ''
   // - formula: isFormula and formula != ''
   // - data: not isFormula nd formula == ''
-  const behavior = Computed.create<BEHAVIOR|null>(owner, (use) => {
+  const behavior = Computed.create<BEHAVIOR | null>(owner, (use) => {
     // When no id column is invalid, show nothing.
     if (!use(origColumn.id)) { return null; }
     // Column is a formula column, when it is a formula column with valid formula or will be a formula.
@@ -147,7 +147,7 @@ export function buildFormulaConfig(
 
   // Reference to current editor, we will open it when user wants to specify a formula or trigger.
   // And close it dispose it when user opens up behavior menu.
-  let formulaField: HTMLElement|null = null;
+  let formulaField: HTMLElement | null = null;
 
   const focusFormulaField = () => setTimeout(() => formulaField?.focus(), 0);
 

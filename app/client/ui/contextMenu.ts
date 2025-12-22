@@ -49,7 +49,7 @@ class ContextMenuController extends Disposable implements IOpenController {
 
     // On click anywhere on the page (outside popup content), close it.
     const onClick = (evt: MouseEvent) => {
-      const target: Node|null = evt.target as Node;
+      const target: Node | null = evt.target as Node;
       if (target && !content.contains(target)) {
         this.close();
       }

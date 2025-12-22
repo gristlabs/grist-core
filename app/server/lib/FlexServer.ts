@@ -150,8 +150,8 @@ export class FlexServer implements GristServer {
   private _comm: Comm;
   private _deploymentType: GristDeploymentType;
   private _dbManager: HomeDBManager;
-  private _defaultBaseDomain: string|undefined;
-  private _pluginUrl: string|undefined;
+  private _defaultBaseDomain: string | undefined;
+  private _pluginUrl: string | undefined;
   private _pluginUrlReady: boolean = false;
   private _servesPlugins?: boolean;
   private _bundledWidgets?: ICustomWidget[];
@@ -172,7 +172,7 @@ export class FlexServer implements GristServer {
   private _docWorkerMap: IDocWorkerMap;
   private _docWorkerLoadTracker?: DocWorkerLoadTracker;
   private _widgetRepository: IWidgetRepository;
-  private _docNotificationManager: IDocNotificationManager|undefined|false = false;
+  private _docNotificationManager: IDocNotificationManager | undefined | false = false;
   private _pubSubManager: IPubSubManager = createPubSubManager(process.env.REDIS_URL);
   private _assistant?: IAssistant;
   private _accessTokens: IAccessTokens;
@@ -462,7 +462,7 @@ export class FlexServer implements GristServer {
     return this._emitNotifier;
   }
 
-  public getDocNotificationManager(): IDocNotificationManager|undefined {
+  public getDocNotificationManager(): IDocNotificationManager | undefined {
     if (this._docNotificationManager === false) {
       // The special value of 'false' is used to create only on first call. Afterwards,
       // the value may be undefined, but no longer false.
@@ -561,7 +561,7 @@ export class FlexServer implements GristServer {
       const timeout = optIntegerParam(req.query.timeout, 'timeout') || 10_000;
 
       // Check that the given promise resolves with no error within our timeout.
-      const asyncCheck = async (promise: Promise<unknown>|undefined) => {
+      const asyncCheck = async (promise: Promise<unknown> | undefined) => {
         if (!promise || await timeoutReached(timeout, promise) === true) {
           return false;
         }
@@ -666,7 +666,7 @@ export class FlexServer implements GristServer {
     });
   }
 
-  public getBootKey(): string|undefined {
+  public getBootKey(): string | undefined {
     return appSettings.section('boot').flag('key').readString({
       envVar: 'GRIST_BOOT_KEY',
     });
@@ -1117,7 +1117,7 @@ export class FlexServer implements GristServer {
 
   // Close connections and stop accepting new connections.  Remove server from any lists
   // it may be in.
-  public async stopListening(mode: 'crash'|'clean' = 'clean') {
+  public async stopListening(mode: 'crash' | 'clean' = 'clean') {
     if (!this._disabled) {
       if (mode === 'clean') {
         await this._shutdown();
@@ -1896,7 +1896,7 @@ export class FlexServer implements GristServer {
     return this._pluginManager.getPlugins();
   }
 
-  public async finalizePlugins(userPort: number|null) {
+  public async finalizePlugins(userPort: number | null) {
     if (isAffirmative(process.env.GRIST_TRUST_PLUGINS)) {
       this._pluginUrl = this.getDefaultHomeUrl();
     }
@@ -2013,12 +2013,12 @@ export class FlexServer implements GristServer {
   /**
    * Get a url for a team site.
    */
-  public async getOrgUrl(orgKey: string|number): Promise<string> {
+  public async getOrgUrl(orgKey: string | number): Promise<string> {
     const org = await this.getOrg(orgKey);
     return this.getResourceUrl(org);
   }
 
-  public async getOrg(orgKey: string|number) {
+  public async getOrg(orgKey: string | number) {
     if (!this._dbManager) { throw new Error('database missing'); }
     const org = await this._dbManager.getOrg({
       userId: this._dbManager.getPreviewerUserId(),
@@ -2030,8 +2030,8 @@ export class FlexServer implements GristServer {
   /**
    * Get a url for an organization, workspace, or document.
    */
-  public async getResourceUrl(resource: Organization|Workspace|Document,
-    purpose?: 'api'|'html'): Promise<string> {
+  public async getResourceUrl(resource: Organization | Workspace | Document,
+    purpose?: 'api' | 'html'): Promise<string> {
     if (!this._dbManager) { throw new Error('database missing'); }
     const gristConfig = this.getGristConfig();
     const state: IGristUrlState = {};
@@ -2267,7 +2267,7 @@ export class FlexServer implements GristServer {
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
   }
 
-  private _check(part: Part, ...precedents: Array<CheckKey|null>) {
+  private _check(part: Part, ...precedents: Array<CheckKey | null>) {
     if (this.deps.has(part)) { return true; }
     for (const precedent of precedents) {
       if (!precedent) { continue; }
@@ -2542,12 +2542,12 @@ export class FlexServer implements GristServer {
     return { server, httpsServer };
   }
 
-  private async _startServers(server: http.Server, httpsServer: https.Server|undefined,
+  private async _startServers(server: http.Server, httpsServer: https.Server | undefined,
     name: string, port: number, verbose: boolean) {
     await listenPromise(server.listen(port, this.host));
     const serverPort = (server.address() as AddressInfo).port;
     if (verbose) { log.info(`${name} available at ${this.host}:${serverPort}`); }
-    let httpsServerPort: number|undefined;
+    let httpsServerPort: number | undefined;
     if (TEST_HTTPS_OFFSET && httpsServer) {
       if (port === 0) { throw new Error('cannot use https with OS-assigned port'); }
       httpsServerPort = port + TEST_HTTPS_OFFSET;
@@ -2564,8 +2564,8 @@ export class FlexServer implements GristServer {
     const urlId = DOC_ID_NEW_USER_INFO;
     // If nowhere to record data, return immediately.
     if (!urlId) { return; }
-    let body: string|undefined;
-    let permitKey: string|undefined;
+    let body: string | undefined;
+    let permitKey: string | undefined;
     try {
       body = JSON.stringify(mapValues(row, value => [value]));
 
@@ -2649,7 +2649,7 @@ export class FlexServer implements GristServer {
   private async _maybeCopyDocToHomeWorkspace(
     req: RequestWithLogin,
     resp: express.Response,
-  ): Promise<string|null> {
+  ): Promise<string | null> {
     const state = getAndClearSignupStateCookie(req, resp);
     if (!state) {
       return null;
@@ -2815,7 +2815,7 @@ function getServerFlags(): https.ServerOptions {
 /**
  * log some properties of the server.
  */
-function logServer<T extends https.Server|http.Server>(server: T): T {
+function logServer<T extends https.Server | http.Server>(server: T): T {
   log.info("Server timeouts: requestTimeout %s keepAliveTimeout %s headersTimeout %s",
     server.requestTimeout, server.keepAliveTimeout, server.headersTimeout);
   return server;

@@ -160,7 +160,7 @@ export class GristBullMQJobs extends GristJobsBase<GristBullMQQueueScope> implem
 /**
  * Connect to Redis if available.
  */
-function getRedisConnection(): IORedis|undefined {
+function getRedisConnection(): IORedis | undefined {
   // Connect to Redis for use with BullMQ, if REDIS_URL is set.
   const urlTxt = process.env.REDIS_URL || process.env.TEST_REDIS_URL;
   if (!urlTxt) {
@@ -182,12 +182,12 @@ interface IWorker {
 }
 
 abstract class GristQueueScopeBase<Worker extends IWorker, Job extends GristJob = GristJob> {
-  protected _worker: Worker|undefined;
+  protected _worker: Worker | undefined;
   private _namedProcessors: Record<string, JobHandler<Job>> = {};
 
   public constructor(public readonly queueName: string) {}
 
-  public getWorker(): Worker|undefined { return this._worker; }
+  public getWorker(): Worker | undefined { return this._worker; }
 
   public handleDefault(defaultCallback: JobHandler<Job>): void {
     // The default callback passes any recognized named jobs to
@@ -238,11 +238,11 @@ class GristInMemoryQueueScope extends GristQueueScopeBase<GristWorker> implement
  * Work with a particular named queue.
  */
 export class GristBullMQQueueScope extends GristQueueScopeBase<Worker, BullMQJob> implements GristQueueScope {
-  private _queue: Queue|undefined;
+  private _queue: Queue | undefined;
 
   public constructor(queueName: string, private _owner: GristBullMQJobs) { super(queueName); }
 
-  public getQueue(): Queue|undefined { return this._queue; }
+  public getQueue(): Queue | undefined { return this._queue; }
 
   public async add(name: string, data: any, options?: JobsOptions) {
     await this._getQueue().add(name, data, {

@@ -35,10 +35,10 @@ export interface ExternalStorage {
   exists(key: string, snapshotId?: string): Promise<boolean>;
 
   // Get side information for content, if content exists in the store.
-  head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata|null>;
+  head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata | null>;
 
   // Upload content from file to the given key.  Returns a snapshotId if store supports that.
-  upload(key: string, fname: string, metadata?: ObjMetadata): Promise<string|null|typeof Unchanged>;
+  upload(key: string, fname: string, metadata?: ObjMetadata): Promise<string | null | typeof Unchanged>;
 
   // Download content from key to given file.  Can download a specific version of the key
   // if store supports that (should throw a fatal exception if not).
@@ -73,7 +73,7 @@ export interface ExternalStorage {
     inStream: stream.Readable,
     size?: number,
     metadata?: ObjMetadata
-  ): Promise<string|null|typeof Unchanged>;
+  ): Promise<string | null | typeof Unchanged>;
   downloadStream?(key: string, snapshotId?: string ): Promise<StreamDownloadResult>;
 }
 
@@ -351,10 +351,10 @@ export class ChecksummedExternalStorage implements ExternalStorage {
    * Once the operation returns a result, we pass that along.  If it fails to
    * return a result after all the allowed retries, a special exception is thrown.
    */
-  private async _retry<T>(name: string, operation: () => Promise<T|undefined>): Promise<T> {
+  private async _retry<T>(name: string, operation: () => Promise<T | undefined>): Promise<T> {
     let backoffCount = 1;
     let backoffFactor = this._options.initialDelayMs;
-    const problems = new Array<[number, string|Error]>();
+    const problems = new Array<[number, string | Error]>();
     const start = Date.now();
     while (backoffCount <= this._options.maxRetries) {
       try {
@@ -386,7 +386,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
    * Retry an operation which will fail if content does not exist, until it is consistent
    * with our expectation of the content's existence.
    */
-  private async _retryWithExistenceCheck<T>(label: string, key: string, snapshotId: string|undefined,
+  private async _retryWithExistenceCheck<T>(label: string, key: string, snapshotId: string | undefined,
     op: (key: string, snapshotId?: string) => Promise<T>): Promise<T> {
     return this._retry(label, async () => {
       const hash = await this._options.sharedHash.load(this._keyWithSnapshot(key, snapshotId));
@@ -407,7 +407,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
    * if that is present (snapshots are immutable, except that they can be deleted,
    * so we only set checksums for them in Redis when they are deleted).
    */
-  private _keyWithSnapshot(key: string, snapshotId?: string|null) {
+  private _keyWithSnapshot(key: string, snapshotId?: string | null) {
     return snapshotId ? `${key}--${snapshotId}` : key;
   }
 }
@@ -417,7 +417,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
  */
 export interface PropStorage {
   save(key: string, val: string): Promise<void>;
-  load(key: string): Promise<string|null>;
+  load(key: string): Promise<string | null>;
 }
 
 export const Unchanged = Symbol('Unchanged');

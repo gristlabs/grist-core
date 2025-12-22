@@ -61,7 +61,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   // (which is handled by App.ts). This way, Comm can protect against mismatched clientIds.
   private _clientId: string;
   private _docFD: number;
-  private _forkPromise: Promise<void>|null = null;
+  private _forkPromise: Promise<void> | null = null;
   private _isClosed: boolean = false;
   private listenTo: BackboneEvents['listenTo'];  // set by Backbone
 

@@ -96,9 +96,9 @@ export function forceSessionChange(session: SessionObj) {
 // - "S": the user is signed in once; in this case an automatic signin can be unambiguous and seamless.
 // - "M": the user is signed in multiple times.
 // - "": the user is not signed in.
-export type SignInStatus = 'S'|'M'|'';
+export type SignInStatus = 'S' | 'M' | '';
 
-export function getSignInStatus(sessionObj: SessionObj|null): SignInStatus {
+export function getSignInStatus(sessionObj: SessionObj | null): SignInStatus {
   const length = sessionObj?.users?.length;
   return !length ? "" : (length === 1 ? 'S' : 'M');
 }
@@ -119,7 +119,7 @@ export function getSessionProfiles(session: SessionObj): UserProfile[] {
  *
  */
 export function getSessionUser(session: SessionObj, org: string,
-  userSelector: string): SessionUserObj|null {
+  userSelector: string): SessionUserObj | null {
   if (!session.users) { return null; }
   if (!session.users.length) { return null; }
 
@@ -197,7 +197,7 @@ export class ScopedSession {
   }
 
   // Retrieves the user profile from the session.
-  public async getSessionProfile(prev?: SessionObj): Promise<UserProfile|null> {
+  public async getSessionProfile(prev?: SessionObj): Promise<UserProfile | null> {
     return (await this.getScopedSession(prev)).profile || null;
   }
 
@@ -205,7 +205,7 @@ export class ScopedSession {
   // email addresses. This will update the one with a matching email address, or add a new one.
   // This is mainly used to know which emails are logged in in this session; fields like name and
   // picture URL come from the database instead.
-  public async updateUserProfile(req: Request, profile: UserProfile|null): Promise<void> {
+  public async updateUserProfile(req: Request, profile: UserProfile | null): Promise<void> {
     if (profile) {
       await this.updateUser(req, { profile });
     }

@@ -15,7 +15,7 @@ export function isRequest(
   return Boolean(requestOrSession && 'get' in requestOrSession);
 }
 
-export function getAuthSession(requestOrSession: RequestOrSession|null): AuthSession {
+export function getAuthSession(requestOrSession: RequestOrSession | null): AuthSession {
   if (!requestOrSession) { return AuthSession.unauthenticated(); }
   if (isRequest(requestOrSession)) { return AuthSession.fromReq(requestOrSession); }
   return requestOrSession;
@@ -92,7 +92,7 @@ export function getDocSessionAccess(docSession: OptDocSession): Role {
   throw new Error('getDocSessionAccess could not find access information in DocSession');
 }
 
-export function getDocSessionShare(docSession: OptDocSession): string|null {
+export function getDocSessionShare(docSession: OptDocSession): string | null {
   return _getCachedDoc(docSession)?.linkId || null;
 }
 
@@ -101,11 +101,11 @@ export function getDocSessionShare(docSession: OptDocSession): string|null {
  * access. Not necessarily a live value when using a websocket
  * (although we do recheck access periodically).
  */
-export function getDocSessionUsage(docSession: OptDocSession): DocumentUsage|null {
+export function getDocSessionUsage(docSession: OptDocSession): DocumentUsage | null {
   return _getCachedDoc(docSession)?.usage || null;
 }
 
-function _getCachedDoc(docSession: OptDocSession): Document|null {
+function _getCachedDoc(docSession: OptDocSession): Document | null {
   if (docSession.authorizer) {
     return docSession.authorizer.getCachedAuth().cachedDoc || null;
   }
@@ -115,7 +115,7 @@ function _getCachedDoc(docSession: OptDocSession): Document|null {
   return null;
 }
 
-export function getDocSessionAccessOrNull(docSession: OptDocSession): Role|null {
+export function getDocSessionAccessOrNull(docSession: OptDocSession): Role | null {
   try {
     return getDocSessionAccess(docSession);
   }

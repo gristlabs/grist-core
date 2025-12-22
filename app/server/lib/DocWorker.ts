@@ -169,7 +169,7 @@ export class DocWorker {
     next: express.NextFunction,
   ) {
     const mreq = req as RequestWithLogin;
-    let urlId: string|undefined;
+    let urlId: string | undefined;
     try {
       if (optStringParam(req.query.clientId, 'clientId')) {
         const activeDoc = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
@@ -206,7 +206,7 @@ export class DocWorker {
  * Translates calls from the browser client into calls of the form
  * `activeDoc.method(docSession, ...args)`.
  */
-async function activeDocMethod(role: 'viewers'|'editors'|'owners'|null, methodName: string, client: Client,
+async function activeDocMethod(role: 'viewers' | 'editors' | 'owners' | null, methodName: string, client: Client,
   docFD: number, ...args: any[]): Promise<any> {
   const docSession = client.getDocSession(docFD);
   const activeDoc = docSession.activeDoc;

@@ -11,7 +11,7 @@ import type { DocAuthorizer } from 'app/server/lib/DocAuthorizer';
  * It is useful in particular for actions when importing a file to create a new document.
  */
 export class OptDocSession extends AuthSession {
-  public readonly client: Client|null;
+  public readonly client: Client | null;
   public readonly req?: RequestWithLogin;
   public readonly browserSettings?: BrowserSettings;
 
@@ -29,7 +29,7 @@ export class OptDocSession extends AuthSession {
   public linkId?: number;
 
   // special permissions for creating, plugins, system, and share access
-  public mode?: 'nascent'|'plugin'|'system'|'share';
+  public mode?: 'nascent' | 'plugin' | 'system' | 'share';
   public authorizer?: DocAuthorizer;
   public forkingAsOwner?: boolean;  // Set if it is appropriate in a pre-fork state to become an owner.
   public linkParameters?: Record<string, string>;
@@ -39,7 +39,7 @@ export class OptDocSession extends AuthSession {
   }
 
   constructor(options: {
-    client?: Client|null,
+    client?: Client | null,
     browserSettings?: BrowserSettings,
     req?: RequestWithLogin,
     linkParameters?: Record<string, string>,
@@ -64,7 +64,7 @@ export class OptDocSession extends AuthSession {
   public getLogMeta() { return this.client?.getLogMeta() || super.getLogMeta(); }
 }
 
-export function makeOptDocSession(client: Client|null): OptDocSession {
+export function makeOptDocSession(client: Client | null): OptDocSession {
   return new OptDocSession({ client });
 }
 
@@ -74,7 +74,7 @@ export function makeOptDocSession(client: Client|null): OptDocSession {
  *  - plugin: user is treated as editor (because plugin access control is crude)
  *  - system: user is treated as owner (because of some operation bypassing access control)
  */
-export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system'|'share',
+export function makeExceptionalDocSession(mode: 'nascent' | 'plugin' | 'system' | 'share',
   options: { client?: Client,
     req?: RequestWithLogin,
     browserSettings?: BrowserSettings } = {}): OptDocSession {

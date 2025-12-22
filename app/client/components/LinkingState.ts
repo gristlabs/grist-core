@@ -25,12 +25,12 @@ import pickBy from 'lodash/pickBy';
 //          switch(linkType){} would make things cleaner.
 // TODO JV: also should add "Custom-widget-linked" to this, but holding off until Jarek's changes land
 type LinkType = "Filter:Summary-Group" |
-  "Filter:Col->Col"|
-  "Filter:Row->Col"|
-  "Summary"|
-  "Show-Referenced-Records"|
-  "Cursor:Same-Table"|
-  "Cursor:Reference"|
+  "Filter:Col->Col" |
+  "Filter:Row->Col" |
+  "Summary" |
+  "Show-Referenced-Records" |
+  "Cursor:Same-Table" |
+  "Cursor:Reference" |
   "Error:Invalid";
 
 // If this LinkingState represents a filter link, it will set its filterState to this object
@@ -50,12 +50,12 @@ export const EmptyFilterColValues: FilterColValues = FilterStateToColValues(Empt
 export class LinkingState extends Disposable {
   // If linking affects target section's cursor, this will be a computed for the cursor rowId.
   // Is undefined if not cursor-linked
-  public readonly cursorPos?: ko.Computed<UIRowId|null>;
+  public readonly cursorPos?: ko.Computed<UIRowId | null>;
 
   // Cursor-links can be cyclic, need to keep track of both rowId and the lastCursorEdit that it came from to
   // resolve it correctly, (use just one observable so they update at the same time)
   // NOTE: observables don't do deep-equality check, so need to replace the whole array when updating
-  public readonly incomingCursorPos: ko.Computed<[UIRowId|null, SequenceNum]>;
+  public readonly incomingCursorPos: ko.Computed<[UIRowId | null, SequenceNum]>;
 
   // If linking affects filtering, this is a computed for the current filtering state, including user-facing
   // labels for filter values and types of the filtered columns
@@ -172,7 +172,7 @@ export class LinkingState extends Disposable {
         const updateMultiHolder = MultiHolder.create(updateHolder);
 
         // Make one filter for each groupBycolumn of srcSection
-        const resultFilters: (ko.Computed<FilterState>|undefined)[] = srcSection.table().groupByColumns().map(srcGCol =>
+        const resultFilters: (ko.Computed<FilterState> | undefined)[] = srcSection.table().groupByColumns().map(srcGCol =>
           this._makeFilterObs(srcGCol, summaryGetCorrespondingCol(srcGCol, tgtSection.table()), updateMultiHolder),
         );
 
@@ -282,7 +282,7 @@ export class LinkingState extends Disposable {
 
           // If cursors haven't been initialized, cursor-linking doesn't make sense, so don't do it
           if (srcSecVersion === SequenceNEVER) {
-            return [null, SequenceNEVER] as [UIRowId|null, SequenceNum];
+            return [null, SequenceNEVER] as [UIRowId | null, SequenceNum];
           }
 
           // Get previous linkingstate's info, if applicable (2 or more hops back)
@@ -309,7 +309,7 @@ export class LinkingState extends Disposable {
           return [
             tgtCursorPos,
             usePrev ? prevLinkedVersion : srcSecVersion, // propagate which version our cursorPos is from
-          ] as [UIRowId|null, SequenceNum];
+          ] as [UIRowId | null, SequenceNum];
         })));
 
         // Pull out just the rowId from incomingCursor Pos
@@ -378,8 +378,8 @@ export class LinkingState extends Disposable {
    * @private
    */
   private _makeFilterObs(
-    srcCol: ColumnRec|undefined,
-    tgtCol: ColumnRec|undefined,
+    srcCol: ColumnRec | undefined,
+    tgtCol: ColumnRec | undefined,
     owner: MultiHolder = this): ko.Computed<FilterState> | undefined {
     const srcColId = srcCol?.colId();
     const tgtColId = tgtCol?.colId();
@@ -528,7 +528,7 @@ export class LinkingState extends Disposable {
   // Value for this.filterColValues based on the values in srcSection.selectedRows
   // "null" for column implies id column
   private _srcCustomFilter(
-    column: ColumnRec|undefined, operation: QueryOperation): ko.Computed<FilterState> {
+    column: ColumnRec | undefined, operation: QueryOperation): ko.Computed<FilterState> {
     // Note: column may be the empty column, i.e. column != undef, but column.colId() is undefined
     const colId = (!column || column.colId() === undefined) ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
@@ -549,7 +549,7 @@ export class LinkingState extends Disposable {
   // - ValGetter returns null for the 'new' row
   // - An undefined colId means to use the 'id' column, i.e. Valgetter is (rowId)=>rowId
   private _makeValGetter(
-    table: TableRec, colId: string | undefined, owner: MultiHolder=this,
+    table: TableRec, colId: string | undefined, owner: MultiHolder = this,
   ): ( null | ((r: UIRowId | null) => CellValue | null) ) // (null | ValGetter)
   {
     if (colId === undefined) { // passthrough for id cols

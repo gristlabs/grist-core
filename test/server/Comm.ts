@@ -51,7 +51,7 @@ describe('Comm', function() {
   let server: http.Server;
   let sessions: Sessions;
   let fakeHosts: FakeHosts;
-  let comm: Comm|null = null;
+  let comm: Comm | null = null;
   const sandbox = sinon.createSandbox();
 
   before(async function() {
@@ -381,7 +381,7 @@ describe('Comm', function() {
     async function testSendOrdering(
       options: { noFailedSend?: boolean, closeHappensFirst?: boolean, useSmallMsgs?: boolean },
     ) {
-      const eventsSeen: Array<'failedSend'|'close'> = [];
+      const eventsSeen: Array<'failedSend' | 'close'> = [];
 
       // Server-side Client object.
       let ssClient!: Client;
@@ -438,7 +438,7 @@ describe('Comm', function() {
 
       let n = 0;
       const sendPromises: Array<Promise<void>> = [];
-      const sendNextMessage= () => sendPromises.push(ssClient.sendMessage(makeMessage(n++) as any));
+      const sendNextMessage = () => sendPromises.push(ssClient.sendMessage(makeMessage(n++) as any));
 
       await testUtils.captureLog('warn', async () => {
         // Make a few sends. These are big enough not to return immediately. Keep the first two

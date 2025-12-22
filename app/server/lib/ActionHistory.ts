@@ -100,7 +100,7 @@ export abstract class ActionHistory {
    * marks our action as "shared", i.e. accepted by the hub, and returns true. Else returns false.
    * If actionHash is null, accepts unconditionally.
    */
-  public abstract acceptNextSharedAction(actionHash: string|null): Promise<boolean>;
+  public abstract acceptNextSharedAction(actionHash: string | null): Promise<boolean>;
 
   /** Records a new local unsent action, after setting action.actionNum appropriately. */
   public abstract recordNextLocalUnsent(action: LocalActionBundle): Promise<void>;
@@ -139,7 +139,7 @@ export abstract class ActionHistory {
    * Get a list of actions, identified by their actionNum.  Any actions that could not be
    * found are returned as undefined.
    */
-  public abstract getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>>;
+  public abstract getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>>;
 
   /**
    * Associates an action with a client. This association is expected to be transient, rather

@@ -79,7 +79,7 @@ export interface CommOptions {
 export class Comm extends EventEmitter {
   // Collection of all sessions; maps sessionIds to ScopedSession objects.
   public readonly sessions: Sessions = this._options.sessions;
-  private _wss: GristSocketServer[]|null = null;
+  private _wss: GristSocketServer[] | null = null;
 
   private _clients = new Map<string, Client>();   // Maps clientIds to Client objects.
 
@@ -89,7 +89,7 @@ export class Comm extends EventEmitter {
   // For upgrading, we use this to set the server version for a defunct server
   // to "dead" so that a client will know that it needs to periodically recheck
   // for a valid server.
-  private _serverVersion: string|null = null;
+  private _serverVersion: string | null = null;
 
   constructor(private _server: http.Server, private _options: CommOptions) {
     super();
@@ -161,7 +161,7 @@ export class Comm extends EventEmitter {
    * Call with null to reset the override.
    *
    */
-  public setServerVersion(serverVersion: string|null) {
+  public setServerVersion(serverVersion: string | null) {
     this._serverVersion = serverVersion;
   }
 
@@ -176,7 +176,7 @@ export class Comm extends EventEmitter {
   /**
    * Returns a profile based on the request or session.
    */
-  private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile|null> {
+  private async _getSessionProfile(scopedSession: ScopedSession, req: http.IncomingMessage): Promise<UserProfile | null> {
     return (
       (await this._options.loginMiddleware?.overrideProfile?.(req)) ??
       (await scopedSession.getSessionProfile())
@@ -197,7 +197,7 @@ export class Comm extends EventEmitter {
     const userSelector = params.get('user') || '';
 
     // Associate an ID with each websocket, reusing the supplied one if it's valid.
-    let client: Client|undefined = this._clients.get(existingClientId!);
+    let client: Client | undefined = this._clients.get(existingClientId!);
     let reuseClient = true;
     if (!client?.canAcceptConnection()) {
       reuseClient = false;
@@ -266,7 +266,7 @@ export class Comm extends EventEmitter {
 // This is a subset of the logic in Authorizer addRequestUser(), but sufficient for websocket
 // connections, which rely on having an existing session.
 async function getAuthSession(
-  dbManager: HomeDBAuth|undefined, scopedSession: ScopedSession, profile: UserProfile|null,
+  dbManager: HomeDBAuth | undefined, scopedSession: ScopedSession, profile: UserProfile | null,
 ): Promise<AuthSession> {
   if (!dbManager) {
     return AuthSession.unauthenticated();

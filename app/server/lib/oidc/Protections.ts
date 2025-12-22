@@ -15,7 +15,7 @@ interface Protection {
   getCallbackChecks(sessionInfo: SessionOIDCInfo): OpenIDCallbackChecks;
 }
 
-function checkIsSet(value: string|undefined, message: string): string {
+function checkIsSet(value: string | undefined, message: string): string {
   if (!value) { throw new Error(message); }
   return value;
 }

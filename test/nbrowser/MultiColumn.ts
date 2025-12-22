@@ -1336,15 +1336,15 @@ async function removeColumn(...names: string[]) {
   await gu.waitForServer();
 }
 
-function maxDecimals(value?: number|null) {
+function maxDecimals(value?: number | null) {
   return modDecimals(".test-numeric-max-decimals input", value);
 }
 
-function minDecimals(value?: number|null) {
+function minDecimals(value?: number | null) {
   return modDecimals(".test-numeric-min-decimals input", value);
 }
 
-async function modDecimals(selector: string, value?: number|null) {
+async function modDecimals(selector: string, value?: number | null) {
   const element = await driver.find(selector);
   if (value === undefined) {
     return parseInt(await element.value());

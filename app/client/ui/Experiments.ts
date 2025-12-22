@@ -126,7 +126,7 @@ export class Experiments extends Disposable {
     return EXPERIMENTS.hasOwnProperty(experiment);
   }
 
-  private _getExperimentState(experiment: string): { enabled: boolean, timestamp: number|null } {
+  private _getExperimentState(experiment: string): { enabled: boolean, timestamp: number | null } {
     return safeJsonParse(
       getStorage().getItem(this._getStorageKey(experiment)) || '',
       { enabled: false, timestamp: null },

@@ -368,7 +368,7 @@ describe('PagePanels', function() {
       assert.equal(await isSidePanelOpen('right'), true);
     });
 
-    const isSidePanelOpen = stackWrapFunc(async function(which: 'left'|'right'): Promise<boolean> {
+    const isSidePanelOpen = stackWrapFunc(async function(which: 'left' | 'right'): Promise<boolean> {
       return driver.find(`.test-pp-${which}-panel`).matches('[class*=-open]');
     });
   });

@@ -19,7 +19,7 @@ export class ParagraphModel extends BoxModel {
   public override render(): HTMLElement {
     const box = this;
     const editMode = box.edit;
-    const text = this.prop('text', this.defaultValue) as Observable<string|undefined>;
+    const text = this.prop('text', this.defaultValue) as Observable<string | undefined>;
 
     // There is a spacial hack here. We might be created as a separator component, but the rendering
     // for separator looks bad when it is the only content, so add a special case for that.
@@ -64,7 +64,7 @@ export class ParagraphModel extends BoxModel {
   }
 }
 
-export function Paragraph(text: string, alignment?: 'left'|'right'|'center'): FormLayoutNode {
+export function Paragraph(text: string, alignment?: 'left' | 'right' | 'center'): FormLayoutNode {
   return { id: uuidv4(), type: 'Paragraph', text, alignment };
 }
 

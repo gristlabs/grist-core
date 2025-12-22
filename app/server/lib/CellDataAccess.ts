@@ -473,7 +473,7 @@ export class CellData {
   // Helper function that tells if a cell can be determined fully from the action itself.
   // Otherwise we need to look in the docData.
   public hasCellInfo(docAction: DocAction):
-      docAction is UpdateRecord|BulkUpdateRecord|AddRecord|BulkAddRecord {
+      docAction is UpdateRecord | BulkUpdateRecord | AddRecord | BulkAddRecord {
     if (!isDataAction(docAction)) { return false; }
     if (!isSomeRemoveRecordAction(docAction)) {
       const colValues = getActionColValues(docAction);

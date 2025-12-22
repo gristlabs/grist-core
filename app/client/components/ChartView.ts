@@ -162,7 +162,7 @@ export class ChartView extends BaseView {
   private _update: () => void;
   private _resize: () => void;
 
-  private _formatterComp: ko.Computed<BaseFormatter|undefined>;
+  private _formatterComp: ko.Computed<BaseFormatter | undefined>;
 
   // peek section's sort spec
   private get _sortSpec() { return this.viewSection.activeSortSpec.peek(); }
@@ -426,7 +426,7 @@ function groupSeries<T extends Datum>(groupColumn: T[], valueSeries: Series[], s
   // Now fill up the lists.
   for (let row = 0; row < groupColumn.length; row++) {
     const group = groupColumn[row];
-    const series: Series[]|undefined = nseries.get(group);
+    const series: Series[] | undefined = nseries.get(group);
     if (series) {
       for (let i = 0; i < valueSeries.length; i++) {
         series[i].values.push(valueSeries[i].values[row]);
@@ -1080,7 +1080,7 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
   // We further separate positive series from negative ones, by changing stackgroup to a different
   // value ("-A") for series which look probably negative. This keeps positive ones above the
   // x-axis, and negative ones below, as for barmode=relative (which only applies to bar charts).
-  function makeRelativeStackGroup(stackgroup: string|undefined, values: Datum[]) {
+  function makeRelativeStackGroup(stackgroup: string | undefined, values: Datum[]) {
     if (!stackgroup) { return stackgroup; }
     const firstNonZero = values.find(v => v && (v > 0 || v < 0));
     const isNegative = firstNonZero && firstNonZero < 0;
@@ -1090,7 +1090,7 @@ function basicPlot(series: Series[], options: ChartOptions, dataOptions: Data): 
   return {
     data: dataSeries,
     layout: {
-      [`${axis1}axis`]: { title: series.length > 0 ? { text: series[0].label }: {} },
+      [`${axis1}axis`]: { title: series.length > 0 ? { text: series[0].label } : {} },
       // Include yaxis title for a single y-value series only (2 series total);
       // If there are fewer than 2 total series, there is no y-series to display.
       // If there are multiple y-series, a legend will be included instead, and the yaxis title

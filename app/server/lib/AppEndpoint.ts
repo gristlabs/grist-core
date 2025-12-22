@@ -31,8 +31,8 @@ export interface AttachOptions {
   middleware: express.RequestHandler[];     // Middleware to apply for all endpoints except docs and forms
   docMiddleware: express.RequestHandler[];  // Middleware to apply for doc landing pages
   formMiddleware: express.RequestHandler[]; // Middleware to apply for form landing pages
-  forceLogin: express.RequestHandler|null;  // Method to force user to login (if logins are possible)
-  docWorkerMap: IDocWorkerMap|null;
+  forceLogin: express.RequestHandler | null;  // Method to force user to login (if logins are possible)
+  docWorkerMap: IDocWorkerMap | null;
   sendAppPage: (req: express.Request, resp: express.Response, options: ISendAppPageOptions) => Promise<void>;
   dbManager: HomeDBManager;
   plugins: LocalPlugin[];
@@ -82,7 +82,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     }
     const mreq = req as RequestWithLogin;
     const urlId = req.params.urlId;
-    let doc: Document|null = null;
+    let doc: Document | null = null;
     try {
       const userId = getUserId(mreq);
 
@@ -143,7 +143,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     }
 
     let body: DocTemplate;
-    let docStatus: DocStatus|undefined;
+    let docStatus: DocStatus | undefined;
     const docId = doc.id;
     if (!useWorkerPool()) {
       body = await gristServer.getDocTemplate();

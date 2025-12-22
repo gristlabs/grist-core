@@ -11,7 +11,7 @@ import { dom } from 'grainjs';
  *  See reference: http://bootstrap-datepicker.readthedocs.org/en/latest/index.html
  */
 export class DateTimeEditor extends DateEditor {
-  private _timeFormat: string|undefined;
+  private _timeFormat: string | undefined;
   private _dateSizer: HTMLElement;
   private _timeSizer: HTMLElement;
   private _dateInput: HTMLTextAreaElement;
@@ -152,7 +152,7 @@ export class DateTimeEditor extends DateEditor {
   /**
    * Sets focus to date if index is 0, or time if index is 1.
    */
-  private _setFocus(index: 0|1) {
+  private _setFocus(index: 0 | 1) {
     const elem = (index === 0 ? this._dateInput : (index === 1 ? this._timeInput : null));
     if (elem) {
       elem.focus();

@@ -29,7 +29,7 @@ export class Delay extends Disposable {
     optContext?: any): DisposableCB;
   public static untilAnimationFrame<T>(cb: (this: T, ...args: any[]) => void,
     optContext: T): DisposableCB {
-    let reqId: number|null = null;
+    let reqId: number | null = null;
     const f = function(...args: any[]) {
       if (reqId === null) {
         reqId = window.requestAnimationFrame(() => {

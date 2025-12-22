@@ -78,5 +78,5 @@ export class Proposal extends BaseEntity {
   public updatedAt: Date;
 
   @Column({ name: 'applied_at', type: Date })
-  public appliedAt: Date|null;
+  public appliedAt: Date | null;
 }

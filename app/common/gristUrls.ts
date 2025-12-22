@@ -658,7 +658,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         'sectionId',
         'rowId',
         'colRef',
-      ] as Array<'sectionId'|'rowId'|'colRef'>;
+      ] as Array<'sectionId' | 'rowId' | 'colRef'>;
       for (const key of keys) {
         let ch: string;
         if (key === 'rowId' && hashMap.has('rr')) {
@@ -703,7 +703,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
 }
 
 export function decodeLinkParameters(sp: URLSearchParams) {
-  let linkParameters: Record<string, string>|undefined = undefined;
+  let linkParameters: Record<string, string> | undefined = undefined;
   for (const [k, v] of sp.entries()) {
     if (k.endsWith('_')) {
       if (!linkParameters) { linkParameters = {}; }
@@ -716,7 +716,7 @@ export function decodeLinkParameters(sp: URLSearchParams) {
 // Returns a function suitable for user with makeUrl/setHref/etc, which updates aclAsUser*
 // linkParameters in the current state, unsetting them if email is null. Optional extraState
 // allows setting other properties (e.g. 'docPage') at the same time.
-export function userOverrideParams(email: string|null, extraState?: IGristUrlState) {
+export function userOverrideParams(email: string | null, extraState?: IGristUrlState) {
   return function(prevState: IGristUrlState): IGristUrlState {
     const combined = { ...prevState, ...extraState };
     const linkParameters = clone(combined.params?.linkParameters) || {};
@@ -750,7 +750,7 @@ function parseDocPage(p: string): IDocPage {
  *
  * If there's no way to parse the URL into such a pair, then an empty object is returned.
  */
-export function parseSubdomain(host: string|undefined): { org?: string, base?: string } {
+export function parseSubdomain(host: string | undefined): { org?: string, base?: string } {
   if (!host) { return {}; }
   const match = /^([^.]+)(\..+\..+)$/.exec(host.toLowerCase());
   if (match) {
@@ -773,7 +773,7 @@ const localhostRegex = /^localhost(?::(\d+))?$/i;
  *   - host is localhost:NNNN
  * An empty object is only returned when host is localhost:NNNN.
  */
-export function parseSubdomainStrictly(host: string|undefined): { org?: string, base?: string } {
+export function parseSubdomainStrictly(host: string | undefined): { org?: string, base?: string } {
   if (!host) { throw new Error('host not known'); }
   const result = parseSubdomain(host);
   if (result.org) { return result; }
@@ -824,7 +824,7 @@ export interface LatestVersionAvailable {
  */
 export interface GristLoadConfig {
   // URL of the Home API server for the browser client to use.
-  homeUrl: string|null;
+  homeUrl: string | null;
 
   // When loading /doc/{docId}, we include the id used to assign the document (this is the docId).
   assignmentId?: string;
@@ -908,7 +908,7 @@ export interface GristLoadConfig {
   getDoc?: { [id: string]: Document };
 
   // Pre-fetched call to getWorker for the doc being loaded.
-  getWorker?: { [id: string]: string|null };
+  getWorker?: { [id: string]: string | null };
 
   // The timestamp when this gristConfig was generated.
   timestampMs: number;
@@ -978,7 +978,7 @@ export interface GristLoadConfig {
   forceEnableEnterprise?: boolean;
 
   // The org containing public templates and tutorials.
-  templateOrg?: string|null;
+  templateOrg?: string | null;
 
   // The doc id of the tutorial shown during onboarding.
   onboardingTutorialDocId?: string;
@@ -1039,9 +1039,9 @@ export type GristDeploymentType = typeof GristDeploymentTypes.type;
 const subdomainRegex = /^[-a-z0-9]+$/i;
 
 export interface OrgParts {
-  subdomain: string|null;
-  orgFromHost: string|null;
-  orgFromPath: string|null;
+  subdomain: string | null;
+  orgFromHost: string | null;
+  orgFromPath: string | null;
   pathRemainder: string;
   mismatch: boolean;
 }
@@ -1064,7 +1064,7 @@ function getCustomizableValue(
  * Returns a known org "subdomain" if Grist is configured in single-org mode
  * (GRIST_SINGLE_ORG=<org> on the server) or if the page includes an org in gristConfig.
  */
-export function getSingleOrg(): string|null {
+export function getSingleOrg(): string | null {
   return getCustomizableValue('singleOrg', 'GRIST_SINGLE_ORG') || null;
 }
 
@@ -1078,7 +1078,7 @@ export function getOnboardingVideoId(): string {
   return getCustomizableValue('onboardingTutorialVideoId', 'GRIST_ONBOARDING_VIDEO_ID') || defaultId;
 }
 
-export function getTermsOfServiceUrl(): string|undefined {
+export function getTermsOfServiceUrl(): string | undefined {
   return getCustomizableValue('termsOfServiceUrl', 'GRIST_TERMS_OF_SERVICE_URL') || undefined;
 }
 
@@ -1115,7 +1115,7 @@ export function isOrgInPathOnly(host?: string): boolean {
 
 // Extract an organization name from the host.  Returns null if an organization name
 // could not be recovered.  Organization name may be overridden by server configuration.
-export function getOrgFromHost(reqHost: string): string|null {
+export function getOrgFromHost(reqHost: string): string | null {
   const singleOrg = getSingleOrg();
   if (singleOrg) { return singleOrg; }
   if (isOrgInPathOnly()) { return null; }
@@ -1131,8 +1131,8 @@ export function getOrgFromHost(reqHost: string): string|null {
  * On spam.getgrist.com/o/nasa, orgFromHost will be "spam", orgFromPath will be "nasa",
  * subdomain will be null, and mismatch will be true.
  */
-export function extractOrgParts(reqHost: string|undefined, reqPath: string): OrgParts {
-  let orgFromHost: string|null = getSingleOrg();
+export function extractOrgParts(reqHost: string | undefined, reqPath: string): OrgParts {
+  let orgFromHost: string | null = getSingleOrg();
 
   if (!orgFromHost && reqHost) {
     orgFromHost = getOrgFromHost(reqHost);
@@ -1159,7 +1159,7 @@ export function extractOrgParts(reqHost: string|undefined, reqPath: string): Org
  * When a prefix is extracted from the path, the remainder of the path may be empty.
  * This method makes sure there is at least a "/".
  */
-export function sanitizePathTail(path: string|undefined) {
+export function sanitizePathTail(path: string | undefined) {
   path = path || '/';
   return (path.startsWith('/') ? '' : '/') + path;
 }
@@ -1198,7 +1198,7 @@ export interface UrlIdParts {
 // or trunkId[....]~v=snapshotId
 // or <SHARE-KEY-PREFIX>shareKey
 export function parseUrlId(urlId: string): UrlIdParts {
-  let snapshotId: string|undefined;
+  let snapshotId: string | undefined;
   const parts = urlId.split('~');
   const bareParts = parts.filter(part => !part.includes('v='));
   for (const part of parts) {
@@ -1280,7 +1280,7 @@ export function makeAnchorLinkValue(hash: HashLink): string {
       hashParts.push('a1');
     }
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
-      let enhancedRowId: string|undefined;
+      let enhancedRowId: string | undefined;
       if (key === 'rowId' && hash.linkingRowIds?.length) {
         enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");
       }
@@ -1296,7 +1296,7 @@ export function makeAnchorLinkValue(hash: HashLink): string {
 
 // Check whether a urlId is a prefix of the docId, and adequately long to be
 // a candidate for use in prettier urls.
-function shouldIncludeSlug(doc: { id: string, urlId: string|null }): boolean {
+function shouldIncludeSlug(doc: { id: string, urlId: string | null }): boolean {
   if (!doc.urlId || doc.urlId.length < MIN_URLID_PREFIX_LENGTH) { return false; }
   return doc.id.startsWith(doc.urlId) || doc.urlId.startsWith(SHARE_KEY_PREFIX);
 }
@@ -1310,7 +1310,7 @@ function nameToSlug(name: string): string {
 
 // Returns a slug for the given docId/urlId/name, or undefined if a slug should
 // not be used.
-export function getSlugIfNeeded(doc: { id: string, urlId: string|null, name: string }): string|undefined {
+export function getSlugIfNeeded(doc: { id: string, urlId: string | null, name: string }): string | undefined {
   if (!shouldIncludeSlug(doc)) { return; }
   return nameToSlug(doc.name);
 }

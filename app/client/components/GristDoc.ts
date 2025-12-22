@@ -189,9 +189,9 @@ export interface GristDoc extends DisposableWithEvents {
   isTimingOn: Observable<boolean>;
   attachmentTransfer: Observable<AttachmentTransferStatus | null>;
   canShowRawData: Observable<boolean>;
-  currentUser: Observable<ExtendedUser|null>;
+  currentUser: Observable<ExtendedUser | null>;
   // Keep track of the actionNum/actionHash of the document.
-  latestActionState: Observable<DocState|null>;
+  latestActionState: Observable<DocState | null>;
   regionFocusSwitcher?: RegionFocusSwitcher;
 
   docId(): string;
@@ -298,7 +298,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    * Note: GristDoc doesn't load it at the start, it just listens to changes, so the user of this API
    * needs to load the status manually if it is not yet set.
    */
-  public attachmentTransfer = Observable.create(this, null as AttachmentTransferStatus|null);
+  public attachmentTransfer = Observable.create(this, null as AttachmentTransferStatus | null);
 
   /**
    * Checks if it is ok to show raw data popup for currently selected section.
@@ -309,8 +309,8 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    * Extracted to single computed as it is used here and in menus.
    */
   public canShowRawData: Computed<boolean>;
-  public currentUser: Observable<ExtendedUser|null>;
-  public latestActionState: Observable<DocState|null>;
+  public currentUser: Observable<ExtendedUser | null>;
+  public latestActionState: Observable<DocState | null>;
 
   private _actionLog: ActionLog;
   private _actionCounter: ActionCounter;
@@ -1499,7 +1499,7 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
   private async _addWidgetToPage(
     widget: IPageWidget,
     tableId: string | null = null,
-    { focus = true, popups = true }: AddSectionOptions= {},
+    { focus = true, popups = true }: AddSectionOptions = {},
   ) {
     const { columns, link, summarize, table, type } = widget;
     const viewRef = this.activeViewId.get();

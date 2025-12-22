@@ -18,7 +18,7 @@ const t = makeT('NotifyUI');
 
 const testId = makeTestId('test-notifier-');
 
-function buildAction(action: NotifyAction, item: Notification, options: IBeaconOpenOptions): HTMLElement|null {
+function buildAction(action: NotifyAction, item: Notification, options: IBeaconOpenOptions): HTMLElement | null {
   const appModel = options.appModel;
   switch (action) {
     case 'upgrade':
@@ -75,7 +75,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
 }
 
 function notificationIcon(item: Notification) {
-  let iconName: IconName|null = null;
+  let iconName: IconName | null = null;
   switch (item.options.level) {
     case "error":   iconName = "Warning"; break;
     case "warning": iconName = "Warning"; break;
@@ -134,7 +134,7 @@ function buildProgressDom(item: Progress) {
   );
 }
 
-export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel|null) {
+export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel | null) {
   const { connectState } = notifier.getStateForUI();
   return cssHoverCircle({ style: `margin: 5px;` },
     dom.domComputed(connectState, state => buildConnectStateButton(state)),
@@ -147,7 +147,7 @@ export function buildNotifyMenuButton(notifier: Notifier, appModel: AppModel|nul
   );
 }
 
-function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel: AppModel|null): Element {
+function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel: AppModel | null): Element {
   const { connectState, disconnectMsg, dropdownItems } = notifier.getStateForUI();
 
   return cssDropdownWrapper(
@@ -189,7 +189,7 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
   );
 }
 
-export function buildSnackbarDom(notifier: Notifier, appModel: AppModel|null): Element {
+export function buildSnackbarDom(notifier: Notifier, appModel: AppModel | null): Element {
   const { progressItems, toasts } = notifier.getStateForUI();
   return cssSnackbarWrapper(testId('snackbar-wrapper'),
     dom.forEach(progressItems, item => buildProgressDom(item)),

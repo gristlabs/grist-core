@@ -28,7 +28,7 @@ export type Edge = 'left' | 'right';
 
 export interface IResizeFlexOptions {
   // Whether to change the width of the flex item to the left or to the right of this handle.
-  target: 'left'|'right';
+  target: 'left' | 'right';
   onDrag?(value: number): void;
   onSave?(value: number): void;
 }
@@ -36,7 +36,7 @@ export interface IResizeFlexOptions {
 export interface IResizeOptions {
   prop: 'width' | 'height';
   sign: 1 | -1;
-  getTarget(handle: Element): Element|null;
+  getTarget(handle: Element): Element | null;
   onDrag?(value: number): void;
   onSave?(value: number): void;
 }
@@ -61,7 +61,7 @@ export function resizeFlexVHandle(options: IResizeFlexOptions, ...args: DomEleme
 // other kinds of resizing (edge of parent, resizing height) by only attaching this to the
 // mouseDrag() event with suitable options. See resizeFlexVHandle().
 function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOptions) {
-  const target = options.getTarget(handle) as HTMLElement|null;
+  const target = options.getTarget(handle) as HTMLElement | null;
   if (!target) { return null; }
 
   const { sign, prop, onDrag, onSave } = options;
@@ -98,7 +98,7 @@ function onResizeStart(startEv: MouseEvent, handle: Element, options: IResizeOpt
 // Compute the CSS width or height of the element. If element.style[prop] is set to it, it should
 // be unchanged. (Note that when an element has borders or padding, the size from
 // getBoundingClientRect() would be different, and isn't suitable for style[prop].)
-function getComputedSize(elem: Element, prop: 'width'|'height'): number {
+function getComputedSize(elem: Element, prop: 'width' | 'height'): number {
   const sizePx = window.getComputedStyle(elem)[prop];
   const sizeNum = sizePx && parseFloat(sizePx);
   // If we can't get the size, fall back to getBoundingClientRect().

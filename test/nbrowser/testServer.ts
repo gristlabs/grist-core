@@ -38,9 +38,9 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   public removeLogin: HomeUtil["removeLogin"];
 
   private _serverUrl: string;
-  private _proxyUrl: string|null = null;
+  private _proxyUrl: string | null = null;
   private _server: ChildProcess;
-  private _exitPromise: Promise<number|string>;
+  private _exitPromise: Promise<number | string>;
   private _starts: number = 0;
   private _dbManager?: HomeDBManager;
   private _driver?: WebDriver;
@@ -242,7 +242,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
 
   // Configure the server to be accessed via a proxy. You'll need to
   // restart the server after changing this setting.
-  public updateProxy(proxyUrl: string|null) {
+  public updateProxy(proxyUrl: string | null) {
     this._proxyUrl = proxyUrl;
   }
 

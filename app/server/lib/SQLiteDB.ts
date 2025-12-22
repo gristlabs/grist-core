@@ -141,7 +141,7 @@ export interface MigrationHooks {
 export interface ISQLiteDB {
   exec(sql: string): Promise<void>;
   run(sql: string, ...params: any[]): Promise<RunResult>;
-  get(sql: string, ...params: any[]): Promise<ResultRow|undefined>;
+  get(sql: string, ...params: any[]): Promise<ResultRow | undefined>;
   all(sql: string, ...params: any[]): Promise<ResultRow[]>;
   prepare(sql: string, ...params: any[]): Promise<PreparedStatement>;
   execTransaction<T>(callback: () => Promise<T>): Promise<T>;
@@ -262,13 +262,13 @@ export class SQLiteDB implements ISQLiteDB {
   }
 
   private _prevTransaction: Promise<any> = Promise.resolve();
-  private _migrationBackupPath: string|null = null;
-  private _migrationError: Error|null = null;
+  private _migrationBackupPath: string | null = null;
+  private _migrationError: Error | null = null;
   private _needVacuum: boolean = false;
   private _closed: boolean = false;
-  private _paused: Promise<void>|undefined = undefined;
-  private _pauseResolve: (() => void)|undefined = undefined;
-  private _pauseReject: ((reason?: any) => void)|undefined = undefined;
+  private _paused: Promise<void> | undefined = undefined;
+  private _pauseResolve: (() => void) | undefined = undefined;
+  private _pauseReject: ((reason?: any) => void) | undefined = undefined;
 
   private constructor(protected _db: MinDB, private _dbPath: string) {
   }
@@ -284,7 +284,7 @@ export class SQLiteDB implements ISQLiteDB {
     return this._db.backup(filename);
   }
 
-  public getOptions(): MinDBOptions|undefined {
+  public getOptions(): MinDBOptions | undefined {
     return this._db.getOptions?.();
   }
 
@@ -312,7 +312,7 @@ export class SQLiteDB implements ISQLiteDB {
     return this._db.prepare(sql);
   }
 
-  public get(sql: string, ...args: any[]): Promise<ResultRow|undefined> {
+  public get(sql: string, ...args: any[]): Promise<ResultRow | undefined> {
     return this._db.get(sql, ...args);
   }
 
@@ -320,7 +320,7 @@ export class SQLiteDB implements ISQLiteDB {
    * If a DB was migrated on open, this will be set to the path of the pre-migration backup copy.
    * If migration failed, open throws with unchanged DB and no backup file.
    */
-  public get migrationBackupPath(): string|null { return this._migrationBackupPath; }
+  public get migrationBackupPath(): string | null { return this._migrationBackupPath; }
 
   /**
    * If a needed migration failed, the DB will be opened anyway, with this property set to the
@@ -328,7 +328,7 @@ export class SQLiteDB implements ISQLiteDB {
    *    sdb = await SQLiteDB.openDB(...)
    *    if (sdb.migrationError) { throw sdb.migrationError; }
    */
-  public get migrationError(): Error|null { return this._migrationError; }
+  public get migrationError(): Error | null { return this._migrationError; }
 
   // The following methods mirror https://github.com/mapbox/node-sqlite3/wiki/API, but return
   // Promises. We use fromCallback() rather than use promisify, to get better type-checking.
@@ -565,9 +565,9 @@ export class SQLiteDB implements ISQLiteDB {
    * needed, returns null. If migration failed, leaves DB unchanged and throws Error.
    */
   private async _migrate(actualVer: number, schemaInfo: SchemaInfo,
-    hooks: MigrationHooks): Promise<string|null> {
+    hooks: MigrationHooks): Promise<string | null> {
     const targetVer: number = schemaInfo.migrations.length;
-    let backupPath: string|null = null;
+    let backupPath: string | null = null;
     let success: boolean = false;
 
     if (actualVer > targetVer) {

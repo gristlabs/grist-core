@@ -8,11 +8,11 @@ export { isRelativeBound } from "app/common/RelativeDates";
 export interface FilterSpec {
   included?: CellValue[];
   excluded?: CellValue[];
-  min?: number|IRelativeDateSpec;
-  max?: number|IRelativeDateSpec;
+  min?: number | IRelativeDateSpec;
+  max?: number | IRelativeDateSpec;
 }
 
-export type IRangeBoundType = undefined|number|IRelativeDateSpec;
+export type IRangeBoundType = undefined | number | IRelativeDateSpec;
 
 export type FilterState = ByValueFilterState | RangeFilterState;
 
@@ -23,8 +23,8 @@ interface ByValueFilterState {
 }
 
 interface RangeFilterState {
-  min?: number|IRelativeDateSpec;
-  max?: number|IRelativeDateSpec;
+  min?: number | IRelativeDateSpec;
+  max?: number | IRelativeDateSpec;
 }
 
 // Creates a FilterState. Accepts spec as a json string or a FilterSpec.

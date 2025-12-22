@@ -63,7 +63,7 @@ export class DocStorageManager implements IDocStorageManager {
   /**
    * Returns the path to the given sample document.
    */
-  public getSampleDocPath(sampleDocName: string): string|null {
+  public getSampleDocPath(sampleDocName: string): string | null {
     return this._samplesRoot ? this.getPath(path.resolve(this._samplesRoot, sampleDocName)) : null;
   }
 

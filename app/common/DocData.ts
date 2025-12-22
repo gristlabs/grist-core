@@ -65,14 +65,14 @@ export class DocData extends ActionDispatcher {
   /**
    * Creates a new TableData object. A derived class may override to return an object derived from TableData.
    */
-  public createTableData(tableId: string, tableData: TableDataAction|null, colTypes: ColTypeMap): TableData {
+  public createTableData(tableId: string, tableData: TableDataAction | null, colTypes: ColTypeMap): TableData {
     return new (tableId in schema ? MetaTableData : TableData)(tableId, tableData, colTypes);
   }
 
   /**
    * Returns the TableData object for the requested table.
    */
-  public getTable(tableId: string): TableData|undefined {
+  public getTable(tableId: string): TableData | undefined {
     return this._tables.get(tableId);
   }
 

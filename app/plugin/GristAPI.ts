@@ -207,7 +207,7 @@ export interface GristView {
   /**
    * Set the list of selected rows to be used against any linked widget.
    */
-  setSelectedRows(rowIds: number[]|null): Promise<void>;
+  setSelectedRows(rowIds: number[] | null): Promise<void>;
 
   /**
    * Sets the cursor position to a specific row and field. `sectionId` is ignored. Used for widget linking.

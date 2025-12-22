@@ -39,7 +39,7 @@ export abstract class NewAbstractWidget extends Disposable {
   // use the first signature, which is compatible with old-style constructors.
   public static create<T extends new (...args: any[]) => any>(field: ViewFieldRec): InstanceType<T>;
   public static create<T extends new (...args: any[]) => any>(
-    this: T, owner: IDisposableOwnerT<InstanceType<T>>|null, ...args: ConstructorParameters<T>): InstanceType<T>;
+    this: T, owner: IDisposableOwnerT<InstanceType<T>> | null, ...args: ConstructorParameters<T>): InstanceType<T>;
   public static create(...args: any[]) {
     return Disposable.create.call(this as any, null, ...args);
   }
@@ -48,7 +48,7 @@ export abstract class NewAbstractWidget extends Disposable {
   protected valueFormatter: Observable<BaseFormatter>;
   protected textColor: Observable<string>;
   protected fillColor: Observable<string>;
-  protected readonly defaultTextColor: string|undefined = this._opts.defaultTextColor ??
+  protected readonly defaultTextColor: string | undefined = this._opts.defaultTextColor ??
     theme.cellFg.toString();
 
   constructor(protected field: ViewFieldRec, private _opts: Options = {}) {

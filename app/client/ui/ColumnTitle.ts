@@ -36,11 +36,11 @@ interface IColumnTitleOptions {
   /**
    * Optional computed or boolean to determine if the column can be renamed. Defaults to true.
    */
-  canRename?: ko.Computed<boolean>|boolean;
+  canRename?: ko.Computed<boolean> | boolean;
   /**
    * Optional computed or boolean to determine if the description can be changed. Defaults to true.
    */
-  canChangeDesc?: ko.Computed<boolean>|boolean;
+  canChangeDesc?: ko.Computed<boolean> | boolean;
 }
 
 export function buildRenameColumn(options: IColumnTitleOptions) {
@@ -72,8 +72,8 @@ export function buildRenameColumn(options: IColumnTitleOptions) {
  * centered when it fits, with appropriate overflow when it doesn't.
  */
 export function columnHeaderWithInfo(
-  label: IKnockoutReadObservable<string>|string,
-  tooltipContent: IKnockoutReadObservable<string>|string,
+  label: IKnockoutReadObservable<string> | string,
+  tooltipContent: IKnockoutReadObservable<string> | string,
   tooltipTestPrefix: string,
 ) {
   return [
@@ -205,10 +205,10 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
 
   const showDesc = Observable.create(ctrl, Boolean(field.description.peek() !== ''));
 
-  const defaultTrue = (val: boolean|ko.Computed<boolean>|undefined) => {
+  const defaultTrue = (val: boolean | ko.Computed<boolean> | undefined) => {
     return val === undefined ? true : val;
   };
-  const toComputed = (val: boolean|ko.Computed<boolean>) =>
+  const toComputed = (val: boolean | ko.Computed<boolean>) =>
     typeof val === 'boolean' ? Computed.create(ctrl, () => val) : Computed.create(ctrl, use => use(val));
 
   const not = (val: Observable<boolean>) => Computed.create(ctrl, use => !use(val));

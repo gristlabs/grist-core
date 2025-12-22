@@ -122,7 +122,7 @@ export const cssRadioList = cssCheckboxList;
 
 export const cssRadioLabel = cssCheckboxLabel;
 
-export function textbox(obs: Observable<string|undefined>, ...args: DomElementArg[]): HTMLInputElement {
+export function textbox(obs: Observable<string | undefined>, ...args: DomElementArg[]): HTMLInputElement {
   return dom('input',
     dom.prop('value', u => u(obs) || ''),
     dom.on('input', (_e, elem) => obs.set(elem.value)),

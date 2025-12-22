@@ -95,7 +95,7 @@ export type SingleDataAction = AddRecord | UpdateRecord | RemoveRecord;
 export type BulkDataAction = Exclude<DataAction, SingleDataAction>;
 
 // Check if action adds/updates/removes/replaces rows.
-export function isDataAction(action: DocAction|UserAction): action is DataAction {
+export function isDataAction(action: DocAction | UserAction): action is DataAction {
   return DATA_ACTIONS.has(String(action[0]));
 }
 
@@ -125,8 +125,8 @@ export function getActionName<T extends DocAction>(action: T) { return action[0]
 // Returns rowId or rowIds for a DataAction.
 export function getRowIds(action: SingleDataAction): number;
 export function getRowIds(action: BulkDataAction): number[];
-export function getRowIds(action: DataAction): number|number[];
-export function getRowIds(action: DataAction): number|number[] { return action[2]; }
+export function getRowIds(action: DataAction): number | number[];
+export function getRowIds(action: DataAction): number | number[] { return action[2]; }
 
 // Returns the row ids in a DataAction as a list, even if the action is not a bulk action.
 export function getRowIdsFromDocAction(action: DataAction): number[] {
@@ -137,8 +137,8 @@ export function getRowIdsFromDocAction(action: DataAction): number[] {
 // Returns colValues from a DataAction other than a remove action (which doesn't have colValues).
 export function getActionColValues(action: Exclude<SingleDataAction, RemoveRecord>): ColValues;
 export function getActionColValues(action: Exclude<BulkDataAction, BulkRemoveRecord>): BulkColValues;
-export function getActionColValues(action: Exclude<DataAction, RemoveRecord|BulkRemoveRecord>): ColValues|BulkColValues;
-export function getActionColValues(action: Exclude<DataAction, RemoveRecord|BulkRemoveRecord>) { return action[3]; }
+export function getActionColValues(action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>): ColValues | BulkColValues;
+export function getActionColValues(action: Exclude<DataAction, RemoveRecord | BulkRemoveRecord>) { return action[3]; }
 
 export interface TableDataActionSet {
   [tableId: string]: TableDataAction;
@@ -188,7 +188,7 @@ export interface TableRecordValueWithoutId {
 // Both UserActions and DocActions are represented as [ActionName, ...actionArgs].
 // TODO I think it's better to represent DocAction as a Buffer containing the marshalled action.
 
-export type UserAction = Array<string|number|object|boolean|null|undefined>;
+export type UserAction = Array<string | number | object | boolean | null | undefined>;
 
 // Actions that are performed automatically by the server
 // for things like regular maintenance or triggering formula calculations in the data engine.
@@ -226,7 +226,7 @@ export function toTableDataAction(tableId: string, colValues: TableColValues): T
 // and external APIs).
 // Also accepts a TableDataAction nested as a tableData member of a larger structure,
 // for convenience in dealing with the result of fetches.
-export function fromTableDataAction(tableData: TableDataAction|{ tableData: TableDataAction }): TableColValues {
+export function fromTableDataAction(tableData: TableDataAction | { tableData: TableDataAction }): TableColValues {
   const data = ('tableData' in tableData) ? tableData.tableData : tableData;
   const rowIds: number[] = data[2];
   const colValues: BulkColValues = data[3];
@@ -271,7 +271,7 @@ export function getColIdsFromDocAction(docActions: RemoveRecord | BulkRemoveReco
  */
 export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRecord | AddRecord |
   BulkAddRecord | UpdateRecord | BulkUpdateRecord | ReplaceTableData |
-  TableDataAction, colId: string): CellValue[]|undefined {
+  TableDataAction, colId: string): CellValue[] | undefined {
   const colValues = docAction[3];
   if (!colValues) { return undefined; }
   const cellValues = colValues[colId];
@@ -288,7 +288,7 @@ export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRe
  * Converts a bulk-like data action to its non-bulk equivalent. For actions like TableData or ReplaceTableData
  * it will return a list of single-row actions, one for each row.
  */
-export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|ReplaceTableData|TableDataAction> {
+export function* getSingleAction(a: DataAction): Iterable<SingleDataAction | ReplaceTableData | TableDataAction> {
   if (isBulkAddRecord(a)) {
     const [, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {

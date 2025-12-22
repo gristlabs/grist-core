@@ -13,7 +13,7 @@ import { CommandName } from 'app/client/components/commandList';
 import { DocAction, UserAction } from 'app/common/DocActions';
 import { WebDriver, WebElement, WebElementPromise } from 'mocha-webdriver';
 
-type SectionTypes = 'Table'|'Card'|'Card List'|'Chart'|'Custom'|'Form';
+type SectionTypes = 'Table' | 'Card' | 'Card List' | 'Chart' | 'Custom' | 'Form';
 
 // it is sometimes useful in debugging to turn off automatic cleanup of docs and workspaces.
 export const noCleanup = Boolean(process.env.NO_CLEANUP);
@@ -22,7 +22,7 @@ export class GristWebDriverUtils {
   public constructor(public driver: WebDriver) {
   }
 
-  public isSidePanelOpen(which: 'right'|'left'): Promise<boolean> {
+  public isSidePanelOpen(which: 'right' | 'left'): Promise<boolean> {
     return this.driver.find(`.test-${which}-panel`).matches('[class*=-open]');
   }
 
@@ -63,7 +63,7 @@ export class GristWebDriverUtils {
    * Toggles (opens or closes) the right or left panel and wait for the transition to complete. An optional
    * argument can specify the desired state.
    */
-  public async toggleSidePanel(which: 'right'|'left', goal: 'open'|'close'|'toggle' = 'toggle') {
+  public async toggleSidePanel(which: 'right' | 'left', goal: 'open' | 'close' | 'toggle' = 'toggle') {
     if ((goal === 'open' && await this.isSidePanelOpen(which)) ||
       (goal === 'close' && !await this.isSidePanelOpen(which))) {
       return;
@@ -94,7 +94,7 @@ export class GristWebDriverUtils {
 
   // Add a new widget to the current page using the 'Add New' menu.
   public async addNewSection(
-    typeRe: RegExp|SectionTypes, tableRe: RegExp|string, options?: PageWidgetPickerOptions,
+    typeRe: RegExp | SectionTypes, tableRe: RegExp | string, options?: PageWidgetPickerOptions,
   ) {
     // Click the 'Add widget to page' entry in the 'Add New' menu
     await this.driver.findWait('.test-dp-add-new', 2000).doClick();
@@ -107,8 +107,8 @@ export class GristWebDriverUtils {
   // Select type and table that matches respectively typeRe and tableRe and save. The widget picker
   // must be already opened when calling this function.
   public async selectWidget(
-    typeRe: RegExp|string,
-    tableRe: RegExp|string = '',
+    typeRe: RegExp | string,
+    tableRe: RegExp | string = '',
     options: PageWidgetPickerOptions = {},
   ) {
     const { customWidget, dismissTips, dontAdd, selectBy, summarize, tableName } = options;
@@ -380,7 +380,7 @@ export class GristWebDriverUtils {
   /**
    * Changes browser window dimensions to FullHd for a test suite.
    */
-  public bigScreen(size: 'big'|'medium' = 'medium') {
+  public bigScreen(size: 'big' | 'medium' = 'medium') {
     // Note that the default (small) is 1024x640.
     if (size === 'medium') {
       this.resizeWindowForSuite(1440, 900);
@@ -526,15 +526,15 @@ export interface WindowDimensions {
 export interface PageWidgetPickerOptions {
   tableName?: string;
   /** Optional pattern of SELECT BY option to pick. */
-  selectBy?: RegExp|string;
+  selectBy?: RegExp | string;
   /** Optional list of patterns to match Group By columns. */
-  summarize?: (RegExp|string)[];
+  summarize?: (RegExp | string)[];
   /** If true, configure the widget selection without actually adding to the page. */
   dontAdd?: boolean;
   /** If true, dismiss any tooltips that are shown. */
   dismissTips?: boolean;
   /** Optional pattern of custom widget name to select in the gallery. */
-  customWidget?: RegExp|string;
+  customWidget?: RegExp | string;
 }
 
 export class ProfileSettingsPage {
@@ -554,21 +554,21 @@ export class ProfileSettingsPage {
 }
 
 export interface IColsSelect<T = WebElement> {
-  cols: Array<number|string>;
+  cols: Array<number | string>;
   rowNums: number[];
-  section?: string|WebElement;
+  section?: string | WebElement;
   mapper?: (e: WebElement) => Promise<T>;
 }
 
 export interface IColSelect<T = WebElement> {
-  col: number|string;
+  col: number | string;
   rowNums: number[];
-  section?: string|WebElement;
+  section?: string | WebElement;
   mapper?: (e: WebElement) => Promise<T>;
 }
 
 export interface ICellSelect {
-  col: number|string;
+  col: number | string;
   rowNum: number;
-  section?: string|WebElement;
+  section?: string | WebElement;
 }

@@ -30,10 +30,10 @@ export class ACLUsersPopup extends Disposable {
   private _shareUsers: UserAccessData[] = [];           // Users doc is shared with.
   private _attributeTableUsers: UserAccessData[] = [];  // Users mentioned in attribute tables.
   private _exampleUsers: UserAccessData[] = [];         // Example users.
-  private _currentUser: FullUser|null = null;
+  private _currentUser: FullUser | null = null;
 
   constructor(public pageModel: DocPageModel,
-    private _fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
+    private _fetch: () => Promise<PermissionDataWithExtraUsers | null> = () => this._fetchData()) {
     super();
   }
 
@@ -49,7 +49,7 @@ export class ACLUsersPopup extends Disposable {
     return users;
   }
 
-  public init(permissionData: PermissionDataWithExtraUsers|null) {
+  public init(permissionData: PermissionDataWithExtraUsers | null) {
     const pageModel = this.pageModel;
     this._currentUser = pageModel.userOverride.get()?.user || pageModel.appModel.currentValidUser;
 

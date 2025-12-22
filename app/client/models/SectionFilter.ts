@@ -13,7 +13,7 @@ interface OpenColumnFilter {
   colFilter: ColumnFilter;
 }
 
-type ColFilterCB = (fieldOrColumn: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) => ColumnFilterFunc|null;
+type ColFilterCB = (fieldOrColumn: ViewFieldRec | ColumnRec, colFilter: ColumnFilterFunc | null) => ColumnFilterFunc | null;
 
 /**
  * SectionFilter represents a collection of column filters in place for a view section. It is created
@@ -26,14 +26,14 @@ type ColFilterCB = (fieldOrColumn: ViewFieldRec|ColumnRec, colFilter: ColumnFilt
 export class SectionFilter extends Disposable {
   public readonly sectionFilterFunc: Observable<RowFilterFunc<UIRowId>>;
 
-  private _openFilterOverride: Observable<OpenColumnFilter|null> = Observable.create(this, null);
+  private _openFilterOverride: Observable<OpenColumnFilter | null> = Observable.create(this, null);
 
   constructor(public viewSection: ViewSectionRec, private _tableData: TableData) {
     super();
 
     this.sectionFilterFunc = Computed.create(this, this._openFilterOverride, (use, openFilter) => {
       const openFilterFilterFunc = openFilter && use(openFilter.colFilter.filterFunc);
-      function getFilterFunc(fieldOrColumn: ViewFieldRec|ColumnRec, colFilter: ColumnFilterFunc|null) {
+      function getFilterFunc(fieldOrColumn: ViewFieldRec | ColumnRec, colFilter: ColumnFilterFunc | null) {
         if (openFilter?.colRef === fieldOrColumn.origCol().getRowId()) {
           return openFilterFilterFunc;
         }

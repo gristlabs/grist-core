@@ -47,7 +47,7 @@ export function buildTZAutocomplete(
   owner: IDisposableOwner,
   moment: MomentTimezone,
   valueObs: Observable<string>,
-  save: (value: string) => Promise<void>|void,
+  save: (value: string) => Promise<void> | void,
   options?: { disabled?: Observable<boolean> },
 ) {
   // Set a large maxResults, since it's sometimes nice to see all supported timezones (there are
@@ -59,7 +59,7 @@ export function buildTZAutocomplete(
 
   // Only save valid time zones. If there is no selected item, we'll auto-select and save only
   // when there is a good match.
-  const saveTZ = (value: string, item: ACSelectItem|undefined) => {
+  const saveTZ = (value: string, item: ACSelectItem | undefined) => {
     if (!item) {
       const results = acIndex.search(value);
       if (results.selectIndex >= 0 && results.items.length > 0) {

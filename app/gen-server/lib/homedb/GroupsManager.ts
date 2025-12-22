@@ -137,7 +137,7 @@ export class GroupsManager {
    * Does not modify inheritedGroups.
    */
   public moveInheritedGroups(
-    groups: NonGuestGroup[], inheritedGroups: Group[], dest?: roles.BasicRole|null,
+    groups: NonGuestGroup[], inheritedGroups: Group[], dest?: roles.BasicRole | null,
   ): void {
     // Limit scope to those inheritedGroups that have basic roles (viewers, editors, owners).
     inheritedGroups = inheritedGroups.filter(group => roles.isBasicRole(group.name));
@@ -209,7 +209,7 @@ export class GroupsManager {
    * Returns a name to group mapping for the standard groups. Useful when adding a new child
    * entity. Finds and includes the correct parent groups as member groups.
    */
-  public createGroups(inherit?: Organization|Workspace, ownerId?: number): { [name: string]: Group } {
+  public createGroups(inherit?: Organization | Workspace, ownerId?: number): { [name: string]: Group } {
     const groupMap: { [name: string]: Group } = {};
     this.defaultGroups.forEach((groupProps) => {
       if (!groupProps.orgOnly || !inherit) {
@@ -235,7 +235,7 @@ export class GroupsManager {
   }
 
   // Sets the given group to inherit the groups in the given parent resource.
-  public setInheritance(group: Group, parent: Organization|Workspace) {
+  public setInheritance(group: Group, parent: Organization | Workspace) {
     // Add the parent groups to the group
     const groupProps = this.defaultGroups.find(special => special.name === group.name);
     if (!groupProps) {
@@ -253,7 +253,7 @@ export class GroupsManager {
 
   // Returns the most permissive default role that does not have more permissions than the passed
   // in argument.
-  public getRoleFromPermissions(permissions: number): roles.Role|null {
+  public getRoleFromPermissions(permissions: number): roles.Role | null {
     permissions &= ~Permissions.PUBLIC; // tslint:disable-line:no-bitwise
     const group = this.defaultBasicGroups.find(grp =>
       (permissions & grp.permissions) === grp.permissions); // tslint:disable-line:no-bitwise
@@ -262,9 +262,9 @@ export class GroupsManager {
 
   // Returns the maxInheritedRole group name set on a resource.
   // The resource's aclRules, groups, and memberGroups must be populated.
-  public getMaxInheritedRole(res: Workspace|Document): roles.BasicRole|null {
+  public getMaxInheritedRole(res: Workspace | Document): roles.BasicRole | null {
     const groups = (res.aclRules as AclRule[]).map((_aclRule: AclRule) => _aclRule.group);
-    let maxInheritedRole: roles.NonGuestRole|null = null;
+    let maxInheritedRole: roles.NonGuestRole | null = null;
     for (const name of this.defaultBasicGroupNames) {
       const group = groups.find(_grp => _grp.name === name);
       if (!group) {
@@ -407,7 +407,7 @@ export class GroupsManager {
    */
   public async getGroupWithMembersById(
     id: number, opts?: { aclRule?: boolean }, optManager?: EntityManager,
-  ): Promise<Group|null> {
+  ): Promise<Group | null> {
     return await this._runInTransaction(optManager, async (manager) => {
       return await this._getGroupsQueryBuilder(manager, opts)
         .andWhere('groups.id = :groupId', { groupId: id })

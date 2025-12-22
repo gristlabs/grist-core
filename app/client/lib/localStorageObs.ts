@@ -27,7 +27,7 @@ export function sessionStorageBoolObs(key: string, defValue = false): Observable
 }
 
 function getStorageObs(store: Storage, key: string, defaultValue?: string) {
-  const obs = Observable.create<string|null>(null, store.getItem(key) ?? defaultValue ?? null);
+  const obs = Observable.create<string | null>(null, store.getItem(key) ?? defaultValue ?? null);
   obs.addListener(val => (val === null) ? store.removeItem(key) : store.setItem(key, val));
   return obs;
 }
@@ -35,14 +35,14 @@ function getStorageObs(store: Storage, key: string, defaultValue?: string) {
 /**
  * Helper to create a string observable whose state is stored in localStorage.
  */
-export function localStorageObs(key: string, defaultValue?: string): Observable<string|null> {
+export function localStorageObs(key: string, defaultValue?: string): Observable<string | null> {
   return getStorageObs(getStorage(), key, defaultValue);
 }
 
 /**
  * Similar to `localStorageObs`, but always uses sessionStorage (or an in-memory equivalent).
  */
-export function sessionStorageObs(key: string, defaultValue?: string): Observable<string|null> {
+export function sessionStorageObs(key: string, defaultValue?: string): Observable<string | null> {
   return getStorageObs(getSessionStorage(), key, defaultValue);
 }
 

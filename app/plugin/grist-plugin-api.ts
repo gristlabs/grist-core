@@ -229,7 +229,7 @@ export async function getSelectedTableId(): Promise<string> {
 // Get the ID of the current selected table if set (for custom widgets).
 // The ID may take some time to be set, or may never be set if the widget
 // is not linked to anything.
-export function getSelectedTableIdSync(): string|undefined {
+export function getSelectedTableIdSync(): string | undefined {
   return _tableId;
 }
 
@@ -239,18 +239,18 @@ export function getSelectedTableIdSync(): string|undefined {
 // Actual cached value. Undefined means that widget hasn't asked for configuration yet.
 // Here we are storing serialized configuration instead of actual one, since widget can
 // mutate returned value.
-let _mappingsCache: WidgetColumnMap|null|undefined;
+let _mappingsCache: WidgetColumnMap | null | undefined;
 // Since widget needs to ask for mappings during onRecord and onRecords event, we will reuse
 // current request if available;
-let _activeRefreshReq: Promise<void>|null = null;
+let _activeRefreshReq: Promise<void> | null = null;
 // Remember columns requested during ready call.
-let _columnsToMap: ColumnsToMap|undefined;
-let _tableId: string|undefined;
+let _columnsToMap: ColumnsToMap | undefined;
+let _tableId: string | undefined;
 let _setInitialized: () => void;
 const _initialization = new Promise<void>(resolve => _setInitialized = resolve);
 let _readyCalled: boolean = false;
 
-async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap|null> {
+async function getMappingsIfChanged(data: any): Promise<WidgetColumnMap | null> {
   const uninitialized = _mappingsCache === undefined;
   if (data.mappingsChange || uninitialized) {
     // If no active request.
@@ -286,7 +286,7 @@ export async function testWaitForPendingRequests() {
  */
 export function mapColumnNames(data: any, options?: {
   columns?: ColumnsToMap
-  mappings?: WidgetColumnMap|null,
+  mappings?: WidgetColumnMap | null,
   reverse?: boolean,
 }) {
   options = { columns: _columnsToMap, mappings: _mappingsCache, reverse: false, ...options };
@@ -366,7 +366,7 @@ export function mapColumnNames(data: any, options?: {
  */
 export function mapColumnNamesBack(data: any, options?: {
   columns?: ColumnsToMap
-  mappings?: WidgetColumnMap|null,
+  mappings?: WidgetColumnMap | null,
 }) {
   return mapColumnNames(data, { ...options, reverse: true });
 }
@@ -468,7 +468,7 @@ function onThemeChange(callback: (theme: any) => unknown) {
 export async function addImporter(name: string, path: string, mode: 'fullscreen' | 'inline', options?: RenderOptions) {
   // checker is omitted for implementation because call was already checked by grist.
   rpc.registerImpl<InternalImportSourceAPI>(name, {
-    async getImportSource(target: RenderTarget): Promise<ImportSource|undefined> {
+    async getImportSource(target: RenderTarget): Promise<ImportSource | undefined> {
       const procId = await api.render(path, mode === 'inline' ? target : 'fullscreen', options);
       try {
         // stubName for the interface `name` at forward destination `path`

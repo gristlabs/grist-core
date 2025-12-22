@@ -10,7 +10,7 @@ import * as path from 'path';
  * The resulting extension is used to choose a parser for imports, and to present the file back
  * to the user for attachments.
  */
-export async function guessExt(filePath: string, fileName: string, mimeType: string|null): Promise<string> {
+export async function guessExt(filePath: string, fileName: string, mimeType: string | null): Promise<string> {
   const origExt = path.extname(fileName).toLowerCase();   // Has the form ".xls"
 
   let mimeExt = extension(mimeType);          // Has the form "xls"

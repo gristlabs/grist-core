@@ -34,14 +34,14 @@ export abstract class AuthSession {
   public static unauthenticated(): AuthSession { return new UnauthenticatedAuthSession(); }
 
   public abstract org?: string;
-  public abstract altSessionId: string|null;
-  public abstract userId: number|null;
+  public abstract altSessionId: string | null;
+  public abstract userId: number | null;
   public abstract userIsAuthorized: boolean;
-  public abstract fullUser: FullUser|null;
+  public abstract fullUser: FullUser | null;
 
-  public get normalizedEmail(): string|undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
-  public get displayEmail(): string|undefined { return this.fullUser?.email; }
-  public get userAgeInDays(): number|undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
+  public get normalizedEmail(): string | undefined { return this.fullUser?.loginEmail ?? this.fullUser?.email; }
+  public get displayEmail(): string | undefined { return this.fullUser?.email; }
+  public get userAgeInDays(): number | undefined { return this._userAge ?? (this._userAge = this._calcAgeInDays()); }
 
   private _userAge?: number;
 

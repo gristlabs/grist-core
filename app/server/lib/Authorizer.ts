@@ -105,9 +105,9 @@ export function isSingleUserMode(): boolean {
  * A result of undefined means we should go on to consider other authentication
  * methods (such as cookies).
  */
-export function getRequestProfile(req: Request|IncomingMessage,
-  header: string): UserProfile|null|undefined {
-  let profile: UserProfile|null|undefined;
+export function getRequestProfile(req: Request | IncomingMessage,
+  header: string): UserProfile | null | undefined {
+  let profile: UserProfile | null | undefined;
 
   // Careful reading headers. If we have an IncomingMessage, there is no
   // get() function, and header names are lowercased.
@@ -166,12 +166,12 @@ export async function addRequestUser(
   options: {
     gristServer: GristServer,
     skipSession?: boolean,
-    overrideProfile?(req: Request|IncomingMessage): Promise<UserProfile|null|undefined>,
+    overrideProfile?(req: Request | IncomingMessage): Promise<UserProfile | null | undefined>,
   },
   req: Request, res: Response, next: NextFunction,
 ) {
   const mreq = req as RequestWithLogin;
-  let profile: UserProfile|undefined;
+  let profile: UserProfile | undefined;
 
   // We support multiple method of authentication. This flag gets set once
   // we need not try any more. Specifically, it is used to avoid processing
@@ -352,7 +352,7 @@ export async function addRequestUser(
 
       // See if we have a profile linked with the active organization already.
       // TODO: implement userSelector for rest API, to allow "sticky" user selection on pages.
-      let sessionUser: SessionUserObj|null = getSessionUser(session, mreq.org,
+      let sessionUser: SessionUserObj | null = getSessionUser(session, mreq.org,
         optStringParam(mreq.query.user, 'user') || '');
 
       if (!sessionUser) {
@@ -583,7 +583,7 @@ export async function getOrSetDocAuth(
 
 export interface ResourceSummary {
   kind: 'doc';
-  id: string|number;
+  id: string | number;
 }
 
 interface AssertAccessOptions {
@@ -598,7 +598,7 @@ interface AssertAccessOptions {
 }
 
 export function assertAccess(
-  role: 'viewers'|'editors'|'owners', docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
+  role: 'viewers' | 'editors' | 'owners', docAuth: DocAuthResult, options: AssertAccessOptions = {}) {
   const openMode = options.openMode || 'default';
   const details = { status: 403, accessMode: openMode };
   if (docAuth.error) {

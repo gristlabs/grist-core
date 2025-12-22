@@ -1076,7 +1076,7 @@ describe('UsersManager', function() {
 
       it('should complete several user profiles', async function() {
         const localPartPrefix = ensureUnique('completeprofiles-with-several-profiles');
-        const seq = Array(10).fill(null).map((_, i) => i+1);
+        const seq = Array(10).fill(null).map((_, i) => i + 1);
         const localParts = seq.map(i => `${localPartPrefix}_${i}`);
         const usersCreated = await Promise.all(
           localParts.map(localPart => getOrCreateUser(localPart)),
@@ -1336,7 +1336,7 @@ function assertExists<T>(value?: T, message?: string): asserts value is T {
   assert.exists(value, message);
 }
 
-function assertBetween(min: number, value: number|null|undefined, max: number, message?: string) {
+function assertBetween(min: number, value: number | null | undefined, max: number, message?: string) {
   assert.isNotNull(value, message);
   assert.isDefined(value, message);
   if (value !== null && value !== undefined) {

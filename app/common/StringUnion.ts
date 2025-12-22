@@ -46,7 +46,7 @@ export const StringUnion = <UnionType extends string>(...values: UnionType[]) =>
   /**
    * StringUnion.parse(value) returns value when it's valid, and undefined otherwise.
    */
-  const parse = (value: string|null|undefined): UnionType|undefined => {
+  const parse = (value: string | null | undefined): UnionType | undefined => {
     return value != null && guard(value) ? value : undefined;
   };
 

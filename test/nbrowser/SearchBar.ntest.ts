@@ -8,7 +8,7 @@ function currentSectionDesc() {
 
 // Wrapping in bluebird allows an exception stack to report the line in the calling function too.
 const checkMatch = bluebird.method(
-  async function(sectionName: string, rowNum: number, col: number|string, value: string) {
+  async function(sectionName: string, rowNum: number, col: number | string, value: string) {
     await $.wait(1000, async () => assert.deepEqual(await gu.getCursorPosition(), { rowNum, col }));
     assert.equal(await currentSectionDesc(), sectionName);
     assert.equal(await gu.getActiveCell().text(), value);

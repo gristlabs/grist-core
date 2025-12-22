@@ -12,8 +12,8 @@ export const NONE = '';
 export type ElemType = 'row' | 'col' | 'cell' | '';
 
 interface GridView extends BaseView {
-  domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
-  domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
+  domToRowModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
+  domToColModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
 }
 
 export class CellSelector extends Disposable {

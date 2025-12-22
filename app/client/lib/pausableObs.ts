@@ -13,7 +13,7 @@ export interface PausableObservable<T> extends Observable<T> {
  * updates and notifications to subscribers increases the chances of introducing bugs.
  */
 export function createPausableObs<T>(
-  owner: IDisposableOwner|null,
+  owner: IDisposableOwner | null,
   value: T,
 ): PausableObservable<T> {
   let _isPaused = false;

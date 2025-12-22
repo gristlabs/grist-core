@@ -10,7 +10,7 @@ import { Computed, dom, DomContents, IDisposableOwner, input, Observable, styled
 import fromPairs from 'lodash/fromPairs';
 import invert from 'lodash/invert';
 
-export type ParseOptionValueType = boolean|string|number;
+export type ParseOptionValueType = boolean | string | number;
 
 const t = makeT('ParseOptions');
 

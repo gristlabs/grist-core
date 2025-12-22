@@ -16,14 +16,14 @@ const t = makeT('ColorSelect');
 export interface StyleOptions {
   textColor: ColorOption,
   fillColor: ColorOption,
-  fontBold?: Observable<boolean|undefined>,
-  fontUnderline?: Observable<boolean|undefined>,
-  fontItalic?: Observable<boolean|undefined>,
-  fontStrikethrough?: Observable<boolean|undefined>,
+  fontBold?: Observable<boolean | undefined>,
+  fontUnderline?: Observable<boolean | undefined>,
+  fontItalic?: Observable<boolean | undefined>,
+  fontStrikethrough?: Observable<boolean | undefined>,
 }
 
 export class ColorOption {
-  public color: Observable<string|undefined>;
+  public color: Observable<string | undefined>;
   // If the color accepts undefined/empty as a value. Controls empty selector in the picker.
   public allowsNone: boolean = false;
   // Default color to show when value is empty or undefined (itself can be empty).
@@ -31,7 +31,7 @@ export class ColorOption {
   // Text to be shown in the picker when color is not set.
   public noneText: string = '';
   constructor(options: {
-    color: Observable<string|undefined>,
+    color: Observable<string | undefined>,
     allowsNone?: boolean,
     defaultColor?: string,
     noneText?: string
@@ -161,10 +161,10 @@ export function buildColorPicker(
   const fillColorModel = ColorModel.create(null, fillColor.color);
   const models: (BooleanModel | ColorModel)[] = [textColorModel, fillColorModel];
 
-  let fontBoldModel: BooleanModel|undefined;
-  let fontUnderlineModel: BooleanModel|undefined;
-  let fontItalicModel: BooleanModel|undefined;
-  let fontStrikethroughModel: BooleanModel|undefined;
+  let fontBoldModel: BooleanModel | undefined;
+  let fontUnderlineModel: BooleanModel | undefined;
+  let fontItalicModel: BooleanModel | undefined;
+  let fontStrikethroughModel: BooleanModel | undefined;
   if (fontBold) {
     fontBoldModel = BooleanModel.create(null, fontBold);
     models.push(fontBoldModel);
@@ -259,7 +259,7 @@ export function buildColorPicker(
 // needs to be changed locally without saving. To use, you must call `model.setValue(...)` instead
 // of `obs.set(...)`. Then it offers `model.needsSaving()` that tells you whether current value
 // needs saving, and `model.revert()` that reverts obs to the its server value.
-class PickerModel<T extends boolean|string|undefined> extends Disposable {
+class PickerModel<T extends boolean | string | undefined> extends Disposable {
   // Is current value different from the server value?
   public needsSaving: Observable<boolean>;
   private _serverValue: Observable<T>;
@@ -294,8 +294,8 @@ class PickerModel<T extends boolean|string|undefined> extends Disposable {
   }
 }
 
-class ColorModel extends PickerModel<string|undefined> {}
-class BooleanModel extends PickerModel<boolean|undefined> {}
+class ColorModel extends PickerModel<string | undefined> {}
+class BooleanModel extends PickerModel<boolean | undefined> {}
 
 interface PickerComponentOptions {
   title: string;
@@ -313,7 +313,7 @@ class PickerComponent extends Disposable {
     color || this._options.defaultColor);
 
   constructor(
-    private _model: PickerModel<string|undefined>,
+    private _model: PickerModel<string | undefined>,
     private _options: PickerComponentOptions) {
     super();
   }
@@ -379,7 +379,7 @@ class PickerComponent extends Disposable {
     );
   }
 
-  private _setValue(val: string|undefined) {
+  private _setValue(val: string | undefined) {
     this._model.setValue(val);
   }
 }

@@ -73,7 +73,7 @@ export class TestingHooks implements ITestingHooks {
     return this._port;
   }
 
-  public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile|null, org?: string): Promise<void> {
+  public async setLoginSessionProfile(gristSidCookie: string, profile: UserProfile | null, org?: string): Promise<void> {
     log.info("TestingHooks.setLoginSessionProfile called with", gristSidCookie, profile, org);
     const sessions = this._server.getSessions();
     const sessionId = sessions.getSessionIdFromCookie(gristSidCookie);
@@ -83,7 +83,7 @@ export class TestingHooks implements ITestingHooks {
     this._server.getSessions().clearCacheIfNeeded({ email: profile?.email, org });
   }
 
-  public async setServerVersion(version: string|null): Promise<void> {
+  public async setServerVersion(version: string | null): Promise<void> {
     log.info("TestingHooks.setServerVersion called with", version);
     this._comm.setServerVersion(version);
     for (const server of this._workerServers) {
@@ -173,7 +173,7 @@ export class TestingHooks implements ITestingHooks {
     }
   }
 
-  public async setDocWorkerActivation(workerId: string, active: 'active'|'inactive'|'crash'):
+  public async setDocWorkerActivation(workerId: string, active: 'active' | 'inactive' | 'crash'):
   Promise<void> {
     log.info("TestingHooks.setDocWorkerActivation called with", workerId, active);
     const matches = this._workerServers.filter(
@@ -236,7 +236,7 @@ export class TestingHooks implements ITestingHooks {
   }
 
   // Sets env vars for the DiscourseConnect module, and returns the previous value.
-  public async setDiscourseConnectVar(varName: string, value: string|null): Promise<string|null> {
+  public async setDiscourseConnectVar(varName: string, value: string | null): Promise<string | null> {
     const key = varName as keyof typeof DiscourseConnectDeps;
     const prev = DiscourseConnectDeps[key] || null;
     if (value == null) {
@@ -261,7 +261,7 @@ export class TestingHooks implements ITestingHooks {
   }
 
   // This is for testing the handling of unhandled exceptions and rejections.
-  public async tickleUnhandledErrors(errType: 'exception'|'rejection'|'error-event'): Promise<void> {
+  public async tickleUnhandledErrors(errType: 'exception' | 'rejection' | 'error-event'): Promise<void> {
     if (errType === 'exception') {
       setTimeout(() => { throw new Error("TestingHooks: Fake exception"); }, 0);
     }

@@ -48,7 +48,7 @@ export interface ColInfo {
   isFormula?: boolean;
   formula?: string;
   recalcWhen?: RecalcWhen;
-  recalcDeps?: [GristObjCode.List, ...number[]]|null;
+  recalcDeps?: [GristObjCode.List, ...number[]] | null;
   widgetOptions?: string;
 }
 
@@ -76,7 +76,7 @@ export interface ChartOptions {
   showTotal?: boolean;
   textSize?: number;
   isXAxisUndefined?: boolean;
-  orientation?: 'v'|'h';
+  orientation?: 'v' | 'h';
   aggregate?: boolean;
 }
 
@@ -278,7 +278,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   isSorted: ko.Computed<boolean>;
   disableDragRows: ko.Computed<boolean>;
   // Number of frozen columns
-  rawNumFrozen: modelUtil.CustomComputed<number|undefined>;
+  rawNumFrozen: modelUtil.CustomComputed<number | undefined>;
   // Number for frozen columns to display.
   // We won't freeze all the columns on a grid, it will leave at least 1 column unfrozen.
   numFrozen: ko.Computed<number>;
@@ -291,19 +291,19 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Temporary fields used to communicate with the Custom Widget. There are set through the Widget API.
 
   // Temporary variable holding columns mapping requested by the widget (set by API).
-  columnsToMap: ko.Observable<ColumnsToMap|null>;
+  columnsToMap: ko.Observable<ColumnsToMap | null>;
   // Map from widget columns to colIds in document.
-  mappedColumns: ko.Computed<WidgetColumnMap|null>;
+  mappedColumns: ko.Computed<WidgetColumnMap | null>;
   // Temporary variable holding flag that describes if the widget supports custom options (set by API).
   hasCustomOptions: ko.Observable<boolean>;
   // Temporary variable holding widget desired access (changed either from manifest or via API).
-  desiredAccessLevel: ko.Observable<AccessLevel|null>;
+  desiredAccessLevel: ko.Observable<AccessLevel | null>;
 
   // Show widget as linking source. Used by custom widget.
   allowSelectBy: ko.Observable<boolean>;
 
   // List of selected rows from a custom widget, or null if a filter shouldn't be applied.
-  selectedRows: ko.Observable<number[]|null>;
+  selectedRows: ko.Observable<number[] | null>;
 
   // If the row filter is active (i.e. if selectedRows is non-null). Separate computed to avoid
   // re-computing the filter when selectedRows changes.
@@ -317,7 +317,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Some computed observables for multi-select, used in the creator panel, by more than one widgets.
 
   // Common column behavior or mixed.
-  columnsBehavior: ko.PureComputed<BEHAVIOR|'mixed'>;
+  columnsBehavior: ko.PureComputed<BEHAVIOR | 'mixed'>;
   // If all selected columns are empty or formula column.
   columnsAllIsFormula: ko.PureComputed<boolean>;
   // Common type of selected columns or mixed.
@@ -337,10 +337,10 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    * If the section can be renamed, used mostly by virtual tables. If undefined defaults to the caller
    * of the buildViewSectionDom function (which in turn defaults to true).
    */
-  canRename: ko.Observable<boolean|undefined>;
+  canRename: ko.Observable<boolean | undefined>;
 
   // If set, overrides the value of disableAddRemoveRows().
-  overrideDisableAddRemoveRows: ko.Observable<boolean|undefined>;
+  overrideDisableAddRemoveRows: ko.Observable<boolean | undefined>;
 
   // Save all filters of fields/columns in the section.
   saveFilters(): Promise<void>;
@@ -357,7 +357,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
   // Saves custom definition (bundles change)
   saveCustomDef(): Promise<void>;
 
-  insertColumn(colId?: string|null, options?: InsertColOptions): Promise<NewFieldInfo>;
+  insertColumn(colId?: string | null, options?: InsertColOptions): Promise<NewFieldInfo>;
 
   /**
    * Shows column (by adding a view field)
@@ -365,27 +365,27 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    * @param index Position to insert the column at
    * @returns ViewField rowId
    */
-  showColumn(col: number|string, index?: number): Promise<number>
+  showColumn(col: number | string, index?: number): Promise<number>
 
   /**
    * Removes one or multiple fields.
    * @param colRef
    */
-  removeField(colRef: number|Array<number>): Promise<void>;
+  removeField(colRef: number | Array<number>): Promise<void>;
 }
 
-export type WidgetMappedColumn = number|number[]|null;
+export type WidgetMappedColumn = number | number[] | null;
 export type WidgetColumnMapping = Record<string, WidgetMappedColumn>;
 
 export interface CustomViewSectionDef {
   /**
    * The mode.
    */
-  mode: modelUtil.KoSaveableObservable<"url"|"plugin">;
+  mode: modelUtil.KoSaveableObservable<"url" | "plugin">;
   /**
    * The url.
    */
-  url: modelUtil.KoSaveableObservable<string|null>;
+  url: modelUtil.KoSaveableObservable<string | null>;
   /**
    * A widgetId, if available. Preferred to url.
    * For bundled custom widgets, it is important to refer
@@ -394,7 +394,7 @@ export interface CustomViewSectionDef {
    * documents between deployments if they have compatible
    * widgets available.
    */
-  widgetId: modelUtil.KoSaveableObservable<string|null>;
+  widgetId: modelUtil.KoSaveableObservable<string | null>;
   /**
     * Custom widget information. This is a record of what was
     * in a custom widget manifest entry when the widget was
@@ -402,15 +402,15 @@ export interface CustomViewSectionDef {
     * In particular, any URL contained may come from an entirely
     * different installation of Grist.
     */
-  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget|null>;
+  widgetDef: modelUtil.KoSaveableObservable<ICustomWidget | null>;
   /**
    * Custom widget options.
    */
-  widgetOptions: modelUtil.KoSaveableObservable<Record<string, any>|null>;
+  widgetOptions: modelUtil.KoSaveableObservable<Record<string, any> | null>;
   /**
    * Custom widget interaction options.
    */
-  columnsMapping: modelUtil.KoSaveableObservable<WidgetColumnMapping|null>;
+  columnsMapping: modelUtil.KoSaveableObservable<WidgetColumnMapping | null>;
   /**
    * Access granted to url.
    */
@@ -437,7 +437,7 @@ export interface FilterInfo {
   /** The section that's being filtered. */
   viewSection: ViewSectionRec;
   /** The field or column that's being filtered. (Field if column is visible.) */
-  fieldOrColumn: ViewFieldRec|ColumnRec;
+  fieldOrColumn: ViewFieldRec | ColumnRec;
   /** Filter that applies to this field/column, if any. */
   filter: modelUtil.CustomComputed<string>;
   /** Whether this filter is pinned to the filter bar. */
@@ -756,7 +756,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   // twist: a rowId may be positive or negative, for ascending or descending respectively.
   // TODO: This method of ignoring columns which are deleted is inefficient and may cause conflicts
   //  with sharing.
-  this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec|null) => {
+  this.activeSortSpec = modelUtil.jsonObservable(this.activeSortJson, (obj: Sort.SortSpec | null) => {
     const tableId = this.tableRef();
     return (obj || []).filter((sortRef: Sort.ColSpec) => {
       const colModel = docModel.columns.getRowModel(Sort.getColRef(sortRef) as number /* HACK: for virtual tables */);
@@ -817,7 +817,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.linkSrcCol = refRecord(docModel.columns, this.linkSrcColRef);
   this.linkTargetCol = refRecord(docModel.columns, this.linkTargetColRef);
 
-  this.activeRowId = ko.observable<UIRowId|null>(null);
+  this.activeRowId = ko.observable<UIRowId | null>(null);
   this.lastCursorEdit = ko.observable<SequenceNum>(SequenceNEVER);
 
   this._linkingState = Holder.create(this);
@@ -843,7 +843,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   }));
 
   // If the view instance for this section is instantiated, it will be accessible here.
-  this.viewInstance = ko.observable<BaseView|null>(null);
+  this.viewInstance = ko.observable<BaseView | null>(null);
 
   // Describes the most recent cursor position in the section.
   this.lastCursorPos = {
@@ -886,8 +886,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.autoDispose(subscribe(this.rowHeight, this.rowHeightUniform, () => this.events.trigger('rowHeightChange')));
 
   this.hasCustomOptions = ko.observable(false);
-  this.desiredAccessLevel = ko.observable<AccessLevel|null>(null);
-  this.columnsToMap = ko.observable<ColumnsToMap|null>(null);
+  this.desiredAccessLevel = ko.observable<AccessLevel | null>(null);
+  this.columnsToMap = ko.observable<ColumnsToMap | null>(null);
   // Calculate mapped columns for Custom Widget.
   this.mappedColumns = ko.pureComputed(() => {
     // First check if widget has requested a custom column mapping and
@@ -937,7 +937,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   });
 
   this.allowSelectBy = ko.observable(false);
-  this.selectedRows = ko.observable(null as number[]|null);
+  this.selectedRows = ko.observable(null as number[] | null);
   this.selectedRowsActive = this.autoDispose(ko.pureComputed(() => this.selectedRows() !== null));
 
   this.tableId = this.autoDispose(ko.pureComputed(() => this.table().tableId()));
@@ -970,7 +970,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return list.includes(this.id());
   }));
 
-  this.insertColumn = async (colId: string|null = null, options: InsertColOptions = {}) => {
+  this.insertColumn = async (colId: string | null = null, options: InsertColOptions = {}) => {
     const { colInfo = {}, index = this.viewFields().peekLength } = options;
     const parentPos = fieldInsertPositions(this.viewFields(), index)[0];
     const action = ['AddColumn', colId, {
@@ -993,7 +993,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return newColInfo!;
   };
 
-  this.showColumn = async (col: string|number, index = this.viewFields().peekLength) => {
+  this.showColumn = async (col: string | number, index = this.viewFields().peekLength) => {
     const parentPos = fieldInsertPositions(this.viewFields(), index, 1)[0];
     const colRef = typeof col === 'string' ?
       this.table().columns().all().find(c => c.colId() === col)?.getRowId() :
@@ -1006,7 +1006,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     return await docModel.viewFields.sendTableAction(['AddRecord', null, colInfo]);
   };
 
-  this.removeField = async (fieldRef: number|number[]) => {
+  this.removeField = async (fieldRef: number | number[]) => {
     if (Array.isArray(fieldRef)) {
       const action = ['BulkRemoveRecord', fieldRef];
       await docModel.viewFields.sendTableAction(action);
@@ -1018,7 +1018,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   };
 
   this.hideViewMenu = ko.observable(false);
-  this.canRename = ko.observable<boolean|undefined>(undefined);
+  this.canRename = ko.observable<boolean | undefined>(undefined);
   this.canExpand = ko.observable<boolean>(true);
-  this.overrideDisableAddRemoveRows = ko.observable<boolean|undefined>(undefined);
+  this.overrideDisableAddRemoveRows = ko.observable<boolean | undefined>(undefined);
 }

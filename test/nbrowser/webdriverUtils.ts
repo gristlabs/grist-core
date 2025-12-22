@@ -3,7 +3,7 @@ import { assert, driver } from 'mocha-webdriver';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
-export async function fetchScreenshotAndLogs(test: Mocha.Runnable|undefined) {
+export async function fetchScreenshotAndLogs(test: Mocha.Runnable | undefined) {
   const dir = process.env.MOCHA_WEBDRIVER_LOGDIR!;
   assert.isOk(dir, "driverLogging: MOCHA_WEBDRIVER_LOGDIR not set");
   const testName = test?.file ? path.basename(test.file, path.extname(test.file)) : "unnamed";
@@ -15,7 +15,7 @@ export async function fetchScreenshotAndLogs(test: Mocha.Runnable|undefined) {
 }
 
 export async function withDriverLogging(
-  test: Mocha.Runnable|undefined, periodMs: number, timeoutMs: number,
+  test: Mocha.Runnable | undefined, periodMs: number, timeoutMs: number,
   callback: () => Promise<void>,
 ) {
   let running = false;

@@ -33,16 +33,16 @@ export interface SessionObs<T> extends Observable<T> {
  *
  */
 export function createSessionObs<T>(
-  owner: IDisposableOwner|null,
+  owner: IDisposableOwner | null,
   key: string,
   _default: T,
   isValid: (val: any) => val is T,
 ): SessionObs<T> {
-  function fromString(value: string|null): T {
+  function fromString(value: string | null): T {
     const parsed = value == null ? null : safeJsonParse(value, null);
     return isValid(parsed) ? parsed : _default;
   }
-  function toString(value: T): string|null {
+  function toString(value: T): string | null {
     return value === _default || !isValid(value) ? null : JSON.stringify(value);
   }
   let _pauseSaving = false;

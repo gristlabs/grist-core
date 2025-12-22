@@ -91,7 +91,7 @@ export class FloatingPopup extends Disposable {
   private _startY: number;
   private _startLeft: number;
   private _startTop: number;
-  private _cursorGrab: IDisposable|null = null;
+  private _cursorGrab: IDisposable | null = null;
 
   constructor(protected _options: PopupOptions) {
     super();
@@ -364,7 +364,7 @@ export class FloatingPopup extends Disposable {
               ),
               cssPopupButtons(
                 this._popupMinimizeButtonElement = cssPopupHeaderButton(
-                  isMinimized ? icon('Maximize'): icon('Minimize'),
+                  isMinimized ? icon('Maximize') : icon('Minimize'),
                   hoverTooltip(isMinimized ? t('Maximize') : t('Minimize'), {
                     key: FLOATING_POPUP_TOOLTIP_KEY,
                   }),

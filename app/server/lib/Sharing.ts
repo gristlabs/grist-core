@@ -50,7 +50,7 @@ export class Sharing {
   }
 
   /** Returns the instanceId if the doc is shared or null otherwise. */
-  public get instanceId(): string|null { return null; }
+  public get instanceId(): string | null { return null; }
 
   /**
    * The only public interface. This may be called at any time, but the work happens for at most
@@ -70,7 +70,7 @@ export class Sharing {
 
   private async _doApplyUserActions(info: ActionInfo, userActions: UserAction[],
     docSession: OptDocSession,
-    options: ApplyUAExtendedOptions|null): Promise<ApplyUAResult> {
+    options: ApplyUAExtendedOptions | null): Promise<ApplyUAResult> {
     const client = docSession && docSession.client;
 
     if (docSession?.linkId) {
@@ -241,7 +241,7 @@ export class Sharing {
   private async _applyActionsToDataEngine(
     docSession: OptDocSession,
     userActions: UserAction[],
-    options: ApplyUAExtendedOptions|null): Promise<ApplyResult> {
+    options: ApplyUAExtendedOptions | null): Promise<ApplyResult> {
     const applyResult = await this._activeDoc.applyActionsToDataEngine(docSession, userActions);
     const insightLog = insightLogEntry();
     insightLog?.mark("dataEngine");
@@ -303,10 +303,10 @@ export class Sharing {
   }
 
   private _startGranularAccessForBundle(
-    docSession: OptDocSession|null,
+    docSession: OptDocSession | null,
     bundle: SandboxActionBundle,
     userActions: UserAction[],
-    options: ApplyUAExtendedOptions|null,
+    options: ApplyUAExtendedOptions | null,
   ) {
     const undo = getEnvContent(bundle.undo);
     const docActions = getEnvContent(bundle.stored).concat(getEnvContent(bundle.calc));
@@ -327,7 +327,7 @@ export class Sharing {
    * @param undoSource Actions that were sent to perform the undo.
    * @returns A bundle with extra actions that were applied to the data engine or null if there are no extra actions.
    */
-  private _createExtraBundle(undoResult: SandboxActionBundle, undoSource: DocAction[]): SandboxActionBundle|null {
+  private _createExtraBundle(undoResult: SandboxActionBundle, undoSource: DocAction[]): SandboxActionBundle | null {
     // First check that what we sent is what we stored, since those are undo actions, they should be identical. We
     // need to reverse the order of undo actions (they are reversed in data-engine by ApplyUndoActions)
     const sent = undoSource.slice().reverse();

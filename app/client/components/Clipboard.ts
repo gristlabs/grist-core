@@ -48,7 +48,7 @@ export interface PasteObj {
   cutCallback?: CutCallback;
 }
 
-export type CutCallback = () => DocAction|null;
+export type CutCallback = () => DocAction | null;
 
 export class Clipboard extends Disposable {
   public static commands = {
@@ -91,11 +91,11 @@ export class Clipboard extends Disposable {
 
   // In the event of a cut a callback is provided by the viewsection that is the target of the cut.
   // When called it returns the additional removal action needed for a cut.
-  private _cutCallback: (() => unknown)|null = null;
+  private _cutCallback: (() => unknown) | null = null;
 
   // The plaintext content of the cut callback. Used to verify that we are pasting the results
   // of the cut, rather than new data from outside.
-  private _cutData: string|null = null;
+  private _cutData: string | null = null;
 
   constructor(private _app: App) {
     super();
@@ -184,7 +184,7 @@ export class Clipboard extends Disposable {
     this._setCutCallback(pasteObj, plainText);
   }
 
-  private async _copyToClipboard(pasteObj: PasteObj, action: 'cut'|'copy', includeColHeaders: boolean = false) {
+  private async _copyToClipboard(pasteObj: PasteObj, action: 'cut' | 'copy', includeColHeaders: boolean = false) {
     if (!pasteObj) { return; }
 
     const plainText = makePasteText(pasteObj.data, pasteObj.selection, includeColHeaders);
@@ -317,7 +317,7 @@ function getPasteData(plainText: string, htmlText: string, fileItems: File[]): P
  * Returns an empty string if `clipboardItem` is nullish or no data exists
  * for the given `type`.
  */
-async function getTextFromClipboardItem(clipboardItem: ClipboardItem|undefined, type: string) {
+async function getTextFromClipboardItem(clipboardItem: ClipboardItem | undefined, type: string) {
   if (!clipboardItem) { return ''; }
 
   try {
@@ -345,7 +345,7 @@ async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Prom
   return blobs.map(blob => new File([blob], 'from-clipboard', { type: blob.type }));
 }
 
-function showUnavailableMenuCommandModal(action: 'cut'|'copy'|'paste') {
+function showUnavailableMenuCommandModal(action: 'cut' | 'copy' | 'paste') {
   let keys;
   switch (action) {
     case 'cut': {

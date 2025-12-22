@@ -7,15 +7,15 @@ import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
 const modelCalls = obsArray<string>();
 const disposed = obsArray<string>();
-const selected = observable<TreeItem|null>(null);
+const selected = observable<TreeItem | null>(null);
 
-function getLabel(item: TreeItem|null) {
+function getLabel(item: TreeItem | null) {
   return item ? (item as any).label : "null";
 }
 
 function callbacks(label: string) {
   return {
-    insertBefore: (newChild: TreeItem, nextChild: TreeItem|null) => modelCalls.push(
+    insertBefore: (newChild: TreeItem, nextChild: TreeItem | null) => modelCalls.push(
       `insert ${getLabel(newChild)} before ${getLabel(nextChild)} in ${label}`,
     ),
     removeChild: (child: TreeItem) => modelCalls.push(
@@ -24,7 +24,7 @@ function callbacks(label: string) {
   };
 }
 
-function treeItem(label: string, children: TreeItem[]|null = null) {
+function treeItem(label: string, children: TreeItem[] | null = null) {
   let item: any;
   return item = {
     label,

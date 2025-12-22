@@ -39,8 +39,8 @@ export async function getWorker(api: UserAPI, assignmentId: string): Promise<str
 
 type CallType = "getDoc" | "getWorker";
 
-function findAndResetInGristConfig(method: "getDoc", id: string): Document|null;
-function findAndResetInGristConfig(method: "getWorker", id: string): string|null;
+function findAndResetInGristConfig(method: "getDoc", id: string): Document | null;
+function findAndResetInGristConfig(method: "getWorker", id: string): string | null;
 function findAndResetInGristConfig(method: CallType, id: string): any {
   const gristConfig = getGristConfig();
   const methodCache = gristConfig[method];

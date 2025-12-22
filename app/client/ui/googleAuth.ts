@@ -60,7 +60,7 @@ function getGoogleAuthCode(owner: Disposable, scope: string) {
   const authLink = getGoogleAuthEndpoint(scope);
   const authWindow = openPopup(authLink);
   return new Promise<string>((resolve, reject) => {
-    attachListener(owner, authWindow, async (event: MessageEvent|null) => {
+    attachListener(owner, authWindow, async (event: MessageEvent | null) => {
       // If the no message, or window was closed (user closed it intentionally).
       if (!event || authWindow.closed) {
         reject(new Error(AUTH_INTERRUPTED));
@@ -90,7 +90,7 @@ function getGoogleAuthCode(owner: Disposable, scope: string) {
 }
 
 // Helper function that attaches a handler to message event from a popup window.
-function attachListener(owner: Disposable, popup: Window, listener: (e: MessageEvent|null) => void) {
+function attachListener(owner: Disposable, popup: Window, listener: (e: MessageEvent | null) => void) {
   const wrapped = (e: MessageEvent) => {
     // Listen to events only from our window.
     if (e.source !== popup) { return; }

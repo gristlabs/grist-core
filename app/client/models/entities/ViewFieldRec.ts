@@ -35,7 +35,7 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   editingFormula: ko.Computed<boolean>;
 
   // CSS class to add to formula cells, incl. to show that we are editing field's formula.
-  formulaCssClass: ko.Computed<string|null>;
+  formulaCssClass: ko.Computed<string | null>;
 
   // The fields's display column
   _displayColModel: ko.Computed<ColumnRec>;
@@ -50,7 +50,7 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   //    .widgetOptions()        // JSON string of options
   //    .saveDisplayFormula()   // Method to save the display formula
   //    .displayCol()           // Reference to an optional associated display column.
-  _fieldOrColumn: ko.Computed<ColumnRec|ViewFieldRec>;
+  _fieldOrColumn: ko.Computed<ColumnRec | ViewFieldRec>;
 
   // Display col ref to use for the field, defaulting to the plain column itself.
   displayColRef: ko.Computed<number>;
@@ -73,19 +73,19 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
 
   // Whether lines should wrap in a cell.
   wrap: modelUtil.KoSaveableObservable<boolean>;
-  widget: modelUtil.KoSaveableObservable<string|undefined>;
-  textColor: modelUtil.KoSaveableObservable<string|undefined>;
-  fillColor: modelUtil.KoSaveableObservable<string|undefined>;
-  fontBold: modelUtil.KoSaveableObservable<boolean|undefined>;
-  fontUnderline: modelUtil.KoSaveableObservable<boolean|undefined>;
-  fontItalic: modelUtil.KoSaveableObservable<boolean|undefined>;
-  fontStrikethrough: modelUtil.KoSaveableObservable<boolean|undefined>;
-  headerTextColor: modelUtil.KoSaveableObservable<string|undefined>;
-  headerFillColor: modelUtil.KoSaveableObservable<string|undefined>;
-  headerFontBold: modelUtil.KoSaveableObservable<boolean|undefined>;
-  headerFontUnderline: modelUtil.KoSaveableObservable<boolean|undefined>;
-  headerFontItalic: modelUtil.KoSaveableObservable<boolean|undefined>;
-  headerFontStrikethrough: modelUtil.KoSaveableObservable<boolean|undefined>;
+  widget: modelUtil.KoSaveableObservable<string | undefined>;
+  textColor: modelUtil.KoSaveableObservable<string | undefined>;
+  fillColor: modelUtil.KoSaveableObservable<string | undefined>;
+  fontBold: modelUtil.KoSaveableObservable<boolean | undefined>;
+  fontUnderline: modelUtil.KoSaveableObservable<boolean | undefined>;
+  fontItalic: modelUtil.KoSaveableObservable<boolean | undefined>;
+  fontStrikethrough: modelUtil.KoSaveableObservable<boolean | undefined>;
+  headerTextColor: modelUtil.KoSaveableObservable<string | undefined>;
+  headerFillColor: modelUtil.KoSaveableObservable<string | undefined>;
+  headerFontBold: modelUtil.KoSaveableObservable<boolean | undefined>;
+  headerFontUnderline: modelUtil.KoSaveableObservable<boolean | undefined>;
+  headerFontItalic: modelUtil.KoSaveableObservable<boolean | undefined>;
+  headerFontStrikethrough: modelUtil.KoSaveableObservable<boolean | undefined>;
   // Helper computed to change style of a cell and headerStyle without saving it.
   style: ko.PureComputed<Style>;
   headerStyle: ko.PureComputed<HeaderStyle>;
@@ -106,15 +106,15 @@ export interface ViewFieldRec extends IRowModel<"_grist_Views_section_field">, R
   formatter: ko.Computed<BaseFormatter>;
 
   /** Label in FormView. By default FormView uses label, use this to override it. */
-  question: modelUtil.KoSaveableObservable<string|undefined>;
+  question: modelUtil.KoSaveableObservable<string | undefined>;
 
-  dropdownCondition: modelUtil.KoSaveableObservable<DropdownCondition|undefined>;
-  dropdownConditionCompiled: Computed<DropdownConditionCompilationResult|null>;
+  dropdownCondition: modelUtil.KoSaveableObservable<DropdownCondition | undefined>;
+  dropdownConditionCompiled: Computed<DropdownConditionCompilationResult | null>;
 
   createValueParser(): (value: string) => any;
 
   // Helper which adds/removes/updates field's displayCol to match the formula.
-  saveDisplayFormula(formula: string): Promise<void>|undefined;
+  saveDisplayFormula(formula: string): Promise<void> | undefined;
 }
 
 export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void {
@@ -151,7 +151,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   }));
 
   // CSS class to add to formula cells, incl. to show that we are editing this field's formula.
-  this.formulaCssClass = this.autoDispose(ko.pureComputed<string|null>(() => {
+  this.formulaCssClass = this.autoDispose(ko.pureComputed<string | null>(() => {
     const col = this.column();
 
     // If the current column is transforming, assign the CSS class "transform_field"

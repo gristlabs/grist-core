@@ -8,7 +8,7 @@ import * as sinon from 'sinon';
 describe('gutil2', function() {
   describe('waitObs', function() {
     it('should resolve promise when predicate matches', async function() {
-      const obs: ko.Observable<number|null> = ko.observable<number|null>(null);
+      const obs: ko.Observable<number | null> = ko.observable<number | null>(null);
       const promise1 = gutil.waitObs(obs, val => Boolean(val));
       const promise2 = gutil.waitObs(obs, val => (val === null));
       const promise3 = gutil.waitObs(obs, val => (val! > 20));
@@ -32,7 +32,7 @@ describe('gutil2', function() {
 
   describe('waitGrainObs', function() {
     it('should resolve promise when predicate matches', async function() {
-      const obs = Observable.create<number|null>(null, null);
+      const obs = Observable.create<number | null>(null, null);
       const promise1 = gutil.waitGrainObs(obs, val => Boolean(val));
       const promise2 = gutil.waitGrainObs(obs, val => (val === null));
       const promise3 = gutil.waitGrainObs(obs, val => (val! > 20));

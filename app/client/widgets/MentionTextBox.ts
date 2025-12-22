@@ -102,7 +102,7 @@ export class CommentWithMentions {
 
 export function buildMentionTextBox(
   content: Observable<CommentWithMentions>,
-  access: Observable<PermissionData|null>,
+  access: Observable<PermissionData | null>,
   ...args: IDomArgs<HTMLSpanElement>
 ) {
   const owner = new MultiHolder();
@@ -236,7 +236,7 @@ function enforceNotEditableChildren(element: HTMLElement) {
 
 interface MentionPickerProps {
   parent: HTMLElement;
-  access: Observable<PermissionData|null>;
+  access: Observable<PermissionData | null>;
   mentionEl: HTMLElement;
   setHtml: (html: HTMLElement) => void;
 }
@@ -250,7 +250,7 @@ function buildMentionElement() {
  * Component with autocomplete popup for mentioning users.
  */
 class MentionPicker extends Disposable {
-  private _acIndex: Computed<ACIndexImpl<UserItem>|null>;
+  private _acIndex: Computed<ACIndexImpl<UserItem> | null>;
   private _ac: Autocomplete<UserItem>;
   private _hasData: Computed<boolean>;
   private _mentionEl: HTMLElement;

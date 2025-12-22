@@ -21,9 +21,9 @@ export class ViewFieldConfig {
   public headerStyle: ko.Computed<StyleOptions>;
 
   // Rest of the options mimic the same options from ViewFieldRec.
-  public wrap: modelUtil.KoSaveableObservable<boolean|undefined>;
-  public widget: ko.Computed<string|undefined>;
-  public alignment: modelUtil.KoSaveableObservable<string|undefined>;
+  public wrap: modelUtil.KoSaveableObservable<boolean | undefined>;
+  public widget: ko.Computed<string | undefined>;
+  public alignment: modelUtil.KoSaveableObservable<string | undefined>;
   public fields: ko.PureComputed<ViewFieldRec[]>;
   constructor(private _field: ViewFieldRec, private _docModel: DocModel) {
     // Everything here will belong to a _field, this class is just a builder.
@@ -108,7 +108,7 @@ export class ViewFieldConfig {
       const fields = listFields();
       // Put all options of first widget in the Set, and then remove
       // them one by one, if they are not present in other fields.
-      let options: Set<string>|null = null;
+      let options: Set<string> | null = null;
       for (const field of fields) {
         // First get the data, and prepare initial set.
         const widget = field.widget() || '';

@@ -34,7 +34,7 @@ export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], vie
  * If `view` is set to 'icons', the template will be rendered
  * as a clickable tile that includes a title, image and description.
  */
-function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, view: 'list'|'icons') {
+function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, view: 'list' | 'icons') {
   if (view === 'icons') {
     return buildPinnedDoc(home, doc, workspace, true);
   }

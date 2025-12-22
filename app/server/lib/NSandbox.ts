@@ -135,7 +135,7 @@ export class NSandbox implements ISandbox {
   private _lastStderr: Uint8Array;  // Record last error line seen.
 
   // Size of the last pyCall() response in bytes.
-  private _lastResponseNumBytes: number|undefined = undefined;
+  private _lastResponseNumBytes: number | undefined = undefined;
 
   // Create a unique subdirectory for each sandbox process so they can be replayed separately
   private _recordBuffersDir = recordBuffersRoot ? path.resolve(recordBuffersRoot, new Date().toISOString()) : null;
@@ -260,7 +260,7 @@ export class NSandbox implements ISandbox {
     }
   }
 
-  public getLastResponseNumBytes(): number|undefined {
+  public getLastResponseNumBytes(): number | undefined {
     return this._lastResponseNumBytes;
   }
 
@@ -695,7 +695,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   // in this case, so we just use a different pipe. There's a different
   // problem with stdout, with the same solution.
   const spawnOptions = {
-    stdio: ['ignore', 'ignore', 'pipe', 'ipc', 'pipe', 'pipe'] as Array<'pipe'|'ipc'>,
+    stdio: ['ignore', 'ignore', 'pipe', 'ipc', 'pipe', 'pipe'] as Array<'pipe' | 'ipc'>,
     env: {
       PYTHONPATH: paths.engine,
       IMPORTDIR: options.importDir,
@@ -1099,11 +1099,11 @@ function getAbsolutePaths(options: ISandboxOptions) {
 class FlagBag {
   private _args: string[] = [];
 
-  constructor(private _options: { env: '--env'|'-E', mount: '-m'|'-v' }) {
+  constructor(private _options: { env: '--env' | '-E', mount: '-m' | '-v' }) {
   }
 
   // channel env variables for sandbox via -E / --env
-  public addEnv(key: string, value: string|undefined) {
+  public addEnv(key: string, value: string | undefined) {
     this._args.push(this._options.env, key + '=' + (value || ''));
   }
 
@@ -1135,7 +1135,7 @@ const FAKETIME = '2020-01-01 00:00:00';
  * Find a plausible version of python to run, if none provided.
  * The preferred version is only used if command is not specified.
  */
-function findPython(command: string|undefined): string {
+function findPython(command: string | undefined): string {
   if (command) { return command; }
   // No command specified.  In this case, grist-core looks for a "venv"
   // virtualenv; a python3 virtualenv would be in "sandbox_venv3".

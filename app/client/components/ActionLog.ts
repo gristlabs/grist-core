@@ -63,7 +63,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   public selectedTableId: ko.Computed<string>;
   public showAllTables: ko.Observable<boolean>;      // should all tables be visible?
 
-  private _gristDoc: GristDoc|null;
+  private _gristDoc: GristDoc | null;
 
   private _pending: ActionGroupWithState[] = [];  // cache for actions that arrive while loading log
   private _loaded: boolean = false;               // flag set once log is loaded
@@ -76,7 +76,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
    *   can cross-reference with it.  We may not have a document, if used from the
    *   command line renderActions utility, in which case we don't set up cross-references.
    */
-  public create(options: { gristDoc: GristDoc|null }) {
+  public create(options: { gristDoc: GristDoc | null }) {
     // By default, just show actions for the currently viewed table.
     this.showAllTables = ko.observable(false);
     // We load the ActionLog lazily now, when it is first viewed.
@@ -295,7 +295,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
  */
 export abstract class ActionLogPart extends Disposable {
   public constructor(
-    private _gristDocBase: GristDoc|null,
+    private _gristDocBase: GristDoc | null,
   ) {
     super();
   }
@@ -317,7 +317,7 @@ export abstract class ActionLogPart extends Disposable {
   /**
    * Should return completions for the rows mentioned in this entry.
    */
-  public abstract getContext(): Promise<ActionContext|undefined>;
+  public abstract getContext(): Promise<ActionContext | undefined>;
 
   /**
    * Render a description of an action prepared on the server.
@@ -396,7 +396,7 @@ export abstract class ActionLogPart extends Disposable {
    *   or a plain string, or null
    *
    */
-  private _renderCell(cell: CellDelta|string|null) {
+  private _renderCell(cell: CellDelta | string | null) {
     // we'll show completely empty cells as "..."
     if (cell === null) {
       return "...";
@@ -533,8 +533,8 @@ export abstract class ActionLogPart extends Disposable {
  */
 class ActionLogPartInList extends ActionLogPart {
   public constructor(
-    private _gristDoc: GristDoc|null,
-    private _actionGroup: ActionGroupWithState|undefined,
+    private _gristDoc: GristDoc | null,
+    private _actionGroup: ActionGroupWithState | undefined,
     private _actionLog: ActionLog,
   ) {
     super(_gristDoc);
@@ -569,7 +569,7 @@ class ActionLogPartInList extends ActionLogPart {
     await showCell(this._gristDoc, { tableId, colId, rowId });
   }
 
-  public async getContext(): Promise<ActionContext|undefined> {
+  public async getContext(): Promise<ActionContext | undefined> {
     if (!this._gristDoc) { return; }
     if (!this._actionGroup) { return; }
     const base = this._actionGroup.actionSummary;
@@ -609,7 +609,7 @@ export function traceCell(cell: { rowId: number, colId: string, tableId: string 
   let { tableId, colId } = cell;
   const { rowId } = cell;
   // Check if this table was renamed / removed.
-  const tableRename: LabelDelta|undefined = summary.tableRenames.find(r => r[0] === tableId);
+  const tableRename: LabelDelta | undefined = summary.tableRenames.find(r => r[0] === tableId);
   if (tableRename) {
     const newName = tableRename[1];
     if (!newName) {
@@ -630,7 +630,7 @@ export function traceCell(cell: { rowId: number, colId: string, tableId: string 
   }
 
   // Check if this column was renamed / added.
-  const columnRename: LabelDelta|undefined = td.columnRenames.find(r => r[0] === colId);
+  const columnRename: LabelDelta | undefined = td.columnRenames.find(r => r[0] === colId);
   if (columnRename) {
     const newName = columnRename[1];
     if (!newName) {

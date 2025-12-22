@@ -2109,7 +2109,7 @@ async function asSupport() {
   await asUser('support');
 }
 
-async function asUser(data: gu.TestUser|gu.UserData, loadDoc = true) {
+async function asUser(data: gu.TestUser | gu.UserData, loadDoc = true) {
   let user: gu.TestUser = typeof data === 'string' ? data : data.name.toLowerCase() as any;
   // If data is object, then we need to translate it to id from the enum.
   if (typeof data === 'object') {
@@ -2184,7 +2184,7 @@ async function disabledList() {
   return list;
 }
 
-async function selectUser(usr: string|RegExp) {
+async function selectUser(usr: string | RegExp) {
   await gu.findOpenMenu();
   await driver.findContent('.test-mention-textbox-acitem-text', usr).click();
   await gu.waitForMenuToClose();

@@ -31,7 +31,7 @@ describe("ColorSelect", function() {
     await driver.findWait('.test-reset', 100).click();
   });
 
-  const checkSelectedColor = stackWrapFunc(async function(fill: string|null, text: string|null) {
+  const checkSelectedColor = stackWrapFunc(async function(fill: string | null, text: string | null) {
     // check Text selected color
     assert.deepEqual(await driver.findAll('.test-text-palette [class*=-selected]', async e => (
       rgbToHex(await e.getCssValue('background-color'))
@@ -461,7 +461,7 @@ async function setColor(colorInputEl: WebElement, color: string) {
   }, colorInputEl, color);
 }
 
-async function setOption(colorInputEl: WebElement, value: boolean|undefined) {
+async function setOption(colorInputEl: WebElement, value: boolean | undefined) {
   await driver.executeScript(() => {
     const el = arguments[0];
     el.value = arguments[1];

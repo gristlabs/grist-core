@@ -79,7 +79,7 @@ export class User extends BaseEntity {
 
   // A random public key that can be used to manage document preferences without authentication.
   @Column({ name: 'unsubscribe_key', type: String, nullable: true })
-  public unsubscribeKey: string|null;
+  public unsubscribeKey: string | null;
 
   @Column({ name: 'type', type: String, enum: [User.LOGIN_TYPE, User.SERVICE_TYPE], default: User.LOGIN_TYPE,
     // Must be null for migrations testing purpose
@@ -98,7 +98,7 @@ export class User extends BaseEntity {
    * Get user's email.  Returns undefined if logins has not been joined, or no login
    * is available
    */
-  public get loginEmail(): string|undefined {
+  public get loginEmail(): string | undefined {
     const login = this.logins && this.logins[0];
     if (!login) { return undefined; }
     return login.email;
@@ -107,7 +107,7 @@ export class User extends BaseEntity {
   /**
    * As above, but using the display email.
    */
-  public get displayEmail(): string|undefined {
+  public get displayEmail(): string | undefined {
     const login = this.logins && this.logins[0];
     if (!login) { return undefined; }
     return login.displayEmail;

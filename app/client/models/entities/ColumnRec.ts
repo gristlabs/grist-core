@@ -19,7 +19,7 @@ import * as ko from 'knockout';
 import { v4 as uuidv4 } from 'uuid';
 
 // Column behavior type, used primarily in the UI.
-export type BEHAVIOR = "empty"|"formula"|"data";
+export type BEHAVIOR = "empty" | "formula" | "data";
 
 // Represents a column in a user-defined table.
 export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
@@ -77,7 +77,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   isFormCol: ko.Computed<boolean>;
 
   // Returns the rowModel for the referenced table, or null, if is not a reference column.
-  refTable: ko.Computed<TableRec|null>;
+  refTable: ko.Computed<TableRec | null>;
 
   // Helper for Reference/ReferenceList columns, which returns a formatter according
   // to the visibleCol associated with column.
@@ -97,7 +97,7 @@ export interface ColumnRec extends IRowModel<"_grist_Tables_column"> {
   chatHistory: ko.PureComputed<Observable<ChatHistory>>;
 
   // Helper which adds/removes/updates column's displayCol to match the formula.
-  saveDisplayFormula(formula: string): Promise<void>|undefined;
+  saveDisplayFormula(formula: string): Promise<void> | undefined;
 
   createValueParser(): (value: string) => any;
 

@@ -97,7 +97,7 @@ describe('ManyFetches', function() {
     // If the server dies, testingHooks calls may hang. This wrapper prevents that.
     const serverErrorPromise = docs.getExitPromise().then(() => { throw new Error("server exited"); });
     const getMemoryUsage = () => Promise.race([docs.testingHooks.getMemoryUsage(), serverErrorPromise]);
-    const getHeapMB = async () => Math.round((await getMemoryUsage() as NodeJS.MemoryUsage).heapUsed /1024/1024);
+    const getHeapMB = async () => Math.round((await getMemoryUsage() as NodeJS.MemoryUsage).heapUsed / 1024 / 1024);
 
     assertIsBelow(await getHeapMB(), 135);
 

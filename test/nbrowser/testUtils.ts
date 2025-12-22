@@ -219,7 +219,7 @@ async function clearTestUserPreferences() {
 }
 
 export function setDriverTimeoutsForSuite(newTimeouts: ITimeouts) {
-  let prevTimeouts: ITimeouts|null = null;
+  let prevTimeouts: ITimeouts | null = null;
 
   before(async () => {
     prevTimeouts = await driver.manage().getTimeouts();

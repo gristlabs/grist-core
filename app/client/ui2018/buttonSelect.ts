@@ -56,7 +56,7 @@ export function buttonSelect<T>(
  * Sets the observable `obs` to null when no items are selected.
  */
 export function buttonToggleSelect<T>(
-  obs: Observable<T|null>,
+  obs: Observable<T | null>,
   optionArray: Array<ISelectorOption<T>>,
   ...domArgs: DomElementArg[]
 ) {
@@ -107,7 +107,7 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
 }
 
 export function makeButtonSelect<T>(
-  obs: Observable<T|null>,
+  obs: Observable<T | null>,
   optionArray: Array<ISelectorOption<T>>,
   onClick: (value: T) => any,
   ...domArgs: DomElementArg[]
@@ -136,7 +136,7 @@ function isFullOption<T>(option: ISelectorOption<T>): option is ISelectorOptionF
   return typeof option !== "string";
 }
 
-function getOptionLabel<T>(option: ISelectorOption<T>): string|undefined {
+function getOptionLabel<T>(option: ISelectorOption<T>): string | undefined {
   return isFullOption(option) ? option.label : option;
 }
 

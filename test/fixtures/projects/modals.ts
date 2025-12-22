@@ -11,7 +11,7 @@ function setupTest() {
   const isOpen = observable(false);
   const isSaveModalOpen = observable(false);
   const testId = makeTestId('testui-');
-  const asyncTask = observable<{ resolve: () => void }|null>(null);
+  const asyncTask = observable<{ resolve: () => void } | null>(null);
   return cssTestBox(
     dom('h1', 'Modals'),
     dom('div',

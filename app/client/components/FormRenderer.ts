@@ -64,7 +64,7 @@ export interface FormRendererContext {
   /** Disables the Submit node if true. */
   disabled: Observable<boolean>;
   /** Error to show above the Submit node. */
-  error: Observable<string|null>;
+  error: Observable<string | null>;
 }
 
 /**
@@ -74,7 +74,7 @@ export interface FormRendererContext {
  */
 export function cleanFormLayoutSpec(
   layoutSpec: FormLayoutNode,
-  fieldIds: Set<number>|Record<number, number>,
+  fieldIds: Set<number> | Record<number, number>,
 ): FormLayoutNode | null {
   if (layoutSpec.leaf) {
     if (fieldIds instanceof Set) {
@@ -289,7 +289,7 @@ abstract class BaseFieldRenderer extends Disposable {
     return {};
   }
 
-  protected getInitialValue(): string|null {
+  protected getInitialValue(): string | null {
     if (this.field.options.formAcceptFromUrl) {
       if (G.window.location.search) {
         return new URLSearchParams(window.location.search).get(this.field.colId);
@@ -360,7 +360,7 @@ class NumericRenderer extends BaseFieldRenderer {
 
   private _format = this.field.options.formNumberFormat ?? 'text';
   private _value = Observable.create<string>(this, this.getInitialValue() ?? '');
-  private _spinnerValue = Observable.create<number|''>(this, this.getInitialNumericValue());
+  private _spinnerValue = Observable.create<number | ''>(this, this.getInitialNumericValue());
 
   public input() {
     if (this._format === 'text') {
@@ -376,7 +376,7 @@ class NumericRenderer extends BaseFieldRenderer {
     this._spinnerValue.setAndTrigger(this.getInitialNumericValue());
   }
 
-  protected getInitialNumericValue(): number|'' {
+  protected getInitialNumericValue(): number | '' {
     const val = this.getInitialValue();
     return (val && isNumber(val)) ? parseFloat(val) : '';
   }
@@ -799,7 +799,7 @@ class RefRenderer extends BaseFieldRenderer {
 
   private _format = this.field.options.formSelectFormat ?? 'select';
   private _alignment = this.field.options.formOptionsAlignment ?? 'vertical';
-  private _choices: [number|string, CellValue][];
+  private _choices: [number | string, CellValue][];
   private _selectElement: HTMLElement;
   private _ctl?: PopupControl<IPopupOptions>;
   private _radioButtons: MutableObsArray<{
@@ -811,7 +811,7 @@ class RefRenderer extends BaseFieldRenderer {
   public constructor(field: FormField, context: FormRendererContext) {
     super(field, context);
 
-    const choices: [number|string, CellValue][] = this.field.refValues ?? [];
+    const choices: [number | string, CellValue][] = this.field.refValues ?? [];
     const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
     if (sortOrder !== 'default') {
       // Sort by the second value, which is the display value.

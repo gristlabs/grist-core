@@ -229,7 +229,7 @@ const KEEP_DOC_OPEN_TIMEOUT_MS = 5 * 60 * 1000;
 // A hook for dependency injection.
 export const Deps = {
   ACTIVEDOC_TIMEOUT,
-  ACTIVEDOC_TIMEOUT_ACTION: 'shutdown' as 'shutdown'|'ignore',
+  ACTIVEDOC_TIMEOUT_ACTION: 'shutdown' as 'shutdown' | 'ignore',
 
   UPDATE_CURRENT_TIME_DELAY,
   SHUTDOWN_ITEM_TIMEOUT_MS,
@@ -271,11 +271,11 @@ export class ActiveDoc extends EventEmitter {
     };
   }
 
-  public readonly doc: Document|undefined = this._options?.doc;
+  public readonly doc: Document | undefined = this._options?.doc;
   public readonly docStorage: DocStorage;
-  public readonly docPluginManager: DocPluginManager|null;
+  public readonly docPluginManager: DocPluginManager | null;
   public readonly docClients: DocClients;               // Only exposed for Sharing.ts
-  public docData: DocData|null = null;
+  public docData: DocData | null = null;
   // Used by DocApi to only allow one webhook-related endpoint to run at a time.
   public readonly triggersLock: Mutex = new Mutex();
   public isTimingOn = false;
@@ -293,7 +293,7 @@ export class ActiveDoc extends EventEmitter {
   private _log = new LogMethods('ActiveDoc ', (s: OptDocSession | null) => this.getLogMeta(s));
   private _triggers: DocTriggers;
   private _requests: DocRequests;
-  private _dataEngine: Promise<ISandbox>|null = null;
+  private _dataEngine: Promise<ISandbox> | null = null;
   private _activeDocImport: ActiveDocImport;
   private _onDemandActions: OnDemandActions;
   private _granularAccess: GranularAccess;
@@ -311,17 +311,17 @@ export class ActiveDoc extends EventEmitter {
    * If set, wait on this to be sure the ActiveDoc is fully
    * initialized.  True on success.
    */
-  private _initializationPromise: Promise<void>|null = null;
+  private _initializationPromise: Promise<void> | null = null;
   /**
    * Becomes true once all columns are loaded/computed.
    */
   private _fullyLoaded: boolean = false;
   private _memoryUsedMB: number = 0;
   private _fetchCache = new MapWithTTL<string, Promise<TableDataAction>>(DEFAULT_CACHE_TTL);
-  private _docUsage: DocumentUsage|null = null;
+  private _docUsage: DocumentUsage | null = null;
   private _product?: Product;
   private _features?: Features;
-  private _gracePeriodStart: Date|null = null;
+  private _gracePeriodStart: Date | null = null;
   private _isSnapshot: boolean;
   private _isForkOrSnapshot: boolean;
   private _onlyAllowMetaDataActionsOnDb: boolean = false;
@@ -346,7 +346,7 @@ export class ActiveDoc extends EventEmitter {
   private _isUntrustedRequestBehaviorSet?: boolean;
 
   // Size of the last _rawPyCall() response in bytes.
-  private _lastPyCallResponseSize: number|undefined;
+  private _lastPyCallResponseSize: number | undefined;
 
   private _reportDataEngineMemoryThrottled:
     | ((() => Promise<void>) & Cancelable) |
@@ -506,7 +506,7 @@ export class ActiveDoc extends EventEmitter {
 
   public get docName(): string { return this._docName; }
 
-  public get features(): Features|undefined { return this._features; }
+  public get features(): Features | undefined { return this._features; }
 
   public get recoveryMode(): boolean { return this._recoveryMode; }
 
@@ -564,7 +564,7 @@ export class ActiveDoc extends EventEmitter {
   }
 
   // Constructs metadata for logging, given a Client or an OptDocSession.
-  public getLogMeta(docSession: OptDocSession|null, docMethod?: string): log.ILogMeta {
+  public getLogMeta(docSession: OptDocSession | null, docMethod?: string): log.ILogMeta {
     return {
       ...getLogMeta(docSession),
       docId: this._docName,
@@ -601,7 +601,7 @@ export class ActiveDoc extends EventEmitter {
    * TODO: for memory reasons on large docs, would be best not to hold many actions
    * in memory at a time, so should e.g. fetch them one at a time.
    */
-  public getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>> {
+  public getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>> {
     return this._actionHistory.getActions(actionNums);
   }
 
@@ -1661,7 +1661,7 @@ export class ActiveDoc extends EventEmitter {
     return this._applyUserActionsWithExtendedOptions(
       docSession, actions, { bestEffort: undo,
         oldestSource,
-        fromOwnHistory, ...(options||{}) });
+        fromOwnHistory, ...(options || {}) });
   }
 
   /**
@@ -2068,7 +2068,7 @@ export class ActiveDoc extends EventEmitter {
    * actions may need to be rolled back if final access control checks fail.
    */
   public async applyActionsToDataEngine(
-    docSession: OptDocSession|null,
+    docSession: OptDocSession | null,
     userActions: UserAction[],
   ): Promise<SandboxActionBundle> {
     const [normalActions, onDemandActions] = this._onDemandActions.splitByStorage(userActions);
@@ -2207,7 +2207,7 @@ export class ActiveDoc extends EventEmitter {
     return this._docManager.storageManager.flushDoc(this.docName);
   }
 
-  public makeAccessId(userId: number|null): string|null {
+  public makeAccessId(userId: number | null): string | null {
     return this._docManager.makeAccessId(userId);
   }
 
@@ -2241,7 +2241,7 @@ export class ActiveDoc extends EventEmitter {
    */
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
     userActions: UserAction[], isDirect: boolean[],
-    options: ApplyUAOptions|null): GranularAccessForBundle {
+    options: ApplyUAOptions | null): GranularAccessForBundle {
     this._granularAccess.getGranularAccessForBundle(docSession, docActions, undo, userActions, isDirect, options);
     return this._granularAccess;
   }
@@ -2362,7 +2362,7 @@ export class ActiveDoc extends EventEmitter {
     return goodShares;
   }
 
-  public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share|null> {
+  public async getShare(_docSession: OptDocSession, linkId: string): Promise<Share | null> {
     return await this._getHomeDbManagerOrFail().getShareByLinkId(this.docName, linkId);
   }
 
@@ -2401,7 +2401,7 @@ export class ActiveDoc extends EventEmitter {
     return timingResults;
   }
 
-  public async getTimings(): Promise<FormulaTimingInfo[]|void>  {
+  public async getTimings(): Promise<FormulaTimingInfo[] | void>  {
     await this.waitForInitialization();
 
     if (this._modificationLock.isLocked()) {
@@ -2410,7 +2410,7 @@ export class ActiveDoc extends EventEmitter {
     return await this._pyCall('get_timings');
   }
 
-  public async getAssistantState(_docSession: OptDocSession, id: string): Promise<AssistantState|null> {
+  public async getAssistantState(_docSession: OptDocSession, id: string): Promise<AssistantState | null> {
     const store = this._server.getPermitStore();
     const permit = await getAndRemoveAssistantStatePermit(store, id);
     if (!permit || permit.docId !== this._docName) {
@@ -2909,7 +2909,7 @@ export class ActiveDoc extends EventEmitter {
     const tableNames = await this.docStorage.getAllTableNames();
 
     // Fetch only metadata tables first, and try to migrate with only those.
-    const tableData: { [key: string]: Buffer|null } = {};
+    const tableData: { [key: string]: Buffer | null } = {};
     for (const tableName of tableNames) {
       if (tableName.startsWith('_grist_')) {
         tableData[tableName] = await this.docStorage.fetchTable(tableName);
@@ -2966,7 +2966,7 @@ export class ActiveDoc extends EventEmitter {
 
   // Fetches and returns the requested table, or null if it's missing. This allows documents to
   // load with missing metadata tables (should only matter if migrations are also broken).
-  private async _fetchTableIfPresent(tableName: string): Promise<Buffer|null> {
+  private async _fetchTableIfPresent(tableName: string): Promise<Buffer | null> {
     try {
       return await this.docStorage.fetchTable(tableName);
     }
@@ -3081,7 +3081,7 @@ export class ActiveDoc extends EventEmitter {
     });
   }
 
-  private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval'| 'docClose') {
+  private _logDocMetrics(docSession: OptDocSession, triggeredBy: 'docOpen' | 'interval' | 'docClose') {
     this.logTelemetryEvent(docSession, 'documentUsage', {
       limited: {
         triggeredBy,
@@ -3294,7 +3294,7 @@ export class ActiveDoc extends EventEmitter {
     };
   }
 
-  private _getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
+  private _getTelemetryMeta(docSession: OptDocSession | null): TelemetryMetadataByLevel {
     return merge(
       getTelemetryMeta(docSession),
       {
@@ -3652,7 +3652,7 @@ export async function getRealTableId(
 }
 
 export function sanitizeApplyUAOptions(options?: ApplyUAOptions): ApplyUAOptions {
-  return pick(options||{}, ['desc', 'otherId', 'linkId', 'parseStrings']);
+  return pick(options || {}, ['desc', 'otherId', 'linkId', 'parseStrings']);
 }
 
 /**
@@ -3678,7 +3678,7 @@ export function createSandbox(options: {
 /**
  * Extract telemetry metadata from session.
  */
-function getTelemetryMeta(docSession: OptDocSession|null): TelemetryMetadataByLevel {
+function getTelemetryMeta(docSession: OptDocSession | null): TelemetryMetadataByLevel {
   if (!docSession) { return {}; }
 
   const access = getDocSessionAccessOrNull(docSession);

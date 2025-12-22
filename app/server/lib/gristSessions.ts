@@ -98,7 +98,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
   }
 }
 
-export function getAllowedOrgForSessionID(sessionID: string): { org: string, host: string }|null {
+export function getAllowedOrgForSessionID(sessionID: string): { org: string, host: string } | null {
   if (sessionID.startsWith('c-') && sessionID.includes('@')) {
     const [, org, host] = sessionID.split('@');
     if (!host) { throw new Error('Invalid session ID'); }

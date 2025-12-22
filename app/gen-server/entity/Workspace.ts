@@ -36,7 +36,7 @@ export class Workspace extends Resource {
   public permissions?: any;
 
   @Column({ name: 'removed_at', type: nativeValues.dateTimeType, nullable: true })
-  public removedAt: Date|null;
+  public removedAt: Date | null;
 
   // Property that may be returned when the workspace is fetched to indicate
   // the owner of the workspace.

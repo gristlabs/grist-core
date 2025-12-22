@@ -244,7 +244,7 @@ describe("UpdateChecks", function() {
     setEndpoint(dockerHub.url + "/tags");
     const installationId = "randomInstallationId";
     const deploymentType = "test";
-    async function testVersion(version: string, isCritical: boolean|'fail') {
+    async function testVersion(version: string, isCritical: boolean | 'fail') {
       const resp = await axios.post(`${homeUrl}/api/version`, {
         installationId,
         deploymentType,

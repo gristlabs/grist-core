@@ -246,7 +246,7 @@ export class Marshaller {
     this._memBuf.writeByteArray(bytes);
   }
 
-  private _writeByteArray(value: Uint8Array|Buffer) {
+  private _writeByteArray(value: Uint8Array | Buffer) {
     // This works for both Uint8Arrays and Node Buffers.
     this._memBuf.writeInt32LE(value.length);
     this._memBuf.writeByteArray(value);
@@ -296,10 +296,10 @@ const TwoTo15 = 0x8000;         // 2**15
 export class Unmarshaller extends EventEmitter {
   public memBuf: MemBuffer;
   private _consumer: any = null;
-  private _lastCode: number|null = null;
+  private _lastCode: number | null = null;
   private readonly _bufferToString: boolean;
   private _emitter: (v: any) => boolean;
-  private _stringTable: Array<string|Uint8Array> = [];
+  private _stringTable: Array<string | Uint8Array> = [];
 
   constructor(options?: UnmarshalOptions) {
     super();
@@ -312,7 +312,7 @@ export class Unmarshaller extends EventEmitter {
    * Adds more data for parsing. Parsed values will be emitted as 'value' events.
    * @param {Uint8Array|Buffer} byteArray: Uint8Array or Node Buffer with bytes to parse.
    */
-  public push(byteArray: Uint8Array|Buffer) {
+  public push(byteArray: Uint8Array | Buffer) {
     this.parse(byteArray, this._emitter);
   }
 
@@ -320,7 +320,7 @@ export class Unmarshaller extends EventEmitter {
    * Adds data to parse, and calls valueCB(value) for each value parsed. If valueCB returns the
    * Boolean false, stops parsing and returns.
    */
-  public parse(byteArray: Uint8Array|Buffer, valueCB: (val: any) => boolean|void) {
+  public parse(byteArray: Uint8Array | Buffer, valueCB: (val: any) => boolean | void) {
     this.memBuf.writeByteArray(byteArray);
     try {
       while (this.memBuf.size() > 0) {
@@ -430,7 +430,7 @@ export class Unmarshaller extends EventEmitter {
     return this.memBuf.readFloat64LE(this._consumer);
   }
 
-  private _parseByteString(): string|Uint8Array {
+  private _parseByteString(): string | Uint8Array {
     const len = this.memBuf.readInt32LE(this._consumer);
     return (this._bufferToString ?
       this.memBuf.readString(this._consumer, len) :
@@ -460,7 +460,7 @@ export class Unmarshaller extends EventEmitter {
   private _parseDict() {
     const dict: { [key: string]: any } = {};
     while (true) {
-      let key = this._parse() as string|Uint8Array;
+      let key = this._parse() as string | Uint8Array;
       if (key === null && this._lastCode === marshalCodes.NULL) {
         break;
       }
@@ -485,7 +485,7 @@ export class Unmarshaller extends EventEmitter {
  * Similar to python's marshal.loads(). Parses the given bytes and returns the parsed value. There
  * must not be any trailing data beyond the single marshalled value.
  */
-export function loads(byteArray: Uint8Array|Buffer, options?: UnmarshalOptions): any {
+export function loads(byteArray: Uint8Array | Buffer, options?: UnmarshalOptions): any {
   const unmarshaller = new Unmarshaller(options);
   let parsedValue;
   unmarshaller.parse(byteArray, function(value) {

@@ -250,7 +250,7 @@ describe('Pages', function() {
     // It looks like our version of Chromedriver does not support sending emojis using sendKeys
     // (issue mentioned here https://stackoverflow.com/a/59139690), so we'll use executeScript to
     // rename pages.
-    async function renamePage(origName: string|RegExp, newName: string) {
+    async function renamePage(origName: string | RegExp, newName: string) {
       await gu.openPageMenu(origName);
       await driver.find('.test-docpage-rename').doClick();
       const editor = await driver.find('.test-docpage-editor');
@@ -259,7 +259,7 @@ describe('Pages', function() {
       await gu.waitForServer();
     }
 
-    async function getInitialAndName(pageName: string|RegExp): Promise<[string, string]> {
+    async function getInitialAndName(pageName: string | RegExp): Promise<[string, string]> {
       return await driver.findContent('.test-treeview-itemHeader', pageName)
         .findAll('.test-docpage-initial, .test-docpage-label', el => el.getText()) as [string,
         string];
@@ -679,7 +679,7 @@ describe('Pages', function() {
   }
 });
 
-async function movePage(page: RegExp, target: { before: RegExp }|{ after: RegExp }|{ into: RegExp }) {
+async function movePage(page: RegExp, target: { before: RegExp } | { after: RegExp } | { into: RegExp }) {
   const targetReg = values(target)[0];
   await driver.withActions(actions => actions
     .move({ origin: driver.findContent('.test-treeview-itemHeader', page) })

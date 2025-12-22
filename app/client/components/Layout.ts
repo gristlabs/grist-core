@@ -65,8 +65,8 @@ import { identity, isEqual, last, uniqueId } from 'underscore';
 
 export interface ContentBox {
   leafId: ko.Observable<any>;
-  leafContent: ko.Observable<Element|null>;
-  dom: HTMLElement|null;
+  leafContent: ko.Observable<Element | null>;
+  dom: HTMLElement | null;
 }
 
 /**
@@ -79,9 +79,9 @@ export class LayoutBox extends Disposable implements ContentBox {
   public layout: Layout;
   public dom: HTMLElement | null = null;
   public leafId: ko.Observable<any>; // probably number for section id
-  public parentBox: ko.Observable<LayoutBox|null>;
+  public parentBox: ko.Observable<LayoutBox | null>;
   public childBoxes: KoArray<LayoutBox>;
-  public leafContent: ko.Observable<Element|null>;
+  public leafContent: ko.Observable<Element | null>;
   public uniqueId: string;
   public isVBox: ko.Computed<boolean>;
   public isHBox: ko.Computed<boolean>;
@@ -378,7 +378,7 @@ export class Layout extends Disposable {
    * You can also find the nearest containing LayoutBox without having the Layout object itself by
    * using Layout.Layout.getContainingBox. The Layout object is then accessible as box.layout.
    */
-  public static getContainingBox(elem: Element|null, optContainer: any) {
+  public static getContainingBox(elem: Element | null, optContainer: any) {
     const boxElem = findAncestor(elem, optContainer, '.layout_box');
     return boxElem ? utils.domData.get(boxElem, 'layoutBox') : null;
   }
@@ -387,17 +387,17 @@ export class Layout extends Disposable {
   public trigger: BackboneEvents["trigger"];              // set by Backbone
   public stopListening: BackboneEvents["stopListening"];  // set by Backbone
 
-  public maximizedLeaf: ko.Observable<string|null>;
-  public rootBox: ko.Observable<LayoutBox|null>;
+  public maximizedLeaf: ko.Observable<string | null>;
+  public rootBox: ko.Observable<LayoutBox | null>;
   public createLeafFunc: (id: string) => HTMLElement;
   public fillWindow: boolean;
   public needDynamic: boolean;
   public rootElem: HTMLElement;
   public leafId: string;
-  private _leafIdMap: Map<any, LayoutBox>|null;
+  private _leafIdMap: Map<any, LayoutBox> | null;
 
   public create(boxSpec: BoxSpec, createLeafFunc: (id: string) => HTMLElement, optFillWindow: boolean) {
-    this.maximizedLeaf = observable(null as (string|null));
+    this.maximizedLeaf = observable(null as (string | null));
     this.rootBox = observable(null as any);
     this.createLeafFunc = createLeafFunc;
     this._leafIdMap = null;
@@ -423,7 +423,7 @@ export class Layout extends Disposable {
   /**
    * Finds and returns the leaf layout box containing the content for the given leafId.
    */
-  public getLeafBox(leafId: string|number) {
+  public getLeafBox(leafId: string | number) {
     return this.getLeafIdMap().get(leafId);
   }
 
@@ -524,7 +524,7 @@ export class Layout extends Disposable {
    */
   public getLeafIdMap() {
     if (!this._leafIdMap) {
-      this._leafIdMap = new Map<number|string, LayoutBox>();
+      this._leafIdMap = new Map<number | string, LayoutBox>();
       this.forEachBox((box) => {
         const leafId = box.leafId.peek();
         if (leafId !== null) {
@@ -538,7 +538,7 @@ export class Layout extends Disposable {
   /**
    * Returns a LayoutBox object containing the given DOM element, or null if not found.
    */
-  public getContainingBox(elem: Element|null) {
+  public getContainingBox(elem: Element | null) {
     return Layout.getContainingBox(elem, this.rootElem);
   }
 }

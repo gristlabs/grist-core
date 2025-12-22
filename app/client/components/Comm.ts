@@ -41,8 +41,8 @@ export interface CommRequestInFlight {
   reject: (err: Error) => void;
   // clientId is non-null for those requests which should not be re-sent on reconnect if
   // the clientId has changed; it is null when it's safe to re-send.
-  clientId: string|null;
-  docId: string|null;
+  clientId: string | null;
+  docId: string | null;
   methodName: string;
   requestMsg: string;
   sent: boolean;
@@ -84,7 +84,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   // This is a map from docId to the connection for the server that manages
   // that docId.  In classic Grist, which doesn't have fixed docIds or multiple
   // servers, the key is always "null".
-  private _connections: Map<string|null, GristWSConnection> = new Map();
+  private _connections: Map<string | null, GristWSConnection> = new Map();
   private _collectedUserActions: UserAction[] | null;
   private _singleWorkerMode: boolean = getInitialDocAssignment() === null;  // is this classic Grist?
   private _reportError?: (err: Error) => void;  // optional callback for errors
@@ -116,7 +116,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * it has been classically, eliminating a source of changes in timing
    * that could effect old tests.
    */
-  public initialize(docId: string|null): GristWSConnection {
+  public initialize(docId: string | null): GristWSConnection {
     docId = docId || getInitialDocAssignment();
     let connection = this._connections.get(docId);
     if (connection) { return connection; }
@@ -136,7 +136,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   }
 
   // Returns a map of docId -> docWorkerUrl for existing connections, for testing.
-  public listConnections(): Map<string|null, string|null> {
+  public listConnections(): Map<string | null, string | null> {
     return new Map(Array.from(this._connections, ([docId, conn]) => [docId, conn.getDocWorkerUrlOrNull()]));
   }
 
@@ -210,7 +210,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
   /**
    * Returns a url to the worker serving the specified document.
    */
-  public getDocWorkerUrl(docId: string|null): string {
+  public getDocWorkerUrl(docId: string | null): string {
     return this._connection(docId).docWorkerUrl;
   }
 
@@ -235,7 +235,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * @returns {Promise} Promise for the response. The server may fulfill or reject it, or it may be
    *    rejected in case of a disconnect.
    */
-  public async _makeRequest(clientId: string|null, docId: string|null,
+  public async _makeRequest(clientId: string | null, docId: string | null,
     methodName: string, ...args: any[]): Promise<any> {
     const connection = this._connection(docId);
     if (clientId !== null && clientId !== connection.clientId) {
@@ -269,7 +269,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * that that document.  For a docId of null, any open connection will be returned, and
    * an error is thrown if no connection is already open.
    */
-  private _connection(docId: string|null): GristWSConnection {
+  private _connection(docId: string | null): GristWSConnection {
     // for classic Grist, "docIds" are untrustworthy doc names, but on the plus side
     // we only need one connections - so just replace docId with a constant.
     if (this._singleWorkerMode) { docId = null; }
@@ -290,7 +290,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * If GristWSConnection for a docId is disposed, requests that were sent to that doc will never
    * resolve. Reject them instead here.
    */
-  private _rejectRequests(docId: string|null) {
+  private _rejectRequests(docId: string | null) {
     const error = "GristWSConnection disposed";
     for (const [reqId, req] of this.pendingRequests) {
       if (reqMatchesConnection(req.docId, docId)) {
@@ -309,7 +309,7 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
    * We should watch timeouts, and log something when there is no response for a while.
    *    There is probably no need for callers to deal with timeouts.
    */
-  private _onServerMessage(docId: string|null, message: CommResponseBase) {
+  private _onServerMessage(docId: string | null, message: CommResponseBase) {
     if ('reqId' in message) {
       const reqId = message.reqId;
       const r = this.pendingRequests.get(reqId);
@@ -411,6 +411,6 @@ export class Comm extends dispose.Disposable implements GristServerAPI, DocListA
 
 Object.assign(Comm.prototype, BackboneEvents);
 
-function reqMatchesConnection(reqDocId: string|null, connDocId: string|null) {
+function reqMatchesConnection(reqDocId: string | null, connDocId: string | null) {
   return reqDocId === connDocId || !reqDocId || !connDocId;
 }

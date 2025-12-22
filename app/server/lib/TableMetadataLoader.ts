@@ -26,7 +26,7 @@ import fromPairs from 'lodash/fromPairs';
  */
 export class TableMetadataLoader {
   // Promises of buffers for tables being fetched from database, by tableId.
-  private _fetches = new Map<string, Promise<Buffer|null>>();
+  private _fetches = new Map<string, Promise<Buffer | null>>();
 
   // Set of all tableIds for tables that are fully fetched from database.
   private _fetched = new Set<string>();
@@ -41,7 +41,7 @@ export class TableMetadataLoader {
   private _tables = new Map<string, TableDataAction>();
 
   // Operation promise for loading core schema (table and column list) into the data engine.
-  private _corePush: Promise<void>|undefined;
+  private _corePush: Promise<void> | undefined;
 
   // True once core push is complete.
   private _corePushed: boolean = false;

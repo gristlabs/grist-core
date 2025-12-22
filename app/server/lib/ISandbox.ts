@@ -28,7 +28,7 @@ export interface ISandbox {
   reportMemoryUsage(): Promise<number>;
   getFlavor(): string;
   isProcessDown(): boolean;
-  getLastResponseNumBytes?(): number|undefined;
+  getLastResponseNumBytes?(): number | undefined;
 }
 
 export interface ISandboxCreator {

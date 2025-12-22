@@ -58,7 +58,7 @@ function checkParams(req: Request, resp: Response, next: NextFunction) {
 // info and a signature into the URL parameters.
 function discourseConnect(req: Request, resp: Response) {
   const mreq = req as RequestWithLogin;
-  const nonce: string|undefined = (req as any).discourseConnectNonce;
+  const nonce: string | undefined = (req as any).discourseConnectNonce;
   if (!nonce) {
     throw new Error('Invalid request for Discourse SSO');
   }

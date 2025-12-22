@@ -160,7 +160,7 @@ export class DynamicQuerySet extends RowSource {
    */
   public makeQuery(filters: { [colId: string]: any[] },
     operations: { [colId: string]: QueryOperation },
-    cb: (err: Error|null, changed: boolean) => void): void {
+    cb: (err: Error | null, changed: boolean) => void): void {
     const query: ClientQuery = { tableId: this._tableModel.tableData.tableId, filters, operations };
     const newQuerySet = this._querySetManager.useQuerySet(this._holder, query);
     const ticket = this._getTicket();
@@ -175,7 +175,7 @@ export class DynamicQuerySet extends RowSource {
       .catch((err) => { cb(err, false); });
   }
 
-  private _updateQuerySet(nextQuerySet: QuerySet, cb: (err: Error|null, changed: boolean) => void): void {
+  private _updateQuerySet(nextQuerySet: QuerySet, cb: (err: Error | null, changed: boolean) => void): void {
     try {
       if (nextQuerySet !== this._querySet) {
         const oldQuerySet = this._querySet;

@@ -40,7 +40,7 @@ const t = makeT('HomeLeftPane');
 
 export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: HomeModel) {
   const creating = observable<boolean>(false);
-  const renaming = observable<Workspace|null>(null);
+  const renaming = observable<Workspace | null>(null);
   const isAnonymous = !home.app.currentValidUser;
   const { enableAnonPlayground, templateOrg, onboardingTutorialDocId } = getGristConfig();
   const canCreate = !isAnonymous || enableAnonPlayground;
@@ -193,7 +193,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
 
 function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[] {
   const org = home.app.currentOrg;
-  const orgAccess: roles.Role|null = org ? org.access : null;
+  const orgAccess: roles.Role | null = org ? org.access : null;
   const needUpgrade = home.app.currentFeatures?.maxWorkspacesPerOrg === 1;
 
   return [
@@ -224,7 +224,7 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
   ];
 }
 
-function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Workspace|null>) {
+function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Workspace | null>) {
   function deleteWorkspace() {
     confirmModal(t("Delete {{workspace}} and all included documents?", { workspace: ws.name }), t("Delete"),
       async () => {

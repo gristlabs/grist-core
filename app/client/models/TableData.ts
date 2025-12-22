@@ -20,7 +20,7 @@ export class TableData extends TableDataBase {
 
   public readonly columnACIndexes = new ColumnACIndexes(this);
 
-  private _columnErrorCounts = new ColumnCache<number|undefined>(this);
+  private _columnErrorCounts = new ColumnCache<number | undefined>(this);
 
   /**
    * Constructor for TableData.
@@ -31,11 +31,11 @@ export class TableData extends TableDataBase {
    * @param {Object} columnTypes: A map of colId to colType.
    */
   constructor(public readonly docData: DocData,
-    tableId: string, tableData: TableDataAction|null, columnTypes: ColTypeMap) {
+    tableId: string, tableData: TableDataAction | null, columnTypes: ColTypeMap) {
     super(tableId, tableData, columnTypes);
   }
 
-  public loadData(tableData: TableDataAction|ReplaceTableData): number[] {
+  public loadData(tableData: TableDataAction | ReplaceTableData): number[] {
     const oldRowIds = super.loadData(tableData);
     // If called from base constructor, this.dataLoadedEmitter may be unset; in that case there
     // are no subscribers anyway.
@@ -63,7 +63,7 @@ export class TableData extends TableDataBase {
    * Counts and returns the number of error values in the given column. The count is cached to
    * keep it faster for large tables, and the cache is cleared as needed on changes to the table.
    */
-  public countErrors(colId: string): number|undefined {
+  public countErrors(colId: string): number | undefined {
     return this._columnErrorCounts.getValue(colId, () => {
       const values = this.getColValues(colId);
       return values && countIf(values, isRaisedException);

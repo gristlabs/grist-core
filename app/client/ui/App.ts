@@ -66,7 +66,7 @@ export class AppImpl extends DisposableWithEvents implements App {
 
   // Track the version of the server we are communicating with, so that if it changes
   // we can choose to refresh the client also.
-  private _serverVersion: string|null = null;
+  private _serverVersion: string | null = null;
 
   constructor() {
     super();

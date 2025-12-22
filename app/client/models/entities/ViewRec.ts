@@ -37,7 +37,7 @@ export interface ViewRec extends IRowModel<"_grist_Views"> {
   // If the active section is removed, set the next active section to be the default.
   _isActiveSectionGone: ko.Computed<boolean>;
 
-  page: ko.Computed<PageRec|null>;
+  page: ko.Computed<PageRec | null>;
 }
 
 export function createViewRec(this: ViewRec, docModel: DocModel): void {
@@ -92,7 +92,7 @@ export function createViewRec(this: ViewRec, docModel: DocModel): void {
   }));
 }
 
-function getFirstLeaf(layoutSpec: BoxSpec|undefined): BoxSpec['leaf'] {
+function getFirstLeaf(layoutSpec: BoxSpec | undefined): BoxSpec['leaf'] {
   while (layoutSpec?.children?.length) {
     layoutSpec = layoutSpec.children[0];
   }

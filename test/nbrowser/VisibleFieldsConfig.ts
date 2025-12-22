@@ -7,11 +7,11 @@ describe('VisibleFieldsConfig', function() {
   setupTestSuite();
   addToRepl('findField', findField);
 
-  function findField(state: 'visible'|'hidden', content: RegExp) {
+  function findField(state: 'visible' | 'hidden', content: RegExp) {
     return driver.findContent(`.test-vfc-${state}-fields .kf_draggable`, content);
   }
 
-  async function isSelected(state: 'visible'|'hidden', content: RegExp): Promise<boolean> {
+  async function isSelected(state: 'visible' | 'hidden', content: RegExp): Promise<boolean> {
     return Boolean(await findField(state, content).find('input').getAttribute('checked'));
   }
 
@@ -243,7 +243,7 @@ describe('VisibleFieldsConfig', function() {
     });
   });
 
-  function testMultiSelection(state: 'hidden'|'visible') {
+  function testMultiSelection(state: 'hidden' | 'visible') {
     function findButtons() {
       return driver.find(`.test-vfc-${state}-batch-buttons`);
     }

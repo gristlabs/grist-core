@@ -51,8 +51,8 @@ export interface DocInfo extends Document {
   isPreFork: boolean;
   isFork: boolean;
   isRecoveryMode: boolean;
-  user: UserInfo|null;
-  userOverride: UserOverride|null;
+  user: UserInfo | null;
+  userOverride: UserOverride | null;
   isBareFork: boolean;  // a document created without logging in, which is treated as a
   // fork without an original.
   isSnapshot: boolean;
@@ -67,33 +67,33 @@ export interface DocPageModel {
   pageType: "doc";
 
   appModel: AppModel;
-  currentDoc: Observable<DocInfo|null>;
-  currentDocUsage: Observable<FilteredDocUsageSummary|null>;
+  currentDoc: Observable<DocInfo | null>;
+  currentDocUsage: Observable<FilteredDocUsageSummary | null>;
 
   /**
    * Initially set to the product referenced by `currentDoc`, and updated whenever `currentDoc`
    * changes, or a doc usage message is received from the server.
    */
-  currentProduct: Observable<Product|null>;
+  currentProduct: Observable<Product | null>;
   /**
    * Current features of the product
    */
-  currentFeatures: Observable<Features|null>;
+  currentFeatures: Observable<Features | null>;
 
   // This block is to satisfy previous interface, but usable as this.currentDoc.get().id, etc.
-  currentDocId: Observable<string|undefined>;
-  currentWorkspace: Observable<Workspace|null>;
+  currentDocId: Observable<string | undefined>;
+  currentWorkspace: Observable<Workspace | null>;
   // We may be given information about the org, because of our access to the doc, that
   // we can't get otherwise.
-  currentOrg: Observable<Organization|null>;
+  currentOrg: Observable<Organization | null>;
   currentOrgName: Observable<string>;
   currentDocTitle: Observable<string>;
   isReadonly: Observable<boolean>;
   isPrefork: Observable<boolean>;
   isFork: Observable<boolean>;
   isRecoveryMode: Observable<boolean>;
-  user: Observable<UserInfo|null>;
-  userOverride: Observable<UserOverride|null>;
+  user: Observable<UserInfo | null>;
+  userOverride: Observable<UserOverride | null>;
   isBareFork: Observable<boolean>;
   isSnapshot: Observable<boolean>;
   isTutorialTrunk: Observable<boolean>;
@@ -101,21 +101,21 @@ export interface DocPageModel {
   isTemplate: Observable<boolean>;
   type: Observable<DocumentType>;
   importSources: ImportSource[];
-  currentProposal: Observable<Proposal|'empty'|null>;
-  proposalNewChangesCount: Observable<number|'...'|null>;
+  currentProposal: Observable<Proposal | 'empty' | null>;
+  proposalNewChangesCount: Observable<number | '...' | null>;
 
-  undoState: Observable<IUndoState|null>;          // See UndoStack for details.
+  undoState: Observable<IUndoState | null>;          // See UndoStack for details.
 
-  gristDoc: Observable<GristDoc|null>;             // Instance of GristDoc once it exists.
+  gristDoc: Observable<GristDoc | null>;             // Instance of GristDoc once it exists.
 
   /** List of users with access to the document, null if not initialized. */
-  docUsers: Observable<PermissionData|null>;
+  docUsers: Observable<PermissionData | null>;
 
   createLeftPane(leftPanelOpen: Observable<boolean>): DomArg;
   renameDoc(value: string): Promise<void>;
   refreshCurrentDoc(doc: DocInfo): Promise<Document>;
   updateCurrentDocUsage(docUsage: FilteredDocUsageSummary): void;
-  refreshProposal(): Promise<Proposal|'empty'|undefined>;
+  refreshProposal(): Promise<Proposal | 'empty' | undefined>;
   // Offer to open document in recovery mode, if user is owner, and report
   // the error that prompted the offer. If user is not owner, just flag that
   // document needs attention of an owner.
@@ -135,19 +135,19 @@ export interface ImportSource {
 
 export class DocPageModelImpl extends Disposable implements DocPageModel {
   // Observable set to the instance of GristDoc once it's created.
-  public readonly gristDoc = Observable.create<GristDocImpl|null>(this, null);
+  public readonly gristDoc = Observable.create<GristDocImpl | null>(this, null);
 
   public readonly pageType = "doc";
 
-  public readonly currentDoc = Observable.create<DocInfo|null>(this, null);
-  public readonly currentDocUsage = Observable.create<FilteredDocUsageSummary|null>(this, null);
+  public readonly currentDoc = Observable.create<DocInfo | null>(this, null);
+  public readonly currentDocUsage = Observable.create<FilteredDocUsageSummary | null>(this, null);
 
   /**
    * Initially set to the product referenced by `currentDoc`, and updated whenever `currentDoc`
    * changes, or a doc usage message is received from the server.
    */
-  public readonly currentProduct = Observable.create<Product|null>(this, null);
-  public readonly currentFeatures: Computed<Features|null>;
+  public readonly currentProduct = Observable.create<Product | null>(this, null);
+  public readonly currentFeatures: Computed<Features | null>;
 
   public readonly currentUrlId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.urlId : undefined);
   public readonly currentDocId = Computed.create(this, this.currentDoc, (use, doc) => doc ? doc.id : undefined);
@@ -179,15 +179,15 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
   public readonly type = Computed.create(this, this.currentDoc,
     (use, doc) => doc?.type ?? null);
 
-  public readonly currentProposal = Observable.create<Proposal|'empty'|null>(this, null);
-  public readonly proposalNewChangesCount = Observable.create<number|'...'|null>(this, null);
+  public readonly currentProposal = Observable.create<Proposal | 'empty' | null>(this, null);
+  public readonly proposalNewChangesCount = Observable.create<number | '...' | null>(this, null);
 
   public readonly importSources: ImportSource[] = [];
 
   // Contains observables indicating whether undo/redo are disabled. See UndoStack for details.
-  public readonly undoState: Observable<IUndoState|null> = Observable.create(this, null);
+  public readonly undoState: Observable<IUndoState | null> = Observable.create(this, null);
 
-  public readonly docUsers = Observable.create<PermissionData|null>(this, null);
+  public readonly docUsers = Observable.create<PermissionData | null>(this, null);
 
   private readonly _docUsersData = new MapWithTTL<'users', Promise<PermissionData>>(60 * 1000);
 
@@ -287,7 +287,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
     }
   }
 
-  public async refreshProposal(): Promise<Proposal|'empty'|undefined> {
+  public async refreshProposal(): Promise<Proposal | 'empty' | undefined> {
     const gristDoc = this.gristDoc.get();
     if (!gristDoc) { return; }
     const urlId = gristDoc.docPageModel.currentDocId.get();
@@ -296,7 +296,7 @@ export class DocPageModelImpl extends Disposable implements DocPageModel {
       outgoing: true,
     });
     if (this.isDisposed()) { return; }
-    const proposal = (proposals.proposals[0] ?? 'empty') as Proposal|'empty';
+    const proposal = (proposals.proposals[0] ?? 'empty') as Proposal | 'empty';
     this.currentProposal.set(proposal);
     if (proposal === 'empty' || proposal.status.status === 'retracted') {
       this.gristDoc.get()?.getActionCounter().setMark();

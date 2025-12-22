@@ -58,5 +58,5 @@ describe('RelativeDates', function() {
 });
 
 function getDateValue(date: string): number {
-  return moment.tz(date, "MM-DD-YYYY", 'utc').valueOf()/1000;
+  return moment.tz(date, "MM-DD-YYYY", 'utc').valueOf() / 1000;
 }

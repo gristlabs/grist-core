@@ -30,7 +30,7 @@ export class ConfigAPI extends BaseAPI {
     return (await this.requestJson(`${this._url}/api/config/${key}`, { method: 'GET' })).value;
   }
 
-  public async setValue(value: any, restart=false): Promise<void> {
+  public async setValue(value: any, restart = false): Promise<void> {
     await this.request(`${this._url}/api/config`, {
       method: 'PATCH',
       body: JSON.stringify({ config: value, restart }),

@@ -30,11 +30,11 @@ export type NumMode = typeof NumMode.type;
 export type NumSign = 'parens';
 
 export interface NumberFormatOptions extends FormatOptions {
-  numMode?: NumMode|null;
-  numSign?: NumSign|null;
-  decimals?: number|null;      // aka minimum fraction digits
-  maxDecimals?: number|null;
-  currency?: string|null;
+  numMode?: NumMode | null;
+  numSign?: NumSign | null;
+  decimals?: number | null;      // aka minimum fraction digits
+  maxDecimals?: number | null;
+  currency?: string | null;
 }
 
 export function getCurrency(options: NumberFormatOptions, docSettings: DocumentSettings): string {
@@ -81,7 +81,7 @@ const currencyDisplay = (function() {
   }
 })();
 
-export function parseNumMode(numMode?: NumMode|null, currency?: string): Intl.NumberFormatOptions {
+export function parseNumMode(numMode?: NumMode | null, currency?: string): Intl.NumberFormatOptions {
   switch (numMode) {
     case 'currency': return { style: 'currency', currency, currencyDisplay };
     case 'decimal': return { useGrouping: true };

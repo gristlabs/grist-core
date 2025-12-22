@@ -13,17 +13,17 @@ export interface TableOperations {
   /**
    * Update a record or records.
    */
-  update(records: Types.Record|Types.Record[], options?: OpOptions): Promise<void>;
+  update(records: Types.Record | Types.Record[], options?: OpOptions): Promise<void>;
 
   /**
    * Delete a record or records.
    */
-  destroy(recordIds: Types.RecordId|Types.RecordId[]): Promise<void>;
+  destroy(recordIds: Types.RecordId | Types.RecordId[]): Promise<void>;
 
   /**
    * Add or update a record or records.
    */
-  upsert(records: Types.AddOrUpdateRecord|Types.AddOrUpdateRecord[],
+  upsert(records: Types.AddOrUpdateRecord | Types.AddOrUpdateRecord[],
     options?: UpsertOptions): Promise<void>;
 
   /**

@@ -176,7 +176,7 @@ export class DocTutorial extends Disposable {
                 { style: `visibility: ${isFirstSlide ? 'hidden' : 'visible'}` },
                 testId('popup-previous'),
               ),
-              primaryButton(isLastSlide ? t('Finish'): t('Next'),
+              primaryButton(isLastSlide ? t('Finish') : t('Next'),
                 isLastSlide ?
                   dom.on('click', async () => await this._exitTutorial(true)) :
                   dom.on('click', async () => await this._nextSlide()),

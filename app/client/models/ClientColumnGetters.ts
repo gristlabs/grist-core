@@ -25,7 +25,7 @@ export class ClientColumnGetters implements ColumnGetters {
       Sort.getColRef(colSpec) as number, /* HACK: for virtual tables */
     );
     const colId = rowModel.colId();
-    let getter: ColumnGetter|undefined = this._tableModel.tableData.getRowPropFunc(colId);
+    let getter: ColumnGetter | undefined = this._tableModel.tableData.getRowPropFunc(colId);
     if (!getter) { return null; }
     if (this._options.unversioned && this._tableModel.tableData.mayHaveVersions()) {
       const valueGetter = getter;

@@ -18,7 +18,7 @@ import * as _ from 'underscore';
 import * as ko from 'knockout';
 
 const G = getBrowserGlobals('window');
-type BoolLike = boolean|ko.Observable<boolean>|ko.Computed<boolean>|Observable<boolean>;
+type BoolLike = boolean | ko.Observable<boolean> | ko.Computed<boolean> | Observable<boolean>;
 
 /**
  * A helper method that can create a subscription to ko or grains observables.
@@ -379,7 +379,7 @@ type BoundedMap<T> = { [key in CommandName]?: BoundedFunc<T> };
 /**
  * Just a shorthand for CommandGroup.create constructor.
  */
-export function createGroup<T>(commands: BoundedMap<T>|null, context: T, activate?: BoolLike) {
+export function createGroup<T>(commands: BoundedMap<T> | null, context: T, activate?: BoolLike) {
   return CommandGroup.create(null, commands ?? {}, context, activate);
 }
 

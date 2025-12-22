@@ -98,14 +98,14 @@ interface ActionIdentifiers {
    * for background on how this works.
    *
    */
-  actionRef: number|null;
+  actionRef: number | null;
 
   /**
    *
    * actionHash is a checksum computed from salient parts of an ActionBundle.
    *
    */
-  actionHash: string|null;
+  actionHash: string | null;
 
   /**
    *
@@ -113,7 +113,7 @@ interface ActionIdentifiers {
    * action.
    *
    */
-  actionNum: number|null;
+  actionNum: number | null;
 
   /**
    *
@@ -304,7 +304,7 @@ export class ActionHistoryImpl implements ActionHistory {
     const candidates = await this._fetchParts(branches.local_sent,
       branches.local_unsent,
       "_gristsys_ActionHistory.id, actionHash");
-    let tip: number|undefined;
+    let tip: number | undefined;
     try {
       for (const act of actions) {
         if (candidates.length === 0) {
@@ -332,7 +332,7 @@ export class ActionHistoryImpl implements ActionHistory {
     }
   }
 
-  public async acceptNextSharedAction(actionHash: string|null): Promise<boolean> {
+  public async acceptNextSharedAction(actionHash: string | null): Promise<boolean> {
     const branches = await this._getBranches();
     const candidates = await this._fetchParts(branches.shared,
       branches.local_sent,
@@ -416,7 +416,7 @@ export class ActionHistoryImpl implements ActionHistory {
     return states.map(row => ({ n: row.actionNum, h: row.actionHash }));
   }
 
-  public async getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>> {
+  public async getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>> {
     const actions = await this._db.all(
       `SELECT actionHash, actionNum, body FROM _gristsys_ActionHistory
        where actionNum in (${actionNums.map(x => '?').join(',')})`,
@@ -469,7 +469,7 @@ export class ActionHistoryImpl implements ActionHistory {
    * Fetches the most recent action row from the history, ordered with earlier actions first.
    * If `maxActions` is supplied, at most that number of actions are returned.
    */
-  private async _getRecentActionRows(maxActions: number|undefined,
+  private async _getRecentActionRows(maxActions: number | undefined,
     withBody: boolean = true): Promise<ResultRow[]> {
     const branches = await this._getBranches();
     const columns = '_gristsys_ActionHistory.id, actionNum, actionHash' + (withBody ? ', body' : '');
@@ -540,7 +540,7 @@ export class ActionHistoryImpl implements ActionHistory {
   }
 
   /** Cast an sqlite result row into a structure with the IDs we care about */
-  private _asActionIdentifiers(row: ResultRow|null): ActionIdentifiers|null {
+  private _asActionIdentifiers(row: ResultRow | null): ActionIdentifiers | null {
     if (!row) {
       return null;
     }
@@ -573,8 +573,8 @@ export class ActionHistoryImpl implements ActionHistory {
    * the `selection` parameter for each action found.
    *
    */
-  private async _fetchParts(start: ActionIdentifiers|null,
-    end: ActionIdentifiers|null,
+  private async _fetchParts(start: ActionIdentifiers | null,
+    end: ActionIdentifiers | null,
     selection: string,
     limit?: number,
     desc?: boolean): Promise<ResultRow[]> {
@@ -619,8 +619,8 @@ export class ActionHistoryImpl implements ActionHistory {
    * @return a list of LocalActionBundles.
    *
    */
-  private async _fetchActions(start: ActionIdentifiers|null,
-    end: ActionIdentifiers|null): Promise<LocalActionBundle[]> {
+  private async _fetchActions(start: ActionIdentifiers | null,
+    end: ActionIdentifiers | null): Promise<LocalActionBundle[]> {
     const rows = await this._fetchParts(start, end, "body, actionNum, actionHash");
     return reportTimeTaken("_fetchActions", () => rows.map(decodeActionFromRow));
   }

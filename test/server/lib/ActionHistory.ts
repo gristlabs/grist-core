@@ -87,11 +87,11 @@ class ToyActionHistory implements ActionHistory {
     }
   }
 
-  public async getActions(actionNums: number[]): Promise<Array<LocalActionBundle|undefined>> {
+  public async getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>> {
     return actionNums.map(n => undefined);
   }
 
-  public async acceptNextSharedAction(actionHash: string|null): Promise<boolean> {
+  public async acceptNextSharedAction(actionHash: string | null): Promise<boolean> {
     if (this._storeLocalSent.length === 0) {
       return false;
     }
@@ -176,7 +176,7 @@ async function getDoc(fname: string) {
 }
 
 const versions: Array<{ name: string,
-  createDoc: () => Promise<DocStorage|undefined>,
+  createDoc: () => Promise<DocStorage | undefined>,
   createHistory: (doc: DocStorage) => Promise<ActionHistory> }> = [
   {
     name: "ToyActionHistory",
@@ -200,7 +200,7 @@ const versions: Array<{ name: string,
 
 /** set action.actionHash and action.parentActionHash as appropriate for the given actions */
 function branchify(actions: LocalActionBundle[]) {
-  let parentActionHash: string|null = null;
+  let parentActionHash: string | null = null;
   for (const action of actions) {
     action.parentActionHash = parentActionHash;
     parentActionHash = action.actionHash = computeActionHash(action);
@@ -236,7 +236,7 @@ for (const version of versions) {
     // Comment this out to see debug-log output from PluginManager when debugging tests.
     testUtils.setTmpLogLevel('error');
 
-    let doc: DocStorage|undefined;
+    let doc: DocStorage | undefined;
     let history: ActionHistory;
 
     beforeEach(async () => {

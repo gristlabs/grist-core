@@ -3347,7 +3347,7 @@ describe('GranularAccess', function() {
     for (const actType of ['BulkUpdateRecord', 'BulkAddRecord', 'ReplaceTableData', 'TableData'] as const) {
       it(`should remove correct elements for ${actType}`, function() {
         // Prepare a 1 row bulk action.
-        const action1: BulkUpdateRecord|BulkAddRecord|ReplaceTableData|TableDataAction = [
+        const action1: BulkUpdateRecord | BulkAddRecord | ReplaceTableData | TableDataAction = [
           actType,
           'Table1',
           [1],
@@ -3403,7 +3403,7 @@ describe('GranularAccess', function() {
 
     for (const actType of ['UpdateRecord', 'AddRecord'] as const) {
       it(`should remove correct elements for ${actType}`, function() {
-        const action1: UpdateRecord|AddRecord = [
+        const action1: UpdateRecord | AddRecord = [
           actType,
           'Table1',
           1,

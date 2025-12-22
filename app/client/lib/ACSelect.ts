@@ -21,7 +21,7 @@ export function buildACSelect(
     disabled?: Observable<boolean>,
     acIndex: ACIndex<ACSelectItem>,
     valueObs: Observable<string>,
-    save: (value: string, item: ACSelectItem|undefined) => Promise<void>|void
+    save: (value: string, item: ACSelectItem | undefined) => Promise<void> | void
   },
   ...args: DomElementArg[]
 ) {

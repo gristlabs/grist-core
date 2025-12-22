@@ -32,7 +32,7 @@ export interface GetUserOptions {
 export interface UserProfileChange {
   name?: string;
   isFirstTimeUser?: boolean;
-  disabledAt?: Date|null;
+  disabledAt?: Date | null;
   options?: Partial<UserOptions>;
 }
 
@@ -43,10 +43,10 @@ export type AvailableUsers = number | UserProfile[];
 
 export type NonGuestGroup = Group & { name: roles.NonGuestRole };
 
-export type Resource = Organization|Workspace|Document;
+export type Resource = Organization | Workspace | Document;
 
 export type RunInTransaction = <T>(
-  transaction: EntityManager|undefined,
+  transaction: EntityManager | undefined,
   op: ((manager: EntityManager) => Promise<T>),
 ) => Promise<T>;
 
@@ -103,11 +103,11 @@ export interface DocAuthKey {
 // Document auth info. This is the minimum needed to resolve user access checks. For anything else
 // (e.g. doc title), the uncached getDoc() call should be used.
 export interface DocAuthResult {
-  docId: string|null;         // The unique identifier of the document. Null on error.
-  access: roles.Role|null;    // The access level for the requesting user. Null on error.
-  removed: boolean|null;      // Set if the doc is soft-deleted. Users may still have access
+  docId: string | null;         // The unique identifier of the document. Null on error.
+  access: roles.Role | null;    // The access level for the requesting user. Null on error.
+  removed: boolean | null;      // Set if the doc is soft-deleted. Users may still have access
   // to removed documents for some purposes. Null on error.
-  disabled: boolean|null;     // Removes most user read access and all
+  disabled: boolean | null;     // Removes most user read access and all
   // write access. Null on error.
   error?: ApiError;
   cachedDoc?: Document;       // For cases where stale info is ok.
@@ -119,12 +119,12 @@ export interface HomeDBAuth {
   getAnonymousUserId(): number;
   getSupportUserId(): number;
   getAnonymousUser(): User;
-  getUser(userId: number, options?: { includePrefs?: boolean }): Promise<User|undefined>;
-  getUserByKey(apiKey: string): Promise<User|undefined>;
+  getUser(userId: number, options?: { includePrefs?: boolean }): Promise<User | undefined>;
+  getUserByKey(apiKey: string): Promise<User | undefined>;
   getUserByLogin(email: string, options?: GetUserOptions): Promise<User>;
   getUserByLoginWithRetry(email: string, options?: GetUserOptions): Promise<User>;
-  getBestUserForOrg(users: AvailableUsers, org: number|string): Promise<AccessOptionWithRole|null>;
-  getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount|null>;
+  getBestUserForOrg(users: AvailableUsers, org: number | string): Promise<AccessOptionWithRole | null>;
+  getServiceAccountByLoginWithOwner(login: string): Promise<ServiceAccount | null>;
   makeFullUser(user: User): FullUser;
 }
 

@@ -26,7 +26,7 @@ export interface IAutocompleteOptions<Item extends ACItem> {
   // To which element to append the popup content. Null means triggerElem.parentNode; string is
   // a selector for the closest matching ancestor of triggerElem, e.g. 'body'.
   // Defaults to the document body.
-  attach?: Element|string|null;
+  attach?: Element | string | null;
 
   // Defaults to true. If true, updates the input during selection (e.g. when using arrow keys or hovers over element).
   liveUpdate?: boolean;
@@ -58,7 +58,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
   protected _selectedIndex: number = -1;
 
   // Currently selected element.
-  protected _selected: HTMLElement|null = null;
+  protected _selected: HTMLElement | null = null;
 
   private _popper: Popper;
   private _mouseOver: { reset(): void };
@@ -118,7 +118,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     this.onDispose(() => this._popper.destroy());
   }
 
-  public getSelectedItem(): Item|undefined {
+  public getSelectedItem(): Item | undefined {
     return this._allItems[this._selectedIndex];
   }
 
@@ -175,9 +175,9 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     }
   }
 
-  private _findTargetItem(target: EventTarget|null): number {
+  private _findTargetItem(target: EventTarget | null): number {
     // Find immediate child of this._menuContent which is an ancestor of ev.target.
-    const elem = findAncestorChild(this._menuContent, target as Element|null);
+    const elem = findAncestorChild(this._menuContent, target as Element | null);
     return Array.prototype.indexOf.call(this._menuContent.children, elem);
   }
 
@@ -259,7 +259,7 @@ export const defaultPopperOptions: Partial<PopperOptions> = {
  * Helper that finds the container according to attachElem. Null means
  * elem.parentNode; string is a selector for the closest matching ancestor, e.g. 'body'.
  */
-function getContainer(elem: Element, attachElem: Element|string|null): Node|null {
+function getContainer(elem: Element, attachElem: Element | string | null): Node | null {
   return (typeof attachElem === 'string') ? elem.closest(attachElem) :
     (attachElem || elem.parentNode);
 }

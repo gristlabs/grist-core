@@ -92,7 +92,7 @@ export async function getWorker(
     // of the defaults not working.
     throw new Error("AppEndpoint.getWorker was called unnecessarily");
   }
-  let docStatus: DocStatus|undefined;
+  let docStatus: DocStatus | undefined;
   const workersAreManaged = Boolean(process.env.GRIST_MANAGED_WORKERS);
   for (;;) {
     docStatus = await docWorkerMap.assignDocWorker(assignmentId);

@@ -11,17 +11,17 @@ import { bundleChanges, Computed, Disposable, Observable } from 'grainjs';
 const t = makeT('FormModel');
 
 export interface FormModel {
-  readonly form: Observable<Form|null>;
-  readonly formLayout: Computed<FormLayoutNode|null>;
+  readonly form: Observable<Form | null>;
+  readonly formLayout: Computed<FormLayoutNode | null>;
   readonly submitting: Observable<boolean>;
   readonly submitted: Observable<boolean>;
-  readonly error: Observable<string|null>;
+  readonly error: Observable<string | null>;
   fetchForm(): Promise<void>;
   submitForm(formData: TypedFormData): Promise<void>;
 }
 
 export class FormModelImpl extends Disposable implements FormModel {
-  public readonly form = Observable.create<Form|null>(this, null);
+  public readonly form = Observable.create<Form | null>(this, null);
   public readonly formLayout = Computed.create(this, this.form, (_use, form) => {
     if (!form) { return null; }
 
@@ -36,7 +36,7 @@ export class FormModelImpl extends Disposable implements FormModel {
 
   public readonly submitting = Observable.create<boolean>(this, false);
   public readonly submitted = Observable.create<boolean>(this, false);
-  public readonly error = Observable.create<string|null>(this, null);
+  public readonly error = Observable.create<string | null>(this, null);
 
   private readonly _formAPI: FormAPI = new FormAPIImpl(getHomeUrl());
 

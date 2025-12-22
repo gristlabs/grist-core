@@ -205,7 +205,7 @@ async function checkNoCompletions(msec = 250) {
   assert.equal(await elem.isPresent() && await elem.isDisplayed(), false);
 }
 
-async function checkError(ruleSet: WebElement, partNum: number, errorRegExp: RegExp|null) {
+async function checkError(ruleSet: WebElement, partNum: number, errorRegExp: RegExp | null) {
   await gu.waitForServer();
   const elem = ruleSet.find(`.test-rule-part:nth-child(${partNum}) .test-rule-error`);
   if (errorRegExp) {

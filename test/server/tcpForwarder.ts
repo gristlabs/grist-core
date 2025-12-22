@@ -4,9 +4,9 @@ import { connect as connectSock, getAvailablePort, listenPromise } from 'app/ser
 // We'll test reconnects by making a connection through this TcpForwarder, which we'll use to
 // simulate disconnects.
 export class TcpForwarder {
-  public port: number|null = null;
+  public port: number | null = null;
   private _connections = new Map<Socket, Socket>();
-  private _server: Server|null = null;
+  private _server: Server | null = null;
 
   constructor(private _serverPort: number, private _serverHost?: string) {}
 

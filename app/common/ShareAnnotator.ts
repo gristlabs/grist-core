@@ -56,7 +56,7 @@ export class ShareAnnotator {
   private _supportEmail = this._options.supportEmail;
 
   constructor(
-    private _features: Features|null,
+    private _features: Features | null,
     private _state: PermissionData,
     private _options: ShareAnnotatorOptions = {},
   ) {
@@ -79,7 +79,7 @@ export class ShareAnnotator {
     }
     const top = features.maxSharesPerDoc;
     let at = 0;
-    const makeAnnotation = (user: { email: string, isMember?: boolean, isSupport?: boolean, access: string|null }) => {
+    const makeAnnotation = (user: { email: string, isMember?: boolean, isSupport?: boolean, access: string | null }) => {
       const annotation: ShareAnnotation = {
         isMember: user.isMember,
       };
@@ -97,7 +97,7 @@ export class ShareAnnotator {
     };
     const users = Object.entries(
       omitBy(
-        change?.users||{},
+        change?.users || {},
         (_v, k) => EXCLUDED_EMAILS.has(k),
       ),
     );

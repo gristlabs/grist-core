@@ -6,7 +6,7 @@ import { cssLink } from 'app/client/ui2018/links';
 import { dom, styled } from 'grainjs';
 import { AutomaticHelpToolInfo } from "app/client/ui/Tools";
 
-let prevCardClose: (() => void)|null = null;
+let prevCardClose: (() => void) | null = null;
 
 // Open a popup with a card introducing this example, if the user hasn't dismissed it in the past.
 export function showExampleCard(

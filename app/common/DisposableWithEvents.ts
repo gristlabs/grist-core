@@ -8,7 +8,7 @@ import { Disposable } from 'grainjs';
 // In Typescript, mixins are awkward. This follows the recommendation here
 // https://www.typescriptlang.org/docs/handbook/mixins.html
 export class DisposableWithEvents extends Disposable implements BackboneEvents {
-  public on: (eventName: string|EventsHash, callback?: (...args: any[]) => void, context?: any) => any;
+  public on: (eventName: string | EventsHash, callback?: (...args: any[]) => void, context?: any) => any;
   public off: (eventName?: string, callback?: (...args: any[]) => void, context?: any) => any;
   public trigger: (eventName: string, ...args: any[]) => any;
   public bind: (eventName: string, callback: (...args: any[]) => void, context?: any) => any;

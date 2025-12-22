@@ -109,7 +109,7 @@ export interface CommDocChatter extends CommMessageBase {
     // This could also be a fine place to send updated info
     // about other users of the document.
     timing?: {
-      status: 'active'|'disabled';
+      status: 'active' | 'disabled';
     },
     attachmentTransfer?: AttachmentTransferStatus;
   };

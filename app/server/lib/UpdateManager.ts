@@ -70,7 +70,7 @@ export class UpdateManager {
     GristDeploymentType,
     // We cache the promise, so that we can wait for the first request.
     // This promise will always resolves, but can be resolved with an error.
-    Promise<ApiError|LatestVersion>
+    Promise<ApiError | LatestVersion>
   >;
 
   private _abortController = new AbortController();
@@ -79,7 +79,7 @@ export class UpdateManager {
     private _app: express.Application,
     private _server: GristServer,
   ) {
-    this._latestVersion = new MapWithTTL<GristDeploymentType, Promise<ApiError|LatestVersion>>(Deps.GOOD_RESULT_TTL);
+    this._latestVersion = new MapWithTTL<GristDeploymentType, Promise<ApiError | LatestVersion>>(Deps.GOOD_RESULT_TTL);
   }
 
   public addEndpoints() {
@@ -121,7 +121,7 @@ export class UpdateManager {
       const deploymentType = optStringParam(
         payload("deploymentType"),
         "deploymentType",
-      ) as GristDeploymentType|undefined;
+      ) as GristDeploymentType | undefined;
 
       const currentVersion = optStringParam(
         payload("currentVersion"),
@@ -242,7 +242,7 @@ interface DockerTag {
 
 interface DockerResponse {
   results: DockerTag[];
-  next: string|null;
+  next: string | null;
 }
 
 // https://docs.docker.com/docker-hub/api/latest/#tag/repositories/
@@ -256,7 +256,7 @@ async function listRepositoryTags(signal: AbortSignal): Promise<DockerTag[]> {
 
   const url = new URL(Deps.DOCKER_ENDPOINT);
   url.searchParams.set("page_size", "100");
-  let next: string|null = url.toString();
+  let next: string | null = url.toString();
 
   // We assume have a maximum of 100 000 tags, if that is not enough, we will have to change this.
   let MAX_LOOPS = 1000;

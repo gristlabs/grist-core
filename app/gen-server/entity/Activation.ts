@@ -10,10 +10,10 @@ export class Activation extends BaseEntity {
   public id: string;
 
   @Column({ name: 'key', type: 'text', nullable: true })
-  public key: string|null;
+  public key: string | null;
 
   @Column({ type: nativeValues.jsonEntityType, nullable: true })
-  public prefs: InstallPrefs|null;
+  public prefs: InstallPrefs | null;
 
   @Column({ name: 'created_at', default: () => "CURRENT_TIMESTAMP" })
   public createdAt: Date;
@@ -28,11 +28,11 @@ export class Activation extends BaseEntity {
   // things such as prefs, but the user might not enable Enterprise
   // until later.
   @Column({ name: 'enabled_at', type: nativeValues.dateTimeType, nullable: true })
-  public enabledAt: Date|null;
+  public enabledAt: Date | null;
 
   // When this installation entered into grace period, due to key expiration or limits exceeded.
   @Column({ name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true })
-  public gracePeriodStart: Date|null;
+  public gracePeriodStart: Date | null;
 
   public checkProperties(props: any): props is Partial<InstallProperties> {
     for (const key of Object.keys(props)) {

@@ -24,7 +24,7 @@ export interface TabProps {
 
 export function buildTabs(
   tabs: MaybeObsArray<TabProps>,
-  selected: BindableValue<string|null|undefined>,
+  selected: BindableValue<string | null | undefined>,
   ...args: IDomArgs<HTMLDivElement>
 ) {
   const isSelected = (tab: TabProps) => (use: UseCBOwner) => useBindable(use, selected) === (tab.id ?? tab.label);

@@ -91,7 +91,7 @@ class FocusLayerManager extends Disposable {
     this.grabFocus();
   }
 
-  public getCurrentLayer(): FocusLayer|undefined {
+  public getCurrentLayer(): FocusLayer | undefined {
     return this._focusLayers[this._focusLayers.length - 1];
   }
 
@@ -152,7 +152,7 @@ export class FocusLayer extends Disposable implements FocusLayerOptions {
   public allowFocus: (elem: Element) => boolean;
   public _onDefaultFocus?: () => void;
   public _onDefaultBlur?: () => void;
-  private _isDefaultFocused: boolean|null = null;
+  private _isDefaultFocused: boolean | null = null;
 
   constructor(options: FocusLayerOptions) {
     super();

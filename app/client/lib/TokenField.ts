@@ -31,7 +31,7 @@ export interface IToken {
 export interface ITokenFieldOptions<Token extends IToken> {
   initialValue: Token[];
   renderToken: (token: Token) => DomElementArg;
-  createToken: (inputText: string) => Token|undefined;
+  createToken: (inputText: string) => Token | undefined;
   acOptions?: IAutocompleteOptions<Token & ACItem>;
   openAutocompleteOnFocus?: boolean;
   styles?: ITokenFieldStyles;
@@ -83,7 +83,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   public tokensObs: ObsArray<Token>;
 
   private _acHolder = Holder.create<Autocomplete<Token & ACItem>>(this);
-  private _acOptions: IAutocompleteOptions<Token & ACItem>|undefined;
+  private _acOptions: IAutocompleteOptions<Token & ACItem> | undefined;
   private _rootElem: HTMLElement;
   private _textInput: HTMLInputElement;
   private _styles: Required<ITokenFieldStyles>;
@@ -97,7 +97,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
 
   private _tokens = this.autoDispose(obsArray<TokenWrap<Token>>());
   private _selection = Observable.create(this, new Set<TokenWrap<Token>>());
-  private _selectionAnchor: TokenWrap<Token>|null = null;
+  private _selectionAnchor: TokenWrap<Token> | null = null;
   private _undoStack: UndoItem[] = [];
   private _undoIndex = 0;   // The last action done; next to undo.
   private _inUndoRedo = false;
@@ -264,7 +264,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   // Adds the typed-in or selected item. If an item is selected in autocomplete dropdown, adds
   // that; otherwise if options.createToken is present, creates a token from text input value.
   private _addSelectedItem(): boolean {
-    let item: Token|undefined = this._acHolder.get()?.getSelectedItem();
+    let item: Token | undefined = this._acHolder.get()?.getSelectedItem();
     const textInput = this.getTextInputValue();
     if (!item && this._options.createToken && textInput) {
       item = this._options.createToken(textInput);
@@ -361,7 +361,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
   }
 
   // Handle arrow and shift+arrow keys, when the text input is empty.
-  private _maybeAdvance(ev: KeyboardEvent, advance: 1|-1): void {
+  private _maybeAdvance(ev: KeyboardEvent, advance: 1 | -1): void {
     if (this._textInput.value !== '') {
       return;
     }
@@ -386,7 +386,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     }
     else {
       // For arrow keys, move to the next token after the selection.
-      let next: TokenWrap<Token>|null = null;
+      let next: TokenWrap<Token> | null = null;
       if (this._selection.get().size > 0) {
         next = this._getNextToken(this._selection.get(), advance);
       }
@@ -415,13 +415,13 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     this._selection.setAndTrigger(selection);
   }
 
-  private _resetTokenSelection(token: TokenWrap<Token>|null) {
+  private _resetTokenSelection(token: TokenWrap<Token> | null) {
     this._selectionAnchor = token;
     this._selection.set(token ? new Set([token]) : new Set());
   }
 
   // Delete the given set of tokens, and select either the following or the preceding one.
-  private _deleteTokens(toDelete: Set<TokenWrap<Token>>, advance: 1|-1|0) {
+  private _deleteTokens(toDelete: Set<TokenWrap<Token>>, advance: 1 | -1 | 0) {
     if (this._selection.get().size === 0) { return; }
     const selectAfter = advance ? this._getNextToken(toDelete, advance) : null;
     this._tokens.set(this._tokens.get().filter(t => !toDelete.has(t)));
@@ -429,7 +429,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     this._setFocus();
   }
 
-  private _getNextToken(selection: Set<TokenWrap<Token>>, advance: 1|-1): TokenWrap<Token>|null {
+  private _getNextToken(selection: Set<TokenWrap<Token>>, advance: 1 | -1): TokenWrap<Token> | null {
     const [first, last] = this._getSelectedIndexRange(selection);
     if (last < 0) { return null; }
     return this._tokens.get()[advance > 0 ? last + 1 : first - 1] || null;
@@ -512,7 +512,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     let started = false;
     let allTargets: HTMLElement[];
     let tokenList: HTMLElement[];
-    let nextUnselectedToken: HTMLElement|undefined;
+    let nextUnselectedToken: HTMLElement | undefined;
 
     const onMove = (ev: MouseEvent) => {
       if (!started) {
@@ -564,7 +564,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       const index = allTargets.findIndex(target => target.contains(ev.target as Node));
       if (index < 0) { return; }
 
-      const destToken: TokenWrap<Token>|undefined = this._tokens.get()[index];
+      const destToken: TokenWrap<Token> | undefined = this._tokens.get()[index];
 
       const selection = this._selection.get();
       if (selection.has(destToken)) { return; }   // Not actually moving anywhere new.

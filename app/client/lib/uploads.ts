@@ -23,7 +23,7 @@ type ProgressCB = (percent: number) => void;
 
 export interface UploadOptions {
   docWorkerUrl?: string;
-  sizeLimit?: 'import'|'attachment';
+  sizeLimit?: 'import' | 'attachment';
 }
 
 export interface SelectFileOptions extends UploadOptions {
@@ -45,8 +45,8 @@ export const EXTENSIONS_IMPORTABLE_AS_DOC = [".grist", ".csv", ".tsv", ".dsv", "
  * after files are selected to indicate percentage of data uploaded.
  */
 export async function selectFiles(options: SelectFileOptions,
-  onProgress: ProgressCB = noop): Promise<UploadResult|null> {
-  let result: UploadResult|null = null;
+  onProgress: ProgressCB = noop): Promise<UploadResult | null> {
+  let result: UploadResult | null = null;
   const electronSelectFiles: any = (window as any).electronSelectFiles;
   if (typeof electronSelectFiles === 'function') {
     onProgress(0);
@@ -102,7 +102,7 @@ function getElectronOptions(options: SelectFileOptions) /* : OpenDialogOptions *
  */
 export async function uploadFiles(
   fileList: File[], options: UploadOptions, onProgress: ProgressCB = noop,
-): Promise<UploadResult|null> {
+): Promise<UploadResult | null> {
   if (!fileList.length) { return null; }
 
   const formData = new FormData();

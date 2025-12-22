@@ -400,7 +400,7 @@ export class DocWorkerApi {
 
     const removeWebhook = async (activeDoc: ActiveDoc, req: RequestWithLogin, res: Response) => {
       const { unsubscribeKey } = req.body as WebhookSubscription;
-      const webhookId = req.params.webhookId??req.body.webhookId;
+      const webhookId = req.params.webhookId ?? req.body.webhookId;
 
       // owner does not need to provide unsubscribeKey
       const checkKey = !(await this._isOwner(req));
@@ -419,7 +419,7 @@ export class DocWorkerApi {
     };
 
     async function getWebhookSettings(activeDoc: ActiveDoc, req: RequestWithLogin,
-      webhookId: string|null, webhook: WebhookFields) {
+      webhookId: string | null, webhook: WebhookFields) {
       const metaTables = await getMetaTables(activeDoc, req);
       const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
@@ -986,7 +986,7 @@ export class DocWorkerApi {
           update: !isAffirmative(req.query.noupdate),
           onMany: stringParam(req.query.onmany || "first", "onmany", {
             allowed: ["first", "none", "all"],
-          }) as 'first'|'none'|'all'|undefined,
+          }) as 'first' | 'none' | 'all' | undefined,
           allowEmptyRequire: isAffirmative(req.query.allow_empty_require),
         };
         await ops.upsert(body.records, options);
@@ -1615,7 +1615,7 @@ export class DocWorkerApi {
       const mreq = req as RequestWithLogin;
       const userId = getUserId(req);
 
-      let uploadId: number|undefined;
+      let uploadId: number | undefined;
       let parameters: { [key: string]: any };
       if (req.is('multipart/form-data')) {
         const formResult = await handleOptionalUpload(req, res);
@@ -2059,7 +2059,7 @@ export class DocWorkerApi {
     return this._docManager.fetchDoc(docSessionFromRequest(req), getDocId(req));
   }
 
-  private _getActiveDocIfAvailable(req: RequestWithLogin): Promise<ActiveDoc>|undefined {
+  private _getActiveDocIfAvailable(req: RequestWithLogin): Promise<ActiveDoc> | undefined {
     return this._docManager.getActiveDoc(getDocId(req));
   }
 
@@ -2186,7 +2186,7 @@ export class DocWorkerApi {
     next();
   }
 
-  private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemovedOrDisabled: boolean,
+  private async _assertAccess(role: 'viewers' | 'editors' | 'owners' | null, allowRemovedOrDisabled: boolean,
     req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
     allowRemovedOrDisabled = scope.showAll || scope.showRemoved || allowRemovedOrDisabled;
@@ -2218,7 +2218,7 @@ export class DocWorkerApi {
   }
 
   // Helper to generate a 503 if the ActiveDoc has been muted.
-  private _checkForMute(activeDoc: ActiveDoc|undefined) {
+  private _checkForMute(activeDoc: ActiveDoc | undefined) {
     if (activeDoc && activeDoc.muted) {
       throw new ApiError('Document in flux - try again later', 503);
     }
@@ -2233,7 +2233,7 @@ export class DocWorkerApi {
    */
   private _requireActiveDoc(callback: WithDocHandler): RequestHandler {
     return async (req, res) => {
-      let activeDoc: ActiveDoc|undefined;
+      let activeDoc: ActiveDoc | undefined;
       try {
         activeDoc = await this._getActiveDoc(req as RequestWithLogin);
         await callback(activeDoc, req as RequestWithLogin, res);
@@ -2301,7 +2301,7 @@ export class DocWorkerApi {
    * for admin access. We therefore assume admin access in the body of
    * this function.
    */
-  private async _toggleDisabledStatus(req: Request, res: Response, action: 'enable'|'disable') {
+  private async _toggleDisabledStatus(req: Request, res: Response, action: 'enable' | 'disable') {
     const mreq = req as RequestWithLogin;
     const docId = req.params.docId || req.params.did;
 
@@ -2400,7 +2400,7 @@ export class DocWorkerApi {
     });
   }
 
-  private _logDisableToggleDocumentEvents(action: 'enable'|'disable', req: RequestWithLogin, document: Document) {
+  private _logDisableToggleDocumentEvents(action: 'enable' | 'disable', req: RequestWithLogin, document: Document) {
     this._grist.getAuditLogger().logEvent(req, {
       action: `document.${action}`,
       context: {
@@ -2622,7 +2622,7 @@ export class DocWorkerApi {
     options: {
       showDetails: boolean,
       docId2: string,
-      maxRows: number|null|undefined,
+      maxRows: number | null | undefined,
     }) {
     const { showDetails, docId2, maxRows } = options;
     const docSession = docSessionFromRequest(req);
@@ -2713,8 +2713,8 @@ export interface QueryParameters {
  * The sort parameter can either be given as a query parameter, or
  * as a header.
  */
-function getSortParameter(req: Request): string[]|undefined {
-  const sortString: string|undefined = optStringParam(req.query.sort, 'sort') || req.get('X-Sort');
+function getSortParameter(req: Request): string[] | undefined {
+  const sortString: string | undefined = optStringParam(req.query.sort, 'sort') || req.get('X-Sort');
   if (!sortString) { return undefined; }
   return sortString.split(',');
 }
@@ -2724,8 +2724,8 @@ function getSortParameter(req: Request): string[]|undefined {
  * simple integer.  The limit parameter can either be given as a query
  * parameter, or as a header.
  */
-function getLimitParameter(req: Request): number|undefined {
-  const limitString: string|undefined = optStringParam(req.query.limit, 'limit') || req.get('X-Limit');
+function getLimitParameter(req: Request): number | undefined {
+  const limitString: string | undefined = optStringParam(req.query.limit, 'limit') || req.get('X-Limit');
   if (!limitString) { return undefined; }
   const limit = parseInt(limitString, 10);
   if (isNaN(limit)) { throw new Error('limit is not a number'); }
@@ -2751,7 +2751,7 @@ function getQueryParameters(req: Request): QueryParameters {
 function applySort(
   values: TableColValues,
   sort: string[],
-  _columns: TableRecordValue[]|null = null) {
+  _columns: TableRecordValue[] | null = null) {
   if (!sort) { return values; }
 
   // First we need to prepare column description in ColValue format (plain objects).
@@ -2812,7 +2812,7 @@ function applyLimit(values: TableColValues, limit: number) {
 export function applyQueryParameters(
   values: TableColValues,
   params: QueryParameters,
-  columns: TableRecordValue[]|null = null): TableColValues {
+  columns: TableRecordValue[] | null = null): TableColValues {
   if (params.sort) { applySort(values, params.sort, columns); }
   if (params.limit) { applyLimit(values, params.limit); }
   return values;

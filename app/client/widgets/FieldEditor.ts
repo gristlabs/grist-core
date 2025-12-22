@@ -81,7 +81,7 @@ export class FieldEditor extends Disposable {
   private _isFormula = false;
   private _readonly = false;
   private _detached = Observable.create(this, false);
-  private _detachedAt: CursorPos|null = null;
+  private _detachedAt: CursorPos | null = null;
   private _event?: Event;
 
   constructor(options: {
@@ -111,7 +111,7 @@ export class FieldEditor extends Disposable {
 
     const column = this._field.column();
     this._isFormula = column.isRealFormula.peek();
-    let editValue: string|undefined = startVal;
+    let editValue: string | undefined = startVal;
     if (!options.readonly && startVal && gutil.startsWith(startVal, '=')) {
       if (this._isFormula  || this._field.column().isEmpty()) {
         // If we typed '=' on an empty column, convert it to a formula. If on a formula column,
@@ -196,7 +196,7 @@ export class FieldEditor extends Disposable {
   }
 
   // cursorPos refers to the position of the caret within the editor.
-  public rebuildEditor(editValue: string|undefined, cursorPos: number, state?: any) {
+  public rebuildEditor(editValue: string | undefined, cursorPos: number, state?: any) {
     // Attachment column with a formula is different, it either uses FormulaEditor if user typed something or pressed
     // enter, or AttachmentEditor if user clicked or dblclicked to edit. In later case we assume user wants to see
     // attachments, not the formula.
@@ -409,7 +409,7 @@ export class FieldEditor extends Disposable {
       // console.warn below, although harmless.)
       const isFormula = this._field.editingFormula();
       const col = this._field.column();
-      let waitPromise: Promise<unknown>|null = null;
+      let waitPromise: Promise<unknown> | null = null;
 
       if (isFormula) {
         const formula = String(editor.getCellValue() ?? '');

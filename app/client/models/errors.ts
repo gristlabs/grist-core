@@ -54,7 +54,7 @@ export function getAppErrors(): string[] {
 /**
  * Shows normal notification without any styling or icon.
  */
-export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions>): INotification|undefined {
+export function reportMessage(msg: MessageType, options?: Partial<INotifyOptions>): INotification | undefined {
   if (_notifier && !_notifier.isDisposed()) {
     return _notifier.createUserMessage(msg, {
       ...options,
@@ -115,7 +115,7 @@ const unhelpfulErrors = new Set<string>();
  * Not all errors will be shown as an error toast, depending on the content of the error
  * this function might show a simple toast message.
  */
-export function reportError(err: Error|string, ev?: ErrorEvent): void {
+export function reportError(err: Error | string, ev?: ErrorEvent): void {
   if (err instanceof MutedError) {
     return;
   }
@@ -140,7 +140,7 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       err = new Error(String(err));
     }
 
-    const details: ApiErrorDetails|undefined = (err as any).details;
+    const details: ApiErrorDetails | undefined = (err as any).details;
     const code: unknown = (err as any).code;
     const status: unknown = (err as any).status;
     const message = (details && details.userError) || err.message;
@@ -230,7 +230,7 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
  * over-logging (regular errors such as access rights or account limits) and
  * under-logging (javascript errors during startup might never get reported).
  */
-export function logError(error: Error|string) {
+export function logError(error: Error | string) {
   if (!pageHasHome()) { return; }
   const docId = G.window.gristDocPageModel?.currentDocId?.get();
   fetchFromHome('/api/log', {

@@ -99,7 +99,7 @@ export class DocumentUsage extends Disposable {
 
   private readonly _attachmentsSizeMetricOptions: Computed<MetricOptions> =
     Computed.create(this, this._currentFeatures, this._attachmentsSizeBytes, (_use, features, attachmentsSize) => {
-      const maxSize: number|undefined = features?.baseMaxAttachmentsBytesPerDocument;
+      const maxSize: number | undefined = features?.baseMaxAttachmentsBytesPerDocument;
       // Invalid attachments size limits are currently treated as if they are undefined.
       const maxValue = maxSize && maxSize > 0 ? maxSize : undefined;
       return {
@@ -210,7 +210,7 @@ export class DocumentUsage extends Disposable {
 export function buildLimitStatusMessage(
   planName: string,
   usageInfo: NonNullable<Pick<FilteredDocUsageSummary, 'dataLimitInfo'>>,
-  features?: Features|null,
+  features?: Features | null,
   options: {
     disableRawDataLink?: boolean;
   } = {},

@@ -80,7 +80,7 @@ export class SafeBrowser extends BaseComponent {
   private _viewProcesses: Map<number, ClientProcess> = new Map();
   private _pluginId: string;
   private _pluginRpc: Rpc;
-  private _mainProcess: WorkerProcess|undefined;
+  private _mainProcess: WorkerProcess | undefined;
   private _viewCount: number = 0;
 
   private _plugin = this._options.pluginInstance;

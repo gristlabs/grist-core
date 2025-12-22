@@ -132,7 +132,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
  * portion can be an independent action button (when buttonAction is given), or simply a more
  * visible extension of the icon that opens the menu.
  */
-function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFunc,
+function shareButton(buttonText: DomContents | null, menuCreateFunc: MenuCreateFunc,
   options: { buttonAction?: () => void } = {},
 ) {
   if (!buttonText) {

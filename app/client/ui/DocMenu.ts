@@ -283,7 +283,7 @@ function buildWorkspaceDocBlock(
   workspace: Workspace,
   viewSettings: ViewSettings,
 ) {
-  function renderDocs(sort: 'date'|'name', view: "list"|"icons") {
+  function renderDocs(sort: 'date' | 'name', view: "list" | "icons") {
     // Docs are sorted by name in HomeModel, we only re-sort if we want a different order.
     let docs = workspace.docs;
     if (sort === 'date') {

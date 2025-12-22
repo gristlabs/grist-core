@@ -14,7 +14,7 @@ async function parseAllValues() {
 describe('ColumnFilterMenu2', function() {
   setupTestSuite();
   this.timeout(10000);
-  let limitShown: number|undefined;
+  let limitShown: number | undefined;
 
   before(async function() {
     this.timeout(60000);

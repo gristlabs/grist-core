@@ -146,7 +146,7 @@ describe('ActiveDoc', async function() {
   }
 
   describe("DocData", function() {
-    function verifyTableData(t: TableData|undefined, colIdSubset: string[], data: CellValue[][]): void {
+    function verifyTableData(t: TableData | undefined, colIdSubset: string[], data: CellValue[][]): void {
       if (!t) { throw new Error("table could not be fetched"); }
       const idIndex = colIdSubset.indexOf('id');
       assert(idIndex !== -1, "verifyTableData expects 'id' column");

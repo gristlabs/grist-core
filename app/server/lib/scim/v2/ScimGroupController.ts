@@ -102,7 +102,7 @@ export function getScimGroupConfig(
   const controller = new ScimGroupController(dbManager, checkAccess);
 
   return {
-    egress: async (resource: GroupResource, context: RequestContext): Promise<GroupSchema|GroupSchema[]> => {
+    egress: async (resource: GroupResource, context: RequestContext): Promise<GroupSchema | GroupSchema[]> => {
       if (resource.id) {
         return await controller.getSingleGroup(resource, context);
       }

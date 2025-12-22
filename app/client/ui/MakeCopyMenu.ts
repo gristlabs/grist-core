@@ -147,7 +147,7 @@ export async function makeCopy(options: {
 interface SaveCopyModalParams {
   pageModel: DocPageModel;
   doc: Document;
-  orgs: Organization[]|null;
+  orgs: Organization[] | null;
 }
 
 class SaveCopyModal extends Disposable {
@@ -155,10 +155,10 @@ class SaveCopyModal extends Disposable {
   private _app = this._pageModel.appModel;
   private _doc = this._params.doc;
   private _orgs = this._params.orgs;
-  private _workspaces = Observable.create<Workspace[]|null>(this, null);
+  private _workspaces = Observable.create<Workspace[] | null>(this, null);
   private _destName = Observable.create<string>(this, '');
-  private _destOrg = Observable.create<Organization|null>(this, this._app.currentOrg);
-  private _destWS = Observable.create<Workspace|null>(this, this._doc.workspace);
+  private _destOrg = Observable.create<Organization | null>(this, this._app.currentOrg);
+  private _destWS = Observable.create<Workspace | null>(this, this._doc.workspace);
   private _asTemplate = Observable.create<boolean>(this, false);
   private _saveDisabled = Computed.create(this, this._destWS, this._destName, (use, ws, name) =>
     (!name.trim() || !ws || !roles.canEdit(ws.access)));
@@ -281,7 +281,7 @@ class SaveCopyModal extends Disposable {
    * HomeModel, and set this._workspaces to it. While fetching, this._workspaces is set to null.
    * Once fetched, we also set this._destWS.
    */
-  private async _updateWorkspaces(org: Organization|null) {
+  private async _updateWorkspaces(org: Organization | null) {
     this._workspaces.set(null);     // Show that workspaces are loading.
     this._destWS.set(null);         // Disable saving while waiting to set a new destination workspace.
     try {
@@ -298,7 +298,7 @@ class SaveCopyModal extends Disposable {
       // (The support user creating a new example can just download and upload.)
       wss = wss.filter(ws => !ws.isSupportWorkspace);
 
-      let defaultWS: Workspace|undefined;
+      let defaultWS: Workspace | undefined;
       const showWorkspaces = (org && !org.owner);
       if (showWorkspaces) {
         // If we show a workspace selector, default to the current document's workspace (when its

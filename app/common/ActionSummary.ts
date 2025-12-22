@@ -97,7 +97,7 @@ export interface TableDelta {
  * Pairs of before/after names of tables and columns.  Null represents non-existence,
  * so the addition and removal of tables/columns can be represented.
  */
-export type LabelDelta = [string|null, string|null];
+export type LabelDelta = [string | null, string | null];
 
 /**
  * A collection of changes related to cells in a specific column.
@@ -273,7 +273,7 @@ export function getAffectedTables(summary: ActionSummary): string[] {
  * Given a tableId from after the specified renames, figure out what the tableId was before
  * the renames.  Returns null if table didn't exist.
  */
-export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|null): string|null {
+export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string | null): string | null {
   if (tableIdAfter === null) { return tableIdAfter; }
   const rename = renames.find(_rename => _rename[1] === tableIdAfter);
   return rename ? rename[0] : tableIdAfter;
@@ -283,7 +283,7 @@ export function getTableIdBefore(renames: LabelDelta[], tableIdAfter: string|nul
  * Given a tableId from before the specified renames, figure out what the tableId is after
  * the renames.  Returns null if there is no valid tableId to return.
  */
-export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string|null): string|null {
+export function getTableIdAfter(renames: LabelDelta[], tableIdBefore: string | null): string | null {
   if (tableIdBefore === null) { return tableIdBefore; }
   const rename = renames.find(_rename => _rename[0] === tableIdBefore);
   const tableIdAfter = rename ? rename[1] : tableIdBefore;

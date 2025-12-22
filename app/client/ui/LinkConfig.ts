@@ -8,8 +8,8 @@ export class LinkConfig {
   // Note that srcCol and tgtCol may be the empty column records if that column is not used.
   public readonly srcCol: ColumnRec;
   public readonly tgtCol: ColumnRec;
-  public readonly srcColId: string|undefined;
-  public readonly tgtColId: string|undefined;
+  public readonly srcColId: string | undefined;
+  public readonly tgtColId: string | undefined;
 
   // The constructor throws an exception if settings are invalid. When used from inside a knockout
   // computed, the constructor subscribes to all parts relevant for linking.

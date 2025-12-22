@@ -150,7 +150,7 @@ describe('DocStorageQuery', function() {
  * Across different regular expressions, same-named groups must match.
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-function assertMatches(calls: Array<unknown[]>, expected: Array<Array<unknown|RegExp>>) {
+function assertMatches(calls: Array<unknown[]>, expected: Array<Array<unknown | RegExp>>) {
   const groups = new Map<string, string>();
   for (const [n, expectedCall] of expected.entries()) {
     assert.isAtLeast(calls.length, n + 1);

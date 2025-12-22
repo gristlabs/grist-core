@@ -6,8 +6,8 @@ import { SQLiteDB } from 'app/server/lib/SQLiteDB';
 
 export interface IDocStorageManager {
   getPath(docName: string): string;
-  getSQLiteDB(docName: string): SQLiteDB|undefined;
-  getSampleDocPath(sampleDocName: string): string|null;
+  getSQLiteDB(docName: string): SQLiteDB | undefined;
+  getSampleDocPath(sampleDocName: string): string | null;
   getCanonicalDocName(altDocName: string): Promise<string>;
 
   // This method must not be called for the same docName twice in parallel.
@@ -27,7 +27,7 @@ export interface IDocStorageManager {
   // Mark document as needing a backup (due to edits, migrations, etc).
   // If reason is set to 'edit' the user-facing timestamp on the document should be updated.
   markAsChanged(docName: string, reason?: 'edit'): void;
-  scheduleUsageUpdate(docName: string, usage: DocumentUsage|null, minimizeDelay?: boolean): void;
+  scheduleUsageUpdate(docName: string, usage: DocumentUsage | null, minimizeDelay?: boolean): void;
   testReopenStorage(): void;                // restart storage during tests
   addToStorage(docName: string): Promise<void>;  // add a new local document to storage
   prepareToCloseStorage(): void;            // speed up sync with remote store

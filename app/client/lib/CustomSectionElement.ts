@@ -33,7 +33,7 @@ export class CustomSectionElement {
    * Find a section matching sectionName in the plugin instances' constributions and returns
    * it. Returns `undefined` if not found.
    */
-  public static find(plugin: PluginInstance, sectionName: string): ViewProcess|undefined {
+  public static find(plugin: PluginInstance, sectionName: string): ViewProcess | undefined {
     const customSections = plugin.definition.manifest.contributions.customSections;
     if (customSections) {
       const section = customSections.find(({ name }) => name === sectionName);

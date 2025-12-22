@@ -122,7 +122,7 @@ export class FormulaEditor extends NewBaseEditor {
         return null;
       }
       const error = isRaisedException(formulaError) ?
-        decodeObject(formulaError) as RaisedException:
+        decodeObject(formulaError) as RaisedException :
         new RaisedException(["Unknown error"]);
       return error;
     });
@@ -381,7 +381,7 @@ export class FormulaEditor extends NewBaseEditor {
       });
     }
 
-    const errorBox: HTMLElement|null = this._dom.querySelector('.error_details');
+    const errorBox: HTMLElement | null = this._dom.querySelector('.error_details');
     const errorBoxStartHeight = errorBox?.getBoundingClientRect().height || 0;
     const errorBoxDesiredHeight = errorBox?.scrollHeight || 0;
 
@@ -611,7 +611,7 @@ export function getFormulaError(owner: Disposable, options: {
   editRow: DataRowModel,
   column?: ColumnRec,
   field?: ViewFieldRec,
-}): Observable<CellValue|undefined> {
+}): Observable<CellValue | undefined> {
   const { gristDoc, editRow } = options;
   const formulaError = Observable.create(owner, undefined as any);
   // When we don't have a field information we don't need to be reactive at all.
@@ -662,7 +662,7 @@ function errorMonitor(
   column: ColumnRec,
   editRow: DataRowModel,
   holder: Disposable,
-  formulaError: Observable<CellValue|undefined> ) {
+  formulaError: Observable<CellValue | undefined> ) {
   return  function onValueChange(cellCurrentValue: CellValue) {
     const isFormula = column.isFormula() || column.hasTriggerFormula();
     if (isFormula && isRaisedException(cellCurrentValue)) {

@@ -133,7 +133,7 @@ export class RefSelect extends Disposable {
       .sort((a, b) => a.parentPos() > b.parentPos() ? 1 : -1)
       .findIndex(f => f.getRowId() === field.getRowId());
     const pos = tableUtil.fieldInsertPositions(fields, index + 1)[0];
-    let colAction: Promise<any>|undefined;
+    let colAction: Promise<any> | undefined;
     if (colMatch) {
       // If column exists, use it.
       colAction = Promise.resolve({ colRef: colMatch.getRowId(), colId: colMatch.colId() });

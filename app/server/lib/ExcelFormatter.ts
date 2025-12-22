@@ -67,7 +67,7 @@ class BaseFormatter {
       if (this.widgetOptions.numMode === 'currency') {
         // If currency name is undefined or null, it should be cast to unknown currency, because
         // "getSymbolFromCurrency" expect argument to be string
-        const currencyName = this.widgetOptions.currency??"";
+        const currencyName = this.widgetOptions.currency ?? "";
         const currencySymbol = getSymbolFromCurrency(currencyName) ??
           this.widgetOptions.currency ??
           "$";

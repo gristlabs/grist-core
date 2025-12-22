@@ -50,7 +50,7 @@ const testId = makeTestId('test-config-widget-');
 
 class ColumnPicker extends Disposable {
   constructor(
-    private _value: Observable<number|number[]|null>,
+    private _value: Observable<number | number[] | null>,
     private _column: ColumnToMapImpl,
     private _section: ViewSectionRec) {
     super();
@@ -78,7 +78,7 @@ class ColumnPicker extends Disposable {
     const options = Computed.create(this, (use) => {
       void use(refreshTrigger);
 
-      const columnsAsOptions: IOption<number|null>[] = use(canBeMapped)
+      const columnsAsOptions: IOption<number | null>[] = use(canBeMapped)
         .map(col => ({
           value: col.getRowId(),
           label: col.label.peek(),
@@ -165,7 +165,7 @@ class ColumnPicker extends Disposable {
 
 class ColumnListPicker extends Disposable {
   constructor(
-    private _value: Observable<number|number[]|null>,
+    private _value: Observable<number | number[] | null>,
     private _column: ColumnToMapImpl,
     private _section: ViewSectionRec) {
     super();
@@ -229,7 +229,7 @@ class ColumnListPicker extends Disposable {
   }
 
   // Helper method for filtering columns that can be picked by the widget.
-  private _typeFilter = (use = unwrap) => (col: ColumnRec|null) =>
+  private _typeFilter = (use = unwrap) => (col: ColumnRec | null) =>
     !col ? false : this._column.canByMapped(use(col.pureType));
 
   private _buildDraggableList(use: UseCBOwner) {
@@ -289,7 +289,7 @@ class ColumnListPicker extends Disposable {
     }
   }
 
-  private _reorder(column: ColumnRec, nextColumn: ColumnRec|null): any {
+  private _reorder(column: ColumnRec, nextColumn: ColumnRec | null): any {
     const id = column.id.peek();
     const nextId = nextColumn?.id.peek();
     const currentList = this._list();

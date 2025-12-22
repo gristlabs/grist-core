@@ -51,7 +51,7 @@ export interface IModalControl {
 export class ModalControl extends Disposable implements IModalControl {
   private _inProgress = Observable.create<number>(this, 0);
   private _workInProgress = Computed.create(this, this._inProgress, (use, n) => (n > 0));
-  private _closePromise: Promise<boolean>|undefined;
+  private _closePromise: Promise<boolean> | undefined;
   private _shouldClose = false;
 
   constructor(
@@ -493,9 +493,9 @@ export function invokePrompt(
     placeholder?: string,
     body?: DomElementArg,
   },
-): Promise<string|undefined> {
-  let onResolve: (text: string|undefined) => any;
-  const prom = new Promise<string|undefined>((resolve) => {
+): Promise<string | undefined> {
+  let onResolve: (text: string | undefined) => any;
+  const prom = new Promise<string | undefined>((resolve) => {
     onResolve = resolve;
   });
   promptModal(title, onResolve!, options?.btnText ?? t("Ok"), options?.initial, options?.placeholder, () => {

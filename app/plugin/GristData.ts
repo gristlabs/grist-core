@@ -43,7 +43,7 @@ export enum GristObjCode {
  * | `U`  | Unmarshallable, as `["U", text_representation]` |
  * | `V`  | Version, as `["V", version_obj]` |
  */
-export type CellValue = number|string|boolean|null|[GristObjCode, ...unknown[]];
+export type CellValue = number | string | boolean | null | [GristObjCode, ...unknown[]];
 
 export interface BulkColValues { [colId: string]: CellValue[]; }
 

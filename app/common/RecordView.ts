@@ -12,7 +12,7 @@ export interface InfoView {
  * If index value is undefined, acts as an EmptyRecordRow.
  */
 export class RecordView implements InfoView {
-  public constructor(public data: TableDataAction, public index: number|undefined) {
+  public constructor(public data: TableDataAction, public index: number | undefined) {
   }
 
   public get(colId: string): CellValue {

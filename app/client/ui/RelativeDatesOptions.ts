@@ -15,7 +15,7 @@ export const DEPS = { getCurrentTime };
 
 export interface IRelativeDateOption {
   label: string;
-  value: number|IRelativeDateSpec;
+  value: number | IRelativeDateSpec;
 }
 
 const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
@@ -113,7 +113,7 @@ function now(): moment.Moment {
 // passed in option.
 export function getMatchingDoubleRelativeDate(
   dateValue: number,
-  option: { unit: 'day'|'week'|'month'|'year', endOf?: boolean },
+  option: { unit: 'day' | 'week' | 'month' | 'year', endOf?: boolean },
 ): IPeriod[] {
   const { unit } = option;
   const date = moment.utc(dateValue * 1000);
@@ -134,7 +134,7 @@ export function formatBoundOption(bound: IRangeBoundType, valueFormatter: (val: 
 }
 
 // Update relativeDate to match the new date picked by user.
-export function updateRelativeDate(relativeDate: IRelativeDateSpec, date: number): IRelativeDateSpec|number {
+export function updateRelativeDate(relativeDate: IRelativeDateSpec, date: number): IRelativeDateSpec | number {
   const periods = Array.isArray(relativeDate) ? relativeDate : [relativeDate];
 
   if ([1, 2].includes(periods.length)) {

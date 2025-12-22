@@ -536,7 +536,7 @@ export class SortedRowSet extends RowListener {
   private _allRows: Set<UIRowId> = new Set();
   private _isPaused: boolean = false;
   private _koArray: KoArray<UIRowId>;
-  private _keepFunc?: (rowId: number|'new') => boolean;
+  private _keepFunc?: (rowId: number | 'new') => boolean;
 
   constructor(private _compareFunc: CompareFunc<UIRowId>,
     private _skippableRows?: SkippableRows) {

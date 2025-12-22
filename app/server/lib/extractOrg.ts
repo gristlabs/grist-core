@@ -36,13 +36,13 @@ export type RequestWithOrg = Request & Partial<RequestOrgInfo>;
 export class Hosts {
   // Cache of orgs (e.g. "fancy" of "fancy.getgrist.com") associated with custom hosts
   // (e.g. "www.fancypants.com")
-  private _host2org = new MapWithTTL<string, Promise<string|undefined>>(ORG_HOST_CACHE_TTL);
+  private _host2org = new MapWithTTL<string, Promise<string | undefined>>(ORG_HOST_CACHE_TTL);
   // Cache of custom hosts associated with orgs.
-  private _org2host = new MapWithTTL<string, Promise<string|undefined>>(ORG_HOST_CACHE_TTL);
+  private _org2host = new MapWithTTL<string, Promise<string | undefined>>(ORG_HOST_CACHE_TTL);
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
-  constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager,
-    private _gristServer: GristServer|undefined) {
+  constructor(private _baseDomain: string | undefined, private _dbManager: HomeDBManager,
+    private _gristServer: GristServer | undefined) {
   }
 
   /**

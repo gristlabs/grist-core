@@ -41,7 +41,7 @@ interface Props {
   /**
    * Position of the remove button. Defaults to inside.
    */
-  removePosition?: 'inside'|'right',
+  removePosition?: 'inside' | 'right',
   editMode?: Observable<boolean>,
 }
 

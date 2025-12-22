@@ -81,7 +81,7 @@ export interface INotifier extends INotifierMethods {
    * For old tests, we preserve some weird old methods.
    * This may need further refactoring or elimination.
    */
-  testSendGridExtensions?(): TestSendGridExtensions|undefined;
+  testSendGridExtensions?(): TestSendGridExtensions | undefined;
 }
 
 export interface TestSendGridExtensions {
@@ -114,7 +114,7 @@ export class EmitNotifier extends EventEmitter implements INotifier {
   public docNotification = this._wrapEvent('docNotification');
   public deleteUser = this._wrapEvent('deleteUser');
 
-  private _primaryNotifier: INotifier|null = null;
+  private _primaryNotifier: INotifier | null = null;
   private _testPendingNotifications = 0;
 
   public setPrimaryNotifier(notifier: INotifier) { this._primaryNotifier = notifier; }

@@ -66,7 +66,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     return Boolean(await this.head(key, snapshotId));
   }
 
-  public async head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata|null> {
+  public async head(key: string, snapshotId?: string): Promise<ObjSnapshotWithMetadata | null> {
     try {
       const head = await this._s3.statObject(
         this.bucket, key,

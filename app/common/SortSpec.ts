@@ -88,7 +88,7 @@ export namespace Sort {
     return typeof colSpec === "number" ?
       {
         colRef: Math.abs(colSpec),
-        direction: colSpec >= 0 ? ASC: DESC,
+        direction: colSpec >= 0 ? ASC : DESC,
       } :
       parseColSpec(colSpec);
   }

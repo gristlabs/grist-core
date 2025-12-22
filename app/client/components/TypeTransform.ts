@@ -30,7 +30,7 @@ const t = makeT('TypeTransform');
  */
 export class TypeTransform extends ColumnTransform {
   private _reviseTypeChange = Observable.create(this, false);
-  private _transformWidget: Computed<NewAbstractWidget|null>;
+  private _transformWidget: Computed<NewAbstractWidget | null>;
   private _isFormWidget: Computed<boolean>;
   private _convertColumn: ColumnRec;                 // Set in prepare()
 

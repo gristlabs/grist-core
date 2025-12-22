@@ -20,7 +20,7 @@ const testTiming: ThrottleTiming = {
 interface ThrottleTestCase {
   child: ChildProcess;
   throttle: Throttle;
-  done: Promise<number|string>;
+  done: Promise<number | string>;
   cpuHog: boolean;
 }
 

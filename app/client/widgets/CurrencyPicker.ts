@@ -15,8 +15,8 @@ interface CurrencyPickerOptions {
 
 export function buildCurrencyPicker(
   owner: IDisposableOwner,
-  currency: Observable<string|undefined>,
-  onSave: (value: string|undefined) => void,
+  currency: Observable<string | undefined>,
+  onSave: (value: string | undefined) => void,
   { defaultCurrencyLabel, disabled }: CurrencyPickerOptions,
 ) {
   const currencyItems: ACSelectItem[] = currencies

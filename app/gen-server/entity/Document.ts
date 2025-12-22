@@ -38,16 +38,16 @@ export class Document extends Resource {
 
   // Property that may be returned when the doc is fetched to indicate the access the
   // fetching user has on the doc, i.e. 'owners', 'editors', 'viewers'
-  public access: Role|null;
+  public access: Role | null;
 
   // Property that may be returned when the doc is fetched to indicate the share it
   // is being accessed with. The identifier used is the linkId, which is the share
   // identifier that is the same between the home database and the document.
   // The linkId is not a secret, and need only be unique within a document.
-  public linkId?: string|null;
+  public linkId?: string | null;
 
   // Property set for forks, containing access the fetching user has on the trunk.
-  public trunkAccess?: Role|null;
+  public trunkAccess?: Role | null;
 
   // a computed column with permissions.
   // {insert: false} makes sure typeorm doesn't try to put values into such
@@ -56,16 +56,16 @@ export class Document extends Resource {
   public permissions?: any;
 
   @Column({ name: 'url_id', type: 'text', nullable: true })
-  public urlId: string|null;
+  public urlId: string | null;
 
   @Column({ name: 'removed_at', type: nativeValues.dateTimeType, nullable: true })
-  public removedAt: Date|null;
+  public removedAt: Date | null;
 
   @Column({ name: 'disabled_at', type: nativeValues.dateTimeType, nullable: true })
-  public disabledAt: Date|null;
+  public disabledAt: Date | null;
 
   @Column({ name: 'grace_period_start', type: nativeValues.dateTimeType, nullable: true })
-  public gracePeriodStart: Date|null;
+  public gracePeriodStart: Date | null;
 
   @OneToMany(type => Alias, alias => alias.doc)
   public aliases: Alias[];
@@ -80,24 +80,24 @@ export class Document extends Resource {
   public usage: DocumentUsage | null;
 
   @Column({ name: 'created_by', type: 'integer', nullable: true })
-  public createdBy: number|null;
+  public createdBy: number | null;
 
   @ManyToOne(_type => User)
   @JoinColumn({ name: 'created_by' })
   public creator: User;
 
   @Column({ name: 'trunk_id', type: 'text', nullable: true })
-  public trunkId: string|null;
+  public trunkId: string | null;
 
   @ManyToOne(_type => Document, document => document.forks)
   @JoinColumn({ name: 'trunk_id' })
-  public trunk: Document|null;
+  public trunk: Document | null;
 
   @OneToMany(_type => Document, document => document.trunk)
   public forks: Document[];
 
   @Column({ name: 'type', type: 'text', nullable: true })
-  public type: DocumentType|null;
+  public type: DocumentType | null;
 
   public checkProperties(props: any): props is Partial<DocumentProperties> {
     return super.checkProperties(props, documentPropertyKeys);
@@ -216,7 +216,7 @@ export class FilteredDocument extends Document {
 
 // Check that icon points to an expected location.  This will definitely
 // need changing, it is just a placeholder as the icon feature is developed.
-function sanitizeIcon(icon: string|null) {
+function sanitizeIcon(icon: string | null) {
   if (icon === null) { return icon; }
   const url = new URL(icon);
   if (url.protocol !== 'https:' || url.host !== 'grist-static.com' || !url.pathname.startsWith('/icons/')) {

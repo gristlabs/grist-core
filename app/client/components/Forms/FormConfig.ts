@@ -116,7 +116,7 @@ function obsPropWithSaveOnWrite<Props extends object, Key extends keyof Props, V
   obs: SaveableObjObservable<Props>,
   prop: Key,
   fallback: Val,
-): Computed<NonNullable<Props[Key]>|Val> {
+): Computed<NonNullable<Props[Key]> | Val> {
   return Computed.create(owner, use => use(obs)[prop] ?? fallback)
     .onWrite((value) => {
       obs.setAndSaveOrRevert({ ...obs.peek(), [prop]: value }).catch(reportError);

@@ -12,7 +12,7 @@ describe('Importer', function() {
   this.timeout(70000); // Imports can take some time, especially in tests that import larger files.
   const cleanup = setupTestSuite();
 
-  let docUrl: string|undefined;
+  let docUrl: string | undefined;
   let session: gu.Session;
 
   beforeEach(async function() {

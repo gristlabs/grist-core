@@ -42,7 +42,7 @@ describe('PluginApi', function() {
       [{ id: 1, A: 1, B: 5 }]);
   });
   it('should ignore when there are not mappings requested', function() {
-    const columns: ColumnsToMap|undefined = undefined;
+    const columns: ColumnsToMap | undefined = undefined;
     const mappings: any = undefined;
     const record = { A: 1, B: 2, id: 1 };
     assert.deepEqual(

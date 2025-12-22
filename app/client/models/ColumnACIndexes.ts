@@ -16,7 +16,7 @@ import { localeCompare, nativeCompare } from 'app/common/gutil';
 import { BaseFormatter } from 'app/common/ValueFormatter';
 
 export interface ICellItem {
-  rowId: number|'new';
+  rowId: number | 'new';
   text: string;           // Formatted cell text.
   cleanText: string;      // Trimmed lowercase text for searching.
 }

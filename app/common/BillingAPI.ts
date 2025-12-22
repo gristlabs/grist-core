@@ -25,7 +25,7 @@ export type BillingTask = typeof BillingTask.type;
 export interface IBillingPlan {
   id: string;                 // the Stripe plan id
   nickname: string;
-  interval: 'day'|'week'|'month'|'year';           // billing frequency - one of day, week, month or year
+  interval: 'day' | 'week' | 'month' | 'year';           // billing frequency - one of day, week, month or year
   // Merged metadata from price and product.
   metadata: {
     family?: string;          // groups plans for filtering by GRIST_STRIPE_FAMILY env variable
@@ -36,7 +36,7 @@ export interface IBillingPlan {
     gristLimit?: string;      // type of the limit (for limit type plans)
   };
   amount: number;             // amount in cents charged at each interval
-  trialPeriodDays: number|null;  // Number of days in the trial period, or null if there is none.
+  trialPeriodDays: number | null;  // Number of days in the trial period, or null if there is none.
   product: string;         // the Stripe product id.
   features: string[];       // list of features that are available with this plan
   active: boolean;
@@ -61,18 +61,18 @@ export interface ILimitTier {
 export interface IBillingCoupon {
   id: string;
   promotion_code: string;
-  name: string|null;
-  percent_off: number|null;
-  amount_off: number|null;
+  name: string | null;
+  percent_off: number | null;
+  amount_off: number | null;
 }
 
 // Stripe subscription discount information.
 // For reference: https://stripe.com/docs/api/discounts/object
 export interface IBillingDiscount {
-  name: string|null;
-  percent_off: number|null;
-  amount_off: number|null;
-  end_timestamp_ms: number|null;
+  name: string | null;
+  percent_off: number | null;
+  amount_off: number | null;
+  end_timestamp_ms: number | null;
 }
 
 export interface IBillingSubscription {
@@ -86,7 +86,7 @@ export interface IBillingSubscription {
   upcomingPlanIndex: number;
   // Timestamp in milliseconds indicating when the current plan period ends.
   // Null if the account is not signed up with Stripe.
-  periodEnd: number|null;
+  periodEnd: number | null;
   // Whether the subscription is in the trial period.
   isInTrial: boolean;
   // Value in cents remaining for the current subscription. This indicates the amount that
@@ -101,15 +101,15 @@ export interface IBillingSubscription {
   // The next total in cents that Stripe is going to charge (includes tax and discount).
   nextTotal: number;
   // The next due date in milliseconds.
-  nextDueDate: number|null; // in milliseconds
+  nextDueDate: number | null; // in milliseconds
   // Discount information, if any.
-  discount: IBillingDiscount|null;
+  discount: IBillingDiscount | null;
   // Last plan we had a subscription for, if any.
-  lastPlanId: string|null;
+  lastPlanId: string | null;
   // Whether there is a valid plan in effect.
   isValidPlan: boolean;
   // The time when the plan will be cancelled. (Not set when we are switching to a free plan)
-  cancelAt: number|null;
+  cancelAt: number | null;
   // A flag for when all is well with the user's subscription.
   inGoodStanding: boolean;
   // Whether there is a paying valid account (even on free plan). It this is set
@@ -128,7 +128,7 @@ export interface IBillingSubscription {
   lastInvoiceOpen?: boolean;   // Whether the last invoice is not paid but it can be.
   lastChargeError?: string;    // The last charge error, if any, to show in case of a bad status.
   lastChargeTime?: number;     // The time of the last charge attempt.
-  limit?: ILimit|null;
+  limit?: ILimit | null;
   balance?: number;            // The balance of the account.
 
   // Current product name. Even if not paid or not in good standing.
@@ -148,8 +148,8 @@ export interface ILimit {
 
 export interface IBillingOrgSettings {
   name: string;
-  domain: string|null;
-  customLogoUrl?: string|null;
+  domain: string | null;
+  customLogoUrl?: string | null;
 }
 
 // Full description of billing account, including nested list of orgs and managers.
@@ -160,7 +160,7 @@ export interface FullBillingAccount extends BillingAccount {
 
 export interface SummaryLine {
   description: string;
-  quantity?: number|null;
+  quantity?: number | null;
   amount: number;
 }
 
@@ -170,7 +170,7 @@ export interface ChangeSummary {
   priceId: string,
   interval: string,
   quantity: number,
-  type: 'upgrade'|'downgrade',
+  type: 'upgrade' | 'downgrade',
   regular: {
     lines: SummaryLine[];
     subTotal: number;
@@ -189,7 +189,7 @@ export interface ChangeSummary {
   }
 }
 
-export type UpgradeConfirmation = ChangeSummary|{ checkoutUrl: string };
+export type UpgradeConfirmation = ChangeSummary | { checkoutUrl: string };
 
 export interface PlanSelection {
   product?: string; // grist product name
@@ -307,7 +307,7 @@ export class BillingAPIImpl extends BaseAPI implements BillingAPI {
     });
   }
 
-  public async confirmChange(plan: PlanSelection): Promise<ChangeSummary|{ checkoutUrl: string }> {
+  public async confirmChange(plan: PlanSelection): Promise<ChangeSummary | { checkoutUrl: string }> {
     return this.requestJson(`${this._url}/api/billing/confirm-change`, {
       method: 'POST',
       body: JSON.stringify(plan),

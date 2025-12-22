@@ -22,7 +22,7 @@ export class ColumnToMapImpl implements Required<ColumnToMap> {
   public typeDesc: string;
   // Allow multiple column assignment (like Series in Charts).
   public allowMultiple: boolean;
-  constructor(def: string|ColumnToMap) {
+  constructor(def: string | ColumnToMap) {
     this.name = typeof def === 'string' ? def : def.name;
     this.title = typeof def === 'string' ? def : (def.title ?? def.name);
     this.description = typeof def === 'string' ? '' : (def.description ?? '');

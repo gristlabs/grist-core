@@ -64,7 +64,7 @@ const DATA_BY_TYPES: { [k: string]: Partial<IFilterMenuOptions> } = {
   },
 };
 
-function setupTest(owner: IDisposableOwner, opts: { limitShown?: number, filterType?: string|null } = {},
+function setupTest(owner: IDisposableOwner, opts: { limitShown?: number, filterType?: string | null } = {},
   resetBtn: DomArg) {
   const limitShown = opts.limitShown;
   const filterType = opts.filterType || 'Text';

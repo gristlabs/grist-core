@@ -47,7 +47,7 @@ export function adaptServerUrl(url: URL, req: RequestWithOrg): void {
     url.hostname = req.hostname;
   }
   else if (reqBaseDomain) {
-    const subdomain: string|undefined = parseSubdomain(url.hostname).org || DEFAULT_HOME_SUBDOMAIN;
+    const subdomain: string | undefined = parseSubdomain(url.hostname).org || DEFAULT_HOME_SUBDOMAIN;
     url.hostname = `${subdomain}${reqBaseDomain}`;
   }
 
@@ -105,7 +105,7 @@ export function trustOrigin(req: IncomingMessage, resp?: Response): boolean {
 
 // Returns whether req satisfies the given allowedHost. Unless req is to a custom domain, it is
 // enough if only the base domains match. Differing ports are allowed, which helps in dev/testing.
-export function allowHost(req: IncomingMessage, allowedHost: string|URL) {
+export function allowHost(req: IncomingMessage, allowedHost: string | URL) {
   const proto = getEndUserProtocol(req);
   const actualUrl = new URL(getOriginUrl(req));
   const allowedUrl = (typeof allowedHost === 'string') ? new URL(`${proto}://${allowedHost}`) : allowedHost;
@@ -198,7 +198,7 @@ export interface SendReplyOptions {
 // Filter out keys we don't want crossing the api.
 // Set req to null to not log any information about request.
 export async function sendReply<T>(
-  req: Request|null,
+  req: Request | null,
   res: Response,
   result: QueryResult<T>,
   options: SendReplyOptions = {},
@@ -227,7 +227,7 @@ export async function sendReply<T>(
 }
 
 export async function sendOkReply<T>(
-  req: Request|null,
+  req: Request | null,
   res: Response,
   result?: T,
   options: SendReplyOptions = {},
@@ -273,7 +273,7 @@ export interface StringParamOptions {
   allowEmpty?: boolean;
 }
 
-export function optStringParam(p: any, name: string, options: StringParamOptions = {}): string|undefined {
+export function optStringParam(p: any, name: string, options: StringParamOptions = {}): string | undefined {
   if (p === undefined) { return p; }
 
   return stringParam(p, name, options);
@@ -358,7 +358,7 @@ export function integerParam(
   return result;
 }
 
-export function optBooleanParam(p: any, name: string): boolean|undefined {
+export function optBooleanParam(p: any, name: string): boolean | undefined {
   if (p === undefined) { return p; }
 
   return booleanParam(p, name);
@@ -419,7 +419,7 @@ export function getOriginIpAddress(req: IncomingMessage) {
  *
  * If the header is absent from the request, a new header will be returned.
  */
-export function buildXForwardedForHeader(req: Request): { 'X-Forwarded-For': string }|undefined {
+export function buildXForwardedForHeader(req: Request): { 'X-Forwarded-For': string } | undefined {
   const values = req.get('X-Forwarded-For')?.split(',').map(value => value.trim()) ?? [];
   if (req.socket.remoteAddress) { values.push(req.socket.remoteAddress); }
   return values.length > 0 ? { 'X-Forwarded-For': values.join(', ') } : undefined;
@@ -447,7 +447,7 @@ export function getEndUserProtocol(req: IncomingMessage) {
  */
 export function clearSessionCacheIfNeeded(req: Request, options?: {
   email?: string,
-  org?: string|null,
+  org?: string | null,
   sessionID?: string,
 }) {
   (req as RequestWithGrist).gristServer?.getSessions().clearCacheIfNeeded(options);

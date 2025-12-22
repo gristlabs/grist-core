@@ -12,7 +12,7 @@ import * as moment from 'moment-timezone';
  * A subset of the ExternalStorage interface, focusing on maintaining a list of versions.
  */
 export interface IInventory {
-  getSnapshotWindow?: (key: string) => Promise<SnapshotWindow|undefined>;
+  getSnapshotWindow?: (key: string) => Promise<SnapshotWindow | undefined>;
   versions(key: string): Promise<ObjSnapshotWithMetadata[]>;
   remove(key: string, snapshotIds: string[]): Promise<void>;
 }
@@ -116,7 +116,7 @@ export class DocSnapshotInventory implements IInventory {
     private _doc: ExternalStorage,
     private _meta: ExternalStorage,
     private _getFilename: (key: string) => Promise<string>,
-    public getSnapshotWindow: (key: string) => Promise<SnapshotWindow|undefined>,
+    public getSnapshotWindow: (key: string) => Promise<SnapshotWindow | undefined>,
   ) {}
 
   /**
@@ -149,7 +149,7 @@ export class DocSnapshotInventory implements IInventory {
    *
    * The snapshot supplied will be modified in place to a normalized form.
    */
-  public async add(key: string, snapshot: ObjSnapshotWithMetadata, prevSnapshotId: string|null) {
+  public async add(key: string, snapshot: ObjSnapshotWithMetadata, prevSnapshotId: string | null) {
     await this.uploadAndAdd(key, async () => {
       return { snapshot, prevSnapshotId };
     });
@@ -166,7 +166,7 @@ export class DocSnapshotInventory implements IInventory {
    */
   public async uploadAndAdd(key: string,
     upload: () => Promise<{ snapshot?: ObjSnapshotWithMetadata,
-      prevSnapshotId: string|null }>) {
+      prevSnapshotId: string | null }>) {
     await this._mutex.runExclusive(key, async () => {
       const { snapshot, prevSnapshotId } = await upload();
       if (!snapshot) {
@@ -229,7 +229,7 @@ export class DocSnapshotInventory implements IInventory {
    * it from S3.  If expectSnapshotId is set, the cached version is ignored if
    * the most recent version listed is not the expected one.
    */
-  public async versions(key: string, expectSnapshotId?: string|null): Promise<ObjSnapshotWithMetadata[]> {
+  public async versions(key: string, expectSnapshotId?: string | null): Promise<ObjSnapshotWithMetadata[]> {
     return this._mutex.runExclusive(key, async () => {
       return await this._getSnapshots(key, expectSnapshotId || null);
     });
@@ -237,7 +237,7 @@ export class DocSnapshotInventory implements IInventory {
 
   // Do whatever it takes to get an inventory of versions.
   // Most recent versions returned first.
-  private async _getSnapshots(key: string, expectSnapshotId: string|null): Promise<ObjSnapshotWithMetadata[]> {
+  private async _getSnapshots(key: string, expectSnapshotId: string | null): Promise<ObjSnapshotWithMetadata[]> {
     // Check if we have something useful cached on the local filesystem.
     const fname = await this._getFilename(key);
     let data = await this._loadFromFile(fname);
@@ -274,7 +274,7 @@ export class DocSnapshotInventory implements IInventory {
   }
 
   // Load inventory from local file system, if available.
-  private async _loadFromFile(fname: string): Promise<ObjSnapshotWithMetadata[]|null> {
+  private async _loadFromFile(fname: string): Promise<ObjSnapshotWithMetadata[] | null> {
     try {
       if (await fse.pathExists(fname)) {
         return JSON.parse(await fse.readFile(fname, 'utf8'));

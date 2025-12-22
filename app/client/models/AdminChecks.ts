@@ -73,7 +73,7 @@ export class AdminChecks {
   /**
    * Request the result of a check, by its id.
    */
-  public requestCheckById(use: UseCBOwner, id: BootProbeIds): AdminCheckRequest|undefined {
+  public requestCheckById(use: UseCBOwner, id: BootProbeIds): AdminCheckRequest | undefined {
     const probe = use(this.probes).find(p => p.id === id);
     if (!probe) { return; }
     return this.requestCheck(probe);

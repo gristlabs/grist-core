@@ -51,14 +51,14 @@ export interface TopAppModel {
   api: UserAPI;
   isSingleOrg: boolean;
   productFlavor: ProductFlavor;
-  currentSubdomain: Observable<string|undefined>;
+  currentSubdomain: Observable<string | undefined>;
 
   notifier: Notifier;
   plugins: LocalPlugin[];
 
   // Everything else gets fully rebuilt when the org/user changes. This is to ensure that
   // different parts of the code aren't using different users/orgs while the switch is pending.
-  appObs: Observable<AppModel|null>;
+  appObs: Observable<AppModel | null>;
 
   orgs: Observable<Organization[]>;
   users: Observable<FullUser[]>;
@@ -98,22 +98,22 @@ export interface AppModel {
   topAppModel: TopAppModel;
   api: UserAPI;
 
-  currentUser: ExtendedUser|null;
-  currentValidUser: ExtendedUser|null;      // Like currentUser, but null when anonymous
+  currentUser: ExtendedUser | null;
+  currentValidUser: ExtendedUser | null;      // Like currentUser, but null when anonymous
 
-  currentOrg: Organization|null;        // null if no access to currentSubdomain
+  currentOrg: Organization | null;        // null if no access to currentSubdomain
   currentOrgName: string;               // Our best guess for human-friendly name.
-  currentOrgUsage: Observable<OrgUsageSummary|null>;
+  currentOrgUsage: Observable<OrgUsageSummary | null>;
   isPersonal: boolean;                  // Is it a personal site?
   isTeamSite: boolean;                  // Is it a team site?
   isLegacySite: boolean;                // Is it a legacy site?
   isTemplatesSite: boolean;             // Is it the templates site?
   orgError?: OrgError;                  // If currentOrg is null, the error that caused it.
-  lastVisitedOrgDomain: Observable<string|null>;
+  lastVisitedOrgDomain: Observable<string | null>;
 
-  currentProduct: Product|null;         // The current org's product.
-  currentPriceId: string|null;          // The current org's stripe plan id.
-  currentFeatures: Features|null;            // Features of the current org's product.
+  currentProduct: Product | null;         // The current org's product.
+  currentPriceId: string | null;          // The current org's stripe plan id.
+  currentFeatures: Features | null;            // Features of the current org's product.
 
   userPrefsObs: Observable<UserPrefs>;
   themePrefs: Observable<ThemePrefs>;
@@ -128,7 +128,7 @@ export interface AppModel {
   needsOrg: Observable<boolean>;
 
   notifier: Notifier;
-  planName: string|null;
+  planName: string | null;
 
   behavioralPromptsManager: BehavioralPromptsManager;
 
@@ -156,7 +156,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
 
   public readonly currentSubdomain = Computed.create(this, urlState().state, (use, s) => s.org);
   public readonly notifier = Notifier.create(this);
-  public readonly appObs = Observable.create<AppModel|null>(this, null);
+  public readonly appObs = Observable.create<AppModel | null>(this, null);
   public readonly orgs = Observable.create<Organization[]>(this, []);
   public readonly users = Observable.create<FullUser[]>(this, []);
   public readonly plugins: LocalPlugin[] = [];
@@ -283,13 +283,13 @@ export class AppModelImpl extends Disposable implements AppModel {
   public readonly api: UserAPI = this.topAppModel.api;
 
   // Compute currentValidUser, turning anonymous into null.
-  public readonly currentValidUser: ExtendedUser|null =
+  public readonly currentValidUser: ExtendedUser | null =
     this.currentUser && !this.currentUser.anonymous ? this.currentUser : null;
 
   // Figure out the org name, or blank if details are unavailable.
   public readonly currentOrgName = getOrgNameOrGuest(this.currentOrg, this.currentUser);
 
-  public readonly currentOrgUsage: Observable<OrgUsageSummary|null> = Observable.create(this, null);
+  public readonly currentOrgUsage: Observable<OrgUsageSummary | null> = Observable.create(this, null);
 
   public readonly lastVisitedOrgDomain = this.autoDispose(sessionStorageObs('grist-last-visited-org-domain'));
 
@@ -365,8 +365,8 @@ export class AppModelImpl extends Disposable implements AppModel {
 
   constructor(
     public readonly topAppModel: TopAppModel,
-    public readonly currentUser: ExtendedUser|null,
-    public readonly currentOrg: Organization|null,
+    public readonly currentUser: ExtendedUser | null,
+    public readonly currentOrg: Organization | null,
     public readonly orgError?: OrgError,
   ) {
     super();
@@ -541,7 +541,7 @@ export class AppModelImpl extends Disposable implements AppModel {
   }
 }
 
-export function getOrgNameOrGuest(org: Organization|null, user: FullUser|null) {
+export function getOrgNameOrGuest(org: Organization | null, user: FullUser | null) {
   if (!org) { return ''; }
   if (user && user.anonymous && org.owner && org.owner.id === user.id) {
     return "@Guest";
@@ -567,7 +567,7 @@ export function getFallbackHomeUrl(): string {
  * Get the official home URL sent to us from the back end.
  */
 export function getConfiguredHomeUrl(): string {
-  const gristConfig: GristLoadConfig|undefined = window.gristConfig;
+  const gristConfig: GristLoadConfig | undefined = window.gristConfig;
   return gristConfig?.homeUrl || getFallbackHomeUrl();
 }
 
@@ -575,9 +575,9 @@ export function getConfiguredHomeUrl(): string {
  * Get the home URL, using fallback on the admin case and in the
  * single-domain case case.
  */
-export function getPreferredHomeUrl(): string|undefined {
+export function getPreferredHomeUrl(): string | undefined {
   const gristUrl = urlState().state.get();
-  const gristConfig: GristLoadConfig|undefined = window.gristConfig;
+  const gristConfig: GristLoadConfig | undefined = window.gristConfig;
   if (gristUrl.adminPanel || gristConfig?.serveSameOrigin) {
     // On the admin panel, we should not trust configuration much,
     // since we want the user to be able to access it to diagnose

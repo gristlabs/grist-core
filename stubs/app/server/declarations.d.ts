@@ -11,13 +11,13 @@ declare module "@gristlabs/sqlite3" {
     public readonly idle: boolean;
     public readonly completed: boolean;
     public readonly failed: boolean;
-    public step(pages: number, callback?: (err: Error|null) => void): void;
+    public step(pages: number, callback?: (err: Error | null) => void): void;
     public finish(callback?: (err: Error | null) => void): void;
   }
   export class DatabaseWithBackup extends Database {
-    public backup(filename: string, callback?: (err: Error|null) => void): Backup;
+    public backup(filename: string, callback?: (err: Error | null) => void): Backup;
     public backup(filename: string, destDbName: 'main', srcDbName: 'main',
-      filenameIsDest: boolean, callback?: (err: Error|null) => void): Backup;
+      filenameIsDest: boolean, callback?: (err: Error | null) => void): Backup;
   }
 }
 
@@ -38,12 +38,12 @@ declare module "redis" {
 
     public delAsync(key: string): Promise<'OK'>;
     public flushdbAsync(): Promise<void>;
-    public getAsync(key: string): Promise<string|null>;
+    public getAsync(key: string): Promise<string | null>;
     public hdelAsync(key: string, field: string): Promise<number>;
-    public hgetallAsync(key: string): Promise<{ [field: string]: any }|null>;
-    public hkeysAsync(key: string): Promise<string[]|null>;
+    public hgetallAsync(key: string): Promise<{ [field: string]: any } | null>;
+    public hkeysAsync(key: string): Promise<string[] | null>;
     public hmsetAsync(key: string, val: { [field: string]: any }): Promise<'OK'>;
-    public hsetAsync(key: string, field: string, val: string): Promise<1|0>;
+    public hsetAsync(key: string, field: string, val: string): Promise<1 | 0>;
     public keysAsync(pattern: string): Promise<string[]>;
     public multi(): Multi;
     public quitAsync(): Promise<void>;
@@ -51,11 +51,11 @@ declare module "redis" {
     public selectAsync(db: number): Promise<void>;
     public setAsync(key: string, val: string): Promise<'OK'>;
     public setexAsync(key: string, ttl: number, val: string): Promise<'OK'>;
-    public sismemberAsync(key: string, val: string): Promise<0|1>;
+    public sismemberAsync(key: string, val: string): Promise<0 | 1>;
     public smembersAsync(key: string): Promise<string[]>;
-    public srandmemberAsync(key: string): Promise<string|null>;
+    public srandmemberAsync(key: string): Promise<string | null>;
     public sremAsync(key: string, val: string): Promise<'OK'>;
-    public ttlAsync(key: string): Promise<number|null>;
+    public ttlAsync(key: string): Promise<number | null>;
     public unwatchAsync(): Promise<'OK'>;
     public watchAsync(key: string): Promise<void>;
     public lrangeAsync(key: string, start: number, end: number): Promise<string[]>;
@@ -69,7 +69,7 @@ declare module "redis" {
 
   class Multi {
     public del(key: string): Multi;
-    public execAsync(): Promise<any[]|null>;
+    public execAsync(): Promise<any[] | null>;
     public get(key: string): Multi;
     public hgetall(key: string): Multi;
     public hmset(key: string, val: { [field: string]: any }): Multi;

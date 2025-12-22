@@ -139,7 +139,7 @@ export class AccessRules extends Disposable {
   private _sortedTableRules: Computed<TableRules[]>;
 
   // The default rule set for the document (for "*:*").
-  private _docDefaultRuleSet = Observable.create<DefaultObsRuleSet|null>(this, null);
+  private _docDefaultRuleSet = Observable.create<DefaultObsRuleSet | null>(this, null);
 
   // Special document-level rules, for resources of the form ("*SPECIAL:<RuleType>").
   // These rules are shown in different places - currently most are shown as a separate
@@ -364,7 +364,7 @@ export class AccessRules extends Disposable {
         }
 
         // Look up the rowId for the resource.
-        let resourceRowId: number|undefined;
+        let resourceRowId: number | undefined;
         // Assign the rules for the fake "*SPECIAL:SchemaEdit" resource to the default resource where they belong.
         if (isSchemaEditResource(rule.resourceRec!)) {
           resourceRowId = defaultResourceRowId;
@@ -637,7 +637,7 @@ export class AccessRules extends Disposable {
   }
 
   // Returns a list of valid colIds for the given table, or undefined if the table isn't valid.
-  public getValidColIds(tableId: string): string[]|undefined {
+  public getValidColIds(tableId: string): string[] | undefined {
     return this._aclResources.get(tableId)?.colIds.filter(id => !isHiddenCol(id)).sort();
   }
 
@@ -646,7 +646,7 @@ export class AccessRules extends Disposable {
     return getColTypeInfo(this.getValidColIds(tableId) || [], this.gristDoc.docData.getTable(tableId));
   }
 
-  public typeCheckFormula(formulaParsed: ParsedPredicateFormula, tableId?: string): string|false {
+  public typeCheckFormula(formulaParsed: ParsedPredicateFormula, tableId?: string): string | false {
     const sampleRecord = tableId ? this._getSampleRecord(tableId) : new EmptyRecordView();
 
     const userAttrSamples: { [key: string]: InfoView } = {};
@@ -849,7 +849,7 @@ class TableRules extends Disposable {
   private _haveColumnRules = Computed.create(this, this._columnRuleSets, (use, cols) => cols.length > 0);
 
   // The default rule set (for columns '*'), if one is set.
-  private _defaultRuleSet = Observable.create<DefaultObsRuleSet|null>(this, null);
+  private _defaultRuleSet = Observable.create<DefaultObsRuleSet | null>(this, null);
 
   constructor(public readonly tableId: string, public _accessRules: AccessRules,
     private _colRuleSets?: RuleSet[], private _defRuleSet?: RuleSet) {
@@ -1166,7 +1166,7 @@ abstract class ObsRuleSet extends Disposable {
   protected readonly _body = this.autoDispose(obsArray<ObsRulePart>());
 
   // ruleSet is omitted for a new ObsRuleSet added by the user.
-  constructor(public accessRules: AccessRules, protected _tableRules: TableRules|null, private _ruleSet?: RuleSet) {
+  constructor(public accessRules: AccessRules, protected _tableRules: TableRules | null, private _ruleSet?: RuleSet) {
     super();
     const parts = this._ruleSet?.body.map(part => ObsRulePart.create(this._body, this, part)) || [];
     if (parts.length === 0) {
@@ -1247,7 +1247,7 @@ abstract class ObsRuleSet extends Disposable {
     }
   }
 
-  public addRulePart(beforeRule: ObsRulePart|null,
+  public addRulePart(beforeRule: ObsRulePart | null,
     content?: RulePart,
     isNew: boolean = false): ObsRulePart {
     const body = this._body.get();
@@ -1308,12 +1308,12 @@ abstract class ObsRuleSet extends Disposable {
    * Returns the first built-in rule. It's the only one of the built-in rules to get a "+" next to
    * it, since we don't allow inserting new rules in-between built-in rules.
    */
-  public getFirstBuiltIn(): ObsRulePart|undefined {
+  public getFirstBuiltIn(): ObsRulePart | undefined {
     return this._body.get().find(p => p.isBuiltIn());
   }
 
   // Get first rule part, built-in or not.
-  public getFirst(): ObsRulePart|undefined {
+  public getFirst(): ObsRulePart | undefined {
     return this._body.get()[0];
   }
 
@@ -1339,7 +1339,7 @@ abstract class ObsRuleSet extends Disposable {
     return body.length > 0 && body[body.length - 1].hasEmptyCondition(use);
   }
 
-  public getDefaultCondition(): ObsRulePart|null {
+  public getDefaultCondition(): ObsRulePart | null {
     const body = this._body.get();
     const last = body.length > 0 ? body[body.length - 1] : null;
     return last?.hasEmptyCondition(unwrap) ? last : null;
@@ -1385,7 +1385,7 @@ abstract class ObsRuleSet extends Disposable {
   /**
    * If the set applies to a special column, return its name.
    */
-  public getSpecialColumn(): string|undefined {
+  public getSpecialColumn(): string | undefined {
     if (this._ruleSet?.tableId === SPECIAL_RULES_TABLE_ID &&
       this._ruleSet.colIds.length === 1) {
       return this._ruleSet.colIds[0];
@@ -1399,7 +1399,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
 
   private _colIds = Observable.create<string[]>(this, this._initialColIds);
 
-  constructor(accessRules: AccessRules, tableRules: TableRules, ruleSet: RuleSet|undefined,
+  constructor(accessRules: AccessRules, tableRules: TableRules, ruleSet: RuleSet | undefined,
     private _initialColIds: string[]) {
     super(accessRules, tableRules, ruleSet);
 
@@ -1447,7 +1447,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
 }
 
 class DefaultObsRuleSet extends ObsRuleSet {
-  constructor(accessRules: AccessRules, tableRules: TableRules|null,
+  constructor(accessRules: AccessRules, tableRules: TableRules | null,
     private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
     super(accessRules, tableRules, ruleSet);
   }
@@ -1744,7 +1744,7 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
   }
 
   // The third "confirm" option is used by the "Dismiss" link in the warning.
-  private _allowEditors(value: boolean|'confirm') {
+  private _allowEditors(value: boolean | 'confirm') {
     const builtInRules = this._body.get().filter(r => r.isBuiltIn());
     if (value === 'confirm') {
       const rulePart = makeRulePart(schemaEditRules.allowEditors);
@@ -1898,7 +1898,7 @@ class ObsUserAttributeRule extends Disposable {
     }
     return {
       id: this._userAttr?.origRecord?.id,
-      rulePos: this._userAttr?.origRecord?.rulePos as number|undefined,
+      rulePos: this._userAttr?.origRecord?.rulePos as number | undefined,
       userAttributes: JSON.stringify(spec),
     };
   }
@@ -1934,7 +1934,7 @@ class ObsRulePart extends Disposable {
   // Whether the rule part, and if it's valid or being checked.
   public ruleStatus: Computed<RuleStatus>;
 
-  public focusEditor: (() => void)|undefined;
+  public focusEditor: (() => void) | undefined;
 
   // Formula to show in the formula editor.
   private _aclFormula = Observable.create<string>(this, this._rulePart?.aclFormula || "");
@@ -2026,7 +2026,7 @@ class ObsRulePart extends Disposable {
       id,
       aclFormula: this._aclFormula.get(),
       permissionsText: permissionSetToText(this._permissions.get()),
-      rulePos: this._rulePart?.origRecord?.rulePos as number|undefined,
+      rulePos: this._rulePart?.origRecord?.rulePos as number | undefined,
       memo: this._memo.get(),
     };
   }
@@ -2190,12 +2190,12 @@ class ObsRulePart extends Disposable {
     }
   }
 
-  private _warnInvalidFormula(formulaProperties: PredicateFormulaProperties): string|false {
+  private _warnInvalidFormula(formulaProperties: PredicateFormulaProperties): string | false {
     return this._warnInvalidColIds(formulaProperties.recColIds) ||
       this._typeCheckFormula(formulaProperties.formulaParsed);
   }
 
-  private _warnInvalidColIds(colIds?: string[]): string|false {
+  private _warnInvalidColIds(colIds?: string[]): string | false {
     if (!colIds || !colIds.length) { return false; }
     const allValid = new Set(this._ruleSet.getValidColIds());
     const specialColumn = this._ruleSet.getSpecialColumn();
@@ -2211,7 +2211,7 @@ class ObsRulePart extends Disposable {
     return false;
   }
 
-  private _typeCheckFormula(formulaParsed?: ParsedPredicateFormula): string|false {
+  private _typeCheckFormula(formulaParsed?: ParsedPredicateFormula): string | false {
     if (!formulaParsed) { return false; }
 
     // Don't fail seed rules. Those only get checked for validity once they are used.
@@ -2247,7 +2247,7 @@ function syncRecords(tableData: TableData, newRecords: RowRecord[],
     .map((r, index) => ({ ...r, id: -(index + 1) }));
 
   // Array of [before, after] pairs for changed records.
-  const updatedRecords: Array<[RowRecord, RowRecord]> = oldRecords.map((r): ([RowRecord, RowRecord]|null) => {
+  const updatedRecords: Array<[RowRecord, RowRecord]> = oldRecords.map((r): ([RowRecord, RowRecord] | null) => {
     const newRec = newRecordMap.get(uniqueId(r));
     const updated = newRec && { ...r, ...newRec, id: r.id };
     return updated && !isEqual(updated, r) ? [r, updated] : null;
@@ -2322,7 +2322,7 @@ function getAclFormulaProperties(part?: RulePart): PredicateFormulaProperties {
 }
 
 // Return a rule set if it applies to one of the specified columns.
-function filterRuleSet(colIds: string[], ruleSet?: RuleSet): RuleSet|undefined {
+function filterRuleSet(colIds: string[], ruleSet?: RuleSet): RuleSet | undefined {
   if (!ruleSet) { return undefined; }
   if (ruleSet.colIds === '*') { return ruleSet; }
   for (const colId of ruleSet.colIds) {
@@ -2337,7 +2337,7 @@ function filterRuleSets(colIds: string[], ruleSets: RuleSet[]): RuleSet[] {
   return ruleSets.map(ruleSet => filterRuleSet(colIds, ruleSet)).filter(rs => rs) as RuleSet[];
 }
 
-function makeSuggestionExample(value: unknown): string|undefined {
+function makeSuggestionExample(value: unknown): string | undefined {
   // Produce a representation of the value similar to Python's repr(), at least in the common case.
   if (typeof value === "string") {
     return JSON.stringify(value);     // Make clear that this is a string value

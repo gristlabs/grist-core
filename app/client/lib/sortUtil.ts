@@ -13,7 +13,7 @@ import range from 'lodash/range';
  * Adds a column to the given sort spec, replacing its previous occurrence if
  * it's already in the sort spec.
  */
-export function addToSort(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: number, direction: -1|1) {
+export function addToSort(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: number, direction: -1 | 1) {
   const spec = sortSpecObs.peek();
   const index = Sort.findColIndex(spec, colRef);
   const withDirection = Sort.setColDirection(colRef, direction);
@@ -26,7 +26,7 @@ export function addToSort(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: num
   sortSpecObs(spec);
 }
 
-export function sortBy(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: number, direction: -1|1) {
+export function sortBy(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: number, direction: -1 | 1) {
   let spec = sortSpecObs.peek();
   const colSpec = Sort.findCol(spec, colRef) ?? colRef;
   spec = [Sort.setColDirection(colSpec, direction)];

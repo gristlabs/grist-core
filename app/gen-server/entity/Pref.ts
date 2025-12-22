@@ -12,10 +12,10 @@ export class Pref {
   // on nullable primary keys (and Postgres doesn't support them).  We could add
   // another primary key, but we don't actually need one.
   @PrimaryColumn({ name: 'user_id', type: Number })
-  public userId: number|null;
+  public userId: number | null;
 
   @PrimaryColumn({ name: 'org_id', type: Number })
-  public orgId: number|null;
+  public orgId: number | null;
 
   @ManyToOne(type => User)
   @JoinColumn({ name: 'user_id' })

@@ -100,7 +100,7 @@ interface InsertColOptions {
   onPopupClose?: () => void;
 }
 
-type Direction = 'left'|'right'|'up'|'down';
+type Direction = 'left' | 'right' | 'up' | 'down';
 
 export interface GridViewOptions extends ViewOptions {
   inline?: boolean; // If true, grid will try to auto size to fit contents within maxInlineWidth/Height, used in
@@ -133,8 +133,8 @@ export default class GridView extends BaseView {
   protected customCellMenu: (menu: DomElementArg[], options: ICellContextMenu) => Element[];
   protected customRowMenu: (menu: DomElementArg[], options: IRowContextMenu) => Element[];
   protected colRightOffsets: ko.Computed<BinaryIndexedTree>;
-  protected visibleRowIndex: ko.Observable<number|null>;
-  protected currentPosition: Computed<{ rowIndex: number|null, fieldIndex: number }>;
+  protected visibleRowIndex: ko.Observable<number | null>;
+  protected currentPosition: Computed<{ rowIndex: number | null, fieldIndex: number }>;
   protected scrollShadow: { left: ko.Computed<boolean>, top: ko.Computed<boolean> };
   protected ctxMenuHolder: Holder<IOpenController>;
   protected width: ko.Observable<number>;
@@ -148,7 +148,7 @@ export default class GridView extends BaseView {
   protected frozenPositions: KoArray<ko.Computed<number>>;
   protected frozenMap: KoArray<ko.Computed<boolean>>;
   protected hoverColumn: ko.Observable<number>;
-  private _insertColumnIndex: ko.Observable<number|null>;
+  private _insertColumnIndex: ko.Observable<number | null>;
   protected editingFormula: ko.Computed<boolean>;
   protected changeHover: (index: number) => void;
   protected isColSelected: KoArray<ko.Computed<boolean>>;
@@ -157,7 +157,7 @@ export default class GridView extends BaseView {
   protected scrollPane: HTMLElement;
   protected scrolly: any;
   protected _colClickTime: number;  // Units: milliseconds.
-  private _assignCursorTimeoutId: ReturnType<typeof setTimeout>|undefined;
+  private _assignCursorTimeoutId: ReturnType<typeof setTimeout> | undefined;
   protected colLine: HTMLElement;
   protected colShadow: HTMLElement;
   protected rowLine: HTMLElement;
@@ -278,7 +278,7 @@ export default class GridView extends BaseView {
     this.frozenOffset = this.autoDispose(ko.computed(() => {
       // get the last field
       const fields = this.viewSection.viewFields().all();
-      const lastField = fields[fields.length-1];
+      const lastField = fields[fields.length - 1];
       // get the last field width (or zero - grid can have zero columns)
       const revealWidth = lastField ? lastField.widthDef() : 0;
       // calculate the offset: start from zero, then move all left to hide frozen columns,
@@ -317,7 +317,7 @@ export default class GridView extends BaseView {
     // Holds column index that is hovered, works only in full-edit formula mode.
     this.hoverColumn = ko.observable(-1);
 
-    this._insertColumnIndex = ko.observable<number|null>(null);
+    this._insertColumnIndex = ko.observable<number | null>(null);
 
     // Checks if there is active formula editor for a column in this table.
     this.editingFormula = ko.pureComputed(() => {
@@ -445,7 +445,7 @@ export default class GridView extends BaseView {
     },
     copy: function() { return this.copy(this.getSelection()); },
     cut: function() { return this.cut(this.getSelection()); },
-    paste: async function(pasteObj: PasteData, cutCallback: CutCallback|null) {
+    paste: async function(pasteObj: PasteData, cutCallback: CutCallback | null) {
       if (this.gristDoc.isReadonly.get()) { return; }
       await this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
       await this.scrollToCursor(false);
@@ -736,7 +736,7 @@ export default class GridView extends BaseView {
     return { fields, rowIndices };
   }
 
-  protected _isCellValueEmpty(value: CellValue|undefined) {
+  protected _isCellValueEmpty(value: CellValue | undefined) {
     return value === null || value === undefined || value === '' || value === 'false';
   }
 
@@ -751,7 +751,7 @@ export default class GridView extends BaseView {
    * @param {Function} cutCallback - If provided returns the record removal action needed for
    *  a cut.
    */
-  protected async paste(data: PasteData, cutCallback: CutCallback|null) {
+  protected async paste(data: PasteData, cutCallback: CutCallback | null) {
     // TODO: If pasting into columns by which this view is sorted, rows may jump. It is still better
     // to allow it, but we should "freeze" the affected rows to prevent them from jumping, until the
     // user re-applies the sort manually. (This is a particularly bad experience when rows get
@@ -1030,7 +1030,7 @@ export default class GridView extends BaseView {
     }
   }
 
-  public async insertColumn(colId: string|null = null, options: InsertColOptions = {}): Promise<NewColInfo> {
+  public async insertColumn(colId: string | null = null, options: InsertColOptions = {}): Promise<NewColInfo> {
     const {
       colInfo = {},
       index = this.viewSection.viewFields().peekLength,
@@ -1042,7 +1042,7 @@ export default class GridView extends BaseView {
     // we want to show creator panel in some cases, but only when "rename panel" is dismissed
     const sub = this.currentEditingColumnIndex.subscribe((state) => {
       // if no column is edited we can assume that rename panel is closed
-      if (state<0) {
+      if (state < 0) {
         options.onPopupClose?.();
         sub.dispose();
       }
@@ -1278,8 +1278,8 @@ export default class GridView extends BaseView {
 
   // TODO: for now lets just assume you are clicking on a .field, .row, or .column
   public domToRowModel(elem: Element, elemType: Omit<ElemType, "col">): DataRowModel;
-  public domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
-  public domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined {
+  public domToRowModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
+  public domToRowModel(elem: Element, elemType: ElemType): DataRowModel | undefined {
     switch (elemType) {
       case selector.COL:
         return undefined;
@@ -1294,8 +1294,8 @@ export default class GridView extends BaseView {
   }
 
   public domToColModel(elem: Element, elemType: Omit<ElemType, "row">): DataRowModel;
-  public domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined;
-  public domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined {
+  public domToColModel(elem: Element, elemType: ElemType): DataRowModel | undefined;
+  public domToColModel(elem: Element, elemType: ElemType): DataRowModel | undefined {
     switch (elemType) {
       case selector.ROW:
         return undefined;
@@ -1760,7 +1760,7 @@ export default class GridView extends BaseView {
 
   public override onResize() {
     const activeFieldBuilder = this.activeFieldBuilder();
-    let height: number|null = null;
+    let height: number | null = null;
     if (isNarrowScreen()) {
       height = window.outerHeight;
     }
@@ -1975,7 +1975,7 @@ export default class GridView extends BaseView {
   protected styleRowDragElements(elem: HTMLElement, event: MouseEvent) {
     const rowStart = this.cellSelector.rowLower();
     const rowEnd = this.cellSelector.rowUpper();
-    const shadowHeight = this.scrolly.rowOffsetTree.getCumulativeValueRange(rowStart, rowEnd+1);
+    const shadowHeight = this.scrolly.rowOffsetTree.getCumulativeValueRange(rowStart, rowEnd + 1);
     const shadowTop = (this.header.getBoundingClientRect().height +
       this.scrolly.rowOffsetTree.getSumTo(rowStart) - this.scrollTop());
 
@@ -1991,7 +1991,7 @@ export default class GridView extends BaseView {
     this._colClickTime = Date.now();
     const colStart = this.cellSelector.colLower();
     const colEnd = this.cellSelector.colUpper();
-    const shadowWidth = this.colRightOffsets.peek().getCumulativeValueRange(colStart, colEnd+1);
+    const shadowWidth = this.colRightOffsets.peek().getCumulativeValueRange(colStart, colEnd + 1);
     const shadowLeft = (ROW_NUMBER_WIDTH + this.colRightOffsets.peek().getSumTo(colStart) - this.scrollLeft());
 
     this.colLine.style.left = shadowLeft + 'px';
@@ -2216,7 +2216,7 @@ export default class GridView extends BaseView {
     return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
   }
 
-  protected async _duplicateRows(): Promise<number[]|undefined> {
+  protected async _duplicateRows(): Promise<number[] | undefined> {
     const addRowIds = await super._duplicateRows();
     if (!addRowIds || addRowIds.length === 0) {
       return;
@@ -2305,7 +2305,7 @@ export default class GridView extends BaseView {
         (ctl) => {
           ctl.onDispose(() => this._insertColumnIndex(null));
 
-          let index: number|null|undefined = this._insertColumnIndex.peek();
+          let index: number | null | undefined = this._insertColumnIndex.peek();
           if (index === null || index === -1) {
             index = undefined;
           }
@@ -2352,7 +2352,7 @@ export default class GridView extends BaseView {
     }
   }
 
-  protected _insertField(event: KeyboardEvent|undefined, index: number) {
+  protected _insertField(event: KeyboardEvent | undefined, index: number) {
     if (this.gristDoc.isReadonly.get()) {
       return;
     }
@@ -2434,7 +2434,7 @@ interface ComputedRule {
 }
 
 function buildStyleOption<Name extends keyof CombinedStyle, T>(
-  owner: Disposable, computedRule: ko.Computed<ComputedRule|null>, optionName: Name, defValue: T,
+  owner: Disposable, computedRule: ko.Computed<ComputedRule | null>, optionName: Name, defValue: T,
 ): ko.Computed<Exclude<CombinedStyle[Name], undefined> | T> {
   return ko.computed(() => {
     if (owner.isDisposed()) { return defValue; }
@@ -2446,7 +2446,7 @@ function buildStyleOption<Name extends keyof CombinedStyle, T>(
 
 // Helper to show tooltip over column selection in the full edit mode.
 class HoverColumnTooltip {
-  public tooltip: ITooltipControl|null = null;
+  public tooltip: ITooltipControl | null = null;
   constructor(public el: HTMLElement) {
   }
 
@@ -2485,6 +2485,6 @@ function calcZebra(hex: string) {
 
 // Currently dom.style('--custom-prop', value) from grainjs doesn't work for "custom variable"
 // properties, so we add a helper to do that. TODO: fix grainjs to support this.
-function styleCustomVar(property: string, valueObs: BindableValue<string|number>): DomElementMethod {
+function styleCustomVar(property: string, valueObs: BindableValue<string | number>): DomElementMethod {
   return elem => subscribeElem(elem, valueObs, val => elem.style.setProperty(property, String(val)));
 }

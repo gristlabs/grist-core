@@ -64,7 +64,7 @@ describe('ActiveDocShutdown', function() {
     await waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0), 10 * timeout);
   });
 
-  function makeDummySession(client: Client, role: Role|null, docId: string) {
+  function makeDummySession(client: Client, role: Role | null, docId: string) {
     const authorizer = new DummyAuthorizer(role, docId);
     return new DocSessionPrecursor(client, authorizer, {});
   }

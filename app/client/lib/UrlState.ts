@@ -58,7 +58,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * Creates a new history entry (navigable with Back/Forward buttons), encoding the given state
    * in the URL. This is similar to navigating to a new URL, but does not reload the page.
    */
-  public async pushUrl(urlState: IUrlState|UpdateFunc<IUrlState>,
+  public async pushUrl(urlState: IUrlState | UpdateFunc<IUrlState>,
     options: { replace?: boolean, avoidReload?: boolean } = {}) {
     const prevState = this.state.get();
     const newState = this._mergeState(prevState, urlState);
@@ -110,7 +110,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * according to rules (in gristUrlState's updateState). Alternatively, it can be a function that
    * takes previous state and returns the new one (without mutating the previous state).
    */
-  public makeUrl(urlState: IUrlState|UpdateFunc<IUrlState>, use: UseCB = unwrap): string {
+  public makeUrl(urlState: IUrlState | UpdateFunc<IUrlState>, use: UseCB = unwrap): string {
     const fullState = this._mergeState(use(this.state), urlState);
     return this._stateImpl.encodeUrl(fullState, this._window.location);
   }
@@ -120,7 +120,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * This is similar to {href: makeUrl(urlState)}, but the destination URL will reflect the
    * current url state (e.g. due to switching pages).
    */
-  public setHref(urlState: IUrlState|UpdateFunc<IUrlState>): DomElementMethod {
+  public setHref(urlState: IUrlState | UpdateFunc<IUrlState>): DomElementMethod {
     return dom.attr('href', use => this.makeUrl(urlState, use));
   }
 
@@ -134,7 +134,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * this makes sense.
    */
   public setLinkUrl(
-    urlState: IUrlState|UpdateFunc<IUrlState>,
+    urlState: IUrlState | UpdateFunc<IUrlState>,
     options?: {
       replace?: boolean,
       avoidReload?: boolean,
@@ -166,7 +166,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
     return this._stateImpl.decodeUrl(this._window.location);
   }
 
-  private _mergeState(prevState: IUrlState, newState: IUrlState|UpdateFunc<IUrlState>): IUrlState {
+  private _mergeState(prevState: IUrlState, newState: IUrlState | UpdateFunc<IUrlState>): IUrlState {
     return (typeof newState === 'object') ?
       this._stateImpl.updateState(prevState, newState) :
       newState(prevState);

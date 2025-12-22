@@ -9,7 +9,7 @@ export type GristTypeInfo =
   { type: 'DateTime', timezone: string } |
   { type: 'Ref', tableId: string } |
   { type: 'RefList', tableId: string } |
-  { type: Exclude<GristType, 'DateTime'|'Ref'|'RefList'> };
+  { type: Exclude<GristType, 'DateTime' | 'Ref' | 'RefList'> };
 
 export const MANUALSORT = 'manualSort';
 
@@ -94,7 +94,7 @@ export function isObject(value: CellValue): value is [GristObjCode, any?] {
  * Returns GristObjCode of the value if the value is an object, or null otherwise.
  * The return type includes any string, since we should not assume we can only get valid codes.
  */
-export function getObjCode(value: CellValue): GristObjCode|string|null {
+export function getObjCode(value: CellValue): GristObjCode | string | null {
   return Array.isArray(value) ? value[0] : null;
 }
 
@@ -146,7 +146,7 @@ export function isReferenceList(value: CellValue): value is [GristObjCode.Refere
  * Returns whether a value (as received in a DocAction) represents a reference or reference list.
  */
 export function isReferencing(value: CellValue):
-  value is [GristObjCode.ReferenceList|GristObjCode.Reference, string, number[]|number] {
+  value is [GristObjCode.ReferenceList | GristObjCode.Reference, string, number[] | number] {
   return Array.isArray(value) &&
     (value[0] === GristObjCode.ReferenceList || value[0] === GristObjCode.Reference);
 }
@@ -329,7 +329,7 @@ export function isListType(type: string) {
   return type === "ChoiceList" || isRefListType(type);
 }
 
-export function isNumberType(type: string|undefined) {
+export function isNumberType(type: string | undefined) {
   return ['Numeric', 'Int'].includes(type || '');
 }
 
@@ -341,7 +341,7 @@ export function isFullReferencingType(type: string) {
   return type.startsWith('Ref:') || isRefListType(type);
 }
 
-export function isValidRuleValue(value: CellValue|undefined) {
+export function isValidRuleValue(value: CellValue | undefined) {
   // We want to strictly test if a value is boolean, when the value is 0 or 1 it might
   // indicate other number in the future.
   return value === null || typeof value === 'boolean';
@@ -362,7 +362,7 @@ export function isBlankValue(value: CellValue) {
   );
 }
 
-export type RefListValue = [GristObjCode.List, ...number[]]|null;
+export type RefListValue = [GristObjCode.List, ...number[]] | null;
 
 /**
  * Type of cell metadata information.

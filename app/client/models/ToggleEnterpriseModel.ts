@@ -12,7 +12,7 @@ const t = makeT('ToggleEnterprise');
 
 export class ToggleEnterpriseModel extends Disposable {
   public readonly edition: Observable<GristDeploymentType | null> = Observable.create(this, null);
-  public readonly status: Observable<ActivationStatus|null> = Observable.create(this, null);
+  public readonly status: Observable<ActivationStatus | null> = Observable.create(this, null);
   public readonly installationId: Observable<string | null> = Observable.create(this, null);
   public readonly busy: Observable<boolean> = Observable.create(this, false);
   private readonly _configAPI: ConfigAPI = new ConfigAPI(getHomeUrl());

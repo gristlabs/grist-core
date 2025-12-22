@@ -59,7 +59,7 @@ export class AttachmentsEditor extends NewBaseEditor {
   private _attachments: ObsArray<Attachment>;
   private _isUploading: Observable<boolean>;
   private _index: LiveIndex;
-  private _selected: Computed<Attachment|null>;
+  private _selected: Computed<Attachment | null>;
 
   constructor(options: FieldOptions) {
     super(options);
@@ -73,7 +73,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     } : null;
 
     // editValue is abused slightly to indicate a 1-based index of the attachment.
-    const initRowIndex: number|undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
+    const initRowIndex: number | undefined = (options.editValue && parseInt(options.editValue, 0) - 1) || 0;
 
     this._attachmentsTable = docData.getMetaTable('_grist_Attachments');
     this._docComm = docData.docComm;
@@ -228,7 +228,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     });
   }
 
-  private _moveIndex(dir: -1|1): void {
+  private _moveIndex(dir: -1 | 1): void {
     const next = this._index.get()! + dir;
     this._index.set(clamp(next, 0, this._attachments.get().length));
   }
@@ -279,7 +279,7 @@ export class AttachmentsEditor extends NewBaseEditor {
     }
   }
 
-  private async _add(uploadResult: UploadResult|null): Promise<void> {
+  private async _add(uploadResult: UploadResult | null): Promise<void> {
     if (!uploadResult) { return; }
     const rowIds = await this._docComm.addAttachments(uploadResult.uploadId);
     const len = this._rowIds.get().length;
@@ -294,7 +294,7 @@ function isInEditor(ev: KeyboardEvent): boolean {
   return (ev.target as HTMLElement).tagName === 'INPUT';
 }
 
-function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
+function renderContent(att: Attachment | null, readonly: boolean): HTMLElement {
   const commonArgs = [cssContent.cls(''), testId('pw-attachment-content')];
   if (!att) {
     return cssWarning(
@@ -329,7 +329,7 @@ function renderContent(att: Attachment|null, readonly: boolean): HTMLElement {
 }
 
 function dragOverClass(target: HTMLElement, className: string): void {
-  let enterTarget: EventTarget|null = null;
+  let enterTarget: EventTarget | null = null;
   function toggle(ev: DragEvent, onOff: boolean) {
     enterTarget = onOff ? ev.target : null;
     ev.stopPropagation();

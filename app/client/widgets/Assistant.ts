@@ -114,7 +114,7 @@ export class Assistant extends Disposable {
 
   /** Number of remaining credits. If null, assistant usage is unlimited. */
   private _numRemainingCredits = Observable.create<number | null>(this, null);
-  private _lastSendPromise: Promise<AssistanceResponse>|null = null;
+  private _lastSendPromise: Promise<AssistanceResponse> | null = null;
 
   constructor(private _options: AssistantOptions) {
     super();

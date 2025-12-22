@@ -37,8 +37,8 @@ export function rowHeightConfigTable(
   owner: IDisposableOwner,
   optionsObs: SaveableObjObservable<ViewSectionOptions>,
 ): DomContents {
-  const rowHeightObs = Computed.create<number|"">(owner, use => use(optionsObs).rowHeight || '');
-  const setRowHeight = (rowHeight: number|undefined) => optionsObs.setAndSave({ ...optionsObs.peek(), rowHeight });
+  const rowHeightObs = Computed.create<number | "">(owner, use => use(optionsObs).rowHeight || '');
+  const setRowHeight = (rowHeight: number | undefined) => optionsObs.setAndSave({ ...optionsObs.peek(), rowHeight });
 
   const uniformRows = Computed.create<boolean>(owner, use => use(optionsObs).rowHeightUniform || false);
   uniformRows.onWrite((val: boolean) => optionsObs.setAndSave({ ...optionsObs.peek(), rowHeightUniform: val }));

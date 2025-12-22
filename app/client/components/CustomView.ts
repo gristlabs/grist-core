@@ -104,8 +104,8 @@ export class CustomView extends BaseView {
   private _foundPlugin: ko.Observable<boolean>;
   private _foundSection: ko.Observable<boolean>;
   // Note the invariant: this._customSection != undefined if this._foundSection() == true
-  private _customSection: ViewProcess|undefined;
-  private _pluginInstance: PluginInstance|undefined;
+  private _customSection: ViewProcess | undefined;
+  private _pluginInstance: PluginInstance | undefined;
 
   private _frame: WidgetFrame;  // plugin frame (holding external page)
   private _hasUnmappedColumns: ko.Computed<boolean>;
@@ -298,10 +298,10 @@ export class CustomView extends BaseView {
   }
 
   private _buildIFrame(options: {
-    baseUrl: string|null,
+    baseUrl: string | null,
     access: AccessLevel,
     showAfterReady?: boolean,
-    widgetId?: string|null,
+    widgetId?: string | null,
     pluginId?: string
   }) {
     const { baseUrl, access, showAfterReady, widgetId, pluginId } = options;
@@ -314,10 +314,10 @@ export class CustomView extends BaseView {
       access,
       preferences:
       {
-        culture: documentSettings.locale?? defaultLocale,
+        culture: documentSettings.locale ?? defaultLocale,
         language: this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
         timeZone: this.gristDoc.docInfo.timezone() ?? "UTC",
-        currency: documentSettings.currency?? "USD",
+        currency: documentSettings.currency ?? "USD",
       },
       readonly,
       showAfterReady,
@@ -393,7 +393,7 @@ function buildNotification(...args: any[]) {
  * For a single iframe, it will gain focus through a hack in ViewLayout.ts.
  */
 function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
-  let timer: NodeJS.Timeout|null = null;
+  let timer: NodeJS.Timeout | null = null;
   // Flag that will prevent mouseenter event to be fired
   // after dom is disposed. This shouldn't happen.
   let disposed = false;

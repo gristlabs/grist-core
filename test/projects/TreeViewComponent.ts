@@ -476,7 +476,7 @@ async function moveTo(item: RegExp, opt: { y: number } = { y: 0 }) {
   await el.mouseMove(opt);
 }
 
-async function assertTargetPos(targetRect: ClientRect, zone: 'above'|'below',
+async function assertTargetPos(targetRect: ClientRect, zone: 'above' | 'below',
   item: { header: ClientRect, label: ClientRect }) {
   // on the left, the target should starts where the label starts
   assert.closeTo(targetRect.left, item.label.left, 1, 'wrong left offset');

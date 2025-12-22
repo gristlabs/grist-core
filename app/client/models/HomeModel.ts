@@ -26,11 +26,11 @@ export interface HomeModel {
 
   app: AppModel;
   currentPage: Observable<IHomePage>;
-  currentWSId: Observable<number|undefined>;    // should be set when currentPage is 'workspace'
+  currentWSId: Observable<number | undefined>;    // should be set when currentPage is 'workspace'
 
   // Note that Workspace contains its documents in .docs.
   workspaces: Observable<Workspace[]>;
-  loading: Observable<boolean|"slow">;          // Set to "slow" when loading for a while.
+  loading: Observable<boolean | "slow">;          // Set to "slow" when loading for a while.
   available: Observable<boolean>;               // set if workspaces loaded correctly.
   empty: Observable<boolean>;                   // set if no docs.
   singleWorkspace: Observable<boolean>;         // set if workspace name should be hidden.
@@ -38,7 +38,7 @@ export interface HomeModel {
   templateWorkspaces: Observable<Workspace[]>;  // Only set when viewing templates or all documents.
 
   // currentWS is undefined when currentPage is not "workspace" or if currentWSId doesn't exist.
-  currentWS: Observable<Workspace|undefined>;
+  currentWS: Observable<Workspace | undefined>;
 
   // List of docs to show for currentWS.
   currentWSDocs: Observable<Document[]>;
@@ -58,18 +58,18 @@ export interface HomeModel {
 
   // The workspace for new docs, or "unsaved" to only allow unsaved-doc creation, or null if the
   // user isn't allowed to create a doc.
-  newDocWorkspace: Observable<Workspace|null|"unsaved">;
+  newDocWorkspace: Observable<Workspace | null | "unsaved">;
 
   shouldShowAddNewTip: Observable<boolean>;
 
-  onboardingTutorial: Observable<Document|null>;
+  onboardingTutorial: Observable<Document | null>;
 
   createWorkspace(name: string): Promise<void>;
   renameWorkspace(id: number, name: string): Promise<void>;
   deleteWorkspace(id: number, forever: boolean): Promise<void>;
   restoreWorkspace(ws: Workspace): Promise<void>;
 
-  createDoc(name: string, workspaceId: number|"unsaved"): Promise<string>;
+  createDoc(name: string, workspaceId: number | "unsaved"): Promise<string>;
   renameDoc(docId: string, name: string, options?: RenameDocOptions): Promise<void>;
   deleteDoc(docId: string, forever: boolean): Promise<void>;
   restoreDoc(doc: Document): Promise<void>;
@@ -90,7 +90,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
   public readonly currentWSId = Computed.create(this, urlState().state, (use, s) => s.ws);
   public readonly workspaces = Observable.create<Workspace[]>(this, []);
-  public readonly loading = Observable.create<boolean|"slow">(this, true);
+  public readonly loading = Observable.create<boolean | "slow">(this, true);
   public readonly available = Observable.create(this, false);
   public readonly singleWorkspace = Observable.create(this, true);
   public readonly trashWorkspaces = Observable.create<Workspace[]>(this, []);
@@ -167,9 +167,9 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   public readonly shouldShowAddNewTip = Observable.create(this,
     !this._app.behavioralPromptsManager.hasSeenPopup('addNew'));
 
-  public readonly onboardingTutorial = Observable.create<Document|null>(this, null);
+  public readonly onboardingTutorial = Observable.create<Document | null>(this, null);
 
-  private _userOrgPrefs = Observable.create<UserOrgPrefs|undefined>(this, this._app.currentOrg?.userOrgPrefs);
+  private _userOrgPrefs = Observable.create<UserOrgPrefs | undefined>(this, this._app.currentOrg?.userOrgPrefs);
 
   constructor(private _app: AppModel, clientScope: ClientScope) {
     super();
@@ -239,7 +239,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   }
 
   // Creates a new doc by calling the API, and returns its docId.
-  public async createDoc(name: string, workspaceId: number|"unsaved"): Promise<string> {
+  public async createDoc(name: string, workspaceId: number | "unsaved"): Promise<string> {
     if (workspaceId === "unsaved") {
       const timezone = await guessTimezone();
       return await this._app.api.newUnsavedDoc({ timezone });
@@ -451,7 +451,7 @@ function getViewPrefDefault(workspaces: Workspace[]): ViewPref {
  * Create observables for per-workspace view settings which default to org-wide settings, but can
  * be changed independently and persisted in localStorage.
  */
-export function makeLocalViewSettings(home: HomeModel|null, wsId: number|'trash'|'all'|'templates'): ViewSettings {
+export function makeLocalViewSettings(home: HomeModel | null, wsId: number | 'trash' | 'all' | 'templates'): ViewSettings {
   const userId = home?.app.currentUser?.id || 0;
   const sort = localStorageObs(`u=${userId}:ws=${wsId}:sort`);
   const view = localStorageObs(`u=${userId}:ws=${wsId}:view`);

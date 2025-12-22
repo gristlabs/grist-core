@@ -24,7 +24,7 @@ describe('removedAt', function() {
     await home.stop();
   });
 
-  function docNames(data: Workspace|Workspace[]) {
+  function docNames(data: Workspace | Workspace[]) {
     if ('docs' in data) {
       return data.docs.map(doc => doc.name).sort();
     }

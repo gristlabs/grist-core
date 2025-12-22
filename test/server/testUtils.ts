@@ -87,7 +87,7 @@ type CaptureFunc = (level: string, msg: string, meta: any) => void;
  *
  * This should be called at the suite level (i.e. inside describe()).
  */
-export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string) {
+export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc | string) {
   // If verbose is set in the environment, sabotage all reductions in logging level.
   // Handier than modifying the setTmpLogLevel line and then remembering to set it back
   // before committing.
@@ -95,7 +95,7 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
     level = 'debug';
   }
 
-  let prevLogLevel: string|undefined = undefined;
+  let prevLogLevel: string | undefined = undefined;
   const name = _.uniqueId('CaptureLog');
 
   before(async function() {
@@ -151,7 +151,7 @@ export function nestLogLevel(level: string): NestedLogLevel {
  * strings. These may be tested using testUtils.assertMatchArray(). Callback may return a promise.
  */
 export async function captureLog(
-  minLevel: string, callback: (messages: string[]) => void|Promise<void>,
+  minLevel: string, callback: (messages: string[]) => void | Promise<void>,
   options: { timestamp?: boolean, waitForFirstLog?: boolean } = { timestamp: false, waitForFirstLog: false },
 ): Promise<string[]> {
   const messages: string[] = [];
@@ -206,7 +206,7 @@ export function assertMatchArray(stringArray: string[], regexArray: RegExp[]) {
  * @param {String} errCode - Error code to check against `err.code` from the caller.
  * @param {RegExp} errRegexp - Regular expression to check against `err.message` from the caller.
  */
-export function expectRejection(promise: Promise<any>, errCode: number|string, errRegexp: RegExp) {
+export function expectRejection(promise: Promise<any>, errCode: number | string, errRegexp: RegExp) {
   return promise
     .then(function() {
       assert(false, "Expected promise to return an error: " + errCode);
@@ -362,7 +362,7 @@ export class EnvironmentSnapshot {
     }
   }
 
-  public get(key: string): string|undefined {
+  public get(key: string): string | undefined {
     return this._oldEnv[key];
   }
 }

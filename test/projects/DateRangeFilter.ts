@@ -22,7 +22,7 @@ describe('DateRangeFilter', function() {
     });
   }
 
-  async function testBoundShowCalendar(minMax: 'min'|'max') {
+  async function testBoundShowCalendar(minMax: 'min' | 'max') {
     // check calendar is NOT present
     assert.equal(await driver.find('.datepicker-inline').isPresent(), false);
 
@@ -59,7 +59,7 @@ describe('DateRangeFilter', function() {
     assert.equal(await driver.find('.datepicker-inline').isPresent(), false);
   });
 
-  async function testPickingBound(minMax: 'min'|'max') {
+  async function testPickingBound(minMax: 'min' | 'max') {
     // check min bound shows no border
     assert.equal(await fu.findBound(minMax).matches('.selected'), false);
 

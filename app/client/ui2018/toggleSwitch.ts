@@ -38,7 +38,7 @@ interface ToggleSwitchOptions {
  *                internally sets options.useHiddenInput to false.
  * @param options - see ToggleSwitchOptions
  */
-export function toggleSwitch(value?: Observable<boolean|null>, options: ToggleSwitchOptions = {}) {
+export function toggleSwitch(value?: Observable<boolean | null>, options: ToggleSwitchOptions = {}) {
   const { label, useHiddenInput = true, args = [], inputArgs = [], labelArgs = [] } = options;
 
   const useInput = useHiddenInput && value;

@@ -15,33 +15,33 @@ export interface CommentContent {
    * Notice: this is rather a signature of the user, not a real user name,
    * it is not guaranteed to be secure, as user might change it through the API.
    */
-  userName?: string|null;
+  userName?: string | null;
   /**
    * Time when the comment was created. Timestamp in milliseconds since epoch.
    */
-  timeCreated?: number|null;
+  timeCreated?: number | null;
   /**
    * Time when the comment was last updated.
    */
-  timeUpdated?: number|null;
+  timeUpdated?: number | null;
   /**
    * Whether the comment was marked as resolved.
    */
-  resolved?: boolean|null;
+  resolved?: boolean | null;
   /**
    * User name of the person who resolved the comment, defaults to the user who created it.
    */
-  resolvedBy?: string|null;
+  resolvedBy?: string | null;
   /**
    * List of user refs mentioned in the comment. The extraction is done by the client code, so
    * it is not guaranteed to be secure or trusted.
    */
-  mentions?: string[]|null;
+  mentions?: string[] | null;
 
   /**
    * Id of a section where the comment was created.
    */
-  sectionId?: number|null;
+  sectionId?: number | null;
 }
 
 /**
@@ -72,7 +72,7 @@ export function makeDocComment(
   record: CellRecord,
   audience: string[],
   mentions: string[],
-): DocComment|null {
+): DocComment | null {
   const parsed = safeJsonParse(record.content, {}) as CommentContent;
   if (!parsed.text) { return null; }
   return {

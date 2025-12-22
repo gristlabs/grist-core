@@ -332,7 +332,7 @@ class Seed {
     this.groups = {};
   }
 
-  public async createGroups(parent?: Organization|Workspace): Promise<Groups> {
+  public async createGroups(parent?: Organization | Workspace): Promise<Groups> {
     const owners = Group.create({ name: 'owners', type: Group.ROLE_TYPE });
     const editors = Group.create({ name: 'editors', type: Group.ROLE_TYPE });
     const viewers = Group.create({ name: 'viewers', type: Group.ROLE_TYPE });
@@ -572,7 +572,7 @@ export async function removeConnection() {
   await connection.destroy();
 }
 
-export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean|'migrateOnly' = true) {
+export async function createInitialDb(connection?: Connection, migrateAndSeedData: boolean | 'migrateOnly' = true) {
   // In jenkins tests, we may want to reset the database to a clean
   // state.  If so, TEST_CLEAN_DATABASE will have been set.  How to
   // clean the database depends on what kind of database it is.  With

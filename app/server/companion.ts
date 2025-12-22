@@ -133,7 +133,7 @@ async function showTelemetry(options: {
   }
 }
 
-function describeTelemetryLevel(level: Level, nesting: ''|'#') {
+function describeTelemetryLevel(level: Level, nesting: '' | '#') {
   switch (level) {
     case Level.off:
       console.log(nesting + "# Telemetry level: off");
@@ -152,7 +152,7 @@ function describeTelemetryLevel(level: Level, nesting: ''|'#') {
   }
 }
 
-function showTelemetryAtLevel(level: Level, nesting: ''|'#'|'##') {
+function showTelemetryAtLevel(level: Level, nesting: '' | '#' | '##') {
   const contracts = TelemetryContracts;
   for (const [name, contract] of Object.entries(contracts)) {
     if (contract.minimumTelemetryLevel > level) { continue; }

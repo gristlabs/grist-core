@@ -135,7 +135,7 @@ export function getScimUserConfig(
   return {
     egress: async (
       resource: UserResource, context: RequestContext,
-    ): Promise<UserSchema|UserSchema[]> => {
+    ): Promise<UserSchema | UserSchema[]> => {
       if (resource.id) {
         return await controller.getSingleUser(resource, context);
       }

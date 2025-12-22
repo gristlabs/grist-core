@@ -1,6 +1,6 @@
 import * as Bowser from "bowser"; // TypeScript
 
-let parser: Bowser.Parser.Parser|undefined;
+let parser: Bowser.Parser.Parser | undefined;
 
 function getParser() {
   return parser || (parser = Bowser.getParser(window.navigator.userAgent));
@@ -23,7 +23,7 @@ export function isIOS() {
 // interactions that use Control on Windows and Linux, and Command key on Mac for the same
 // purpose. Suitable to use with KeyboardEvent and MouseEvent.
 // (Note: Mousetrap.js uses the same logic to interpret its "mod" key alias.)
-export function modKeyProp(): 'metaKey'|'ctrlKey' {
+export function modKeyProp(): 'metaKey' | 'ctrlKey' {
   return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? 'metaKey' : 'ctrlKey';
 }
 

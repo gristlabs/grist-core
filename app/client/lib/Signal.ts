@@ -91,7 +91,7 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
 
   private _beforeHandler: CustomEmitter<T>;
 
-  constructor(owner: IDisposableOwner|null, initialValue: T) {
+  constructor(owner: IDisposableOwner | null, initialValue: T) {
     this._emitter = DisposableWithEvents.create(owner);
     this.state = Observable.create(this, initialValue);
   }

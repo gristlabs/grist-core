@@ -26,15 +26,15 @@ export function getSessionStorage(): Storage {
   return _sessionStorage;
 }
 
-let _storage: Storage|undefined;
-let _sessionStorage: Storage|undefined;
+let _storage: Storage | undefined;
+let _sessionStorage: Storage | undefined;
 
 /**
  * Returns the result of window[storageName] if storage is functional, or null otherwise. In some
  * cases (e.g. when embedded), using localStorage may throw errors, in which case we return null.
  * This is similar to the approach taken by store.js.
  */
-function testStorage(storageName: 'localStorage'|'sessionStorage'): Storage|null {
+function testStorage(storageName: 'localStorage' | 'sessionStorage'): Storage | null {
   try {
     const testStr = '__localStorage_test';
     const storage = window[storageName];
@@ -60,6 +60,6 @@ function createInMemoryStorage(): Storage {
     removeItem(key: string) { values.delete(key); },
     clear() { values.clear(); },
     get length() { return values.size; },
-    key(index: number): string|null { throw new Error('Not implemented'); },
+    key(index: number): string | null { throw new Error('Not implemented'); },
   };
 }

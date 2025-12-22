@@ -21,7 +21,7 @@ export { timeoutReached } from 'app/common/gutil';
  * (Note that providing it using native Promises is also easy, but bluebird's big benefit is
  * support of long stack traces (when enabled for debugging).
  */
-type NodeCallback<T> = (err: Error|undefined|null, value?: T) => void;
+type NodeCallback<T> = (err: Error | undefined | null, value?: T) => void;
 type NodeCallbackFunc<T> = (cb: NodeCallback<T>) => void;
 const _fromCallback = bluebird.fromCallback;
 export function fromCallback<T>(nodeFunc: NodeCallbackFunc<T>): Promise<T> {
@@ -91,7 +91,7 @@ export function isPathWithin(outer: string, inner: string): boolean {
  * cause the 'error' or 'exit' message from the child to be missed, and the resulting exitPromise
  * would then hang forever.
  */
-export function exitPromise(child: ChildProcess): Promise<number|string> {
+export function exitPromise(child: ChildProcess): Promise<number | string> {
   return new Promise((resolve, reject) => {
     // Called if process could not be spawned, or could not be killed(!), or sending a message failed.
     child.on('error', reject);
@@ -192,7 +192,7 @@ export function getPubSubPrefix(): string {
  * Calculates the period when the yearly subscription is expected to reset its usage. The period tells us
  * where we expected the reset date to be. Start date is inclusive, end date is exclusive.
  */
-export function expectedResetDate(startMs: number, endMs: number, now?: number): number|null {
+export function expectedResetDate(startMs: number, endMs: number, now?: number): number | null {
   const DAY = 24 * 60 * 60 * 1000;
 
   const nowMs = now || new Date().getTime();

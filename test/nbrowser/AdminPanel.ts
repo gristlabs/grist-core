@@ -370,7 +370,7 @@ describe('AdminPanel', function() {
   });
 
   it('should show a message if automatic version checking is missing', async function() {
-    process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING='false';
+    process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING = 'false';
     await server.restart(true);
     session = await gu.session().personalSite.login();
     await session.loadDocMenu('/');
@@ -414,7 +414,7 @@ describe('AdminPanel', function() {
     //
     // For the purpose of this test, let's instead set it to the empty
     // string.
-    process.env.GRIST_DEFAULT_EMAIL='';
+    process.env.GRIST_DEFAULT_EMAIL = '';
     await server.restart(true);
     await driver.get(`${server.getHost()}/admin?boot-key=zig`);
     await gu.waitForAdminPanel();

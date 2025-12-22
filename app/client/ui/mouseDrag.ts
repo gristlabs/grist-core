@@ -16,7 +16,7 @@ export interface MouseDragHandler {
   onStop(endEv: MouseEvent): void;
 }
 
-export type MouseDragStart = (startEv: MouseEvent, elem: HTMLElement) => MouseDragHandler|null;
+export type MouseDragStart = (startEv: MouseEvent, elem: HTMLElement) => MouseDragHandler | null;
 
 export function mouseDragElem(elem: HTMLElement, onStart: MouseDragStart): IDisposable {
   // This prevents the default text-drag behavior when elem is part of a text selection.

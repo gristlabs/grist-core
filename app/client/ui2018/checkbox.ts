@@ -153,7 +153,7 @@ export function labeledCircleCheckbox(obs: Observable<boolean>, label: DomArg, .
 }
 
 export const Indeterminate = 'indeterminate';
-export type TriState = boolean|'indeterminate';
+export type TriState = boolean | 'indeterminate';
 
 function triStateCheckbox(
   obs: Observable<TriState>, cssCheckbox: typeof cssCheckboxSquare, label: string = '',  ...domArgs: CheckboxArg[]

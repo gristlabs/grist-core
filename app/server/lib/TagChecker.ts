@@ -1,7 +1,7 @@
 import { tbind } from 'app/common/tbind';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 
-export type RequestWithTag = Request & { tag: string|null };
+export type RequestWithTag = Request & { tag: string | null };
 
 /**
  *
@@ -36,7 +36,7 @@ export class TagChecker {
 
   // Removes tag from url if present.
   // Returns [remainder, tagInUrl, isMatch]
-  private _removeTag(url: string): [string, string|null, boolean] {
+  private _removeTag(url: string): [string, string | null, boolean] {
     if (url.startsWith('/v/')) {
       const taggedUrl = url.match(/^\/v\/([a-zA-Z0-9.\-_]+)(\/.*)/);
       if (taggedUrl) {

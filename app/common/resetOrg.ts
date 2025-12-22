@@ -6,7 +6,7 @@ import { ManagerDelta, PermissionDelta, UserAPI } from 'app/common/UserAPI';
  * created - no docs, one workspace called "Home", a single user.  Should be
  * called by a user who is both an owner of the org and a billing manager.
  */
-export async function resetOrg(api: UserAPI, org: string|number) {
+export async function resetOrg(api: UserAPI, org: string | number) {
   const session = await api.getSessionActive();
   if (!isOwner(session.org)) {
     throw new Error('user must be an owner of the org to be reset');

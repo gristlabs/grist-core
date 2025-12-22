@@ -36,7 +36,7 @@ export class WebpackServer implements IMochaServer {
 
   private _serverUrl: string;
   private _server: ChildProcess;
-  private _exitPromise: Promise<number|string>;
+  private _exitPromise: Promise<number | string>;
   private _webpackComplete: Promise<boolean>;
 
   public async start(context: IMochaContext) {

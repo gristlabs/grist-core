@@ -11,7 +11,7 @@ import { CursorPos, UIRowId } from 'app/plugin/GristAPI';
 import { Disposable } from 'grainjs';
 import * as ko from 'knockout';
 
-function nullAsUndefined<T>(value: T|null|undefined): T|undefined {
+function nullAsUndefined<T>(value: T | null | undefined): T | undefined {
   return value == null ? undefined : value;
 }
 
@@ -68,10 +68,10 @@ export class Cursor extends Disposable {
   // observable with current cursor position
   public currentPosition: ko.Computed<CursorPos>;
 
-  public rowIndex: ko.Computed<number|null>;     // May be null when there are no rows.
+  public rowIndex: ko.Computed<number | null>;     // May be null when there are no rows.
   public fieldIndex: ko.Observable<number>;
 
-  public rowId: ko.Observable<UIRowId|null>;     // May be null when there are no rows.
+  public rowId: ko.Observable<UIRowId | null>;     // May be null when there are no rows.
 
   // The cursor's _rowId property is always fixed across data changes. When isLive is true,
   // the rowIndex of the cursor is recalculated to match _rowId. When false, they will
@@ -79,7 +79,7 @@ export class Cursor extends Disposable {
   private _isLive: ko.Observable<boolean> = ko.observable(true);
   private _sectionId: ko.Computed<number>;
 
-  private _properRowId: ko.Computed<UIRowId|null>;
+  private _properRowId: ko.Computed<UIRowId | null>;
 
   // lastEditedAt is updated on _properRowId or fieldIndex update (including through setCursorPos)
   // Used to determine which section takes priority for cursorLinking (specifically cycles/bidirectional linking)
@@ -95,7 +95,7 @@ export class Cursor extends Disposable {
     this.viewData = baseView.viewData;
 
     this._sectionId = this.autoDispose(ko.computed(() => baseView.viewSection.id()));
-    this.rowId = ko.observable<UIRowId|null>(optCursorPos.rowId || 0);
+    this.rowId = ko.observable<UIRowId | null>(optCursorPos.rowId || 0);
     this.rowIndex = this.autoDispose(ko.computed({
       read: () => {
         if (!this._isLive()) { return this.rowIndex.peek(); }

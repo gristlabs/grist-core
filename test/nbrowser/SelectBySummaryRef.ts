@@ -175,7 +175,7 @@ async function checkRightPanelSelectByOptions(section: string, expected: string[
   await gu.sendKeys(Key.ESCAPE);
 }
 
-async function checkAddWidgetSelectByOptions(expected: string[]|null) {
+async function checkAddWidgetSelectByOptions(expected: string[] | null) {
   const actual = await driver.findAll('.test-wselect-selectby option', e => e.getText());
   assert.deepEqual(actual, expected === null ? [] : ['', 'Select widget', ...expected]);
 }

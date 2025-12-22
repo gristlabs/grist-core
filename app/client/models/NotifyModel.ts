@@ -76,7 +76,7 @@ export interface INotifyOptions {
 
   // When set, the notification will replace any previous notification with the same key.
   // This way, we can avoid accumulating many of substantially identical notifications.
-  key?: string|null;
+  key?: string | null;
 }
 
 type Status = 'active' | 'expiring';
@@ -406,7 +406,7 @@ function arrayRemove<T>(arr: MutableObsArray<T>, elem: T) {
   }
 }
 
-function getDisconnectMessage(state: ConnectState): { title: string, message: string }|undefined {
+function getDisconnectMessage(state: ConnectState): { title: string, message: string } | undefined {
   switch (state) {
     case ConnectState.RecentlyDisconnected:
       return { title: 'Connection is lost', message: 'Attempting to reconnect...' };

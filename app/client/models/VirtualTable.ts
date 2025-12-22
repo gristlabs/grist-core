@@ -32,8 +32,8 @@ export interface IEdit {
    */
   patch(actions: UserAction[]): Promise<ProcessedAction[]>;
 
-  getRecord(rowId: number): RowRecord|undefined;     // A record in the table.
-  getRecordNew(rowId: number): RowRecord|undefined;  // A record in the table, after the edit.
+  getRecord(rowId: number): RowRecord | undefined;     // A record in the table.
+  getRecordNew(rowId: number): RowRecord | undefined;  // A record in the table, after the edit.
   getRowIds(): readonly number[];  // All rowIds in the table.
 }
 
@@ -172,7 +172,7 @@ export class VirtualTableData extends TableData {
 
   private async _doUndo(actionGroup: {
     action: ProcessedAction,
-    actionNum: number|string,
+    actionNum: number | string,
   }, isUndo: boolean) {
     await this._sendTableActionsCore(
       isUndo ? actionGroup.action.undo : actionGroup.action.stored,

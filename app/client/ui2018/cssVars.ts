@@ -241,7 +241,7 @@ export function isNarrowScreen() {
   return window.innerWidth < mediumScreenWidth;
 }
 
-let _isNarrowScreenObs: Observable<boolean>|undefined;
+let _isNarrowScreenObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether the screen is a small one.
 export function isNarrowScreenObs(): Observable<boolean> {
@@ -257,7 +257,7 @@ export function isXSmallScreen() {
   return window.innerWidth < smallScreenWidth;
 }
 
-let _isXSmallScreenObs: Observable<boolean>|undefined;
+let _isXSmallScreenObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether the screen is an extra small one.
 export function isXSmallScreenObs(): Observable<boolean> {
@@ -277,7 +277,7 @@ export const cssHideForNarrowScreen = styled('div', `
   }
 `);
 
-let _isScreenResizingObs: Observable<boolean>|undefined;
+let _isScreenResizingObs: Observable<boolean> | undefined;
 
 // Returns a singleton observable for whether user is currently resizing the window. (listen to
 // `resize` events and uses a timer of 1000ms).

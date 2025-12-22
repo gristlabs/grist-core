@@ -13,7 +13,7 @@ import { MessagePort, threadId } from 'worker_threads';
 export const makeXLSXFromOptions = handleExport(doMakeXLSXFromOptions);
 
 function handleExport<T extends any[]>(
-  make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void|ExcelBuffer>,
+  make: (a: ActiveDocSource, testDates: boolean, output: Stream, ...args: T) => Promise<void | ExcelBuffer>,
 ) {
   return async function({ port, testDates, args}: { port: MessagePort, testDates: boolean, args: T }) {
     try {
@@ -44,7 +44,7 @@ function handleExport<T extends any[]>(
 // ExcelJS's WorkbookWriter produces many tiny writes (even though they pass through zipping). To
 // reduce overhead and context switching, buffer them and pass on in chunks. (In practice, this
 // helps performance only slightly.)
-function bufferedPipe(stream: Stream, callback: (chunk: Buffer) => void, threshold = 64*1024) {
+function bufferedPipe(stream: Stream, callback: (chunk: Buffer) => void, threshold = 64 * 1024) {
   let buffers: Buffer[] = [];
   let length = 0;
   let flushed = 0;
@@ -158,7 +158,7 @@ async function doMakeXLSX({ activeDocSource, testDates, stream, header}: {
   testDates: boolean,
   stream: Stream,
   header?: ExportHeader,
-}): Promise<void|ExcelBuffer> {
+}): Promise<void | ExcelBuffer> {
   const { exportTable, end } = convertToExcel(stream, testDates, { header });
   await doExportDoc(activeDocSource, async (table: ExportData) => exportTable(table));
   return end();
@@ -172,9 +172,9 @@ async function doMakeXLSX({ activeDocSource, testDates, stream, header}: {
  * (The second option is for grist-static; at the time of writing
  * WorkbookWriter doesn't appear to be available in a browser context).
  */
-function convertToExcel(stream: Stream|undefined, testDates: boolean, options: { header?: ExportHeader }): {
+function convertToExcel(stream: Stream | undefined, testDates: boolean, options: { header?: ExportHeader }): {
   exportTable: (table: ExportData) => void,
-  end: () => Promise<void|ExcelBuffer>,
+  end: () => Promise<void | ExcelBuffer>,
 } {
   // Create workbook and add single sheet to it. Using the WorkbookWriter interface avoids
   // creating the entire Excel file in memory, which can be very memory-heavy. See
@@ -252,7 +252,7 @@ function convertToExcel(stream: Stream|undefined, testDates: boolean, options: {
     }
     maybeCommit(ws);
   }
-  async function end(): Promise<void|ExcelBuffer> {
+  async function end(): Promise<void | ExcelBuffer> {
     if (!stream) {
       return wb.xlsx.writeBuffer();
     }

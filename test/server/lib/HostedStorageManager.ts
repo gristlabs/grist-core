@@ -151,7 +151,7 @@ class SimpleExternalStorage implements ExternalStorage {
  */
 class CachedExternalStorage implements ExternalStorage {
   private _cachedExists: MapWithTTL<string, Promise<ErrorOrValue<boolean>>>;
-  private _cachedHead: MapWithTTL<string, Promise<ErrorOrValue<ObjSnapshotWithMetadata|null>>>;
+  private _cachedHead: MapWithTTL<string, Promise<ErrorOrValue<ObjSnapshotWithMetadata | null>>>;
   private _cachedDownload: MapWithTTL<string, Promise<ErrorOrValue<[string, Buffer]>>>;
   private _cachedVersions: MapWithTTL<string, Promise<ErrorOrValue<ObjSnapshot[]>>>;
 
@@ -436,8 +436,8 @@ describe('HostedStorageManager', function() {
         tmpDir = await createTmpDir();
 
         let externalStorageCreate:
-        (purpose: 'doc'|'meta'|'attachments', extraPrefix: string) => ExternalStorage|undefined;
-        function requireStorage<T>(storage: T|undefined): T {
+        (purpose: 'doc' | 'meta' | 'attachments', extraPrefix: string) => ExternalStorage | undefined;
+        function requireStorage<T>(storage: T | undefined): T {
           if (storage === undefined) { throw new Error('storage not found'); }
           return storage;
         }
@@ -1269,8 +1269,8 @@ describe('HostedStorageManager', function() {
             restartCount++;
           }
         }
-        let backupError: Error|undefined;
-        const runBackup = (db: SQLiteDB|undefined) => retryOnClose(
+        let backupError: Error | undefined;
+        const runBackup = (db: SQLiteDB | undefined) => retryOnClose(
           db, err => backupError = err, () => backupSqliteDatabase(db, src, dest, progress),
         );
         const backup =

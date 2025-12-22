@@ -31,8 +31,8 @@ export type EnvContent<Content> = [number, Content];
 // ActionBundle is what gets encrypted/decrypted and then sent between hub and instance.
 export interface ActionBundle {
   actionNum: number;
-  actionHash: string|null;        // a checksum of bundle, (not including actionHash and other parts).
-  parentActionHash: string|null;  // a checksum of the parent action bundle, if there is one.
+  actionHash: string | null;        // a checksum of bundle, (not including actionHash and other parts).
+  parentActionHash: string | null;  // a checksum of the parent action bundle, if there is one.
   envelopes: Envelope[];
   info: EnvContent<ActionInfo>;           // Should be in the envelope addressed to all peers.
   stored: Array<EnvContent<DocAction>>;

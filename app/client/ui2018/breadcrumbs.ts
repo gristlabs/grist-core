@@ -84,7 +84,7 @@ interface PartialWorkspace {
 }
 
 export function docBreadcrumbs(
-  workspace: Observable<PartialWorkspace|null>,
+  workspace: Observable<PartialWorkspace | null>,
   docName: Observable<string>,
   pageName: Observable<string>,
   options: {
@@ -109,7 +109,7 @@ export function docBreadcrumbs(
 ): Element {
   const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
   return cssBreadcrumbs(
-    !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace|null]>(
+    !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace | null]>(
       use => [use(options.isBareFork), use(workspace)],
       ([isBareFork, ws]) => {
         if (isBareFork || !ws) { return null; }

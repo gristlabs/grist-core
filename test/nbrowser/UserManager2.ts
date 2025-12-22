@@ -494,7 +494,7 @@ function userEmails() {
   return driver.findAll('.test-um-member-email', e => e.getText());
 }
 
-function findModal(title: string|RegExp) {
+function findModal(title: string | RegExp) {
   return driver.findContentWait('.test-um-header', title, 2000)
     .findClosest('.test-modal-dialog');
 }
@@ -511,7 +511,7 @@ async function openManageUsers() {
   await driver.findWait('.test-um-header', 2000);
 }
 
-async function getMemberRole(memberElem: WebElement): Promise<string|null> {
+async function getMemberRole(memberElem: WebElement): Promise<string | null> {
   const roleElem = memberElem.find('.test-um-member-role');
   const exists = await roleElem.isPresent();
   return exists ? roleElem.getText() : null;

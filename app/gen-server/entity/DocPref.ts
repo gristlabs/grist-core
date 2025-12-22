@@ -14,7 +14,7 @@ export class DocPref {
   public docId: string;
 
   @PrimaryColumn({ name: 'user_id', type: Number })
-  public userId: number|null;
+  public userId: number | null;
 
   @ManyToOne(type => Document)
   @JoinColumn({ name: 'doc_id' })

@@ -106,7 +106,7 @@ export class NoProcessControl implements ISandboxControl {
  */
 export class SubprocessControl implements ISandboxControl {
   private _throttle?: Throttle;
-  private _monitoredProcess: Promise<ProcessInfo|null>;
+  private _monitoredProcess: Promise<ProcessInfo | null>;
   private _active: boolean;
   private _foundDocker: boolean = false;
 
@@ -178,7 +178,7 @@ export class SubprocessControl implements ISandboxControl {
   private async _scan(): Promise<ProcessInfo> {
     while (this._active) {
       const processes = await this._getAllProcesses();
-      const unrecognizedProcess = undefined as ProcessInfo|undefined;
+      const unrecognizedProcess = undefined as ProcessInfo | undefined;
       const recognizedProcesses = {
         sandbox: unrecognizedProcess,
         memory: unrecognizedProcess,

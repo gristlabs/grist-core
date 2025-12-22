@@ -38,21 +38,21 @@ describe('scrubUserFromOrg', function() {
   }
 
   // check what role is listed for the given user in the results of an ACL endpoint.
-  function getRole(access: PermissionData, email: string): string|null|undefined {
+  function getRole(access: PermissionData, email: string): string | null | undefined {
     const row = access.users.find(u => u.email === email);
     if (!row) { return undefined; }
     return row.access;
   }
 
   // list emails of all users with the given role for the given org.
-  async function listOrg(domain: string, role: Role|null): Promise<string[]> {
+  async function listOrg(domain: string, role: Role | null): Promise<string[]> {
     return (await server.listOrgMembership(domain, role))
       .map(user => user.logins[0].email);
   }
 
   // list emails of all users with the given role for the given workspace, via
   // directly granted access to the workspace (inherited access not considered).
-  async function listWs(wsId: number, role: Role|null): Promise<string[]> {
+  async function listWs(wsId: number, role: Role | null): Promise<string[]> {
     return (await server.listWorkspaceMembership(wsId, role))
       .map(user => user.logins[0].email);
   }

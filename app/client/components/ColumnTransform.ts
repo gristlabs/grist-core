@@ -36,7 +36,7 @@ export class ColumnTransform extends Disposable {
   protected editor: AceEditor = null;              // Created when the dom is built by extending classes
   protected formulaUpToDate = Observable.create(this, true);
   protected _tableData: TableData;
-  protected rules: [GristObjCode.List, ...number[]]|null;
+  protected rules: [GristObjCode.List, ...number[]] | null;
 
   // Whether _doFinalize should execute the transform, or cancel it.
   protected _shouldExecute: boolean = false;

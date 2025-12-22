@@ -156,7 +156,7 @@ export class TestServer {
   public getChildProcess(): ChildProcess { return this._server; }
 
   // Returns the promise for the ChildProcess's signal or exit code.
-  public getExitPromise(): Promise<string|number> { return this._exitPromise; }
+  public getExitPromise(): Promise<string | number> { return this._exitPromise; }
 
   public makeUserApi(org: string, user: string = 'chimpy'): UserAPIImpl {
     return new UserAPIImpl(`${this.serverUrl}/o/${org}`, {

@@ -64,9 +64,9 @@ export class DiskWidgetRepository implements IWidgetRepository {
  *
  */
 export class DelayedWidgetRepository implements IWidgetRepository {
-  private _repo: AsyncCreate<IWidgetRepository|undefined>;
+  private _repo: AsyncCreate<IWidgetRepository | undefined>;
 
-  constructor(_makeRepo: () => Promise<IWidgetRepository|undefined>) {
+  constructor(_makeRepo: () => Promise<IWidgetRepository | undefined>) {
     this._repo = new AsyncCreate(_makeRepo);
   }
 
@@ -152,7 +152,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
  * sources.
  */
 export class WidgetRepositoryImpl implements IWidgetRepository {
-  protected _staticUrl: string|undefined;
+  protected _staticUrl: string | undefined;
   private _diskWidgets?: IWidgetRepository;
   private _urlWidgets: UrlWidgetRepository;
   private _combinedWidgets: CombinedWidgetRepository;
@@ -182,11 +182,11 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
   /**
    * Method exposed for testing, overrides widget url.
    */
-  public testOverrideUrl(overrideUrl: string|undefined) {
+  public testOverrideUrl(overrideUrl: string | undefined) {
     this.testSetUrl(overrideUrl);
   }
 
-  public testSetUrl(overrideUrl: string|undefined) {
+  public testSetUrl(overrideUrl: string | undefined) {
     const repos: IWidgetRepository[] = [];
     this._staticUrl = overrideUrl ?? Deps.STATIC_URL;
     if (this._staticUrl) {

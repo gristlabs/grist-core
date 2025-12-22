@@ -28,8 +28,8 @@ export class DocData extends BaseDocData {
   // When a bundle is pending and actions should be checked, the callback to check them.
   private _shouldIncludeInBundle?: (actions: UserAction[]) => boolean;
 
-  private _nextDesc: string|null = null;        // The description for the next incoming action.
-  private _lastActionNum: number|null = null;   // ActionNum of the last action in the current bundle, or null.
+  private _nextDesc: string | null = null;        // The description for the next incoming action.
+  private _lastActionNum: number | null = null;   // ActionNum of the last action in the current bundle, or null.
   private _bundleSender: BundleSender;
 
   private _virtualTablesFunc: Map<string, Constructor<TableData>>;
@@ -46,13 +46,13 @@ export class DocData extends BaseDocData {
     this._virtualTablesFunc = new Map();
   }
 
-  public createTableData(tableId: string, tableData: TableDataAction|null, colTypes: ColTypeMap): TableData {
+  public createTableData(tableId: string, tableData: TableDataAction | null, colTypes: ColTypeMap): TableData {
     const Cons = this._virtualTablesFunc?.get(tableId) || TableData;
     return new Cons(this, tableId, tableData, colTypes);
   }
 
   // Version of inherited getTable() which returns the enhance TableData type.
-  public getTable(tableId: string): TableData|undefined {
+  public getTable(tableId: string): TableData | undefined {
     return super.getTable(tableId) as TableData;
   }
 
@@ -94,7 +94,7 @@ export class DocData extends BaseDocData {
     this._bundlesPending++;
 
     // Promise to allow waiting for the result of prepare() callback before it's even called.
-    let prepareResolve!: (value: T|Promise<T>) => void;
+    let prepareResolve!: (value: T | Promise<T>) => void;
     const preparePromise = new Promise<T>((resolve) => { prepareResolve = resolve; });
 
     // Manually-triggered promise for when finalize() should be called. It's triggered by user,
@@ -144,7 +144,7 @@ export class DocData extends BaseDocData {
   // callback may return a promise, in which case bundleActions() will wait for it to resolve.
   // If nestInActiveBundle is true, and there is an active bundle, then simply calls callback()
   // without starting a new bundle.
-  public async bundleActions<T>(desc: string|null, callback: () => T|Promise<T>,
+  public async bundleActions<T>(desc: string | null, callback: () => T | Promise<T>,
     options: { nestInActiveBundle?: boolean } = {}): Promise<T> {
     if (options.nestInActiveBundle && this._bundlesPending) {
       return await callback();
@@ -285,7 +285,7 @@ class BundleSender {
  */
 export interface BundlingOptions<T = unknown> {
   // Description of the action bundle.
-  description: string|null;
+  description: string | null;
 
   // Checker for whether an action belongs in the current bundle. If not, finalize() will be
   // called immediately. Note that this checker is NOT applied for actions sent from prepare()
@@ -293,7 +293,7 @@ export interface BundlingOptions<T = unknown> {
   shouldIncludeInBundle: (actions: UserAction[]) => boolean;
 
   // Callback to start this action bundle.
-  prepare: () => T|Promise<T>;
+  prepare: () => T | Promise<T>;
 
   // Callback to finalize this action bundle.
   finalize: () => Promise<void>;

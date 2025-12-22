@@ -61,7 +61,7 @@ export class DocSettingsPage extends Disposable {
 
   private _timezone = this._docInfo.timezone;
   private _locale: KoSaveableObservable<string> = this._docInfo.documentSettingsJson.prop('locale');
-  private _currency: KoSaveableObservable<string|undefined> = this._docInfo.documentSettingsJson.prop('currency');
+  private _currency: KoSaveableObservable<string | undefined> = this._docInfo.documentSettingsJson.prop('currency');
   private _acceptProposals = Observable.create(
     this,
     Boolean(this._gristDoc.docPageModel.currentDoc.get()?.options?.proposedChanges?.acceptProposals),
@@ -698,7 +698,7 @@ type DocumentTypeItem = ACSelectItem & { type?: string };
 
 function displayCurrentType(
   owner: IDisposableOwner,
-  type: Observable<DocumentType|null>,
+  type: Observable<DocumentType | null>,
 ) {
   const typeList: DocumentTypeItem[] = [{
     label: t('Regular'),

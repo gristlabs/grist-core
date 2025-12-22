@@ -28,7 +28,7 @@ const PAUSE_BETWEEN_BACKUP_STEPS_IN_MS = 10;
  * @param label: a tag to add to log messages
  * @return dest
  */
-export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
+export async function backupSqliteDatabase(mainDb: SQLiteDB | undefined,
   src: string, dest: string,
   testProgress?: (e: BackupEvent) => void,
   label?: string,
@@ -40,13 +40,13 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
    * object that is already managing the source (that's mainDb). Otherwise, we will need
    * to make our own (that's this db).
    */
-  let db: sqlite3.DatabaseWithBackup|null = null;
+  let db: sqlite3.DatabaseWithBackup | null = null;
   let success: boolean = false;
   let maxStepTimeMs: number = 0;
   let maxNonFinalStepTimeMs: number = 0;
   let finalStepTimeMs: number = 0;
   let numSteps: number = 0;
-  let backup: Backup|undefined = undefined;
+  let backup: Backup | undefined = undefined;
   try {
     // NOTE: fse.remove succeeds also when the file does not exist.
     await fse.remove(dest);  // Just in case some previous process terminated very badly.
@@ -78,7 +78,7 @@ export async function backupSqliteDatabase(mainDb: SQLiteDB|undefined,
     backup = mainDb ? mainDb.backup(dest) : db!.backup(src, 'main', 'main', false);
     if (testProgress) { testProgress({ action: 'open', phase: 'after' }); }
     let remaining: number = -1;
-    let prevError: Error|null = null;
+    let prevError: Error | null = null;
     let errorMsgTime: number = 0;
     let restartMsgTime: number = 0;
     let busyCount: number = 0;
@@ -203,7 +203,7 @@ export interface BackupEvent {
  * connection), which is how we got backed into this awkward retry corner.
  *
  */
-export async function retryOnClose<T>(db: SQLiteDB|undefined,
+export async function retryOnClose<T>(db: SQLiteDB | undefined,
   log: (err: Error) => void,
   op: () => Promise<T>): Promise<T> {
   const wasClosed = db?.isClosed();

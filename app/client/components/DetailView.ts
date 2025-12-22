@@ -44,12 +44,12 @@ export default class DetailView extends BaseView {
   protected cellSelector: selector.CellSelector;
   protected scrolly: ko.Computed<any>;
   protected layoutBoxIdx: ko.Observable<number>;
-  protected detailRecord: DataRowModel|null = null;   // Set whenever _isSingle is true
+  protected detailRecord: DataRowModel | null = null;   // Set whenever _isSingle is true
   protected scrollPane: HTMLElement;
 
   private _isSingle: boolean;
   private _isExternalSectionPopup: boolean;
-  private _twoLastFieldIdsSelected: Array<number|null>;
+  private _twoLastFieldIdsSelected: Array<number | null>;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super(gristDoc, viewSectionModel, { addNewRow: true });
@@ -193,7 +193,7 @@ export default class DetailView extends BaseView {
     hideCardFields: function() { this._hideCardFields().catch(reportError); },
     copy: function() { return this.copy(this.getSelection()); },
     cut: function() { return this.cut(this.getSelection()); },
-    paste: function(pasteObj: PasteData, cutCallback: CutCallback|null) {
+    paste: function(pasteObj: PasteData, cutCallback: CutCallback | null) {
       return this.gristDoc.docData.bundleActions(null, () => this.paste(pasteObj, cutCallback));
     },
   };
@@ -218,8 +218,8 @@ export default class DetailView extends BaseView {
 
   // ----------------------------------------------------------------------
   // To satisfy CellSelector interface, though it's not actually used.
-  public domToRowModel(elem: Element, elemType: ElemType): DataRowModel|undefined { return; }
-  public domToColModel(elem: Element, elemType: ElemType): DataRowModel|undefined { return; }
+  public domToRowModel(elem: Element, elemType: ElemType): DataRowModel | undefined { return; }
+  public domToColModel(elem: Element, elemType: ElemType): DataRowModel | undefined { return; }
 
   protected selectedRows() {
     if (!this._isAddRow()) {
@@ -249,7 +249,7 @@ export default class DetailView extends BaseView {
    * @param {Function} cutCallback - If provided returns the record removal action needed
    *  for a cut.
    */
-  protected async paste(data: PasteData, cutCallback: CutCallback|null) {
+  protected async paste(data: PasteData, cutCallback: CutCallback | null) {
     const pasteData = data[0][0];
     const field = this.viewSection.viewFields().at(this.cursor.fieldIndex())!;
     const isCompletePaste = (data.length === 1 && data[0].length === 1);
@@ -405,7 +405,7 @@ export default class DetailView extends BaseView {
     // Note that the controls should still be visible with a filter link.
     const showControls = ko.computed(() => {
       if (
-        !this._isSingle||
+        !this._isSingle ||
         this.recordLayout.layoutEditor() ||
         this._isExternalSectionPopup
       ) {
@@ -507,7 +507,7 @@ export default class DetailView extends BaseView {
    * Returns a boolean indicating whether the given index is the index of the add row.
    * Index defaults to the current index of the cursor.
    */
-  protected _isAddRow(index: number|null = this.cursor.rowIndex()) {
+  protected _isAddRow(index: number | null = this.cursor.rowIndex()) {
     return index !== null && this.viewData.getRowId(index) === 'new';
   }
 
@@ -516,7 +516,7 @@ export default class DetailView extends BaseView {
     return kd.doScrollChildIntoView(this.scrollPane, this.cursor.rowIndex(), sync);
   }
 
-  protected async _duplicateRows(): Promise<number[]|undefined> {
+  protected async _duplicateRows(): Promise<number[] | undefined> {
     const addRowIds = await super._duplicateRows();
     if (!addRowIds || addRowIds.length === 0) {
       return;

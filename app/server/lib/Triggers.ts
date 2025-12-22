@@ -129,7 +129,7 @@ export class DocTriggers {
   private _getRedisQueuePromise: Promise<void> | undefined;
 
   // Abort controller for the loop that sends webhooks.
-  private _loopAbort: AbortController|undefined;
+  private _loopAbort: AbortController | undefined;
 
   private _stats: WebhookStatistics;
   private _sanitizer = new LogSanitizer();
@@ -987,7 +987,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
    * @param id Webhook ID
    * @param queue Current webhook task queue
    */
-  public async getUsage(id: string, queue: WebHookEvent[]): Promise<WebhookUsage|null> {
+  public async getUsage(id: string, queue: WebHookEvent[]): Promise<WebhookUsage | null> {
     // Get all the keys from the store for this webhook, and create a dictionary.
     const values: Record<StatsKey, string> = _.fromPairs(await this.get(id, [
       `batchStatus`,
@@ -1032,7 +1032,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
         httpStatus: values.httpStatus ? parseInt(values.httpStatus || "0", 10) : null,
         errorMessage: values.errorMessage || null,
         size: parseInt(values.size || "0", 10),
-        attempts: parseInt(values.attempts|| "0", 10),
+        attempts: parseInt(values.attempts || "0", 10),
       };
     }
 
@@ -1043,7 +1043,7 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
    * Logs a status of a webhook. Now is passed as a parameter so that updates that happen in almost the same
    * millisecond were seen as the same update.
    */
-  public async logStatus(id: string, status: WebhookStatus, now?: number|null) {
+  public async logStatus(id: string, status: WebhookStatus, now?: number | null) {
     const stats: [StatsKey, string][] = [
       ['status', status],
       ['updatedTime', (now ?? Date.now()).toString()],
@@ -1072,10 +1072,10 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
     id: string,
     status: WebhookBatchStatus,
     stats?: {
-      httpStatus?: number|null,
-      error?: string|null,
-      size?: number|null,
-      attempts?: number|null,
+      httpStatus?: number | null,
+      error?: string | null,
+      size?: number | null,
+      attempts?: number | null,
     },
   ) {
     const now = Date.now();
@@ -1122,7 +1122,7 @@ type StatsKey =
   'httpStatus' |
   'errorMessage' |
   'attempts' |
-  'size'|
+  'size' |
   'updatedTime' |
   'lastFailureTime' |
   'lastSuccessTime' |

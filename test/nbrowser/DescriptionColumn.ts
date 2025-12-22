@@ -17,7 +17,7 @@ describe('DescriptionColumn', function() {
     const revert = await gu.begin();
     await gu.openColumnPanel('A');
 
-    async function checkState(expect: 'link'|'preview'|'editor') {
+    async function checkState(expect: 'link' | 'preview' | 'editor') {
       // Note: exactly one of the "expect" comparisons below will be true; the others false.
       assert.equal(await getDescriptionAddLink().isPresent(), expect === 'link', 'expected link');
       assert.equal(await getDescriptionPreview().isPresent(), expect === 'preview', 'expected preview');
@@ -688,7 +688,7 @@ async function popupIsAt(col: string) {
   assert.isBelow(popup.y, headerCRect.y + headerCRect.height + 2);
 }
 
-async function doubleClickHeader(col: string, focus: 'label'|'description'|null = 'label') {
+async function doubleClickHeader(col: string, focus: 'label' | 'description' | null = 'label') {
   const header = await gu.getColumnHeader({ col });
   await header.click();
   await header.click();
@@ -697,7 +697,7 @@ async function doubleClickHeader(col: string, focus: 'label'|'description'|null 
   }
 }
 
-async function waitForFocus(field: 'label'|'description') {
+async function waitForFocus(field: 'label' | 'description') {
   await gu.waitToPass(async () => assert.isTrue(
     await driver.find(`.test-column-title-${field}`).hasFocus(), `${field} doesn't have focus`), 200);
 }

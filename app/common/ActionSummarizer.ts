@@ -145,7 +145,7 @@ class ActionSummarizer {
    * Direction parameter is 0 if values are prior values of cells, 1 if values are new values.
    */
   private _addRow(td: TableDelta, rowId: number, colValues: Action.ColValues,
-    direction: 0|1) {
+    direction: 0 | 1) {
     for (const [colId, colChanges] of toPairs(colValues)) {
       const cell = this._forCell(td, rowId, colId);
       cell[direction] = [colChanges];
@@ -154,7 +154,7 @@ class ActionSummarizer {
 
   /** helper function to store detailed cell changes for a set of rows */
   private _addRows(tableId: string, td: TableDelta, rowIds: number[],
-    colValues: Action.BulkColValues, direction: 0|1) {
+    colValues: Action.BulkColValues, direction: 0 | 1) {
     const limitRows: boolean = rowIds.length > this._maxRows && !tableId.startsWith("_grist_");
     let selectedRows: Array<[number, number]> = [];
     if (limitRows) {
@@ -413,7 +413,7 @@ export interface RowChanges {
  * value due to it being part of a bulk input.  This produces a cell that
  * represents the unknowns.
  */
-function bulkCellFor(rc: RowChange|undefined): CellDelta|undefined {
+function bulkCellFor(rc: RowChange | undefined): CellDelta | undefined {
   if (!rc) { return undefined; }
   const result: CellDelta = [null, null];
   if (rc.removed || rc.updated) { result[0] = '?'; }
@@ -543,7 +543,7 @@ export function concatenateSummaries(sums: ActionSummary[]): ActionSummary {
   return result;
 }
 
-export function getRenames(ref: ActionSummary|TableDelta) {
+export function getRenames(ref: ActionSummary | TableDelta) {
   if ('tableRenames' in ref) {
     return ref.tableRenames;
   }
@@ -552,7 +552,7 @@ export function getRenames(ref: ActionSummary|TableDelta) {
   }
 }
 
-export function getDeltas<T extends ActionSummary|TableDelta>(ref: T) {
+export function getDeltas<T extends ActionSummary | TableDelta>(ref: T) {
   if ('tableRenames' in ref) {
     return ref.tableDeltas;
   }
@@ -564,10 +564,10 @@ export function getDeltas<T extends ActionSummary|TableDelta>(ref: T) {
 interface RebasePlan {
   dead: Set<string>;
   rename: Map<string, string>;
-  refBack: Map<string, string|null>;
-  targetBack: Map<string, string|null>;
-  targetForward: Map<string, string|null>;
-  refForward: Map<string|null, string|null>;
+  refBack: Map<string, string | null>;
+  targetBack: Map<string, string | null>;
+  targetForward: Map<string, string | null>;
+  refForward: Map<string | null, string | null>;
   updatedRenames: LabelDelta[];
 }
 
@@ -580,14 +580,14 @@ interface RebasePlan {
  * Return items to delete and rename, in the naming scheme of the
  * target.
  */
-function planRebase(ref: ActionSummary|TableDelta,
-  target: ActionSummary|TableDelta): RebasePlan {
+function planRebase(ref: ActionSummary | TableDelta,
+  target: ActionSummary | TableDelta): RebasePlan {
   const dead = new Set<string>();
   const rename = new Map<string, string>();
-  const targetNames = new Map<string, string|null>();
-  const refBack = new Map<string, string|null>();
-  const targetBack = new Map<string, string|null>();
-  const refForward = new Map<string|null, string|null>();
+  const targetNames = new Map<string, string | null>();
+  const refBack = new Map<string, string | null>();
+  const targetBack = new Map<string, string | null>();
+  const refForward = new Map<string | null, string | null>();
   for (const [oldId, newId] of getRenames(target)) {
     if (oldId) {
       targetNames.set(oldId, newId);
@@ -668,7 +668,7 @@ function rebaseTable(ref: TableDelta, target: TableDelta) {
  * object if we find we need to edit it.
  */
 function copyOnWrite<T>(item: T): CopyOnWrite<T> {
-  let maybeCopiedItem: T|undefined;
+  let maybeCopiedItem: T | undefined;
   return {
     read() { return maybeCopiedItem || item; },
     write() {

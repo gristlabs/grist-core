@@ -298,11 +298,11 @@ describe('PageWidgetPicker', () => {
   });
 });
 
-async function findAllDisabled(cat: 'type'|'table'|'column'): Promise<string[]> {
+async function findAllDisabled(cat: 'type' | 'table' | 'column'): Promise<string[]> {
   return await driver.findAll(`.test-wselect-${cat}[class*=-disabled]`, e => e.getText());
 }
 
-async function findAllSelected(cat: 'type'|'table'|'column'|'pivot'): Promise<string[]> {
+async function findAllSelected(cat: 'type' | 'table' | 'column' | 'pivot'): Promise<string[]> {
   if (cat === 'table') {
     return await driver.findAll('.test-wselect-table .test-wselect-table-label[class*=-selected]', e => e.getText());
   }

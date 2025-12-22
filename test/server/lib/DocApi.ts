@@ -2165,11 +2165,11 @@ function testDocApi(settings: {
       // All column types are allowed, except Arrays (or objects) without correct code.
       const testField = async (A: any) => {
         await test({ records: [{ id: 1, fields: { A } }] }, { error: 'Invalid payload', details: { userError:
-                    'Error: body.records[0] is not a NewRecord; '+
-                    'body.records[0].fields.A is not a CellValue; '+
-                    'body.records[0].fields.A is none of number, '+
-                    'string, boolean, null, 1 more; body.records[0].'+
-                    'fields.A[0] is not a GristObjCode; body.records[0]'+
+                    'Error: body.records[0] is not a NewRecord; ' +
+                    'body.records[0].fields.A is not a CellValue; ' +
+                    'body.records[0].fields.A is none of number, ' +
+                    'string, boolean, null, 1 more; body.records[0].' +
+                    'fields.A[0] is not a GristObjCode; body.records[0]' +
                     '.fields.A[0] is not a valid enum value' } });
       };
       // test no code at all
@@ -2334,8 +2334,8 @@ function testDocApi(settings: {
                   'Error: body.records[0] is not a Record; body.records[0] is not an object' } });
 
       await failsWithError({ records: [{}] }, { error: 'Invalid payload', details: { userError:
-                  'Error: body.records[0] is not a Record\n    '+
-                  'body.records[0].id is missing\n    '+
+                  'Error: body.records[0] is not a Record\n    ' +
+                  'body.records[0].id is missing\n    ' +
                   'body.records[0].fields is missing' } });
 
       await failsWithError({ records: [{ id: "1" }] }, { error: 'Invalid payload', details: { userError:
@@ -2350,11 +2350,11 @@ function testDocApi(settings: {
       // Test invalid object codes
       const fieldIsNotValid = async (A: any) => {
         await failsWithError({ records: [{ id: 1, fields: { A } }] }, { error: 'Invalid payload', details: { userError:
-                    'Error: body.records[0] is not a Record; '+
-                    'body.records[0].fields.A is not a CellValue; '+
-                    'body.records[0].fields.A is none of number, '+
-                    'string, boolean, null, 1 more; body.records[0].'+
-                    'fields.A[0] is not a GristObjCode; body.records[0]'+
+                    'Error: body.records[0] is not a Record; ' +
+                    'body.records[0].fields.A is not a CellValue; ' +
+                    'body.records[0].fields.A is none of number, ' +
+                    'string, boolean, null, 1 more; body.records[0].' +
+                    'fields.A[0] is not a GristObjCode; body.records[0]' +
                     '.fields.A[0] is not a valid enum value' } });
       };
       await fieldIsNotValid([]);
@@ -4057,7 +4057,7 @@ function testDocApi(settings: {
       return response.data;
     }
 
-    it("POST /docs/{did}/webhooks is adding new webhook to table "+
+    it("POST /docs/{did}/webhooks is adding new webhook to table " +
       "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function() {
       const registeredWebhook = await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1", eventTypes: ["add"], url: "https://example.com" } }] }, 200);
       let webhookList = await getRegisteredWebhooks();
@@ -4408,7 +4408,7 @@ function testDocApi(settings: {
 
     async function subscribe(endpoint: string, docId: string, options?: {
       tableId?: string,
-      isReadyColumn?: string|null,
+      isReadyColumn?: string | null,
       eventTypes?: string[],
       watchedColIds?: string[],
       name?: string,

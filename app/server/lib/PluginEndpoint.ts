@@ -7,7 +7,7 @@ import * as mimeTypes from 'mime-types';
 import * as path from 'path';
 
 // Get the host serving plugin material
-export function getUntrustedContentHost(origin: string|undefined): string|undefined {
+export function getUntrustedContentHost(origin: string | undefined): string | undefined {
   if (!origin) { return; }
   return new URL(origin).host;
 }
@@ -74,7 +74,7 @@ export function limitToPlugins(gristServer: GristServer,
 
 // Compare hosts, bearing in mind that if they happen to be on port 443 the
 // port number may or may not be included.  This assumes we are serving over https.
-function matchHost(host1: string|undefined, host2: string) {
+function matchHost(host1: string | undefined, host2: string) {
   if (!host1) { return false; }
   if (host1 === host2) { return true; }
   if (host1.indexOf(':') === -1) { host1 += ":443"; }

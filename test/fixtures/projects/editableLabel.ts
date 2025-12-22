@@ -9,7 +9,7 @@ interface PendingCall {
   reject(err: Error): void;
 }
 
-type ComponentName = 'textInput'|'editableLabel';
+type ComponentName = 'textInput' | 'editableLabel';
 
 const testId = makeTestId('test-');
 

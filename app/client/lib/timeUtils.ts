@@ -10,7 +10,7 @@ export function getTimeFromNow(utcDateISO: string): string;
  * relative time to now - e.g. 'yesterday', '2 days ago'.
  */
 export function getTimeFromNow(ms: number): string;
-export function getTimeFromNow(isoOrTimestamp: string|number): string {
+export function getTimeFromNow(isoOrTimestamp: string | number): string {
   const time = moment.utc(isoOrTimestamp);
   const now = moment();
   const diff = now.diff(time, 's');

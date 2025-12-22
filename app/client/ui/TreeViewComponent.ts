@@ -12,7 +12,7 @@ const t = makeT('TreeViewComponent');
 
 // DropZone identifies a location where an item can be inserted
 interface DropZone {
-  zone: 'above'|'below'|'within';
+  zone: 'above' | 'below' | 'within';
   item: ItemModel;
 
   // `locked` allows to lock the dropzone until the cursor leaves the current item. This is useful
@@ -44,7 +44,7 @@ interface ItemModel {
 }
 
 // Whether item1 and item2 are models of the same item.
-function eq(item1: ItemModel|"root", item2: ItemModel|"root") {
+function eq(item1: ItemModel | "root", item2: ItemModel | "root") {
   if (item1 === "root" && item2 === "root") {
     return true;
   }
@@ -77,7 +77,7 @@ export interface TreeViewOptions {
   // the delay a user has to keep the mouse down on a item before dragging starts
   dragStartDelay?: number;
   isOpen?: Observable<boolean>;
-  selected: Observable<TreeItem|null>;
+  selected: Observable<TreeItem | null>;
   // When true turns readonly mode on, defaults to false.
   isReadonly?: Observable<boolean>;
 }
@@ -104,8 +104,8 @@ export class TreeViewComponent extends Disposable {
   private readonly _containerElement: Element;
 
   private _drag: Holder<Drag> = Holder.create(this);
-  private _hoveredItem: ItemModel|"root" = "root";
-  private _dropZone: DropZone|null = null;
+  private _hoveredItem: ItemModel | "root" = "root";
+  private _dropZone: DropZone | null = null;
 
   private readonly _hideTarget = observable(true);
   private readonly _target = observable<Target>({ width: 0, top: 0, left: 0 });
@@ -176,7 +176,7 @@ export class TreeViewComponent extends Disposable {
   private _startDrag(ev: MouseEvent) {
     if (this._options.isReadonly.get()) { return null; }
     if (this._isClosed.get()) { return null; }
-    this._hoveredItem = this._closestItem(ev.target as HTMLElement|null);
+    this._hoveredItem = this._closestItem(ev.target as HTMLElement | null);
     if (this._hoveredItem === "root") {
       return null;
     }
@@ -301,7 +301,7 @@ export class TreeViewComponent extends Disposable {
 
     let headerElement: HTMLElement;
     let labelElement: HTMLElement;
-    let handleElement: HTMLElement|null = null;
+    let handleElement: HTMLElement | null = null;
     let offsetElement: HTMLElement;
     let arrowElement: HTMLElement;
 
@@ -397,7 +397,7 @@ export class TreeViewComponent extends Disposable {
   }
 
   // Set the drop zone and update the target and target's parent
-  private _setDropZone(dropZone: DropZone|null) {
+  private _setDropZone(dropZone: DropZone | null) {
     // if there is a locked dropzone on the hovered item already set, do nothing (see
     // `DropZone#locked` documentation at the begin of this file for more detail)
     if (this._dropZone && this._dropZone.locked && eq(this._dropZone.item, this._hoveredItem)) {
@@ -462,7 +462,7 @@ export class TreeViewComponent extends Disposable {
     }
   }
 
-  private _getDropZone(mouseY: number): DropZone|null {
+  private _getDropZone(mouseY: number): DropZone | null {
     const item = this._hoveredItem;
     const drag = this._drag.get();
 
@@ -520,9 +520,9 @@ export class TreeViewComponent extends Disposable {
 
   // Finds the closest ancestor with '.itemContainer' and returns the attached ItemModel. Returns
   // "root" if none are found.
-  private _closestItem(element: HTMLElement|null): ItemModel|"root" {
+  private _closestItem(element: HTMLElement | null): ItemModel | "root" {
     if (element) {
-      let el: HTMLElement|null = element;
+      let el: HTMLElement | null = element;
       while (el && el !== this._containerElement) {
         if (el.classList.contains('itemContainer')) {
           return dom.getData(el, 'item');
@@ -534,22 +534,22 @@ export class TreeViewComponent extends Disposable {
   }
 
   // Return the ItemModel of the item's parent or 'root' if parent is the root.
-  private _getParent(item: ItemModel): ItemModel|"root" {
+  private _getParent(item: ItemModel): ItemModel | "root" {
     return this._closestItem(item.containerElement.parentElement);
   }
 
   // Return the ItemModel of the dropZone's parent or 'root' if parent is the root.
-  private _getDropZoneParent(zone: DropZone): ItemModel|"root" {
+  private _getDropZoneParent(zone: DropZone): ItemModel | "root" {
     return zone.zone === 'within' ? zone.item : this._getParent(zone.item);
   }
 
   // Returns the TreeNode associated with the item or the TreeModel if item is the root.
-  private _getTreeNode(item: ItemModel|"root"): TreeNode {
+  private _getTreeNode(item: ItemModel | "root"): TreeNode {
     return item === "root" ? this._model.get() : item.treeItem;
   }
 
   // returns the item that is just after where zone is pointing to
-  private _getNextChild(zone: DropZone): TreeItem|undefined {
+  private _getNextChild(zone: DropZone): TreeItem | undefined {
     const children = this._getTreeNode(this._getDropZoneParent(zone)).children();
     if (!children) {
       return undefined;
@@ -641,7 +641,7 @@ export function addTreeView(model: Observable<TreeModel>, options: TreeViewOptio
 function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
   return mouseDrag((startEvent, el) => {
     // the drag handler is assigned when the timer expires
-    let handler: MouseDragHandler|null;
+    let handler: MouseDragHandler | null;
     const timeoutId = setTimeout(() => handler = startDrag(startEvent, el), delay);
     dom.onDisposeElem(el, () => clearTimeout(timeoutId));
     function onMove(ev: MouseEvent) {

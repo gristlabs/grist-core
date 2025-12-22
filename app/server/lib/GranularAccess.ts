@@ -217,7 +217,7 @@ export interface GranularAccessForBundle {
   // Null means that there are no changes to tables. Empty list means that there are some changes
   // but no user tables to list. We still deliver notification for empty list, it is just empty
   // informing that something has changed.
-  getDirectTablesInBundle(userData: UserAccessData): Promise<DocActionsDescription|null>;
+  getDirectTablesInBundle(userData: UserAccessData): Promise<DocActionsDescription | null>;
   hasCommentsInBundle(): boolean;
   getCommentsInBundle(userToFilterFor?: UserAccessData): Promise<DocComment[]>;
 }
@@ -259,15 +259,15 @@ export class GranularAccess implements GranularAccessForBundle {
   // Cache of user attributes associated with the given docSession. It's a WeakMap, to allow
   // garbage-collection once docSession is no longer in use.
   private _userAttributesMap = new WeakMap<OptDocSession, UserAttributes>();
-  private _prevUserAttributesMap: WeakMap<OptDocSession, UserAttributes>|undefined;
+  private _prevUserAttributesMap: WeakMap<OptDocSession, UserAttributes> | undefined;
   private _attachmentUploads = new MapWithTTL<number, string>(UPLOADED_ATTACHMENT_OWNERSHIP_PERIOD);
 
   // When broadcasting a sequence of DocAction[]s, this contains the state of
   // affected rows for the relevant table before and after each DocAction.  It
   // may contain some unaffected rows as well.
-  private _steps: Promise<ActionStep[]>|null = null;
+  private _steps: Promise<ActionStep[]> | null = null;
   // Intermediate metadata and rule state, if needed.
-  private _metaSteps: Promise<MetaStep[]>|null = null;
+  private _metaSteps: Promise<MetaStep[]> | null = null;
   // Access control is done sequentially, bundle by bundle.  This is the current bundle.
   private _activeBundle: {
     docSession: OptDocSession,
@@ -284,9 +284,9 @@ export class GranularAccess implements GranularAccessForBundle {
     // schema changes.
     hasAnyRuleChange: boolean,
     maybeHasShareChanges: boolean,
-    options: ApplyUAExtendedOptions|null,
+    options: ApplyUAExtendedOptions | null,
     shareRef?: number;
-  }|null;
+  } | null;
 
   public constructor(
     private _docData: DocData,
@@ -304,7 +304,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
   public getGranularAccessForBundle(docSession: OptDocSession, docActions: DocAction[], undo: DocAction[],
     userActions: UserAction[], isDirect: boolean[],
-    options: ApplyUAExtendedOptions|null): void {
+    options: ApplyUAExtendedOptions | null): void {
     if (this._activeBundle) { throw new Error('Cannot start a bundle while one is already in progress'); }
     // This should never happen - attempts to write to a pre-fork session should be
     // caught by an Authorizer.  But let's be paranoid, since we may be pretending to
@@ -416,7 +416,7 @@ export class GranularAccess implements GranularAccessForBundle {
         continue;
       }
       let rec = new EmptyRecordView();
-      let rows: TableDataAction|undefined;
+      let rows: TableDataAction | undefined;
       try {
         // TODO: add indexes to db.
         const noCase = clause.charId === 'Email' ? ` COLLATE NOCASE` : '';
@@ -490,7 +490,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const hasExceptionalAccess = this._hasExceptionalFullAccess(docSession);
     if (!hasExceptionalAccess && !await this.hasTableAccess(docSession, cell.tableId)) { fail(); }
-    let rows: TableDataAction|null = null;
+    let rows: TableDataAction | null = null;
     if (docData) {
       const record = docData.getTable(cell.tableId)?.getRecord(cell.rowId);
       if (record) {
@@ -557,7 +557,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Find a cell in an attachment column that contains the specified attachment,
    * and which is accessible by the user associated with the session.
    */
-  public async findAttachmentCellForUser(docSession: OptDocSession, attId: number): Promise<SingleCell|undefined> {
+  public async findAttachmentCellForUser(docSession: OptDocSession, attId: number): Promise<SingleCell | undefined> {
     // Find cells that refer to the given attachment.
     const cells = await this._docStorage.findAttachmentReferences(attId);
     // Run through them to see if the user has access to any of them.
@@ -765,7 +765,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * actions visible to the given user, and only direct actions (e.g. not tables updated by
    * formulas). This is used for notifications.
    */
-  public async getDirectTablesInBundle(userData: UserAccessData): Promise<DocActionsDescription|null> {
+  public async getDirectTablesInBundle(userData: UserAccessData): Promise<DocActionsDescription | null> {
     try {
       const filtered = await this._getOutgoingDocActionsForNotifications(userData);
       return describeDocActions(filtered, this._docData);
@@ -955,7 +955,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * not be granted any level of automatic trust.
    */
   public async prefilterUserActions(docSession: OptDocSession, actions: UserAction[],
-    options: ApplyUAExtendedOptions|null): Promise<UserAction[]> {
+    options: ApplyUAExtendedOptions | null): Promise<UserAction[]> {
     // Currently we only attempt prefiltering for an ApplyUndoActions.
     if (actions.length !== 1) { return actions; }
     const userAction = actions[0];
@@ -1024,7 +1024,7 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * For changes that could include Python formulas, check for schema access early.
    */
-  public needEarlySchemaPermission(a: UserAction|DocAction): boolean {
+  public needEarlySchemaPermission(a: UserAction | DocAction): boolean {
     const name = a[0] as string;
     // ConvertFromColumn and CopyFromColumn are hard to reason
     // about, especially since they appear in bundles with other
@@ -1182,7 +1182,7 @@ export class GranularAccess implements GranularAccessForBundle {
 
     // Prepare cell censorship information.
     const cells = new CellData(this._docData).convertToCells(tables['_grist_Cells']);
-    let cellCensor: CellAccessHelper|undefined;
+    let cellCensor: CellAccessHelper | undefined;
     if (cells.length > 0) {
       cellCensor = this._createCellAccess(docSession);
       await cellCensor.calculate(cells);
@@ -1247,7 +1247,7 @@ export class GranularAccess implements GranularAccessForBundle {
       colId => this.getReadPermission(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
   }
 
-  public async getUserOverride(docSession: OptDocSession): Promise<UserOverride|undefined> {
+  public async getUserOverride(docSession: OptDocSession): Promise<UserOverride | undefined> {
     await this.getUser(docSession);
     return this._getUserAttributes(docSession).override;
   }
@@ -1369,7 +1369,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * so that the pseudo-ownership it offers is restricted to granular access within a
    * document (as opposed to document-level operations).
    */
-  public async getNominalAccess(docSession: OptDocSession): Promise<Role|null> {
+  public async getNominalAccess(docSession: OptDocSession): Promise<Role | null> {
     const linkParameters = docSession.linkParameters || {};
     const baseAccess = getDocSessionAccess(docSession);
     if ((linkParameters.aclAsUserId || linkParameters.aclAsUser) && baseAccess === 'owners') {
@@ -1440,7 +1440,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * Checking is only at the table level. Returns true if the action clearly
    * does not change the document schema or metadata, otherwise false if it might.
    */
-  private async _checkSimpleDataAction(docSession: OptDocSession, a: UserAction|DocAction): Promise<boolean> {
+  private async _checkSimpleDataAction(docSession: OptDocSession, a: UserAction | DocAction): Promise<boolean> {
     const name = a[0] as string;
     if (name === 'ApplyUndoActions') {
       return this._checkSimpleDataActions(docSession, a[1] as UserAction[]);
@@ -1671,7 +1671,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * accessCheck may throw if denials are fatal.
    */
   private _pruneColumns(a: DocAction, permInfo: IPermissionInfo, tableId: string,
-    accessCheck: IAccessCheck): DocAction|null {
+    accessCheck: IAccessCheck): DocAction | null {
     permInfo = new TransformColumnPermissionInfo(permInfo);
     if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return a;
@@ -1956,8 +1956,8 @@ export class GranularAccess implements GranularAccessForBundle {
     }
 
     // These map an index of a row in the action to its index in rowsBefore and in rowsAfter.
-    let getRecIndex: (idx: number) => number|undefined = idx => idx;
-    let getNewRecIndex: (idx: number) => number|undefined = idx => idx;
+    let getRecIndex: (idx: number) => number | undefined = idx => idx;
+    let getNewRecIndex: (idx: number) => number | undefined = idx => idx;
     if (action !== rowsRec) {
       const recIndexes = new Map(rowsRec[2].map((rowId, idx) => [rowId, idx]));
       getRecIndex = idx => recIndexes.get(rowIds[idx]);
@@ -2048,7 +2048,7 @@ export class GranularAccess implements GranularAccessForBundle {
    *
    * toRemove must be sorted, lowest to highest.
    */
-  private _removeRowsAt(toRemove: number[], rowIds: number[], colValues: BulkColValues|ColValues|undefined) {
+  private _removeRowsAt(toRemove: number[], rowIds: number[], colValues: BulkColValues | ColValues | undefined) {
     if (toRemove.length > 0) {
       pruneArray(rowIds, toRemove);
       if (colValues) {
@@ -2064,7 +2064,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * which columns to keep.
    * Will retain manualSort columns regardless of wildcards.
    */
-  private _filterColumns(data: BulkColValues|ColValues, shouldInclude: (colId: string) => boolean) {
+  private _filterColumns(data: BulkColValues | ColValues, shouldInclude: (colId: string) => boolean) {
     for (const colId of Object.keys(data)) {
       if (colId !== 'manualSort' && !shouldInclude(colId)) {
         delete data[colId];
@@ -2177,7 +2177,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * If the DocAction needs modification, it is copied first - the original is never
    * changed.
    */
-  private _removeRows(a: DocAction, rowIds: Set<number>): DocAction|null {
+  private _removeRows(a: DocAction, rowIds: Set<number>): DocAction | null {
     // If there are no rows, there's nothing to do.
     if (isSchemaAction(a)) { return a; }
     if (a[0] === 'AddRecord' || a[0] === 'UpdateRecord' || a[0] === 'RemoveRecord') {
@@ -2194,11 +2194,11 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Make a BulkAddRecord for a set of rows.
    */
-  private _makeAdditions(data: TableDataAction, rowIds: Set<number>): BulkAddRecord|null {
+  private _makeAdditions(data: TableDataAction, rowIds: Set<number>): BulkAddRecord | null {
     if (rowIds.size === 0) { return null; }
     // TODO: optimize implementation, this does an unnecessary clone.
     const notAdded = data[2].filter(id => !rowIds.has(id));
-    const partialData = this._removeRows(data, new Set(notAdded)) as TableDataAction|null;
+    const partialData = this._removeRows(data, new Set(notAdded)) as TableDataAction | null;
     if (partialData === null) { return partialData; }
     return ['BulkAddRecord', partialData[1], partialData[2], partialData[3]];
   }
@@ -2206,7 +2206,7 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Make a BulkRemoveRecord for a set of rows.
    */
-  private _makeRemovals(data: TableDataAction, rowIds: Set<number>): BulkRemoveRecord|null {
+  private _makeRemovals(data: TableDataAction, rowIds: Set<number>): BulkRemoveRecord | null {
     if (rowIds.size === 0) { return null; }
     return ['BulkRemoveRecord', getTableId(data), [...rowIds]];
   }
@@ -2712,7 +2712,7 @@ export class GranularAccess implements GranularAccessForBundle {
   // Get an AccessCheck appropriate for the specific action.
   // TODO: deal with ReplaceTableData, which both deletes and creates rows.
   private async _getAccessForActionType(docSession: OptDocSession, a: DocAction,
-    severity: 'check'|'fatal'): Promise<IAccessCheck> {
+    severity: 'check' | 'fatal'): Promise<IAccessCheck> {
     if (this._hasExceptionalFullAccess(docSession)) {
       return dummyAccessCheck;
     }
@@ -2928,8 +2928,8 @@ export interface RulerOwner {
  */
 export interface ActionStep {
   action: DocAction;
-  rowsBefore: TableDataAction|undefined;  // only defined for actions modifying rows
-  rowsAfter: TableDataAction|undefined;   // only defined for actions modifying rows
+  rowsBefore: TableDataAction | undefined;  // only defined for actions modifying rows
+  rowsAfter: TableDataAction | undefined;   // only defined for actions modifying rows
   rowsLast?: TableDataAction;             // cached calculation of where to point "newRec"
 }
 export interface MetaStep {
@@ -2946,7 +2946,7 @@ export interface MetaStep {
 interface ActionCursor {
   action: DocAction;
   docSession: OptDocSession;
-  actionIdx: number|null;     // an index into where we are within the original
+  actionIdx: number | null;     // an index into where we are within the original
   // DocActions, for access control purposes.
   // Used for referencing a cache of intermediate
   // access control state.
@@ -2959,7 +2959,7 @@ class RecordEditor implements InfoEditor {
   private _rows: number[];
   private _bulk: boolean;
   private _data: ColValues | BulkColValues;
-  public constructor(public data: DataAction, public index: number|undefined,
+  public constructor(public data: DataAction, public index: number | undefined,
     public optional: boolean) {
     const rows = data[2];
     this._bulk = Array.isArray(rows);
@@ -3015,8 +3015,8 @@ interface IAccessCheck {
 }
 
 class AccessCheck implements IAccessCheck {
-  constructor(public access: 'update'|'delete'|'create'|'schemaEdit'|'read',
-    public severity: 'check'|'fatal') {
+  constructor(public access: 'update' | 'delete' | 'create' | 'schemaEdit' | 'read',
+    public severity: 'check' | 'fatal') {
   }
 
   public get(ps: PermissionSetWithContext): string {
@@ -3336,7 +3336,7 @@ function getCensorMethod(tableId: string): (rec: RecordEditor) => void {
   }
 }
 
-function scanActionsRecursively<T extends DocAction|UserAction>(actions: T[],
+function scanActionsRecursively<T extends DocAction | UserAction>(actions: T[],
   check: (action: T) => boolean): boolean {
   for (const a of actions) {
     if (a[0] === 'ApplyUndoActions' || a[0] === 'ApplyDocActions') {
@@ -3347,8 +3347,8 @@ function scanActionsRecursively<T extends DocAction|UserAction>(actions: T[],
   return false;
 }
 
-async function applyToActionsRecursively(actions: (DocAction|UserAction)[],
-  op: (action: DocAction|UserAction) => Promise<void>): Promise<void> {
+async function applyToActionsRecursively(actions: (DocAction | UserAction)[],
+  op: (action: DocAction | UserAction) => Promise<void>): Promise<void> {
   for (const a of actions) {
     if (a[0] === 'ApplyUndoActions' || a[0] === 'ApplyDocActions') {
       await applyToActionsRecursively(a[1] as UserAction[], op);
@@ -3517,7 +3517,7 @@ export class PseudoDocSession extends OptDocSession {
   public readonly client = null;
   public authorizer: DocAuthorizer = new DummyAuthorizer(this._userData.access, this._docId);
 
-  constructor(private _userData: UserAccessData, private _docId: string, private _org: string|undefined) {
+  constructor(private _userData: UserAccessData, private _docId: string, private _org: string | undefined) {
     super({});
   }
 

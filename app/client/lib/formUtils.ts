@@ -84,7 +84,7 @@ async function submitForm(fields: { [key: string]: string }, form: HTMLFormEleme
  * Sets the error details on `errObs` if `err` is a 4XX error. Otherwise, reports the
  * error via the Notifier instance.
  */
-export function handleFormError(err: unknown, errObs: Observable<string|null>) {
+export function handleFormError(err: unknown, errObs: Observable<string | null>) {
   if (
     err instanceof ApiError &&
     err.status >= 400 &&
@@ -93,7 +93,7 @@ export function handleFormError(err: unknown, errObs: Observable<string|null>) {
     errObs.set(err.details?.userError ?? err.message);
   }
   else {
-    reportError(err as Error|string);
+    reportError(err as Error | string);
   }
 }
 

@@ -78,7 +78,7 @@ export default class BaseView extends DisposableWithEvents {
   public sortedRows: SortedRowSet;
   public rowSource: RowSource;
   public activeFieldBuilder: ko.Computed<FieldBuilder>;
-  public selectedColumns: ko.Computed<ViewFieldRec[]>|null;
+  public selectedColumns: ko.Computed<ViewFieldRec[]> | null;
   public disableEditing: ko.Computed<boolean>;
   public isTruncated: ko.Observable<boolean>;
   public tableModel: DataTableModel;
@@ -87,19 +87,19 @@ export default class BaseView extends DisposableWithEvents {
   public enableAddRow: ko.Computed<boolean>;
   public options: ViewOptions;
 
-  public onNewRecordRequest?(): Promise<number>|void;
+  public onNewRecordRequest?(): Promise<number> | void;
 
   protected _name: string;
   protected schemaModel: TableRec;
   protected comparison: DocStateComparison | null;
   protected extraRows: ExtraRows;
   protected editRowModel: DataRowModel;
-  protected linkedRowId: ko.Computed<UIRowId|null>;
+  protected linkedRowId: ko.Computed<UIRowId | null>;
   protected isLinkSource: ko.Computed<boolean>;
   protected isPreview: boolean;
   protected currentColumn: ko.Computed<ColumnRec>;
   protected fieldBuilders: KoArray<FieldBuilder>;
-  protected copySelection: ko.Observable<CopySelection|null>;
+  protected copySelection: ko.Observable<CopySelection | null>;
 
   private _queryRowSource: DynamicQuerySet;
   private _mainRowSource: RowSource;
@@ -108,7 +108,7 @@ export default class BaseView extends DisposableWithEvents {
   private _filteredRowSource: rowset.FilteredRowSource;
   private _newRowSource: rowset.RowSource;
   private _isLoading: ko.Observable<boolean>;
-  private _pendingCursorPos: CursorPos|null;
+  private _pendingCursorPos: CursorPos | null;
   protected _isPrinting: ko.Observable<boolean>;
 
   constructor(
@@ -304,7 +304,7 @@ export default class BaseView extends DisposableWithEvents {
     // cursor to stay at the same record is sometimes better, but sometimes more annoying.)
     this.autoDispose(this.viewSection.activeSortSpec.subscribe(() => this.setCursorPos({ rowIndex: 0 })));
 
-    this.copySelection = ko.observable<CopySelection|null>(null);
+    this.copySelection = ko.observable<CopySelection | null>(null);
 
     // Whether parts needed for printing should be rendered now.
     this._isPrinting = ko.observable(false);
@@ -338,7 +338,7 @@ export default class BaseView extends DisposableWithEvents {
     copyLink: function() { this.copyLink().catch(reportError); },
     filterByThisCellValue: function() { this.filterByThisCellValue(); },
     duplicateRows: function() { this._duplicateRows().catch(reportError); },
-    openDiscussion: function(ev: unknown, payload: CommentWithMentions|null) {
+    openDiscussion: function(ev: unknown, payload: CommentWithMentions | null) {
       const state = typeof payload === 'object' && payload ? payload : null;
       this._openDiscussionAtCursor(state);
     },
@@ -485,7 +485,7 @@ export default class BaseView extends DisposableWithEvents {
   /**
    * Opens discussion panel at the cursor position. Returns true if discussion panel was opened.
    */
-  private _openDiscussionAtCursor(text: CommentWithMentions|null) {
+  private _openDiscussionAtCursor(text: CommentWithMentions | null) {
     const builder = this.activeFieldBuilder();
     if (builder.isEditorActive()) {
       return false;
@@ -570,7 +570,7 @@ export default class BaseView extends DisposableWithEvents {
    * Insert a new row immediately before the row at the given index if given an Integer. Otherwise
    * insert a new row at the end.
    */
-  public insertRow(index?: number): Promise<number>|undefined {
+  public insertRow(index?: number): Promise<number> | undefined {
     if (this.gristDoc.isReadonly.get()) {
       return;
     }
@@ -673,7 +673,7 @@ export default class BaseView extends DisposableWithEvents {
       // from Epoch UTC, we want the UTC time to have the correct date, so need to add the offset
       // (-05:00) to get "2019-11-14 23:30" in UTC, and then round down to midnight.
       const offsetMinutes = moment.tz(now, docTimezone).utcOffset();
-      value = roundDownToMultiple(now / 1000 + offsetMinutes * 60, 24*3600);
+      value = roundDownToMultiple(now / 1000 + offsetMinutes * 60, 24 * 3600);
     }
     else if (type === 'DateTime') {
       value = now / 1000;
@@ -781,7 +781,7 @@ export default class BaseView extends DisposableWithEvents {
   /**
    * Helper to send paste actions from the cutCallback and a list of paste actions.
    */
-  protected sendPasteActions(cutCallback: CutCallback|null, actions: UserAction[]) {
+  protected sendPasteActions(cutCallback: CutCallback | null, actions: UserAction[]) {
     let cutAction = null;
     // If this is a cut -> paste, add the cut action and a description.
     if (cutCallback) {
@@ -866,7 +866,7 @@ export default class BaseView extends DisposableWithEvents {
    * section and is rendered, otherwise returns null.
    * Useful to tie a rendered row to the row being edited. Derived views may override.
    */
-  protected getRenderedRowModel(rowId: UIRowId): DataRowModel|undefined {
+  protected getRenderedRowModel(rowId: UIRowId): DataRowModel | undefined {
     return this.viewData.getRowModel(rowId);
   }
 
@@ -928,7 +928,7 @@ export default class BaseView extends DisposableWithEvents {
   /**
    * Duplicates selected row(s) and returns inserted rowIds
    */
-  protected async _duplicateRows(): Promise<number[]|undefined> {
+  protected async _duplicateRows(): Promise<number[] | undefined> {
     if (
       this.gristDoc.isReadonly.get() ||
       this.viewSection.disableAddRemoveRows() ||
@@ -949,7 +949,7 @@ export default class BaseView extends DisposableWithEvents {
     action.push(columns);
     // Calculate new positions for rows using helper function. It requires
     // index where we want to put new rows (it accepts new row index).
-    const lastSelectedIndex = this.viewData.getRowIndex(rowIds[length-1]);
+    const lastSelectedIndex = this.viewData.getRowIndex(rowIds[length - 1]);
     columns.manualSort = this._getRowInsertPos(lastSelectedIndex + 1, length);
     // Now copy all visible data.
     for (const col of this.viewSection.columns.peek()) {

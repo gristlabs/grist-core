@@ -62,7 +62,7 @@ export class MemoryPool {
     return new MemoryReservation(size, this._updateReserved.bind(this));
   }
 
-  public async withReserved(size: number, callback: (updateRes: UpdateReservation) => void|Promise<void>) {
+  public async withReserved(size: number, callback: (updateRes: UpdateReservation) => void | Promise<void>) {
     const memRes = await this.waitAndReserve(size);
     try {
       return await callback(memRes.updateReservation.bind(memRes));

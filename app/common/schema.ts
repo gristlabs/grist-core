@@ -268,10 +268,10 @@ export interface SchemaTypes {
     summarySourceCol: number;
     displayCol: number;
     visibleCol: number;
-    rules: [GristObjCode.List, ...number[]]|null;
+    rules: [GristObjCode.List, ...number[]] | null;
     reverseCol: number;
     recalcWhen: number;
-    recalcDeps: [GristObjCode.List, ...number[]]|null;
+    recalcDeps: [GristObjCode.List, ...number[]] | null;
   };
 
   "_grist_Imports": {
@@ -349,7 +349,7 @@ export interface SchemaTypes {
     linkSrcColRef: number;
     linkTargetColRef: number;
     embedId: string;
-    rules: [GristObjCode.List, ...number[]]|null;
+    rules: [GristObjCode.List, ...number[]] | null;
     shareOptions: string;
   };
 
@@ -362,7 +362,7 @@ export interface SchemaTypes {
     displayCol: number;
     visibleCol: number;
     filter: string;
-    rules: [GristObjCode.List, ...number[]]|null;
+    rules: [GristObjCode.List, ...number[]] | null;
   };
 
   "_grist_Validations": {
@@ -391,13 +391,13 @@ export interface SchemaTypes {
 
   "_grist_Triggers": {
     tableRef: number;
-    eventTypes: [GristObjCode.List, ...string[]]|null;
+    eventTypes: [GristObjCode.List, ...string[]] | null;
     isReadyColRef: number;
     actions: string;
     label: string;
     memo: string;
     enabled: boolean;
-    watchedColRefList: [GristObjCode.List, ...number[]]|null;
+    watchedColRefList: [GristObjCode.List, ...number[]] | null;
     options: string;
   };
 

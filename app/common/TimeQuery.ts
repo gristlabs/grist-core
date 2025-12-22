@@ -104,9 +104,9 @@ export class TimeQuery {
     // Let's see everything the summary has accumulated about the table back then.
     const td = this.tc.summary.tableDeltas[tableRenamed] || createEmptyTableDelta();
 
-    const columnForwardRenames: Record<string, string|null> =
+    const columnForwardRenames: Record<string, string | null> =
       Object.fromEntries(td.columnRenames.filter(delta => delta[0]));
-    const columnBackwardRenames: Record<string, string|null> =
+    const columnBackwardRenames: Record<string, string | null> =
       Object.fromEntries(td.columnRenames.map(([a, b]) => [b, a]).filter(delta => delta[0]));
 
     const colIdsExpanded = this.colIds === '*' ?

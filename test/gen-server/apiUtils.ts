@@ -67,7 +67,7 @@ export class TestServer {
   // access.
   public async getCookieLogin(
     org: string,
-    profile: UserProfile|null,
+    profile: UserProfile | null,
     options: { clearCache?: boolean, sessionProps?: Partial<SessionUserObj> } = {},
   ) {
     return this.defaultSession.getCookieLogin(org, profile, options);
@@ -139,7 +139,7 @@ export class TestServer {
    * roles set by direct group membership are listed, nothing indirect
    * is included.
    */
-  public async listOrgMembership(domain: string, role: Role|null): Promise<User[]> {
+  public async listOrgMembership(domain: string, role: Role | null): Promise<User[]> {
     return this._listMembers(role)
       .leftJoin(Organization, 'orgs', 'orgs.id = acl_rules.org_id')
       .andWhere('orgs.domain = :domain', { domain })
@@ -151,7 +151,7 @@ export class TestServer {
    * roles set by direct group membership are listed, nothing indirect
    * is included.
    */
-  public async listWorkspaceMembership(wsId: number, role: Role|null): Promise<User[]> {
+  public async listWorkspaceMembership(wsId: number, role: Role | null): Promise<User[]> {
     return this._listMembers(role)
       .leftJoin(Workspace, 'workspaces', 'workspaces.id = acl_rules.workspace_id')
       .andWhere('workspaces.id = :wsId', { wsId })
@@ -198,7 +198,7 @@ export class TestServer {
    */
   private async _getResourceName(aclRule: AclRule): Promise<ResourceWithRole> {
     const con = this.dbManager.connection.manager;
-    let res: Document|Workspace|Organization|null;
+    let res: Document | Workspace | Organization | null;
     if (aclRule instanceof AclRuleDoc) {
       res = await con.findOne(Document, { where: { id: aclRule.docId } });
     }
@@ -219,7 +219,7 @@ export class TestServer {
    * Lists users and the groups/aclRules they are members of.
    * Filters for groups of the specified name.
    */
-  private _listMembers(role: Role|null) {
+  private _listMembers(role: Role | null) {
     let q = this.dbManager.connection.createQueryBuilder()
       .select('users')
       .from(User, 'users')
@@ -253,7 +253,7 @@ export class TestSession {
   // access.
   public async getCookieLogin(
     org: string,
-    profile: UserProfile|null,
+    profile: UserProfile | null,
     { clearCache, sessionProps}: { clearCache?: boolean, sessionProps?: Partial<SessionUserObj> } = {},
   ) {
     const resp = await axios.get(`${this.home.getOwnUrl()}/test/session`,

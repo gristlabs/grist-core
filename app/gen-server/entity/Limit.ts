@@ -30,17 +30,17 @@ export class Limit extends BaseEntity {
    * Last time the Limit.limit value was changed, by an upgrade or downgrade. Null if it has never been changed.
    */
   @Column({ name: 'changed_at', type: nativeValues.dateTimeType, nullable: true })
-  public changedAt: Date|null;
+  public changedAt: Date | null;
 
   /**
    * Last time the Limit.usage was used (by sending a request to the model). Null if it has never been used.
    */
   @Column({ name: 'used_at', type: nativeValues.dateTimeType, nullable: true })
-  public usedAt: Date|null;
+  public usedAt: Date | null;
 
   /**
    * Last time the Limit.usage was reset, probably by billing cycle change. Null if it has never been reset.
    */
   @Column({ name: 'reset_at', type: nativeValues.dateTimeType, nullable: true })
-  public resetAt: Date|null;
+  public resetAt: Date | null;
 }

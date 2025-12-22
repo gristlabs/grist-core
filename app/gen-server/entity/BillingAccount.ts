@@ -38,7 +38,7 @@ export class BillingAccount extends BaseEntity {
   public product: Product;
 
   @Column({ type: nativeValues.jsonEntityType, nullable: true })
-  public features: Features|null;
+  public features: Features | null;
 
   @Column({ type: Boolean })
   public individual: boolean;

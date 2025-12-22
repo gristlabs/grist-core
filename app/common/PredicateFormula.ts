@@ -18,18 +18,18 @@ import constant from 'lodash/constant';
 /**
  * Representation of a parsed predicate formula.
  */
-export type PrimitiveCellValue = number|string|boolean|null;
-export type ParsedPredicateFormula = [string, ...(ParsedPredicateFormula|PrimitiveCellValue)[]];
+export type PrimitiveCellValue = number | string | boolean | null;
+export type ParsedPredicateFormula = [string, ...(ParsedPredicateFormula | PrimitiveCellValue)[]];
 
 /**
  * Inputs to a predicate formula function.
  */
 export interface PredicateFormulaInput {
   user?: UserInfo;
-  rec?: RowRecord|InfoView;
+  rec?: RowRecord | InfoView;
   newRec?: InfoView;
   docId?: string;
-  choice?: string|RowRecord|InfoView;
+  choice?: string | RowRecord | InfoView;
 }
 
 /**
@@ -51,7 +51,7 @@ type IntermediatePredicateFormula = (input: PredicateFormulaInput) => any;
 
 export interface CompilePredicateFormulaOptions {
   /** Defaults to `'acl'`. */
-  variant?: 'acl'|'dropdown-condition';
+  variant?: 'acl' | 'dropdown-condition';
 }
 
 /**
@@ -156,7 +156,7 @@ class SupportedCallable {
   constructor(public readonly func: Function) {}
 }
 
-function getStringMethod(value: string, attrName: string): SupportedCallable|undefined {
+function getStringMethod(value: string, attrName: string): SupportedCallable | undefined {
   switch (attrName) {
     case 'lower': return new SupportedCallable(() => value.toLowerCase());
     case 'upper': return new SupportedCallable(() => value.toUpperCase());
@@ -251,7 +251,7 @@ export function getPredicateFormulaProperties(
   };
 }
 
-function isRecOrNewRec(formula: ParsedPredicateFormula|PrimitiveCellValue): boolean {
+function isRecOrNewRec(formula: ParsedPredicateFormula | PrimitiveCellValue): boolean {
   return Array.isArray(formula) &&
     formula[0] === 'Name' &&
     (formula[1] === 'rec' || formula[1] === 'newRec');
@@ -261,7 +261,7 @@ function getRecColIds(formula: ParsedPredicateFormula): string[] {
   return [...new Set(collectColIds(formula, isRecOrNewRec))];
 }
 
-function isChoice(formula: ParsedPredicateFormula|PrimitiveCellValue): boolean {
+function isChoice(formula: ParsedPredicateFormula | PrimitiveCellValue): boolean {
   return Array.isArray(formula) && formula[0] === 'Name' && formula[1] === 'choice';
 }
 
@@ -271,7 +271,7 @@ function getChoiceColIds(formula: ParsedPredicateFormula): string[] {
 
 function collectColIds(
   formula: ParsedPredicateFormula,
-  isIdentifierWithColIds: (formula: ParsedPredicateFormula|PrimitiveCellValue) => boolean,
+  isIdentifierWithColIds: (formula: ParsedPredicateFormula | PrimitiveCellValue) => boolean,
 ): string[] {
   if (!Array.isArray(formula)) { throw new Error('expected a list'); }
   if (formula[0] === 'Attr' && isIdentifierWithColIds(formula[1])) {
@@ -291,7 +291,7 @@ export function typeCheckFormula(
   formulaParsed: ParsedPredicateFormula,
   sampleRecord: InfoView,
   userAttrSamples: { [key: string]: InfoView },
-): string|false {
+): string | false {
   try {
     const compiledFormula = compilePredicateFormula(formulaParsed);
     const sampleUser: UserInfo = {

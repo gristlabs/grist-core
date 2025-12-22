@@ -70,7 +70,7 @@ export function inferColTypeSuffix(newPure: string, column: ColumnRec) {
  * [R|r, <tableId>, <rowId>] (a Reference(List) value returned from a formula), and returns the tableId
  * from that.
  */
-function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|null {
+function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string | null {
   const tableData = docModel.docData.getTable(column.table().tableId());
   const columnData = tableData && tableData.getColValues(column.colId());
   if (columnData) {
@@ -301,7 +301,7 @@ export async function setDisplayFormula(
 }
 
 // Returns the name of the visibleCol given its rowId.
-function getVisibleColName(docModel: DocModel, visibleColRef: number): string|undefined {
+function getVisibleColName(docModel: DocModel, visibleColRef: number): string | undefined {
   return visibleColRef ? docModel.columns.getRowModel(visibleColRef).colId() : undefined;
 }
 

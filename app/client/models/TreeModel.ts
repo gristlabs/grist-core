@@ -27,12 +27,12 @@ export interface TreeNode {
   hidden?: boolean;
   collapsed?: Observable<boolean>;
   // Returns an observable array of children. Or null if the node does not accept children.
-  children(): ObsArray<TreeItem>|null;
+  children(): ObsArray<TreeItem> | null;
 
   // Inserts newChild as a child, before nextChild, or at the end if nextChild is null. If
   // newChild is already in the tree, it is the implementer's responsibility to remove it from the
   // children() list of its old parent.
-  insertBefore(newChild: TreeItem, nextChild: TreeItem|null): void;
+  insertBefore(newChild: TreeItem, nextChild: TreeItem | null): void;
 
   // Removes child from the list of children().
   removeChild(child: TreeItem): void;
@@ -126,7 +126,7 @@ export class TreeNodeRecord implements TreeNode {
   public hidden: boolean = false;
   public collapsed?: Observable<boolean>;
   public storage: Storage;
-  public index: number|"root";
+  public index: number | "root";
   public children: () => ObsArray<TreeItemRecord>;
   private _children: TreeItemRecord[];
 
@@ -134,7 +134,7 @@ export class TreeNodeRecord implements TreeNode {
     // nothing here
   }
 
-  public init(storage: Storage, index: number|"root", children: TreeItemRecord[]) {
+  public init(storage: Storage, index: number | "root", children: TreeItemRecord[]) {
     this.storage = storage;
     this.index = index;
     this._children = children;
@@ -144,7 +144,7 @@ export class TreeNodeRecord implements TreeNode {
 
   // Moves 'item' along with all its descendant to just before 'nextChild' by updating the
   // .indentation and .position fields of all of their corresponding records in the table.
-  public async insertBefore(item: TreeItemRecord, nextChild: TreeItemRecord|null) {
+  public async insertBefore(item: TreeItemRecord, nextChild: TreeItemRecord | null) {
     // get records for newItem and its descendants
     const records = item.getRecords();
 
@@ -154,7 +154,7 @@ export class TreeNodeRecord implements TreeNode {
       const indentations = records.map((rec, i) => rec.indentation + indent - records[0].indentation);
 
       // adjust positions
-      let upperPos: number|null;
+      let upperPos: number | null;
       if (nextChild) {
         const index = nextChild.index;
         upperPos = this._records[index].pagePos;
@@ -215,7 +215,7 @@ export class TreeNodeRecord implements TreeNode {
     return records;
   }
 
-  public findLastIndex(): number|"root" {
+  public findLastIndex(): number | "root" {
     return this._children.length ? this._children[this._children.length - 1].findLastIndex() : this.index;
   }
 
@@ -252,8 +252,8 @@ export function walkTree(model: TreeNode, func: (item: TreeItem) => void) {
   }
 }
 
-export function find<T extends TreeItem>(model: TreeNode, func: (item: T) => boolean): T|undefined;
-export function find(model: TreeNode, func: (item: TreeItem) => boolean): TreeItem|undefined {
+export function find<T extends TreeItem>(model: TreeNode, func: (item: T) => boolean): T | undefined;
+export function find(model: TreeNode, func: (item: TreeItem) => boolean): TreeItem | undefined {
   const children = model.children();
   if (children) {
     for (const child of children.get()) {
