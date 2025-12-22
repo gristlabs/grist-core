@@ -58,7 +58,6 @@ export function relativeDateToUnixTimestamp(bound: IRelativeDateSpec): number {
 
 // Format a relative date.
 export function formatRelBounds(periods: IPeriod[]): string {
-
   // if 2nd period is moot revert to one single period
   periods = periods[1]?.quantity ? periods : [periods[0]];
 
@@ -112,7 +111,6 @@ export function localTimestampToUTC(timestamp: number, timezone: string): number
 }
 
 function formatDay(quantity: number, refUnit: IPeriod['unit']): string {
-
   if (refUnit === 'week') {
     const n = (quantity + 7) % 7;
     return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][n];

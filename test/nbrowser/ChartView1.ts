@@ -439,7 +439,6 @@ describe('ChartView1', function() {
   });
 
   it('should get options for SPLIT SERIES and X AXIS in sync when table changes', async function() {
-
     // click change widget
     await driver.findContent('button', 'Change widget').click();
 
@@ -505,7 +504,6 @@ describe('ChartView1', function() {
   });
 
   it('should disabled split series option for pie charts', async function() {
-
     // start with line chart type
     await selectChartType('Line chart');
 

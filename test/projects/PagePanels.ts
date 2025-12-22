@@ -142,7 +142,6 @@ describe('PagePanels', function() {
     });
 
     it('should show bottom bar if narrow screen', async function() {
-
       // click optimizeNarrowScreen option and check that the bottom bar is not displayed
       await driver.find('.test-pp-optimize-narrow-screen').click();
       assert.equal(await driver.find('.test-pp-bottom-footer').isPresent(), false);
@@ -375,7 +374,6 @@ describe('PagePanels', function() {
   });
 
   describe('PageWidgetPicker', () => {
-
     const waitAssertPickerShown = stackWrapFunc(async function() {
       assert.isTrue(await driver.findWait('.test-wselect-data', 100).isDisplayed());
     });
@@ -394,7 +392,6 @@ describe('PagePanels', function() {
     });
 
     it('should close on save', async () => {
-
       // assert `Add to ...` button is disabled
       assert.equal(await driver.find('.test-wselect-addBtn').getAttribute('disabled'), 'true');
 
@@ -440,7 +437,6 @@ describe('PagePanels', function() {
 
       // check that the picker is gone
       await assertNoPicker();
-
     });
 
     it('should trigger properly from the basic button on the right pane', async () => {
@@ -458,7 +454,6 @@ describe('PagePanels', function() {
   });
 
   describe('auto expanding left panel', async function() {
-
     it('should expand on mouse enter', async function() {
       await driver.find('.test-pp-right-panel').mouseMove();
       await closeLeftPanel();
@@ -500,7 +495,6 @@ describe('PagePanels', function() {
     });
 
     it('should show the vertical resizer correctly', async function() {
-
       // initially disbaled resizer is visible
       assert.equal(await driver.find('.test-pp-left-disabled-resizer').isDisplayed(), true);
       assert.equal(await driver.find('.test-pp-left-resizer').isDisplayed(), false);
@@ -638,7 +632,6 @@ describe('PagePanels', function() {
       // the transient input is gone
       assert.isFalse(await driver.find('.test-docpage-editor').isPresent());
     });
-
   });
 });
 

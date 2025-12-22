@@ -5,7 +5,6 @@ import * as sinon from 'sinon';
 import * as testUtils from 'test/server/testUtils';
 
 describe('DocStorageQuery', function() {
-
   const sandbox = sinon.createSandbox();
   const dbCalls: Array<unknown[]> = [];
   let docStorage: DocStorage;

@@ -2296,7 +2296,6 @@ export class FlexServer implements GristServer {
       // it always will be.  In testing, we may disconnect and reconnect the
       // worker.  We only need to determine docWorkerId and this.worker once.
       if (!this.worker) {
-
         if (process.env.GRIST_ROUTER_URL) {
           // register ourselves with the load balancer first.
           const w = await this.createWorkerUrl();

@@ -22,7 +22,6 @@ function isValidUrlId(urlId: string) {
 
 @Entity({ name: 'docs' })
 export class Document extends Resource {
-
   @PrimaryColumn({ type: String })
   public id: string;
 

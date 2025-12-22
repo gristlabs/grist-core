@@ -9,7 +9,6 @@ export type RequestWithTag = Request & { tag: string|null };
  *
  */
 export class TagChecker {
-
   // Use app.use(tagChecker.inspectTag) to strip /v/TAG/ from urls (if it is present).
   // If the tag is present and matches what is expected, then `tag` is set on the request.
   // If the tag is present but does not match what is expected, a 400 response is returned.

@@ -32,7 +32,6 @@ describe("ColorSelect", function() {
   });
 
   const checkSelectedColor = stackWrapFunc(async function(fill: string|null, text: string|null) {
-
     // check Text selected color
     assert.deepEqual(await driver.findAll('.test-text-palette [class*=-selected]', async e => (
       rgbToHex(await e.getCssValue('background-color'))
@@ -42,7 +41,6 @@ describe("ColorSelect", function() {
     assert.deepEqual(await driver.findAll('.test-fill-palette [class*=-selected]', async e => (
       rgbToHex(await e.getCssValue('background-color'))
     )), fill ? [fill] : []);
-
   });
 
   const checkCurrentColor = stackWrapFunc(async function(fill: string, text: string) {
@@ -110,7 +108,6 @@ describe("ColorSelect", function() {
   });
 
   it('should allow picking fill and text color and options', async function() {
-
     // check current color
     await checkCurrentColor(white, black);
     await checkCurrentOption(0);
@@ -149,7 +146,6 @@ describe("ColorSelect", function() {
   });
 
   it('should allow to choose custom color', async function() {
-
     // open picker
     await driver.find('.test-color-select').click();
     await driver.findWait('.test-text-palette', 100);
@@ -344,11 +340,9 @@ describe("ColorSelect", function() {
     // check correct color
     await checkCurrentColor('#FF00FF', black);
     assert.equal(await driver.find('.test-fill-hex').value(), '#FF00FF');
-
   });
 
   describe('Editable hex', async function() {
-
     it('should allow typing in hex value', async function() {
       // open the picker
       await driver.find('.test-color-select').click();
@@ -424,7 +418,6 @@ describe("ColorSelect", function() {
 
       // check value was reverted to #FF00FF
       await checkCurrentColor(white, pink);
-
     });
 
     it('should not change value on server update while typing', async function() {

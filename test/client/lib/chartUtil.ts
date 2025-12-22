@@ -30,7 +30,6 @@ describe('chartUtil', function() {
   });
 
   describe('splitValuesByIndex', function() {
-
     it('should work correctly', function() {
       splitValuesByIndex([{ label: 'test', values: [] }, { label: 'foo', values: [] }], 0);
       assert.deepEqual(splitValuesByIndex([
@@ -97,7 +96,6 @@ describe('chartUtil', function() {
     });
 
     it('should keep redundant value', function() {
-
       assert.deepEqual(
         consolidateValues(
           [

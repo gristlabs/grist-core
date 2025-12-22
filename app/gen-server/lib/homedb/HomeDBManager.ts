@@ -1400,7 +1400,6 @@ export class HomeDBManager implements HomeDBAuth {
     props: Partial<OrganizationProperties>,
     transaction?: EntityManager,
   ): Promise<QueryResult<PreviousAndCurrent<Organization>>> {
-
     // Check the scope of the modifications.
     let markPermissions: number = Permissions.VIEW;
     let modifyOrg: boolean = false;
@@ -5237,7 +5236,6 @@ export class HomeDBManager implements HomeDBAuth {
   private async _loadDocAccess(scope: DocScope, markPermissions: Permissions,
     transaction?: EntityManager): Promise<Document> {
     return await this.runInTransaction(transaction, async (manager) => {
-
       const docQuery = this._doc(scope, { manager, markPermissions });
       const queryResult = await verifyEntity(docQuery);
       this.checkQueryResult(queryResult);

@@ -19,7 +19,6 @@ const t = makeT('MappedFieldsConfig');
  * the ability to drag and drop fields onto the form.
  */
 export class MappedFieldsConfig extends Disposable {
-
   constructor(private _section: ViewSectionRec) {
     super();
   }

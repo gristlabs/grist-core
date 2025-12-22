@@ -111,5 +111,4 @@ describe('searchDropdown', function() {
     await driver.sendKeys(Key.ESCAPE);
     assert.equal(await isOpened(), false);
   });
-
 });

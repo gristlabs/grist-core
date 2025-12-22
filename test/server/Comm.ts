@@ -29,7 +29,6 @@ promisifyAll(SQLiteStore.prototype);
 
 // Just enough implementation of Hosts to be able to fake using a custom host.
 class FakeHosts {
-
   public isCustomHost = false;
 
   public get asHosts() { return this as unknown as Hosts; }
@@ -44,7 +43,6 @@ class FakeHosts {
 }
 
 describe('Comm', function() {
-
   testUtils.setTmpLogLevel(process.env.VERBOSE ? 'debug' : 'warn');
 
   // Allow test cases to register afterEach callbacks here for easier cleanup.

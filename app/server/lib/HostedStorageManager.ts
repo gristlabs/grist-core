@@ -75,7 +75,6 @@ const defaultOptions: HostedStorageOptions = {
  * TODO: Add an explicit createFlag in DocStatus for clarity and simplification.
  */
 export class HostedStorageManager implements IDocStorageManager {
-
   // Handles pushing doc metadata changes when the doc is updated.
   private _metadataManager: HostedMetadataManager|null = null;
 

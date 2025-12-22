@@ -19,7 +19,6 @@ export interface MouseDragHandler {
 export type MouseDragStart = (startEv: MouseEvent, elem: HTMLElement) => MouseDragHandler|null;
 
 export function mouseDragElem(elem: HTMLElement, onStart: MouseDragStart): IDisposable {
-
   // This prevents the default text-drag behavior when elem is part of a text selection.
   elem.style.userSelect = 'none';
 
@@ -38,7 +37,6 @@ export function mouseDragMatchElem(elem: HTMLElement, selector: string, onStart:
 function _startDragging(startEv: MouseEvent, elem: HTMLElement, onStart: MouseDragStart) {
   const dragHandler = onStart(startEv, elem);
   if (dragHandler) {
-
     const { onMove, onStop } = dragHandler;
     const upLis = dom.onElem(document, 'mouseup', stop, { useCapture: true });
     const moveLis = dom.onElem(document, 'mousemove', onMove, { useCapture: true });

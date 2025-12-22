@@ -2,7 +2,6 @@ import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeor
 import { Group } from "app/gen-server/entity/Group";
 
 export class GroupTypes1753088213255 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     const newColumn = new TableColumn({
       name: 'type',

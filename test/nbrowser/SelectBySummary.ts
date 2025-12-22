@@ -247,7 +247,6 @@ describe('SelectBySummary', function() {
       'TABLE1 [by onetwo, choices]',
     );
   });
-
 });
 
 /**

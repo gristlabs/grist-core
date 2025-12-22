@@ -9,7 +9,6 @@ export type SaveDocsMetadataFunc = (metadata: { [docId: string]: DocumentMetadat
  * a doc is updated. Currently updates doc updatedAt time and usage.
  */
 export class HostedMetadataManager {
-
   // Document metadata mapped by docId.
   private _metadata: { [docId: string]: DocumentMetadata } = {};
 

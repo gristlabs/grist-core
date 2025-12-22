@@ -65,7 +65,6 @@ export interface LatestVersion {
 }
 
 export class UpdateManager {
-
   // Cache for the latest version of the client.
   private _latestVersion: MapWithTTL<
     GristDeploymentType,

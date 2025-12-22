@@ -2,7 +2,6 @@ import { fromTableDataAction, TableDataAction, toTableDataAction } from 'app/com
 import { assert } from 'chai';
 
 describe('DocActions', function() {
-
   it('should convert correctly with toTableDataAction', () => {
     const colValues = { id: [2, 4, 6], foo: ["a", "b", "c"], bar: [false, "y", null] };
 

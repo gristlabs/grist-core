@@ -58,7 +58,6 @@ let gristDataSource: DataSource | null = null;
 const connectionMutex = new Mutex();
 export async function getOrCreateConnection(): Promise<DataSource> {
   return connectionMutex.runExclusive(async() => {
-
     // If multiple servers are started within the same process, we
     // share the database connection.  This saves locking trouble
     // with Sqlite.
@@ -98,10 +97,8 @@ export async function getOrCreateConnection(): Promise<DataSource> {
         // case when Grist is run as a single process.
         await gristDataSource.query('PRAGMA busy_timeout = 3000');
       }
-
     }
     return gristDataSource;
-
   });
 }
 

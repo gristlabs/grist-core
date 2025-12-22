@@ -6,7 +6,6 @@ import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity({ name: 'activations' })
 export class Activation extends BaseEntity {
-
   @PrimaryColumn()
   public id: string;
 

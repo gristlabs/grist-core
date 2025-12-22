@@ -289,7 +289,6 @@ export class ActiveDocImport {
 
         transformSectionRef = results.retValues[0].viewSectionRef;
         createdTableId = hiddenTableId;
-
       }
       else {
         if (destTableId === SKIP_TABLE) {
@@ -327,7 +326,6 @@ export class ActiveDocImport {
   private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
     { parseOptions = {}, mergeOptionMaps = [] }: ImportOptions,
     isHidden: boolean): Promise<ImportResult> {
-
     // Check that upload size is within the configured limits.
     const limit = (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || Infinity;
     const totalSize = upload.files.reduce((acc, f) => acc + f.size, 0);
@@ -644,7 +642,6 @@ export class ActiveDocImport {
     fixedColumnIds: { [tableId: string]: string[]; },
     references: ReferenceDescription[],
     isHidden: boolean) {
-
     // collect all new table ids
     const tablesByOrigName = _.indexBy(tables, 'origTableName');
 
@@ -668,7 +665,6 @@ export class ActiveDocImport {
     if (userActions.length) {
       await this._activeDoc.applyUserActions(docSession, userActions);
     }
-
   }
 }
 

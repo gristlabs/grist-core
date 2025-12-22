@@ -7,7 +7,6 @@ describe('SectionFilter', function() {
   const cleanup = setupTestSuite();
 
   describe('Core tests', function() {
-
     before(async function() {
       this.timeout(10000);
       const session = await gu.session().teamSite.login();
@@ -213,7 +212,6 @@ describe('SectionFilter', function() {
   });
 
   describe('Type tests', function() {
-
     before(async function() {
       const session = await gu.session().teamSite.login();
       await session.tempDoc(cleanup, 'FilterTest.grist');

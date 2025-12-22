@@ -12,7 +12,6 @@ import { Disposable, Emitter, IDisposableOwner } from 'grainjs';
  * State is stored in local storage by default.
  */
 export class EditorMonitor extends Disposable {
-
   // abstraction to work with local storage
   private _store: EditMemoryStorage;
   private _restored = false;
@@ -126,7 +125,6 @@ interface LastEditData {
 
 // Abstraction for working with local storage
 class EditMemoryStorage {
-
   private _entry: LastEditData | null = null;
   private _timestamp = 0;
 

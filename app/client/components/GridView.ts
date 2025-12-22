@@ -968,7 +968,6 @@ export default class GridView extends BaseView {
       // multiple instances of the virtual table component).
       const event = new CustomEvent('setCursor', { detail: [row, col], bubbles: true });
       this.scrollPane.dispatchEvent(event);
-
     }
     catch(e) {
       console.error(e);

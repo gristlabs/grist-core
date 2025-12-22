@@ -2506,7 +2506,6 @@ export class ActiveDoc extends EventEmitter {
   protected async _applyUserActions(docSession: OptDocSession, actions: UserAction[],
     options: ApplyUAExtendedOptions = {},
   ): Promise<ApplyUAResult> {
-
     const insightLog = insightLogEntry();
     insightLog?.addMeta({ actionDesc: shortDesc(actions) });
 
@@ -2565,7 +2564,6 @@ export class ActiveDoc extends EventEmitter {
     };
 
     try {
-
       this.setMuted();
       this._inactivityTimer.disable();
 

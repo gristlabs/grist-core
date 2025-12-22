@@ -28,7 +28,6 @@ import { addAbortHandler } from "app/server/lib/requestUtils";
  * to apply to these routes.
  */
 export class DocApiForwarder {
-
   constructor(private _docWorkerMap: IDocWorkerMap, private _dbManager: HomeDBManager,
     private _gristServer: GristServer) {
   }

@@ -269,7 +269,6 @@ export class ChartView extends BaseView {
     let plotData: PlotData = { data: [] };
 
     if (isPieLike(this._chartType.peek())) {
-
       // Plotly's pie charts have a sort option that is enabled by default. Let's turn it off.
       dataOptions.sort = false;
 
@@ -294,7 +293,6 @@ export class ChartView extends BaseView {
       // This will be in the order in which nseries Map was created; concat() flattens the arrays.
       const xvalues = Array.from(new Set(series[1].values));
       for (const gSeries of nseries.values()) {
-
         // All series have partial list of values, ie: if some may have Q1, Q2, Q3, Q4 as x values
         // some others might only have Q1. This causes inconsistent result in regard of the order
         // bars will be displayed by plotly (for bar charts). This eventually result in bars not
@@ -464,7 +462,6 @@ function extractErrorBars(series: Series[], options: ChartOptions): Map<Series, 
  * The grainjs component for side-pane configuration options for a Chart section.
  */
 export class ChartConfig extends GrainJSDisposable {
-
   private static _instanceMap = new WeakMap<ViewSectionRec, ChartConfig>();
 
   // helper to build the draggable field list
@@ -578,7 +575,6 @@ export class ChartConfig extends GrainJSDisposable {
   private get _optionsObj() { return this._section.optionsObj; }
 
   public buildDom(): DomContents {
-
     if (this._section.parentKey() !== 'chart') { return null; }
 
     return [
@@ -719,7 +715,6 @@ export class ChartConfig extends GrainJSDisposable {
       this._freezeYAxis.set(true);
       this._freezeXAxis.set(true);
       try {
-
         // first remove the current field
         if (this._xAxisFieldIndex.get() !== -1 && this._xAxisFieldIndex.get() < viewFields.peek().length) {
           await this._configFieldsHelper.removeField(viewFields.peek()[this._xAxisFieldIndex.get()]);
@@ -773,7 +768,6 @@ export class ChartConfig extends GrainJSDisposable {
       this._freezeXAxis.set(true);
       this._freezeYAxis.set(true);
       try {
-
         // if grouping was already set, first remove the current field
         if (this._groupDataColId.get()) {
           await this._configFieldsHelper.removeField(viewFields[0]);
@@ -808,7 +802,6 @@ export class ChartConfig extends GrainJSDisposable {
         }
 
         await this._optionsObj.prop('multiseries').setAndSave(Boolean(colId));
-
       }
       finally {
         this._freezeXAxis.set(false);
@@ -841,7 +834,6 @@ export class ChartConfig extends GrainJSDisposable {
   }
 
   private _buildYAxis(): DomContents {
-
     // The y-axis are all visible fields that comes after the x-axis and maybe the group data
     // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
     const skipFirst = Computed.create(this,
@@ -949,7 +941,6 @@ export class ChartConfig extends GrainJSDisposable {
       .map(col => col.id());
     return columns;
   }
-
 }
 
 // Row for a numeric option. User can change value using spinners or directly using keyboard. In
@@ -1206,7 +1197,6 @@ export const chartTypes: { [name: string]: ChartFunc } = {
       plotData,
       { layout: { annotations } },
     );
-
   },
 
   kaplan_meier(series: Series[]): PlotData {

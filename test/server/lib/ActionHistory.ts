@@ -232,9 +232,7 @@ function makeBundle(actionNum: number, desc: string): LocalActionBundle {
 }
 
 for (const version of versions) {
-
   describe(version.name, function() {
-
     // Comment this out to see debug-log output from PluginManager when debugging tests.
     testUtils.setTmpLogLevel('error');
 

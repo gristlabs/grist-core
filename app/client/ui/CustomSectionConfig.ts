@@ -185,7 +185,6 @@ class ColumnListPicker extends Disposable {
   }
 
   private _buildAddColumn() {
-
     const owner = MultiHolder.create(null);
 
     const notMapped = Computed.create(owner, (use) => {

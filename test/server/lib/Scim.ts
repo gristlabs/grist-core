@@ -251,7 +251,6 @@ describe('Scim', () => {
 
     describe('/Users', function () {
       describe('GET /Users/{id}', function () {
-
         it('should return the user of id=1 for chimpy', async function () {
           const res = await axios.get(scimUrl('/Users/1'), chimpy);
 

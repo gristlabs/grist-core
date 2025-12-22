@@ -195,7 +195,6 @@ describe('GranularAccess', function() {
 
   // See the comment in PermissionInfo.ts/evaluateRule() for why we need this.
   describe("forces a row check for rules with memo and rec", function() {
-
     it('for -U permission', async function() {
       await memoDoc();
       await owner.applyUserActions(docId, [
@@ -3980,7 +3979,6 @@ describe('GranularAccess', function() {
   });
 
   describe('shares', function() {
-
     it('can give table access for a form', async function() {
       await freshDoc();
 
@@ -4446,7 +4444,6 @@ describe('GranularAccess', function() {
   });
 
   it('is respected by /compare', async function() {
-
     // The /compare endpoint should work for anyone with full read access.
     await freshDoc();
     await owner.applyUserActions(docId, [

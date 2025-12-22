@@ -12,7 +12,6 @@ import { TableData } from 'app/common/TableData';
  *
  */
 export class ClientColumnGetters implements ColumnGetters {
-
   // If the "unversioned" option is set, then cells with multiple
   // versions will be read as a single version - the first version
   // available of parent, local, or remote.  This can make sense for

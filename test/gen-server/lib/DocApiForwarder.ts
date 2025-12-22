@@ -45,7 +45,6 @@ function getUrl(server: Server) {
 }
 
 describe('DocApiForwarder', function() {
-
   testUtils.setTmpLogLevel('error');
 
   let homeServer: Server;

@@ -131,7 +131,6 @@ describe('ColumnFilterMenu', function() {
         '',
       ],
     );
-
   });
 
   it('should uncheck \'Other values\' checkbox when user clicks \'None\'', async () => {
@@ -154,7 +153,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should take other filters into account', async () => {
-
     const session = await gu.session().teamSite.login();
     doc = await session.tempDoc(cleanup, 'SortFilterIconTest.grist');
     api = session.createHomeApi();
@@ -303,7 +301,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should show count of unique values next to summaries', async () => {
-
     // add another Apples
     await driver.find('.record-add .field').click();
     await driver.sendKeys('Apples', Key.ENTER);
@@ -347,7 +344,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should show a working range filter for numeric columns', async function() {
-
     // open the Count filter
     await driver.findContent('.test-filter-field', /Count/).click();
 
@@ -398,7 +394,6 @@ describe('ColumnFilterMenu', function() {
         'Clementines', '5',
         'Apples', '0',
       ]);
-
   });
 
   it('should remove new filters when Cancel is clicked in a new filter', async function() {
@@ -512,7 +507,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   async function testDateLikeColumn(colId: 'Date'|'DateTime') {
-
     const timeChunk = colId === 'DateTime' ? ' 12:00am' : '';
     const colRegex = new RegExp(colId + '\\b');
 
@@ -577,7 +571,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should show a working range filter for DateTime column', async function() {
-
     // adds a DateTime column
     await api.applyUserActions(doc.id, [
       ['AddVisibleColumn', 'Table1', 'DateTime', {
@@ -600,7 +593,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should have working date range filter also when column is hidden', async function() {
-
     // hide Date column
     await gu.toggleSidePanel('right', 'open');
     await driver.find('.test-right-tab-pagewidget').click();
@@ -616,5 +608,4 @@ describe('ColumnFilterMenu', function() {
     // check min is set to a valid date
     assert.equal(await driver.find('.test-filter-menu-min input').value(), '2019-07-14');
   });
-
 });

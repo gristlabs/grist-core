@@ -6,7 +6,6 @@
 import { Disposable } from 'app/client/lib/dispose';
 
 export class Delay extends Disposable {
-
   /**
    * Returns a function which will schedule a call to cb(), forwarding the arguments.
    * This is a static method that may be used without a Delay object.

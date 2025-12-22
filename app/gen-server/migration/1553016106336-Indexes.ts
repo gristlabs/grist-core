@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner, TableIndex } from "typeorm";
 
 export class Indexes1553016106336 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.createIndex("acl_rules", new TableIndex({
       name: "acl_rules__org_id",
@@ -62,5 +61,4 @@ export class Indexes1553016106336 implements MigrationInterface {
     await queryRunner.dropIndex("docs", "docs__workspace_id");
     await queryRunner.dropIndex("logins", "logins__user_id");
   }
-
 }

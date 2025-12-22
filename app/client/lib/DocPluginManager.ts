@@ -9,7 +9,6 @@ import { Rpc } from 'grain-rpc';
  * DocPluginManager's Client side implementation.
  */
 export class DocPluginManager {
-
   public pluginsList: PluginInstance[];
 
   private _clientScope = this._options.clientScope;

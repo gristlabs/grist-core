@@ -81,7 +81,6 @@ describe('FormulaAutocomplete', function() {
   });
 
   it('shows example values with proper padding', async function() {
-
     await api.applyUserActions(docId, [
       ['AddTable', 'LongColumns', [
         { id: 'aaa', type: 'Ref:LongColumns' },

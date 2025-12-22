@@ -30,7 +30,6 @@ export function relativeDatesControl(
 // filtering. It does not still focus from the range input and takes care of keyboard navigation
 // using arrow Up/Down, Escape to close the menu and enter to trigger select option.
 class RelativeDatesMenu extends Disposable {
-
   public content: Element;
   private _dropdownList: SimpleList<IRangeBoundType>;
   private _items: Observable<Array<IOptionFull<IRangeBoundType>>> = Observable.create(this, []);

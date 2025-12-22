@@ -16,7 +16,6 @@ import { Computed, Disposable, Observable } from 'grainjs';
  * been customized.
  */
 export class ColumnFilter extends Disposable {
-
   public min = Observable.create<number|undefined|IRelativeDateSpec>(this, undefined);
   public max = Observable.create<number|undefined|IRelativeDateSpec>(this, undefined);
 

@@ -13,7 +13,6 @@ tmp.setGracefulCleanup();
 const execFileAsync = promisify(child_process.execFile);
 
 describe('DocStorageMigrations', function() {
-
   testUtils.setTmpLogLevel('warn');
 
   let docStorageManager: DocStorageManager;

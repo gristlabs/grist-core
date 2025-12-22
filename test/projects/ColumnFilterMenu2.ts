@@ -32,7 +32,6 @@ describe('ColumnFilterMenu2', function() {
   });
 
   describe('opt.limitShown', function() {
-
     before(() => {
       limitShown = 3;
     });
@@ -119,7 +118,6 @@ describe('ColumnFilterMenu2', function() {
     });
 
     describe('when searching', function() {
-
       it('should have a `Other Matching` group', async () => {
         // enter 'A'
         await driver.sendKeys('A');
@@ -220,6 +218,5 @@ describe('ColumnFilterMenu2', function() {
         assert.include(spec.included, 'Bananas');
       });
     });
-
   });
 });

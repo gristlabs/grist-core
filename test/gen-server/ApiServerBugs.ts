@@ -24,7 +24,6 @@ const charonEmail = 'charon@getgrist.com';
 
 // Tests specific complex scenarios that may have previously resulted in wrong behavior.
 describe('ApiServerBugs', function() {
-
   testUtils.setTmpLogLevel('error');
   let userRef: (email: string) => Promise<string>;
 

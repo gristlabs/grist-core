@@ -185,7 +185,6 @@ async function uploadFormData(
 export async function fetchURL(
   docComm: DocComm, url: string, options?: FetchUrlOptions, onProgress: ProgressCB = noop,
 ): Promise<UploadResult> {
-
   if (isDriveUrl(url)) {
     // don't download from google drive, immediately fallback to server side.
     return docComm.fetchURL(url, options);

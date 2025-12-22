@@ -374,7 +374,6 @@ export class DocWorkerApi {
       const webhookId = (await this._dbManager.addSecret(secretValue, activeDoc.docName)).id;
 
       try {
-
         const webhookAction: WebhookAction = { type: "webhook", id: webhookId };
         const sandboxRes = await handleSandboxError("_grist_Triggers", [], activeDoc.applyUserActions(
           docSessionFromRequest(req),
@@ -388,10 +387,8 @@ export class DocWorkerApi {
           triggerId: sandboxRes.retValues[0],
           webhookId,
         };
-
       }
       catch (err) {
-
         // remove webhook
         await this._dbManager.removeWebhook(webhookId, activeDoc.docName, '', false);
         throw err;
@@ -1110,7 +1107,6 @@ export class DocWorkerApi {
     this._app.patch(
       '/api/docs/:docId/webhooks/:webhookId', isOwner, validate(WebhookPatch),
       withDocTriggersLock(async (activeDoc, req, res) => {
-
         const docId = activeDoc.docName;
         const webhookId = req.params.webhookId;
         const { fields, url, authorization } = await getWebhookSettings(activeDoc, req, webhookId, req.body);

@@ -104,7 +104,6 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
   public async allMarshal(sql: string, ...params: any[]): Promise<Buffer> {
     // allMarshal isn't in the typings, because it is our addition to our fork of sqlite3 JS lib.
     return fromCallback(cb => (this._db as any).allMarshal(sql, ...params, cb));
-
   }
 
   public async runAndGetId(sql: string, ...params: any[]): Promise<number> {

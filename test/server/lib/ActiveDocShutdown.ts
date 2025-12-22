@@ -135,7 +135,6 @@ describe('ActiveDocShutdown', function() {
 
       // Check that doc eventually closes.
       await waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0), 10 * timeout);
-
     }
     finally {
       // Restore the stubbed method.
@@ -322,7 +321,6 @@ return c
   });
 
   describe("_onInactive", function () {
-
     async function prepareVacuumableDoc() {
       const adoc = await docTools.loadFixtureDoc('World-v0.grist');
       const docSession = docTools.createFakeSession('owners');

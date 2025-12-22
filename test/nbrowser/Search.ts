@@ -63,7 +63,6 @@ describe('Search', function() {
   });
 
   it('should support `Mod+f`, `Mod+g`, `Mod+Shift+G` shortcuts', async () => {
-
     // send ESC to close the search
     await gu.closeSearch();
 
@@ -212,7 +211,6 @@ describe('Search', function() {
   });
 
   it('should allow to find other hits when user switch pages', async () => {
-
     // clear tooltip
     await gu.closeTooltip();
 

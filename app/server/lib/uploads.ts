@@ -50,7 +50,6 @@ export function addUploadRoute(
   docWorkerMap: IDocWorkerMap,
   ...handlers: RequestHandler[]
 ): void {
-
   // When doing a cross-origin post, the browser will check for access with options prior to posting.
   // We need to reassure it that the request will be accepted before it will go ahead and post.
   expressApp.options([`/${UPLOAD_URL_PATH}`, '/copy'], ...handlers, async (req, res) => {

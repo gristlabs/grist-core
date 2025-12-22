@@ -12,7 +12,6 @@ export interface PluginCustomSection {
 }
 
 export class CustomSectionElement {
-
   /**
    * Get the list of all available custom sections in all plugins' contributions.
    */

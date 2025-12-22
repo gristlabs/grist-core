@@ -15,7 +15,6 @@ import { IMsgCustom, IMsgRpcCall } from 'grain-rpc';
  * It uses `NSandbox` implementation of rpc for calling methods within the sandbox.
  */
 export class SafePythonComponent extends BaseComponent {
-
   private _sandbox?: ISandbox;
   private _logMeta: log.ILogMeta;
 
@@ -67,5 +66,4 @@ export class SafePythonComponent extends BaseComponent {
   protected doForwardMessage(c: IMsgCustom): Promise<any> {
     throw new Error("Forwarding messages to python sandbox is not supported");
   }
-
 }

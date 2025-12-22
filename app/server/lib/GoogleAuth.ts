@@ -131,7 +131,6 @@ export function addGoogleAuthEndpoint(
   log.info(`GoogleAuth - auth handler at ${getFullAuthEndpointUrl()}`);
 
   expressApp.get(authHandlerPath, expressWrap(async (req: express.Request, res: express.Response) => {
-
     // Test if the code is in a query string. Google sends it back after user has given a concent for
     // our request. It is encrypted (with CLIENT_SECRET) and signed with redirect url.
     // In state query parameter we will receive an url that was send as part of the request to Google.

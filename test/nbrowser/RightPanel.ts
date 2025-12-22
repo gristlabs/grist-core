@@ -427,5 +427,4 @@ describe('RightPanel', function() {
     await gu.sendKeys(Key.TAB);
     await gu.waitAppFocus();
   });
-
 });

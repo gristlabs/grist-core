@@ -363,7 +363,6 @@ describe("AttachmentsTransfer", function() {
       assert.lengthOf(await messages(), 0);
     });
   });
-
 });
 
 const storageType = gu.buildSelectComponent('.test-settings-transfer-storage-select');

@@ -15,7 +15,6 @@ function testParse(input: string, expected?: string[]) {
 }
 
 describe('ChoiceListParser', function() {
-
   it('should handle empty values', function() {
     testParse("");
     testParse(" ");

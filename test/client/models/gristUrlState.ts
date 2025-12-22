@@ -106,7 +106,6 @@ describe('gristUrlState', function() {
   });
 
   it('should encode state in URLs correctly', function() {
-
     const localBase = new URL('http://localhost:8080');
     const hostBase = new URL('https://bar.example.com');
 
@@ -151,7 +150,6 @@ describe('gristUrlState', function() {
   });
 
   it('should encode state in billing URLs correctly', function() {
-
     const hostBase = new URL('https://bar.example.com');
 
     assert.equal(prod.encodeUrl({ params: { billingPlan: 'a' } }, hostBase),

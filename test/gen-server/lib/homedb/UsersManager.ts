@@ -768,7 +768,6 @@ describe('UsersManager', function () {
         const nonLegitPromise = db.getUserByLogin(nonLegitEmail, {}, 'service');
         await assert.isRejected(nonLegitPromise,
           "Users of type service must have email like XXXXXX@serviceaccounts.invalid");
-
       });
 
       it('should not update user information when no profile is passed', async function () {
@@ -1243,7 +1242,6 @@ describe('UsersManager', function () {
     });
 
     describe('deleteUser()', function () {
-
       it('should remove the user and their forks', async function () {
         const apiKey = 'youllneverguess';
         const userToDelete = await db.getUserByLogin(

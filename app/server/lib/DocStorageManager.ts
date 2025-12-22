@@ -173,7 +173,6 @@ export class DocStorageManager implements IDocStorageManager {
 
     return bluebird.Promise.try(() => this._generateBackupFilePath(docName, backupTag))
       .then((bakPath: string) => { // make a numbered migration if necessary
-
         log.debug(`DocStorageManager: trying to make backup at ${bakPath}`);
 
         // create a file at bakPath, adding numbers if necessary

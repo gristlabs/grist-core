@@ -154,5 +154,4 @@ describe('contextMenu', function() {
     // check no context menu
     assert.equal((await driver.findAll('.grist-floating-menu')).length, 0);
   });
-
 });

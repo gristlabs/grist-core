@@ -29,5 +29,4 @@ describe('DeleteColumnsUndo', function () {
     await gu.checkForErrors();
     assert.deepEqual(await gu.getColumnNames(), ['A', 'B', 'C', 'D']);
   });
-
 });

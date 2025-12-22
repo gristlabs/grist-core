@@ -274,7 +274,6 @@ function isOwnInternalUrlHost(host?: string) {
 export function getHostType(host: string, options: {
   baseDomain?: string, pluginUrl?: string
 }): 'native' | 'custom' | 'plugin' {
-
   if (options.pluginUrl) {
     const url = new URL(options.pluginUrl);
     if (url.host.toLowerCase() === host.toLowerCase()) {

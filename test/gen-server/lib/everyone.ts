@@ -31,7 +31,6 @@ describe('everyone', function() {
   }
 
   it('support account can share a listed workspace with all users', async function() {
-
     // Share a workspace in support's personal org with everyone
     let api = await home.createHomeApi('Support', 'docs');
     await home.upgradePersonalOrg('Support');

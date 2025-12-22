@@ -117,7 +117,6 @@ describe("SelectBy", function() {
   });
 
   it('should handle summary table correctly', async () => {
-
     // Notice that table of view 4 is a summary of Table3
     const api = gu.createHomeApi('Chimpy', 'nasa');
     assert.deepInclude((await api.getTable(doc.id, '_grist_Tables')), {
@@ -175,7 +174,6 @@ describe("SelectBy", function() {
   });
 
   it('should save link correctly', async () => {
-
     // create new page with table2 as a table
     await gu.addNewPage(/Table/, /Table2/);
 
@@ -212,5 +210,4 @@ describe("SelectBy", function() {
     await gu.getSection('Table1').doClick();
     assert.deepEqual(await gu.getVisibleGridCells(1, [1, 2]), ['a', 'b']);
   });
-
 });

@@ -3,7 +3,6 @@ import * as sandboxUtil from 'app/server/lib/sandboxUtil';
 import { captureLog } from 'test/server/testUtils';
 
 describe('sandboxUtil', function() {
-
   describe('makeLinePrefixer', function() {
     it('should not interpret placeholders', async function() {
       const messages = await captureLog('debug', () => {

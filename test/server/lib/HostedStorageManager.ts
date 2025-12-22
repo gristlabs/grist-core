@@ -392,7 +392,6 @@ class TestStore {
 }
 
 describe('HostedStorageManager', function() {
-
   setTmpLogLevel('info');  // allow info messages for this test since failures are hard to replicate
   this.timeout(60000);     // s3 can be slow
 
@@ -409,7 +408,6 @@ describe('HostedStorageManager', function() {
 
   for (const storage of ['azure', 's3', 'minio', 'cached'] as const) {
     describe(storage, function() {
-
       const sandbox = sinon.createSandbox();
       let oldEnv: EnvironmentSnapshot;
 
@@ -1053,7 +1051,6 @@ describe('HostedStorageManager', function() {
     });
 
     it("doesn't wipe local docs when they exist on disk but not remote storage", async function() {
-
       const storageManager = new HostedStorageManager(...defaultParams);
 
       const docId = "NewDoc";
@@ -1166,7 +1163,6 @@ describe('HostedStorageManager', function() {
 
   // This is a performance test, to check if the backup settings are plausible.
   describe('backupSqliteDatabase', async function() {
-
     async function makeDb(rows: number) {
       const tmpDir = await createTmpDir();
       const src = path.join(tmpDir, "src.db");
@@ -1239,7 +1235,6 @@ describe('HostedStorageManager', function() {
     });
 
     for (const mode of ['without-doc', 'with-doc', 'with-closing-doc'] as const) {
-
       it(`backups are robust to locking (${mode})`, async function() {
         // Takes some time to create large db and play with it.
         this.timeout('30s');
@@ -1287,7 +1282,6 @@ describe('HostedStorageManager', function() {
         assert(!done);
 
         if (mode === 'with-closing-doc') {
-
           // Wait for snapshotting to start, then close the
           // db from under it, and see we get the expected
           // message out.

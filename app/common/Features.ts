@@ -147,7 +147,6 @@ export function parseStripeFeatures(meta: Record<string, string>): Features {
   const validProps = new Set(FeaturesTi.props.map(p => p.name));
   const record = parseMetadata(meta);
   for (const key in record) {
-
     // If this is unknown property, remove it.
     if (!validProps.has(key)) {
       delete record[key];

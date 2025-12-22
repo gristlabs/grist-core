@@ -24,7 +24,6 @@ const LOG_RPC = false; // tslint:disable-line:prefer-const
 // LOG_RPC = true;
 
 describe('SafeBrowser', function() {
-
   let clientScope: any;
   const sandbox = sinon.createSandbox();
   let browserProcesses: Array<{ path: string, proc: ClientProcess }> = [];

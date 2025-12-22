@@ -6,7 +6,6 @@ import { Product } from 'app/gen-server/entity/Product';
 import { nativeValues } from 'app/gen-server/lib/values';
 
 export class Billing1556726945436 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     // Create table for products.
     await queryRunner.createTable(new Table({
@@ -222,5 +221,4 @@ export class Billing1556726945436 implements MigrationInterface {
     await queryRunner.dropTable('billing_accounts');
     await queryRunner.dropTable('products');
   }
-
 }

@@ -293,7 +293,6 @@ describe('FormView1', function() {
         await gu.sendKeys('Hello');
         await driver.find('button[type="submit"]').click();
         await waitForConfirm();
-
       });
       await removeForm();
     });
@@ -1047,7 +1046,6 @@ describe('FormView1', function() {
     });
 
     it('can create a form for a blank table', async function() {
-
       // Add new page and select form.
       await gu.addNewPage('Form', 'New Table', {
         tableName: 'Form',
@@ -1078,7 +1076,6 @@ describe('FormView1', function() {
     });
 
     it('supports basic drag and drop', async function() {
-
       // Make sure the order is right.
       assert.deepEqual(
         await labels(), ['A', 'B', 'C'],
@@ -1193,7 +1190,6 @@ describe('FormView1', function() {
     });
 
     it('selection works', async function() {
-
       // Click on A.
       await question('A').click();
 

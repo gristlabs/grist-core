@@ -84,7 +84,6 @@ export function dropdownWithSearch<T>(options: IDropdownWithSearchOptions<T>): D
 }
 
 class DropdownWithSearch<T> extends Disposable {
-
   private _items: Observable<OptionItem<T>[]>;
   private _acIndex: ACIndexImpl<OptionItem<T>>;
   private _inputElem: HTMLInputElement;

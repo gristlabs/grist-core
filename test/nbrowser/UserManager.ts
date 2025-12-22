@@ -864,7 +864,6 @@ describe('UserManager', function() {
     // rules yet).
     assert.equal(await driver.findWait('.test-enable-access-rules', 1000).isDisplayed(), true);
   });
-
 });
 
 function findMember(email: string) {

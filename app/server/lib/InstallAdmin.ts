@@ -11,7 +11,6 @@ import express from 'express';
  * installation.
  */
 export abstract class InstallAdmin {
-
   // Returns true if user is authorized to manage the Grist installation.
   public abstract isAdminUser(user: User): Promise<boolean>;
 

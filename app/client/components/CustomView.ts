@@ -53,7 +53,6 @@ export interface CustomViewSettings {
  * of the section could not be found.
  */
 export class CustomView extends BaseView {
-
   // Commands enabled only when the custom view is the actually user-focused region.
   private static _focusedCommands = {
     async viewAsCard(event: Event) {
@@ -180,7 +179,6 @@ export class CustomView extends BaseView {
    * find a matching section.
    */
   private _updatePluginInstance() {
-
     const pluginId = this.customDef.pluginId();
     this._pluginInstance = this.gristDoc.docPluginManager.pluginsList.find(p => p.definition.id === pluginId);
 
@@ -199,7 +197,6 @@ export class CustomView extends BaseView {
    * observables.
    */
   private _updateCustomSection() {
-
     if (!this._pluginInstance) { return; }
 
     const sectionId = this.customDef.sectionId();

@@ -291,7 +291,6 @@ class WebhookExternalTable implements IExternalTable {
   }
 
   private _initalizeWebhookList(webhooks: WebhookSummary[]){
-
     this.webhooks.removeAll();
     this.webhooks.push(
       ...webhooks.map((webhook) => {
@@ -349,7 +348,6 @@ class WebhookExternalTable implements IExternalTable {
  * a card list of webhooks.
  */
 export class WebhookPage extends DisposableWithEvents {
-
   public docApi = this.gristDoc.docPageModel.appModel.api.getDocAPI(this.gristDoc.docId());
   public sharedTable: VirtualTableRegistration;
   private _webhookExternalTable: WebhookExternalTable;

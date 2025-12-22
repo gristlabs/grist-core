@@ -32,7 +32,6 @@ export interface AlternateStorage {
  * in some way that is not handled by the regular data engine.
  */
 export class AlternateActions {
-
   constructor(private _storage: AlternateStorage) {}
 
   /**
@@ -135,7 +134,6 @@ export class AlternateActions {
     rowIds: Array<number|null>,
     colValues: BulkColValues,
   ): Promise<ProcessedAction> {
-
     // When unset, we will set the rowId values to count up from the greatest
     // values already in the table.
     if (rowIds[0] === null) {

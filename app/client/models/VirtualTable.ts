@@ -59,7 +59,6 @@ let _counterForUndoActions: number = 1;
  * This lets virtual tables "fit in" to a DocData instance.
  */
 export class VirtualTableData extends TableData {
-
   public docModel: DocModel;
   public ext: IExternalTable;
   public cache: DocDataCache;

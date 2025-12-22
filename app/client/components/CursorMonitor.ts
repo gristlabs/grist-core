@@ -16,7 +16,6 @@ export type ViewCursorPos = CursorPos & { viewId: ViewDocPage };
  * position should be restored from a local storage.
  */
 export class CursorMonitor extends Disposable {
-
   // abstraction to work with local storage
   private _store: StorageWrapper;
   // key for storing position in the memory (docId + userId)
@@ -129,7 +128,6 @@ export class CursorMonitor extends Disposable {
 
 // Internal implementations for working with local storage
 class StorageWrapper {
-
   constructor(private _storage = getStorage()) {
 
   }

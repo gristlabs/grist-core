@@ -56,7 +56,6 @@ export interface ITextAreaOptions extends IInputOptions {
 export function textarea(
   obs: Observable<string>, options?: ITextAreaOptions|null, ...args: IDomArgs<HTMLTextAreaElement>
 ): HTMLTextAreaElement {
-
   const isValid = options?.isValid;
 
   function setValue(elem: HTMLTextAreaElement) {

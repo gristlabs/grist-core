@@ -413,7 +413,6 @@ describe('GridViewNewColumnMenu', function () {
       // check if column is created with a proper type
       const type = await gu.columnBehavior();
       assert.equal(type, 'Formula column');
-
     });
   });
 

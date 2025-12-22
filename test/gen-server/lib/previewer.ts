@@ -20,7 +20,6 @@ function permit(permitKey: string): AxiosRequestConfig {
 }
 
 describe('previewer', function() {
-
   let home: TestServer;
   let dbManager: HomeDBManager;
   let homeUrl: string;
@@ -129,6 +128,5 @@ describe('previewer', function() {
     assert.equal(resp.status, 403);
     resp = await axios.delete(`${homeUrl}/api/workspaces/${wsId}`, permit(goodWsPermit));
     assert.equal(resp.status, 200);  // workspace delete respects permit
-
   });
 });

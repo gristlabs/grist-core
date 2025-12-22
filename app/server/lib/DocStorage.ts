@@ -62,7 +62,6 @@ export function getSqliteMode() {
 }
 
 export class DocStorage implements ISQLiteDB, OnDemandStorage {
-
   // ======================================================================
   // Static fields
   // ======================================================================

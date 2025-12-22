@@ -65,7 +65,6 @@ export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
     const validTargets = targetNodes.filter(tgt => isValidLink(srcNode, tgt));
     const hasMany = validTargets.length > 1;
     for (const tgtNode of validTargets) {
-
       // a unique identifier for this link
       const value = linkId({
         srcSectionRef: srcNode.section.id,
@@ -156,7 +155,6 @@ function getLinkNodeSectionById(
 
 // Creates an array of LinkNode from a page widget.
 function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget): LinkNode[] {
-
   if (typeof pageWidget.table !== 'number') { return []; }
 
   const nodes: LinkNode[] = [];

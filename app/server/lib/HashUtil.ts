@@ -15,7 +15,6 @@ import { DocState } from 'app/common/DocState';
  *
  */
 export class HashUtil {
-
   /**
    * To construct, provide a list of states, most recent first.
    */

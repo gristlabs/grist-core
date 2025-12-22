@@ -148,7 +148,6 @@ describe("AccessRules2", function() {
   });
 
   it('should allow switching users in view-as mode', async function() {
-
     // open doc in view-as mode
     await driver.get(viewAsUrl);
     await gu.waitForUrl(/aclAsUser/);
@@ -886,5 +885,4 @@ describe("AccessRules2", function() {
     });
     assert.equal(await driver.find('.test-tools-access-rules-trigger').isDisplayed(), false);
   });
-
 });

@@ -9,7 +9,6 @@ import { updateRelativeDate } from "app/client/ui/RelativeDatesOptions";
 import moment from "moment-timezone";
 
 export class ColumnFilterCalendarView extends Disposable {
-
   private _$el: any;
 
   constructor(private _opts: {

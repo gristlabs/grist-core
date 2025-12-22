@@ -124,7 +124,6 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
         el.focus();
         el.select();
       }, 0);
-
     },
 
     dom.cls(menuCssClass),
@@ -413,7 +412,6 @@ export interface IRangeInputOptions {
 // The range input with the preset links.
 function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: IRangeInputOptions,
   ...args: DomArg<HTMLDivElement>[]) {
-
   const buildInput = () => [
     dom.maybe(use => isRelativeBound(use(obs)), () => relativeToken(obs, opts)),
     numericInput(obs, opts),
@@ -482,7 +480,6 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|un
       },
     }),
   ]);
-
 }
 
 function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
@@ -569,7 +566,6 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
   const checkboxState = Computed.create(
     null, columnFilter.isInclusionFilter, columnFilter.filterFunc,
     (_use, isInclusionFilter) => {
-
       // let's gather all sub options.
       const subOptions = values.map(val => ({ getState: () => columnFilter.includes(val[0]) }));
       if (switchFilterType) {
@@ -585,11 +581,8 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
       const first = subOptions[0].getState();
       if (some(tail(subOptions), val => val.getState() !== first)) { return Indeterminate; }
       return first;
-
     }).onWrite((val) => {
-
     if (switchFilterType) {
-
       // Note that if `includeFutureValues` is true, we only needs to toggle the filter type
       // between exclusive and inclusive. Doing this will automatically excludes/includes all
       // other values, so no need for extra steps.
@@ -597,10 +590,8 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
         { excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key)) } :
         { included: model.filteredKeys.get().filter(key => columnFilter.includes(key)) };
       columnFilter.setState(state);
-
     }
     else {
-
       const keys = values.map(([key]) => key);
       if (val) {
         columnFilter.addMany(keys);
@@ -870,7 +861,6 @@ interface ICountOptions {
 function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: UIRowId[],
   { keyMapFunc = identity, labelMapFunc = identity, columnType,
     areHiddenRows = false, valueMapFunc }: ICountOptions) {
-
   for (const rowId of rowIds) {
     let key = keyMapFunc(rowId);
 

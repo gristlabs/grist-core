@@ -53,7 +53,6 @@ export function fromCursor(position: CursorPos, docModel: DocModel): CellPositio
  * @param docModel DocModel
  */
 export function toCursor(position: CellPosition, docModel: DocModel): CursorPos {
-
   // translate colRef to fieldIndex
   const fieldIndex = docModel.viewSections.getRowModel(position.sectionId)
     .viewFields().peek()

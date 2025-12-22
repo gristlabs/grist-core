@@ -21,7 +21,6 @@ function obsOption() {
  * TODO: This borrows code from `fixtures/projects/editableLabel` which could be factored out.
  */
 class SaveableSetup extends Disposable {
-
   public savedTextColor = Observable.create(null, '#000000');
   public savedFillColor = Observable.create(null, '#FFFFFF');
 
@@ -55,7 +54,6 @@ class SaveableSetup extends Disposable {
     // exposes a way to trigger update directly from webdriver:
     // driver.executeScript('triggerUpdate()')
     (window as any).triggerUpdate = () => this.onServerUpdate();
-
   }
 
   public onServerUpdate() {
@@ -88,7 +86,6 @@ class SaveableSetup extends Disposable {
   }
 
   public buildDom() {
-
     // To test server changes while editableLabel is being edited, listen to a Ctrl-U key
     // combination to act as the "Update" button without affecting focus.
     this.autoDispose(dom.onElem(document.body, 'keydown', (ev) => {

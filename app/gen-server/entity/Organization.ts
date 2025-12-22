@@ -24,7 +24,6 @@ export interface AccessOptionWithRole extends AccessOption {
 
 @Entity({ name: 'orgs' })
 export class Organization extends Resource {
-
   @PrimaryGeneratedColumn()
   public id: number;
 

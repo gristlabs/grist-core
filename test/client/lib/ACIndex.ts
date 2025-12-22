@@ -122,7 +122,6 @@ describe('ACIndex', function() {
     acResult = acIndex.search("RZ");
     assert.deepEqual(acResult.items.map(i => i.text),
       ["Reddish", "Red", "Radical Deep Green", "Dark Red",  "Bright Red", "Blue", "Orange", "Yellow"]);
-
   });
 
   it('should maintain order of equally good matches', function() {

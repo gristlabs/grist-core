@@ -164,7 +164,6 @@ describe('SelectBySummaryRef', function() {
       'Other • Source ref → Source reflist',
     ]);
   });
-
 });
 
 // Check that the 'Select by' menu in the right panel for the section has the expected options

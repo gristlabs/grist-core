@@ -21,7 +21,6 @@ export type TargetRenderFunc = (containerElement: HTMLElement, options?: RenderO
  * `activeImplementation` and `useRemoteAPI` methods.
  */
 export abstract class BaseComponent implements IForwarderDest {
-
   public inactivityTimer: InactivityTimer;
   private _activated: boolean = false;
 
@@ -97,7 +96,6 @@ export abstract class BaseComponent implements IForwarderDest {
  *
  */
 export class PluginInstance {
-
   public rpc: Rpc;
   public safeBrowser?: BaseComponent;
   public unsafeNode?: BaseComponent;
@@ -108,7 +106,6 @@ export class PluginInstance {
   private _nextRenderTargetId = 0;
 
   constructor(public definition: LocalPlugin, rpcLogger: IRpcLogger) {
-
     const rpc = this.rpc = new Rpc({ logger: rpcLogger });
     rpc.setSendMessage((mssg: any) => rpc.receiveMessage(mssg));
 
@@ -164,7 +161,6 @@ export class PluginInstance {
   public removeRenderTarget(target: RenderTarget): boolean {
     return this._renderTargets.delete(target);
   }
-
 }
 
 /**

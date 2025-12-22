@@ -237,7 +237,6 @@ describe("LinkingErrors", function() {
     await revert();
     await gu.checkForErrors();
   });
-
 });
 
 async function getTableData(docApi: DocAPI, tableId: string): Promise<TableData> {

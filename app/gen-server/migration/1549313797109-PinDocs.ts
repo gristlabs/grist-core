@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class PinDocs1549313797109 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     const sqlite = queryRunner.connection.driver.options.type === 'sqlite';
     await queryRunner.addColumn('docs', new TableColumn({

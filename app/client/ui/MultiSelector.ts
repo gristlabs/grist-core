@@ -32,7 +32,6 @@ export interface BaseItem {
 const testId = makeTestId('test-ms-');
 
 export abstract class MultiItemSelector<Item extends BaseItem> extends Disposable {
-
   constructor(private _incItems: MutableObsArray<Item>, private _allItems: ObsArray<Item>,
     private _options: {
       addItemLabel: string,

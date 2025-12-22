@@ -252,7 +252,6 @@ class FinderImpl implements IFinder {
     this._pagesSwitched = 0;
 
     while (!this._matches() || ((await this._loadSection(step)) && !this._matches())) {
-
       // If search was aborted, simply returns.
       if (this._aborted) { return; }
 
@@ -547,7 +546,6 @@ export class SearchModelImpl extends Disposable implements SearchModel {
   // Internal helper that runs cb, passing it the current `this._finder` as first argument and sets
   // this.isRunning to true until the call resolves. It also takes care of updating this.noMatch.
   private async _run(cb: (finder: IFinder) => Promise<void>) {
-
     const finder = this._finder;
     if (!finder) { throw new Error("SearchModel: finder is not defined"); }
 

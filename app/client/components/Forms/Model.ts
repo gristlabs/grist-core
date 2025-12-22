@@ -24,7 +24,6 @@ export type Place = (box: FormLayoutNode) => BoxModel;
  * View model constructed from a box JSON structure.
  */
 export abstract class BoxModel extends Disposable {
-
   /**
    * A factory method that creates a new BoxModel from a Box JSON by picking the right class based on the type.
    */

@@ -14,7 +14,6 @@ import { Readable } from 'stream';
 import { createFile } from 'test/server/docTools';
 
 describe("uploads", function() {
-
   setTmpLogLevel('warn');
 
   describe("createTmpDir", function() {

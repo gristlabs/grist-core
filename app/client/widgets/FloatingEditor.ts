@@ -44,7 +44,6 @@ export interface FloatingEditorOptions {
 }
 
 export class FloatingEditor extends Disposable {
-
   public active = Observable.create<boolean>(this, false);
 
   private _gristDoc = this._options.gristDoc;

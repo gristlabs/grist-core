@@ -16,7 +16,6 @@ export interface ICellContextMenu {
 }
 
 export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMultiColumnContextMenu) {
-
   const { disableInsert, disableDelete, isViewSorted, numRows, onlyAddRowSelected } = cellOptions;
   const { numColumns, disableModify, isReadonly, isFiltered } = colOptions;
 

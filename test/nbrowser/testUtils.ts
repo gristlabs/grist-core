@@ -253,7 +253,6 @@ export function setupRequirement(options: TestSuiteOptions) {
   }
 
   before(async function() {
-
     if (new URL(server.getHost()).hostname !== 'localhost') {
       // Non-dev servers should already meet the requirements; in any case we should not
       // fiddle with them here.

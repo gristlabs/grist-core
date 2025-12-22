@@ -29,7 +29,6 @@ export class ValueParser {
   public parse(value: string): any {
     return value;
   }
-
 }
 
 class IdentityParser extends ValueParser {

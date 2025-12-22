@@ -7,10 +7,8 @@ import { AddressInfo } from 'net';
 import httpProxy from 'http-proxy';
 
 describe(`GristSockets`, function () {
-
   for (const webSocketsSupported of [true, false]) {
     describe(`when the networks ${webSocketsSupported ? "supports" : "does not support"} WebSockets`, function () {
-
       let server: http.Server | null;
       let serverPort: number;
       let socketServer: GristSocketServer | null;
@@ -167,7 +165,6 @@ describe(`GristSockets`, function () {
       });
 
       it("should fail gracefully if verifyClient throws exception", async function () {
-
         // Restart servers with a failing verifyClient method.
         await stopProxyServer();
         await stopSocketServer();

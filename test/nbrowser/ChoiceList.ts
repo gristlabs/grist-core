@@ -904,7 +904,6 @@ describe('ChoiceList', function() {
       await gu.sendKeys("food");
       await gu.sendKeys(Key.ESCAPE, Key.ESCAPE);
       assert.isFalse(await driver.find(".test-choice-list-entry-save").isPresent());
-
     },
     // Test if the column is reverted to state before the test
     () => gu.getVisibleGridCells({ rowNums: [1, 2, 3], cols: [columnName] })));

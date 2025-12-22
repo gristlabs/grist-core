@@ -95,7 +95,6 @@ describe('UI2018', () => {
       assert.equal(await label.value(), 'Hello');
       assert.notEqual(await driver.switchTo().activeElement().getId(), await label.getId());
     });
-
   });
 
   describe('search bar', async function() {
@@ -192,7 +191,6 @@ describe('UI2018', () => {
 
   describe('tri state checkbox', () => {
     it('should work correctly', async function() {
-
       const checkState = stackWrapFunc(async function(isIndeterminate: boolean, isChecked: boolean) {
         assert.equal(await driver.find('.test-both-check').matches(':indeterminate'), isIndeterminate);
         assert.equal(await driver.find('.test-both-check').matches(':checked'), isChecked);

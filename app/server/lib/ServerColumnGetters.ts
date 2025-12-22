@@ -69,5 +69,4 @@ export class ServerColumnGetters implements ColumnGetters, ColumnGettersByColId 
       return col[idx];
     };
   }
-
 }

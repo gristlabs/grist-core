@@ -92,7 +92,6 @@ export class MismatchedFileHashError extends Error {
  *
  */
 export class AttachmentFileManager extends EventEmitter {
-
   public static events = {
     TRANSFER_STARTED: 'transfer-started',
     TRANSFER_COMPLETED: 'transfer-completed',
@@ -617,7 +616,6 @@ export class AttachmentFileManager extends EventEmitter {
   private async _storeFileInAttachmentStore(
     store: IAttachmentStore, fileIdent: string, fileData: stream.Readable,
   ): Promise<void> {
-
     // The underlying store should guarantee the file exists if this method doesn't error,
     // so no extra validation is needed here.
     await store.upload(this._getDocPoolId(), fileIdent, fileData);

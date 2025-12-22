@@ -232,7 +232,6 @@ export class SafeBrowser extends BaseComponent {
     this._clientScope.servePlugin(this._pluginId, rpc);
     return rpc;
   }
-
 }
 
 /**
@@ -269,7 +268,6 @@ export class ClientProcess extends Disposable {
       // tslint:disable:no-console
       .catch((err: any) => console.warn("ClientProcess[%s] receiveAction: failed with %s", this._src, err));
   }
-
 }
 
 /**

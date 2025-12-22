@@ -82,7 +82,6 @@ function buildFontOptions(
   builder: FieldBuilder,
   computedRule: ko.Computed<ComputedStyle>,
   optionName: keyof Style) {
-
   return koUtil.withKoUtils(ko.computed(() => {
     if (builder.isDisposed()) { return false; }
     const style = computedRule()?.style;

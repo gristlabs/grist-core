@@ -37,7 +37,6 @@ export function rowHeightConfigTable(
   owner: IDisposableOwner,
   optionsObs: SaveableObjObservable<ViewSectionOptions>,
 ): DomContents {
-
   const rowHeightObs = Computed.create<number|"">(owner, use => use(optionsObs).rowHeight || '');
   const setRowHeight = (rowHeight: number|undefined) => optionsObs.setAndSave({ ...optionsObs.peek(), rowHeight });
 

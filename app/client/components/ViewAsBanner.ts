@@ -21,7 +21,6 @@ const t = makeT('ViewAsBanner');
 const userT = makeT('UserManagerModel');
 
 export class ViewAsBanner extends Disposable {
-
   private _userOverride = this._docPageModel.userOverride;
   private _usersPopup = ACLUsersPopup.create(this, this._docPageModel, this._getUsersForViewAs.bind(this));
 

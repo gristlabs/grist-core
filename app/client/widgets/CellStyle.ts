@@ -11,7 +11,6 @@ import { Computed, Disposable, dom, DomContents, fromKo, styled } from 'grainjs'
 const t = makeT('CellStyle');
 
 export class CellStyle extends Disposable {
-
   constructor(
     private _field: ViewFieldRec,
     private _gristDoc: GristDoc,

@@ -2,7 +2,6 @@ import { nativeValues } from 'app/gen-server/lib/values';
 import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableUnique } from 'typeorm';
 
 export class Shares1701557445716 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(new Table({
       name: 'shares',

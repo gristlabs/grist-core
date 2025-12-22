@@ -113,7 +113,6 @@ export function attachAppEndpoint(options: AttachOptions): void {
       // The docAuth value will be cached from the getDoc() above (or could be derived from doc).
       const docAuth = await dbManager.getDocAuthCached({ userId, org: mreq.org, urlId });
       assertAccess('viewers', docAuth);
-
     }
     catch (err) {
       if (err.status === 404) {

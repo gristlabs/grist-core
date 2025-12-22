@@ -15,7 +15,6 @@ import * as path from 'path';
  *
  */
 export class FileParserElement {
-
   /**
    * Get all file parser that matches fileName from the list of plugins instances.
    */
@@ -39,7 +38,6 @@ export class FileParserElement {
   private constructor(public plugin: PluginInstance, public fileParser: FileParser) {
     this.parseFileStub = plugin.getStub<ParseFileAPI>(fileParser.parseFile, checkers.ParseFileAPI);
   }
-
 }
 
 function matchFileParser(fileParser: FileParser, fileName: string): boolean {

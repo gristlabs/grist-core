@@ -29,7 +29,6 @@ export interface ISimpleListOpt<T, U extends IOption<T> = IOption<T>> {
 }
 
 export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable {
-
   public readonly content: HTMLElement;
   private _menuContent: HTMLElement;
   private _selected: HTMLElement;

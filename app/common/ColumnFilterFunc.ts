@@ -12,11 +12,9 @@ export type ColumnFilterFunc = (value: CellValue) => boolean;
 // whether it's accepted according to the given FilterState.
 export function makeFilterFunc(state: FilterState,
   columnType: string = ''): ColumnFilterFunc {
-
   if (isRangeFilter(state)) {
     let { min, max } = state;
     if (isNumberType(columnType) || isDateLikeType(columnType)) {
-
       if (isDateLikeType(columnType)) {
         const info = extractInfoFromColType(columnType);
         const timezone = (info.type === 'DateTime' && info.timezone) || 'utc';

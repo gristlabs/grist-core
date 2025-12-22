@@ -625,7 +625,6 @@ export function getFormulaError(owner: Disposable, options: {
     return formulaError;
   }
   else {
-
     // We can't rely on the editRow we got, as this is owned by the view. When we will be detached the view will be
     // gone. So, we will create our own observable that will be updated when the row is updated.
     const errorRow: DataRowModel = gristDoc.getTableModel(options.field.tableId.peek()).createFloatingRowModel() as any;

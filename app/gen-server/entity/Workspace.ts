@@ -8,7 +8,6 @@ import { Resource } from "app/gen-server/entity/Resource";
 
 @Entity({ name: 'workspaces' })
 export class Workspace extends Resource {
-
   @PrimaryGeneratedColumn()
   public id: number;
 

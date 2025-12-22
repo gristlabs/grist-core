@@ -5,7 +5,6 @@ import { withLocale } from "test/fixtures/projects/helpers/withLocale";
 
 // Sample data
 class StateSelector extends MultiItemSelector<{ label: string, value: string }> {
-
   protected static defaultItem: BaseItem;
 
   constructor(_myStates: MutableObsArray<BaseItem> = obsArray([])) {

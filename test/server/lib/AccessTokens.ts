@@ -118,5 +118,4 @@ describe('AccessTokens', function() {
     result = await fetch(home.serverUrl + `/api/docs/${docId}/tables/Table1/records?auth=${token}`);
     assert.equal(result.status, 200);
   });
-
 });

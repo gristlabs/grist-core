@@ -6,7 +6,6 @@ import { configForUser } from 'test/gen-server/testUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('emails', function() {
-
   let server: TestServer;
   let serverUrl: string;
   testUtils.setTmpLogLevel('error');
@@ -52,7 +51,6 @@ describe('emails', function() {
     assert.deepEqual(resp.data, {
       id: 1, email: variant, loginEmail: regular, name: "Chimpy", ref: userRef, picture: null, allowGoogleLogin: true,
     });
-
   });
 
   it('access endpoints show and accept display emails', async function() {

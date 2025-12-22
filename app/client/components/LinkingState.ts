@@ -127,14 +127,12 @@ export class LinkingState extends Disposable {
     if (srcSection.selectedRowsActive()) { // old, special-cased custom filter
       const operation = (tgtColId && isRefListType(tgtCol.type())) ? 'intersects' : 'in';
       this.filterState = this._srcCustomFilter(tgtCol, operation); // works whether tgtCol is the empty col or not
-
     }
     else if (tgtColId) { // Standard filter link
       // If srcCol is the empty col, is a row->col filter (i.e. id -> tgtCol)
       // else is a col->col filter (srcCol -> tgtCol)
       // MakeFilterObs handles it either way
       this.filterState = this._makeFilterObs(srcCol, tgtCol);
-
     }
     else if (srcColId && isRefListType(srcCol.type())) {  // "Show Referenced Records" link
       // tgtCol is the emptycol (i.e. the id col)
@@ -142,7 +140,6 @@ export class LinkingState extends Disposable {
       // Link will filter tgt section to show exactly the set of rowIds referenced by the srcCol
       // (NOTE: currently we only do this for reflists, single refs handled as cursor links for now)
       this.filterState = this._makeFilterObs(srcCol, undefined);
-
     }
     else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { //Summary linking
       // We do summary filtering if no cols specified and summary section is linked to a more detailed summary
@@ -453,7 +450,6 @@ export class LinkingState extends Disposable {
       if (!isSrcRefList) {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
-
       }
       else if (isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], slice off the L
         filterValues = selectorCellVal.slice(1);
@@ -466,7 +462,6 @@ export class LinkingState extends Disposable {
           console.warn("Error in LinkingState: displayVal list doesn't match selectorVal list ");
           displayValues = filterValues; //fallback to unformatted values
         }
-
       }
       else { //isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
         filterValues = [];

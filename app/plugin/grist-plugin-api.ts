@@ -552,7 +552,6 @@ if (typeof window !== 'undefined') {
   // Allow outer Grist application to trigger printing. This is similar to using
   // iframe.contentWindow.print(), but that call does not work cross-domain.
   rpc.registerFunc("print", () => window.print());
-
 }
 else if (typeof process === 'undefined') {
   // Web worker. We can't really bring in the types for WebWorker (available with --lib flag)

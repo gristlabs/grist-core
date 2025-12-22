@@ -36,7 +36,6 @@ export interface PluginDirectories {
  *
  */
 export class PluginManager {
-
   public pluginsLoaded: Promise<void>;
 
   // ========== Instance members and methods ==========

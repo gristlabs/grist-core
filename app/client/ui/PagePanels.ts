@@ -123,7 +123,6 @@ export function pagePanels(page: PageContents) {
       const watcher = new TransitionWatcher(rightPaneDom);
       watcher.onDispose(() => resolve(undefined));
       right.panelOpen.set(true);
-
     }),
   }, null, true);
   let contentWrapper: HTMLElement;
@@ -192,7 +191,6 @@ export function pagePanels(page: PageContents) {
 
         // opening left panel on hover
         dom.on('mouseenter', (evt1, elem) => {
-
           if (left.panelOpen.get() ||
 
             // when no opener should not auto-expand

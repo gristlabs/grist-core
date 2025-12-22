@@ -306,7 +306,6 @@ const sectionTypes: IWidgetType[] = [
 // wants to generate a summary. Clicking the `Add ...` button trigger `onSave()`. Note: this is an
 // internal method used by widgetPicker, it is only exposed for testing reason.
 export class PageWidgetSelect extends Disposable {
-
   // an observable holding the list of options of the `select by` dropdown
   private _selectByOptions = this._options.selectBy ?
     Computed.create(this, (use) => {
@@ -511,7 +510,6 @@ export class PageWidgetSelect extends Disposable {
     }
     return !getCompatibleTypes(table, { isNewPage: this._options.isNewPage, summarize: isSummaryOn }).includes(type);
   }
-
 }
 
 function header(label: string, ...args: DomElementArg[]) {

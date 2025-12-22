@@ -19,7 +19,6 @@ import { waitForIt } from 'test/server/wait';
 promisifyAll(RedisClient.prototype);
 
 describe('DocWorkerMap', function() {
-
   let cli: RedisClient;
 
   testUtils.setTmpLogLevel('error');

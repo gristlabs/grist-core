@@ -76,7 +76,6 @@ export async function makeDSVFromViewSection({
   delimiter: Delimiter,
   req: express.Request
 }) {
-
   const data = await exportSection(activeDoc, viewSectionId, sortOrder, filters, linkingFilter, req);
   const file = convertToDsv(data, { header, delimiter });
   return file;
@@ -101,7 +100,6 @@ export async function makeDSVFromTable({ activeDoc, tableId, delimiter, header, 
   header?: ExportHeader,
   req: express.Request
 }) {
-
   if (!activeDoc.docData) {
     throw new Error('No docData in active document');
   }

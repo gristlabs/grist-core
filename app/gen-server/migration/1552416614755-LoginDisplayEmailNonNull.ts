@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class LoginDisplayEmailNonNull1552416614755 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.query('update logins set display_email = email where display_email is null');
     // if our db will already heavily loaded, it might be better to add a check constraint

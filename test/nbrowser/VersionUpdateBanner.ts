@@ -22,7 +22,6 @@ describe('VersionUpdateBanner', function() {
     process.env.GRIST_DEFAULT_EMAIL = gu.session().email;
     fakeServer = await startFakeUpdateServer();
     process.env.GRIST_TEST_VERSION_CHECK_URL = `${fakeServer.url()}/version`;
-
   });
 
   beforeEach(async function() {
@@ -106,5 +105,4 @@ describe('VersionUpdateBanner', function() {
     await driver.findWait('.test-top-panel', 100);
     assert.equal((await driver.findAll('.test-version-update-banner-text')).length, 0);
   });
-
 });

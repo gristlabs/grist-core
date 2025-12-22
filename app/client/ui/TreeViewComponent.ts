@@ -100,7 +100,6 @@ const testId = makeTestId('test-treeview-');
 // if the user is dragging at the same time. It could be simpler to freeze the model and to differ
 // their resolution until after the drag terminates.
 export class TreeViewComponent extends Disposable {
-
   private readonly _options: Required<TreeViewOptions>;
   private readonly _containerElement: Element;
 
@@ -597,7 +596,6 @@ export class TreeViewComponent extends Disposable {
     }
     else {
       const callback = () => {
-
         // Expanding the item needs some extra care. Because we could push the dragged item
         // downwards in the view (if the dragged item is below the item to be expanded). In which
         // case we must update `item.deltaY` to reflect the offset in order to prevent an offset

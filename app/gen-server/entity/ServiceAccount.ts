@@ -6,7 +6,6 @@ import {
 
 @Entity({ name: 'service_accounts' })
 export class ServiceAccount extends BaseEntity {
-
   @PrimaryGeneratedColumn()
   public id: number;
 

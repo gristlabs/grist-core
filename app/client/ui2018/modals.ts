@@ -512,9 +512,7 @@ export function invokePrompt(
 export async function spinnerModal<T>(
   title: string,
   promise: Promise<T>): Promise<T> {
-
   modal((ctl, owner) => {
-
     // `finally` is missing from es2016, below is a work-around.
     const close = () => ctl.close();
     promise.then(close, close);

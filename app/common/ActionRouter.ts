@@ -5,7 +5,6 @@ import { Rpc } from "grain-rpc";
  * "docAction", action }` over rpc.
  */
 export class ActionRouter {
-
   private _subscribedTables: Set<string> = new Set();
 
   constructor(private _rpc: Rpc) {}

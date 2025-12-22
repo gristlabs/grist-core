@@ -11,7 +11,6 @@ import { CellDiffTool, DIFF_LOCAL } from 'app/client/lib/CellDiffTool';
  *
  */
 export class DiffBox extends NewAbstractWidget {
-
   private _diffTool = new CellDiffTool();
 
   public buildConfigDom() {

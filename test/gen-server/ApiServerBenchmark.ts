@@ -14,7 +14,6 @@ let homeUrl: string;
 const chimpy = configForUser('Chimpy');
 
 describe('ApiServerBenchmark', function() {
-
   testUtils.setTmpLogLevel('error');
 
   before(async function() {

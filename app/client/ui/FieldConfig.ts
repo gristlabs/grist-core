@@ -119,7 +119,6 @@ type BuildEditor = (options: BuildEditorOptions) => void;
 export function buildFormulaConfig(
   owner: MultiHolder, origColumn: ColumnRec, gristDoc: GristDoc, buildEditor: BuildEditor,
 ) {
-
   // If we can't modify anything about the column.
   const disableModify = Computed.create(owner, use => use(origColumn.disableModify) || use(origColumn.hasReverse));
 

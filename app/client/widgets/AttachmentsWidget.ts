@@ -27,7 +27,6 @@ const t = makeT('AttachmentsWidget');
  * AttachmentsWidget - A widget for displaying attachments as image previews.
  */
 export class AttachmentsWidget extends NewAbstractWidget {
-
   private _attachmentsTable: MetaTableData<'_grist_Attachments'>;
   private _height: KoSaveableObservable<string>;
   private _uploadingTimeouts: Partial<Record<UIRowId, number>> = {};

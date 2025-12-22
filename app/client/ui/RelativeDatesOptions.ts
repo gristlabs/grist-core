@@ -56,7 +56,6 @@ export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (va
 // undefined it returns a default list of spec meant to showcase user the different flavors of
 // relative date.
 function relativeDateOptionsSpec(value: IRangeBoundType): Array<IRangeBoundType> {
-
   if (value === undefined) {
     return DEFAULT_OPTION_LIST;
   }

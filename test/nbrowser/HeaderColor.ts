@@ -134,6 +134,5 @@ describe('HeaderColor', function () {
 
     // There is no header color picker
     assert.isFalse(await driver.find('.test-header-color-select .test-color-select').isPresent());
-
   });
 });

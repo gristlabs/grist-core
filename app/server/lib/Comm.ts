@@ -187,7 +187,6 @@ export class Comm extends EventEmitter {
    * Processes a new websocket connection, and associates the websocket and a Client object.
    */
   private async _onWebSocketConnection(websocket: GristServerSocket, req: http.IncomingMessage) {
-
     const params = new URL(req.url!, `ws://${req.headers.host}`).searchParams;
     const existingClientId = params.get('clientId');
     const browserSettings = safeJsonParse(params.get('browserSettings') || '', {});

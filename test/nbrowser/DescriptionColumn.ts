@@ -620,7 +620,6 @@ describe('DescriptionColumn', function() {
       .find('.test-column-info-tooltip-popup');
     assert.equal(await descriptionTooltip.getText(), 'This is the column description\nIt is in two lines');
   });
-
 });
 
 async function clickTooltip(col: string) {

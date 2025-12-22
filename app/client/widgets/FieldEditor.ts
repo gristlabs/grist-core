@@ -63,7 +63,6 @@ export interface FieldEditorStateEvent {
 }
 
 export class FieldEditor extends Disposable {
-
   public readonly saveEmitter = this.autoDispose(new Emitter());
   public readonly cancelEmitter = this.autoDispose(new Emitter());
   public readonly changeEmitter = this.autoDispose(new Emitter());
@@ -198,7 +197,6 @@ export class FieldEditor extends Disposable {
 
   // cursorPos refers to the position of the caret within the editor.
   public rebuildEditor(editValue: string|undefined, cursorPos: number, state?: any) {
-
     // Attachment column with a formula is different, it either uses FormulaEditor if user typed something or pressed
     // enter, or AttachmentEditor if user clicked or dblclicked to edit. In later case we assume user wants to see
     // attachments, not the formula.

@@ -2,7 +2,6 @@ import * as sqlUtils from "app/gen-server/sqlUtils";
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class Activations1652273656610 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     // created_at and updated_at code is based on *-Initial.ts
     const dbType = queryRunner.connection.driver.options.type;

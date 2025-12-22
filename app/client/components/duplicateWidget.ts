@@ -131,7 +131,6 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       // the UI will either break, throw errors, or both, due to it temporarily being in an invalid
       // state (referencing non-existent fields).
       await removeViewFields(gristDoc, autoCreatedViewFieldIds);
-
     },
     // If called from duplicatePage (or similar), we don't want to start a new bundle.
     { nestInActiveBundle: true },
@@ -152,7 +151,6 @@ async function copyFilters(
   gristDoc: GristDoc,
   srcViewSections: ViewSectionRec[],
   viewSectionMap: { [id: number]: number }) {
-
   // Get all filters for selected sections.
   const filters: RowRecord[] = [];
   const table = gristDoc.docData.getMetaTable('_grist_Filters');
@@ -178,7 +176,6 @@ async function copyFilters(
  */
 async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: DuplicatedViewSection[],
   fieldsMap: { [id: number]: number }, viewSectionMap: { [id: number]: number }) {
-
   const destRowIds: number[] = [];
   const records: RowRecord[] = [];
   for (const { srcViewSection, destViewSection } of duplicatedViewSections) {

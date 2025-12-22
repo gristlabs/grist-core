@@ -150,7 +150,6 @@ describe('CustomView', function() {
   });
 
   for (const access of ['none', 'read table', 'full'] as const) {
-
     function withAccess(obj: any, fallback: any) {
       return ((access !== 'none') && obj) || fallback;
     }
@@ -160,7 +159,6 @@ describe('CustomView', function() {
     }
 
     describe(`with access level ${access}`, function() {
-
       before(async function() {
         if (server.isExternalServer()) {
           this.skip();

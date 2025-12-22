@@ -2,7 +2,6 @@ import { nativeValues } from 'app/gen-server/lib/values';
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class Prefs1596456522124 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.createTable(new Table({
       name: 'prefs',

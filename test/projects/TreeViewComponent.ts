@@ -58,7 +58,6 @@ describe('TreeViewComponent', () => {
   });
 
   it('should have a working handle', async function() {
-
     // hovering shows the handle
     const handle = findItem(/Page2/).find('.test-treeview-handle');
     assert.equal(await handle.isDisplayed(), false);
@@ -89,11 +88,9 @@ describe('TreeViewComponent', () => {
     // releasing should snap handle
     await driver.withActions(actions => actions.release());
     assert.equal(await handle.getCssValue('top'), '0px');
-
   });
 
   it('should show target and target\'s parent', async function() {
-
     const target = findTarget();
 
     assert.equal(await driver.find('.test-treeview-target').isDisplayed(), false);
@@ -382,7 +379,6 @@ describe('TreeViewComponent', () => {
     await findItem(/Page1/).doClick();
     await delay(510);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper.dragged', e => e.getText()), []);
-
   });
 
   it('should reuse dom for treeItem ', async function() {
@@ -426,9 +422,7 @@ describe('TreeViewComponent', () => {
   });
 
   describe('isReadonly mode', function() {
-
     it('should hide the handle', async function() {
-
       // reset
       await driver.find('input.reset').doClick();
 
@@ -440,7 +434,6 @@ describe('TreeViewComponent', () => {
 
       // check that the handle is not visible
       assert.equal(await findItem(/Page1/).find('.test-treeview-handle').isDisplayed(), false);
-
     });
 
     it('should disable delayed dragging', async function() {
@@ -465,7 +458,6 @@ describe('TreeViewComponent', () => {
       ));
     });
   });
-
 });
 
 function startDrag(item: RegExp) {

@@ -12,7 +12,6 @@ interface ISaveCall {
 }
 
 function setupTest() {
-
   const isNewPageObs = observable(false);
   const valueOpt = observable<IPageWidget|null>(null);
   const saveCalls = obsArray<ISaveCall>([]);

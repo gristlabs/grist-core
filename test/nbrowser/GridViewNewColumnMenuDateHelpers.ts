@@ -381,7 +381,6 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       await closeAddColumnMenu();
     });
   });
-
 });
 
 async function selectDatePart(text: string, example?: string) {

@@ -59,7 +59,6 @@ export class LinkConfig {
           src = src.linkSrcSection();
         }
       }
-
     }
     catch (e) {
       throw new Error(`LinkConfig invalid: ` +

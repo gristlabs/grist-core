@@ -387,7 +387,6 @@ describe("NumberParse", function() {
           }
         }
       });
-
     });
   }
 });

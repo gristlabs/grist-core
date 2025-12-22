@@ -2320,7 +2320,6 @@ describe('ApiServerAccess', function() {
             'TestMaxNewUserInvites']);
       });
     });
-
   });
 });
 

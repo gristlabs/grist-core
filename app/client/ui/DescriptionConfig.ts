@@ -19,7 +19,6 @@ export function buildDescriptionConfig(
     testPrefix: string,
   },
 ) {
-
   // We will listen to cursor position and force a blur event on
   // the text input, which will trigger save before the column observable
   // will change its value.

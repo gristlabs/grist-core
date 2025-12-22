@@ -118,7 +118,6 @@ describe('CellColor', function() {
   });
 
   it('should work correctly on Grid view in comparison mode', async function() {
-
     // First let's add an Hyperlink column
     await gu.getSection('TABLE1').click();
     let cell = await gu.getCell('B', 1).doClick();
@@ -177,11 +176,9 @@ describe('CellColor', function() {
     cell = gu.getCell('A', 5).find('.field_clip');
     assert.equal(await cell.getCssValue('background-color'), 'rgba(0, 0, 0, 0)');
     assert.equal(await cell.findClosest('.record').getCssValue('background-color'), 'rgba(246, 246, 255, 1)');
-
   });
 
   it('should work correctly on Detail view in comparison mode', async function() {
-
     // Change active section
     await gu.getSection('TABLE1 Card List').click();
 
@@ -226,7 +223,6 @@ describe('CellColor', function() {
     assert.equal(await cell.getCssValue('color'), 'rgba(0, 255, 0, 1)');
     assert.equal(await cell.getCssValue('background-color'), 'rgba(0, 0, 255, 1)');
     assert.equal(await cell.find('.test-tb-link-icon').getCssValue('background-color'), 'rgba(0, 255, 0, 1)');
-
   });
 
   it('should work with Attachment type column', async function() {
@@ -415,7 +411,6 @@ describe('CellColor', function() {
     // press enter to close color picker
     await driver.sendKeys(Key.ENTER);
     await gu.waitForServer();
-
   });
 
   it('should persist when changing cell format', async function() {
@@ -555,6 +550,5 @@ describe('CellColor', function() {
     assert.equal(
       await cell().find('.test-toggle-switch-slider').getCssValue('background-color'), gu.hexToRgb('#009058'),
     );
-
   });
 });

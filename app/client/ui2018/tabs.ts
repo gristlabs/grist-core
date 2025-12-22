@@ -27,7 +27,6 @@ export function buildTabs(
   selected: BindableValue<string|null|undefined>,
   ...args: IDomArgs<HTMLDivElement>
 ) {
-
   const isSelected = (tab: TabProps) => (use: UseCBOwner) => useBindable(use, selected) === (tab.id ?? tab.label);
   return cssTabs(
     dom.forEach(tabs, tab => cssTab(

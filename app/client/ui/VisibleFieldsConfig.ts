@@ -62,7 +62,6 @@ interface DraggableFieldsOption {
  * available options.
  */
 export class VisibleFieldsConfig extends Disposable {
-
   private _hiddenFields: KoArray<ColumnRec> = this.autoDispose(syncedKoArray(this._section.hiddenColumns));
 
   private _fieldLabel = Computed.create(this, (use) => {
@@ -169,7 +168,6 @@ export class VisibleFieldsConfig extends Disposable {
       visibleFields: DraggableFieldsOption,
       hiddenFields: DraggableFieldsOption,
     }): [HTMLElement, HTMLElement] {
-
     const fieldsDraggable = this.buildVisibleFieldsConfigHelper(options.visibleFields);
     const hiddenFieldsDraggable = kf.draggableList(
       this._hiddenFields,
@@ -198,7 +196,6 @@ export class VisibleFieldsConfig extends Disposable {
   }
 
   public buildDom() {
-
     const [fieldsDraggable, hiddenFieldsDraggable] = this.buildSectionFieldsConfigHelper({
       visibleFields: {
         itemCreateFunc: field => this._buildVisibleFieldItem(field as ViewFieldRec),
@@ -354,7 +351,6 @@ export class VisibleFieldsConfig extends Disposable {
       checked,
     );
     this._showVisibleBatchButtons.set(checked);
-
   }
 
   // Set all checkboxes for the hidden fields.
@@ -372,7 +368,6 @@ export class VisibleFieldsConfig extends Disposable {
   // the selection.
   private _setCheckboxesHelper(draggable: Element, fields: IField[], selection: Set<number>,
     checked: boolean) {
-
     findCheckboxes(draggable).forEach(el => el.checked = checked);
 
     selection.clear();
@@ -461,7 +456,6 @@ export class VisibleFieldsConfig extends Disposable {
     const action = ['BulkAddRecord', rowIds, colInfo];
     await this._gristDoc.docModel.viewFields.sendTableAction(action);
   }
-
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,

@@ -260,7 +260,6 @@ export function buildColorPicker(
 // of `obs.set(...)`. Then it offers `model.needsSaving()` that tells you whether current value
 // needs saving, and `model.revert()` that reverts obs to the its server value.
 class PickerModel<T extends boolean|string|undefined> extends Disposable {
-
   // Is current value different from the server value?
   public needsSaving: Observable<boolean>;
   private _serverValue: Observable<T>;
@@ -307,7 +306,6 @@ interface PickerComponentOptions {
   noneText: string;
 }
 class PickerComponent extends Disposable {
-
   private _colorHex = Computed.create(this, this._model.obs, (_use, val) =>
     val?.toUpperCase().slice(0, 7));
 

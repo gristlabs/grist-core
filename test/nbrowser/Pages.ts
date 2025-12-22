@@ -130,7 +130,6 @@ describe('Pages', function() {
   });
 
   it('should list all pages in document', async () => {
-
     // check content of _girst_Pages and _grist_Views
     assert.deepInclude(await api.getTable(doc.id, '_grist_Pages'), {
       viewRef: [1, 2, 3, 4, 5],
@@ -149,7 +148,6 @@ describe('Pages', function() {
   });
 
   it('should select correct page if /p/<docPage> in the url', async () => {
-
     // show page with viewRef 2
     await gu.loadDoc(`/o/test-grist/doc/${doc.id}/p/2`);
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
@@ -158,7 +156,6 @@ describe('Pages', function() {
   });
 
   it('should select first page if /p/<docPage> is omitted in the url', async () => {
-
     await driver.get(`${server.getHost()}/o/test-grist/doc/${doc.id}`);
     await gu.waitForDocToLoad();
     assert.match(await driver.find('.test-treeview-itemHeader').getText(), /Interactions/);
@@ -189,7 +186,6 @@ describe('Pages', function() {
   });
 
   it('should allow renaming table', async () => {
-
     // open dots menu and click rename
     await gu.openPageMenu('People');
     await driver.find('.test-docpage-rename').doClick();
@@ -324,7 +320,6 @@ describe('Pages', function() {
   });
 
   it('should allow moving pages', async () => {
-
     // check initial state
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
 
@@ -337,7 +332,6 @@ describe('Pages', function() {
     // revert changes
     await gu.undo();
     assert.deepEqual(await gu.getPageNames(), ['Interactions', 'Documents', 'People', 'User & Leads', 'Overview']);
-
   });
 
   it('moving a page should not extend collapsed page', async () => {
@@ -396,7 +390,6 @@ describe('Pages', function() {
   });
 
   it('should allow to cycle though pages using shortcuts', async () => {
-
     function nextPage() {
       return driver.find('body').sendKeys(Key.chord(Key.ALT, Key.DOWN));
     }
@@ -438,11 +431,9 @@ describe('Pages', function() {
 
     // check selected page
     assert.match(await selectedPage(), /Interactions/);
-
   });
 
   it('undo/redo should update url', async () => {
-
     // goto page 'Interactions' and send keys
     await gu.openPage(/Interactions/);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Interactions/);
@@ -487,7 +478,6 @@ describe('Pages', function() {
   });
 
   it('Removing a page should work', async () => {
-
     // Create and open new document
     const docId = await session.tempNewDoc(cleanup, "test-page-removal");
     await driver.get(`${server.getHost()}/o/test-grist/doc/${docId}`);

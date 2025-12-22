@@ -353,7 +353,6 @@ export class ViewFieldConfig {
           this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
       ]), actionOptions);
     }
-
   }
 }
 

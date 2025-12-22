@@ -66,7 +66,6 @@ interface ServerOptions extends FlexServerOptions {
 }
 
 export class MergedServer {
-
   public static async create(port: number, serverTypes: ServerType[], options: ServerOptions = {}) {
     options.settings ??= getGlobalConfig();
     const ms = new MergedServer(port, serverTypes, options);
@@ -155,7 +154,6 @@ export class MergedServer {
   }
 
   public async run() {
-
     try {
       await this.flexServer.start();
 
@@ -253,7 +251,6 @@ export class MergedServer {
 
 export async function startMain() {
   try {
-
     const serverTypes = parseServerTypes(process.env.GRIST_SERVERS);
 
     // No defaults for a port, since this server can serve very different purposes.

@@ -172,7 +172,6 @@ const defaultOptions: ActionHistoryOptions = {
  *
  */
 export class ActionHistoryImpl implements ActionHistory {
-
   private _sharedActionNum: number = 1;       // track depth in tree of shared actions
   private _localActionNum: number = 1;        // track depth in tree of local actions
   private _haveLocalSent: boolean = false;    // cache for this.haveLocalSent()

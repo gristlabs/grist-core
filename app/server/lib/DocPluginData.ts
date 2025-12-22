@@ -33,5 +33,4 @@ export class DocPluginData implements Promisified<Storage> {
   public clear(): Promise<void> {
     return this._docStorage.clearPluginDataItem(this._pluginId);
   }
-
 }

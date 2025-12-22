@@ -92,7 +92,6 @@ describe('Webhooks-Proxy', function () {
 
   describe('Proxy not configured', function () {
     runServerConfigurations({ GRIST_HTTPS_PROXY: undefined }, () => testWebhookProxy(false));
-
   });
 
   function runServerConfigurations(additionaEnvConfiguration: NodeJS.ProcessEnv, subTestCall: Function) {
@@ -151,7 +150,6 @@ describe('Webhooks-Proxy', function () {
 
   function testWebhookProxy(shouldProxyBeCalled: boolean) {
     describe('calling registered webhooks after data update', function () {
-
       let serving: Serving;  // manages the test webhook server
       let testProxyServer: TestProxyServer;  // manages the test webhook server
 
@@ -209,7 +207,6 @@ describe('Webhooks-Proxy', function () {
       before(async function () {
         this.timeout(30000);
         serving = await serveSomething((app) => {
-
           app.use(express.json());
           app.post('/200', ({ body }, res) => {
             successCalled.emit(body[0].A);
@@ -239,7 +236,6 @@ describe('Webhooks-Proxy', function () {
         this.timeout(30000);
 
         if (process.env.TEST_REDIS_URL) {
-
           redisMonitor = createClient(process.env.TEST_REDIS_URL);
         }
       });

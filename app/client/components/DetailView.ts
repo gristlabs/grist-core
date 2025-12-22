@@ -394,7 +394,6 @@ export default class DetailView extends BaseView {
               );
             }
           });
-
         }
       }),
     );

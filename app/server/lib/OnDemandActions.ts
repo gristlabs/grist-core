@@ -10,7 +10,6 @@ export type OnDemandStorage = AlternateStorage;
  * Handle converting UserActions to DocActions for onDemand tables.
  */
 export class OnDemandActions extends AlternateActions {
-
   private _tablesMeta: TableData = this._docData.getMetaTable('_grist_Tables');
   private _columnsMeta: TableData = this._docData.getMetaTable('_grist_Tables_column');
 

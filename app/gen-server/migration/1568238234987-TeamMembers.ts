@@ -7,7 +7,6 @@ import { Permissions } from "app/gen-server/lib/Permissions";
 import { getDatabaseType } from "app/server/lib/dbUtils";
 
 export class TeamMembers1568238234987 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     // Get all orgs and add a team member ACL (with group) to each.
     const orgs = await queryRunner.manager.createQueryBuilder()
@@ -55,5 +54,4 @@ export class TeamMembers1568238234987 implements MigrationInterface {
       .where("name = :name", { name: roles.MEMBER })
       .execute();
   }
-
 }

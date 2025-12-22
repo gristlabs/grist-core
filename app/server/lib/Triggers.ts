@@ -104,7 +104,6 @@ const TRIGGER_MAX_ATTEMPTS =
 // Triggers are configured in the document, while details of webhooks (URLs) are kept
 // in the Secrets table of the Home DB.
 export class DocTriggers {
-
   // Events that need to be sent to webhooks in FIFO order.
   // This is the primary place where events are stored and consumed,
   // while a copy of this queue is kept on redis as a backup.

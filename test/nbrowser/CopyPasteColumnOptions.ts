@@ -359,5 +359,4 @@ describe('CopyPasteColumnOptions', function() {
       }],
     );
   });
-
 });

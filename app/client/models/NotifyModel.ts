@@ -104,7 +104,6 @@ export class Expirable extends Disposable {
 }
 
 export class Notification extends Expirable implements INotification {
-
   public options: Required<INotifyOptions> = {
     title: '',
     message: '',
@@ -138,7 +137,6 @@ interface IProgressOptions {
 }
 
 export class Progress extends Expirable implements IProgress {
-
   public readonly progress = Observable.create(this, 0);
 
   constructor(public options: IProgressOptions) {

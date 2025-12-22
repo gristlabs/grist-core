@@ -32,7 +32,6 @@ describe('PageWidgetPicker', () => {
   });
 
   it('should reflect `.value` on open', async function() {
-
     // set value option to [`Card List`, 'Companies', ['company_id', 'city']]
     await driver.find('.test-option-value').click();
     await driver.findContent('.test-wselect-type', /Card List/).click();
@@ -75,7 +74,6 @@ describe('PageWidgetPicker', () => {
   });
 
   it('should show \'Group by\' pane when using summarized table', async () => {
-
     // check `Group by` panel is not visible
     assert.deepEqual(await driver.findAll('.test-wselect-heading', e => e.getText()),
       ['Select widget', 'Select data', '']);
@@ -99,11 +97,9 @@ describe('PageWidgetPicker', () => {
     await driver.findContent('.test-wselect-table', /Companies/).doClick();
     assert.deepEqual(await driver.findAll('.test-wselect-heading', e => e.getText()),
       ['Select widget', 'Select data', '']);
-
   });
 
   it('should clear columns when hiding \'Group by\' pane', async () => {
-
     // open 'Group by' for 'History'
     await driver.findContent('.test-wselect-table', /History/).find('.test-wselect-pivot').doClick();
 
@@ -127,11 +123,9 @@ describe('PageWidgetPicker', () => {
     assert.deepEqual(await findAllSelected('column'), []);
     await driver.findContent('.test-wselect-table', /History/).find('.test-wselect-pivot').doClick();
     assert.deepEqual(await findAllSelected('column'), []);
-
   });
 
   it('should reflect changes', async () => {
-
     // select ['Table', 'Companies']
     await driver.findContent('.test-wselect-type', /Table/).doClick();
     await driver.findContent('.test-wselect-table', /Companies/).doClick();
@@ -165,11 +159,9 @@ describe('PageWidgetPicker', () => {
     // resolve call and re-open picker
     await driver.findContent('.test-call-log:last-child button', 'Resolve').click();
     await openPicker();
-
   });
 
   it('should disable incompatible choices', async function() {
-
     // re-open picker
     await driver.sendKeys(Key.ESCAPE);
     await openPicker();

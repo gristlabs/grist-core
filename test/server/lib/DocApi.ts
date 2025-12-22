@@ -346,7 +346,6 @@ describe('DocApi', function () {
   }
 
   describe("QueryParameters", async () => {
-
     function makeExample() {
       return {
         id: [1, 2, 3, 7, 8, 9],
@@ -1630,7 +1629,6 @@ function testDocApi(settings: {
     resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/FooBar/data`, chimpy);
     assert.equal(resp.status, 404);
     assert.match(resp.data.error, /not found/);
-
   });
 
   it("POST /docs/{did}/tables/{tid}/data adds records", async function () {
@@ -2400,7 +2398,6 @@ function testDocApi(settings: {
   });
 
   describe("PATCH /docs/{did}/tables/{tid}/data", function () {
-
     it("updates records", async function () {
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1],
@@ -2415,11 +2412,9 @@ function testDocApi(settings: {
         B: ["1", "11", "2", "22"],
         manualSort: [1, 2, 3, 4],
       });
-
     });
 
     it("throws 400 for invalid row ids", async function () {
-
       // combination of valid and invalid ids fails
       let resp = await axios.patch(`${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/data`, {
         id: [1, 5],
@@ -2488,7 +2483,6 @@ function testDocApi(settings: {
         manualSort: [1, 2, 3, 4],
       });
     });
-
   });
 
   async function addAttachmentsToDoc(docId: string, attachments: { name: string, contents: string }[],
@@ -3942,7 +3936,6 @@ function testDocApi(settings: {
 
     // in this endpoint webhookID is in body, not in path, so it also should be verified
     it("POST /docs/{did}/webhooks validates inputs", async function () {
-
       await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1" } }] }, 400,
         /eventTypes is missing/);
       await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1", eventTypes: 0 } }] }, 400,
@@ -3979,7 +3972,6 @@ function testDocApi(settings: {
       },
       // this check was previously just wrong, was the test not running somehow??
       404, /Column not found "notExisting"/);
-
     });
 
     async function userCheck(user: AxiosRequestConfig, requestBody: any, status: number, responseBody: any) {
@@ -4090,7 +4082,6 @@ function testDocApi(settings: {
     });
 
     it("POST /docs/{did}/tables/{tid}/_unsubscribe validates inputs for editors", async function () {
-
       const subscribeResponse = await subscribeWebhook();
 
       const delta = {
@@ -4126,7 +4117,6 @@ function testDocApi(settings: {
     });
 
     it("DELETE /docs/{did}/tables/webhooks should not be allowed for not-owner", async function () {
-
       const subscribeResponse = await subscribeWebhook();
       const check = userDeleteCheck.bind(null, kiwi);
 
@@ -4146,7 +4136,6 @@ function testDocApi(settings: {
       assert.equal(accessResp.status, 200);
       await flushAuth();
     });
-
   });
 
   describe("Daily API Limit", () => {
@@ -4727,7 +4716,6 @@ function testDocApi(settings: {
               _.sum(redisTrims),
               _.sum(expectedTrims),
             );
-
           });
       });
 
@@ -4738,7 +4726,6 @@ function testDocApi(settings: {
         itMsg: "does trigger webhook that has been enable",
         enabled: true,
       }].forEach((ctx) => {
-
         it(ctx.itMsg, async function () {
           // Create a test document.
           const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
@@ -4764,7 +4751,6 @@ function testDocApi(settings: {
             assert.equal(redisPushIndex, -1, "Should not have pushed any events to the redis queue");
           }
         });
-
       });
     });
 
@@ -5423,11 +5409,9 @@ function testDocApi(settings: {
       });
 
       describe('webhook update', function () {
-
         it('should work correctly', async function () {
           async function check(fields: any, status: number, error?: RegExp | string,
             expectedFieldsCallback?: (fields: any) => any) {
-
             const origFields = {
               tableId: 'Table1',
               eventTypes: ['add'],
@@ -5544,7 +5528,6 @@ function testDocApi(settings: {
 
           await check({ authorization: 'Bearer fake-token' }, 200);
         });
-
       });
     });
   });
@@ -5638,7 +5621,6 @@ function testDocApi(settings: {
       assert.equal(response.status, 403);
       assert.deepEqual(response.data, { error: 'Credentials not supported for cross-origin requests' });
     });
-
   });
 
   it("GET /docs/{did}/sql is functional", async function () {

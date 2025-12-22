@@ -6,7 +6,6 @@ import { assert } from 'chai';
 import range from 'lodash/range';
 
 describe("BundleActions", function() {
-
   // Comment this out to see debug-log output when debugging tests.
   testUtils.setTmpLogLevel('error');
 

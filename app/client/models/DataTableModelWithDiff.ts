@@ -88,7 +88,6 @@ export class ExtraRows {
  *
  */
 export class DataTableModelWithDiff extends DisposableWithEvents implements DataTableModel {
-
   public docModel: DocModel;
   public isLoaded: ko.Observable<boolean>;
   public tableData: TableData;

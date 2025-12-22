@@ -135,7 +135,6 @@ export class TestServer {
     // and then do an api check. This approach allow us to start server with GRIST_PORT set to '0',
     // which will listen on first available port, removing the need to hard code a port number.
     try {
-
       // wait for testing socket
       while (!(await fse.pathExists(this.testingSocket))) {
         await delay(200);
@@ -214,7 +213,6 @@ const FROM_OUTSIDE_HEADER_KEY = "X-FROM-OUTSIDE";
  * ```
  */
 export class TestServerReverseProxy {
-
   // Use a different hostname for the proxy than the doc and home workers'
   // so we can ensure that either we omit the Origin header (so the internal calls to home and doc workers
   // are not considered as CORS requests), or otherwise we fail because the hostnames are different

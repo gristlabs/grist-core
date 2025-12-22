@@ -880,7 +880,6 @@ class Comment extends Disposable {
  * Component for displaying input element for a comment (either for replying or starting a new discussion).
  */
 class CommentEntry extends Disposable {
-
   private _editableDiv: HTMLDivElement;
 
   constructor(public props: {

@@ -1028,7 +1028,6 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
     return await this.viewLayout!.freezeUntil(docData.bundleActions(
       t("Saved linked section {{title}} in view {{name}}", { title: section.title(), name: viewModel.name() }),
       async () => {
-
         // if table changes or a table is made a summary table, let's replace the view section by a
         // new one, and return.
         if (oldVal.table !== newVal.table || oldVal.summarize !== newVal.summarize) {
@@ -1302,7 +1301,6 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
   // Set section's viewFields to be colIds in that order. Omit any column id that do not belong to
   // section's table.
   private async _setSectionViewFieldsFromArray(section: ViewSectionRec, colIds: string[]) {
-
     // remove old view fields
     await Promise.all(section.viewFields.peek().all().map(viewField => (
       this.docModel.viewFields.sendTableAction(['RemoveRecord', viewField.id()]) ?? Promise.resolve(undefined)
@@ -1828,7 +1826,6 @@ Please check webhooks settings, remove invalid webhooks, and clean the queue.'))
     oldVal: IPageWidget,
     newVal: IPageWidget,
   ) {
-
     const docModel = this.docModel;
     const viewModel = section.view();
     const docData = this.docModel.docData;

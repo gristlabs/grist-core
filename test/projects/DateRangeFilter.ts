@@ -23,7 +23,6 @@ describe('DateRangeFilter', function() {
   }
 
   async function testBoundShowCalendar(minMax: 'min'|'max') {
-
     // check calendar is NOT present
     assert.equal(await driver.find('.datepicker-inline').isPresent(), false);
 
@@ -432,5 +431,4 @@ describe('DateRangeFilter', function() {
       assert.equal(await fu.getBoundText('max'), 'Yesterday');
     });
   });
-
 });

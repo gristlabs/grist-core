@@ -40,7 +40,6 @@ describe('VisibleFieldsConfig', function() {
 
     // check 'B', 'C', 'A' are visible
     assert.deepEqual(await driver.findAll('.g-column-label', e => e.getText()), ['B', 'C', 'A']);
-
   });
 
   it('hiding should work even when the hidden fields are collapsed', async function() {
@@ -68,7 +67,6 @@ describe('VisibleFieldsConfig', function() {
   });
 
   it('should support reordering with drag and drop', async function() {
-
     // Drag 'B' below 'C'
     await driver.withActions(actions => (
       actions
@@ -85,7 +83,6 @@ describe('VisibleFieldsConfig', function() {
   });
 
   it('should allow to hide multiple columns', async function() {
-
     // check that initally 'Hide ...' and 'Clear' buttons are hidden
     assert.equal(await driver.find('.test-vfc-visible-batch-buttons').isPresent(), false);
 
@@ -126,7 +123,6 @@ describe('VisibleFieldsConfig', function() {
   });
 
   it('should allow to \'Show\' multiple column', async function() {
-
     // check that buttons are not present
     assert.equal(await driver.find('.test-vfc-hidden-batch-buttons').isPresent(), false);
 
@@ -222,7 +218,6 @@ describe('VisibleFieldsConfig', function() {
   });
 
   describe('multi selection', () => {
-
     // tests multi selection for both the list of visible fields and the list of hidden fields.
 
     describe('visible fields', function() {
@@ -230,7 +225,6 @@ describe('VisibleFieldsConfig', function() {
     });
 
     describe('hidden fields', function() {
-
       it('initialize test', async function() {
         // testMultiSelection expects all fields to be in the draggable under test, so we need to
         // hide all fields.
@@ -247,11 +241,9 @@ describe('VisibleFieldsConfig', function() {
 
       stackWrapFunc(testMultiSelection)('hidden');
     });
-
   });
 
   function testMultiSelection(state: 'hidden'|'visible') {
-
     function findButtons() {
       return driver.find(`.test-vfc-${state}-batch-buttons`);
     }
@@ -389,5 +381,4 @@ describe('VisibleFieldsConfig', function() {
       await gu.undo();
     });
   }
-
 });

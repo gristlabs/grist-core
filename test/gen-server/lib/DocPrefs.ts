@@ -6,7 +6,6 @@ import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('DocPrefs', function() {
-
   this.timeout(60000);
   testUtils.setTmpLogLevel('error');
 
@@ -71,7 +70,6 @@ describe('DocPrefs', function() {
 
   for (const docName of ['privateDoc', 'publicDoc'] as const) {
     describe(docName, function() {
-
       function getScope(user: keyof typeof users): DocScope {
         return { userId: users[user].id, org, urlId: docs[docName] };
       }

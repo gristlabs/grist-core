@@ -9,7 +9,6 @@ import { Workspace } from "app/gen-server/entity/Workspace";
 @Entity('acl_rules')
 @TableInheritance({ column: { type: "int", name: "type" } })
 export class AclRule extends BaseEntity {
-
   @PrimaryGeneratedColumn()
   public id: number;
 
@@ -23,7 +22,6 @@ export class AclRule extends BaseEntity {
 
 @ChildEntity()
 export class AclRuleWs extends AclRule {
-
   @ManyToOne(type => Workspace, workspace => workspace.aclRules)
   @JoinColumn({ name: "workspace_id" })
   public workspace: Workspace;
@@ -34,7 +32,6 @@ export class AclRuleWs extends AclRule {
 
 @ChildEntity()
 export class AclRuleOrg extends AclRule {
-
   @ManyToOne(type => Organization, organization => organization.aclRules)
   @JoinColumn({ name: "org_id" })
   public organization: Organization;
@@ -45,7 +42,6 @@ export class AclRuleOrg extends AclRule {
 
 @ChildEntity()
 export class AclRuleDoc extends AclRule {
-
   @ManyToOne(type => Document, document => document.aclRules)
   @JoinColumn({ name: "doc_id" })
   public document: Document;

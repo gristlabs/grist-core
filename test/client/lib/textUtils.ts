@@ -85,5 +85,4 @@ describe('textUtils', function() {
       `failed for ${markdownText}`,
     ));
   });
-
 });

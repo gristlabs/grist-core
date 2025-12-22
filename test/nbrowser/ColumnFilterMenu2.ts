@@ -11,7 +11,6 @@ function getItems() {
 }
 
 describe('ColumnFilterMenu2', function() {
-
   this.timeout('30s');
   const cleanup = setupTestSuite();
   let mainSession: gu.Session;
@@ -197,5 +196,4 @@ describe('ColumnFilterMenu2', function() {
       [5, '[**label** in bold](http://example.com) with text', '**label** in bold with text'],
     ]);
   });
-
 });

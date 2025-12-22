@@ -330,7 +330,6 @@ export class GristWSConnection extends Disposable {
   }
 
   private _connectImpl(isReconnecting: boolean, timezone: any) {
-
     if (!this._wantReconnect) { return; }
 
     if (isReconnecting) {

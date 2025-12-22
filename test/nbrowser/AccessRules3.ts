@@ -30,7 +30,6 @@ describe("AccessRules3", function() {
   afterEach(() => gu.checkForErrors());
 
   describe('SeedRule special', function() {
-
     // When a tooltip is present, it introduces this extra text into getText() result.
     const tooltipMarker = "\n?";
 
@@ -373,5 +372,4 @@ describe("AccessRules3", function() {
           { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker }]);
     });
   });
-
 });

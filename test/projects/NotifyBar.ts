@@ -32,7 +32,6 @@ describe('NotifyBar', function() {
       assert.equal((await toasts()).length, 0);
     });
   });
-
 });
 
 const toasts = stackWrapFunc(async () => await driver.findAll('.test-notifier-toast-wrapper'));

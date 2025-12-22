@@ -224,7 +224,6 @@ export async function synchronizeProducts(
       .map(p => [p.name, p]));
     for (const product of desiredProducts.values()) {
       if (existingProducts.has(product.name)) {
-
         // Synchronize features only of known plans (team plan is not known).
         if (!isManagedPlan(product.name)) {
           continue;

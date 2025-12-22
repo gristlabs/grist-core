@@ -223,7 +223,6 @@ function isEmpty(permissions: PartialPermissionSet): boolean {
  */
 export function splitSchemaEditPermissionSet(permissions: PartialPermissionSet):
 { schemaEdit?: PartialPermissionSet, nonSchemaEdit?: PartialPermissionSet } {
-
   const schemaEdit = { ...emptyPermissionSet(), schemaEdit: permissions.schemaEdit };
   const nonSchemaEdit: PartialPermissionSet = { ...permissions, schemaEdit: "" };
   return {

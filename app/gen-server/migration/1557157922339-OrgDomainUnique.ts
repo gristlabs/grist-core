@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class OrgDomainUnique1557157922339 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     const logins = (await queryRunner.getTable('orgs'))!;
     const domain = logins.findColumnByName('domain')!;

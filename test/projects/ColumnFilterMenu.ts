@@ -45,7 +45,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should have a working select all / none', async () => {
-
     // Check that everything is selected
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({ excluded: [] }));
     assert.equal(await driver.find('.fixture-all-values').getText(),
@@ -385,7 +384,6 @@ describe('ColumnFilterMenu', function() {
   });
 
   it('should clear the search box when clicking the `x`', async () => {
-
     // search for App
     await driver.find('.test-filter-menu-search-input').click();
 

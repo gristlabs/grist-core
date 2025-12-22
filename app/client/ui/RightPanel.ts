@@ -606,7 +606,6 @@ export class RightPanel extends Disposable {
     //Each case (filters-table, id cols, etc) needs to be able to handle having lfilter.filterLabels = {}
     const tgtSec = activeSection;
     return dom.domComputed((use) => {
-
       const srcSec = use(tgtSec.linkSrcSection); //might be the empty section
       const srcCol = use(tgtSec.linkSrcCol);
       const srcColId = use(use(tgtSec.linkSrcCol).colId); // if srcCol is the empty col, colId will be undefined

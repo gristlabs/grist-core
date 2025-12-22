@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner, TableIndex } from "typeorm";
 
 export class ExtraIndexes1579559983067 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.createIndex("acl_rules", new TableIndex({
       name: "acl_rules__group_id",

@@ -60,7 +60,6 @@ class GristDocAPIImpl implements GristDocAPI {
  *
  */
 export class DocPluginManager {
-
   public readonly plugins: { [s: string]: PluginInstance } = {};
   public readonly ready: Promise<any>;
   public readonly gristDocAPI: GristDocAPI;
@@ -88,7 +87,6 @@ export class DocPluginManager {
    * Throws if no importers can parse the file.
    */
   public async parseFile(filePath: string, fileName: string, parseOptions: ParseOptions): Promise<ParseFileResult> {
-
     // Support an existing grist json format directly for files with a "jgrist"
     // extension.
     if (path.extname(fileName) === '.jgrist') {

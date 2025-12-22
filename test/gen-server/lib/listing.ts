@@ -94,7 +94,6 @@ describe('listing', function() {
 
   // Check lists acquired via getWorkspace or via getOrgWorkspaces.
   for (const method of ['getWorkspace', 'getOrgWorkspaces'] as const) {
-
     it(`editors and owners can list docs they cannot view with ${method}`, async function() {
       async function list(user: UserAPI) {
         if (method === 'getWorkspace') { return user.getWorkspace(ws1); }

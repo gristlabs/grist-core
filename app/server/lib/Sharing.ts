@@ -93,7 +93,6 @@ export class Sharing {
     const undo = getEnvContent(result.bundle.undo);
 
     try {
-
       const isSystemAction = (userActions.length === 1 && SYSTEM_ACTIONS.has(userActions[0][0] as string));
       // `internal` is true if users shouldn't be able to undo the actions. Applies to:
       // - Calculate/UpdateCurrentTime because it's not considered as performed by a particular client.

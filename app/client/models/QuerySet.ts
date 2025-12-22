@@ -109,7 +109,6 @@ export class QuerySetManager extends Disposable {
   public testSetGracePeriodMs(ms: number): number {
     return this._queryMap.testSetGracePeriodMs(ms);
   }
-
 }
 
 /**

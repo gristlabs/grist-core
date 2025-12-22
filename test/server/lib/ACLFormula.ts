@@ -111,7 +111,6 @@ describe('ACLFormula', function() {
   });
 
   it('should handle a complex combination of operators', async function () {
-
     // This is not particularly meaningful, but involves more combinations.
     const compiled = await setAndCompile(
       "user.IsAdmin or rec.assigned is None or (not newRec.HasDuplicates and rec.StatusIndex <= newRec.StatusIndex)");

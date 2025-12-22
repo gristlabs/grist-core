@@ -8,7 +8,6 @@ import * as sinon from 'sinon';
 
 describe('DocSnapshots', async function() {
   describe('DocSnapshotPruner', async function() {
-
     function makeStore(snapshots: ObjSnapshot[]): ExternalStorage {
       return {
         versions() { return Promise.resolve(snapshots); },

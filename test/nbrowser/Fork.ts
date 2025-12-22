@@ -6,7 +6,6 @@ import { server, setupTestSuite } from 'test/nbrowser/testUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 describe("Fork", function() {
-
   // this is a relatively slow test in staging.
   this.timeout(60000);
   const cleanup = setupTestSuite();
@@ -66,7 +65,6 @@ describe("Fork", function() {
 
   for (const idType of ['urlId', 'docId'] as Array<'docId'|'urlId'>) {
     describe(`with ${idType} in url`, function() {
-
       before(async function() {
         // Chimpy imports a document
         await team.login();
@@ -476,7 +474,6 @@ describe("Fork", function() {
       });
 
       it('navigating browser history play well with the add new menu', async function() {
-
         await team.login();
         await makeDocIfAbsent();
         await team.loadDoc(`/doc/${doc.id}/m/fork`);
@@ -508,7 +505,6 @@ describe("Fork", function() {
       });
 
       it('can replace a trunk document with a fork via api', async function() {
-
         await team.login();
         await makeDocIfAbsent();
         await team.loadDoc(`/doc/${doc.id}/m/fork`);
@@ -564,7 +560,6 @@ describe("Fork", function() {
       });
 
       it('can replace a trunk document with a fork via UI', async function() {
-
         await team.login();
         await makeDocIfAbsent();
         await team.loadDoc(`/doc/${doc.id}/m/fork`);

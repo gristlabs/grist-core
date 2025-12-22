@@ -2118,7 +2118,6 @@ describe('ApiServer', function() {
   });
 
   it('POST /api/profile/user/name updates user\' name', async function() {
-
     let resp: AxiosResponse<any>;
     async function getName(config: AxiosRequestConfig = chimpy) {
       return (await axios.get(`${homeUrl}/api/profile/user`, config)).data.name;
@@ -2559,7 +2558,6 @@ describe('ApiServer', function() {
     });
 
     describe('Authentication', function() {
-
       async function setupServiceAccountWithAccessTo(orgName: string, creationBody = SERVICE_ACCOUNT_BODY) {
         const oid = await dbManager.testGetId(orgName);
 

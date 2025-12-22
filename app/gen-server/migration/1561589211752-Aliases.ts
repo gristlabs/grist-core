@@ -2,7 +2,6 @@ import { MigrationInterface, QueryRunner, Table, TableColumn, TableIndex } from 
 import { datetime, now } from 'app/gen-server/sqlUtils';
 
 export class Aliases1561589211752 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     const dbType = queryRunner.connection.driver.options.type;
 

@@ -11,7 +11,6 @@ const t = makeT("AdminChecks");
  * presentation on the admin panel or the boot page.
  */
 export class AdminChecks {
-
   // The back end will offer a set of probes (diagnostics) we
   // can use. Probes have unique IDs.
   public probes: Observable<BootProbeInfo[]>;

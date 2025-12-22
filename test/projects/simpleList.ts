@@ -39,5 +39,4 @@ describe('simpleList', function() {
     await driver.findContent('.grist-floating-menu li', 'bar').mouseMove();
     assert.deepEqual(await getSelected(), ['bar']);
   });
-
 });

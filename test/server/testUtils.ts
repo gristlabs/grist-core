@@ -332,7 +332,6 @@ export async function readFixtureDoc(docName: string) {
 // a class to store a snapshot of environment variables, can be reverted to by
 // calling .restore()
 export class EnvironmentSnapshot {
-
   public static push() {
     this._stack.push(new EnvironmentSnapshot());
   }

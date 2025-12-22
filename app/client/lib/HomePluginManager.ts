@@ -10,7 +10,6 @@ import { createRpcLogger, PluginInstance } from 'app/common/PluginInstance';
  * only safeBrowser components without any access to Grist.
  */
 export class HomePluginManager {
-
   public pluginsList: PluginInstance[];
 
   constructor(options: {

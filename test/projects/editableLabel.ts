@@ -19,7 +19,6 @@ describe('editableLabel', function() {
   }
 
   describe('test editableLabel component', function() {
-
     before(async function() {
       await driver.findContent('.test-select-component option', 'editableLabel').click();
     });
@@ -32,7 +31,6 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-edit-label').value(), 'foo');
       await driver.find('.test-edit-label').sendKeys(Key.ESCAPE);
     });
-
   });
 
   describe('test textInput component', function() {
@@ -41,7 +39,6 @@ describe('editableLabel', function() {
     });
 
     testInput();
-
   });
 
   function testInput() {
@@ -232,6 +229,5 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-edit-label').value(), "foo");
       assert.equal(await driver.find('.test-saved-value').getText(), "foo");
     });
-
   }
 });

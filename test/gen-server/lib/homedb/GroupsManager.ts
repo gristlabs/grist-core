@@ -299,7 +299,6 @@ describe("GroupsManager", function () {
       assert.isEmpty(updatedGroup.memberUsers);
       assert.isEmpty(updatedGroup.memberGroups);
     });
-
   });
 
   describe('getGroupsWithMembersByType()', function () {

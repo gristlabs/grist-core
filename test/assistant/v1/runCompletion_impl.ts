@@ -131,7 +131,6 @@ export async function runCompletion() {
   console.log('Testing AI assistance: ');
 
   try {
-
     DEPS.fetch = ((info, init) =>
       fetcher.fetch(info, init)) as typeof DEPS.fetch;
 

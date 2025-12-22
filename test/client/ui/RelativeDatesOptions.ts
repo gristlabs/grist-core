@@ -28,7 +28,6 @@ function optionNotIncluded(options: any[], label: string) {
 }
 
 describe('RelativeDatesOptions', function() {
-
   const sandbox = sinon.createSandbox();
   let getCurrentTimeSub: SinonStub;
 
@@ -84,7 +83,6 @@ describe('RelativeDatesOptions', function() {
 
       checkOption(getOptions('2022-10-13'), 'Thursday of 2 weeks from now', [
         { quantity: 2, unit: 'week' }, { quantity: 4, unit: 'day' }]);
-
     });
 
     it('should limit \'N day of X month ago/from no\' to 3 months ago/from now', function() {
@@ -131,7 +129,6 @@ describe('RelativeDatesOptions', function() {
 
       checkOption(getOptions('2027-12-31'), 'Last day of 5 years from now', [
         { quantity: 5, unit: 'year', endOf: true }]);
-
     });
 
     it('should offer 1st day of any month, limited to 12 months ago/from now', function() {
@@ -163,6 +160,5 @@ describe('RelativeDatesOptions', function() {
       checkOption(getOptions('2022-12-31'), 'Last day of 3 months from now', [
         { quantity: 3, unit: 'month', endOf: true }]);
     });
-
   });
 });

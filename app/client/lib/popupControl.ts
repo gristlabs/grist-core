@@ -14,7 +14,6 @@ import { domDispose } from "grainjs";
 import { IOpenController, IPopupDomCreator, IPopupOptions, PopupControl } from "popweasel";
 
 export function popupControl(reference: Element, domCreator: IPopupDomCreator, options: IPopupOptions): PopupControl {
-
   function openFunc(openCtl: IOpenController) {
     const content = domCreator(openCtl);
     function dispose() { domDispose(content); }

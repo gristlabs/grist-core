@@ -4,7 +4,6 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 
 describe("InactivityTimer", function() {
-
   let spy: sinon.SinonSpy, timer: InactivityTimer;
 
   beforeEach(() => {

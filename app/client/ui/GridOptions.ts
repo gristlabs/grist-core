@@ -12,7 +12,6 @@ const t = makeT('GridOptions');
  * Builds the grid options.
  */
 export class GridOptions extends Disposable {
-
   constructor(private _section: ViewSectionRec) {
     super();
   }
@@ -51,7 +50,6 @@ export class GridOptions extends Disposable {
       ]),
     );
   }
-
 }
 
 // Returns a grainjs observable that reflects the value of obs a knockout saveable observable. The

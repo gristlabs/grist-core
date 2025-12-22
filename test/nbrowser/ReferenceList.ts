@@ -109,7 +109,6 @@ describe('ReferenceList', function() {
   });
 
   describe('transforms', function() {
-
     before(async function() {
       await session.tempDoc(cleanup, 'Favorite_Films.grist');
       await gu.toggleSidePanel('right', 'open');

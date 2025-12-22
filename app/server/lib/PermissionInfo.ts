@@ -62,7 +62,6 @@ export function emptyMemoSet(): MemoSet {
  * doc default rules.
  */
 abstract class RuleInfo<MixedT extends TableT, TableT> {
-
   // Construct a RuleInfo for a particular input, which is a combination of user and
   // optionally a record.
   constructor(protected _acls: ACLRuleCollection, protected _input: PredicateFormulaInput) {}

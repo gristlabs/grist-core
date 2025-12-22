@@ -170,7 +170,6 @@ export class MappedRowSource extends RowSource {
  * A RowSource with some extra rows added.
  */
 export class ExtendedRowSource extends RowSource {
-
   constructor(
     public parentRowSource: RowSource,
     public extras: readonly UIRowId[],

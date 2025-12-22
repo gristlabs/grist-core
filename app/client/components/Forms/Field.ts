@@ -48,7 +48,6 @@ const t = makeT('Field');
  * Container class for all fields.
  */
 export class FieldModel extends BoxModel {
-
   /**
    * Edit mode, (only one element can be in edit mode in the form editor).
    */

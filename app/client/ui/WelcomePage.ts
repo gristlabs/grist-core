@@ -37,7 +37,6 @@ function handleSubmitForm(
 }
 
 export class WelcomePage extends Disposable {
-
   constructor(private _appModel: AppModel, private _appObj: App) {
     super();
   }

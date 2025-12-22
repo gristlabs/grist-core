@@ -5,7 +5,6 @@ import { TestServer } from 'test/gen-server/apiUtils';
 import * as testUtils from 'test/server/testUtils';
 
 describe('scrubUserFromOrg', function() {
-
   let server: TestServer;
   testUtils.setTmpLogLevel('error');
 

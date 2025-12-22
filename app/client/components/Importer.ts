@@ -236,7 +236,6 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
  * Importer manages an import files to Grist tables and shows Preview
  */
 export class Importer extends DisposableWithEvents {
-
   private _docComm = this._gristDoc.docComm;
   private _uploadResult?: UploadResult;
 

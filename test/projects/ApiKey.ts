@@ -83,5 +83,4 @@ describe('ApiKeyWidget', function() {
     assert.deepEqual(await driver.findAll('.test-apikey-description', e => e.getText()), [
       'By generating an API key, you will be able to make API calls for your own account.']);
   });
-
 });

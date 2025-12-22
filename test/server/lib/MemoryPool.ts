@@ -22,7 +22,6 @@ function poolInfo(mpool: MemoryPool): { total: number, reserved: number, availab
 }
 
 describe("MemoryPool", function() {
-
   afterEach(() => {
     sinon.restore();
   });

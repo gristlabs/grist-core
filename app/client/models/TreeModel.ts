@@ -87,7 +87,6 @@ export function fixIndents(records: TreeRecord[]) {
 
 // build a tree model from a grist table storing tree view data
 export function fromTableData(table: TreeTableData, buildDom: DomBuilder, oldModel?: TreeModelRecord) {
-
   const records = getRecords(table);
   const storage = { table, records };
 
@@ -146,7 +145,6 @@ export class TreeNodeRecord implements TreeNode {
   // Moves 'item' along with all its descendant to just before 'nextChild' by updating the
   // .indentation and .position fields of all of their corresponding records in the table.
   public async insertBefore(item: TreeItemRecord, nextChild: TreeItemRecord|null) {
-
     // get records for newItem and its descendants
     const records = item.getRecords();
 
@@ -180,7 +178,6 @@ export class TreeNodeRecord implements TreeNode {
   // Sends user actions to update [A, B, ...] and remove [C, D, ...] when called with
   // `{update: [A, B ...], remove: [C, D, ...]}`.
   public async sendActions(actions: { update?: TreeRecord[], remove?: TreeRecord[] }) {
-
     const update = actions.update || [];
     const remove = actions.remove || [];
 
@@ -203,7 +200,6 @@ export class TreeNodeRecord implements TreeNode {
     if (userActions.length) {
       await this.storage.table.sendTableActions(userActions);
     }
-
   }
 
   // Removes child.
@@ -226,7 +222,6 @@ export class TreeNodeRecord implements TreeNode {
   private get _records() {
     return this.storage.records;
   }
-
 }
 
 export class TreeItemRecord extends TreeNodeRecord implements TreeItem {

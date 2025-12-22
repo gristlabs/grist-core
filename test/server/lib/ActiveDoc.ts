@@ -559,7 +559,6 @@ describe('ActiveDoc', async function() {
   });
 
   describe('Data Types', function() {
-
     it('should load data with exact types as stored', async function() {
       const docName = 'all-types';
       const activeDoc1 = await docTools.createDoc(docName);
@@ -1262,7 +1261,6 @@ describe('ActiveDoc', async function() {
     }
 
     it('can enforce internal attachments limit', async function() {
-
       // Add a tight limit, make sure adding attachments fails.
       let stub = sandbox.stub(Deps, 'MAX_INTERNAL_ATTACHMENTS_BYTES').value(10);
       const activeDoc = await docTools.createDoc('enforceInternalLimit');

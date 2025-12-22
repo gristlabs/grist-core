@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class FirstLogin1569593726320 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     const sqlite = queryRunner.connection.driver.options.type === 'sqlite';
     const datetime = sqlite ? "datetime" : "timestamp with time zone";

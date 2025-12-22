@@ -230,9 +230,7 @@ describe('SamlConfig', () => {
       const spUrl = new URL(samlResp.headers.get('location') || '');
       assert.equal(spUrl.origin + spUrl.pathname, homeUrl() + '/', 'should redirect to main');
     });
-
   });
-
 });
 
 function decodeSaml(encodedSAML: string) {

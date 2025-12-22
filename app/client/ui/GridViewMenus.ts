@@ -597,7 +597,6 @@ function buildLookupSection(gridView: GridView, index?: number){
   }
 
   function buildReverseLookupsMenuItems() {
-
     const getReferencesToThisTable = (): RefTable[] => {
       const { viewSection } = gridView;
       const otherTables = gridView.gristDoc.docModel.allTables.all().filter(tab =>

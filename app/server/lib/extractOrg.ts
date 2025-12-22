@@ -34,7 +34,6 @@ export type RequestWithOrg = Request & Partial<RequestOrgInfo>;
  * Manage the relationship between orgs and custom hosts in the url.
  */
 export class Hosts {
-
   // Cache of orgs (e.g. "fancy" of "fancy.getgrist.com") associated with custom hosts
   // (e.g. "www.fancypants.com")
   private _host2org = new MapWithTTL<string, Promise<string|undefined>>(ORG_HOST_CACHE_TTL);

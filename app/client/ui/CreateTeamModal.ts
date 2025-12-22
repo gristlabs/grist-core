@@ -49,7 +49,6 @@ class NewSiteModalContent extends Disposable {
     const domain = this._domain;
     const ctrl = this._ctrl;
     return dom.domComputed(this._page, (pageValue) => {
-
       switch (pageValue) {
         case 'createTeam': return buildTeamPage({
           team,

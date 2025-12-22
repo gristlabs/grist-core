@@ -89,5 +89,4 @@ describe('RowMenu', function() {
     await assertRowMenuOpensAndCloses();
     await assertRowMenuOpensWithRightClick();
   });
-
 });

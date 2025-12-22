@@ -3,7 +3,6 @@ import * as sqlUtils from 'app/gen-server/sqlUtils';
 import { MigrationInterface, QueryRunner, Table, TableUnique } from 'typeorm';
 
 export class Proposals1759256005608 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<void> {
     const dbType = queryRunner.connection.driver.options.type;
     const datetime = sqlUtils.datetime(dbType);

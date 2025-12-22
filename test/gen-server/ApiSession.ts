@@ -13,7 +13,6 @@ const nobody: AxiosRequestConfig = {
 };
 
 describe('ApiSession', function() {
-
   let server: TestServer;
   let serverUrl: string;
   testUtils.setTmpLogLevel('error');

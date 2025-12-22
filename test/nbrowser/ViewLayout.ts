@@ -10,7 +10,6 @@ describe("ViewLayout", function() {
   let api: UserAPI;
 
   it("should update when view section's type (.parentKey) changes", async () => {
-
     // create api
     api = gu.createHomeApi('Chimpy', 'nasa');
     addToRepl('api', api, 'home api');
@@ -62,7 +61,6 @@ describe("ViewLayout", function() {
   });
 
   it('should allow to cycle through sections using shortcuts', async () => {
-
     async function nextSection(count: number = 1) {
       return gu.sendKeys(...Array(count).fill(Key.chord(await gu.modKey(), 'o')));
     }

@@ -320,7 +320,6 @@ describe('UserManager2', function() {
   });
 
   it('should not make view-as mode disappear on save', async function() {
-
     // Make a document
     const session = await gu.session().personalSite.login();
     await session.tempDoc(cleanup, 'Hello.grist', { load: true });
@@ -485,7 +484,6 @@ describe('UserManager2', function() {
 
     await session.resetSite();
   });
-
 });
 
 function findMember(email: string) {

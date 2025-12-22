@@ -13,7 +13,6 @@ const dateNumber = parseDateTime("2020-10-31 12:34:56", {});
 
 describe("ValueFormatter", function() {
   describe("DateFormatter", function() {
-
     function check(expected: string, dateFormat?: string) {
       for (const value of [dateNumber, ["d", dateNumber], ["D", dateNumber, "UTC"]]) {
         const actual = createFormatter("Date", { dateFormat }, defaultDocSettings).formatAny(value);

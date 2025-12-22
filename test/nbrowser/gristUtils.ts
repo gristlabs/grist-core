@@ -375,7 +375,6 @@ namespace gristUtils {
   export async function getVisibleDetailCells<T>(
     colOrOptions: number|string|IColSelect<T>|IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
-
     if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
       const { rowNums, section, mapper } = colOrOptions;    // tslint:disable-line:no-shadowed-variable
       const columns = await Promise.all(colOrOptions.cols.map(oneCol =>

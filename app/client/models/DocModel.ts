@@ -75,7 +75,6 @@ export type IRowModel<TName extends keyof SchemaTypes> = MetaRowModel<TName> & {
 export function recordSet<TRow extends MetaRowModel>(
   rowModel: MetaRowModel, tableModel: MetaTableModel<TRow>, groupByField: string, options?: { sortBy: string },
 ): ko.Computed<KoArray<TRow>> {
-
   const opts = { groupBy: groupByField, sortBy: 'id', ...options };
   return koUtil.computedAutoDispose(() => {
     const id = rowModel.id();

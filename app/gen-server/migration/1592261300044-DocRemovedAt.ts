@@ -2,7 +2,6 @@ import { nativeValues } from "app/gen-server/lib/values";
 import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from "typeorm";
 
 export class DocRemovedAt1592261300044 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     for (const table of ['docs', 'workspaces']) {
       await queryRunner.addColumn(table, new TableColumn({

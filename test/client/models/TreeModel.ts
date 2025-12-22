@@ -60,7 +60,6 @@ function testActions(records: TreeRecord[], actions: { update?: TreeRecord[], re
 }
 
 describe('TreeModel', function() {
-
   let table: any;
   let sendActionsSpy: any;
   let records: TreeRecord[];
@@ -80,7 +79,6 @@ describe('TreeModel', function() {
   });
 
   it('fixIndent should work correctly', function() {
-
     function fix(items: string[]) {
       const recs = items.map((item, id) => ({ id, indentation: Number(item[1]), name: item[0], pagePos: id }));
       return fixIndents(recs).map(rec => rec.name + rec.indentation);
@@ -95,12 +93,10 @@ describe('TreeModel', function() {
   });
 
   describe("fromTableData", function() {
-
     it('should build correct model', function() {
       records = simpleArray(['A0', 'B1', 'C0', 'D1', 'E2', 'F0']);
       const model = fromTableData(table, buildDom);
       assert.equal(toJson(model), JSON.stringify(['A', ['B'], 'C', ['D', ['E']], 'F']));
-
     });
 
     it('should build correct model even with gaps in indentation', function() {
@@ -137,11 +133,9 @@ describe('TreeModel', function() {
       // new model is correct
       assert.equal(toJson(model), JSON.stringify(['A', 'B', ['C'], 'D']));
     });
-
   });
 
   describe("TreeNodeRecord", function() {
-
     it("removeChild(...) should work properly", async function() {
       records = simpleArray(['A0', 'B1', 'C0', 'D1', 'E2', 'F0']);
       const model = fromTableData(table, buildDom);
@@ -155,9 +149,7 @@ describe('TreeModel', function() {
     });
 
     describe("insertBefore", function() {
-
       it("should insert before a child properly", async function() {
-
         records = simpleArray(['A0', 'B1', 'C0', 'D1', 'E2', 'F0']);
         const model = fromTableData(table, buildDom);
 
@@ -171,7 +163,6 @@ describe('TreeModel', function() {
       });
 
       it("should insert as last child correctly", async function() {
-
         records = simpleArray(['A0', 'B1', 'C0', 'D1', 'E2', 'F0']);
         const model = fromTableData(table, buildDom);
 
@@ -192,7 +183,6 @@ describe('TreeModel', function() {
       });
 
       it("should insert into a child correctly", async function() {
-
         records = simpleArray(['A0', 'B1', 'C0', 'D1', 'E2', 'F0']);
         const model = fromTableData(table, buildDom);
 
@@ -207,7 +197,6 @@ describe('TreeModel', function() {
       });
 
       it("should insert item with nested children correctly", async function() {
-
         records = simpleArray(['A0', 'B1', 'C0', 'D1', 'E2', 'F0']);
         const model = fromTableData(table, buildDom);
 
@@ -220,7 +209,6 @@ describe('TreeModel', function() {
           { ...records[4], indentation: 1, pagePos: null }] });
         assert.deepEqual(testActions(records, actions), ['A0', 'B1', 'C0', 'F0', 'D0', 'E1']);
       });
-
     });
   });
 });

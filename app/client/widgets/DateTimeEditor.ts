@@ -116,7 +116,6 @@ export class DateTimeEditor extends DateEditor {
    * Overrides the resizing function in TextEditor.
    */
   protected resizeInput() {
-
     // for readonly field, we will use logic from a super class
     if (this.options.readonly) {
       return super.resizeInput();

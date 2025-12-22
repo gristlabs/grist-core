@@ -79,7 +79,6 @@ export async function importFromPlugin(
 ) {
   const screen = PluginScreen.create(null, importSourceElem.importSource.label);
   try {
-
     const plugin = importSourceElem.plugin;
     const handle = screen.renderPlugin(plugin);
     const importSource = await importSourceElem.importSourceStub.getImportSource(handle);

@@ -12,7 +12,6 @@ import * as testUtils from 'test/server/testUtils';
 tmp.setGracefulCleanup();
 
 describe('DocStorageManager', function() {
-
   // Set Grist home to a temporary directory, and wipe it out on exit.
   let docsRoot: string;
   let docStorageManager: DocStorageManager;

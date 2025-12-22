@@ -88,7 +88,6 @@ describe('ColumnFilterMenu3', function() {
   });
 
   describe('Ref', function() {
-
     it('should have correct order for Numeric column', async () => {
       await gu.toggleSidePanel('right', 'open');
       await gu.openColumnMenu('Ref', 'Options');

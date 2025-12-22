@@ -33,7 +33,6 @@ describe('SortFunc', function() {
   });
 
   describe('emptyCompare', function() {
-
     it('should work correctly ', function() {
       const comparator = emptyCompare(typedCompare);
       assert.equal(comparator(null, null), 0);
@@ -62,7 +61,5 @@ describe('SortFunc', function() {
       values2.sort(comparator);
       assert.deepEqual(values1, values2);
     });
-
   });
-
 });

@@ -108,6 +108,5 @@ describe('updateChecker', function() {
       assert.equal(latestVersionAvailable?.version, newestVersion);
       assert.equal(latestVersionAvailable?.isNewer, true);
     });
-
   });
 });

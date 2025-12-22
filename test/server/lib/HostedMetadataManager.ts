@@ -9,7 +9,6 @@ import { setTmpLogLevel } from 'test/server/testUtils';
 // Note that this is a stubbed test of the HostedMetadataManager and does not test interaction
 // with the live DB. We may want to revisit this with the DB running for a complete test.
 describe('HostedMetadataManager', function() {
-
   setTmpLogLevel('info');
 
   const sandbox = sinon.createSandbox();

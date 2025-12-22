@@ -72,7 +72,6 @@ export interface ViewOptions {
  * @param {Boolean} options.addNewRow - Whether to include an add row in the model.
  */
 export default class BaseView extends DisposableWithEvents {
-
   public viewPane: HTMLElement;
   public viewData: LazyArrayModel<DataRowModel>;
   public cursor: Cursor;

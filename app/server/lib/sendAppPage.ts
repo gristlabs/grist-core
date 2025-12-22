@@ -168,7 +168,6 @@ export type SendAppPageFunction =
 export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain }: {
   server: GristServer, staticDir: string, tag: string, testLogin?: boolean, baseDomain?: string
 }): SendAppPageFunction {
-
   // If env var GRIST_INCLUDE_CUSTOM_SCRIPT_URL is set, load it in a <script> tag on all app pages.
   const customScriptUrl = process.env.GRIST_INCLUDE_CUSTOM_SCRIPT_URL;
   const insertCustomScript: string = customScriptUrl ?

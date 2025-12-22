@@ -8,7 +8,6 @@ import { AddressInfo } from 'net';
 import fetch from 'node-fetch';
 
 describe("extractOrg", function() {
-
   let port: number;
   let server: http.Server;
 

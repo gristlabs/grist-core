@@ -116,7 +116,6 @@ type MsgCode = null | true | false;
 const recordBuffersRoot = process.env.RECORD_SANDBOX_BUFFERS_DIR;
 
 export class NSandbox implements ISandbox {
-
   public readonly childProc?: ChildProcess;
   private _control: ISandboxControl;
   private _logTimes: boolean;

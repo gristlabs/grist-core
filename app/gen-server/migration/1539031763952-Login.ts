@@ -1,7 +1,6 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class Login1539031763952 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<any> {
     await queryRunner.createTable(new Table({
       name: 'logins',

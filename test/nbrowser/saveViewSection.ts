@@ -76,7 +76,6 @@ describe("saveViewSection", function() {
   });
 
   it("should work correctly when changing type", async () => {
-
     async function switchTypeAndAssert(t: string) {
       // open page widget picker
       await driver.find('.test-pwc-editDataSelection').doClick();
@@ -102,7 +101,6 @@ describe("saveViewSection", function() {
   });
 
   it("should work correctly when changing grouped by column", async () => {
-
     // open page widget picker
     await driver.find('.test-pwc-editDataSelection').doClick();
 

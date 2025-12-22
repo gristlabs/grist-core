@@ -12,5 +12,4 @@ export class Secret extends BaseEntity {
   @ManyToOne(_type => Document, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'doc_id' })
   public doc: Document;
-
 }

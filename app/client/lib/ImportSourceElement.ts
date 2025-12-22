@@ -9,7 +9,6 @@ import { checkers } from 'app/plugin/TypeCheckers';
  * sources from an array of plugins instances.
  */
 export class ImportSourceElement {
-
   /**
    * Get all import sources from an array of plugin instances.
    */
