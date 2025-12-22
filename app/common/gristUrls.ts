@@ -418,7 +418,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   if (state.homePageTab) {
     url.hash = state.homePageTab;
   }
-  else if (state.hash && state.hash.anchor) {
+  else if (state.hash?.anchor) {
     url.hash = state.hash.anchor;
   }
   else if (state.hash) {
@@ -673,7 +673,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         if (key === 'rowId' && value === 'new') {
           link[key] = 'new';
         }
-        else if (key === 'rowId' && value && value.includes("-")) {
+        else if (key === 'rowId' && value?.includes("-")) {
           const rowIdParts = value.split("-").map(p => (p === 'new' ? p : parseInt(p, 10)));
           link[key] = rowIdParts[0];
           link.linkingRowIds = rowIdParts.slice(1);
@@ -1105,10 +1105,10 @@ export function getWebinarsUrl(): string {
 export function isOrgInPathOnly(host?: string): boolean {
   if (isClient()) {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
-    return (gristConfig && gristConfig.pathOnly) || false;
+    return (gristConfig?.pathOnly) || false;
   }
   else {
-    if (host && host.match(localhostRegex)) { return true; }
+    if (host?.match(localhostRegex)) { return true; }
     return (process.env.GRIST_ORG_IN_PATH === 'true');
   }
 }
@@ -1171,7 +1171,7 @@ export function sanitizePathTail(path: string | undefined) {
  */
 export function parseFirstUrlPart(tag: string, path: string): { value?: string, path: string } {
   const match = path.match(/^\/([^/?#]+)\/([^/?#]+)(.*)$/);
-  if (match && match[1] === tag) {
+  if (match?.[1] === tag) {
     return { value: match[2], path: sanitizePathTail(match[3]) };
   }
   else {

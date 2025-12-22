@@ -367,7 +367,7 @@ class FinderImpl implements IFinder {
     let formatter = this._fieldFormatters[this._fieldStepper.index];
     // When fields are removed during search (or reordered) we need to update
     // formatters we retrieved on init.
-    if (!formatter || formatter[0 /* field */] !== field) {
+    if (formatter?.[0] !== field) {
       this._initFormatters();
       formatter = this._fieldFormatters[this._fieldStepper.index];
     }

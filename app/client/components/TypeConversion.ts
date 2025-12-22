@@ -71,7 +71,7 @@ export function inferColTypeSuffix(newPure: string, column: ColumnRec) {
  */
 function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string | null {
   const tableData = docModel.docData.getTable(column.table().tableId());
-  const columnData = tableData && tableData.getColValues(column.colId());
+  const columnData = tableData?.getColValues(column.colId());
   if (columnData) {
     for (const value of columnData) {
       if (gristTypes.isReferencing(value)) {

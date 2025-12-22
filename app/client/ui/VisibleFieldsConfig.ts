@@ -122,7 +122,7 @@ export class VisibleFieldsConfig extends Disposable {
       const newArray = new KoArray<ViewFieldRec>();
 
       function update() {
-        if (freeze && freeze.get()) { return; }
+        if (freeze?.get()) { return; }
         const newValues = allFields.peek()
           .filter((_v, i) => i + 1 > skipFirst.get())
           .filter(filterFunc)

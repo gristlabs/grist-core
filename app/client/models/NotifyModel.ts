@@ -247,7 +247,7 @@ export class Notifier extends Disposable implements INotifier {
    */
   public createUserMessage(message: MessageType, options: Partial<INotifyOptions> = {}): INotification {
     const timestamp = Date.now();
-    if (options.actions && options.actions.includes('ask-for-help')) {
+    if (options.actions?.includes('ask-for-help')) {
       // If user should be able to ask for help, add this error to the notifier dropdown too for a
       // good while, so the user can find it after the toast disappears.
       this.createNotification({

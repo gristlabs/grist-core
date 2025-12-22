@@ -517,7 +517,7 @@ export class DocWorkerMap implements IDocWorkerMap {
   }
 
   public getPermitStore(prefix: string, defaultTtlMs?: number): IPermitStore {
-    const permitMsec = defaultTtlMs || (this._options && this._options.permitMsec) || PERMIT_TTL_MSEC;
+    const permitMsec = defaultTtlMs || (this._options?.permitMsec) || PERMIT_TTL_MSEC;
     const client = this._client;
     return {
       async setPermit(permit: Permit, ttlMs?: number): Promise<string> {

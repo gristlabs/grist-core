@@ -193,7 +193,7 @@ export function createColumnRec(this: ColumnRec, docModel: DocModel): void {
 
   this.cleanWidgetOptionsJson = ko.pureComputed(() => {
     const options = this.widgetOptionsJson();
-    if (options && options.rules) {
+    if (options?.rules) {
       delete options.rules;
     }
     return JSON.stringify(options);

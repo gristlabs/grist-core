@@ -367,8 +367,7 @@ export class UsersManager {
       return await this.getUserByLogin(email, options);
     }
     catch (e) {
-      if (e.name === 'QueryFailedError' && e.detail &&
-        e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
+      if (e.name === 'QueryFailedError' && e.detail?.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
         // because we have to serialize sqlite transactions in any case to get around a typeorm
         // limitation.
@@ -448,12 +447,12 @@ export class UsersManager {
         user.name = (profile && this._getNameOrDeduceFromEmail(profile.name, email)) || '';
         needUpdate = true;
       }
-      if (!user.picture && profile && profile.picture) {
+      if (!user.picture && profile?.picture) {
         // Set the user's profile picture if our provider knows it.
         user.picture = profile.picture;
         needUpdate = true;
       }
-      if (profile && profile.email && profile.email !== login.displayEmail) {
+      if (profile?.email && profile.email !== login.displayEmail) {
         // Use provider's version of email address for display.
         login.displayEmail = profile.email;
         needUpdate = true;

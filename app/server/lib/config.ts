@@ -128,13 +128,13 @@ export function createConfigValue<ValueType>(
   defaultValue: ValueType,
   persistence?: ConfigAccessors<ValueType> | ConfigAccessors<ValueType | undefined>,
 ): IWritableConfigValue<ValueType> {
-  let inMemoryValue = (persistence && persistence.get());
+  let inMemoryValue = (persistence?.get());
   return {
     get(): ValueType {
       return inMemoryValue ?? defaultValue;
     },
     async set(value: ValueType) {
-      if (persistence && persistence.set) {
+      if (persistence?.set) {
         await persistence.set(value);
       }
       inMemoryValue = value;

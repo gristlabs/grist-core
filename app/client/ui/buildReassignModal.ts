@@ -212,7 +212,7 @@ export async function buildReassignModal(options: {
         // We are only interested in uqniue ref columns with reverse column.
         const petsCol = columnRec(ownersTable, colId);
         const ownerRevCol = petsCol.reverseColModel();
-        if (!ownerRevCol || !ownerRevCol.id()) {
+        if (!ownerRevCol?.id()) {
           continue;
         }
         if (petsCol.reverseColModel().pureType() !== 'Ref') {

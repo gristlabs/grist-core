@@ -115,7 +115,7 @@ export function applyPatch() {
       );
     }
 
-    if (this.queryRunner && this.queryRunner.isReleased) {
+    if (this.queryRunner?.isReleased) {
       throw new QueryRunnerProviderAlreadyReleasedError();
     }
     const queryRunner = this.queryRunner || this.connection.createQueryRunner();

@@ -422,7 +422,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
   private _maybeFocusInSection()  {
     // If the focused element is inside a view section, make that section active.
     const layoutBox = this.layout.getContainingBox(document.activeElement);
-    if (layoutBox && layoutBox.leafId) {
+    if (layoutBox?.leafId) {
       this.gristDoc.viewModel.activeSectionId(layoutBox.leafId.peek());
     }
   }

@@ -49,7 +49,7 @@ export function createUserImage(user: User, size: Size, ...args: DomElementArg[]
  * Exported for testing.
  */
 export function getInitials(user: Partial<UserProfile>) {
-  const source = (user.name && user.name.trim()) || (user.email && user.email.trim()) || '';
+  const source = (user.name?.trim()) || (user.email?.trim()) || '';
   return source.split(/\s+/, 2).map(p => p.slice(0, 1)).join('');
 }
 

@@ -530,7 +530,7 @@ export class LinkingState extends Disposable {
   private _srcCustomFilter(
     column: ColumnRec | undefined, operation: QueryOperation): ko.Computed<FilterState> {
     // Note: column may be the empty column, i.e. column != undef, but column.colId() is undefined
-    const colId = (!column || column.colId() === undefined) ? "id" : column.colId();
+    const colId = (column?.colId() === undefined) ? "id" : column.colId();
     return this.autoDispose(ko.computed(() => {
       const values = this._srcSection.selectedRows();
       return {

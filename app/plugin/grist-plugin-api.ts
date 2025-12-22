@@ -507,7 +507,7 @@ export function ready(settings?: ReadyPayload): void {
   if (_readyCalled) { return; }
   _readyCalled = true;
 
-  if (settings && settings.onEditOptions) {
+  if (settings?.onEditOptions) {
     rpc.registerFunc('editOptions', settings.onEditOptions);
   }
   on('message', async function(msg) {

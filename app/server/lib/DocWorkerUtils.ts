@@ -119,7 +119,7 @@ export async function getWorker(
       catch (e) {
         throw new ApiError(resp.statusText, resp.status);
       }
-      if (!(body && body.message && body.message === 'document worker not present')) {
+      if (!(body?.message && body.message === 'document worker not present')) {
         throw new ApiError(resp.statusText, resp.status);
       }
       // This is a 404 with the expected content for a missing worker.

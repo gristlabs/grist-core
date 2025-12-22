@@ -89,7 +89,7 @@ _beacon.readyQueue = [] as unknown[];
 function initBeacon(): void {
   if (!(window as any).Beacon) {
     const gristConfig: GristLoadConfig | undefined = window.gristConfig;
-    const beaconId = gristConfig && gristConfig.helpScoutBeaconId;
+    const beaconId = gristConfig?.helpScoutBeaconId;
     if (beaconId) {
       (window as any).Beacon = _beacon;
       document.head.appendChild(dom('script',

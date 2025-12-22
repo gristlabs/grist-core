@@ -740,10 +740,10 @@ export class RightPanel extends Disposable {
       // columns might be the empty column
       // to check nullness, use `.getRowId() == 0` or `use(srcCol.colId) == undefined`
 
-      const secToStr = (sec: ViewSectionRec) => (!sec || !sec.getRowId()) ?
+      const secToStr = (sec: ViewSectionRec) => (!sec?.getRowId()) ?
         'null' :
         `#${use(sec.id)} "${use(sec.titleDef)}", (table "${use(use(sec.table).tableId)}")`;
-      const colToStr = (col: ColumnRec) => (!col || !col.getRowId()) ?
+      const colToStr = (col: ColumnRec) => (!col?.getRowId()) ?
         'null' :
         `#${use(col.id)} "${use(col.colId)}", type "${use(col.type)}")`;
 
@@ -1033,7 +1033,7 @@ export class RightPanel extends Disposable {
 
     const formView = owner.autoDispose(ko.computed(() => {
       const view = viewInstance() as unknown as FormView;
-      if (!view || !view.selectedBox) { return null; }
+      if (!view?.selectedBox) { return null; }
       return view;
     }));
 

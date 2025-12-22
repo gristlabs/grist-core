@@ -907,7 +907,7 @@ export class GristDocImpl extends DisposableWithEvents implements GristDoc {
    * null, then moves to a position best suited for optActionGroup (not yet implemented).
    */
   public async moveToCursorPos(cursorPos?: CursorPos, optActionGroup?: MinimalActionGroup): Promise<void> {
-    if (!cursorPos || !cursorPos.sectionId) {
+    if (!cursorPos?.sectionId) {
       // TODO We could come up with a suitable cursorPos here based on the action itself.
       // This should only come up if trying to undo/redo after reloading a page (since the cursorPos
       // associated with the action is only stored in memory of the current JS process).

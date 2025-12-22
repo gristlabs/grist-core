@@ -1059,7 +1059,7 @@ describe('ActiveDoc', async function() {
       ]).catch(e => null);
       // Make sure we can throttle down - broken throttling would leave throttledRate up
       // near 100.
-      while (!logMeta || !logMeta.throttle || logMeta.throttledRate > 60) {
+      while (!logMeta?.throttle || logMeta.throttledRate > 60) {
         await delay(250);
       }
     });

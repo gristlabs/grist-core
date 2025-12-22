@@ -38,7 +38,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
       // If already on the billing page, nothing to return.
       if (urlState().state.get().billing === 'billing') { return null; }
       // If not a billing manager, nothing to return.
-      if (appModel && appModel.currentOrg && appModel.currentOrg.billingAccount &&
+      if (appModel?.currentOrg?.billingAccount &&
         !appModel.currentOrg.billingAccount.isManager) { return null; }
       // Otherwise return a link to the billing page.
       return dom('a', cssToastAction.cls(''), t("Renew"), { target: '_blank' },

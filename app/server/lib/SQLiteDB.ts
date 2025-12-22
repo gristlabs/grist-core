@@ -479,7 +479,7 @@ export class SQLiteDB implements ISQLiteDB {
    */
   public async getMigrationVersion(): Promise<number> {
     const row = await this.get("PRAGMA user_version");
-    return (row && row.user_version) || 0;
+    return (row?.user_version) || 0;
   }
 
   /**

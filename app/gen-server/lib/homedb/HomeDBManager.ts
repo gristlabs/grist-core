@@ -656,7 +656,7 @@ export class HomeDBManager implements HomeDBAuth {
     });
     qb = this._addBillingAccount(qb, scope.userId);
     let effectiveUserId = scope.userId;
-    if (scope.specialPermit && scope.specialPermit.org === orgKey) {
+    if (scope.specialPermit?.org === orgKey) {
       effectiveUserId = this._usersManager.getPreviewerUserId();
     }
     qb = this._withAccess(qb, effectiveUserId, 'orgs');
@@ -799,7 +799,7 @@ export class HomeDBManager implements HomeDBAuth {
     },
   ): Promise<QueryResult<Workspace>> {
     const { userId } = scope;
-    if (scope.specialPermit && scope.specialPermit.workspaceId === wsId) {
+    if (scope.specialPermit?.workspaceId === wsId) {
       const effectiveUserId = this._usersManager.getPreviewerUserId();
       scope = { ...scope };
       scope.userId = effectiveUserId;
@@ -1357,8 +1357,7 @@ export class HomeDBManager implements HomeDBAuth {
         savedOrg = result[0] as Organization;
       }
       catch (e) {
-        if (e.name === 'QueryFailedError' && e.message &&
-          e.message.match(/unique constraint/i)) {
+        if (e.name === 'QueryFailedError' && e.message?.match(/unique constraint/i)) {
           throw new ApiError('Domain already in use', 400);
         }
         throw e;
@@ -1528,7 +1527,7 @@ export class HomeDBManager implements HomeDBAuth {
         where: { id: org.billingAccountId },
         relations: ['orgs'],
       });
-      if (billingAccount && billingAccount.orgs.length === 0) {
+      if (billingAccount?.orgs.length === 0) {
         await manager.remove([billingAccount]);
       }
       return { status: 200, data: deletedOrg };
@@ -3823,21 +3822,21 @@ export class HomeDBManager implements HomeDBAuth {
     let query = this._orgs(options.manager);
     // merged pseudo-org must become personal org.
     if (org === null || (options.needRealOrg && this.isMergedOrg(org))) {
-      if (!scope || !scope.userId) { throw new Error('_org: requires userId'); }
+      if (!scope?.userId) { throw new Error('_org: requires userId'); }
       query = query.where('orgs.owner_id = :userId', { userId: scope.userId });
     }
     else {
       query = this._whereOrg(query, org, includeSupport);
     }
     if (options.markPermissions) {
-      if (!scope || !scope.userId) {
+      if (!scope?.userId) {
         throw new Error(`_orgQuery error: userId must be set to mark permissions`);
       }
       let effectiveUserId = scope.userId;
       let threshold = options.markPermissions;
       // TODO If the specialPermit is used across the network, requests could refer to orgs in
       // different ways (number vs string), causing this comparison to fail.
-      if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.org === org) {
+      if (options.allowSpecialPermit && scope.specialPermit?.org === org) {
         effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
@@ -4376,7 +4375,7 @@ export class HomeDBManager implements HomeDBAuth {
     if (options.markPermissions) {
       let effectiveUserId = userId;
       let threshold = options.markPermissions;
-      if (options.allowSpecialPermit && scope.specialPermit && scope.specialPermit.docId) {
+      if (options.allowSpecialPermit && scope.specialPermit?.docId) {
         query = query.andWhere('docs.id = :docId', { docId: scope.specialPermit.docId });
         effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
@@ -4467,8 +4466,7 @@ export class HomeDBManager implements HomeDBAuth {
     if (options.markPermissions) {
       let effectiveUserId = scope.userId;
       let threshold = options.markPermissions;
-      if (options.allowSpecialPermit && scope.specialPermit &&
-        scope.specialPermit.workspaceId === wsId) {
+      if (options.allowSpecialPermit && scope.specialPermit?.workspaceId === wsId) {
         effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
@@ -4790,7 +4788,7 @@ export class HomeDBManager implements HomeDBAuth {
       // them out for now, for the flexibility to change how we want these kinds of orgs
       // to be presented without having to do awkward migrations.
       if (key === 'domain') {
-        value[key] = this.normalizeOrgDomain(value.id, subValue, value.owner && value.owner.id,
+        value[key] = this.normalizeOrgDomain(value.id, subValue, value.owner?.id,
           false, options.suppressDomain);
         continue;
       }
@@ -5133,7 +5131,7 @@ export class HomeDBManager implements HomeDBAuth {
   // Filter out all personal orgs, and add back in a single merged org.
   private _mergePersonalOrgs(userId: number, orgs: Organization[]): Organization[] {
     const regularOrgs = orgs.filter(org => org.owner === null);
-    const personalOrg = orgs.find(org => org.owner && org.owner.id === userId);
+    const personalOrg = orgs.find(org => org.owner?.id === userId);
     if (!personalOrg) { return regularOrgs; }
     personalOrg.id = 0;
     personalOrg.domain = this.mergedOrgDomain();
@@ -5498,7 +5496,7 @@ async function verifyEntity(
 // Extract a human-readable name for the type of entity being selected.
 function getFrom(queryBuilder: SelectQueryBuilder<any>): string {
   const alias = queryBuilder.expressionMap.mainAlias;
-  const name = (alias && alias.metadata && alias.metadata.name.toLowerCase()) || 'resource';
+  const name = (alias?.metadata?.name.toLowerCase()) || 'resource';
   if (name === 'filtereddocument') { return 'document'; }
   return name;
 }

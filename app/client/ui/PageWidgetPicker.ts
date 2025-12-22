@@ -199,7 +199,7 @@ export function buildPageWidgetPicker(
   };
 
   // get initial value and setup state for the picker.
-  const initValue = options.value && options.value() || defaultValue;
+  const initValue = options.value?.() || defaultValue;
   const value: IWidgetValueObs = {
     type: Observable.create(ctl, initValue.type),
     table: Observable.create(ctl, initValue.table),

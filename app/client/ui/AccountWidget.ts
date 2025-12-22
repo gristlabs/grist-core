@@ -211,8 +211,7 @@ export class AccountWidget extends Disposable {
 
     const { currentValidUser, currentOrg, isTeamSite } = this._appModel;
     const canViewBillingPage = Boolean(
-      currentOrg && // have accecc to org
-      currentOrg.billingAccount && // have access to billing account
+      currentOrg?.billingAccount && // have access to billing account
       (currentOrg.billingAccount.isManager || // is billing manager
         currentValidUser?.isSupport || // or support
         this._appModel.isInstallAdmin())); // or install admin

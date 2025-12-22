@@ -33,7 +33,7 @@ export class ViewFieldConfig {
     // selected (or the selection is empty) return it in an array.
     this.fields = owner.autoDispose(ko.pureComputed(() => {
       const list = this._field.viewSection().selectedFields();
-      if (!list || !list.length) {
+      if (!list?.length) {
         return [_field];
       }
       // Make extra sure that field and column is not disposed, most of the knockout

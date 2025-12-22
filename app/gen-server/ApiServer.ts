@@ -461,7 +461,7 @@ export class ApiServer {
     // Update users profile.
     this._app.post('/api/profile/user/name', expressWrap(async (req, res) => {
       const userId = getAuthorizedUserId(req);
-      if (!(req.body && req.body.name)) {
+      if (!(req.body?.name)) {
         throw new ApiError('Name expected in the body', 400);
       }
       const name = req.body.name;
@@ -579,13 +579,13 @@ export class ApiServer {
       const org = domain ? (await this._withPrivilegedViewForUser(
         domain, req, scope => this._dbManager.getOrg(scope, domain),
       )) : null;
-      const orgError = (org && org.errMessage) ? { error: org.errMessage, status: org.status } : undefined;
+      const orgError = (org?.errMessage) ? { error: org.errMessage, status: org.status } : undefined;
       return sendOkReply(req, res, {
         user: { ...fullUser,
           helpScoutSignature: helpScoutSign(fullUser.email),
           isInstallAdmin: await this._gristServer.getInstallAdmin().isAdminReq(req) || undefined,
         },
-        org: (org && org.data) || null,
+        org: (org?.data) || null,
         orgError,
       });
     }));
@@ -636,7 +636,7 @@ export class ApiServer {
     // leaves?
     this._app.delete('/api/users/:uid', expressWrap(async (req, res) => {
       const userIdToDelete = parseInt(req.params.uid, 10);
-      if (!(req.body && req.body.name !== undefined)) {
+      if (!(req.body?.name !== undefined)) {
         throw new ApiError('to confirm deletion of a user, provide their name', 400);
       }
       const { data, ...result } = await this._dbManager.deleteUser(getScope(req), userIdToDelete, req.body.name);
@@ -824,7 +824,7 @@ export class ApiServer {
     const fullUser = this._dbManager.makeFullUser(user);
     const domain = getOrgFromRequest(mreq);
     const sessionUser = getSessionUser(mreq.session, domain || '', fullUser.email);
-    const loginMethod = sessionUser && sessionUser.profile ? sessionUser.profile.loginMethod : undefined;
+    const loginMethod = sessionUser?.profile ? sessionUser.profile.loginMethod : undefined;
     const allowGoogleLogin = user.options?.allowGoogleLogin ?? true;
     return { ...fullUser, loginMethod, allowGoogleLogin };
   }

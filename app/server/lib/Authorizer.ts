@@ -195,7 +195,7 @@ export async function addRequestUser(
   }
 
   // Now, check for an apiKey
-  if (!authDone && mreq.headers && mreq.headers.authorization) {
+  if (!authDone && mreq.headers?.authorization) {
     // header needs to be of form "Bearer XXXXXXXXX" to apply
     const parts = String(mreq.headers.authorization).split(' ');
     if (parts[0] === "Bearer") {
@@ -226,7 +226,7 @@ export async function addRequestUser(
   // Check if we have a boot key. This is a fallback mechanism for an
   // administrator to authenticate themselves by demonstrating access
   // to the environment.
-  if (!authDone && mreq.headers && mreq.headers['x-boot-key']) {
+  if (!authDone && mreq.headers?.['x-boot-key']) {
     const reqBootKey = String(mreq.headers['x-boot-key']);
     const bootKey = options.gristServer.getBootKey();
     if (!bootKey || bootKey !== reqBootKey) {
@@ -242,7 +242,7 @@ export async function addRequestUser(
   }
 
   // Special permission header for internal housekeeping tasks
-  if (!authDone && mreq.headers && mreq.headers.permit) {
+  if (!authDone && mreq.headers?.permit) {
     const permitKey = String(mreq.headers.permit);
     try {
       const permit = await permitStore.getPermit(permitKey);
@@ -309,7 +309,7 @@ export async function addRequestUser(
       forceSessionChange(session);
     }
     mreq.altSessionId = session?.altSessionId;
-    if (!mreq.userId && session && session.users && session.users.length > 0 &&
+    if (!mreq.userId && session?.users && session.users.length > 0 &&
       mreq.org !== undefined) {
 
       // Prevent using custom-domain sessionID to authorize to a different domain, since
@@ -343,7 +343,7 @@ export async function addRequestUser(
       mreq.users = getSessionProfiles(session);
 
       // If we haven't set a maxAge yet, set it now.
-      if (session && session.cookie && !session.cookie.maxAge) {
+      if (session?.cookie && !session.cookie.maxAge) {
         if (COOKIE_MAX_AGE !== null) {
           session.cookie.maxAge = COOKIE_MAX_AGE;
           forceSessionChange(session);

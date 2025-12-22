@@ -1710,8 +1710,7 @@ export default class GridView extends BaseView {
 
             // Whether the cell is part of an active copy-paste operation.
             const isCopyActive = ko.computed(() => {
-              return this.copySelection() &&
-                this.copySelection()?.isCellSelected(row.id(), field.colId());
+              return this.copySelection()?.isCellSelected(row.id(), field.colId());
             });
             const fieldBuilder = this.fieldBuilders.at(field._index()!)!;
             const isSelected = ko.computed(() => {
@@ -2439,7 +2438,7 @@ function buildStyleOption<Name extends keyof CombinedStyle, T>(
   return ko.computed(() => {
     if (owner.isDisposed()) { return defValue; }
     const rule = computedRule();
-    if (!rule || !rule.style) { return defValue; }
+    if (!rule?.style) { return defValue; }
     return (rule.style[optionName] as Exclude<CombinedStyle[Name], undefined>) || defValue;
   });
 }
@@ -2469,7 +2468,7 @@ class HoverColumnTooltip {
 
 // Simple function that calculates good color for zebra stripes.
 function calcZebra(hex: string) {
-  if (!hex || hex.length !== 7) { return hex; }
+  if (hex?.length !== 7) { return hex; }
   // HSL: [HUE, SATURATION, LIGHTNESS]
   const hsl = convert.hex.hsl(hex.substr(1));
   // For bright color, we will make it darker. Value was picked by hand, to

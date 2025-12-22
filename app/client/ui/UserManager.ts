@@ -404,7 +404,7 @@ export class UserManager extends Disposable {
       }
       const collaborator = annotations.hasTeam ? t('guest') : t('free collaborator');
       const limit = annotation.collaboratorLimit;
-      if (!limit || !limit.top) { return null; }
+      if (!limit?.top) { return null; }
       const elements: HTMLSpanElement[] = [];
       if (limit.at <= limit.top) {
         elements.push(cssMemberType(

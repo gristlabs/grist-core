@@ -64,7 +64,7 @@ export function createAppUI(topAppModel: TopAppModel, appObj: App): IDisposable 
 function createMainPage(appModel: AppModel, appObj: App) {
   if (!appModel.currentOrg && appModel.needsOrg.get()) {
     const err = appModel.orgError;
-    if (err && err.status === 404) {
+    if (err?.status === 404) {
       return createNotFoundPage(appModel);
     }
     else if (err && (err.status === 401 || err.status === 403)) {
@@ -76,7 +76,7 @@ function createMainPage(appModel: AppModel, appObj: App) {
       }
     }
     else {
-      return createOtherErrorPage(appModel, err && err.error);
+      return createOtherErrorPage(appModel, err?.error);
     }
   }
   return dom.domComputed(appModel.pageType, (pageType) => {

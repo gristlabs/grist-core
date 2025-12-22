@@ -43,7 +43,7 @@ function findAndResetInGristConfig(method: "getWorker", id: string): string | nu
 function findAndResetInGristConfig(method: CallType, id: string): any {
   const gristConfig = getGristConfig();
   const methodCache = gristConfig[method];
-  if (!methodCache || !methodCache[id]) {
+  if (!methodCache?.[id]) {
     console.log(`gristConfigCache ${method}[${id}]: not found`);
     return null;
   }

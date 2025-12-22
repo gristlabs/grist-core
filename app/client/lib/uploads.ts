@@ -164,7 +164,7 @@ async function uploadFormData(
       if (xhr.status !== 200) {
                console.warn("Upload failed", xhr.status, xhr.responseText);
         const err = safeJsonParse(xhr.responseText, null);
-        reject(new UserError('Upload failed: ' + (err && err.error || xhr.status)));
+        reject(new UserError('Upload failed: ' + (err?.error || xhr.status)));
       }
       else {
         onProgress(100);

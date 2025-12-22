@@ -205,7 +205,7 @@ export async function handleOptionalUpload(req: Request, res: Response): Promise
   const mreq = req as RequestWithLogin;
   const meta = {
     org: mreq.org,
-    email: mreq.user && mreq.user.loginEmail,
+    email: mreq.user?.loginEmail,
     userId: mreq.userId,
     altSessionId: mreq.altSessionId,
   };

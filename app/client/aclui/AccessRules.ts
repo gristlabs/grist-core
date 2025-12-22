@@ -2195,7 +2195,7 @@ class ObsRulePart extends Disposable {
   }
 
   private _warnInvalidColIds(colIds?: string[]): string | false {
-    if (!colIds || !colIds.length) { return false; }
+    if (!colIds?.length) { return false; }
     const allValid = new Set(this._ruleSet.getValidColIds());
     const specialColumn = this._ruleSet.getSpecialColumn();
     if (specialColumn === 'SeedRule') {

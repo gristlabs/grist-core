@@ -74,7 +74,7 @@ export function pagePanels(page: PageContents) {
 
   let regionFocusSwitcher: RegionFocusSwitcher | undefined;
   // Create a RegionFocusSwitcher when we have a valid appObj (some tests don't include one).
-  if (appObj && appObj.topAppModel) {
+  if (appObj?.topAppModel) {
     regionFocusSwitcher = RegionFocusSwitcher.create(null, appObj);
     appObj.regionFocusSwitcher = regionFocusSwitcher;
   }

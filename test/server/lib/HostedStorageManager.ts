@@ -1190,7 +1190,7 @@ describe('HostedStorageManager', function() {
         let busy = 0;
         let done = false;
         function progress(event: BackupEvent) {
-          if (event.error && event.error.includes('SQLITE_BUSY')) {
+          if (event.error?.includes('SQLITE_BUSY')) {
             busy++;
           }
           if (event.action === 'close' && event.phase === 'after') {

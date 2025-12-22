@@ -26,7 +26,7 @@ export abstract class BaseComponent implements IForwarderDest {
 
   constructor(plugin: BarePlugin, private _logger: IRpcLogger) {
     const deactivate = plugin.components.deactivate;
-    const delay = (deactivate && deactivate.inactivitySec) ? deactivate.inactivitySec : 300;
+    const delay = (deactivate?.inactivitySec) ? deactivate.inactivitySec : 300;
     this.inactivityTimer = new InactivityTimer(() => this.deactivate(), delay * 1000);
   }
 
@@ -128,9 +128,9 @@ export class PluginInstance {
    */
   public async shutdown(): Promise<void> {
     await Promise.all([
-      this.safeBrowser && this.safeBrowser.deactivate(),
-      this.safePython && this.safePython.deactivate(),
-      this.unsafeNode && this.unsafeNode.deactivate(),
+      this.safeBrowser?.deactivate(),
+      this.safePython?.deactivate(),
+      this.unsafeNode?.deactivate(),
     ]);
   }
 

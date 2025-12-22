@@ -270,7 +270,7 @@ export class SamlBuilder {
       );
       if (action === 'login') {
         const samlUser = samlResponse.user;
-        if (!samlUser || !samlUser.name_id) {
+        if (!samlUser?.name_id) {
           log.warn(`SamlConfig: bad SAML response: ${JSON.stringify(samlUser)}`);
           throw new Error("Invalid user info in SAML response");
         }

@@ -1109,7 +1109,7 @@ export const chartTypes: { [name: string]: ChartFunc } = {
     const data = basicPlot(series, options, { type: 'bar' });
     const useCategory = series[0]?.pureType && isCategoryType(series[0].pureType);
     const xaxisName = options.orientation === 'h' ? 'yaxis' : 'xaxis';
-    if (useCategory && data.layout && data.layout[xaxisName]) {
+    if (useCategory && data.layout?.[xaxisName]) {
       const axisConfig = data.layout[xaxisName]!;
       axisConfig.type = 'category';
     }

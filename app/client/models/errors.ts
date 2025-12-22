@@ -143,8 +143,8 @@ export function reportError(err: Error | string, ev?: ErrorEvent): void {
     const details: ApiErrorDetails | undefined = (err as any).details;
     const code: unknown = (err as any).code;
     const status: unknown = (err as any).status;
-    const message = (details && details.userError) || err.message;
-    if (details && details.limit) {
+    const message = (details?.userError) || err.message;
+    if (details?.limit) {
       // This is a notification about reaching a plan limit. Key prevents showing multiple
       // notifications for the same type of limit.
       const options: Partial<INotifyOptions> = {
@@ -152,7 +152,7 @@ export function reportError(err: Error | string, ev?: ErrorEvent): void {
         key: `limit:${details.limit.quantity || message}`,
         actions: details.tips?.some(t => t.action === 'manage') ? ['manage'] : ['upgrade'],
       };
-      if (details.tips && details.tips.some(tip => tip.action === 'add-members')) {
+      if (details.tips?.some(tip => tip.action === 'add-members')) {
         // When adding members would fix a problem, give more specific advice.
         options.title = "Add users as team members first";
         options.actions = [];
@@ -166,7 +166,7 @@ export function reportError(err: Error | string, ev?: ErrorEvent): void {
       // replace previous ones rather than accumulate.
       const options: Partial<INotifyOptions> = { key: (err as UserError).key || message };
       options.memos = details?.memos;
-      if (details && details.tips && details.tips.some(tip => tip.action === 'ask-for-help')) {
+      if (details?.tips?.some(tip => tip.action === 'ask-for-help')) {
         options.actions = ['ask-for-help'];
       }
       _notifier.createUserMessage(message, options);
@@ -213,7 +213,7 @@ export function setUpErrorHandling(doReportError = reportError, koUtil?: any) {
   G.window.addEventListener('error', (ev: ErrorEvent) => doReportError(ev.error || ev.message, ev));
 
   G.window.addEventListener('unhandledrejection', (ev: any) => {
-    const reason = ev.reason || (ev.detail && ev.detail.reason);
+    const reason = ev.reason || (ev.detail?.reason);
     doReportError(reason || ev);
   });
 

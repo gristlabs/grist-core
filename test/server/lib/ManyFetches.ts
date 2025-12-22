@@ -240,7 +240,7 @@ describe('ManyFetches', function() {
     const { assignmentId, getWorker, homeUrl } = gristConfig;
     if (!homeUrl) { throw new Error('no homeUrl'); }
     if (!assignmentId) { throw new Error('no assignmentId'); }
-    const docWorkerUrl = getWorker && getWorker[assignmentId];
+    const docWorkerUrl = getWorker?.[assignmentId];
     if (!docWorkerUrl) { throw new Error('no docWorkerUrl'); }
 
     // Place the config object in window.gristConfig as if we were a

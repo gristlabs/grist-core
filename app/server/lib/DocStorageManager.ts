@@ -287,7 +287,7 @@ export class DocStorageManager implements IDocStorageManager {
       .then(entries => entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())))
     // If the root directory is missing, just return an empty array.
       .catch((err) => {
-        if (err.cause && err.cause.code === 'ENOENT') { return []; }
+        if (err.cause?.code === 'ENOENT') { return []; }
         throw err;
       });
   }

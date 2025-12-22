@@ -210,7 +210,7 @@ export async function sendReply<T>(
       url: req.url,
       userId: mreq.userId,
       altSessionId: mreq.altSessionId,
-      email: mreq.user && mreq.user.loginEmail,
+      email: mreq.user?.loginEmail,
       org: mreq.org,
       params: req.params,
       body: req.body,
@@ -263,7 +263,7 @@ export function pruneAPIResult<T>(data: T, allowedFields?: Set<string>): T {
 export function getDocId(req: Request) {
   const mreq = req as RequestWithLogin;
   // We should always have authorized by now.
-  if (!mreq.docAuth || !mreq.docAuth.docId) { throw new ApiError(`unknown document`, 500); }
+  if (!mreq.docAuth?.docId) { throw new ApiError(`unknown document`, 500); }
   return mreq.docAuth.docId;
 }
 

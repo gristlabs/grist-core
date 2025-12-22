@@ -39,7 +39,7 @@ export class ColumnsModel extends BoxModel {
     const droppedRef = dropped.id ? this.root().find(dropped.id) : null;
 
     // If this is already my child, don't do anything.
-    if (droppedRef && droppedRef.parent === this) {
+    if (droppedRef?.parent === this) {
       return droppedRef;
     }
 

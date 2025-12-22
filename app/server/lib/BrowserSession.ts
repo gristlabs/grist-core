@@ -109,7 +109,7 @@ export function getSignInStatus(sessionObj: SessionObj | null): SignInStatus {
  */
 export function getSessionProfiles(session: SessionObj): UserProfile[] {
   if (!session.users) { return []; }
-  return session.users.filter(user => user && user.profile).map(user => user.profile!);
+  return session.users.filter(user => user?.profile).map(user => user.profile!);
 }
 
 /**
@@ -129,7 +129,7 @@ export function getSessionUser(session: SessionObj, org: string,
     }
   }
 
-  if (session.orgToUser && session.orgToUser[org] !== undefined &&
+  if (session.orgToUser?.[org] !== undefined &&
     session.users.length > session.orgToUser[org]) {
     return session.users[session.orgToUser[org]] || null;
   }
@@ -148,7 +148,7 @@ export function linkOrgWithEmail(session: SessionObj, email: string, org: string
   email = normalizeEmail(email);
   for (let i = 0; i < session.users.length; i++) {
     const iUser = session.users[i];
-    if (iUser && iUser.profile && normalizeEmail(iUser.profile.email) === email) {
+    if (iUser?.profile && normalizeEmail(iUser.profile.email) === email) {
       session.orgToUser[org] = i;
       return iUser;
     }

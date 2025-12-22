@@ -233,7 +233,7 @@ export class FlexServer implements GristServer {
     // Add language detection middleware.
     this.app.use(i18Middleware.handle(this.i18Instance));
     // This directory hold Grist documents.
-    let docsRoot = path.resolve((this.options && this.options.dataDir) ||
+    let docsRoot = path.resolve((this.options?.dataDir) ||
       process.env.GRIST_DATA_DIR ||
       getAppPathTo(this.appRoot, 'samples'));
     // In testing, it can be useful to separate out document roots used
@@ -1035,7 +1035,7 @@ export class FlexServer implements GristServer {
         page: req.body.page,
         browser: req.body.browser,
         org: mreq.org,
-        email: mreq.user && mreq.user.loginEmail,
+        email: mreq.user?.loginEmail,
         userId: mreq.userId,
         altSessionId: mreq.altSessionId,
       });
@@ -1255,7 +1255,7 @@ export class FlexServer implements GristServer {
             }
           }
         }
-        if (mreq.org && mreq.org.startsWith('o-')) {
+        if (mreq.org?.startsWith('o-')) {
           // We are on a team site without a custom subdomain.
           const orgInfo = this._dbManager.unwrapQueryResult(await this._dbManager.getOrg({ userId: user.id }, mreq.org));
 

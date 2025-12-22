@@ -106,7 +106,7 @@ export class PluginManager {
       process.env.GRIST_EXPERIMENTAL_PLUGINS === '0') {
       // Remove experimental plugins
       this._entries = this._entries.filter((entry) => {
-        if (entry.manifest && entry.manifest.experimental) {
+        if (entry.manifest?.experimental) {
           log.warn("Ignoring experimental plugin %s", entry.id);
           return false;
         }

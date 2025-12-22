@@ -24,7 +24,7 @@ let records = sampleData
   }));
 
 TreeNodeRecord.prototype.sendActions = async (actions: { update?: TreeRecord[] }) => {
-  if (actions.update && actions.update.length) {
+  if (actions.update?.length) {
     const map = actions.update.reduce((acc, rec) => (acc[rec.id] = rec, acc), {} as { [id: number]: TreeRecord });
     records = records.map(rec => map[rec.id] || rec).sort((a, b) => nativeCompare(a.pagePos, b.pagePos));
     updateModel();

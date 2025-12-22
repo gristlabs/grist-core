@@ -142,7 +142,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     cssSpacer(),
     dom.maybe(docPageModel.currentDoc, (doc) => {
       const ex = buildExamples().find(e => e.urlId === doc.urlId);
-      if (!ex || !ex.tutorialUrl) { return null; }
+      if (!ex?.tutorialUrl) { return null; }
       return cssPageEntry(
         cssPageLinkContainer(
           cssPageIcon('Page'),

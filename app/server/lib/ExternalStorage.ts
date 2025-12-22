@@ -225,7 +225,7 @@ export class ChecksummedExternalStorage implements ExternalStorage {
     try {
       // Removing most recent version by id is not something we should be doing, and
       // if we want to do it it would need to be done carefully - so just forbid it.
-      if (snapshotIds && snapshotIds.includes(await this._options.latestVersion.load(key) || '')) {
+      if (snapshotIds?.includes(await this._options.latestVersion.load(key) || '')) {
         throw new Error('cannot remove most recent version of a document by id');
       }
       await this._ext.remove(key, snapshotIds);

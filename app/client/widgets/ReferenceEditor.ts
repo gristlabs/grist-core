@@ -83,9 +83,8 @@ export class ReferenceEditor extends NTextEditor {
    * If the 'new' item is saved, add it to the referenced table first. See _buildSourceList
    */
   public async prepForSave() {
-    const selectedItem = this._autocomplete && this._autocomplete.getSelectedItem();
-    if (selectedItem &&
-      selectedItem.rowId === 'new' &&
+    const selectedItem = this._autocomplete?.getSelectedItem();
+    if (selectedItem?.rowId === 'new' &&
       selectedItem.text === this.textInput.value) {
       const colInfo = { [this._utils.visibleColId]: this.textInput.value };
       selectedItem.rowId = await this._utils.tableData.sendTableAction(["AddRecord", null, colInfo]);
@@ -93,7 +92,7 @@ export class ReferenceEditor extends NTextEditor {
   }
 
   public getCellValue() {
-    const selectedItem = this._autocomplete && this._autocomplete.getSelectedItem();
+    const selectedItem = this._autocomplete?.getSelectedItem();
 
     if (selectedItem) {
       // Selected from the autocomplete dropdown; so we know the *value* (i.e. rowId).

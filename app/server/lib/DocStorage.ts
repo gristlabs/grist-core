@@ -1798,7 +1798,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     // Procedure according to https://sqlite.org/lang_altertable.html: "appropriate for ... renaming
     // columns, or adding or removing or changing default values on a column."
     const row = await this.get("PRAGMA schema_version");
-    assert(row && row.schema_version, "Could not retrieve schema_version.");
+    assert(row?.schema_version, "Could not retrieve schema_version.");
     const newSchemaVersion = row.schema_version + 1;
     const tmpTableId = DocStorage._makeTmpTableId(tableId);
     await this._getDB().runEach(

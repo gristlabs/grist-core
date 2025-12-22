@@ -2439,7 +2439,7 @@ export class ActiveDoc extends EventEmitter {
     // Migrate the document if needed.
     const docInfo = await this._tableMetadataLoader.fetchBulkColValuesWithoutIds('_grist_DocInfo');
     const versionCol = docInfo.schemaVersion;
-    const docSchemaVersion = (versionCol && versionCol.length === 1 ? versionCol[0] : 0) as number;
+    const docSchemaVersion = (versionCol?.length === 1 ? versionCol[0] : 0) as number;
     if (docSchemaVersion < schemaVersion) {
       this._log.info(docSession, "Doc needs migration from v%s to v%s", docSchemaVersion, schemaVersion);
       await this._beforeMigration(docSession, 'schema', docSchemaVersion, schemaVersion);

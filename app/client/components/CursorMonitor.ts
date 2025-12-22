@@ -119,7 +119,7 @@ export class CursorMonitor extends Disposable {
   private _readPosition(view: IDocPage) {
     const lastPosition = this._store.read(this._key);
     this._store.clear(this._key);
-    if (lastPosition && lastPosition.position.viewId == view) {
+    if (lastPosition?.position.viewId == view) {
       return lastPosition.position;
     }
     return null;

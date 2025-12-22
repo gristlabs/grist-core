@@ -250,7 +250,7 @@ class SaveCopyModal extends Disposable {
       // Show the workspace picker only when destOrg is a team site, because personal orgs do not have workspaces.
       dom.domComputed(use => use(this._showWorkspaces) && use(this._workspaces), wss =>
         wss === false ? null :
-          wss && wss.length === 0 ? cssWarningText(t("You do not have write access to this site"),
+          wss?.length === 0 ? cssWarningText(t("You do not have write access to this site"),
             testId('copy-warning')) :
             [
               cssField(

@@ -51,7 +51,7 @@ export class SectionFilter extends Disposable {
     this._openFilterOverride.set(({ colRef, colFilter }));
     colFilter.onDispose(() => {
       const override = this._openFilterOverride.get();
-      if (override && override.colFilter === colFilter) {
+      if (override?.colFilter === colFilter) {
         this._openFilterOverride.set(null);
       }
     });

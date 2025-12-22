@@ -45,7 +45,7 @@ export class CssCustomProp {
     if (typeof token === 'string') {
       return token;
     }
-    if (token && token.value) {
+    if (token?.value) {
       return this._getRawValue(token.value);
     }
     return '';

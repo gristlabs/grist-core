@@ -214,7 +214,7 @@ export default class BaseView extends DisposableWithEvents {
     // A computed for the rowId of the row selected by section linking.
     this.linkedRowId = this.autoDispose(ko.computed(() => {
       const linking = this.viewSection.linkingState();
-      return linking && linking.cursorPos ? linking.cursorPos() : null;
+      return linking?.cursorPos ? linking.cursorPos() : null;
     }).extend({ deferred: true }));
 
     // Update the cursor whenever linkedRowId() changes (but only if we have any linking).

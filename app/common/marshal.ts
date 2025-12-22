@@ -138,8 +138,8 @@ export class Marshaller {
 
   constructor(options?: MarshalOptions) {
     this._memBuf = new MemBuffer(undefined);
-    this._floatCode = options && options.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
-    this._stringCode = options && options.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
+    this._floatCode = options?.version && options.version >= 2 ? marshalCodes.BFLOAT : marshalCodes.FLOAT;
+    this._stringCode = options?.stringToBuffer ? marshalCodes.STRING : marshalCodes.UNICODE;
     this._keysAreBuffers = Boolean(options?.keysAreBuffers);
   }
 
@@ -303,7 +303,7 @@ export class Unmarshaller extends EventEmitter {
   constructor(options?: UnmarshalOptions) {
     super();
     this.memBuf = new MemBuffer(undefined);
-    this._bufferToString = Boolean(options && options.bufferToString);
+    this._bufferToString = Boolean(options?.bufferToString);
     this._emitter = this.emit.bind(this, 'value');
   }
 

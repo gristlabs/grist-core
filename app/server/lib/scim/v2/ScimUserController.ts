@@ -27,7 +27,7 @@ class ScimUserController extends BaseController {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       const user = await this.dbManager.getUser(id);
-      if (!user || user.type !== 'login') {
+      if (user?.type !== 'login') {
         throw new SCIMMY.Types.Error(404, null!, `User with ID ${id} not found`);
       }
       return toSCIMMYUser(user);

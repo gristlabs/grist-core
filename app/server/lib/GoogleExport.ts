@@ -53,7 +53,7 @@ export async function exportToDrive(
   catch (err) {
     log.error("Export to drive - Error while sending file to GDrive", meta, err);
     // Test if google returned a valid error message.
-    if (err.errors && err.errors.length) {
+    if (err.errors?.length) {
       throw new Error(err.errors[0].message);
     }
     else {

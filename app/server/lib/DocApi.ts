@@ -856,7 +856,7 @@ export class DocWorkerApi {
           return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
         }
         catch (e) {
-          if (e.message && e.message.match(/does not exist yet/)) {
+          if (e.message?.match(/does not exist yet/)) {
             // The document has never been seen on file system / s3.  It may be new, so
             // we try again after having created an ActiveDoc for the document.
             await this._getActiveDoc(req);
@@ -2219,7 +2219,7 @@ export class DocWorkerApi {
 
   // Helper to generate a 503 if the ActiveDoc has been muted.
   private _checkForMute(activeDoc: ActiveDoc | undefined) {
-    if (activeDoc && activeDoc.muted) {
+    if (activeDoc?.muted) {
       throw new ApiError('Document in flux - try again later', 503);
     }
   }
