@@ -11,7 +11,6 @@ import { initSchema, initValues } from 'test/fixtures/projects/helpers/ParseOpti
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
-// tslint:disable:no-console
 
 let colRef = 1;
 

@@ -201,8 +201,8 @@ export function convertFromColumn(
   type: string,
   widgetOpts: string,
   visibleColRef: number,
-  values: ReadonlyArray<CellValue>,
-  displayColValues?: ReadonlyArray<CellValue>,
+  values: readonly CellValue[],
+  displayColValues?: readonly CellValue[],
 ): CellValue[] {
   const docData = new DocData(
     (_tableId) => { throw new Error("Unexpected DocData fetch"); },
@@ -220,10 +220,10 @@ export function convertFromColumn(
 export function convertValues(
   converter: ValueConverter,
   // Raw values from the actual column, e.g. row IDs for reference columns
-  values: ReadonlyArray<CellValue>,
+  values: readonly CellValue[],
   // Values from the display column, which is the same as the raw values for non-referencing columns.
   // In almost all cases these are the values that actually matter and get converted.
-  displayColValues: ReadonlyArray<CellValue>,
+  displayColValues: readonly CellValue[],
 ): CellValue[] {
   // Converting Ref <-> RefList without changing the target table is a special case - see prepTransformColInfo.
   // In this case we deal with the actual row IDs stored in the real column,

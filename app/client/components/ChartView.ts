@@ -78,7 +78,6 @@ function isCategoryType(pureType: string): boolean {
   return !['Numeric', 'Int', 'Any', 'Date', 'DateTime'].includes(pureType);
 }
 
-// tslint:disable:no-console
 
 // We use plotly's Datum to describe the type of values in cells. Cells may not match this
 // perfectly, but it's helpful for type-checking anyway.
@@ -511,7 +510,7 @@ export class ChartConfig extends GrainJSDisposable {
     .onWrite(val => this._setAggregation(val));
 
   // Columns options
-  private _columnsOptions: Computed<Array<IOptionFull<string>>> = Computed.create(
+  private _columnsOptions: Computed<IOptionFull<string>[]> = Computed.create(
     this, this._freezeXAxis, (use, freeze) => {
       if (freeze) { return this._columnsOptions.get(); }
       const columns = use(this._isValueAggregated) ?
@@ -527,7 +526,7 @@ export class ChartConfig extends GrainJSDisposable {
   );
 
   // The list of available columns for the group data picker.
-  private _groupDataOptions = Computed.create<Array<IOption<string>>>(this, use => [
+  private _groupDataOptions = Computed.create<IOption<string>[]>(this, use => [
     { value: "", label: 'Pick a column' },
     ...use(this._columnsOptions),
   ]);
@@ -1170,7 +1169,7 @@ export const chartTypes: { [name: string]: ChartFunc } = {
 
   donut(series: Series[], options: ChartOptions, dataOptions: DataOptions = {}): PlotData {
     const hole = isNumber(options.donutHoleSize) ? options.donutHoleSize : DONUT_DEFAULT_HOLE_SIZE;
-    const annotations: Array<Partial<Annotations>> = [];
+    const annotations: Partial<Annotations>[] = [];
     const plotData: PlotData = chartTypes.pie(series, options, { ...dataOptions, hole });
 
     function format(val: number) {
@@ -1255,7 +1254,7 @@ function groupIntoSeries(categoryList: Datum[], valueList: Datum[]): Series[] {
 }
 
 // Given a list of survivalValues, returns a list of {x, y} pairs for the kaplanMeier plot.
-function kaplanMeierPlot(survivalValues: number[]): Array<{ x: number, y: number }> {
+function kaplanMeierPlot(survivalValues: number[]): { x: number, y: number }[] {
   // First get a distribution of survivalValue -> count.
   const dist = new Map<number, number>();
   for (const v of survivalValues) {

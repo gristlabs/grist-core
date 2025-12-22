@@ -285,7 +285,7 @@ export class ChoiceListEntry extends Disposable {
     const newTokens = uniqBy(tokens, tok => tok.label);
     const newValues = newTokens.map(tok => tok.label);
     const newOptions: ChoiceOptionsByName = new Map();
-    const keys: Array<keyof IChoiceOptions> = [
+    const keys: (keyof IChoiceOptions)[] = [
       'fillColor', 'textColor', 'fontBold', 'fontItalic', 'fontStrikethrough', 'fontUnderline',
     ];
     for (const tok of newTokens) {

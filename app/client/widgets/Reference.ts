@@ -29,7 +29,7 @@ const t = makeT('Reference');
 export class Reference extends NTextBox {
   protected _refTable: Computed<TableRec | null>;
   private _visibleColRef: Computed<number>;
-  private _validCols: Computed<Array<IOptionFull<number>>>;
+  private _validCols: Computed<IOptionFull<number>[]>;
 
   constructor(field: ViewFieldRec) {
     super(field);

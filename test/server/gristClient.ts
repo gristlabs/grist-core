@@ -30,7 +30,7 @@ export class GristClient {
   public messages: GristMessage[] = [];
 
   private _requestId: number = 0;
-  private _pending: Array<GristResponse | GristMessage> = [];
+  private _pending: (GristResponse | GristMessage)[] = [];
   private _docData?: DocData;  // accumulate tabular info like a real client.
   private _consumer: () => void;
   private _ignoreTrivialActions: boolean = false;

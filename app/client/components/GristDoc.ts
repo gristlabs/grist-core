@@ -1,7 +1,6 @@
 /**
  * GristDoc manages an open Grist document on the client side.
  */
-// tslint:disable:no-console
 
 import { AccessRules } from 'app/client/aclui/AccessRules';
 import { ActionCounter } from 'app/client/components/ActionCounter';

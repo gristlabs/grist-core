@@ -66,7 +66,7 @@ export async function applyAndCheckActionsForCells(
 
   // Some cells meta data will be added before rows (for example, when undoing). We will
   // postpone checking of such actions until we have a full set of information.
-  let postponed: Array<number> = [];
+  let postponed: number[] = [];
   // Now one by one apply all actions to the snapshot recording all changes
   // to the cell table.
 

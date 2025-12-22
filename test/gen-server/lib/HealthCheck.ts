@@ -9,7 +9,7 @@ import { waitForIt } from 'test/server/wait';
 describe('HealthCheck', function() {
   testUtils.setTmpLogLevel('error');
 
-  for (const serverType of ['home', 'docs'] as Array<'home' | 'docs'>) {
+  for (const serverType of ['home', 'docs'] as ('home' | 'docs')[]) {
     describe(serverType, function() {
       let server: TestServer;
       let oldEnv: testUtils.EnvironmentSnapshot;
@@ -58,8 +58,8 @@ describe('HealthCheck', function() {
       function blockPostgres(driver: any) {
         // Make the database unhealthy by exausting the connection pool. This happens to be a way
         // that has occurred in practice.
-        const blockers: Array<Promise<void>> = [];
-        const resolvers: Array<() => void> = [];
+        const blockers: Promise<void>[] = [];
+        const resolvers: (() => void)[] = [];
         for (let i = 0; i < driver.master.options.max; i++) {
           const promise = new Promise<void>((resolve) => { resolvers.push(resolve); });
           blockers.push(server.dbManager.connection.transaction(manager => promise));

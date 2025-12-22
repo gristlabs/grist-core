@@ -46,7 +46,7 @@ describe('Comm', function() {
   testUtils.setTmpLogLevel(process.env.VERBOSE ? 'debug' : 'warn');
 
   // Allow test cases to register afterEach callbacks here for easier cleanup.
-  const cleanup: Array<() => Promise<void>> = [];
+  const cleanup: (() => Promise<void>)[] = [];
 
   let server: http.Server;
   let sessions: Sessions;
@@ -381,7 +381,7 @@ describe('Comm', function() {
     async function testSendOrdering(
       options: { noFailedSend?: boolean, closeHappensFirst?: boolean, useSmallMsgs?: boolean },
     ) {
-      const eventsSeen: Array<'failedSend' | 'close'> = [];
+      const eventsSeen: ('failedSend' | 'close')[] = [];
 
       // Server-side Client object.
       let ssClient!: Client;
@@ -437,7 +437,7 @@ describe('Comm', function() {
       const makeMessage = (n: number) => ({ type: 'docUserAction', n, data });
 
       let n = 0;
-      const sendPromises: Array<Promise<void>> = [];
+      const sendPromises: Promise<void>[] = [];
       const sendNextMessage = () => sendPromises.push(ssClient.sendMessage(makeMessage(n++) as any));
 
       await testUtils.captureLog('warn', async () => {

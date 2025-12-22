@@ -110,7 +110,7 @@ const testId = makeTestId('test-wselect-');
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableRef,
   { isNewPage, summarize }: ICompatibleTypes): IWidgetType[] {
-  let compatibleTypes: Array<IWidgetType> = [];
+  let compatibleTypes: IWidgetType[] = [];
   if (tableId !== 'New Table') {
     compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
   }
@@ -128,7 +128,7 @@ function getCompatibleTypes(tableId: TableRef,
 // The Picker disables some choices that do not make much sense.
 // This function return a boolean telling if summary can be used with this type.
 function isSummaryCompatible(widgetType: IWidgetType): boolean {
-  const incompatibleTypes: Array<IWidgetType> = ['form'];
+  const incompatibleTypes: IWidgetType[] = ['form'];
   return !incompatibleTypes.includes(widgetType);
 }
 
@@ -287,7 +287,7 @@ export interface ISelectOptions {
   // A callback to provides the links that are available to a page widget. It is called any time the
   // user changes in the selected page widget (type, table, summary ...) and we update the "SELECT
   // BY" dropdown with the result list of options. The "SELECT BY" dropdown is hidden if omitted.
-  selectBy?: (val: IPageWidget) => Array<IOption<string>>;
+  selectBy?: (val: IPageWidget) => IOption<string>[];
 }
 
 const registeredCustomWidgets: IAttachedCustomWidget[] =  ['custom.calendar'];

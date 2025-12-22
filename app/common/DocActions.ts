@@ -188,7 +188,7 @@ export interface TableRecordValueWithoutId {
 // Both UserActions and DocActions are represented as [ActionName, ...actionArgs].
 // TODO I think it's better to represent DocAction as a Buffer containing the marshalled action.
 
-export type UserAction = Array<string | number | object | boolean | null | undefined>;
+export type UserAction = (string | number | object | boolean | null | undefined)[];
 
 // Actions that are performed automatically by the server
 // for things like regular maintenance or triggering formula calculations in the data engine.

@@ -17,7 +17,7 @@ export class ConnectStateManager extends Disposable {
 
   public readonly connectState = Observable.create<ConnectState>(this, ConnectState.Connected);
 
-  private _timers: Array<ReturnType<typeof setTimeout>> = [];
+  private _timers: ReturnType<typeof setTimeout>[] = [];
 
   public setConnected(yesNo: boolean) {
     if (yesNo) {

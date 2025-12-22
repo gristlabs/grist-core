@@ -7,7 +7,7 @@ export const GUEST  = 'guests';
 export const MEMBER = 'members';
 
 // Roles ordered from most to least permissive.
-const roleOrder: Array<Role | null> = [OWNER, EDITOR, VIEWER, MEMBER, GUEST, null];
+const roleOrder: (Role | null)[] = [OWNER, EDITOR, VIEWER, MEMBER, GUEST, null];
 
 export type BasicRole = 'owners' | 'editors' | 'viewers';
 export type NonMemberRole = BasicRole | 'guests';
@@ -57,7 +57,7 @@ export function canUpgradeOrg(org: Organization | null): org is Organization {
 
 // Returns true if the role string is a valid role or null.
 export function isValidRole(role: string | null): role is Role | null {
-  return (roleOrder as Array<string | null>).includes(role);
+  return (roleOrder as (string | null)[]).includes(role);
 }
 
 // Returns true if the role string is a valid non-Guest, non-Member, non-null role.
@@ -88,7 +88,7 @@ export function getWeakestRole<T extends Role | null>(...args: T[]): T {
 
 // Returns which of the `anyOf` args comes first in `array`. Helper for getStrongestRole
 // and getWeakestRole.
-function getFirstMatchingRole<T extends Role | null>(array: Array<Role | null>, anyOf: T[]): T {
+function getFirstMatchingRole<T extends Role | null>(array: (Role | null)[], anyOf: T[]): T {
   if (anyOf.length === 0) {
     throw new Error(`getFirstMatchingRole: No roles given`);
   }

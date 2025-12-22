@@ -15,7 +15,7 @@ class RowIdTracker {
  * This gets a list of pre-existing rows that the DocActions may touch.  Returns
  * a list of form [tableId, Set{rowId1, rowId2, ...}].
  */
-export function getRelatedRows(docActions: DocAction[]): ReadonlyArray<readonly [string, Set<number>]> {
+export function getRelatedRows(docActions: DocAction[]): readonly (readonly [string, Set<number>])[] {
   // Relate tableIds for tables with what they were before the actions, if renamed.
   const tableIds = new Map<string, string>();      // key is current tableId
   const rowIds = new Map<string, RowIdTracker>();  // key is pre-existing tableId

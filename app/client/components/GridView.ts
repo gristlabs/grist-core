@@ -2295,7 +2295,7 @@ export default class GridView extends BaseView {
    */
   protected _buildInsertColumnMenu(options: { field?: ViewFieldRec } = {}) {
     const { field } = options;
-    const triggers: Array<'click'> = [];
+    const triggers: 'click'[] = [];
     if (!field) { triggers.push('click'); }
 
     return [

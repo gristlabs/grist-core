@@ -220,7 +220,7 @@ export class MinIOExternalStorage implements ExternalStorage {
   }
 
   // Delete a batch of versions for an object.
-  private async _deleteVersions(key: string, versions: Array<string | undefined>) {
+  private async _deleteVersions(key: string, versions: (string | undefined)[]) {
     return this._deleteObjects(
       versions.filter(v => v).map(versionId => ({
         name: key,

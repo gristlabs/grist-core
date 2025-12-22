@@ -993,8 +993,7 @@ export class FlexServer implements GristServer {
     if (this._check('api', 'homedb', 'json', 'api-mw')) { return; }
 
     // ApiServer's constructor adds endpoints to the app.
-    // tslint:disable-next-line:no-unused-expression
-    new ApiServer(this, this.app, this._dbManager);
+       new ApiServer(this, this.app, this._dbManager);
   }
 
   public addScimApi() {
@@ -2267,7 +2266,7 @@ export class FlexServer implements GristServer {
       expressWrap(async (req, res) => this._docWorker.getAttachment(req, res)));
   }
 
-  private _check(part: Part, ...precedents: Array<CheckKey | null>) {
+  private _check(part: Part, ...precedents: (CheckKey | null)[]) {
     if (this.deps.has(part)) { return true; }
     for (const precedent of precedents) {
       if (!precedent) { continue; }

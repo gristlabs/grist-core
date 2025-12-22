@@ -42,15 +42,15 @@ export interface SessionStore {
 export interface IGristSession {
 
   // V1 Hosted Grist - known available users.
-  users: Array<{
+  users: {
     userId?: number;
-  }>;
+  }[];
 
   // V1 Hosted Grist - known user/org relationships.
-  orgs: Array<{
+  orgs: {
     orgId: number;
     userId: number;
-  }>;
+  }[];
 }
 
 function createSessionStoreFactory(sessionsDB: string): () => SessionStore {

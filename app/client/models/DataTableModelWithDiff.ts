@@ -58,7 +58,7 @@ export class ExtraRows {
   /**
    * Get a list of extra synthetic row ids to add.
    */
-  public getExtraRows(): ReadonlyArray<number> {
+  public getExtraRows(): readonly number[] {
     return [...this.rightAddRows].concat([...this.leftRemoveRows]);
   }
 
@@ -126,7 +126,7 @@ export class DataTableModelWithDiff extends DisposableWithEvents implements Data
     return this.core.fetch(force);
   }
 
-  public getAllRows(): ReadonlyArray<number> {
+  public getAllRows(): readonly number[] {
     // Could add remote rows, but this method isn't used so it doesn't matter.
     return this.core.getAllRows();
   }

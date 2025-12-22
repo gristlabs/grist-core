@@ -601,7 +601,7 @@ export class ActiveDoc extends EventEmitter {
    * TODO: for memory reasons on large docs, would be best not to hold many actions
    * in memory at a time, so should e.g. fetch them one at a time.
    */
-  public getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>> {
+  public getActions(actionNums: number[]): Promise<(LocalActionBundle | undefined)[]> {
     return this._actionHistory.getActions(actionNums);
   }
 

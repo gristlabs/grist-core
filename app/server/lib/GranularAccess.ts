@@ -71,7 +71,6 @@ const GRIST_ATTACHMENTS_THRESHOLD_MB = appSettings.section("attachmentStores").f
   defaultValue: 50,
 });
 
-// tslint:disable:no-bitwise
 
 // Check if a tableId is that of an ACL table.  Currently just _grist_ACLRules and
 // _grist_ACLResources are accepted.
@@ -1324,8 +1323,8 @@ export class GranularAccess implements GranularAccessForBundle {
 
   // Compile a list of users mentioned in user attribute tables keyed by email.
   // If there is a Name column or an Access column, in the table, we use them.
-  public async collectViewAsUsersFromUserAttributeTables(): Promise<Array<Partial<UserAccessData>>> {
-    const result: Array<Partial<UserAccessData>> = [];
+  public async collectViewAsUsersFromUserAttributeTables(): Promise<Partial<UserAccessData>[]> {
+    const result: Partial<UserAccessData>[] = [];
     const seenEmails = new Set();
     for (const clause of this._ruler.ruleCollection.getUserAttributeRules().values()) {
       if (clause.charId !== 'Email') { continue; }
@@ -2227,7 +2226,7 @@ export class GranularAccess implements GranularAccessForBundle {
     return ['BulkUpdateRecord', getTableId(data), selectedRowIds, selectedColValues];
   }
 
-  private async _getSteps(): Promise<Array<ActionStep>> {
+  private async _getSteps(): Promise<ActionStep[]> {
     if (!this._steps) {
       this._steps = this._getUncachedSteps().catch((e) => {
         log.error('step computation failed:', e);
@@ -2237,7 +2236,7 @@ export class GranularAccess implements GranularAccessForBundle {
     return this._steps;
   }
 
-  private async _getMetaSteps(): Promise<Array<MetaStep>> {
+  private async _getMetaSteps(): Promise<MetaStep[]> {
     if (!this._metaSteps) {
       this._metaSteps = this._getUncachedMetaSteps().catch((e) => {
         log.error('meta step computation failed:', e);
@@ -2256,7 +2255,7 @@ export class GranularAccess implements GranularAccessForBundle {
    * determined by the this._applied flag, which should never be
    * changed during any possible use of this._steps.
    */
-  private async _getUncachedSteps(): Promise<Array<ActionStep>> {
+  private async _getUncachedSteps(): Promise<ActionStep[]> {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const { docActions, undo, applied } = this._activeBundle;
     // For row access work, we'll need to know the state of affected rows before and
@@ -2318,7 +2317,7 @@ export class GranularAccess implements GranularAccessForBundle {
   /**
    * Prepare to compute intermediate metadata and rules, as this._metaSteps.
    */
-  private async _getUncachedMetaSteps(): Promise<Array<MetaStep>> {
+  private async _getUncachedMetaSteps(): Promise<MetaStep[]> {
     if (!this._activeBundle) { throw new Error('no active bundle'); }
     const { docActions, undo, applied } = this._activeBundle;
 

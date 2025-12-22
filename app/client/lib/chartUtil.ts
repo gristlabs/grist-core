@@ -8,7 +8,7 @@ import flatten from 'lodash/flatten';
 /**
  * Sort all values in a list of series according to the values in the first one.
  */
-export function sortByXValues(series: Array<{ values: Datum[] }>): void {
+export function sortByXValues(series: { values: Datum[] }[]): void {
   // The order of points matters for graph types that connect points with lines: the lines are
   // drawn in order in which the points appear in the data. For the chart types we support, it
   // only makes sense to keep the points sorted. (The only downside is that Grist line charts can
@@ -24,7 +24,7 @@ export function sortByXValues(series: Array<{ values: Datum[] }>): void {
 }
 
 // Makes series so that the values of series[0] are duplicate free.
-export function uniqXValues<T extends { values: Datum[] }>(series: Array<T>) {
+export function uniqXValues<T extends { values: Datum[] }>(series: T[]) {
   if (!series[0]) { return; }
   const n = series[0].values.length;
   const indexToKeep = new Set(uniqBy(range(n), i => series[0].values[i]));
@@ -36,12 +36,12 @@ export function uniqXValues<T extends { values: Datum[] }>(series: Array<T>) {
 // Creates new version of series that split any entry whose value in the first series is a list into
 // multiple entries, one entry for each list's item. For all other series, newly created entries have
 // the same value as the original.
-export function splitValues<T extends { values: Datum[] }>(series: Array<T>): Array<T> {
+export function splitValues<T extends { values: Datum[] }>(series: T[]): T[] {
   return splitValuesByIndex(series, 0);
 }
 
 // This method is like splitValues except it splits according to the values of the series at position index.
-export function splitValuesByIndex<T extends { values: Datum[] }>(series: Array<T>, index: number): Array<T> {
+export function splitValuesByIndex<T extends { values: Datum[] }>(series: T[], index: number): T[] {
   const decoded = (series[index].values as any[]).map(decodeObject);
 
   return series.map((s, si) => {
@@ -69,7 +69,7 @@ export function splitValuesByIndex<T extends { values: Datum[] }>(series: Array<
  * Note it would make more sense to pad missing values with `null`, but plotly handles null the same
  * as missing values. Hence we're padding with 0.
  */
-export function consolidateValues(series: Array<{ values: Datum[] }>, xvalues: Datum[]) {
+export function consolidateValues(series: { values: Datum[] }[], xvalues: Datum[]) {
   let i = 0;
   for (const xval of xvalues) {
     if (i < series[0].values.length && xval !== series[0].values[i] ||

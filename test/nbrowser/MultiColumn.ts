@@ -10,7 +10,7 @@ let doc: string;
 const transparent = 'rgba(0, 0, 0, 0)';
 const blue = '#0000FF';
 const red = '#FF0000';
-const types: Array<ColumnType> = [
+const types: ColumnType[] = [
   'Any', 'Text', 'Integer', 'Numeric', 'Toggle', 'Date', 'DateTime', 'Choice', 'Choice List',
   'Reference', 'Reference List', 'Attachment',
 ];
@@ -100,7 +100,7 @@ describe('MultiColumn', function() {
       await gu.assertFillColor(await gu.getCell('Test2', 1), transparent);
     });
 
-    for (const type of ['Choice', 'Text', 'Reference', 'Numeric'] as Array<ColumnType>) {
+    for (const type of ['Choice', 'Text', 'Reference', 'Numeric'] as ColumnType[]) {
       it(`should reset all columns to first column type for ${type}`, async () => {
         // We start with empty columns, then we will change first one
         // to a data column, select all and then change all other to the same type.

@@ -13,7 +13,7 @@ export abstract class GristServerSocket {
 }
 
 export class GristServerSocketEIO extends GristServerSocket {
-  private _eventHandlers: Array<{ event: string, handler: (...args: any[]) => void }> = [];
+  private _eventHandlers: { event: string, handler: (...args: any[]) => void }[] = [];
   private _messageCounter = 0;
 
   // Engine.IO only invokes send() callbacks on success. We keep a map of
@@ -91,7 +91,7 @@ export class GristServerSocketEIO extends GristServerSocket {
 }
 
 export class GristServerSocketWS extends GristServerSocket {
-  private _eventHandlers: Array<{ event: string, handler: (...args: any[]) => void }> = [];
+  private _eventHandlers: { event: string, handler: (...args: any[]) => void }[] = [];
 
   constructor(private _ws: WS.WebSocket) { super(); }
 

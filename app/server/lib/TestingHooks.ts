@@ -216,7 +216,7 @@ export class TestingHooks implements ITestingHooks {
 
   // Returns a Map from docId to number of connected clients for all open docs across servers,
   // but represented as an array of pairs, to be serializable.
-  public async getDocClientCounts(): Promise<Array<[string, number]>> {
+  public async getDocClientCounts(): Promise<[string, number][]> {
     log.info("TestingHooks.getDocClientCounts called");
     const counts = new Map<string, number>();
     for (const server of [this._server, ...this._workerServers]) {

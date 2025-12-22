@@ -30,7 +30,7 @@ export interface IPubSubManager {
   close(): Promise<void>;
   subscribe(channel: string, callback: Callback): UnsubscribeCallbackPromise;
   publish(channel: string, message: string): Promise<void>;
-  publishBatch(batch: Array<{ channel: string, message: string }>): Promise<void>;
+  publishBatch(batch: { channel: string, message: string }[]): Promise<void>;
 }
 
 export type Callback = (message: string) => void;
@@ -104,7 +104,7 @@ abstract class PubSubManagerBase implements IPubSubManager {
   /**
    * Just like multiple publish calls, but in a single batch.
    */
-  public abstract publishBatch(batch: Array<{ channel: string, message: string }>): Promise<void>;
+  public abstract publishBatch(batch: { channel: string, message: string }[]): Promise<void>;
 
   protected abstract _redisSubscribe(channel: string): Promise<void>;
   protected abstract _redisUnsubscribe(channel: string): Promise<void>;
@@ -130,7 +130,7 @@ abstract class PubSubManagerBase implements IPubSubManager {
 
 class PubSubManagerNoRedis extends PubSubManagerBase {
   public async publish(channel: string, message: string) { this._deliverMessage(channel, message); }
-  public async publishBatch(batch: Array<{ channel: string, message: string }>) {
+  public async publishBatch(batch: { channel: string, message: string }[]) {
     batch.forEach(({ channel, message }) => this._deliverMessage(channel, message));
   }
 
@@ -173,7 +173,7 @@ class PubSubManagerRedis extends PubSubManagerBase {
     await this._redisPub.publish(this._prefixChannel(channel), message);
   }
 
-  public async publishBatch(batch: Array<{ channel: string, message: string }>): Promise<void> {
+  public async publishBatch(batch: { channel: string, message: string }[]): Promise<void> {
     let pipeline = this._redisPub.pipeline();
     for (const { channel, message } of batch) {
       pipeline = pipeline.publish(this._prefixChannel(channel), message);

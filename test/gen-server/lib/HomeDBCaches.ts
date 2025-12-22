@@ -388,7 +388,7 @@ async function createTestFixture(homeDb: HomeDBManager) {
   await users['Bob'].save();
 
   // Helper: permission object (users) for delta
-  const perms = (entries: Array<[UserName, Role]>) =>
+  const perms = (entries: [UserName, Role][]) =>
     ({ users: Object.fromEntries(entries.map(([u, role]) => [email(u), role])) }) as PermissionDelta;
 
   // Helper to add workspace and set its permissions.

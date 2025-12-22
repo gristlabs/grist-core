@@ -149,7 +149,7 @@ function setupTest(owner: IDisposableOwner, opts: { limitShown?: number, filterT
   ];
 }
 
-function patchFilterCount(arr: Array<[any, { label: string, count: number }]>): Array<[any, IFilterCount]> {
+function patchFilterCount(arr: [any, { label: string, count: number }][]): [any, IFilterCount][] {
   return arr.map(([val, filterCount]) => [val, { ...filterCount, displayValue: filterCount.label }]);
 }
 

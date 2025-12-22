@@ -2,7 +2,6 @@
  * Encodes and decodes Grist encoding of values, mirroring similar Python functions in
  * sandbox/grist/objtypes.py.
  */
-// tslint:disable:max-classes-per-file
 
 import { CellValue, GristObjCode } from 'app/plugin/GristData';
 import isPlainObject from 'lodash/isPlainObject';

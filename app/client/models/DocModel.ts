@@ -175,7 +175,7 @@ export class DocModel extends Disposable {
     canEdit(this._docPageModel.currentDoc.get()?.trunkAccess ?? null);
 
   // List of all the metadata tables.
-  private _metaTables: Array<MetaTableModel<any>>;
+  private _metaTables: MetaTableModel<any>[];
 
   constructor(public readonly docData: DocData, private readonly _docPageModel?: DocPageModel) {
     super();

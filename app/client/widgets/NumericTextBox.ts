@@ -21,14 +21,14 @@ import * as LocaleCurrency from 'locale-currency';
 
 const t = makeT('NumericTextBox');
 
-const modeOptions: Array<ISelectorOption<NumMode>> = [
+const modeOptions: ISelectorOption<NumMode>[] = [
   { value: 'currency', label: '$' },
   { value: 'decimal', label: ',' },
   { value: 'percent', label: '%' },
   { value: 'scientific', label: 'Exp' },
 ];
 
-const signOptions: Array<ISelectorOption<NumSign>> = [
+const signOptions: ISelectorOption<NumSign>[] = [
   { value: 'parens', label: '(-)' },
 ];
 

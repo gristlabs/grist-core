@@ -7,5 +7,5 @@ export interface WidgetOptions extends NumberFormatOptions {
   dateFormat?: string;
   timeFormat?: string;
   widget?: 'HyperLink';
-  choices?: Array<string>;
+  choices?: string[];
 }

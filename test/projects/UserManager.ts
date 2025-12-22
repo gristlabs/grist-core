@@ -22,7 +22,7 @@ describe('UserManager', () => {
     }
   }
 
-  async function getRenderedMembers(): Promise<Array<[string, string | null]>> {
+  async function getRenderedMembers(): Promise<[string, string | null][]> {
     const members = await driver.findAll('.test-um-member');
     return await Promise.all(members.map(m => Promise.all([
       getMemberEmail(m),

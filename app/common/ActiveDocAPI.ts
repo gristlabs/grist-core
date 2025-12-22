@@ -325,7 +325,7 @@ export interface TimingInfo {
 export interface FormulaTimingInfo extends TimingInfo {
   tableId: string;
   colId: string;
-  marks?: Array<TimingInfo & { name: string }>;
+  marks?: (TimingInfo & { name: string })[];
 }
 
 /*

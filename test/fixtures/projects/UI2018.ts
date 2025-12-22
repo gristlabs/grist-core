@@ -136,7 +136,7 @@ function setupTest() {
 
   const type = observable("");
   const types = obsArray<string>();
-  const typeOptions: Array<menu.IOption<string>> = [
+  const typeOptions: menu.IOption<string>[] = [
     { value: "text",       label: "Text",       icon: "FieldText"                      },
     { value: "numeric",    label: "Numeric",    icon: "FieldNumeric"                   },
     { value: "integer",    label: "Integer",    icon: "FieldInteger"                   },
@@ -158,13 +158,11 @@ function setupTest() {
     dom('h4', 'Default'),
     primaryButton('Default menu',
       menu.menu(() => [
-        // tslint:disable-next-line:no-console
-        menu.menuItem(() => { console.log("Menu item: Hello"); }, "Log 'Hello'"),
+               menu.menuItem(() => { console.log("Menu item: Hello"); }, "Log 'Hello'"),
         menu.menuDivider(),
         menu.menuSubHeader('Subheader'),
         menu.menuItem(() => undefined, dom.cls('disabled', true), "Disabled"),
-        // tslint:disable-next-line:no-console
-        menu.menuItem(() => { console.log("Menu item: World"); }, "Log 'World'"),
+               menu.menuItem(() => { console.log("Menu item: World"); }, "Log 'World'"),
       ]),
     ),
     dom('h4', 'Select menu'),
@@ -238,13 +236,13 @@ function setupTest() {
   const alignmentObs = observable('left');
 
   const widgetObs = observable(1);
-  const widgetBtns: Array<ISelectorOption<number>> = [
+  const widgetBtns: ISelectorOption<number>[] = [
     { value: 0, label: 'Date',    icon: 'FieldDate' },
     { value: 1, label: 'Spinner', icon: 'FieldSpinner' },
   ];
 
   const chartObs = observable(null);
-  const chartBtns: Array<ISelectorOption<string>> = [
+  const chartBtns: ISelectorOption<string>[] = [
     { value: 'bar',    icon: 'ChartBar' },
     { value: 'pie',    icon: 'ChartPie' },
     { value: 'area',   icon: 'ChartArea' },

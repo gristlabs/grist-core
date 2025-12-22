@@ -64,7 +64,7 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
     ]);
   }
 
-  public filterRecords(properties: Partial<MetaRowRecord<T>>): Array<MetaRowRecord<T>> {
+  public filterRecords(properties: Partial<MetaRowRecord<T>>): MetaRowRecord<T>[] {
     const originalRecords = this._originalTable.filterRecords(properties);
     const extraRecords = this._extraRecords.filter(rec => Object.keys(properties)
       .every(p => isEqual((rec as any)[p], (properties as any)[p])));
@@ -136,7 +136,7 @@ export class ACLRulesReader {
   }
 
   public entries() {
-    const rulesByResourceId = new Map<number, Array<MetaRowRecord<'_grist_ACLRules'>>>();
+    const rulesByResourceId = new Map<number, MetaRowRecord<'_grist_ACLRules'>[]>();
     for (const rule of sortBy(this._rulesTable.getRecords(), 'rulePos')) {
       // If we have "virtual" rules to implement shares, then regular
       // rules need to be tweaked so that they don't apply when the

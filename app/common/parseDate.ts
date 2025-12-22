@@ -345,7 +345,7 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
  * This means formats with an early Y and/or M are favoured.
  * If no formats match, returns the default YYYY-MM-DD.
  */
-export function guessDateFormat(values: Array<string | null>, timezone: string = 'UTC'): string {
+export function guessDateFormat(values: (string | null)[], timezone: string = 'UTC'): string {
   const formats = guessDateFormats(values, timezone);
   if (!formats) {
     return "YYYY-MM-DD";
@@ -358,7 +358,7 @@ export function guessDateFormat(values: Array<string | null>, timezone: string =
  * If several formats match equally well, returns them all.
  * May return null if there are no matching formats or choosing one is too expensive.
  */
-export function guessDateFormats(values: Array<string | null>, timezone: string = 'UTC'): string[] | null {
+export function guessDateFormats(values: (string | null)[], timezone: string = 'UTC'): string[] | null {
   const dateStrings: string[] = values.filter(isNonNullish);
   const sample = getDistinctValues(dateStrings, 100);
   const formats: Record<string, number> = {};

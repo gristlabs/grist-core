@@ -19,11 +19,11 @@ export class CopySelection {
   public readonly rowStyle: { [r: number]: object } | undefined;
   public readonly colStyle: { [c: string]: object } | undefined;
 
-  public readonly columns: Array<{
+  public readonly columns: {
     colId: string,
     fmtGetter: (rowId: UIRowId) => string,
     rawGetter: (rowId: UIRowId) => CellValue | undefined,
-  }>;
+  }[];
 
   constructor(tableData: TableData, public readonly rowIds: UIRowId[], public readonly fields: ViewFieldRec[],
     options: {

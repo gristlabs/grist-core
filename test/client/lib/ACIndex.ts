@@ -340,8 +340,7 @@ describe('ACIndex', function() {
         items = await getCities();
       });
 
-      // tslint:disable:no-console
-
+     
       it('main algorithm', function() {
         const [buildTime, acIndex] = repeat(10, () => new ACIndexImpl(items, { maxResults: 100 }));
         console.log(`Time to build index (${items.length} items): ${buildTime} ms`);
@@ -384,7 +383,7 @@ class BruteForceACIndexImpl<Item extends ACItem> implements ACIndex<Item> {
     const searchWords = cleanedSearchText.split(/\s+/);
 
     // Each item consists of the item's score, item's index, and the item itself.
-    const matches: Array<[number, number, Item]> = [];
+    const matches: [number, number, Item][] = [];
 
     // Get a score for each item based on the amount of overlap with text.
     for (let i = 0; i < this._allItems.length; i++) {

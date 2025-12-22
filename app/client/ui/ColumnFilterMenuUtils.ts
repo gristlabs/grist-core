@@ -32,7 +32,7 @@ export function relativeDatesControl(
 class RelativeDatesMenu extends Disposable {
   public content: Element;
   private _dropdownList: SimpleList<IRangeBoundType>;
-  private _items: Observable<Array<IOptionFull<IRangeBoundType>>> = Observable.create(this, []);
+  private _items: Observable<IOptionFull<IRangeBoundType>[]> = Observable.create(this, []);
   constructor(ctl: IOpenController,
     private _obs: Observable<IRangeBoundType>,
     private _opt: { valueFormatter(val: any): string }) {

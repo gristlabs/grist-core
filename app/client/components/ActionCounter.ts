@@ -29,7 +29,7 @@ export class ActionCounter extends dispose.Disposable {
   public isUndoBlocked: Observable<boolean>;
 
   // List of actionNums that we've seen. Gets truncated.
-  private _actionNumList: Array<number>;
+  private _actionNumList: number[];
 
   // Set of actionNums that contributed to count.
   private _counted: Set<number>;

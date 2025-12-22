@@ -5,7 +5,6 @@ import { dom, observable, styled } from 'grainjs';
 import { withLocale } from 'test/fixtures/projects/helpers/withLocale';
 import { initGristStyles } from "test/fixtures/projects/helpers/gristStyles";
 
-// tslint:disable:no-console
 
 function setupTest() {
   const text = observable('1');

@@ -77,7 +77,6 @@ import isEqual from 'lodash/isEqual';
 
 const t = makeT('AccessRules');
 
-// tslint:disable:max-classes-per-file no-console
 
 // Types for the rows in the ACL tables we use.
 type ResourceRec = SchemaTypes["_grist_ACLResources"] & { id?: number };
@@ -778,7 +777,7 @@ as well as copy or download it.`
     await this._aclUsersPopup.load();
   }
 
-  private _addButtonsForMissingTables(buttons: Array<HTMLAnchorElement | HTMLButtonElement>, tableIds: string[]) {
+  private _addButtonsForMissingTables(buttons: (HTMLAnchorElement | HTMLButtonElement)[], tableIds: string[]) {
     for (const tableId of tableIds) {
       // We don't know what the table's name was, just its tableId.
       // Hopefully, the user will understand.
@@ -793,7 +792,7 @@ as well as copy or download it.`
     }
   }
 
-  private _addButtonsForMissingColumns(buttons: Array<HTMLAnchorElement | HTMLButtonElement>,
+  private _addButtonsForMissingColumns(buttons: (HTMLAnchorElement | HTMLButtonElement)[],
     tableId: string, colIds: string[]) {
     const removeColRules = (rules: TableRules, colId: string) => {
       for (const rule of rules.columnRuleSets.get()) {
@@ -821,7 +820,7 @@ as well as copy or download it.`
   }
 
   private _addButtonsForMisconfiguredUserAttributes(
-    buttons: Array<HTMLAnchorElement | HTMLButtonElement>,
+    buttons: (HTMLAnchorElement | HTMLButtonElement)[],
     names: string[],
   ) {
     for (const name of names) {
@@ -2247,7 +2246,7 @@ function syncRecords(tableData: TableData, newRecords: RowRecord[],
     .map((r, index) => ({ ...r, id: -(index + 1) }));
 
   // Array of [before, after] pairs for changed records.
-  const updatedRecords: Array<[RowRecord, RowRecord]> = oldRecords.map((r): ([RowRecord, RowRecord] | null) => {
+  const updatedRecords: [RowRecord, RowRecord][] = oldRecords.map((r): ([RowRecord, RowRecord] | null) => {
     const newRec = newRecordMap.get(uniqueId(r));
     const updated = newRec && { ...r, ...newRec, id: r.id };
     return updated && !isEqual(updated, r) ? [r, updated] : null;
@@ -2279,7 +2278,7 @@ function syncRecords(tableData: TableData, newRecords: RowRecord[],
  * Convert a list of [before, after] rows into an object of changes, skipping columns which
  * haven't changed.
  */
-function getColChanges(pairs: Array<[RowRecord, RowRecord]>): BulkColValues {
+function getColChanges(pairs: [RowRecord, RowRecord][]): BulkColValues {
   const colIdSet = new Set<string>();
   for (const [before, after] of pairs) {
     for (const c of Object.keys(after)) {

@@ -27,7 +27,7 @@ export interface IDropdownWithSearchOptions<T> {
   action: (value: T) => void;
 
   // list of options
-  options: () => Array<IOption<T>>,
+  options: () => IOption<T>[],
 
   /** Called when the dropdown menu is disposed. */
   onClose?: () => void;

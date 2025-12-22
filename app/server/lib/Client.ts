@@ -61,7 +61,6 @@ const MESSAGE_TYPES_NO_AUTH = new Set([
   'clientConnect',
 ]);
 
-// tslint:disable-next-line:no-unused-expression Silence "unused variable" warning.
 void (MESSAGE_TYPES_NO_AUTH);
 
 /**
@@ -84,7 +83,7 @@ export class Client {
   private _log = new LogMethods('Client ', (extra?: object | null) => this.getLogMeta(extra || {}));
 
   // Maps docFDs to DocSession objects.
-  private _docFDs: Array<DocSession | null> = [];
+  private _docFDs: (DocSession | null)[] = [];
 
   private _missedMessages = new Map<number, string>();
   private _missedMessagesTotalLength: number = 0;

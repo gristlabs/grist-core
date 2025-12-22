@@ -189,7 +189,7 @@ export class Document extends Resource {
           this.options.allowIndex = props.options.allowIndex;
         }
         // Normalize so that null equates with absence.
-        for (const key of Object.keys(this.options) as Array<keyof DocumentOptions>) {
+        for (const key of Object.keys(this.options) as (keyof DocumentOptions)[]) {
           if (this.options[key] === null) {
             delete this.options[key];
           }

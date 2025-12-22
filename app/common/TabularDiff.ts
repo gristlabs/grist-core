@@ -27,7 +27,7 @@ interface TabularDiffRow {
 /** differences for an individual table */
 export interface TabularDiff {
   header: string[];  /** labels for columns */
-  cells: Array<TabularDiffRow>;
+  cells: TabularDiffRow[];
 }
 
 /** differences for a collection of tables */

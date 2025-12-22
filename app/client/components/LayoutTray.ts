@@ -262,7 +262,7 @@ class CollapsedDropZone extends Disposable {
   }
 
   public buildDom() {
-    const obsRects = Observable.create(this, [] as Array<VRect | null>);
+    const obsRects = Observable.create(this, [] as (VRect | null)[]);
     return (this._rootElement = cssVirtualZone(
       // We are only rendered when mouse is over the tray and it has some dragged leaf with it.
       dom.maybeOwned(this.model.over.state, (owner) => {
@@ -328,7 +328,7 @@ class CollapsedDropZone extends Disposable {
 
   private _calculate(parentRect: DOMRect) {
     const boxes = this.model.layout.all();
-    const rects: Array<VRect | null> = [];
+    const rects: (VRect | null)[] = [];
     // Boxes can be wrapped, we will detect the line offset.
     let lineOffset = 12;
     // We will always have at least one box, so we can use it to get the height.

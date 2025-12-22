@@ -97,8 +97,7 @@ type MarshalCode = keyof typeof marshalCodes;
 function isInteger(n: number): boolean {
   // Float have +0.0 and -0.0. To represent -0.0 precisely, we have to use a float, not an int
   // (see also https://stackoverflow.com/questions/7223359/are-0-and-0-the-same).
-  // tslint:disable-next-line:no-bitwise
-  return n === +n && n === (n | 0) && !Object.is(n, -0.0);
+   return n === +n && n === (n | 0) && !Object.is(n, -0.0);
 }
 
 // ----------------------------------------------------------------------
@@ -299,7 +298,7 @@ export class Unmarshaller extends EventEmitter {
   private _lastCode: number | null = null;
   private readonly _bufferToString: boolean;
   private _emitter: (v: any) => boolean;
-  private _stringTable: Array<string | Uint8Array> = [];
+  private _stringTable: (string | Uint8Array)[] = [];
 
   constructor(options?: UnmarshalOptions) {
     super();
@@ -343,8 +342,7 @@ export class Unmarshaller extends EventEmitter {
       // of arrays or dictionaries.
       if (err.needMoreData) {
         if (!err.consumedData || err.consumedData > 1024) {
-          // tslint:disable-next-line:no-console
-          console.log("Unmarshaller: Need more data; wasted parsing of %d bytes", err.consumedData);
+                   console.log("Unmarshaller: Need more data; wasted parsing of %d bytes", err.consumedData);
         }
       }
       else {

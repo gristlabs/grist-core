@@ -10,7 +10,7 @@ export interface Locale {
   code: string;
 }
 
-export let locales: Readonly<Locale[]>;
+export let locales: readonly Locale[];
 
 // Intl.DisplayNames is only supported on recent browsers, so proceed with caution.
 try {
@@ -44,7 +44,7 @@ export interface Currency {
   code: string;
 }
 
-export let currencies: Readonly<Currency[]>;
+export let currencies: readonly Currency[];
 
 // locale-currency package doesn't have South Sudanese pound currency or a default value for Kosovo
 LocaleCurrencyMap["SS"] = "SSP";

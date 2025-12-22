@@ -399,8 +399,7 @@ export class FieldEditor extends Disposable {
       await editor.prepForSave();
       if (this.isDisposed()) {
         // We shouldn't normally get disposed here, but if we do, avoid confusing JS errors.
-        console.warn(t("Unable to finish saving edited cell"));  // tslint:disable-line:no-console
-        return false;
+        console.warn(t("Unable to finish saving edited cell"));         return false;
       }
       // Then save the value the appropriate way
       // TODO: this isFormula value doesn't actually reflect if editing the formula, since
@@ -427,8 +426,7 @@ export class FieldEditor extends Disposable {
       else {
         const value = editor.getCellValue();
         if (col.isRealFormula()) {
-          // tslint:disable-next-line:no-console
-          console.warn(t("It should be impossible to save a plain data value into a formula column"));
+                   console.warn(t("It should be impossible to save a plain data value into a formula column"));
         }
         else {
           // This could still be an isFormula column if it's empty (isEmpty is true), but we don't

@@ -695,7 +695,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
   // in this case, so we just use a different pipe. There's a different
   // problem with stdout, with the same solution.
   const spawnOptions = {
-    stdio: ['ignore', 'ignore', 'pipe', 'ipc', 'pipe', 'pipe'] as Array<'pipe' | 'ipc'>,
+    stdio: ['ignore', 'ignore', 'pipe', 'ipc', 'pipe', 'pipe'] as ('pipe' | 'ipc')[],
     env: {
       PYTHONPATH: paths.engine,
       IMPORTDIR: options.importDir,

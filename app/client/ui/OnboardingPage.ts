@@ -32,7 +32,7 @@ const t = makeT('OnboardingPage');
 
 const testId = makeTestId('test-onboarding-');
 
-const choices: Array<{ icon: IconName, color: string, textKey: string }> = [
+const choices: { icon: IconName, color: string, textKey: string }[] = [
   { icon: 'UseProduct', color: `${colors.lightGreen}`, textKey: 'Product Development' },
   { icon: 'UseFinance', color: '#0075A2',              textKey: 'Finance & Accounting' },
   { icon: 'UseMedia',   color: '#F7B32B',              textKey: 'Media Production'    },
@@ -60,7 +60,7 @@ interface Step {
 interface QuestionsState {
   organization: Observable<string>;
   role: Observable<string>;
-  useCases: Array<Observable<boolean>>;
+  useCases: Observable<boolean>[];
   useOther: Observable<string>;
 }
 
@@ -69,7 +69,7 @@ interface VideoState {
 }
 
 export class OnboardingPage extends Disposable {
-  private _steps: Array<Step>;
+  private _steps: Step[];
   private _stepIndex: Observable<number> = Observable.create(this, 0);
 
   constructor(private _appModel: AppModel) {

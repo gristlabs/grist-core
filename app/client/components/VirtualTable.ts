@@ -50,7 +50,7 @@ export class VirtualTable extends Disposable {
   /** JSON array for plain JS objects to show on GridView */
   private _data: Record<string, any>[] = [];
   /** Columns definition. */
-  private _columns: Array<ColDef> = [];
+  private _columns: ColDef[] = [];
   /** In-memory GristDoc created ad hoc just for this virtual table. */
   private _gristDoc: GristDoc;
   /** Name of the table */
@@ -63,11 +63,11 @@ export class VirtualTable extends Disposable {
   private _sectionId = VirtualId();
   private _tableId = VirtualId();
 
-  private _transformColumns: Array<ColDef> = [];
+  private _transformColumns: ColDef[] = [];
 
   constructor(options: {
     name: string;
-    columns?: Array<Partial<ColDef> & { label: string }>;
+    columns?: (Partial<ColDef> & { label: string })[];
     data?: Record<string, any>[];
     getData?: () => Promise<any>;
   }) {
@@ -90,7 +90,7 @@ export class VirtualTable extends Disposable {
   /**
    * Adds a column to the virtual table. Only the label is required, other properties are optional.
    */
-  public addColumn(...cols: Array<Partial<ColDef> & { label: string }>) {
+  public addColumn(...cols: (Partial<ColDef> & { label: string })[]) {
     this._columns ??= [];
     cols.forEach(col => this._columns.push({ type: col.type || 'Any', colId: toId(col.label), ...col }));
   }
@@ -412,7 +412,7 @@ interface ColDef {
   widgetOptions?: {
     widget?: WidgetType;
     choices?: string[];
-    choiceOptions?: Array<Record<string, any>>;
+    choiceOptions?: Record<string, any>[];
     alignment?: 'left' | 'right' | 'center';
   };
   /**

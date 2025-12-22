@@ -20,7 +20,7 @@ const G = getBrowserGlobals('document', 'DOMParser');
  * @{param} {number} numInserts - number of new fields to insert
  */
 export function fieldInsertPositions(viewFields: KoArray<ViewFieldRec>, index: number, numInserts: number = 1,
-): Array<number | null> {
+): (number | null)[] {
   const rightPos = (index < viewFields.peekLength) ? viewFields.at(index)!.parentPos() : null;
   return Array(numInserts).fill(rightPos);
 }
@@ -104,7 +104,7 @@ export interface RichPasteObject {
   rawValue?: unknown;     // Optional rawValue that should be used if colType matches destination.
 }
 
-export type PasteData = string[][] | RichPasteObject[][] | Array<File>[][];
+export type PasteData = string[][] | RichPasteObject[][] | File[][][];
 
 /**
  * Parses a 2-d array of objects from a text string containing an HTML table.

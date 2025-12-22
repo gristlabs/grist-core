@@ -37,7 +37,7 @@ export namespace Sort {
   /**
    * Sort expression type, for example [1,-2, '3:emptyLast', '-4:orderByChoice']
    */
-  export type SortSpec = Array<ColSpec>;
+  export type SortSpec = ColSpec[];
   export type Direction = 1 | -1;
   export const ASC: Direction = 1;
   export const DESC: Direction = -1;

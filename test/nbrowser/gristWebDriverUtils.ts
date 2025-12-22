@@ -415,8 +415,7 @@ export class GristWebDriverUtils {
     colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
     if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
-      const { rowNums, section, mapper } = colOrOptions;    // tslint:disable-line:no-shadowed-variable
-      const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
+      const { rowNums, section, mapper } = colOrOptions;         const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
         this.getVisibleGridCells({ col: oneCol, rowNums, section, mapper })));
       // This zips column-wise data into a flat row-wise array of values.
       return ([] as T[]).concat(...rowNums.map((_r, i) => columns.map(c => c[i])));
@@ -554,7 +553,7 @@ export class ProfileSettingsPage {
 }
 
 export interface IColsSelect<T = WebElement> {
-  cols: Array<number | string>;
+  cols: (number | string)[];
   rowNums: number[];
   section?: string | WebElement;
   mapper?: (e: WebElement) => Promise<T>;

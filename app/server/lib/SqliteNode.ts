@@ -32,8 +32,7 @@ export class NodeSqlite3PreparedStatement implements PreparedStatement {
 export class NodeSqlite3DatabaseAdapter implements MinDB {
   public static async opener(dbPath: string, mode: OpenMode): Promise<any> {
     const sqliteMode: number =
-      // tslint:disable-next-line:no-bitwise
-      (mode === OpenMode.OPEN_READONLY ? sqlite3.OPEN_READONLY : sqlite3.OPEN_READWRITE) |
+           (mode === OpenMode.OPEN_READONLY ? sqlite3.OPEN_READONLY : sqlite3.OPEN_READWRITE) |
       (mode === OpenMode.OPEN_CREATE || mode === OpenMode.CREATE_EXCL ? sqlite3.OPEN_CREATE : 0);
     let _db: sqlite3.Database;
     await fromCallback((cb) => { _db = new sqlite3.Database(dbPath, sqliteMode, cb); });

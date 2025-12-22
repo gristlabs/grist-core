@@ -173,7 +173,7 @@ export class DocTriggers {
     const getTableId = docData.getMetaTable("_grist_Tables").getRowPropFunc("tableId");
 
     const triggersByTableRef = _.groupBy(triggersTable.getRecords().filter(t => t.enabled), "tableRef");
-    const triggersByTableId: Array<[string, Trigger[]]> = [];
+    const triggersByTableId: [string, Trigger[]][] = [];
 
     // First we need a list of columns which must be included in full in the action summary
     const isReadyColIds: string[] = [];
@@ -620,7 +620,7 @@ export class DocTriggers {
       }
     }
 
-    const colIdsToCheck: Array<string> = [];
+    const colIdsToCheck: string[] = [];
     if (trigger.watchedColRefList) {
       for (const colRef of trigger.watchedColRefList.slice(1)) {
         colIdsToCheck.push(this._getColId(colRef as number)!);

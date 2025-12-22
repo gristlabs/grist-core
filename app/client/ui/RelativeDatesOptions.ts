@@ -47,7 +47,7 @@ const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
   }]];
 
 export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (val: any) => string,
-): Array<{ label: string, spec: IRangeBoundType }> {
+): { label: string, spec: IRangeBoundType }[] {
   return relativeDateOptionsSpec(value)
     .map(spec => ({ spec, label: formatBoundOption(spec, valueFormatter) }));
 }
@@ -55,7 +55,7 @@ export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (va
 // Returns a list of different relative date spec that all match passed in date value. If value is
 // undefined it returns a default list of spec meant to showcase user the different flavors of
 // relative date.
-function relativeDateOptionsSpec(value: IRangeBoundType): Array<IRangeBoundType> {
+function relativeDateOptionsSpec(value: IRangeBoundType): IRangeBoundType[] {
   if (value === undefined) {
     return DEFAULT_OPTION_LIST;
   }

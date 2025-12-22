@@ -41,8 +41,8 @@ export interface EncKeyBundle extends KeyInfo {
 export interface DecryptedEnvelopeContent {
   info?: ActionInfo;
   // number is the index into the bundle-wide array of 'stored' or 'calc' DocActions.
-  stored: Array<[number, DocAction]>;
-  calc: Array<[number, DocAction]>;
+  stored: [number, DocAction][];
+  calc: [number, DocAction][];
 }
 
 export type DecryptedEnvelope = Envelope & DecryptedEnvelopeContent;

@@ -267,7 +267,7 @@ describe("NumberParse", function() {
   });
 
   // All values supported by parseNumMode
-  const numModes: Array<NumMode | undefined> = ['currency', 'decimal', 'percent', 'scientific', undefined];
+  const numModes: (NumMode | undefined)[] = ['currency', 'decimal', 'percent', 'scientific', undefined];
 
   // Generate a test suite for every supported locale
   for (const locale of locales) {
@@ -369,8 +369,7 @@ describe("NumberParse", function() {
               }
               catch (e) {
                 // Handy information for understanding failures
-                // tslint:disable-next-line:no-console
-                console.log({
+                               console.log({
                   num, formatted, parsed, numMode, parser,
                   parts: formatter.formatToParts(num),
                   formattedChars: [...formatted].map(char => ({

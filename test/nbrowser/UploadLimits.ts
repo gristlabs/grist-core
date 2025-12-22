@@ -17,7 +17,7 @@ describe('UploadLimits', function() {
   this.timeout(20000);
   const cleanup = setupTestSuite();
 
-  const cleanupCbs: Array<() => void> = [];
+  const cleanupCbs: (() => void)[] = [];
 
   async function generateFile(postfix: string, size: number): Promise<string> {
     const obj = await tmp.file({ postfix, mode: 0o644 });

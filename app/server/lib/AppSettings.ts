@@ -327,7 +327,7 @@ export interface AppSettingQuery {
    */
   censor?: boolean;
 
-  acceptedValues?: Array<JSONValue>;
+  acceptedValues?: JSONValue[];
 }
 
 export interface AppSettingQueryNumber extends AppSettingQuery {

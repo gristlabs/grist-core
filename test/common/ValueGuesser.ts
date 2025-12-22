@@ -6,7 +6,7 @@ const defaultDocSettings = {
   locale: 'en-US',
 };
 
-function check(values: Array<string | null>, expectedResult: GuessResult) {
+function check(values: (string | null)[], expectedResult: GuessResult) {
   const result = guessColInfo(values, defaultDocSettings, "America/New_York");
   assert.deepEqual(result, expectedResult);
 }

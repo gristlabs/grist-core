@@ -35,11 +35,11 @@ export interface ActionBundle {
   parentActionHash: string | null;  // a checksum of the parent action bundle, if there is one.
   envelopes: Envelope[];
   info: EnvContent<ActionInfo>;           // Should be in the envelope addressed to all peers.
-  stored: Array<EnvContent<DocAction>>;
-  calc: Array<EnvContent<DocAction>>;
+  stored: EnvContent<DocAction>[];
+  calc: EnvContent<DocAction>[];
 }
 
-export function getEnvContent<Content>(items: Array<EnvContent<Content>>): Content[] {
+export function getEnvContent<Content>(items: EnvContent<Content>[]): Content[] {
   return items.map(item => item[1]);
 }
 
@@ -59,10 +59,10 @@ export interface UserActionBundle {
 // ActionBundle structure defined in sandbox/grist/action_obj.py.
 export interface SandboxActionBundle {
   envelopes: Envelope[];
-  stored: Array<EnvContent<DocAction>>;
-  direct: Array<EnvContent<boolean>>;
-  calc: Array<EnvContent<DocAction>>;
-  undo: Array<EnvContent<DocAction>>;   // Inverse actions for all 'stored' actions.
+  stored: EnvContent<DocAction>[];
+  direct: EnvContent<boolean>[];
+  calc: EnvContent<DocAction>[];
+  undo: EnvContent<DocAction>[];   // Inverse actions for all 'stored' actions.
   retValues: any[];                     // Contains retValue for each of userActions.
   rowCount: RowCounts;
   // Mapping of keys (hashes of request args) to all unique requests made in a round of calculation

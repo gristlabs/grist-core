@@ -27,7 +27,7 @@ if (typeof Buffer === 'undefined') {
   allTypes.push({ Buffer: new BasicType(v => false, "Buffer is not supported") });
 }
 
-function checkDuplicates(types: Array<{ [key: string]: object }>) {
+function checkDuplicates(types: { [key: string]: object }[]) {
   const seen = new Set<string>();
   for (const t of types) {
     for (const key of Object.keys(t)) {

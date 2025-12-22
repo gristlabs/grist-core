@@ -1460,7 +1460,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    * something we could use an index for. Regular indexes in SQLite don't help.
    * FTS5 works, but is somewhat overkill.
    */
-  public async findAttachmentReferences(attId: number): Promise<Array<SingleCell>> {
+  public async findAttachmentReferences(attId: number): Promise<SingleCell[]> {
     const queries: string[] = [];
     // Switch quotes so to insert a table or column name as a string literal
     // rather than as an identifier.
@@ -1836,7 +1836,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
         const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
           `WHERE typeof(${q(colId)}) = 'blob'`);
         const marshaller = new marshal.Marshaller({ version: 2 });
-        const sqlParams: Array<[any, number]> = [];
+        const sqlParams: [any, number][] = [];
         for (const cell of cells) {
           const id: number = cell.id;
           const value: any = cell.value;

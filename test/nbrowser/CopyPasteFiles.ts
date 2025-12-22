@@ -76,7 +76,7 @@ function getCellThumbTitles(cell: WebElement): Promise<string[]> {
 
 // Creates a synthetic paste of a file, not from the real clipboard but by dispatching within the
 // browser an event we construct ourselves.
-function syntheticPasteFile(contentList: Array<{ content: string, name: string, type: string }>) {
+function syntheticPasteFile(contentList: { content: string, name: string, type: string }[]) {
   const dt = new DataTransfer();
   for (const { content, name, type } of contentList) {
     const bytes = Uint8Array.from(atob(content), c => c.charCodeAt(0));

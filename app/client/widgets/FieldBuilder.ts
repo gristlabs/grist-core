@@ -111,7 +111,7 @@ export class FieldBuilder extends Disposable {
   public readonly widgetImpl: ko.Computed<NewAbstractWidget>;
   public readonly diffImpl: NewAbstractWidget;
 
-  private readonly _availableTypes: Computed<Array<IOptionFull<string>>>;
+  private readonly _availableTypes: Computed<IOptionFull<string>[]>;
   private readonly _readOnlyPureType: ko.PureComputed<string>;
   private readonly _isRightType: ko.PureComputed<(value: CellValue, options?: any) => boolean>;
   private readonly _refTableId: ko.Computed<string | null>;
@@ -146,7 +146,7 @@ export class FieldBuilder extends Disposable {
     // Observable with a list of available types.
     this._availableTypes = Computed.create(this, (use) => {
       const isFormula = use(this.origColumn.isFormula);
-      const types: Array<IOptionFull<string>> = [];
+      const types: IOptionFull<string>[] = [];
       _.each(UserType.typeDefs, (def: any, key: string | number) => {
         const o: IOptionFull<string> = {
           value: key as string,

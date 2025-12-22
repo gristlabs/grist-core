@@ -36,7 +36,7 @@ export class SimpleList<T, U extends IOption<T> = IOption<T>> extends Disposable
   private _mouseOver: { reset(): void };
 
   constructor(private _ctl: IOpenController,
-    private _items: Observable<Array<U>>,
+    private _items: Observable<U[]>,
     private _action: (value: T) => void,
     opt: ISimpleListOpt<T, U> = {}) {
     super();

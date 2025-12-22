@@ -156,7 +156,7 @@ class ActionSummarizer {
   private _addRows(tableId: string, td: TableDelta, rowIds: number[],
     colValues: Action.BulkColValues, direction: 0 | 1) {
     const limitRows: boolean = rowIds.length > this._maxRows && !tableId.startsWith("_grist_");
-    let selectedRows: Array<[number, number]> = [];
+    let selectedRows: [number, number][] = [];
     if (limitRows) {
       // if many rows, just take some from start and one from end as examples
       selectedRows = [...rowIds.slice(0, this._maxRows - 1).entries()];

@@ -186,7 +186,7 @@ export class SubprocessControl implements ISandboxControl {
         traced: unrecognizedProcess,
       };
       let missing = false;
-      for (const key of Object.keys(recognizedProcesses) as Array<keyof typeof recognizedProcesses>) {
+      for (const key of Object.keys(recognizedProcesses) as (keyof typeof recognizedProcesses)[]) {
         const recognizer = this._options.recognizers[key];
         if (!recognizer) { continue; }
         for (const proc of processes) {

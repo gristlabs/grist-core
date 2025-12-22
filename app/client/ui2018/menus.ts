@@ -854,7 +854,7 @@ const cssMenuSearchInput = styled('input', `
   }
 `);
 
-type MenuDefinition = Array<MenuItem>;
+type MenuDefinition = MenuItem[];
 
 interface MenuItem {
   label?: string;
@@ -872,11 +872,11 @@ interface MenuItem {
  * A helper method that can generate a menu (like context menu in GridView) out of a plain definition.
  * Currently only used in Virtual Tables.
  */
-export function menuBuilder(definition: Array<MenuItem>) {
+export function menuBuilder(definition: MenuItem[]) {
   return menu(ctl => [...buildMenuItems(definition)], {});
 }
 
-export function* buildMenuItems(current: Array<MenuItem>): IterableIterator<Element> {
+export function* buildMenuItems(current: MenuItem[]): IterableIterator<Element> {
   for (const item of current) {
     const isHeader = item.type === 'header' || item.header;
     // If this is header with submenu.

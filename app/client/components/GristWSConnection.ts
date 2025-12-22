@@ -102,12 +102,10 @@ export class GristWSSettingsBrowser implements GristWSSettings {
   }
 
   public log(...args: any[]): void {
-    console.log(...args);   // tslint:disable-line:no-console
-  }
+    console.log(...args);    }
 
   public warn(...args: any[]): void {
-    console.warn(...args);  // tslint:disable-line:no-console
-  }
+    console.warn(...args);   }
 }
 
 /**

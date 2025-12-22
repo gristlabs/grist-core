@@ -45,7 +45,7 @@ export type ISelectorOption<T> = (T & string) | ISelectorOptionFull<T>;
  */
 export function buttonSelect<T>(
   obs: Observable<T>,
-  optionArray: Array<ISelectorOption<T>>,
+  optionArray: ISelectorOption<T>[],
   ...domArgs: DomElementArg[]
 ) {
   return makeButtonSelect(obs, optionArray, (val: T) => { obs.set(val); }, ...domArgs);
@@ -57,7 +57,7 @@ export function buttonSelect<T>(
  */
 export function buttonToggleSelect<T>(
   obs: Observable<T | null>,
-  optionArray: Array<ISelectorOption<T>>,
+  optionArray: ISelectorOption<T>[],
   ...domArgs: DomElementArg[]
 ) {
   const onClick = (val: T) => { obs.set(obs.get() === val ? null : val); };
@@ -68,7 +68,7 @@ export function buttonToggleSelect<T>(
  * Pre-made text alignment selector.
  */
 export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementArg[]) {
-  const alignments: Array<ISelectorOption<string>> = [
+  const alignments: ISelectorOption<string>[] = [
     { value: 'left',   icon: 'LeftAlign' },
     { value: 'center', icon: 'CenterAlign' },
     { value: 'right',  icon: 'RightAlign' },
@@ -108,7 +108,7 @@ export function colorSelect(value: Observable<string>, save: (val: string) => Pr
 
 export function makeButtonSelect<T>(
   obs: Observable<T | null>,
-  optionArray: Array<ISelectorOption<T>>,
+  optionArray: ISelectorOption<T>[],
   onClick: (value: T) => any,
   ...domArgs: DomElementArg[]
 ) {

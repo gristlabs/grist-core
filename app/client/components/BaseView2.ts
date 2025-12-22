@@ -36,7 +36,7 @@ export async function parsePasteForView(
 
   // If we have pasted-in files, they can go into Attachments-type columns. We collect the tasks
   // to upload them, and perform after going through the paste data.
-  const uploadTasks: Array<{ colId: string, valueIndex: number, fileList: File[] }> = [];
+  const uploadTasks: { colId: string, valueIndex: number, fileList: File[] }[] = [];
 
   data.forEach((col, idx) => {
     const field = fields[idx];

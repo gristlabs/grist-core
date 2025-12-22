@@ -643,7 +643,7 @@ export class ACMemberEmail extends Disposable {
 
   constructor(
     private _onAdd: (email: string, role: roles.NonGuestRole) => void,
-    private _members: Array<IEditableMember>,
+    private _members: IEditableMember[],
     private _prompt?: { email: string },
   ) {
     super();

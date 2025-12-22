@@ -254,10 +254,8 @@ export class GroupsManager {
   // Returns the most permissive default role that does not have more permissions than the passed
   // in argument.
   public getRoleFromPermissions(permissions: number): roles.Role | null {
-    permissions &= ~Permissions.PUBLIC; // tslint:disable-line:no-bitwise
-    const group = this.defaultBasicGroups.find(grp =>
-      (permissions & grp.permissions) === grp.permissions); // tslint:disable-line:no-bitwise
-    return group ? group.name : null;
+    permissions &= ~Permissions.PUBLIC;    const group = this.defaultBasicGroups.find(grp =>
+      (permissions & grp.permissions) === grp.permissions);    return group ? group.name : null;
   }
 
   // Returns the maxInheritedRole group name set on a resource.

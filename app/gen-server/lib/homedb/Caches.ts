@@ -46,11 +46,11 @@ export class HomeDBCaches {
   // Helper to add an invalidation callback to a list of callbacks. We normally use these to queue
   // invalidations to run after a transaction is committed (to ensure that any refetches they
   // trigger in other servers see the effects of the transaction).
-  public addInvalidationDocAccess(callbacks: Array<() => Promise<void>>, docIds: string[]) {
+  public addInvalidationDocAccess(callbacks: (() => Promise<void>)[], docIds: string[]) {
     callbacks.push(this.invalidateDocAccess.bind(this, docIds));
   }
 
-  public addInvalidationDocPrefs(callbacks: Array<() => Promise<void>>, docIds: string[]) {
+  public addInvalidationDocPrefs(callbacks: (() => Promise<void>)[], docIds: string[]) {
     callbacks.push(this.invalidateDocPrefs.bind(this, docIds));
   }
 

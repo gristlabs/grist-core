@@ -26,7 +26,7 @@ export interface FormLayoutNode {
   /** Unique ID of the node. Used by FormView. */
   id: string;
   type: FormLayoutNodeType;
-  children?: Array<FormLayoutNode>;
+  children?: FormLayoutNode[];
   // Used by Layout.
   submitText?: string;
   successURL?: string;

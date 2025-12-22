@@ -83,7 +83,7 @@ function getFileDialogOptions(options: SelectFileOptions): FileDialogOptions {
 // Helper to convert SelectFileOptions to electron's OpenDialogOptions.
 function getElectronOptions(options: SelectFileOptions) /* : OpenDialogOptions */ {
   const resOptions /* : OpenDialogOptions */ = {
-    filters: [] as Array<{ name: string, extensions: any }>,
+    filters: [] as { name: string, extensions: any }[],
     properties: ['openFile'],
   };
   if (options.extensions) {
@@ -157,14 +157,12 @@ async function uploadFormData(
       }
     });
     xhr.addEventListener('error', (e: ProgressEvent) => {
-      console.warn("Upload error", e);    // tslint:disable-line:no-console
-      // The event does not seem to have any helpful info in it, to add to the message.
+      console.warn("Upload error", e);         // The event does not seem to have any helpful info in it, to add to the message.
       reject(new Error('Upload error'));
     });
     xhr.addEventListener('load', () => {
       if (xhr.status !== 200) {
-        // tslint:disable-next-line:no-console
-        console.warn("Upload failed", xhr.status, xhr.responseText);
+               console.warn("Upload failed", xhr.status, xhr.responseText);
         const err = safeJsonParse(xhr.responseText, null);
         reject(new UserError('Upload failed: ' + (err && err.error || xhr.status)));
       }
@@ -195,8 +193,7 @@ export async function fetchURL(
     response = await window.fetch(url);
   }
   catch (err) {
-    console.log( // tslint:disable-line:no-console
-      `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`,
+    console.log(      `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`,
     );
     return docComm.fetchURL(url, options);
   }

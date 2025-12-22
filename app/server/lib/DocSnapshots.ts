@@ -61,7 +61,7 @@ export class DocSnapshotPruner {
   }
 
   // Get all snapshots for a document, and whether they should be kept or pruned.
-  public async classify(key: string): Promise<Array<{ snapshot: ObjSnapshotWithMetadata, keep: boolean }>> {
+  public async classify(key: string): Promise<{ snapshot: ObjSnapshotWithMetadata, keep: boolean }[]> {
     const snapshotWindow = await this._ext.getSnapshotWindow?.(key);
     const versions = await this._ext.versions(key);
     return shouldKeepSnapshots(versions, snapshotWindow).map((keep, index) => ({ keep, snapshot: versions[index] }));

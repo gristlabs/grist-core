@@ -13,7 +13,7 @@ function getOptions(date: string) {
   return relativeDatesOptions(toGristDate(dateUTC), valueFormatter);
 }
 
-function checkOption(options: Array<{ label: string, spec: any }>, label: string, spec: any) {
+function checkOption(options: { label: string, spec: any }[], label: string, spec: any) {
   try {
     assert.deepInclude(options, { label, spec });
   }

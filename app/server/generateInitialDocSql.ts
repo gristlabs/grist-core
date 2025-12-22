@@ -14,7 +14,6 @@ import * as util from 'util';
 
 const execFile = util.promisify(childProcess.execFile);
 
-// tslint:disable:no-console
 
 /**
  * Output to stdout typescript code containing SQL strings for creating an empty document.

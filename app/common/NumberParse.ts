@@ -222,7 +222,7 @@ export default class NumberParse {
     };
   }
 
-  public guessOptions(values: Array<string | null>): NumberFormatOptions {
+  public guessOptions(values: (string | null)[]): NumberFormatOptions {
     // null: undecided
     // true: negative numbers should be parenthesised
     // false: they should not

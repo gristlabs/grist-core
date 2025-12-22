@@ -466,8 +466,8 @@ class Seed {
       .add(user);
   }
 
-  public async addDocs(orgs: Array<{ name: string, domain?: string, host?: string, product?: string,
-    workspaces: Array<{ name: string, docs: string[] }> }>) {
+  public async addDocs(orgs: { name: string, domain?: string, host?: string, product?: string,
+    workspaces: { name: string, docs: string[] }[] }[]) {
     let docId = 1;
     for (const org of orgs) {
       const o = new Organization();
@@ -730,17 +730,14 @@ async function main() {
   }
   else if (cmd === 'serve') {
     const home = await createServer(3000);
-    // tslint:disable-next-line:no-console
-    console.log(`Home API demo available at ${home.getOwnUrl()}`);
+       console.log(`Home API demo available at ${home.getOwnUrl()}`);
     return;
   }
-  // tslint:disable-next-line:no-console
-  console.log("Call with: init | migrate | revert | serve | benchmark");
+   console.log("Call with: init | migrate | revert | serve | benchmark");
 }
 
 if (require.main === module) {
   main().catch((e) => {
-    // tslint:disable-next-line:no-console
-    console.log(e);
+       console.log(e);
   });
 }

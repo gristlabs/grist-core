@@ -249,7 +249,6 @@ export function logError(error: Error | string) {
     },
   }).catch((e) => {
     // There ... isn't much we can do about this.
-    // tslint:disable-next-line:no-console
-    console.warn('Failed to log event', e);
+       console.warn('Failed to log event', e);
   });
 }

@@ -49,7 +49,7 @@ export default class DetailView extends BaseView {
 
   private _isSingle: boolean;
   private _isExternalSectionPopup: boolean;
-  private _twoLastFieldIdsSelected: Array<number | null>;
+  private _twoLastFieldIdsSelected: (number | null)[];
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
     super(gristDoc, viewSectionModel, { addNewRow: true });

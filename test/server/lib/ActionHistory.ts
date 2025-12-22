@@ -87,7 +87,7 @@ class ToyActionHistory implements ActionHistory {
     }
   }
 
-  public async getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>> {
+  public async getActions(actionNums: number[]): Promise<(LocalActionBundle | undefined)[]> {
     return actionNums.map(n => undefined);
   }
 
@@ -175,9 +175,9 @@ async function getDoc(fname: string) {
   return storage;
 }
 
-const versions: Array<{ name: string,
+const versions: { name: string,
   createDoc: () => Promise<DocStorage | undefined>,
-  createHistory: (doc: DocStorage) => Promise<ActionHistory> }> = [
+  createHistory: (doc: DocStorage) => Promise<ActionHistory> }[] = [
   {
     name: "ToyActionHistory",
     createDoc: () => Promise.resolve(undefined),

@@ -209,7 +209,7 @@ describe('UsersManager', function() {
     let db: HomeDBManager;
     let notifier: EmitNotifier;
     let sandbox: SinonSandbox;
-    const docDeletes: Array<string> = [];
+    const docDeletes: string[] = [];
     const uniqueLocalPart = new Set<string>();
 
     function ensureUnique(localPart: string) {

@@ -115,7 +115,7 @@ export const gristMarshal = {
   },
   finalize(accum: GristMarshalIntermediateValue) {
     const marshaller = new Marshaller({ version: 2, keysAreBuffers: true });
-    const result: Record<string, Array<any>> = {};
+    const result: Record<string, any[]> = {};
     if (accum.names && accum.values) {
       for (const [i, name] of accum.names.entries()) {
         result[name] = accum.values[i];
@@ -135,7 +135,7 @@ interface GristMarshalIntermediateValue {
   // Values stored in the columns.
   // There is one element in the outermost array per column.
   // That element contains a list of values stored in that column.
-  values?: Array<Array<any>>;
+  values?: any[][];
 }
 
 /**

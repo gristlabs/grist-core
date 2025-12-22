@@ -112,7 +112,6 @@ export class WebpackServer implements IMochaServer {
 }
 
 function logMessage(msg: string) {
-  console.error("[webpack-test-server] " + msg);   // tslint:disable-line:no-console
-}
+  console.error("[webpack-test-server] " + msg);  }
 
 export const server = new WebpackServer();

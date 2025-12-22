@@ -19,7 +19,7 @@ export class DataRowModel extends BaseRowModel {
   // bit hacky, and should be cleaned up when BaseRowModel is ported to typescript.
   public readonly cells: { [key: string]: modelUtil.KoSaveableObservable<CellValue> } = this as any;
 
-  public _validationFailures: ko.PureComputed<Array<IRowModel<'_grist_Validations'>>>;
+  public _validationFailures: ko.PureComputed<IRowModel<'_grist_Validations'>[]>;
   public _isAddRow: ko.Observable<boolean>;
 
   // Observable that's set whenever a change to a row model is likely to be real, and unset when a

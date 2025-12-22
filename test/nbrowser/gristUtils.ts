@@ -39,7 +39,6 @@ import type { AssertionError } from 'assert';
 import axios from 'axios';
 import { lock } from 'proper-lockfile';
 
-// tslint:disable:no-namespace
 // Wrap in a namespace so that we can apply stackWrapOwnMethods to all the exports together.
 namespace gristUtils {
 
@@ -376,8 +375,7 @@ namespace gristUtils {
     colOrOptions: number | string | IColSelect<T> | IColsSelect<T>, _rowNums?: number[], _section?: string,
   ): Promise<T[]> {
     if (typeof colOrOptions === 'object' && 'cols' in colOrOptions) {
-      const { rowNums, section, mapper } = colOrOptions;    // tslint:disable-line:no-shadowed-variable
-      const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
+      const { rowNums, section, mapper } = colOrOptions;         const columns = await Promise.all(colOrOptions.cols.map(oneCol =>
         getVisibleDetailCells({ col: oneCol, rowNums, section, mapper })));
       // This zips column-wise data into a flat row-wise array of values.
       return ([] as T[]).concat(...rowNums.map((r, i) => columns.map(c => c[i])));
@@ -1934,8 +1932,7 @@ namespace gristUtils {
       interval = args.shift() as number;
     }
     const keys = args as string[];
-    // tslint:disable-next-line:max-line-length
-    // Implementation follows the description of WebElement.sendKeys functionality at https://github.com/SeleniumHQ/selenium/blob/2f7727c314f943582f9f1b2a7e4d77ebdd64bdd3/javascript/node/selenium-webdriver/lib/webdriver.js#L2146
+       // Implementation follows the description of WebElement.sendKeys functionality at https://github.com/SeleniumHQ/selenium/blob/2f7727c314f943582f9f1b2a7e4d77ebdd64bdd3/javascript/node/selenium-webdriver/lib/webdriver.js#L2146
     await driver.withActions((a) => {
       const toRelease: string[] =  [];
       for (const part of keys) {
@@ -2703,8 +2700,7 @@ namespace gristUtils {
   export function rgbToHex(color: string) {
   // Next line extracts the 3 rgb components from a 'rgb(r, g, b)' string.
     const [r, g, b] = color.split(/[,()rgba]/).filter(c => c).map(parseFloat);
-    // tslint:disable-next-line:no-bitwise
-    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+       return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
   // Returns the `rgba( ... )` representation of a color given its hex representation `'#...'` . For
@@ -3085,7 +3081,7 @@ namespace gristUtils {
   }
 
   export type SortOption = "naturalSort" | "emptyLast" | "orderByChoice";
-  export const SortOptions: ReadonlyArray<SortOption> = ["orderByChoice", "emptyLast", "naturalSort"];
+  export const SortOptions: readonly SortOption[] = ["orderByChoice", "emptyLast", "naturalSort"];
 
   // Returns checked sort options for current column. Assumes the menu is opened.
   export async function getSortOptions(): Promise<SortOption[]> {

@@ -1229,7 +1229,7 @@ export class HomeDBManager implements HomeDBAuth {
     },
     transaction?: EntityManager,
   ): Promise<QueryResult<Organization>> {
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     const name = props.name;
     const domain = props.domain;
     if (!name) {
@@ -1286,7 +1286,7 @@ export class HomeDBManager implements HomeDBAuth {
           if (billing.features && typeof billing.features === 'object' && Object.keys(billing.features).length === 0) {
             delete billing.features;
           }
-          const allowedKeys: Array<keyof BillingOptions> = [
+          const allowedKeys: (keyof BillingOptions)[] = [
             'stripeCustomerId',
             'stripeSubscriptionId',
             'stripePlanId',
@@ -1890,7 +1890,7 @@ export class HomeDBManager implements HomeDBAuth {
       allowSpecialPermit?: boolean,
     },
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     const markPermissions = Permissions.SCHEMA_EDIT;
     const result = await this.runInTransaction(transaction, async (manager) => {
       const { forkId } = parseUrlId(scope.urlId);
@@ -2057,7 +2057,7 @@ export class HomeDBManager implements HomeDBAuth {
   // status 200 on success.
   public async updateBillingAccountManagers(userId: number, orgKey: string | number,
     delta: ManagerDelta): Promise<QueryResult<void>> {
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     // Translate our ManagerDelta to a PermissionDelta so that we can reuse existing
     // methods for normalizing/merging emails and finding the user ids.
     const permissionDelta: PermissionDelta = { users: {} };
@@ -2130,7 +2130,7 @@ export class HomeDBManager implements HomeDBAuth {
     delta: PermissionDelta,
   ): Promise<QueryResult<OrgAccessChanges>> {
     const { userId } = scope;
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, true, manager);
       let orgQuery = this.org(scope, orgKey, {
@@ -2209,7 +2209,7 @@ export class HomeDBManager implements HomeDBAuth {
     delta: PermissionDelta,
   ): Promise<QueryResult<WorkspaceAccessChanges>> {
     const { userId } = scope;
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
       const options = {
@@ -2303,7 +2303,7 @@ export class HomeDBManager implements HomeDBAuth {
     scope: DocScope,
     delta: PermissionDelta,
   ): Promise<QueryResult<DocumentAccessChanges>> {
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const { userId } = scope;
       const analysis = await this._usersManager.verifyAndLookupDeltaEmails(userId, delta, false, manager);
@@ -2627,7 +2627,7 @@ export class HomeDBManager implements HomeDBAuth {
     scope: DocScope,
     wsId: number,
   ): Promise<QueryResult<PreviousAndCurrent<Document>>> {
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       // Get the doc
       const doc = await this._loadDocAccess(scope, Permissions.OWNER, manager);
@@ -3168,7 +3168,7 @@ export class HomeDBManager implements HomeDBAuth {
     key: ConfigKey,
     value: ConfigValue,
   ): Promise<QueryResult<Config | PreviousAndCurrent<Config>>> {
-    const events: Array<() => Promise<void>> = [];
+    const events: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const queryResult = await this.getInstallConfig(key, {
         transaction: manager,
@@ -3210,7 +3210,7 @@ export class HomeDBManager implements HomeDBAuth {
    * Fails if a config with the specified `key` does not exist.
    */
   public async deleteInstallConfig(key: ConfigKey): Promise<QueryResult<Config>> {
-    const events: Array<() => Promise<void>> = [];
+    const events: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const queryResult = await this.getInstallConfig(key, {
         transaction: manager,
@@ -3270,7 +3270,7 @@ export class HomeDBManager implements HomeDBAuth {
     key: ConfigKey,
     value: ConfigValue,
   ): Promise<QueryResult<Config | PreviousAndCurrent<Config>>> {
-    const eventsWithArgs: Array<() => Promise<void>> = [];
+    const eventsWithArgs: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const orgQuery = this.org(scope, orgKey, {
         markPermissions: Permissions.OWNER,
@@ -3325,7 +3325,7 @@ export class HomeDBManager implements HomeDBAuth {
     org: string | number,
     key: ConfigKey,
   ): Promise<QueryResult<Config>> {
-    const eventsWithArgs: Array<() => Promise<void>> = [];
+    const eventsWithArgs: (() => Promise<void>)[] = [];
     const result = await this._connection.transaction(async (manager) => {
       const query = this._orgConfig(scope, org, key, {
         manager,
@@ -3410,7 +3410,7 @@ export class HomeDBManager implements HomeDBAuth {
 
   public async setDocPrefs(scope: DocScope, newPrefs: Partial<FullDocPrefs>): Promise<void> {
     const { urlId: docId, userId } = scope;
-    const notifications: Array<() => Promise<void>> = [];
+    const notifications: (() => Promise<void>)[] = [];
     await this.runInTransaction(undefined, async (manager) => {
       const [doc, origPrefs] = await this._doGetDocPrefs(scope, manager);
       const updates = [];
@@ -4768,8 +4768,7 @@ export class HomeDBManager implements HomeDBAuth {
       // ignore the user's access level when deciding whether to filter them out or
       // to keep them.
       const ignoreAccess = options.parentPermissions &&
-        (options.parentPermissions & Permissions.REMOVE) && // tslint:disable-line:no-bitwise
-        items.length > 0 && !items[0].docs;
+        (options.parentPermissions & Permissions.REMOVE) &&        items.length > 0 && !items[0].docs;
       return items.filter(v => !this._isForbidden(v, Boolean(ignoreAccess), options.scope));
     }
     // For hashes, iterate through key/values, adding access info if 'permissions' field is found.
@@ -4846,8 +4845,7 @@ export class HomeDBManager implements HomeDBAuth {
       if (typeof subValue === 'number' || !subValue) {
         // Find the first special group for which the user has all permissions.
         value.access = this._groupsManager.getRoleFromPermissions(subValue || 0);
-        if (subValue & Permissions.PUBLIC) { // tslint:disable-line:no-bitwise
-          value.public = true;
+        if (subValue & Permissions.PUBLIC) {          value.public = true;
         }
       }
       else {
@@ -5095,7 +5093,7 @@ export class HomeDBManager implements HomeDBAuth {
   // if request is from a branded webpage; results should be limited to a
   // specific user or set of users.
   private _applyLimit<T extends ObjectLiteral>(qb: SelectQueryBuilder<T>, limit: Scope,
-    resources: Array<'docs' | 'workspaces' | 'orgs'>,
+    resources: ('docs' | 'workspaces' | 'orgs')[],
     accessStyle: AccessStyle): SelectQueryBuilder<T> {
     if (limit.org) {
       // Filtering on merged org is a special case, see urlIdQuery

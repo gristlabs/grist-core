@@ -371,7 +371,7 @@ export interface ViewSectionRec extends IRowModel<"_grist_Views_section">, RuleO
    * Removes one or multiple fields.
    * @param colRef
    */
-  removeField(colRef: number | Array<number>): Promise<void>;
+  removeField(colRef: number | number[]): Promise<void>;
 }
 
 export type WidgetMappedColumn = number | number[] | null;

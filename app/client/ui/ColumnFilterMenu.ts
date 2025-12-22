@@ -560,7 +560,7 @@ function relativeToken(obs: Observable<number | undefined | IRelativeDateSpec>,
  * checkbox is unchecked, or in the Indeterminate state, it does check all the values, and if the
  * `switchFilterType` is true it also converts the filter into an exclusion filter.
  */
-function buildSummary(label: string | Computed<string>, values: Array<[CellValue, IFilterCount]>,
+function buildSummary(label: string | Computed<string>, values: [CellValue, IFilterCount][],
   switchFilterType: boolean, model: ColumnFilterMenuModel) {
   const columnFilter = model.columnFilter;
   const checkboxState = Computed.create(
@@ -613,12 +613,12 @@ function buildSummary(label: string | Computed<string>, values: Array<[CellValue
   );
 }
 
-function formatCount(values: Array<[CellValue, IFilterCount]>) {
+function formatCount(values: [CellValue, IFilterCount][]) {
   const count = getCount(values);
   return count ? count.toLocaleString() : '';
 }
 
-function formatUniqueCount(values: Array<[CellValue, IFilterCount]>) {
+function formatUniqueCount(values: [CellValue, IFilterCount][]) {
   const count = values.length;
   return count ? '(' + count.toLocaleString() + ')' : '';
 }
@@ -911,7 +911,7 @@ function addSingleCountToMap(valueMap: Map<CellValue, IFilterCount>, value: any,
   }
 }
 
-function getCount(values: Array<[CellValue, IFilterCount]>) {
+function getCount(values: [CellValue, IFilterCount][]) {
   return values.reduce((acc, val) => acc + val[1].count, 0);
 }
 

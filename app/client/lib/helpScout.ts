@@ -13,7 +13,6 @@
  * https://developer.helpscout.com/beacon-2/web/javascript-api/
  */
 
-// tslint:disable:unified-signatures
 
 import { logTelemetryEvent } from 'app/client/lib/telemetry';
 import { AppModel } from 'app/client/models/AppModel';
@@ -47,7 +46,7 @@ interface IFormObj {
   email?: string;
   subject?: string;
   text?: string;
-  fields?: Array<{ id: number, value: string | number | boolean }>;
+  fields?: { id: number, value: string | number | boolean }[];
 }
 
 interface ISessionData {

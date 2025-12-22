@@ -50,8 +50,7 @@ export class HomePluginManager {
         this.pluginsList.push(pluginInstance);
       }
       catch (err) {
-        console.error( // tslint:disable-line:no-console
-          `HomePluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
+        console.error(          `HomePluginManager: failed to instantiate ${plugin.id}: ${err.message}`);
       }
     }
   }

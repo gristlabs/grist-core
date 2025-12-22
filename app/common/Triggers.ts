@@ -1,5 +1,5 @@
 export interface WebhookSubscribeCollection {
-  webhooks: Array<Webhook>
+  webhooks: Webhook[]
 }
 
 export interface Webhook {
@@ -9,7 +9,7 @@ export interface Webhook {
 export interface WebhookFields {
   url: string;
   authorization?: string;
-  eventTypes: Array<"add" | "update">;
+  eventTypes: ("add" | "update")[];
   tableId: string;
   watchedColIds?: string[];
   enabled?: boolean;
@@ -27,7 +27,7 @@ export type WebhookStatus = 'idle' | 'sending' | 'retrying' | 'postponed' | 'err
 export interface WebhookSubscribe {
   url: string;
   authorization?: string;
-  eventTypes: Array<"add" | "update">;
+  eventTypes: ("add" | "update")[];
   watchedColIds?: string[];
   enabled?: boolean;
   isReadyColumn?: string | null;
@@ -36,7 +36,7 @@ export interface WebhookSubscribe {
 }
 
 export interface  WebhookSummaryCollection {
-  webhooks: Array<WebhookSummary>;
+  webhooks: WebhookSummary[];
 }
 export interface WebhookSummary {
   id: string;
@@ -66,7 +66,7 @@ export interface WebhookUpdate {
 export interface WebhookPatch {
   url?: string;
   authorization?: string;
-  eventTypes?: Array<"add" | "update">;
+  eventTypes?: ("add" | "update")[];
   tableId?: string;
   watchedColIds?: string[];
   enabled?: boolean;

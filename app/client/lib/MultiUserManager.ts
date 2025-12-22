@@ -9,7 +9,7 @@ import { textarea } from "app/client/ui/inputs";
 import { BasicRole, isBasicRole, NonGuestRole, VIEWER } from "app/common/roles";
 import { menu, menuItem } from 'app/client/ui2018/menus';
 
-function parseEmailList(emailListRaw: string): Array<string> {
+function parseEmailList(emailListRaw: string): string[] {
   return emailListRaw
     .split('\n')
     .map(email => email.trim().toLowerCase())

@@ -94,7 +94,6 @@ async function setupDb() {
   }
 }
 
-// tslint:disable:no-console
 export async function main() {
   console.log('Welcome to Grist.');
   if (!debugging) {

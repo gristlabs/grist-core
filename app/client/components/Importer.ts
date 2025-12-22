@@ -2,7 +2,6 @@
  * Importer manages an import files to Grist tables
  * TODO: hidden tables should be also deleted on page refresh, error...
  */
-// tslint:disable:no-console
 
 import { GristDoc } from 'app/client/components/GristDoc';
 import { buildParseOptionsForm, ParseOptionValues } from 'app/client/components/ParseOptions';
@@ -302,7 +301,7 @@ export class Importer extends DisposableWithEvents {
   /**
    * destTables is a list of tables user can choose to import data into, in the format suitable for the UI to consume.
    */
-  private _destTables = Computed.create<Array<IOptionFull<DestId>>>(this, use => [
+  private _destTables = Computed.create<IOptionFull<DestId>[]>(this, use => [
     ...use(this._gristDoc.docModel.visibleTableIds.getObservable()).map(id => ({ value: id, label: id })),
   ]);
 

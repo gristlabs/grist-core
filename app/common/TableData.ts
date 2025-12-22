@@ -206,7 +206,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * Returns the list of all rowIds in this table, in unspecified and unstable order. Equivalent
    * to getColValues('id').
    */
-  public getRowIds(): ReadonlyArray<number> {
+  public getRowIds(): readonly number[] {
     return this._rowIdCol;
   }
 
@@ -236,7 +236,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * all arrays returned by getColValues() and getRowIds() are parallel to each other, i.e. the
    * values at the same index correspond to the same record.
    */
-  public getColValues(colId: string): ReadonlyArray<CellValue> | undefined {
+  public getColValues(colId: string): readonly CellValue[] | undefined {
     const colData = this._columns.get(colId);
     return colData ? colData.values : undefined;
   }
@@ -581,7 +581,7 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
     return super.getValue(rowId, colId) as any;
   }
 
-  public getRecords(): Array<MetaRowRecord<TableId>> {
+  public getRecords(): MetaRowRecord<TableId>[] {
     return super.getRecords() as any;
   }
 
@@ -589,7 +589,7 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
     return super.getRecord(rowId) as any;
   }
 
-  public filterRecords(properties: Partial<MetaRowRecord<TableId>>): Array<MetaRowRecord<TableId>> {
+  public filterRecords(properties: Partial<MetaRowRecord<TableId>>): MetaRowRecord<TableId>[] {
     return super.filterRecords(properties) as any;
   }
 
@@ -605,7 +605,7 @@ export class MetaTableData<TableId extends keyof SchemaTypes> extends TableData 
 
   public getColValues<ColId extends MetaColId<TableId>>(
     colId: ColId,
-  ): ReadonlyArray<MetaRowRecord<TableId>[ColId]> {
+  ): readonly MetaRowRecord<TableId>[ColId][] {
     return super.getColValues(colId) as any;
   }
 

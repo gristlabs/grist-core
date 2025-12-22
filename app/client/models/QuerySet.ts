@@ -56,7 +56,7 @@ const MAX_SQL_PARAMS = 500;
  */
 export interface QueryRefs {
   tableRef: number;
-  filterTuples: Array<FilterTuple>;
+  filterTuples: FilterTuple[];
 }
 
 type ColRef = number | 'id';
@@ -269,8 +269,7 @@ export class QuerySet extends BaseFilteredRowSource {
 
         this.onDispose(() => {
           docComm.disposeQuerySet(data.querySubId).catch((err) => {
-            // tslint:disable-next-line:no-console
-            console.log(`Promise rejected for disposeQuerySet: ${err.message}`);
+                       console.log(`Promise rejected for disposeQuerySet: ${err.message}`);
           });
           tableQS.removeQuerySet(this);
         });
@@ -393,7 +392,7 @@ function decodeQuery(queryKey: string): QueryRefs {
  */
 function makeQueryInvalidComputed(docModel: DocModel, queryRefs: QueryRefs): ko.Computed<boolean> {
   const tableFlag: ko.Observable<boolean> = docModel.tables.getRowModel(queryRefs.tableRef)._isDeleted;
-  const colFlags: Array<ko.Observable<boolean> | null> = queryRefs.filterTuples.map(
+  const colFlags: (ko.Observable<boolean> | null)[] = queryRefs.filterTuples.map(
     ([colRef, ,]) => colRef === 'id' ? null : docModel.columns.getRowModel(colRef)._isDeleted);
   return ko.computed(() => Boolean(tableFlag() || colFlags.some(c => c?.())));
 }

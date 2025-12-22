@@ -46,7 +46,6 @@ import debounce from 'lodash/debounce';
 
 const t = makeT('ViewLayout');
 
-// tslint:disable:no-console
 
 const viewSectionTypes: { [key: string]: any } = {
   record: GridView,

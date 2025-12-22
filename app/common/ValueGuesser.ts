@@ -48,7 +48,7 @@ abstract class ValueGuesser<T> {
    * Attempt to parse at least 90% the string values losslessly according to the guessed colInfo.
    * Return null if this cannot be done.
    */
-  public guess(values: Array<string | null>, docSettings: DocumentSettings): GuessResult | null {
+  public guess(values: (string | null)[], docSettings: DocumentSettings): GuessResult | null {
     const colInfo = this.colInfo();
     const { type, widgetOptions } = colInfo;
     const formatter = createFormatter(type, widgetOptions || {}, docSettings);
@@ -172,12 +172,12 @@ class DateGuesser extends ValueGuesser<number> {
   }
 }
 
-export function guessColInfoWithDocData(values: Array<string | null>, docData: DocData) {
+export function guessColInfoWithDocData(values: (string | null)[], docData: DocData) {
   return guessColInfo(values, docData.docSettings(), docData.docInfo().timezone);
 }
 
 export function guessColInfo(
-  values: Array<string | null>, docSettings: DocumentSettings, timezone: string,
+  values: (string | null)[], docSettings: DocumentSettings, timezone: string,
 ): GuessResult {
   // Use short-circuiting of || to only do as much work as needed,
   // in particular not guessing date formats before trying other types.

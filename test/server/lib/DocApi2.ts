@@ -323,21 +323,21 @@ describe('DocApi2', function() {
       // Now stop it as owner and make sure the result is sane.
       resp = await axios.post(`${homeUrl}/api/docs/${docId}/timing/stop`, {}, chimpy);
       assert.equal(resp.status, 200, JSON.stringify(resp.data));
-      const data = resp.data as Array<{
+      const data = resp.data as {
         tableId: string;
         colId: string;
         sum: number;
         count: number;
         average: number;
         max: number;
-        markers?: Array<{
+        markers?: {
           name: string;
           sum: number;
           count: number;
           average: number;
           max: number;
-        }>
-      }>;
+        }[]
+      }[];
 
       assert.isAbove(data.length, 0);
       assert.equal(data[0].tableId, 'Timings');

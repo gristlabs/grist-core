@@ -114,7 +114,7 @@ export interface SchemaInfo {
   // If you may open DBs created without versioning (e.g. predate use of this module), such DBs
   // will go through all migrations including the very first one. In this case, the first
   // migration's job is to bring any older DB to the same consistent state.
-  readonly migrations: ReadonlyArray<DBFunc>;
+  readonly migrations: readonly DBFunc[];
 }
 
 export type DBFunc = (db: SQLiteDB) => Promise<void>;
@@ -365,7 +365,7 @@ export class SQLiteDB implements ISQLiteDB {
    * Run each of the statements in turn. Each statement is either a string, or an array of arguments
    * to db.run, e.g. [sqlString, [params...]].
    */
-  public async runEach(...statements: Array<string | [string, any[]]>): Promise<void> {
+  public async runEach(...statements: (string | [string, any[]])[]): Promise<void> {
     for (const stmt of statements) {
       try {
         if (Array.isArray(stmt)) {

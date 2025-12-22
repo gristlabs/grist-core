@@ -202,7 +202,7 @@ export function asTabularDiffs(summary: ActionSummary, options: {
       // if the rowId is both added and removed - in this scenario, the rows
       // before and after are unrelated.  In all other cases, the before and
       // after values refer to the same row.
-      const versions: Array<[string, (diff: CellDelta) => CellDelta]> = [];
+      const versions: [string, (diff: CellDelta) => CellDelta][] = [];
       if (addedRows.has(rowId) && removedRows.has(rowId)) {
         versions.push(['-', diff => [diff[0], null]]);
         versions.push(['+', diff => [null, diff[1]]]);

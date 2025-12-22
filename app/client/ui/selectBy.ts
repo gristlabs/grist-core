@@ -50,7 +50,7 @@ type MaybeSection = ViewSectionRec | IPageWidget;
 // only when linking from a reference column, as opposed to linking from the table directly. And the
 // <target-col-name> shows only when both <section_name>[.<source-col-name>] is ambiguous.
 export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
-  target: MaybeSection): Array<IOptionFull<string>> {
+  target: MaybeSection): IOptionFull<string>[] {
   const sourceNodes = createNodesFromViewSections(docModel, sources);
   const targetNodes = isViewSectionRec(target) ?
     createNodesFromViewSections(docModel, [target]) :

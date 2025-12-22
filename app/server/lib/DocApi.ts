@@ -1058,7 +1058,7 @@ export class DocWorkerApi {
     // Add a new webhook and trigger
     this._app.post('/api/docs/:docId/webhooks', isOwner, validate(WebhookSubscribeCollection),
       withDocTriggersLock(async (activeDoc, req, res) => {
-        const registeredWebhooks: Array<WebhookSubscription> = [];
+        const registeredWebhooks: WebhookSubscription[] = [];
         for (const webhook of req.body.webhooks) {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
           registeredWebhooks.push(registeredWebhook);

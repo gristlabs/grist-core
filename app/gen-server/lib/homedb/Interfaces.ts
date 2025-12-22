@@ -83,11 +83,9 @@ export interface GroupWithMembersDescriptor {
 interface AccessChanges {
   publicAccess: roles.NonGuestRole | null;
   maxInheritedAccess: roles.BasicRole | null;
-  users: Array<
-    Pick<User, "id" | "name"> & { email?: string } & {
+  users: (Pick<User, "id" | "name"> & { email?: string } & {
       access: roles.NonGuestRole | null;
-    }
-  >;
+    })[];
 }
 
 export type ServiceAccountProperties = Partial<Pick<ServiceAccount, 'label' | 'description' | 'expiresAt'>>;

@@ -66,8 +66,8 @@ type SaveFunc = (value: string) => void | PromiseLike<void>;
 
 export interface EditableLabelOptions {
   save: SaveFunc;
-  args?: Array<DomArg<HTMLDivElement>>;
-  inputArgs?: Array<DomArg<HTMLInputElement>>;
+  args?: DomArg<HTMLDivElement>[];
+  inputArgs?: DomArg<HTMLInputElement>[];
 }
 
 /**
@@ -101,7 +101,7 @@ export function editableLabel(label: Observable<string>, options: EditableLabelO
  * of focus. Escape cancels editing. Validation logic (if any) should happen in the save function,
  * to reject a value simply throw an error, this will revert to the the saved one.
  */
-export function textInput(label: Observable<string>, save: SaveFunc, ...args: Array<DomArg<HTMLInputElement>>) {
+export function textInput(label: Observable<string>, save: SaveFunc, ...args: DomArg<HTMLInputElement>[]) {
   return rawTextInput(label, save, noop, dom.cls(cssTextInput.className), ...args);
 }
 
@@ -109,7 +109,7 @@ export function textInput(label: Observable<string>, save: SaveFunc, ...args: Ar
  * A helper that implements all the saving logic for both editableLabel and textInput.
  */
 export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange: () => void,
-  ...args: Array<DomArg<HTMLInputElement>>) {
+  ...args: DomArg<HTMLInputElement>[]) {
   let status: Status = Status.NORMAL;
   let inputEl: HTMLInputElement;
 

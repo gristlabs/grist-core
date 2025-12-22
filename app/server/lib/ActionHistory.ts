@@ -139,7 +139,7 @@ export abstract class ActionHistory {
    * Get a list of actions, identified by their actionNum.  Any actions that could not be
    * found are returned as undefined.
    */
-  public abstract getActions(actionNums: number[]): Promise<Array<LocalActionBundle | undefined>>;
+  public abstract getActions(actionNums: number[]): Promise<(LocalActionBundle | undefined)[]>;
 
   /**
    * Associates an action with a client. This association is expected to be transient, rather

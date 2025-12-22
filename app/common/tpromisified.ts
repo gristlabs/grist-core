@@ -1,4 +1,3 @@
-// tslint:disable:max-line-length
 // credits: https://stackoverflow.com/questions/49998665/promisified-function-type
 
 // Generic Function definition

@@ -2,7 +2,6 @@
  * This module contains various logic for converting columns between types. It is used from
  * TypeTransform.js.
  */
-// tslint:disable:no-console
 
 import { isString } from 'app/client/lib/sessionObs';
 import { DocModel } from 'app/client/models/DocModel';

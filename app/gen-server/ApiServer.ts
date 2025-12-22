@@ -676,7 +676,7 @@ export class ApiServer {
       this._app.get('/api/service-accounts', expressWrap(async (req, res) => {
         const userId = getAuthorizedUserId(req);
         const data = await this._dbManager.getOwnedServiceAccounts(userId);
-        const resp: Array<Partial<SATypes.ServiceAccountApiResponse>> = data.map((serviceAccount) => {
+        const resp: Partial<SATypes.ServiceAccountApiResponse>[] = data.map((serviceAccount) => {
           const hasValidKey = serviceAccount.serviceUser.apiKey !== null;
           return {
             id: serviceAccount.id,

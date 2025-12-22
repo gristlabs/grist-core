@@ -19,7 +19,7 @@ export interface ITestingHooks {
   setDocWorkerActivation(workerId: string, active: 'active' | 'inactive' | 'crash'): Promise<void>;
   flushAuthorizerCache(): Promise<void>;
   flushDocs(): Promise<void>;
-  getDocClientCounts(): Promise<Array<[string, number]>>;
+  getDocClientCounts(): Promise<[string, number][]>;
   setActiveDocTimeout(seconds: number): Promise<number>;
   setDiscourseConnectVar(varName: string, value: string | null): Promise<string | null>;
   setWidgetRepositoryUrl(url: string): Promise<void>;

@@ -41,7 +41,7 @@ const testId = makeTestId('test-actionlog-');
 export interface ActionGroupWithState extends ActionGroup {
   state?: ko.Observable<string>;  // is action undone/buried
   tableFilters?: { [tableId: string]: ko.Observable<string> };  // current names of tables
-  affectedTableIds?: Array<ko.Observable<string>>; // names of tables affecting this ActionGroup
+  affectedTableIds?: ko.Observable<string>[]; // names of tables affecting this ActionGroup
   context?: ko.Observable<ActionContext>;  // extra cell information, computed on demand
 }
 

@@ -270,6 +270,6 @@ export function buildComparisonQuery(leftTableId: string, rightTableId: string, 
   return query;
 }
 
-export function combineExpr(operator: string, parts: Array<string | undefined>): string {
+export function combineExpr(operator: string, parts: (string | undefined)[]): string {
   return parts.filter(p => Boolean(p)).map(p => `(${p})`).join(` ${operator} `);
 }

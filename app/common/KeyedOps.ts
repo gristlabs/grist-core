@@ -235,7 +235,7 @@ interface OperationStatus {
   promise?: Promise<void>;   // a promise for an operation that is under way
   key: string;               // the operation key
   failures: number;          // consecutive number of times the operation has failed
-  callbacks: Array<(err?: Error) => void>;  // callbacks for notifications when op is done/fails
+  callbacks: ((err?: Error) => void)[];  // callbacks for notifications when op is done/fails
 }
 
 /**

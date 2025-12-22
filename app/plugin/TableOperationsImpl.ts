@@ -151,7 +151,7 @@ export interface TableOperationsPlatform {
   applyUserActions(actions: any[][], opts: any): Promise<any>;
 }
 
-export function convertToBulkColValues(records: Array<Types.Record | Types.NewRecord>): BulkColValues {
+export function convertToBulkColValues(records: (Types.Record | Types.NewRecord)[]): BulkColValues {
   // User might want to create empty records, without providing a field name, for example for requests:
   // { records: [{}] }; { records: [{fields:{}}] }
   // Retrieve all field names from fields property.
@@ -166,7 +166,7 @@ export function fieldNames(records: any[]) {
   return new Set<string>(flatMap(records, r => Object.keys({ ...r.fields, ...r.require })));
 }
 
-export function areSameFields(records: Array<Types.Record | Types.NewRecord>) {
+export function areSameFields(records: (Types.Record | Types.NewRecord)[]) {
   const recordsFields = records.map(r => new Set(Object.keys(r.fields || {})));
   return recordsFields.every(s => isEqual(recordsFields[0], s));
 }

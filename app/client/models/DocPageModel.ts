@@ -42,7 +42,6 @@ import {
 import { Computed, Disposable, dom, DomArg, DomElementArg, Holder, Observable, subscribe } from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
-// tslint:disable:no-console
 
 const t = makeT('DocPageModel');
 

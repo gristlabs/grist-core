@@ -33,7 +33,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
 
   const nameClearCells = (numRows > 1 || numColumns > 1) ? t("Clear values") : t("Clear cell");
 
-  const result: Array<Element | null> = [];
+  const result: (Element | null)[] = [];
 
   result.push(
     menuItemCmd(allCommands.contextMenuCut, t('Cut'), disableForReadonlyColumn),

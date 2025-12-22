@@ -83,7 +83,7 @@ describe('Scim', () => {
     let logErrorStub: Sinon.SinonStub;
 
     before(async function() {
-      const userNames = Object.keys(USER_CONFIG_BY_NAME) as Array<keyof UserConfigByName>;
+      const userNames = Object.keys(USER_CONFIG_BY_NAME) as (keyof UserConfigByName)[];
       for (const user of userNames) {
         userIdByName[user] = await getOrCreateUserId(user);
       }

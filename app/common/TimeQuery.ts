@@ -125,7 +125,7 @@ export class TimeQuery {
     // with database.
     const summaryRows: ResultRows = {};
     for (const [colId, columns] of toPairs(td.columnDeltas)) {
-      for (const [rowId, cell] of toPairs(columns) as unknown as Array<[keyof ColumnDelta, CellDelta]>) {
+      for (const [rowId, cell] of toPairs(columns) as unknown as [keyof ColumnDelta, CellDelta][]) {
         if (!summaryRows[rowId]) { summaryRows[rowId] = {}; }
         const val = cell[0];
         summaryRows[rowId][colId] = (val !== null && typeof val === 'object') ? val[0] : null;

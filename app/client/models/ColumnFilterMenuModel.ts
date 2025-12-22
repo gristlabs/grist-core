@@ -29,7 +29,7 @@ const localeCompare = new Intl.Collator('en-US', { numeric: true }).compare;
 interface ColumnFilterMenuModelParams {
   columnFilter: ColumnFilter;
   filterInfo: FilterInfo;
-  valueCount: Array<[CellValue, IFilterCount]>;
+  valueCount: [CellValue, IFilterCount][];
   gristDoc: GristDoc;
   limitShow?: number;
 }

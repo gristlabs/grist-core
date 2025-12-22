@@ -38,7 +38,7 @@ export const urlRegex = /(https?:\/\/[A-Za-z\d][A-Za-z\d-.]*(?!\.)(?::\d+)?(?:\/
 /**
  * Detects URLs in a text and returns list of tokens { value, isLink }
  */
-export function findLinks(text: string): Array<{ value: string, isLink: boolean }> {
+export function findLinks(text: string): { value: string, isLink: boolean }[] {
   if (!text) {
     return [{ value: text, isLink: false }];
   }

@@ -11,10 +11,7 @@ export enum Permissions {
   REMOVE        = 0x8,
   SCHEMA_EDIT   = 0x10,
   ACL_EDIT      = 0x20,
-  EDITOR        = VIEW | UPDATE | ADD | REMOVE,   // tslint:disable-line:no-bitwise
-  ADMIN         = EDITOR | SCHEMA_EDIT,           // tslint:disable-line:no-bitwise
-  OWNER         = ADMIN | ACL_EDIT,               // tslint:disable-line:no-bitwise
-
+  EDITOR        = VIEW | UPDATE | ADD | REMOVE,    ADMIN         = EDITOR | SCHEMA_EDIT,            OWNER         = ADMIN | ACL_EDIT,              
   // A virtual permission bit signifying that the general public has some access to
   // the resource via ACLs involving the everyone@ user.
   PUBLIC        = 0x80,

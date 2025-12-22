@@ -64,7 +64,7 @@ export class SectionFilter extends Disposable {
    */
   public buildFilterFunc(getFilterFunc: ColFilterCB, use: UseCB) {
     const filters = use(this.viewSection.filters);
-    const funcs: Array<RowFilterFunc<UIRowId> | null> = filters.map(({ filter, fieldOrColumn }) => {
+    const funcs: (RowFilterFunc<UIRowId> | null)[] = filters.map(({ filter, fieldOrColumn }) => {
       const colFilter = buildColFilter(use(filter), use(use(fieldOrColumn.origCol).type));
       const filterFunc = getFilterFunc(fieldOrColumn, colFilter);
 

@@ -30,7 +30,6 @@ import { onClickOutside } from 'app/client/lib/domUtils';
 
 const t = makeT('App');
 
-// tslint:disable:no-console
 
 const G = getBrowserGlobals('document', 'window');
 

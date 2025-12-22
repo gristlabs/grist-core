@@ -3,7 +3,6 @@ import { GristObjCode, GristType } from 'app/plugin/GristData';
 import isString from 'lodash/isString';
 import { removePrefix } from "app/common/gutil";
 
-// tslint:disable:object-literal-key-quotes
 
 export type GristTypeInfo =
   { type: 'DateTime', timezone: string } |

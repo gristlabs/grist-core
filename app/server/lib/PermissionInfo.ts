@@ -261,7 +261,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
 
           // We'll replace only denySome in create/update/delete bits. read doesn't show memo and schemaEdit is not row
           // dependent.
-          const dataChangePerms: Array<keyof PermissionSet> = ['create', 'update', 'delete'];
+          const dataChangePerms: (keyof PermissionSet)[] = ['create', 'update', 'delete'];
           const changesData = (perm: string) => dataChangePerms.includes(perm as keyof PermissionSet);
           pset = mapValues(pset, (val, perm) => val === 'denySome' && changesData(perm) ? "mixed" : val);
         }

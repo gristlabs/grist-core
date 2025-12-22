@@ -6,7 +6,7 @@ import * as testUtils from 'test/server/testUtils';
 
 describe('DocStorageQuery', function() {
   const sandbox = sinon.createSandbox();
-  const dbCalls: Array<unknown[]> = [];
+  const dbCalls: unknown[][] = [];
   let docStorage: DocStorage;
 
   const collapseWhitespace = (str: string) => str.replace(/\s+/g, ' ').trim();
@@ -150,7 +150,7 @@ describe('DocStorageQuery', function() {
  * Across different regular expressions, same-named groups must match.
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-function assertMatches(calls: Array<unknown[]>, expected: Array<Array<unknown | RegExp>>) {
+function assertMatches(calls: unknown[][], expected: (unknown | RegExp)[][]) {
   const groups = new Map<string, string>();
   for (const [n, expectedCall] of expected.entries()) {
     assert.isAtLeast(calls.length, n + 1);

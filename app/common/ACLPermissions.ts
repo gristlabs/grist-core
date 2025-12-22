@@ -5,7 +5,6 @@
  * is a string of C,R,U,D,S characters, each appearing at most once; or the special values 'all'
  * or 'none'. Note that empty string is also valid, and corresponds to the PermissionSet {}.
  */
-// tslint:disable:no-namespace
 
 import fromPairs from 'lodash/fromPairs';
 import mapValues from 'lodash/mapValues';
@@ -53,7 +52,7 @@ const PERMISSION_BITS: { [letter: string]: PermissionKey } = {
 
 const ALL_PERMISSION_BITS = "CRUDS";
 
-export const ALL_PERMISSION_PROPS: Array<keyof PermissionSet> =
+export const ALL_PERMISSION_PROPS: (keyof PermissionSet)[] =
   Array.from(ALL_PERMISSION_BITS, ch => PERMISSION_BITS[ch]);
 
 const ALIASES: { [key: string]: string } = {
@@ -165,7 +164,7 @@ export function trimPermissions(
 /**
  * Merge a list of PermissionSets by combining individual bits.
  */
-export function mergePermissions<T, U>(psets: Array<PermissionSet<T>>, combine: (bits: T[]) => U,
+export function mergePermissions<T, U>(psets: PermissionSet<T>[], combine: (bits: T[]) => U,
 ): PermissionSet<U> {
   const result: Partial<PermissionSet<U>> = {};
   for (const prop of ALL_PERMISSION_PROPS) {
@@ -189,7 +188,7 @@ export function toMixed(pset: PartialPermissionSet): MixedPermissionSet {
  */
 export function summarizePermissionSet(pset: PartialPermissionSet): MixedPermissionValue {
   let sign = '';
-  for (const key of Object.keys(pset) as Array<keyof PartialPermissionSet>) {
+  for (const key of Object.keys(pset) as (keyof PartialPermissionSet)[]) {
     const pWithSome = pset[key];
     // "Some" postfix is not significant for summarization.
     const p = pWithSome === 'allowSome' ? 'allow' : (pWithSome === 'denySome' ? 'deny' : pWithSome);

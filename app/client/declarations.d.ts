@@ -5,7 +5,6 @@ declare module "app/client/lib/dom";
 declare module "app/client/lib/koDom";
 declare module "app/client/lib/koForm";
 
-// tslint:disable:max-classes-per-file
 
 declare module "app/client/components/RecordLayout" {
   import { Disposable } from 'app/client/lib/dispose';
@@ -172,7 +171,7 @@ declare module "app/client/models/TableModel" {
 
     constructor(docModel: DocModel, tableData: TableData);
     public fetch(force?: boolean): Promise<void>;
-    public getAllRows(): ReadonlyArray<number>;
+    public getAllRows(): readonly number[];
     public getNumRows(): number;
     public getRowGrouping(groupByCol: string): RowGrouping<CellValue>;
     public sendTableActions(actions: UserAction[], optDesc?: string): Promise<any[]>;

@@ -1,4 +1,3 @@
-// tslint:disable:no-console
 // TODO: Add documentation and clean up log statements.
 
 import { GristDoc } from 'app/client/components/GristDoc';
@@ -49,7 +48,7 @@ interface SearchPosition {
  * stepper's array.
  */
 class Stepper<T> {
-  public array: ReadonlyArray<T> = [];
+  public array: readonly T[] = [];
   public index: number = 0;
 
   public inRange() {

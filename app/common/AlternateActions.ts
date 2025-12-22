@@ -131,7 +131,7 @@ export class AlternateActions {
 
   private async _doBulkAddRecord(
     tableId: string,
-    rowIds: Array<number | null>,
+    rowIds: (number | null)[],
     colValues: BulkColValues,
   ): Promise<ProcessedAction> {
     // When unset, we will set the rowId values to count up from the greatest

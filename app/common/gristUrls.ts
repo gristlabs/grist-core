@@ -658,7 +658,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         'sectionId',
         'rowId',
         'colRef',
-      ] as Array<'sectionId' | 'rowId' | 'colRef'>;
+      ] as ('sectionId' | 'rowId' | 'colRef')[];
       for (const key of keys) {
         let ch: string;
         if (key === 'rowId' && hashMap.has('rr')) {
@@ -1279,7 +1279,7 @@ export function makeAnchorLinkValue(hash: HashLink): string {
     else {
       hashParts.push('a1');
     }
-    for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
+    for (const key of ['sectionId', 'rowId', 'colRef'] as (keyof HashLink)[]) {
       let enhancedRowId: string | undefined;
       if (key === 'rowId' && hash.linkingRowIds?.length) {
         enhancedRowId = [hash.rowId, ...hash.linkingRowIds].join("-");

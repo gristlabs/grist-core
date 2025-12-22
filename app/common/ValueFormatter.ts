@@ -1,4 +1,3 @@
-// tslint:disable:max-classes-per-file
 
 import { csvEncodeRow } from 'app/common/csvFormat';
 import { CellValue } from 'app/common/DocActions';

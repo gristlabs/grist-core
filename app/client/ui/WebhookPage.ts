@@ -118,7 +118,7 @@ const WEBHOOK_COLUMNS = [
 /**
  * Layout of fields in a view, with a specific ordering.
  */
-const WEBHOOK_VIEW_FIELDS: Array<(typeof WEBHOOK_COLUMNS)[number]['colId']> = [
+const WEBHOOK_VIEW_FIELDS: (typeof WEBHOOK_COLUMNS)[number]['colId'][] = [
   'name', 'memo',
   'eventTypes', 'tableId',
   'watchedColIdsText', 'isReadyColumn',

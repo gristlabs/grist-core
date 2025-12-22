@@ -172,8 +172,7 @@ export class DocData extends ActionDispatcher {
     }
   }
 
-  // tslint:disable:no-empty
-  protected onAddRecord(action: DocAction, tableId: string, rowId: number, colValues: ColValues): void {}
+   protected onAddRecord(action: DocAction, tableId: string, rowId: number, colValues: ColValues): void {}
   protected onUpdateRecord(action: DocAction, tableId: string, rowId: number, colValues: ColValues): void {}
   protected onRemoveRecord(action: DocAction, tableId: string, rowId: number): void {}
 

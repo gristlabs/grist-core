@@ -30,7 +30,7 @@ export {
  *    checkboxItem([{name: 'ok'}], 'Check to approve');
  */
 export function checkboxItem(
-  checkboxArgs: Array<DomArg<HTMLInputElement>>, ...labelArgs: DomElementArg[]
+  checkboxArgs: DomArg<HTMLInputElement>[], ...labelArgs: DomElementArg[]
 ): HTMLElement {
   return cssCheckboxLabel(
     cssCheckbox({ type: 'checkbox' }, ...checkboxArgs),

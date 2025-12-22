@@ -19,7 +19,6 @@
  * SortedRowSet(compareFunc): a RowListener that can be subscribed to any RowSources, and exposes
  *  an observable koArray via getKoArray(), which maintains rows from RowSources in sorted order.
  */
-// tslint:disable:max-classes-per-file
 
 import koArray, { KoArray } from 'app/client/lib/koArray';
 import { DisposableWithEvents } from 'app/common/DisposableWithEvents';

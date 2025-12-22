@@ -7,7 +7,6 @@
 
 export type LogMethod = (message: string, ...args: any[]) => void;
 
-// tslint:disable:no-console
 export const debug: LogMethod = console.debug.bind(console);
 export const info: LogMethod = console.info.bind(console);
 export const log: LogMethod = console.log.bind(console);

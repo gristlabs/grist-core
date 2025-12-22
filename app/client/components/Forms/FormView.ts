@@ -314,7 +314,7 @@ export class FormView extends BaseView {
     const commandHandlers = {
       hideFields: (colId: [string]) => {
         // Get the ref from colId.
-        const existing: Array<[number, string]> =
+        const existing: [number, string][] =
           this.viewSection.viewFields().all().map(f => [f.id(), f.column().colId()]);
         const ref = existing.filter(([_, c]) => colId.includes(c)).map(([r, _]) => r);
         if (!ref.length) { return; }

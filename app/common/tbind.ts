@@ -2,7 +2,6 @@
  * A version of Function.bind() that preserves types.
  */
 
-// tslint:disable:max-line-length
 
 // Bind just the context for a function of up to 4 args.
 export function tbind<T, R, Args extends any[]>(func: (this: T, ...a: Args) => R, context: T): (...a: Args) => R;
