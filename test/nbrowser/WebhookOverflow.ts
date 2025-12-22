@@ -70,7 +70,7 @@ describe('WebhookOverflow', function () {
     await gu.waitToPass(async () => {
       const toast = await gu.getToasts();
       assert.include(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
-        ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
+      ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
     }, 4000);
   }
 
@@ -79,7 +79,7 @@ describe('WebhookOverflow', function () {
     await gu.waitToPass(async () => {
       const toast = await gu.getToasts();
       assert.notInclude(toast, 'New changes are temporarily suspended. Webhooks queue overflowed.' +
-        ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
+      ' Please check webhooks settings, remove invalid webhooks, and clean the queue.\ngo to webhook settings');
     }, 12500);
   }
 

@@ -19,7 +19,7 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
   let session: gu.Session;
 
   before(async function () {
-    session = await gu.session().login({showTips:true});
+    session = await gu.session().login({showTips: true});
     await session.tempNewDoc(cleanup, 'ColumnMenu');
     await gu.dismissBehavioralPrompts();
 
@@ -244,10 +244,10 @@ describe('GridViewNewColumnMenuDateHelpers', function () {
       {
         type: 'DateTime:UTC', menu: 'Time -> Hour -> Time bucket', column: 'Text', columnName: 'EventDate Hour',
         formula: 'if not $EventDate:\n  return None\n' +
-                 'hour = HOUR($EventDate)\n' +
-                 'if hour < 12:\n  return "Morning"\n' +
-                 'if hour < 18:\n  return "Afternoon"\n' +
-                 'return "Evening"',
+          'hour = HOUR($EventDate)\n' +
+          'if hour < 12:\n  return "Morning"\n' +
+          'if hour < 18:\n  return "Afternoon"\n' +
+          'return "Evening"',
         expected: 'Morning',
       },
       {

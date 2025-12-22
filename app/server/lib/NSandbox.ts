@@ -824,7 +824,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
   // If a sandbox is being used for import, it will have a special mount we can't
   // deal with easily right now. Should be possible to do in future if desired.
   if (options.useGristEntrypoint !== false && process.env.GRIST_CHECKPOINT &&
-      !paths.importDir) {
+    !paths.importDir) {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
         adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,

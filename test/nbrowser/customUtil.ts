@@ -4,7 +4,7 @@ import {gu} from 'test/nbrowser/gristUtil-nbrowser';
 
 export async function setAccess(option: "none"|"read table"|"full") {
   const text = {
-    "none" : "No document access",
+    "none": "No document access",
     "read table": "Read selected table",
     "full": "Full document access",
   };

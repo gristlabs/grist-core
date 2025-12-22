@@ -295,8 +295,8 @@ export class AppSettings {
       }
     }
     return inv.filter(item => item.value !== undefined ||
-        item.wouldFindInEnvVar !== undefined ||
-        item.usedDefault).sort((a, b) => a.name.localeCompare(b.name));
+      item.wouldFindInEnvVar !== undefined ||
+      item.usedDefault).sort((a, b) => a.name.localeCompare(b.name));
   }
 }
 

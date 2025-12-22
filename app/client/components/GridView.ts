@@ -181,8 +181,8 @@ export default class GridView extends BaseView {
       ?? (() => dom.on('click', () => this.selectAll()));
     this.viewSection = viewSectionModel;
     this.isReadonly = this.gristDoc.isReadonly.get() ||
-                      this.viewSection.isVirtual() ||
-                      this.isPreview;
+      this.viewSection.isVirtual() ||
+      this.isPreview;
 
     //--------------------------------------------------
     // Observables local to this view
@@ -234,8 +234,8 @@ export default class GridView extends BaseView {
     // Create grain's Computed with current cursor position (we need it to examine position
     // before the change and after).
     this.currentPosition = Computed.create(this, use => ({
-      rowIndex : use(this.cursor.rowIndex),
-      fieldIndex : use(this.cursor.fieldIndex),
+      rowIndex: use(this.cursor.rowIndex),
+      fieldIndex: use(this.cursor.fieldIndex),
     }));
     // Add listener, and check if the cursor is indeed changed, if so, update the row
     // and scroll it into view (using kd.scrollChildIntoView in buildDom function).
@@ -1140,7 +1140,7 @@ export default class GridView extends BaseView {
       return this.gristDoc.docData.sendAction(
         ['BulkRemoveRecord', '_grist_Tables_column', colRefs],
         `Removed columns ${columns.map(col => col.colId.peek()).join(', ')} ` +
-          `from ${this.tableModel.tableData.tableId}.`,
+        `from ${this.tableModel.tableData.tableId}.`,
       ).then(() => this.clearSelection());
     }
     return Promise.resolve(false);
@@ -1281,7 +1281,7 @@ export default class GridView extends BaseView {
   }
 
   protected _getColStyle(colIndex: number) {
-    return { 'width' : this.viewSection.viewFields().at(colIndex)!.widthPx() };
+    return { 'width': this.viewSection.viewFields().at(colIndex)!.widthPx() };
   }
 
   // TODO: for now lets just assume you are clicking on a .field, .row, or .column
@@ -1459,7 +1459,7 @@ export default class GridView extends BaseView {
                   let filterTriggerCtl: PopupControl;
                   const isTooltip = ko.pureComputed(() =>
                     this.editingFormula() && !this.isReadonly &&
-                  ko.unwrap(this.hoverColumn) === field._index(),
+                    ko.unwrap(this.hoverColumn) === field._index(),
                   );
 
 
@@ -1600,7 +1600,7 @@ export default class GridView extends BaseView {
         const flags = computedFlags();
         if (flags.length === 0) { return null; }
         const styles = this.viewSection.rulesStyles() || [];
-        return { style : new CombinedStyle(styles, flags) };
+        return { style: new CombinedStyle(styles, flags) };
       }).extend({deferred: true}));
 
       const fillColor = buildStyleOption(this, computedRule, 'fillColor', '');
@@ -1827,8 +1827,8 @@ export default class GridView extends BaseView {
   protected _createColSelectedObs(col: ViewFieldRec) {
     return ko.pureComputed(() => {
       return this.cellSelector.isCurrentSelectType(selector.ROW) ||
-             gutil.between(col._index()!, this.cellSelector.col.start(),
-               this.cellSelector.col.end());
+        gutil.between(col._index()!, this.cellSelector.col.start(),
+          this.cellSelector.col.end());
     });
   }
 
@@ -1986,7 +1986,7 @@ export default class GridView extends BaseView {
     const rowEnd = this.cellSelector.rowUpper();
     const shadowHeight = this.scrolly.rowOffsetTree.getCumulativeValueRange(rowStart, rowEnd+1);
     const shadowTop = (this.header.getBoundingClientRect().height +
-                     this.scrolly.rowOffsetTree.getSumTo(rowStart) - this.scrollTop());
+      this.scrolly.rowOffsetTree.getSumTo(rowStart) - this.scrollTop());
 
     this.rowLine.style.top = shadowTop + 'px';
     this.rowShadow.style.top = shadowTop + 'px';
@@ -2035,7 +2035,7 @@ export default class GridView extends BaseView {
     }
 
     const linePos = this.scrolly.rowOffsetTree.getSumTo(dropIndex) +
-                 this.header.getBoundingClientRect().height - this.scrollTop();
+      this.header.getBoundingClientRect().height - this.scrollTop();
     this.cellSelector.row.linePos(linePos + 'px');
     this.cellSelector.row.dropIndex(dropIndex);
     this.dragY(event.pageY);
@@ -2085,7 +2085,7 @@ export default class GridView extends BaseView {
     // If this was a short click on a single already-selected column that results in no
     // column movement, propose renaming the column.
     if (Date.now() - this._colClickTime < SHORT_CLICK_IN_MS && oldIndices.length === 1 &&
-        idx === oldIndices[0]) {
+      idx === oldIndices[0]) {
       commands.allCommands.renameField.run();
     }
     this._colClickTime = 0;
@@ -2121,7 +2121,7 @@ export default class GridView extends BaseView {
   protected _getColumnMenuOptions(copySelection: CopySelection): IMultiColumnContextMenu {
     return {
       columnIndices: copySelection.fields.map(f => f._index()!),
-      totalColumnCount : this.viewSection.viewFields.peek().peekLength,
+      totalColumnCount: this.viewSection.viewFields.peek().peekLength,
       numColumns: copySelection.fields.length,
       numFrozen: this.viewSection.numFrozen.peek(),
       disableModify: calcFieldsCondition(copySelection.fields, f => f.disableModify.peek()),

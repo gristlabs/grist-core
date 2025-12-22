@@ -31,7 +31,7 @@ describe('GridViewNewColumnMenu', function () {
   let session: gu.Session;
 
   before(async function () {
-    session = await gu.session().login({showTips:true});
+    session = await gu.session().login({showTips: true});
     api = session.createHomeApi();
     docId = await session.tempNewDoc(cleanup, 'ColumnMenu');
     await gu.dismissBehavioralPrompts();
@@ -184,7 +184,7 @@ describe('GridViewNewColumnMenu', function () {
       "Reference",
       "Reference List",
       "Attachment",
-    ].map(option => ({type:option, testClass: option.toLowerCase().replace(' ', '-')}));
+    ].map(option => ({type: option, testClass: option.toLowerCase().replace(' ', '-')}));
 
 
     describe('on desktop', function () {

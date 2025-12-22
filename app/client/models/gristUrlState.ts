@@ -151,16 +151,16 @@ export class UrlStateImpl {
     const adminPanelReload = Boolean(prevState.adminPanel) !== Boolean(newState.adminPanel);
     return Boolean(
       orgReload ||
-        accountReload ||
-        billingReload ||
-        activationReload ||
-        auditLogsReload ||
-        gristConfig.errPage ||
-        docReload ||
-        welcomeReload ||
-        linkKeysReload ||
-        loginReload ||
-        adminPanelReload,
+      accountReload ||
+      billingReload ||
+      activationReload ||
+      auditLogsReload ||
+      gristConfig.errPage ||
+      docReload ||
+      welcomeReload ||
+      linkKeysReload ||
+      loginReload ||
+      adminPanelReload,
     );
   }
 

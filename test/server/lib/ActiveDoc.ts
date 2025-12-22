@@ -70,21 +70,21 @@ describe('ActiveDoc', async function() {
   });
 
   const allTypes = {
-    Any:            'Any',
-    Attachments:    'Attachments',
-    Blob:           'Blob',
-    Bool:           'Bool',
-    Choice:         'Choice',
-    ChoiceList:     'ChoiceList',
-    Date:           'Date',
-    DateTime:       'DateTime',
-    Int:            'Int',
-    ManualSortPos:  'ManualSortPos',
-    Numeric:        'Numeric',
+    Any: 'Any',
+    Attachments: 'Attachments',
+    Blob: 'Blob',
+    Bool: 'Bool',
+    Choice: 'Choice',
+    ChoiceList: 'ChoiceList',
+    Date: 'Date',
+    DateTime: 'DateTime',
+    Int: 'Int',
+    ManualSortPos: 'ManualSortPos',
+    Numeric: 'Numeric',
     PositionNumber: 'PositionNumber',
-    Ref:            'Ref:Defaults',       // Ref columns must specify a valid target
-    RefList:        'RefList:Defaults',
-    Text:           'Text',
+    Ref: 'Ref:Defaults',       // Ref columns must specify a valid target
+    RefList: 'RefList:Defaults',
+    Text: 'Text',
   };
 
   const allValues = [

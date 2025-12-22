@@ -261,7 +261,7 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
           await urlState().pushUrl({...state, org: org.domain});
         }
         if (org.billingAccount && org.billingAccount.product &&
-            org.billingAccount.product.name === 'suspended') {
+          org.billingAccount.product.name === 'suspended') {
           this.notifier.createUserMessage(
             t("This team site is suspended. Documents can be read, but not modified."),
             {actions: ['renew', 'personal']},

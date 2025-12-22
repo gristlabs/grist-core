@@ -1387,7 +1387,7 @@ abstract class ObsRuleSet extends Disposable {
    */
   public getSpecialColumn(): string|undefined {
     if (this._ruleSet?.tableId === SPECIAL_RULES_TABLE_ID &&
-        this._ruleSet.colIds.length === 1) {
+      this._ruleSet.colIds.length === 1) {
       return this._ruleSet.colIds[0];
     }
   }
@@ -1787,7 +1787,7 @@ class ObsUserAttributeRule extends Disposable {
 
         // Don't check for errors if it's an existing rule and hasn't changed.
         if (use(this._tableId) === this._userAttr?.tableId &&
-            use(this._lookupColId) === this._userAttr?.lookupColId) {
+          use(this._lookupColId) === this._userAttr?.lookupColId) {
           return '';
         }
         return _accessRules.checkTableColumns(tableId, colId ? [colId] : undefined);
@@ -2036,7 +2036,7 @@ class ObsRulePart extends Disposable {
 
   public matches(use: UseCB, aclFormula: string, permissionsText: string): boolean {
     return (use(this._aclFormula) === aclFormula &&
-            permissionSetToText(use(this._permissions)) === permissionsText);
+      permissionSetToText(use(this._permissions)) === permissionsText);
   }
 
   /**

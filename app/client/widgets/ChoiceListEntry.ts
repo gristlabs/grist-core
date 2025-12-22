@@ -402,7 +402,7 @@ export class ChoiceListEntry extends Disposable {
           dom.on('paste', stopPropagation),
           dom.onKeyDown({
             // On enter, focus on the input element.
-            Enter : focusOnNew,
+            Enter: focusOnNew,
             // On escape, focus on the token (i.e. the parent node of this element). That way
             // the browser will scroll the view if needed, and a subsequent escape will close
             // the editor.

@@ -52,7 +52,7 @@ export class Prefs1596456522124 implements MigrationInterface {
     // Luckily, the SQL is identical for Sqlite and Postgres:
     await queryRunner.manager.query(
       'CREATE UNIQUE INDEX "prefs__user_id__org_id" ON "prefs" ' +
-        '(COALESCE(user_id,0), COALESCE(org_id,0))',
+      '(COALESCE(user_id,0), COALESCE(org_id,0))',
     );
   }
 

@@ -44,7 +44,7 @@ async function removeFullCopiesSpecialRight(filename: string) {
   // at most one).
   const resourceIds = (
     await db.all("SELECT id FROM _grist_ACLResources " +
-        "WHERE tableId='*SPECIAL' AND colIds='FullCopies'")
+      "WHERE tableId='*SPECIAL' AND colIds='FullCopies'")
   ).map(row => row.id as number);
   if (resourceIds.length > 0) {
     // Remove any related rules.

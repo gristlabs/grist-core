@@ -296,10 +296,10 @@ class OnBoardingPopupsCtl extends Disposable {
         testId('popup'),
       ),
       dom.onKeyDown({
-        Escape:     () => this._finish(ctlIndex),
-        ArrowLeft:  () => this._move(-1),
+        Escape: () => this._finish(ctlIndex),
+        ArrowLeft: () => this._move(-1),
         ArrowRight: () => this._move(+1),
-        Enter:      () => this._move(+1, true),
+        Enter: () => this._move(+1, true),
       }),
     );
   }

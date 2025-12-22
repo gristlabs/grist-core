@@ -511,8 +511,8 @@ export class TreeViewComponent extends Disposable {
   // a child of this._containerElement.
   private _isInChildOf(el: Element, parent: Element) {
     while (el.parentElement
-           && el.parentElement !== parent
-           && el.parentElement !== this._containerElement // let's stop at the top element
+      && el.parentElement !== parent
+      && el.parentElement !== this._containerElement // let's stop at the top element
     ) {
       el = el.parentElement;
     }

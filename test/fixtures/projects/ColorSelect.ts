@@ -193,8 +193,8 @@ class SaveableSetup extends Disposable {
             ),
           ),
           colorSelect({
-            textColor: new ColorOption({color:this.textColor}),
-            fillColor: new ColorOption({color:this.fillColor}),
+            textColor: new ColorOption({color: this.textColor}),
+            fillColor: new ColorOption({color: this.fillColor}),
             fontBold: this.fontBold,
             fontItalic: this.fontItalic,
             fontUnderline: this.fontUnderline,

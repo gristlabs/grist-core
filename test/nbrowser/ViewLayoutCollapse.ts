@@ -319,8 +319,8 @@ describe("ViewLayoutCollapse", function() {
     // Drag it and then cancel.
     await dragCollapsed(INVESTMENTS);
     const logo = driver.find('.test-dm-logo');
-    await move(logo, {y:  0});
-    await move(logo, {y:  -1});
+    await move(logo, {y: 0});
+    await move(logo, {y: -1});
     // Drop it here.
     await driver.withActions(actions => actions.release());
 
@@ -347,11 +347,11 @@ describe("ViewLayoutCollapse", function() {
 
     // Move back and drop.
     await gu.getSection(COMPANIES_CHART).getRect();
-    await move(getDragElement(COMPANIES_CHART), {x : 50});
+    await move(getDragElement(COMPANIES_CHART), {x: 50});
     await driver.sleep(100);
-    await move(getDragElement(COMPANIES_CHART), {x : 100});
+    await move(getDragElement(COMPANIES_CHART), {x: 100});
     await driver.sleep(100);
-    await move(getDragElement(COMPANIES_CHART), {x : 200});
+    await move(getDragElement(COMPANIES_CHART), {x: 200});
     await gu.waitToPass(async () => {
       assert.lengthOf(await driver.findAll(".layout_editor_drop_target.layout_hover"), 1);
     }, 1000);
@@ -444,8 +444,8 @@ describe("ViewLayoutCollapse", function() {
 
     // Move it over the logo, so that the tray thinks that it should expand.
     const logo = driver.find('.test-dm-logo');
-    await move(logo, {y:  0});
-    await move(logo, {y:  -1});
+    await move(logo, {y: 0});
+    await move(logo, {y: -1});
     await driver.sleep(100);
 
     // Make sure the tray was not tricked into expanding itself.
@@ -467,7 +467,7 @@ describe("ViewLayoutCollapse", function() {
 
     const logo = driver.find('.test-dm-logo');
     // Now move it to the top, so that tray should be expanded.
-    await move(logo, {y:  0});
+    await move(logo, {y: 0});
     await driver.sleep(100);
 
     // Now the tray is visible
@@ -494,7 +494,7 @@ describe("ViewLayoutCollapse", function() {
     const chartCords = await gu.getSection(COMPANIES_CHART).getRect();
     await move(getDragElement(COMPANIES_CHART));
     await driver.sleep(100);
-    await move(getDragElement(COMPANIES_CHART), {x : 10});
+    await move(getDragElement(COMPANIES_CHART), {x: 10});
     await driver.sleep(300);
 
     // We should have a drop target.
@@ -516,7 +516,7 @@ describe("ViewLayoutCollapse", function() {
     await move(getDragElement(COMPANIES_CHART));
     await driver.sleep(100);
     // Split the movement into two parts, to make sure layout sees the mouse move.
-    await move(getDragElement(COMPANIES_CHART), {x : 10});
+    await move(getDragElement(COMPANIES_CHART), {x: 10});
     await driver.sleep(200);
     assert.lengthOf(await driver.findAll(".layout_editor_drop_target.layout_hover"), 1);
     await driver.withActions(actions => actions.release());
@@ -632,7 +632,7 @@ describe("ViewLayoutCollapse", function() {
 
     // Move to the first leaf, and wait for the target to show up.
     const first = await firstLeaf().getRect();
-    await move(firstLeaf(), {x : -first.width / 2});
+    await move(firstLeaf(), {x: -first.width / 2});
     await driver.sleep(300);
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-target-box"), 1);
     // Make sure that the target is in right place.
@@ -647,7 +647,7 @@ describe("ViewLayoutCollapse", function() {
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-target-box"), 0);
 
     // Move between first and second leaf.
-    await move(firstLeaf(), {x : first.width / 2 + GAP});
+    await move(firstLeaf(), {x: first.width / 2 + GAP});
     await driver.sleep(300);
     assert.lengthOf(await layoutTray().findAll(".test-layoutTray-target-box"), 1);
     target = await layoutTray().find(".test-layoutTray-target-box").getRect();
@@ -971,8 +971,8 @@ describe("ViewLayoutCollapse", function() {
     await dragMain(COMPANIES_CHART);
     // Move it over the logo to show the tray.
     const logo = driver.find('.test-dm-logo');
-    await move(logo, {y:  0});
-    await move(logo, {y:  -20});
+    await move(logo, {y: 0});
+    await move(logo, {y: -20});
     await driver.sleep(100);
     // Now the tray is visible
     assert.isTrue(await layoutTray().isDisplayed());
@@ -1032,7 +1032,7 @@ async function dragCollapsed(section: string) {
   await driver.withActions(actions => actions
     .move({origin: handle})
     .press());
-  await move(handle, {x : 10, y: 10});
+  await move(handle, {x: 10, y: 10});
   return handle;
 }
 
@@ -1041,9 +1041,9 @@ async function dragMain(section: string) {
   await driver.withActions(actions => actions
     .move({origin: handle}));
   await driver.withActions(actions => actions
-    .move({origin: handle, x : 1}) // This is needed to show the drag element.
+    .move({origin: handle, x: 1}) // This is needed to show the drag element.
     .press());
-  await move(handle, {x : 10, y: 10});
+  await move(handle, {x: 10, y: 10});
   return handle;
 }
 

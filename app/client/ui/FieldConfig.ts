@@ -260,7 +260,7 @@ export function buildFormulaConfig(
   });
   const behaviorIcon = Computed.create<IconName>(owner, (use) => {
     return use(behaviorName) === t('Data columns', {count: 2}) ||
-           use(behaviorName) === t('Data columns', {count: 1}) ? "Database" : "Script";
+      use(behaviorName) === t('Data columns', {count: 1}) ? "Database" : "Script";
   });
   const behaviorLabel = () => selectTitle(behaviorName, behaviorIcon);
 

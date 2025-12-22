@@ -80,8 +80,8 @@ describe("ValueFormatter", function() {
       checkDefault({maxDecimals: 7}, 1.015e-8, '0');
 
       // Out-of-range values get clamped.
-      checkDefault({decimals:-2, maxDecimals:3}, -1.2345, "-1.235");
-      checkDefault({decimals:-2, maxDecimals:-3}, -1.2345, "-1");
+      checkDefault({decimals: -2, maxDecimals: 3}, -1.2345, "-1.235");
+      checkDefault({decimals: -2, maxDecimals: -3}, -1.2345, "-1");
     });
 
     it('should support thousand separators', function() {

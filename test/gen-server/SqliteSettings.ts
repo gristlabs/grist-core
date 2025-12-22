@@ -24,7 +24,7 @@ describe('SqliteSettings', function() {
           oldEnv = new EnvironmentSnapshot();
           process.env.GRIST_SQLITE_MODE = mode;
           if (externalStorage && !process.env.GRIST_DOCS_MINIO_BUCKET &&
-              !process.env.GRIST_DOCS_S3_PREFIX) {
+            !process.env.GRIST_DOCS_S3_PREFIX) {
             this.skip();
           }
           home = new TestServer(this);

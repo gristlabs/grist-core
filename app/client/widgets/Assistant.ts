@@ -295,7 +295,7 @@ export class Assistant extends Disposable {
           panelHeight -
           ((this._inputWrapper?.clientHeight ?? 0) -
             (this._input?.clientHeight ?? 0)) -
-          MIN_CHAT_HISTORY_HEIGHT_PX;
+            MIN_CHAT_HISTORY_HEIGHT_PX;
         return `${Math.max(availableInputHeight, MIN_CHAT_INPUT_HEIGHT_PX)}px`;
       }),
       dom.onKeyDown({

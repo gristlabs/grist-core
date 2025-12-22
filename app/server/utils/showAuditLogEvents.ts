@@ -38,9 +38,9 @@ function showSiteEvents() {
   console.log(
     `!!! note
     The events on this page appear in the audit log of a [team site]` +
-      `(../teams.md). For events that appear in a [Self-Managed Grist instance]` +
-      `(../self-managed.md), see ["Audit log events for your self-managed instance"]` +
-      `(../install/audit-log-events.md).\n`,
+    `(../teams.md). For events that appear in a [Self-Managed Grist instance]` +
+    `(../self-managed.md), see ["Audit log events for your self-managed instance"]` +
+    `(../install/audit-log-events.md).\n`,
   );
   const events = Object.entries(AuditEvents).filter(([, { type }]) => {
     const types = Array.isArray(type) ? type : [type];

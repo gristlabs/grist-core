@@ -54,12 +54,12 @@ class RenameDocModal extends Disposable {
     backgroundColor: Observable.create(
       this,
       this._doc.options?.appearance?.icon?.backgroundColor ??
-        this._defaultIconColors.backgroundColor,
+      this._defaultIconColors.backgroundColor,
     ),
     color: Observable.create(
       this,
       this._doc.options?.appearance?.icon?.color ??
-        this._defaultIconColors.color,
+      this._defaultIconColors.color,
     ),
     emoji: Observable.create(
       this,

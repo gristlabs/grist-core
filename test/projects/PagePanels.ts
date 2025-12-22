@@ -13,7 +13,7 @@ async function checkLeftPanelIsExpanded() {
 async function checkLeftPanelIsOverlapping() {
   assert.equal(
     (await driver.find('.test-pp-main-pane').rect()).left -
-      (await driver.find('.test-pp-left-panel').rect()).left,
+    (await driver.find('.test-pp-left-panel').rect()).left,
     48);
 }
 

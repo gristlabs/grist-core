@@ -58,7 +58,7 @@ export class CellDiffTool {
     const diffs = this._diffTool.diff_main(txt1, txt2);
     this._diffTool.diff_cleanupSemantic(diffs);
     if (diffs.length > 2 && this._notDiffWorthy(txt1, diffs.length) &&
-        this._notDiffWorthy(txt2, diffs.length)) {
+      this._notDiffWorthy(txt2, diffs.length)) {
       return [[DIFF_DELETE, txt1], [DIFF_INSERT, txt2]];
     }
     if (diffs.length === 1 && diffs[0][0] === DIFF_DELETE) {

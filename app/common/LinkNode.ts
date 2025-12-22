@@ -108,8 +108,8 @@ export function buildLinkNodes(
         const sourceTable = getTableById(linkedSection.parentId);
         isAncestorSameTableCursorLink.push(
           sourceColumn === 0 &&
-            targetColumn === 0 &&
-            !sourceTable.isSummaryTable,
+          targetColumn === 0 &&
+          !sourceTable.isSummaryTable,
         );
       }
 

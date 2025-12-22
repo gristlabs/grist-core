@@ -66,7 +66,7 @@ export async function setSplitSeries(name: string|false, section?: string) {
 
   const isChecked = await driver.findContent('label', /Split series/).find('input').matches(':checked');
   if (name === false && isChecked === true ||
-      name && isChecked === false) {
+    name && isChecked === false) {
     await driver.findContent('label', /Split series/).click();
   }
   if (name) {

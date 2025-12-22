@@ -129,7 +129,7 @@ describe('GristJobs', function() {
     it('can pick up jobs again', async function() {
       // this test is only appropriate if we have an external queue.
       if (!process.env.REDIS_URL &&
-          !process.env.TEST_REDIS_URL) { this.skip(); }
+        !process.env.TEST_REDIS_URL) { this.skip(); }
       const jobs1: GristJobs = createGristJobs();
       const q = jobs1.queue();
       try {

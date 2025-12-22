@@ -56,7 +56,7 @@ export class Configs1727747249153 implements MigrationInterface {
 
     await queryRunner.manager.query(
       'CREATE UNIQUE INDEX "configs__key__org_id" ON "configs" ' +
-        "(key, COALESCE(org_id, 0))",
+      "(key, COALESCE(org_id, 0))",
     );
   }
 

@@ -62,8 +62,8 @@ export function makeViewLayoutMenu(viewSection: ViewSectionRec, isReadonly: bool
 
   const showRawData = (use: UseCB) => {
     return !use(viewSection.isRaw)// Don't show raw data if we're already in raw data.
-        && !use(viewSection.isRecordCard)
-        && !isSinglePage // Don't show raw data in single page mode.
+      && !use(viewSection.isRecordCard)
+      && !isSinglePage // Don't show raw data in single page mode.
     ;
   };
 

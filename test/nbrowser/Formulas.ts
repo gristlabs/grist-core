@@ -31,7 +31,7 @@ describe('Formulas', function() {
     await gu.addColumn('B');
     await gu.addColumn('C');
     // Make sure we are not in edit mode, finding column C is enough.
-    await gu.getColumnHeader({ col : 'C'});
+    await gu.getColumnHeader({ col: 'C'});
     await driver.sendKeys('=');
     await gu.waitAppFocus(false);
     if (await driver.find('.test-editor-tooltip-convert').isPresent()) {
@@ -39,7 +39,7 @@ describe('Formulas', function() {
     }
     await driver.sendKeys(" ");
     // Make sure we are now in edit mode.
-    await gu.getColumnHeader({ col : '$C'});
+    await gu.getColumnHeader({ col: '$C'});
     // Move mouse over other column, and make sure it is highlighted
     const hoverOver = async (col: string) =>
       await driver.withActions(actions => (
@@ -102,7 +102,7 @@ describe('Formulas', function() {
     await driver.withActions(actions =>
       actions
         .move({origin: gu.getCell('$A', 7)})
-        .move({origin: gu.getCell('$A', 7), y : 22 + 1}),
+        .move({origin: gu.getCell('$A', 7), y: 22 + 1}),
     );
     await noHoverAtAll();
     // - Moving right after last column
@@ -118,7 +118,7 @@ describe('Formulas', function() {
     // and then a little bit to the right (100px is width of the field)
     await driver.withActions(actions =>
       actions
-        .move({origin: gu.getCell("$C", 7), x : 100 + 1}),
+        .move({origin: gu.getCell("$C", 7), x: 100 + 1}),
     );
     await noHoverAtAll();
 
@@ -126,11 +126,11 @@ describe('Formulas', function() {
     await hoverOver('$A');
     await isHoverOn('$A');
     // move on the A header,
-    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col : '$A' })}));
+    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col: '$A' })}));
     // still hover should be on A column,
     await isHoverOn('$A');
     // and now jump out of the grid (22 is height of the row)
-    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col : '$A' }), y : -22 - 3}));
+    await driver.withActions(actions => actions.move({origin: gu.getColumnHeader({ col: '$A' }), y: -22 - 3}));
     await noHoverAtAll();
     // undo adding 3 columns
     await driver.sendKeys(Key.ESCAPE);

@@ -178,13 +178,13 @@ describe('CustomWidgetsConfig', function () {
           {
             // Widget with column mapping
             name: COLUMN_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name:'Column', optional: true}]}),
+            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name: 'Column', optional: true}]}),
             widgetId: 'tester5',
           },
           {
             // Widget with required column mapping
             name: REQUIRED_WIDGET,
-            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name:'Column', optional: false}]}),
+            url: createConfigUrl({requiredAccess: AccessLevel.read_table, columns: [{name: 'Column', optional: false}]}),
             widgetId: 'tester6',
           },
           {
@@ -651,17 +651,17 @@ describe('CustomWidgetsConfig', function () {
     // Make sure they work. First select C.
     await clickOption('B');
     // Make sure onRecord and onRecordMappings looks legit.
-    assert.deepEqual(await widget.onRecord(), {id:1, B: null});
+    assert.deepEqual(await widget.onRecord(), {id: 1, B: null});
     assert.deepEqual(await widget.onRecordMappings(), {M1: 'B', M2: []});
     // Now select C.
     await toggleDrop(pickerDrop('M1'));
     await clickOption('C');
-    assert.deepEqual(await widget.onRecord(), {id:1, C: '2019-01-01T00:00:00.000Z'});
+    assert.deepEqual(await widget.onRecord(), {id: 1, C: '2019-01-01T00:00:00.000Z'});
     assert.deepEqual(await widget.onRecordMappings(), {M1: 'C', M2: []});
     // Now select D.
     await toggleDrop(pickerDrop('M1'));
     await clickOption('D');
-    assert.deepEqual(await widget.onRecord(), {id:1, D: '2019-01-01T17:00:00.000Z'});
+    assert.deepEqual(await widget.onRecord(), {id: 1, D: '2019-01-01T17:00:00.000Z'});
     assert.deepEqual(await widget.onRecordMappings(), {M1: 'D', M2: []});
 
     // Make sure we can select multiple columns for M2 with Date and DateTime.

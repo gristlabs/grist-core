@@ -43,7 +43,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const isOverridden = Boolean(docPageModel.userOverride.get());
   const canMakeProposal = Computed.create(owner, (use) => {
     return use(docPageModel.isFork) && !use(docPageModel.isBareFork) && !use(docPageModel.isPrefork) &&
-        !use(docPageModel.isSnapshot);
+      !use(docPageModel.isSnapshot);
   });
   // If we are on a fork, currentDoc options are actually for the trunk.
   const trunkAcceptsProposals = computed((use) => {
@@ -52,7 +52,7 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
   const canViewAccessRules = observable(false);
   function updateCanViewAccessRules() {
     canViewAccessRules.set((isDocOwner && !isOverridden) ||
-                           gristDoc.docModel.rules.getNumRows() > 0);
+      gristDoc.docModel.rules.getNumRows() > 0);
   }
   owner.autoDispose(gristDoc.docModel.rules.tableData.tableActionEmitter.addListener(updateCanViewAccessRules));
   updateCanViewAccessRules();

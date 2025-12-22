@@ -300,7 +300,7 @@ export const groups: CommendGroupDef[] = [{
     },
     {
       name: 'showPopup',
-      keys:[],
+      keys: [],
       desc: () => t('showing a behavioral popup'),
     },
     {

@@ -448,7 +448,7 @@ export function promptModal(
   saveModal((ctl, owner): ISaveModalOptions => {
     let confirmed = false;
     const text = Observable.create(owner, initial ?? '');
-    const txtInput = input(text, { onInput : true }, { placeholder }, cssInput.cls(''), testId('modal-prompt'));
+    const txtInput = input(text, { onInput: true }, { placeholder }, cssInput.cls(''), testId('modal-prompt'));
     const options: ISaveModalOptions = {
       title,
       body: [body, txtInput],

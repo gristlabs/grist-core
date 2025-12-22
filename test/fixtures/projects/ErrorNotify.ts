@@ -22,11 +22,11 @@ function radioGroup(clb: (value: string) => any) {
     return [
       dom("input", {
         type: 'radio',
-        name : `radio_group_${group}`,
+        name: `radio_group_${group}`,
         value: value,
-        id : `radio${radioId}`,
+        id: `radio${radioId}`,
       }, dom.on('change', () => clb(value))),
-      dom("label", { for : `radio${radioId}`}, dom.text(name)),
+      dom("label", { for: `radio${radioId}`}, dom.text(name)),
     ];
   };
 }
@@ -141,8 +141,8 @@ function setupTest() {
       dom.on('click', () => {
         notify("10:03:10 Cannot read property of null (reading 'callback')",
           {
-            title : "Unexpected error",
-            actions : ['report-problem'],
+            title: "Unexpected error",
+            actions: ['report-problem'],
             expireSec: 0,
             canUserClose: true,
           });
@@ -190,8 +190,8 @@ function setupTest() {
         const noExp = { expireSec: 0, canUserClose: true };
         let n = notifier.createUserMessage("10:03:10 Cannot read property of null (reading 'callback')",
           {
-            title : "Unexpected error",
-            actions : ['report-problem'],
+            title: "Unexpected error",
+            actions: ['report-problem'],
             level: 'error',
             ...noExp,
           });
@@ -200,7 +200,7 @@ function setupTest() {
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("No more documents permitted", {
           title: "Reached plan limit",
-          actions : ['upgrade'],
+          actions: ['upgrade'],
           ...noExp,
         });
         multiHolder.autoDispose(n);
@@ -209,14 +209,14 @@ function setupTest() {
         n = notifier.createUserMessage("Link copied to clipboard", noExp);
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Cannot change summary column 'count' between formula and data", {
-          actions : ['ask-for-help'],
+          actions: ['ask-for-help'],
           level: 'error',
           ...noExp,
         });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Cannot change summary column 'count' between formula and data", {
-          actions : ['ask-for-help'],
-          title : "Warning",
+          actions: ['ask-for-help'],
+          title: "Warning",
           level: 'error',
           ...noExp,
         });

@@ -123,7 +123,7 @@ class ColumnPicker extends Disposable {
               options,
               {
                 defaultLabel,
-                renderOptionArgs : (opt) => {
+                renderOptionArgs: (opt) => {
                   // If there is a label, render it.
                   // Otherwise show the 'Clear selection' label as a greyed out text.
                   // This is the continuation of the hack from above - were we added an option
@@ -656,7 +656,7 @@ export class CustomSectionConfig extends Disposable {
         ),
         dom.onKeyDown({
           Enter: () => this._grantDesiredAccess(),
-          Escape:() => this._dismissAccessPrompt(),
+          Escape: () => this._dismissAccessPrompt(),
         }),
       )),
     ];

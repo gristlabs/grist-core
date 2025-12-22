@@ -317,7 +317,7 @@ export class CustomView extends BaseView {
       preferences:
       {
         culture: documentSettings.locale?? defaultLocale,
-        language:  this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
+        language: this.gristDoc.appModel.currentUser?.locale ?? defaultLocale,
         timeZone: this.gristDoc.docInfo.timezone() ?? "UTC",
         currency: documentSettings.currency?? "USD",
       },

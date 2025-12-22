@@ -43,7 +43,7 @@ function checkUserContentPort(): number | null {
     // If the hostname of both home and plugin url are the same,
     // but the ports are different
     if (homeUrl.hostname === pluginUrl.hostname &&
-        homeUrl.port !== pluginUrl.port) {
+      homeUrl.port !== pluginUrl.port) {
       const port = parseInt(pluginUrl.port || '80', 10);
       return port;
     }

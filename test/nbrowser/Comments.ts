@@ -281,7 +281,7 @@ describe('Comments', function() {
 
     // Now replace the content using API.
     await gu.sendActions([
-      ['UpdateRecord', '_grist_Cells', 1, {content: JSON.stringify({text:'<b>bolded</b>'})}],
+      ['UpdateRecord', '_grist_Cells', 1, {content: JSON.stringify({text: '<b>bolded</b>'})}],
     ]);
 
     // Make sure we see literal text, not html.

@@ -9,10 +9,10 @@ import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
 const mockUserApi = new MockUserAPI();
 // Simple mock values - not used in tests, but required for home plugins
 const globalWindow = {
-  gristConfig : {
-    homeUrl : 'http://localhost:0',
-    timestampMs : 0,
-    pluginUrl : 'http://localhost:0',
+  gristConfig: {
+    homeUrl: 'http://localhost:0',
+    timestampMs: 0,
+    pluginUrl: 'http://localhost:0',
     plugins: [],
   },
 };

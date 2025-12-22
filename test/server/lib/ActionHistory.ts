@@ -79,7 +79,7 @@ class ToyActionHistory implements ActionHistory {
       const candidate = this._storeLocalUnsent[0];
       // act and candidate must be one and the same
       if (computeActionHash(act) !==
-          computeActionHash(candidate)) {
+        computeActionHash(candidate)) {
         throw new Error("markAsSent() got an unexpected action");
       }
       this._storeLocalSent.push(candidate);

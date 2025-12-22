@@ -618,7 +618,7 @@ No data will be lost, except possibly currently pending actions.',
           docTypeOption({
             type: DocTypeOption.Template,
             label: t('Template'),
-            description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
+            description: t('Document automatically opens in {{fiddleModeDocUrl}}. \
 Anyone may edit, which will create a new unsaved copy.',
             {
               fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')),

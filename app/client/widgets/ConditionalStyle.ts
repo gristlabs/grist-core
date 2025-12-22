@@ -160,8 +160,8 @@ export class ConditionalStyle extends Disposable {
           ),
           colorSelect(
             {
-              textColor: new ColorOption({color:textColor, allowsNone: true, noneText: 'default'}),
-              fillColor: new ColorOption({color:fillColor, allowsNone: true, noneText: 'none'}),
+              textColor: new ColorOption({color: textColor, allowsNone: true, noneText: 'default'}),
+              fillColor: new ColorOption({color: fillColor, allowsNone: true, noneText: 'none'}),
               fontBold,
               fontItalic,
               fontUnderline,

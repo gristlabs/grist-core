@@ -98,8 +98,8 @@ export class WelcomePage extends Disposable {
       handleSubmitForm(pending, () => _redirectToSiblingPage('verify')),
       cssParagraph(
         `Welcome Sumo-ling! ` +  // This flow currently only used with AppSumo.
-          `Your Grist site is almost ready. Let's get your account set up and verified. ` +
-          `If you already have a Grist account as `,
+        `Your Grist site is almost ready. Let's get your account set up and verified. ` +
+        `If you already have a Grist account as `,
         dom('b', email.get()),
         ` you can just `,
         cssLink({href: getLoginUrl({nextUrl: null})}, 'log in'),
@@ -169,7 +169,7 @@ export class WelcomePage extends Disposable {
         `Please check your email for a 6-digit verification code, and enter it here.`),
       cssParagraph(
         `If you've any trouble, try our full set of sign-up options. Do take care to use ` +
-          `the email address you activated with: `,
+        `the email address you activated with: `,
         dom('b', email.get())),
       cssSeparatedLabel('Confirmation code'),
       inputEl = cssInput(

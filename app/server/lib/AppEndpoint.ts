@@ -98,7 +98,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
       const slugMismatch = (req.params.slug || null) !== (slug || null);
       const preferredUrlId = doc.urlId || doc.id;
       if (!req.params.viaShare &&  // Don't bother canonicalizing for shares yet.
-          (urlId !== preferredUrlId || slugMismatch)) {
+        (urlId !== preferredUrlId || slugMismatch)) {
         // Prepare to redirect to canonical url for document.
         // Preserve any query parameters or fragments.
         const queryOrFragmentCheck = req.originalUrl.match(/([#?].*)/);

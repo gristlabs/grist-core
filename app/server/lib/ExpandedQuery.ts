@@ -87,8 +87,8 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
           if (altColumn.length > 0) {
             const alias = `${query.tableId}_${formula.refColId}`;
             joins.add(`LEFT JOIN ${quoteIdent(altTableId)} AS ${quoteIdent(alias)} ` +
-                      `ON ${quoteIdent(alias)}.id = ` +
-                      `${quoteIdent(query.tableId)}.${quoteIdent(formula.refColId)}`);
+              `ON ${quoteIdent(alias)}.id = ` +
+              `${quoteIdent(query.tableId)}.${quoteIdent(formula.refColId)}`);
             sqlFormula = `${quoteIdent(alias)}.${quoteIdent(formula.colId)}`;
           }
           else {

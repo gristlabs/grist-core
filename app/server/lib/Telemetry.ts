@@ -324,7 +324,7 @@ export class Telemetry implements ITelemetry {
   ) {
     if (this._numPendingForwardEventRequests === MAX_PENDING_FORWARD_EVENT_REQUESTS) {
       this._logger.warn(requestOrSession, 'exceeded the maximum number of pending forwardEvent calls '
-        + `(${MAX_PENDING_FORWARD_EVENT_REQUESTS}). Skipping forwarding of event ${event}.`);
+      + `(${MAX_PENDING_FORWARD_EVENT_REQUESTS}). Skipping forwarding of event ${event}.`);
       return;
     }
 
@@ -334,9 +334,9 @@ export class Telemetry implements ITelemetry {
 
       if (metadata) {
         if ('installationId' in metadata ||
-            'eventSource' in metadata ||
-            'eventName' in metadata ||
-            'eventCategory' in metadata) {
+          'eventSource' in metadata ||
+          'eventName' in metadata ||
+          'eventCategory' in metadata) {
           throw new Error('metadata contains reserved keys');
         }
       }

@@ -20,25 +20,25 @@ export function isHiddenCol(colId: string): boolean {
 
 // This mapping includes both the default value, and its representation for SQLite.
 const _defaultValues: {[key in GristType]: [CellValue, string]} = {
-  'Any':              [null,  "NULL"],
-  'Attachments':      [null,  "NULL"],
-  'Blob':             [null,  "NULL"],
+  'Any': [null,  "NULL"],
+  'Attachments': [null,  "NULL"],
+  'Blob': [null,  "NULL"],
   // Bool is only supported by SQLite as 0 and 1 values.
-  'Bool':             [false, "0"],
-  'Choice':           ['',    "''"],
-  'ChoiceList':       [null,  "NULL"],
-  'Date':             [null,  "NULL"],
-  'DateTime':         [null,  "NULL"],
-  'Id':               [0,     "0"],
-  'Int':              [0,     "0"],
+  'Bool': [false, "0"],
+  'Choice': ['',    "''"],
+  'ChoiceList': [null,  "NULL"],
+  'Date': [null,  "NULL"],
+  'DateTime': [null,  "NULL"],
+  'Id': [0,     "0"],
+  'Int': [0,     "0"],
   // Note that "1e999" is a way to store Infinity into SQLite. This is verified by "Defaults"
   // tests in DocStorage.js. See also http://sqlite.1065341.n5.nabble.com/Infinity-td55327.html.
-  'ManualSortPos':    [Number.POSITIVE_INFINITY, "1e999"],
-  'Numeric':          [0,     "0"],
-  'PositionNumber':   [Number.POSITIVE_INFINITY, "1e999"],
-  'Ref':              [0,     "0"],
-  'RefList':          [null,  "NULL"],
-  'Text':             ['',    "''"],
+  'ManualSortPos': [Number.POSITIVE_INFINITY, "1e999"],
+  'Numeric': [0,     "0"],
+  'PositionNumber': [Number.POSITIVE_INFINITY, "1e999"],
+  'Ref': [0,     "0"],
+  'RefList': [null,  "NULL"],
+  'Text': ['',    "''"],
 };
 
 
@@ -193,22 +193,22 @@ function isNormalValue(value: CellValue) {
  * matches the declared type of the column.
  */
 const rightType: {[key in GristType]: (value: CellValue) => boolean} = {
-  Any:            isNormalValue,
-  Attachments:    isListOrNull,
-  Text:           isString,
-  Blob:           isString,
-  Int:            isNumberOrNull,
-  Bool:           isBooleanOrNull,
-  Date:           isNumberOrNull,
-  DateTime:       isNumberOrNull,
-  Numeric:        isNumberOrNull,
-  Id:             isNumber,
+  Any: isNormalValue,
+  Attachments: isListOrNull,
+  Text: isString,
+  Blob: isString,
+  Int: isNumberOrNull,
+  Bool: isBooleanOrNull,
+  Date: isNumberOrNull,
+  DateTime: isNumberOrNull,
+  Numeric: isNumberOrNull,
+  Id: isNumber,
   PositionNumber: isNumber,
-  ManualSortPos:  isNumber,
-  Ref:            isNumber,
-  RefList:        isListOrNull,
-  Choice:         isString,
-  ChoiceList:     isListOrNull,
+  ManualSortPos: isNumber,
+  Ref: isNumber,
+  RefList: isListOrNull,
+  Choice: isString,
+  ChoiceList: isListOrNull,
 };
 
 export function isRightType(type: string): undefined | ((value: CellValue, options?: any) => boolean) {

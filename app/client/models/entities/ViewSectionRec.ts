@@ -848,14 +848,14 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
   // Describes the most recent cursor position in the section.
   this.lastCursorPos = {
-    rowIndex:   0,
+    rowIndex: 0,
     fieldIndex: 0,
   };
 
   // Describes the most recent scroll position.
   this.lastScrollPos = {
-    rowIndex:   0, // Used for scrolly sections. Indicates the index of the first visible row.
-    offset:     0, // Pixel distance past the top of row indicated by rowIndex.
+    rowIndex: 0, // Used for scrolly sections. Indicates the index of the first visible row.
+    offset: 0, // Pixel distance past the top of row indicated by rowIndex.
     scrollLeft: 0,  // Used for grid sections. Indicates the scrollLeft value of the scroll pane.
   };
 

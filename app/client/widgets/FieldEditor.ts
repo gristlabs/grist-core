@@ -263,7 +263,7 @@ export class FieldEditor extends Disposable {
       state,
       canDetach: true,
       commands: this._editCommands,
-      readonly : this._readonly,
+      readonly: this._readonly,
     }));
 
     editor.autoDispose(errorHolder);
@@ -273,8 +273,8 @@ export class FieldEditor extends Disposable {
       editor.autoDispose(editor.editorState.addListener((currentState) => {
         this._editorHasChanged = true;
         const event: FieldEditorStateEvent = {
-          position : this.cellPosition(),
-          wasModified : this._editorHasChanged,
+          position: this.cellPosition(),
+          wasModified: this._editorHasChanged,
           currentState,
           type: this._field.column.peek().pureType.peek(),
         };
@@ -381,10 +381,10 @@ export class FieldEditor extends Disposable {
   private _cancelEdit() {
     if (this.isDisposed()) { return; }
     const event: FieldEditorStateEvent = {
-      position : this.cellPosition(),
-      wasModified : this._editorHasChanged,
-      currentState : this._editorHolder.get()?.editorState?.get(),
-      type : this._field.column.peek().pureType.peek(),
+      position: this.cellPosition(),
+      wasModified: this._editorHasChanged,
+      currentState: this._editorHolder.get()?.editorState?.get(),
+      type: this._field.column.peek().pureType.peek(),
     };
     this.cancelEmitter.emit(event);
     this.dispose();
@@ -440,10 +440,10 @@ export class FieldEditor extends Disposable {
       }
 
       const event: FieldEditorStateEvent = {
-        position : this.cellPosition(),
-        wasModified : this._editorHasChanged,
-        currentState : this._editorHolder.get()?.editorState?.get(),
-        type : this._field.column.peek().pureType.peek(),
+        position: this.cellPosition(),
+        wasModified: this._editorHasChanged,
+        currentState: this._editorHolder.get()?.editorState?.get(),
+        type: this._field.column.peek().pureType.peek(),
       };
       this.saveEmitter.emit(event);
 

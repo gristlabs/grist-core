@@ -87,14 +87,14 @@ export async function runCompletion() {
     // start downloading
     console.log(
       `source url: ${TEMPLATE_URL}\n` +
-        `destination: ${destPath}\n` +
-        `download...`,
+      `destination: ${destPath}\n` +
+      `download...`,
     );
     const response = await fetch(TEMPLATE_URL);
     if (!response.ok) { throw new Error(`unexpected response ${response.statusText}`); }
     await streamPipeline(response.body, fs.createWriteStream(destPath));
     console.log('done!\n\n' +
-                'start extraction...');
+      'start extraction...');
 
     // unzip to directory
     const data = fs.readFileSync(destPath);
@@ -213,9 +213,9 @@ export async function runCompletion() {
             const v = newValues[i];
             if (String(e) !== String(v)) {
               const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
-                  'Please answer with the code block you (the assistant) just gave, ' +
-                  'revised based on this information. Your answer must include a code ' +
-                  'block. If you have to explain anything, do it after.\n';
+                'Please answer with the code block you (the assistant) just gave, ' +
+                'revised based on this information. Your answer must include a code ' +
+                'block. If you have to explain anything, do it after.\n';
               const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
               const rowId = rowIds[i];
               if (followUp) {
@@ -259,7 +259,7 @@ export async function runCompletion() {
         path.join(
           PATH_TO_RESULTS,
           `${rec.table_id}_${rec.col_id}_` +
-            caseCount.toLocaleString('en', {minimumIntegerDigits: 8, useGrouping: false}) + '.json'),
+          caseCount.toLocaleString('en', {minimumIntegerDigits: 8, useGrouping: false}) + '.json'),
         JSON.stringify({
           formula,
           suggestedFormula, success,

@@ -122,13 +122,13 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    */
   public getDocListAPIImpl(client: Client): DocListAPI {
     return {
-      getDocList:      tbind(this.listDocs, this, client),
-      createNewDoc:    tbind(this.createNewDoc, this, client),
+      getDocList: tbind(this.listDocs, this, client),
+      createNewDoc: tbind(this.createNewDoc, this, client),
       importSampleDoc: tbind(this.importSampleDoc, this, client),
-      importDoc:       tbind(this.importDoc, this, client),
-      deleteDoc:       tbind(this.deleteDoc, this, client),
-      renameDoc:       tbind(this.renameDoc, this, client),
-      openDoc:         tbind(this.openDoc, this, client),
+      importDoc: tbind(this.importDoc, this, client),
+      deleteDoc: tbind(this.deleteDoc, this, client),
+      renameDoc: tbind(this.renameDoc, this, client),
+      openDoc: tbind(this.openDoc, this, client),
     };
   }
 

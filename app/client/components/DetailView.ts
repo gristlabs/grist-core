@@ -64,8 +64,8 @@ export default class DetailView extends BaseView {
     this.recordLayout = this.autoDispose(RecordLayout.create({
       viewSection: this.viewSection,
       buildFieldDom: this.buildFieldDom.bind(this),
-      buildCardContextMenu : this.buildCardContextMenu.bind(this),
-      buildFieldContextMenu : this.buildFieldContextMenu.bind(this),
+      buildCardContextMenu: this.buildCardContextMenu.bind(this),
+      buildFieldContextMenu: this.buildFieldContextMenu.bind(this),
       resizeCallback: () => {
         if (!this._isSingle) {
           this.scrolly().updateSize();
@@ -567,7 +567,7 @@ export default class DetailView extends BaseView {
     return this.gristDoc.docModel.viewFields.sendTableActions(
       actions,
       `Hide fields ${actions.map(a => a[1]).join(', ')} ` +
-        `from ${this.tableModel.tableData.tableId}.`,
+      `from ${this.tableModel.tableData.tableId}.`,
     );
   }
 

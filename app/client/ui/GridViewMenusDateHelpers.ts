@@ -73,10 +73,10 @@ const FORMULAS = {
   // lstrip to remove leading zero (-I doesn't work on windows)
   HOUR_12: '$Column.strftime("%I %p").lstrip("0") if $Column else None',
   TIME_BUCKET: 'if not $Column:\n  return None\n' +
-               'hour = HOUR($Column)\n' +
-               'if hour < 12:\n  return "Morning"\n' +
-               'if hour < 18:\n  return "Afternoon"\n' +
-               'return "Evening"',
+    'hour = HOUR($Column)\n' +
+    'if hour < 12:\n  return "Morning"\n' +
+    'if hour < 18:\n  return "Afternoon"\n' +
+    'return "Evening"',
   MINUTE: 'MINUTE($Column) if $Column else None',
   AM_PM: '$Column.strftime("%p") if $Column else None',
 

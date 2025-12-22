@@ -58,9 +58,9 @@ describe("ColorSelect", function() {
     const isStrikeThrough = (await driver.findAll('.test-client-cell.font-strikethrough')).length === 1;
     const current =
       (isBold ? bold : 0) |
-        (isUnderline ? underline : 0) |
-        (isItalic ? italic : 0) |
-        (isStrikeThrough ? strike : 0);
+      (isUnderline ? underline : 0) |
+      (isItalic ? italic : 0) |
+      (isStrikeThrough ? strike : 0);
     return assert.equal(current, option);
   }
 
@@ -72,9 +72,9 @@ describe("ColorSelect", function() {
       .length === 1;
     const selected =
       (isBold ? bold : 0) |
-        (isUnderline ? underline : 0) |
-        (isItalic ? italic : 0) |
-        (isStrikeThrough ? strike : 0);
+      (isUnderline ? underline : 0) |
+      (isItalic ? italic : 0) |
+      (isStrikeThrough ? strike : 0);
     return assert.equal(selected, option);
   }
 

@@ -67,7 +67,7 @@ export abstract class RowSource extends DisposableWithEvents {
 // ----------------------------------------------------------------------
 
 const _changeTypes: {[key: string]: ChangeMethod} = {
-  add:    'onAddRows',
+  add: 'onAddRows',
   remove: 'onRemoveRows',
   update: 'onUpdateRows',
 };
@@ -752,7 +752,7 @@ function isSmallChange(rows: RowList) {
 function _isIndexInOrder<T>(array: T[], index: number, compareFunc: CompareFunc<T>): boolean {
   const r = array[index];
   return ((index === 0 || compareFunc(array[index - 1], r) <= 0) &&
-          (index === array.length - 1 || compareFunc(r, array[index + 1]) <= 0));
+    (index === array.length - 1 || compareFunc(r, array[index + 1]) <= 0));
 }
 
 /**

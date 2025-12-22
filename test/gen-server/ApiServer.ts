@@ -2364,7 +2364,7 @@ describe('ApiServer', function() {
         const body2 = {
           label: "More service",
           description: "More robots",
-          expiresAt:"2042-07-22",
+          expiresAt: "2042-07-22",
         };
         await createServiceAccount(body1);
         await createServiceAccount(body2);
@@ -2479,7 +2479,7 @@ describe('ApiServer', function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
-          expiresAt:"2042-10-10",
+          expiresAt: "2042-10-10",
         };
         const {id: serviceId} = await createServiceAccount(body);
         const resp2 = await axios.get(`${homeUrl}/api/service-accounts/${serviceId}`, chimpy);
@@ -2512,7 +2512,7 @@ describe('ApiServer', function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
-          expiresAt:"2042-10-10",
+          expiresAt: "2042-10-10",
         };
         const {id: serviceId, key: apiKeyBefore} = await createServiceAccount(body);
 
@@ -2535,7 +2535,7 @@ describe('ApiServer', function() {
         const body = {
           label: "Short life service",
           description: "Doomed soon",
-          expiresAt:"2042-10-10",
+          expiresAt: "2042-10-10",
         };
         const {id: serviceId, login} = await createServiceAccount(body);
         const expectedBody = {
@@ -2877,7 +2877,7 @@ describe('ApiServer', function() {
   describe('Prepared Statements', async function() {
     it('creates prepared statements', async function() {
       if (dbManager.connection.driver.options.type !== 'postgres' ||
-          !isAffirmative(process.env.GRIST_POSTGRES_USE_PREPARED_STATEMENTS)) {
+        !isAffirmative(process.env.GRIST_POSTGRES_USE_PREPARED_STATEMENTS)) {
         this.skip();
       }
       // Check that the number of prepared statements looks sane.

@@ -267,7 +267,7 @@ export class GristWSConnection extends Disposable {
       }
       needReload = Boolean(message.needReload);
       this._log(`GristWSConnection established: clientId ${message.clientId} counter ${this._clientCounter}` +
-                ` needReload ${needReload}`);
+        ` needReload ${needReload}`);
       if (message.dup) {
         this._warn("GristWSConnection missed initial 'clientConnect', processing its duplicate");
       }

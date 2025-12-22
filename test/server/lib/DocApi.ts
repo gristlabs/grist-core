@@ -3915,7 +3915,7 @@ function testDocApi(settings: {
     }
 
     it("GET /docs/{did}/webhooks retrieves a list of webhooks", async function () {
-      const registerResponse = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
+      const registerResponse = await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
       try{
         assert.equal(resp.status, 200);
@@ -3945,30 +3945,30 @@ function testDocApi(settings: {
     // in this endpoint webhookID is in body, not in path, so it also should be verified
     it("POST /docs/{did}/webhooks validates inputs", async function () {
 
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1"}}]}, 400,
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1"}}]}, 400,
         /eventTypes is missing/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: 0}}]}, 400,
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: 0}}]}, 400,
         /url is missing/, /eventTypes is not an array/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: []}}]},
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: []}}]},
         400, /url is missing/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: [],
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: [],
         url: "https://example.com"}}]},
       400, /eventTypes must be a non-empty array/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["foo"],
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["foo"],
         url: "https://example.com"}}]},
       400, /eventTypes\[0] is none of "add", "update"/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"]}}]},
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["add"]}}]},
         400, /url is missing/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["add"],
         url: "https://evil.com"}}]},
       403, /Provided url is forbidden/);
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["add"],
         url: "http://example.com"}}]},
       403, /Provided url is forbidden/);  // not https
-      await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
+      await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["add"],
         url: "https://example.com", isReadyColumn: "bar"}}]},
       404, /Column not found "bar"/);
-      await postWebhookCheck({webhooks:[{fields: {eventTypes: ["add"], url: "https://example.com"}}]},
+      await postWebhookCheck({webhooks: [{fields: {eventTypes: ["add"], url: "https://example.com"}}]},
         400, /tableId is missing/);
       await postWebhookCheck({}, 400, /webhooks is missing/);
       await postWebhookCheck({
@@ -4069,8 +4069,8 @@ function testDocApi(settings: {
     }
 
     it("POST /docs/{did}/webhooks is adding new webhook to table "+
-       "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function(){
-      const registeredWebhook = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
+      "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function(){
+      const registeredWebhook = await postWebhookCheck({webhooks: [{fields: {tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
       let webhookList = await getRegisteredWebhooks();
       assert.equal(webhookList.length, 1);
       assert.equal(webhookList[0].id, registeredWebhook.webhooks[0].id);
@@ -4082,10 +4082,10 @@ function testDocApi(settings: {
     it("POST /docs/{did}/webhooks is adding new webhook should be able to add many webhooks at once", async function(){
       const response = await postWebhookCheck(
         {
-          webhooks:[
-            {fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}},
-            {fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com/2"}},
-            {fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com/3"}},
+          webhooks: [
+            {fields: {tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}},
+            {fields: {tableId: "Table1", eventTypes: ["add"], url: "https://example.com/2"}},
+            {fields: {tableId: "Table1", eventTypes: ["add"], url: "https://example.com/3"}},
           ]}, 200);
       assert.equal(response.webhooks.length, 3);
       const webhookList = await getRegisteredWebhooks();
@@ -4114,11 +4114,11 @@ function testDocApi(settings: {
         401, 'Wrong unsubscribeKey');
       //subscribeResponse = await subscribeWebhook();
       // Actually unsubscribe with the same unsubscribeKey that was returned by registration
-      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey:subscribeResponse.unsubscribeKey},
+      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey: subscribeResponse.unsubscribeKey},
         200, {success: true});
 
       // Trigger is now deleted!
-      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey:subscribeResponse.unsubscribeKey},
+      await check({webhookId: subscribeResponse.webhookId, unsubscribeKey: subscribeResponse.unsubscribeKey},
         404, `Webhook not found "${subscribeResponse.webhookId}"`);
 
       // Remove editor access
@@ -5079,7 +5079,7 @@ function testDocApi(settings: {
               name: '',
               memo: '',
               watchedColIds: [],
-            }, usage : {
+            }, usage: {
               status: 'idle',
               numWaiting: 0,
               lastEventBatch: null,
@@ -5098,7 +5098,7 @@ function testDocApi(settings: {
               name: '',
               memo: '',
               watchedColIds: [],
-            }, usage : {
+            }, usage: {
               status: 'idle',
               numWaiting: 0,
               lastEventBatch: null,
@@ -5791,8 +5791,8 @@ function testDocApi(settings: {
 
   it("POST /docs/{did}/sql timeout is effective", async function () {
     const slowQuery = 'WITH RECURSIVE r(i) AS (VALUES(0) ' +
-        'UNION ALL SELECT i FROM r  LIMIT 1000000) ' +
-        'SELECT i FROM r WHERE i = 1';
+      'UNION ALL SELECT i FROM r  LIMIT 1000000) ' +
+      'SELECT i FROM r WHERE i = 1';
     const resp = await axios.post(
       `${homeUrl}/api/docs/${docIds.Timesheets}/sql`,
       { sql: slowQuery, timeout: 10 },

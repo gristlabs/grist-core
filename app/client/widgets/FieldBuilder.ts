@@ -497,9 +497,9 @@ export class FieldBuilder extends Disposable {
           kd.hide(this._isTransformingFormula),
           kd.boolAttr('disabled', () =>
             this._isTransformingType() ||
-                   this.origColumn.isFormula() ||
-                   this.origColumn.disableModifyBase() ||
-                   this.field.config.multiselect()),
+            this.origColumn.isFormula() ||
+            this.origColumn.disableModifyBase() ||
+            this.field.config.multiselect()),
           dom.testId("FieldBuilder_editTransform"),
           testId('edit-transform'),
         )),
@@ -653,7 +653,7 @@ export class FieldBuilder extends Disposable {
         return { error };
       }
       // Combine them into a single style option.
-      return { style : new CombinedStyle(styles, flags) };
+      return { style: new CombinedStyle(styles, flags) };
     }, this).extend({ deferred: true })).previousOnUndefined();
 
     const widgetObs = koUtil.withKoUtils(ko.computed(() => {

@@ -140,7 +140,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
       }
       else {
         log.error("WidgetRepository: Error fetching widget list - " +
-            String(err));
+          String(err));
         return [];
       }
     }
@@ -208,7 +208,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
  * Version of WidgetRepository that caches successful result for 2 minutes.
  */
 class CachedWidgetRepository extends WidgetRepositoryImpl {
-  private _cache = new LRUCache<1, ICustomWidget[]>({maxAge : 1000 * 60 /* minute */ * 2});
+  private _cache = new LRUCache<1, ICustomWidget[]>({maxAge: 1000 * 60 /* minute */ * 2});
   public async getWidgets() {
     // Don't cache for localhost
     if (this._staticUrl && this._staticUrl.startsWith("http://localhost")) {
@@ -279,7 +279,7 @@ export function getWidgetsInPlugins(gristServer: GristServer,
     if (!components.widgets) { continue; }
     const urlBase =
       removeTrailingSlash(pluginUrl) + '/v/' +
-        gristServer.getTag() + '/widgets/' + plugin.id + '/';
+      gristServer.getTag() + '/widgets/' + plugin.id + '/';
     places.push({
       urlBase,
       dir: path.resolve(plugin.path, path.dirname(components.widgets)),

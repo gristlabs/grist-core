@@ -107,7 +107,7 @@ export class ChoiceListEditor extends NewBaseEditor {
       createToken: label => new ChoiceItem(label, !this._choicesSet.has(label), label.trim() === ''),
       acOptions,
       openAutocompleteOnFocus: true,
-      readonly : options.readonly,
+      readonly: options.readonly,
       trimLabels: true,
       styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
     });

@@ -327,7 +327,7 @@ describe('DocTutorial', function () {
       assert.equal(
         await driver.find('.test-doc-tutorial-popup h1 + p').getText(),
         'On the left-side panel is a list of pages, which are views of your data. ' +
-          'Right now, there are two pages: Page 1 and Page 2. You are looking at Page 1.',
+        'Right now, there are two pages: Page 1 and Page 2. You are looking at Page 1.',
       );
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-next').isDisplayed());
       assert.isTrue(await driver.find('.test-doc-tutorial-popup-previous').isDisplayed());

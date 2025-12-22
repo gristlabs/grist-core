@@ -112,7 +112,7 @@ export class TokensExceededFirstMessageError extends TokensExceededError {
   constructor() {
     super(
       "Sorry, there's too much information for the AI to process. " +
-        "You'll need to either shorten your message or delete some columns.",
+      "You'll need to either shorten your message or delete some columns.",
       400,
       {
         code: "ContextLimitExceeded",
@@ -125,7 +125,7 @@ export class TokensExceededLaterMessageError extends TokensExceededError {
   constructor() {
     super(
       "Sorry, there's too much information for the AI to process. " +
-        "You'll need to either shorten your message, restart the conversation, or delete some columns.",
+      "You'll need to either shorten your message, restart the conversation, or delete some columns.",
       400,
       {
         code: "ContextLimitExceeded",
@@ -138,7 +138,7 @@ export class QuotaExceededError extends NonRetryableError {
   constructor() {
     super(
       "Sorry, the assistant is facing some long term capacity issues. " +
-        "Maybe try again tomorrow.",
+      "Maybe try again tomorrow.",
       503,
     );
   }
@@ -148,8 +148,8 @@ export class RetryableError extends Error {
   constructor(message: string) {
     super(
       "Sorry, the assistant is unavailable right now. " +
-        "Try again in a few minutes.\n\n" +
-        "```\n(" + message + ")\n```",
+      "Try again in a few minutes.\n\n" +
+      "```\n(" + message + ")\n```",
     );
   }
 }

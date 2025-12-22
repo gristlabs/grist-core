@@ -95,7 +95,7 @@ describe('localization', function() {
 
   it('supports scoping through makeT', function() {
     const scoped = makeT('Parent', instance);
-    assert.equal(scoped('Child', { arg : 'Arg'}), 'Translated child Arg');
+    assert.equal(scoped('Child', { arg: 'Arg'}), 'Translated child Arg');
   });
 
   it('infers result from parameters', function() {

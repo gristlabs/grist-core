@@ -141,11 +141,11 @@ export class DocPluginManager {
 
     if (messages.length) {
       const extToType: Record<string, string> = {
-        '.xlsx' : 'Excel',
-        '.json' : 'JSON',
-        '.csv' : 'CSV',
-        '.tsv' : 'TSV',
-        '.dsv' : 'PSV',
+        '.xlsx': 'Excel',
+        '.json': 'JSON',
+        '.csv': 'CSV',
+        '.tsv': 'TSV',
+        '.dsv': 'PSV',
       };
       const fileType = extToType[path.extname(fileName)] || path.extname(fileName);
       throw new Error(`Failed to parse ${fileType} file.\nError: ${messages.join("; ")}`);

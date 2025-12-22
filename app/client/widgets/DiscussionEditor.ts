@@ -820,7 +820,7 @@ class Comment extends Disposable {
     const lastComment = comment.column.peek().cells.peek().peek().at(-1);
 
     const resolveVisible = !this.props.comment.resolved()
-                        && !this._isReply;
+      && !this._isReply;
     const openVisible =
       this._resolved.get() // if this discussion is resolved
       && !this._isReply // and this is not a reply

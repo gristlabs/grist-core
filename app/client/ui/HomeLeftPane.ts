@@ -87,7 +87,7 @@ export function createHomeLeftPane(leftPanelOpen: Observable<boolean>, home: Hom
           if (ws.isSupportWorkspace) { return null; }
           const info = getWorkspaceInfo(home.app, ws);
           const isTrivial = computed(use => Boolean(getWorkspaceInfo(home.app, ws).isDefault &&
-                                                      use(home.singleWorkspace)));
+            use(home.singleWorkspace)));
           // TODO: Introduce a "SwitchSelector" pattern to avoid the need for N computeds (and N
           // recalculations) to select one of N items.
           const isRenaming = computed(use => use(renaming) === ws);

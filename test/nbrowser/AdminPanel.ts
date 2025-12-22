@@ -434,7 +434,7 @@ describe('AdminPanel', function() {
     assert.equal(names.length, 1);
 
     assert.equal(await names[0].getText(), 'Admin account not found\n'
-      + 'Missing admin account because GRIST_DEFAULT_EMAIL is not set');
+    + 'Missing admin account because GRIST_DEFAULT_EMAIL is not set');
   });
 });
 

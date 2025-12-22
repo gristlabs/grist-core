@@ -263,7 +263,7 @@ export class DocSnapshotInventory implements IInventory {
           // Surprising, since S3 ExternalInterface should have its own consistency
           // checks. Not much we can do about it other than accept it.
           log.error(`Surprise in getSnapshots, expected ${expectSnapshotId} for ${key} ` +
-                    `but got ${data[0]?.snapshotId}`);
+            `but got ${data[0]?.snapshotId}`);
         }
         // Reconstructed data is precious.  Make sure it gets saved.
         await this._saveToFile(fname, data);
@@ -355,7 +355,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
   // Get time of current version
   const start = moment.tz(current.lastModified, tz);
   const capObjectString = process.env.GRIST_SNAPSHOT_TIME_CAP
-        || '{"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}';
+    || '{"hour": 25, "day": 32, "isoWeek": 12, "month": 96, "year": 1000}';
 
   // Parse the stringified JSON object into an actual object
   const caps = JSON.parse(capObjectString);
@@ -400,7 +400,7 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
     // Preserve recent labelled snapshots in a naive and limited way.  No doubt this will
     // be elaborated on if we make this a user-facing feature.
     if (snapshot.metadata?.label &&
-        start.diff(date, 'days') < 32) { keep = true; }
+      start.diff(date, 'days') < 32) { keep = true; }
     return keep;
   });
 }

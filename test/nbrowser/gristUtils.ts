@@ -248,9 +248,9 @@ namespace gristUtils {
     await driver.withActions(actions => actions
       .move({origin: handle}));
     await driver.withActions(actions => actions
-      .move({origin: handle, x : 1}) // This is needed to show the drag element.
+      .move({origin: handle, x: 1}) // This is needed to show the drag element.
       .press());
-    await driver.withActions(actions => actions.move({origin: handle, ...{x : 10, y: 10}}));
+    await driver.withActions(actions => actions.move({origin: handle, ...{x: 10, y: 10}}));
     return {
     /** Moves this leave over another section + offset. */
       async moveTo(otherSection: string, offset?: {x?: number, y?: number}) {
@@ -649,7 +649,7 @@ namespace gristUtils {
         const counter = await section.findAll(".grist-single-record__menu__count");
         if (counter.length) {
           const cardRow = (await counter[0].getText()).split(' OF ')[0];
-          return { rowNum : parseInt(cardRow), col: colName };
+          return { rowNum: parseInt(cardRow), col: colName };
         }
         // Otherwise, it's a grid view, and we need to use indices to look up the info.
         const gridRows = await section.findAll('.gridview_data_row_num');
@@ -1702,7 +1702,7 @@ namespace gristUtils {
     if (!await driver.find('.test-tooltip').isPresent()) { return; }
 
     await driver.find('.test-tooltip').mouseMove();
-    await driver.mouseMoveBy({x : 100, y: 100});
+    await driver.mouseMoveBy({x: 100, y: 100});
     await waitToPass(async () => {
       assert.equal(await driver.find('.test-tooltip').isPresent(), false);
     });
@@ -1859,8 +1859,8 @@ namespace gristUtils {
   }
 
   export type ColumnType =
-  'Any' | 'Text' | 'Numeric' | 'Integer' | 'Toggle' | 'Date' | 'DateTime' |
-  'Choice' | 'Choice List' | 'Reference' | 'Reference List' | 'Attachment';
+    'Any' | 'Text' | 'Numeric' | 'Integer' | 'Toggle' | 'Date' | 'DateTime' |
+    'Choice' | 'Choice List' | 'Reference' | 'Reference List' | 'Attachment';
 
   /**
  * Sets the type of the currently selected field to value.
@@ -2373,9 +2373,9 @@ namespace gristUtils {
       // ok, we may not be in a page associated with a user.
       }
       return currentUser && currentUser.email === this.settings.email &&
-      currentOrg && (currentOrg.name === this.settings.orgName ||
-                     // This is an imprecise check for personal sites, but adequate for tests.
-                     (currentOrg.owner && (this.settings.orgDomain.startsWith('docs'))));
+        currentOrg && (currentOrg.name === this.settings.orgName ||
+      // This is an imprecise check for personal sites, but adequate for tests.
+          (currentOrg.owner && (this.settings.orgDomain.startsWith('docs'))));
     }
 
     // Load a document on a site.
@@ -3218,8 +3218,8 @@ namespace gristUtils {
   export async function scrollActiveView(x: number, y: number) {
     await driver.executeScript(function(x1: number, y1: number) {
       const view = document.querySelector(".active_section .grid_view_data") ||
-                 document.querySelector(".active_section .detailview_scroll_pane") ||
-                 document.querySelector(".active_section .test-forms-editor");
+        document.querySelector(".active_section .detailview_scroll_pane") ||
+        document.querySelector(".active_section .test-forms-editor");
       view!.scrollBy(x1, y1);
     }, x, y);
     await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
@@ -3228,8 +3228,8 @@ namespace gristUtils {
   export async function scrollActiveViewTop() {
     await driver.executeScript(function() {
       const view = document.querySelector(".active_section .grid_view_data") ||
-                 document.querySelector(".active_section .detailview_scroll_pane") ||
-                 document.querySelector(".active_section .test-forms-editor");
+        document.querySelector(".active_section .detailview_scroll_pane") ||
+        document.querySelector(".active_section .test-forms-editor");
       view!.scrollTop = 0;
     });
     await driver.sleep(10); // wait a bit for the scroll to happen (this is async operation in Grist).
@@ -3565,7 +3565,7 @@ namespace gristUtils {
   }
 
   type BehaviorActions = 'Clear and reset' | 'Convert column to data' | 'Clear and make into formula' |
-                       'Convert columns to data';
+    'Convert columns to data';
   /**
  * Opens a behavior menu and clicks one of the option.
  */

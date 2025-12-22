@@ -54,7 +54,7 @@ export interface CommMessageBase {
 }
 
 export type CommDocMessage = CommDocUserAction | CommDocUsage | CommDocShutdown |
-                             CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
+  CommDocError | CommDocChatter | CommDocUserPresenceUpdate;
 export type CommMessage = CommDocMessage | CommDocListAction | CommClientConnect;
 
 export type CommResponseBase = CommResponse | CommResponseError | CommMessage;

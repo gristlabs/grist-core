@@ -269,7 +269,7 @@ export class ActiveDocImport {
       const columnValues = _.object(hiddenTableColIds, table.table_data);
       const destTableId = transformRule ? transformRule.destTableId : null;
       const ruleCanBeApplied = (transformRule != null) &&
-                               _.difference(transformRule.sourceCols, hiddenTableColIds).length === 0;
+        _.difference(transformRule.sourceCols, hiddenTableColIds).length === 0;
       await this._activeDoc.applyUserActions(docSession,
         // BulkAddRecord rather than ReplaceTableData so that type guessing is applied to Any columns.
         // Don't use parseStrings, only use the strict parsing in ValueGuesser to make the import lossless.

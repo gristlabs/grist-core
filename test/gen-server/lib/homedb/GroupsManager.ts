@@ -313,7 +313,7 @@ describe("GroupsManager", function () {
       assert.isTrue(groups.some(g => g.memberUsers.length > 0), "memberUsers should be populated");
       assert.isTrue(groups.some(g => g.memberGroups.length > 0), "memberGroups should be populated");
       assert.isTrue(groups.every(g => g.type === Group.ROLE_TYPE), 'some groups retrieved are not of type ' +
-        Group.ROLE_TYPE);
+      Group.ROLE_TYPE);
     });
 
     it(`should return groups for ${Group.TEAM_TYPE}`, async function () {

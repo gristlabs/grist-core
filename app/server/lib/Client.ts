@@ -270,7 +270,7 @@ export class Client {
         }
       }
       if (this._missedMessages.size < clientMaxMissedMessages &&
-          this._missedMessagesTotalLength + message.length <= clientMaxMissedBytes) {
+        this._missedMessagesTotalLength + message.length <= clientMaxMissedBytes) {
         // Queue up the message.
         // TODO: this keeps the memory but releases jsonMemoryPool reservation, which is wrong --
         // it may allow too much memory to be used. This situation is rare, however, so maybe OK

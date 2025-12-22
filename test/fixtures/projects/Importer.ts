@@ -143,7 +143,7 @@ function setupTest() {
   const gristDoc: GristDoc = {
     docComm: null,
     docModel,
-    viewModel : {
+    viewModel: {
       activeSectionId: ko.observable(null),
     },
     docData: {

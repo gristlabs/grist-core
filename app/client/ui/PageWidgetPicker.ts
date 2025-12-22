@@ -392,7 +392,7 @@ export class PageWidgetSelect extends Disposable {
               cssPivot(
                 cssBigIcon('Pivot'),
                 cssEntry.cls('-selected', use => use(this._value.summarize) &&
-                                                     use(this._value.table) === table.id(),
+                  use(this._value.table) === table.id(),
                 ),
                 cssEntry.cls('-disabled', this._isSummaryDisabled),
                 dom.on('click', (_ev, el) =>

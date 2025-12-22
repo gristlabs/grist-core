@@ -330,7 +330,7 @@ export class ACLRulesReader {
     const columns = this.docData.getMetaTable('_grist_Tables_column');
     const tableColumns = shareContext.columns.filter(c =>
       c.parentId === table.id &&
-        (c.type.startsWith('Ref:') || c.type.startsWith('RefList:')));
+      (c.type.startsWith('Ref:') || c.type.startsWith('RefList:')));
     for (const column of tableColumns) {
       let tableId: string;
       let colId: string;

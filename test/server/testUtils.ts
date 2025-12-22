@@ -223,7 +223,7 @@ export function expectRejection(promise: Promise<any>, errCode: number|string, e
 
       if (errRegexp !== undefined) {
         assert(errRegexp.test(err.message), "Description doesn't match regexp: " +
-             errRegexp + ' !~ ' + err.message);
+        errRegexp + ' !~ ' + err.message);
       }
     });
 }

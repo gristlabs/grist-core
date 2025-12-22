@@ -928,7 +928,7 @@ export class RightPanel extends Disposable {
     };
     return (elem) => {
       attachPageWidgetPicker(elem, gristDoc, onSave, {
-        buttonLabel:  t("Save"),
+        buttonLabel: t("Save"),
         value: () => toPageWidget(activeSection.peek()),
         selectBy: val => gristDoc.selectBy(val),
       });

@@ -1083,7 +1083,7 @@ export class Importer extends DisposableWithEvents {
                           // Try to set the default label.
                           const transformCol = field.column.peek();
                           const possibilities = this._transformColImportOptions.get().get(transformCol.getRowId())
-                                                ?? new Map<string, string>();
+                            ?? new Map<string, string>();
                           const matched = [...possibilities.entries()].find(([, v]) => v === transformCol.label.peek());
                           if (matched) {
                             await this._setColumnFormula(transformCol, matched[0], info);
@@ -1138,7 +1138,7 @@ export class Importer extends DisposableWithEvents {
         dom.on('click', () => this._maybeFinishImport(upload)),
         dom.boolAttr('disabled', (use) => {
           return use(this._previewViewSection) === null ||
-                 use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
+            use(this._sourceInfoArray).every(i => use(i.destTableId) === SKIP_TABLE);
         }),
         baseTestId('modal-confirm'),
       ),

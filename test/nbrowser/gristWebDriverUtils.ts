@@ -37,7 +37,7 @@ export class GristWebDriverUtils {
   public async waitForServer(optTimeout: number = 5000) {
     await this.driver.wait(() => this.driver.executeScript(
       "return window.gristApp && (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
-        + " && window.gristApp.testNumPendingApiRequests() === 0",
+      + " && window.gristApp.testNumPendingApiRequests() === 0",
     )
       // The catch is in case executeScript() fails. This is rare but happens occasionally when
       // browser is busy (e.g. sorting) and doesn't respond quickly enough. The timeout selenium

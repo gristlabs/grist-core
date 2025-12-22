@@ -1,16 +1,16 @@
 import { SandboxInfo } from 'app/common/SandboxInfo';
 
 export type BootProbeIds =
-    'admins' |
-    'boot-page' |
-    'health-check' |
-    'reachable' |
-    'host-header' |
-    'sandboxing' |
-    'system-user' |
-    'authentication' |
-    'websockets' |
-    'session-secret'
+  'admins' |
+  'boot-page' |
+  'health-check' |
+  'reachable' |
+  'host-header' |
+  'sandboxing' |
+  'system-user' |
+  'authentication' |
+  'websockets' |
+  'session-secret'
 ;
 
 export interface BootProbeResult {

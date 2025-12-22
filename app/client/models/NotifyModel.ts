@@ -55,7 +55,7 @@ export interface CustomAction { label: string, action: () => void }
 export type MessageType = string | (() => DomElementArg);
 // Identifies supported actions. These are implemented in NotifyUI.
 export type NotifyAction = 'upgrade' | 'renew' | 'personal' | 'report-problem'
-                           | 'ask-for-help' | 'manage' | CustomAction;
+  | 'ask-for-help' | 'manage' | CustomAction;
 export type NotificationLevel = 'message' | 'info' | 'success' | 'warning' | 'error';
 
 export interface INotifyOptions {
@@ -221,7 +221,7 @@ export class Notifier extends Disposable implements INotifier {
         title: msg.title,
         canUserClose: true,
         inToast: true,
-        level : 'message',
+        level: 'message',
       })) : null);
   }
 

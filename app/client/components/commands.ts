@@ -37,7 +37,7 @@ function subscribe(value: Exclude<BoolLike, boolean>, fn: (value: boolean) => vo
 
 // Same logic as used by mousetrap to map 'Mod' key to platform-specific key.
 export const isMac = (typeof navigator !== 'undefined' && navigator &&
-               /Mac|iPod|iPhone|iPad/.test(navigator.platform));
+  /Mac|iPod|iPhone|iPad/.test(navigator.platform));
 
 /**
  * Globally-exposed map of command names to Command objects. E.g. typing "cmd.cursorDown.run()" in

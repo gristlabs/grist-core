@@ -212,7 +212,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
           // tables, so docs from that period would use BLOBs. For consistency, we upgrade those tables
           // too.
           if (tblRow.name.startsWith('_grist_') || !tblRow.name.startsWith('_') ||
-              tblRow.name.startsWith('_gristsys_Action')) {
+            tblRow.name.startsWith('_gristsys_Action')) {
             await _upgradeTable(tblRow.name);
           }
         }
@@ -539,7 +539,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       case 'number':
         // Marshal with TEXT affinity, and handle some other awkward cases.
         if (affinity === 'TEXT' || Number.isNaN(val) || Object.is(val, -0.0) ||
-            (sqlType === 'BOOLEAN' && (val === 0 || val === 1))) {
+          (sqlType === 'BOOLEAN' && (val === 0 || val === 1))) {
           return marshalled();
         }
         // Otherwise, SQLite will handle numbers safely.
@@ -757,7 +757,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
    */
   public _updateMetadata(): Promise<void> {
     return this.all('SELECT t.tableId, c.colId, c.type ' +
-                    'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id')
+      'FROM _grist_Tables_column c JOIN _grist_Tables t ON c.parentId=t.id')
       .then((rows: ResultRow[]) => {
         const s: {[key: string]: any} = {};
         for (const {tableId, colId, type} of rows) {
@@ -1224,7 +1224,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
 
     if (numChunks > 0) {
       debuglog("DocStorage.BulkRemoveRecord: splitting " + rowIds.length +
-               " deletes into chunks of size " + chunkSize);
+        " deletes into chunks of size " + chunkSize);
       const stmt = await this.prepare(preSql + chunkParams + postSql);
       for (const index of _.range(0, numChunks * chunkSize, chunkSize)) {
         debuglog("DocStorage.BulkRemoveRecord: chunk delete " + index + "-" + (index + chunkSize - 1));
@@ -1342,12 +1342,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
     else if (fromTableId.toLowerCase() === toTableId.toLowerCase()) {
       const tmpTableId = DocStorage._makeTmpTableId(fromTableId);
       sql.push("ALTER TABLE " + quoteIdent(fromTableId) +
-               " RENAME TO " + quoteIdent(tmpTableId));
+        " RENAME TO " + quoteIdent(tmpTableId));
       fromTableId = tmpTableId;
     }
 
     sql.push("ALTER TABLE " + quoteIdent(fromTableId) +
-             " RENAME TO "  + quoteIdent(toTableId));
+      " RENAME TO "  + quoteIdent(toTableId));
 
     log.debug("RenameTable SQL: " + sql);
     return bluebird.Promise.each(sql, (stmt: string) => this.exec(stmt));
@@ -1492,7 +1492,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       // We throw an informative error if we fail to process the attachment references, although this shouldn't happen
       // cf: https://github.com/gristlabs/grist-core/issues/1565
       const errorMessage = `findAttachmentReferences failed: unable to process attachment references` +
-      `for users with complicated access rules. Details: ${e.message}`;
+        `for users with complicated access rules. Details: ${e.message}`;
       log.error(errorMessage, e);
       throw new Error(errorMessage);
     }
@@ -1658,10 +1658,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       if (!pre.has(idx)) {
         const name = `auto_index_${uuidv4().replace(/-/g, '_')}`;
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} adding index ${name} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
         await this.exec(`CREATE INDEX ${name} ON ${quoteIdent(index.tableId)}(${quoteIdent(index.colId)})`);
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} added index ${name} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
       }
       post.add(idx);
     }
@@ -1669,10 +1669,10 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       const idx = `${index.tableId}.${index.colId}`;
       if (!post.has(idx) && index.indexId.startsWith('auto_index_')) {
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} dropping index ${index.indexId} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
         await this.exec(`DROP INDEX ${index.indexId}`);
         log.debug(`DocStorage.updateIndexes: doc ${this.docName} dropped index ${index.indexId} for ` +
-                  `table ${index.tableId}, column ${index.colId}`);
+          `table ${index.tableId}, column ${index.colId}`);
       }
     }
   }
@@ -1840,7 +1840,7 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
       // native type.
       if (result.newGristType !== result.oldGristType || result.newSqlType !== result.oldSqlType) {
         const cells = await this.all(`SELECT id, ${q(colId)} as value FROM ${q(tableId)} ` +
-                                     `WHERE typeof(${q(colId)}) = 'blob'`);
+          `WHERE typeof(${q(colId)}) = 'blob'`);
         const marshaller = new marshal.Marshaller({version: 2});
         const sqlParams: Array<[any, number]> = [];
         for (const cell of cells) {
@@ -1880,12 +1880,12 @@ export class DocStorage implements ISQLiteDB, OnDemandStorage {
   private async _getIndexes(): Promise<IndexInfo[]> {
     // Find all indexes on user tables.
     return await this.all("SELECT tbl_name as tableId, il.name as indexId, ii.name as colId " +
-                          "FROM sqlite_master AS m, " +
-                          "pragma_index_list(m.name) AS il, " +
-                          "pragma_index_info(il.name) AS ii " +
-                          "WHERE m.type='table' " +
-                          "AND tbl_name NOT LIKE '_grist%' " +
-                          "ORDER BY tableId, colId") as any;
+      "FROM sqlite_master AS m, " +
+      "pragma_index_list(m.name) AS il, " +
+      "pragma_index_info(il.name) AS ii " +
+      "WHERE m.type='table' " +
+      "AND tbl_name NOT LIKE '_grist%' " +
+      "ORDER BY tableId, colId") as any;
   }
 
   /**

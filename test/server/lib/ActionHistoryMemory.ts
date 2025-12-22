@@ -119,7 +119,7 @@ describe('ActionHistoryMemory', function() {
   it('should not run out of memory from loading many ActionHistory entries', async function() {
     const api = new UserAPIImpl(`${serverUrl}/o/docs`, {
       headers: {Authorization: 'Bearer api_key_for_chimpy'},
-      fetch : fetch as any,
+      fetch: fetch as any,
       newFormData: () => new FormData() as any,
     });
 

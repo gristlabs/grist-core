@@ -254,7 +254,7 @@ export class ActionHistoryImpl implements ActionHistory {
     await this._db.execTransaction(async () => {
       const branches = await this._getBranches();
       if (branches.shared.actionRef !== branches.local_sent.actionRef ||
-          branches.shared.actionRef !== branches.local_unsent.actionRef) {
+        branches.shared.actionRef !== branches.local_unsent.actionRef) {
         throw new Error("skipActionNum not defined when branches not in sync");
       }
       const actionRef = await this._addAction(action, branches.shared);
@@ -375,7 +375,7 @@ export class ActionHistoryImpl implements ActionHistory {
     await this._db.execTransaction(async () => {
       const branches = await this._getBranches();
       if (branches.shared.actionRef !== branches.local_sent.actionRef ||
-          branches.shared.actionRef !== branches.local_unsent.actionRef) {
+        branches.shared.actionRef !== branches.local_unsent.actionRef) {
         throw new Error("recordNextShared not defined when branches not in sync");
       }
       const actionRef = await this._addAction(action, branches.shared);
@@ -674,7 +674,7 @@ export class ActionHistoryImpl implements ActionHistory {
       undefined,
       true))[0];
     if (checks.count <= this._options.maxRows * this._options.graceFactor &&
-        checks.bytes <= this._options.maxBytes * this._options.graceFactor) {
+      checks.bytes <= this._options.maxBytes * this._options.graceFactor) {
       return; // Nothing to do, size is ok.
     }
     // Too big!  Check carefully what needs to be done.

@@ -44,7 +44,7 @@ half "quotes"\thalf "quotes"
 "\ttab first"\t"\ttab first"
 "tab last\t"\t"tab last\t"
  space first\t space first
-space last \tspace last ` /* the trailing space is intentional */ + `
+  space last \tspace last ` /* the trailing space is intentional */ + `
 "\nnewline first"\t"\nnewline first"
 "newline last\n"\t"newline last\n"
 "newline\ninside"\t"newline\ninside"

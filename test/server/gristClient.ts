@@ -40,8 +40,8 @@ export class GristClient {
       const msg = pick(JSON.parse(data),
         ['reqId', 'error', 'errorCode', 'data', 'type', 'docFD']);
       if (this._ignoreTrivialActions && msg.type === 'docUserAction' &&
-          msg.data?.actionGroup?.internal === true &&
-          msg.data?.docActions?.length === 0) {
+        msg.data?.actionGroup?.internal === true &&
+        msg.data?.docActions?.length === 0) {
         return;
       }
       this._pending.push(msg);

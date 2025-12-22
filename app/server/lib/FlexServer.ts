@@ -234,8 +234,8 @@ export class FlexServer implements GristServer {
     this.app.use(i18Middleware.handle(this.i18Instance));
     // This directory hold Grist documents.
     let docsRoot = path.resolve((this.options && this.options.dataDir) ||
-                                  process.env.GRIST_DATA_DIR ||
-                                  getAppPathTo(this.appRoot, 'samples'));
+      process.env.GRIST_DATA_DIR ||
+      getAppPathTo(this.appRoot, 'samples'));
     // In testing, it can be useful to separate out document roots used
     // by distinct FlexServers.
     if (process.env.GRIST_TEST_ADD_PORT_TO_DOCS_ROOT === 'true') {
@@ -1305,7 +1305,7 @@ export class FlexServer implements GristServer {
       docWorkerMap: isSingleUserMode() ? null : this._docWorkerMap,
       sendAppPage: this._sendAppPage,
       dbManager: this._dbManager,
-      plugins : (await this._addPluginManager()).getPlugins(),
+      plugins: (await this._addPluginManager()).getPlugins(),
       gristServer: this,
     });
   }
@@ -1554,7 +1554,7 @@ export class FlexServer implements GristServer {
         this._docWorkerLoadTracker.start();
       }
       this._comm.registerMethods({
-        openDoc:                  docManager.openDoc.bind(docManager),
+        openDoc: docManager.openDoc.bind(docManager),
       });
       this._serveDocPage();
     }
@@ -2517,8 +2517,8 @@ export class FlexServer implements GristServer {
   // types, not Express.
   private _shouldSkipRequestLogging(req: {url: string}, res: {statusCode: number}) {
     if (req.url === '/status' && [200, 304].includes(res.statusCode) &&
-        this._healthCheckCounter > HEALTH_CHECK_LOG_SHOW_FIRST_N &&
-        this._healthCheckCounter % HEALTH_CHECK_LOG_SHOW_EVERY_N !== 1) {
+      this._healthCheckCounter > HEALTH_CHECK_LOG_SHOW_FIRST_N &&
+      this._healthCheckCounter % HEALTH_CHECK_LOG_SHOW_EVERY_N !== 1) {
       return true;
     }
     return false;

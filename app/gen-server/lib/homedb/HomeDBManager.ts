@@ -666,7 +666,7 @@ export class HomeDBManager implements HomeDBAuth {
     // or specific just to the site, or specific just to the user.
     qb = qb.leftJoinAndMapMany('orgs.prefs', Pref, 'prefs',
       '(prefs.org_id = orgs.id or prefs.org_id IS NULL) AND ' +
-                               '(prefs.user_id = :userId or prefs.user_id IS NULL)',
+      '(prefs.user_id = :userId or prefs.user_id IS NULL)',
       {userId});
     // Apply a particular order (user+org first if present, then org, then user).
     // Slightly round-about syntax because Sqlite and Postgres disagree about NULL
@@ -1358,7 +1358,7 @@ export class HomeDBManager implements HomeDBAuth {
       }
       catch (e) {
         if (e.name === 'QueryFailedError' && e.message &&
-            e.message.match(/unique constraint/i)) {
+          e.message.match(/unique constraint/i)) {
           throw new ApiError('Domain already in use', 400);
         }
         throw e;
@@ -3771,9 +3771,9 @@ export class HomeDBManager implements HomeDBAuth {
 
         // We can only reset the limit if we know the billing period end date, and this is not a free plan.
         if (existing.billingAccount.status?.currentPeriodEnd
-            && existing.billingAccount.status?.currentPeriodStart
-            && existing.billingAccount.inGoodStanding
-            && !isFreePlan(existing.billingAccount.product.name)
+          && existing.billingAccount.status?.currentPeriodStart
+          && existing.billingAccount.inGoodStanding
+          && !isFreePlan(existing.billingAccount.product.name)
         ) {
           const startDate = new Date(existing.billingAccount.status.currentPeriodStart).getTime();
           const endDate = new Date(existing.billingAccount.status.currentPeriodEnd).getTime();
@@ -4065,7 +4065,7 @@ export class HomeDBManager implements HomeDBAuth {
     qb = qb.leftJoinAndSelect('billing_accounts.product', 'products');
     qb = qb.leftJoinAndSelect('billing_accounts.managers', 'managers',
       'managers.billing_account_id = billing_accounts.id and ' +
-                              'managers.user_id = :userId');
+      'managers.user_id = :userId');
     qb = qb.setParameter('userId', userId);
     qb = this._addBillingAccountCalculatedFields(qb);
     return qb;
@@ -4468,7 +4468,7 @@ export class HomeDBManager implements HomeDBAuth {
       let effectiveUserId = scope.userId;
       let threshold = options.markPermissions;
       if (options.allowSpecialPermit && scope.specialPermit &&
-          scope.specialPermit.workspaceId === wsId) {
+        scope.specialPermit.workspaceId === wsId) {
         effectiveUserId = this._usersManager.getPreviewerUserId();
         threshold = Permissions.VIEW;
       }
@@ -4712,7 +4712,7 @@ export class HomeDBManager implements HomeDBAuth {
       }
     }
     if (results.entities.length === 0 ||
-        (results.entities.length === 1 && results.entities[0].filteredOut)) {
+      (results.entities.length === 1 && results.entities[0].filteredOut)) {
       if (options.emptyAllowed) { return {status: 200, data: []}; }
       return {errMessage: `${getFrom(queryBuilder)} not found`, status: 404};
     }
@@ -4873,7 +4873,7 @@ export class HomeDBManager implements HomeDBAuth {
     // a trash doc in a workspace that the user does not have access to, and also a
     // doc that the user does have access to.
     if (entity.docs && scope?.showRemoved && entity.docs.length === 0 &&
-        !entity.removedAt)  { return true; }
+      !entity.removedAt)  { return true; }
     if (ignoreAccess) { return false; }
     if (entity.access === null) { return true; }
     if (!entity.accessOptions) { return false; }
@@ -5039,7 +5039,7 @@ export class HomeDBManager implements HomeDBAuth {
         // the 1 = 1 on clause seems the shortest portable way to do a cross join in postgres
         // and sqlite via typeorm.
         qb = qb.leftJoin('(select users.id, display_email, email, name from users inner join logins ' +
-                         'on users.id = logins.user_id where logins.email in (:...emails))',
+          'on users.id = logins.user_id where logins.email in (:...emails))',
         'profiles', '1 = 1');
         qb = qb.setParameter('emails', [...emails]);
       }
@@ -5048,7 +5048,7 @@ export class HomeDBManager implements HomeDBAuth {
         // not match any group.  The casts are needed for a postgres 9.5 issue
         // where type inference fails (we use 9.5 on jenkins).
         qb = qb.leftJoin(`(select 0 as id, cast('none' as text) as display_email, ` +
-                         `cast('none' as text) as email, cast('none' as text) as name)`,
+          `cast('none' as text) as email, cast('none' as text) as name)`,
         'profiles', '1 = 1');
       }
     }
@@ -5152,7 +5152,7 @@ export class HomeDBManager implements HomeDBAuth {
     const existingUserIds = new Set(before.map(user => user.id));
     // Do not emit error if users are not added, even if the number is past the limit.
     if (after.length > limit &&
-        (!checkChange || after.some(user => !existingUserIds.has(user.id)))) {
+      (!checkChange || after.some(user => !existingUserIds.has(user.id)))) {
       const more = limit > 0 ? ' more' : '';
       throw new ApiError(
         checkChange ? `No${more} external ${kind} ${role || 'shares'} permitted` :

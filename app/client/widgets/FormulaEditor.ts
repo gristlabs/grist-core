@@ -76,7 +76,7 @@ export class FormulaEditor extends NewBaseEditor {
       // and _editorPlacement created.
       calcSize: this._calcSize.bind(this),
       saveValueOnBlurEvent: !options.readonly,
-      editorState : this.editorState,
+      editorState: this.editorState,
       readonly: options.readonly,
       getSuggestions: this._getSuggestions.bind(this),
     });
@@ -187,7 +187,7 @@ export class FormulaEditor extends NewBaseEditor {
         // Allow clicking the error message.
         if (ev.target instanceof HTMLElement && (
           ev.target.classList.contains('error_msg') ||
-              ev.target.classList.contains('error_details_inner')
+          ev.target.classList.contains('error_details_inner')
         )) {
           return;
         }
@@ -579,7 +579,7 @@ export function openFormulaEditor(options: {
     cursorPos: Number.POSITIVE_INFINITY,    // Position of the caret within the editor.
     commands: editCommands,
     cssClass: 'formula_editor_sidepane',
-    readonly : false,
+    readonly: false,
     canDetach: options.canDetach,
   };
   const editor = FormulaEditor.create(null, editorOptions);

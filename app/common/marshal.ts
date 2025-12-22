@@ -55,14 +55,14 @@ function ord(str: string): number {
  * See pypy: rpython/translator/sandbox/_marshal.py.
  */
 const marshalCodes = {
-  NULL     : ord('0'),
-  NONE     : ord('N'),
-  FALSE    : ord('F'),
-  TRUE     : ord('T'),
-  STOPITER : ord('S'),
-  ELLIPSIS : ord('.'),
-  INT      : ord('i'),
-  INT64    : ord('I'),
+  NULL: ord('0'),
+  NONE: ord('N'),
+  FALSE: ord('F'),
+  TRUE: ord('T'),
+  STOPITER: ord('S'),
+  ELLIPSIS: ord('.'),
+  INT: ord('i'),
+  INT64: ord('I'),
   /*
     BFLOAT, for 'binary float', is an encoding of float that just encodes the bytes of the
     double in standard IEEE 754 float64 format. It is used by Version 2+ of Python's marshal
@@ -73,20 +73,20 @@ const marshalCodes = {
     is recommended for Grist's communication because it is more efficient and faster to
     encode/decode
    */
-  BFLOAT   : ord('g'),
-  FLOAT    : ord('f'),
-  COMPLEX  : ord('x'),
-  LONG     : ord('l'),
-  STRING   : ord('s'),
-  INTERNED : ord('t'),
+  BFLOAT: ord('g'),
+  FLOAT: ord('f'),
+  COMPLEX: ord('x'),
+  LONG: ord('l'),
+  STRING: ord('s'),
+  INTERNED: ord('t'),
   STRINGREF: ord('R'),
-  TUPLE    : ord('('),
-  LIST     : ord('['),
-  DICT     : ord('{'),
-  CODE     : ord('c'),
-  UNICODE  : ord('u'),
-  UNKNOWN  : ord('?'),
-  SET      : ord('<'),
+  TUPLE: ord('('),
+  LIST: ord('['),
+  DICT: ord('{'),
+  CODE: ord('c'),
+  UNICODE: ord('u'),
+  UNKNOWN: ord('?'),
+  SET: ord('<'),
   FROZENSET: ord('>'),
 };
 

@@ -205,7 +205,7 @@ function buildAllDocsBlock(
 
         (ws.removedAt ?
           [
-            css.docRowUpdatedAt(t("Deleted {{at}}", {at:getTimeFromNow(ws.removedAt)})),
+            css.docRowUpdatedAt(t("Deleted {{at}}", {at: getTimeFromNow(ws.removedAt)})),
             css.docMenuTrigger(icon('Dots')),
             menu(() => makeRemovedWsOptionsMenu(home, ws),
               {placement: 'bottom-end', parentSelectorToMark: '.' + css.docRowWrapper.className}),

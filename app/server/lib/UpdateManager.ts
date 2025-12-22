@@ -17,7 +17,7 @@ const DOCKER_IMAGE_SITE = "https://hub.docker.com/r/gristlabs/grist";
 
 // URL to show to the client where the new version for docker based deployments can be found.
 const DOCKER_ENDPOINT = process.env.GRIST_TEST_UPDATE_DOCKER_HUB_URL ||
-                          "https://hub.docker.com/v2/namespaces/gristlabs/repositories/grist/tags";
+  "https://hub.docker.com/v2/namespaces/gristlabs/repositories/grist/tags";
 // Timeout for the request to the external resource.
 const REQUEST_TIMEOUT = optIntegerParam(process.env.GRIST_TEST_UPDATE_REQUEST_TIMEOUT, '') ?? 10000; // 10s
 // Delay between retries in case of rate limiting.

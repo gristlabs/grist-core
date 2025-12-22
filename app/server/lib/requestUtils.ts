@@ -408,8 +408,8 @@ export function getOriginIpAddress(req: IncomingMessage) {
     (req.headers['x-forwarded-for'] as string | undefined)
       ?.split(',')
       .map(value => value.trim())[0] ||
-    req.socket?.remoteAddress ||
-    undefined
+      req.socket?.remoteAddress ||
+      undefined
   );
 }
 

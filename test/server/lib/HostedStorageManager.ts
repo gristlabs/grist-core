@@ -1106,7 +1106,7 @@ describe('HostedStorageManager', function() {
         await setTimeout(1000);
         assert.isTrue(promiseIsPending, 'prepareLocalDoc should still be retrying to join the MinIO server');
         assert.isTrue(stub.called, 'the stub should have been called preventing '
-          + ' the external storage to access MinIO');
+        + ' the external storage to access MinIO');
 
         // Now let's unblock the access to the MinIO server
         stub.restore();

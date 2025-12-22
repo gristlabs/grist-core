@@ -44,7 +44,7 @@ export const Base: BaseThemeTokens = {
   xsmallFontSize: '10px',
   smallFontSize: '11px',
   mediumFontSize: '13px',
-  introFontSize:  '14px',
+  introFontSize: '14px',
   largeFontSize: '16px',
   xlargeFontSize: '18px',
   xxlargeFontSize: '20px',

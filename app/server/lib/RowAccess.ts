@@ -46,7 +46,7 @@ export function getRelatedRows(docActions: DocAction[]): ReadonlyArray<readonly 
     const tracker = getSetMapValue(rowIds, tableId, () => new RowIdTracker());
 
     if (docAction[0] === 'RemoveRecord' || docAction[0] === 'BulkRemoveRecord' ||
-        docAction[0] === 'UpdateRecord' || docAction[0] === 'BulkUpdateRecord') {
+      docAction[0] === 'UpdateRecord' || docAction[0] === 'BulkUpdateRecord') {
       // All row ids mentioned are external, unless created within this set of DocActions.
       if (!tracker.blocked) {
         for (const id of getRowIdsFromDocAction(docAction)) {

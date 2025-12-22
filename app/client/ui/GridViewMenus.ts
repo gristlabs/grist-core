@@ -434,16 +434,16 @@ function buildLookupSection(gridView: GridView, index?: number){
       switch(fun) {
         case 'list': return `${referenceToSource}.${col.colId()}`;
         case 'average': return `ref = ${referenceToSource}\n` +
-                               `AVERAGE(ref.${col.colId()}) if ref else None`;
+          `AVERAGE(ref.${col.colId()}) if ref else None`;
         case 'min': return `ref = ${referenceToSource}\n` +
-                           `MIN(ref.${col.colId()}) if ref else None`;
+          `MIN(ref.${col.colId()}) if ref else None`;
         case 'max': return `ref = ${referenceToSource}\n` +
-                           `MAX(ref.${col.colId()}) if ref else None`;
+          `MAX(ref.${col.colId()}) if ref else None`;
         case 'count':
         case 'sum': return `SUM(${referenceToSource}.${col.colId()})`;
         case 'percent':
           return  `ref = ${referenceToSource}\n` +
-                  `AVERAGE(map(int, ref.${col.colId()})) if ref else None`;
+            `AVERAGE(map(int, ref.${col.colId()})) if ref else None`;
         default: return `${referenceToSource}`;
       }
     }
@@ -894,7 +894,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       }
       return {
         text,
-        numFrozen : firstColumnIndex + 1,
+        numFrozen: firstColumnIndex + 1,
       };
     }
     else if (isFrozenColumn) {
@@ -912,7 +912,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       }
       return {
         text,
-        numFrozen : indices[0],
+        numFrozen: indices[0],
       };
     }
     else {
@@ -924,14 +924,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       text = t('Unfreeze {{count}} columns', {count: length});
       return {
         text,
-        numFrozen : numFrozen - length,
+        numFrozen: numFrozen - length,
       };
     }
     else if (isFirstNormalSet) {
       text = t('Freeze {{count}} columns', {count: length});
       return {
         text,
-        numFrozen : numFrozen + length,
+        numFrozen: numFrozen + length,
       };
     }
     else if (isSpanSet) {
@@ -939,7 +939,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       text = t('Freeze {{count}} more columns', {count: toFreeze});
       return {
         text,
-        numFrozen : numFrozen + toFreeze,
+        numFrozen: numFrozen + toFreeze,
       };
     }
     else {

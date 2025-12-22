@@ -278,7 +278,7 @@ describe('OIDCConfig', () => {
       return assert.isRejected(
         promise,
         `OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: "${actualValue}". ` +
-          'Expected at least one of these values: "STATE,NONCE,PKCE"');
+        'Expected at least one of these values: "STATE,NONCE,PKCE"');
     }
     it('should reject when GRIST_OIDC_IDP_ENABLED_PROTECTIONS contains unsupported values', async () => {
       setEnvVars();

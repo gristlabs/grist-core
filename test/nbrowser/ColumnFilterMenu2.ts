@@ -27,7 +27,7 @@ describe('ColumnFilterMenu2', function() {
     await api.applyUserActions(docId, [
       ['AddTable', 'Test', []],
       ['AddVisibleColumn', 'Test', 'Bool', {
-        type: 'Bool', widgetOptions: JSON.stringify({widget:"TextBox"}),
+        type: 'Bool', widgetOptions: JSON.stringify({widget: "TextBox"}),
       }],
       ['AddVisibleColumn', 'Test', 'Choice', {
         type: 'Choice', widgetOptions: JSON.stringify({choices: ['foo', 'bar']}),

@@ -28,9 +28,9 @@ export function buildCurrencyPicker(
 
   // Add default currency label option to the very front.
   currencyItems.unshift({
-    label : defaultCurrencyLabel,
-    value : defaultCurrencyLabel,
-    cleanText : defaultCurrencyLabel.toLowerCase(),
+    label: defaultCurrencyLabel,
+    value: defaultCurrencyLabel,
+    cleanText: defaultCurrencyLabel.toLowerCase(),
   });
   // Create a computed that will display 'Local currency' as a value and label
   // when `currency` is undefined.

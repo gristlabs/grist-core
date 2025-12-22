@@ -637,13 +637,13 @@ ${properties.join('\n')}
 function getCssScrollbarProperties(appearance: 'light' | 'dark') {
   return [
     '--scroll-bar-fg: ' +
-      (appearance === 'dark' ? '#6B6B6B;' : '#A8A8A8;'),
+    (appearance === 'dark' ? '#6B6B6B;' : '#A8A8A8;'),
     '--scroll-bar-hover-fg: ' +
-      (appearance === 'dark' ? '#7B7B7B;' : '#8F8F8F;'),
+    (appearance === 'dark' ? '#7B7B7B;' : '#8F8F8F;'),
     '--scroll-bar-active-fg: ' +
-      (appearance === 'dark' ? '#8B8B8B;' : '#7C7C7C;'),
+    (appearance === 'dark' ? '#8B8B8B;' : '#7C7C7C;'),
     '--scroll-bar-bg: ' +
-      (appearance === 'dark' ? '#2B2B2B;' : '#F0F0F0;'),
+    (appearance === 'dark' ? '#2B2B2B;' : '#F0F0F0;'),
   ];
 }
 

@@ -50,8 +50,8 @@ export function shortDesc(topObj: any, optLimits?: DescLimits): string {
       return "{" + keys.slice(0, lim.maxObjectKeys).map(function(key) {
         return key + ": " + _shortDesc(obj[key]);
       }).join(", ") +
-        (keys.length > lim.maxObjectKeys ? ", ... (" + keys.length + " keys)" : "") +
-        "}";
+      (keys.length > lim.maxObjectKeys ? ", ... (" + keys.length + " keys)" : "") +
+      "}";
     }
     else if (typeof obj === 'string') {
       return inspect(truncateString(obj, lim.maxStringLength));

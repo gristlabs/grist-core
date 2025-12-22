@@ -85,8 +85,8 @@ export class ReferenceEditor extends NTextEditor {
   public async prepForSave() {
     const selectedItem = this._autocomplete && this._autocomplete.getSelectedItem();
     if (selectedItem &&
-        selectedItem.rowId === 'new' &&
-        selectedItem.text === this.textInput.value) {
+      selectedItem.rowId === 'new' &&
+      selectedItem.text === this.textInput.value) {
       const colInfo = {[this._utils.visibleColId]: this.textInput.value};
       selectedItem.rowId = await this._utils.tableData.sendTableAction(["AddRecord", null, colInfo]);
     }

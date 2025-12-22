@@ -347,7 +347,7 @@ export class ApiServer {
 
       if ('type' in req.body && ! validDocTypes.includes(req.body.type)){
         const errMsg = "Bad Request. 'type' key authorized values : "
-                        + `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
+          + `'${DOCTYPE_TEMPLATE}', '${DOCTYPE_TUTORIAL}' or ${DOCTYPE_NORMAL}`;
         return res.status(400).send({error: errMsg});
       }
 
@@ -798,8 +798,8 @@ export class ApiServer {
                                    { requirePermissions })
     );
     const okToDelete = ((org.domain && name === org.domain) ||
-        (org.name && name === org.name) ||
-        name === 'force-delete');
+      (org.name && name === org.name) ||
+      name === 'force-delete');
     if (!okToDelete) {
       throw new ApiError("Name does not match organization", 400);
     }
@@ -852,7 +852,7 @@ export class ApiServer {
     }
 
     if (userId === this._dbManager.getSupportUserId() ||
-        await this._gristServer.getInstallAdmin()?.isAdminReq(req)) {
+      await this._gristServer.getInstallAdmin()?.isAdminReq(req)) {
       const extendedScope: Scope = {...scope, specialPermit: {org}};
       return await op(extendedScope);
     }

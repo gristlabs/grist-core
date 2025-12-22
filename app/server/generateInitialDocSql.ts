@@ -50,8 +50,8 @@ export async function main(baseName: string) {
     // Remove all _gristsys_ tables, since creation of these tables is handled by DocStorage,
     // not data engine.
     const tables = await activeDoc.docStorage.all("SELECT name FROM sqlite_master WHERE" +
-                                                  " type = 'table' AND" +
-                                                  " name LIKE '_gristsys_%'");
+      " type = 'table' AND" +
+      " name LIKE '_gristsys_%'");
     for (const table of tables) {
       await activeDoc.docStorage.exec(`DROP TABLE ${table.name}`);
     }

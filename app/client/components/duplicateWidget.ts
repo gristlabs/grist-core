@@ -158,10 +158,10 @@ async function copyFilters(
   const table = gristDoc.docData.getMetaTable('_grist_Filters');
   for (const srcViewSection of srcViewSections) {
     const sectionFilters = table
-      .filterRecords({ viewSectionRef : srcViewSection.id.peek()})
+      .filterRecords({ viewSectionRef: srcViewSection.id.peek()})
       .map(filter => ({
         // Replace section ref with destination ref.
-        ...filter, viewSectionRef : viewSectionMap[srcViewSection.id.peek()],
+        ...filter, viewSectionRef: viewSectionMap[srcViewSection.id.peek()],
       }));
     filters.push(...sectionFilters);
   }

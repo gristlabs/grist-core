@@ -630,7 +630,7 @@ export class GranularAccess implements GranularAccessForBundle {
        * and will be important later.
        */
       if (shares.getRowIds().length > 0 &&
-          docActions.some(action => isMetadataTable(getTableId(action)))) {
+        docActions.some(action => isMetadataTable(getTableId(action)))) {
         // TODO: could actually compare new rules with old rules and
         // see if they've changed. Or could exclude some tables that
         // could easily change without an impact on share rules,
@@ -877,10 +877,10 @@ export class GranularAccess implements GranularAccessForBundle {
   ): Promise<UsageRecommendations> {
     const rec: UsageRecommendations = {};
     if (!this._docData.docSettings().attachmentStoreId &&
-        docUsage.attachmentsSizeBytes !== 'pending' &&
-        docUsage.attachmentsSizeBytes >= GRIST_ATTACHMENTS_THRESHOLD_MB * 1024 * 1024 &&
-        getConfiguredStandardAttachmentStore() &&
-        await this.isOwner(docSession)) {
+      docUsage.attachmentsSizeBytes !== 'pending' &&
+      docUsage.attachmentsSizeBytes >= GRIST_ATTACHMENTS_THRESHOLD_MB * 1024 * 1024 &&
+      getConfiguredStandardAttachmentStore() &&
+      await this.isOwner(docSession)) {
       rec.recommendExternal = true;
     }
     return rec;
@@ -1653,7 +1653,7 @@ export class GranularAccess implements GranularAccessForBundle {
     }
     const shares = this._docData.getMetaTable('_grist_Shares');
     if (shares.getRowIds().length > 0 &&
-        docActions.some(action => isMetadataTable(getTableId(action)))) {
+      docActions.some(action => isMetadataTable(getTableId(action)))) {
       await this.update();
       return;
     }
@@ -1677,14 +1677,14 @@ export class GranularAccess implements GranularAccessForBundle {
       return a;
     }
     else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
-               a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
+      a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
       const na = cloneDeep(a);
       this._filterColumns(na[3], colId => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
       if (Object.keys(na[3]).length === 0) { return null; }
       return na;
     }
     else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
-               a[0] === 'ModifyColumn') {
+      a[0] === 'ModifyColumn') {
       const colId: string = a[2];
       if (accessCheck.get(permInfo.getColumnAccess(tableId, colId)) === 'deny') { return null; }
     }
@@ -1744,7 +1744,7 @@ export class GranularAccess implements GranularAccessForBundle {
       if (forbiddenBefore) {
         // The row was forbidden and now is allowed.  That's trivial if the row was just added.
         if (action[0] === 'AddRecord' || action[0] === 'BulkAddRecord' ||
-            action[0] === 'ReplaceTableData' || action[0] === 'TableData') {
+          action[0] === 'ReplaceTableData' || action[0] === 'TableData') {
           continue;
         }
         // Otherwise, strip the row from the current action.
@@ -1810,7 +1810,7 @@ export class GranularAccess implements GranularAccessForBundle {
         // pull it into the doc actions.  We don't censor cells yet, that happens later
         // (if that's what needs doing).
         const changedIds = orderedIds.filter(id => !forceRemoves.has(id) && !removals.has(id) &&
-                                          (_forbiddenBefores.has(id) !== _forbiddenAfters.has(id)));
+          (_forbiddenBefores.has(id) !== _forbiddenAfters.has(id)));
         if (changedIds.length > 0) {
           revisedDocActions.push(this._makeColumnUpdate(rowsAfter, colIdsToCheck, new Set(changedIds)));
         }
@@ -3211,7 +3211,7 @@ export class CensorshipInfo {
       const tableId = tableRefToTableId.get(tableRef);
       if (!tableId) { throw new Error('table not found: ' + tableRef); }
       if (this.censoredTables.has(tableRef) ||
-          (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
+        (colId !== 'manualSort' && permInfo.getColumnAccess(tableId, colId).perms.read === 'deny')) {
         censoredColumnCodes.add(columnCode(tableRef, colId));
       }
       if (isTransformColumn(colId) && permInfo.getColumnAccess(tableId, colId).perms.schemaEdit === 'deny') {
@@ -3235,7 +3235,7 @@ export class CensorshipInfo {
       rec.index = idx;
       const parentId = rec.get('parentId') as number;
       if (this.censoredTables.has(parentId) ||
-          censoredColumnCodes.has(columnCode(parentId, rec.get('colId') as string))) {
+        censoredColumnCodes.has(columnCode(parentId, rec.get('colId') as string))) {
         this.censoredColumns.add(ids[idx]);
       }
     }
@@ -3245,7 +3245,7 @@ export class CensorshipInfo {
     for (let idx = 0; idx < ids.length; idx++) {
       rec.index = idx;
       if (!this.censoredSections.has(rec.get('parentId') as number) &&
-          !this.censoredColumns.has(rec.get('colRef') as number)) { continue; }
+        !this.censoredColumns.has(rec.get('colRef') as number)) { continue; }
       this.censoredFields.add(ids[idx]);
     }
 

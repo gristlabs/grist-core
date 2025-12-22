@@ -324,7 +324,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       this.singleWorkspace.set(
         // The anon personal site always has 0 non-support workspaces.
         nonSupportWss?.length === 0 ||
-          nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app),
+        nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app),
       );
     });
   }

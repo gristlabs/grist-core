@@ -2625,7 +2625,7 @@ describe('GranularAccess', function() {
       ['AddTable', 'Data1', [{id: 'Status', type: 'Choice'},
         {id: 'StatusIndex', isFormula: true,
           formula: 'try:\n\treturn ["PENDING", "STARTED", "FINISHED"]' +
-                              '.index($Status)\nexcept:\n\treturn -1'}]],
+            '.index($Status)\nexcept:\n\treturn -1'}]],
       ['AddRecord', 'Data1', null, {Status: 'PENDING'}],
       ['AddRecord', 'Data1', null, {Status: 'STARTED'}],
       ['AddRecord', 'Data1', null, {Status: 'FINISHED'}],
@@ -3222,7 +3222,7 @@ describe('GranularAccess', function() {
             D: [1],
           }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-        [['UpdateRecord', 'Data1', 4, { A:600 }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 600 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [3]});
@@ -4144,11 +4144,11 @@ describe('GranularAccess', function() {
       // Find "Favorite Film" field on single section of "Friends" view.
       const field = (await owner.getDocAPI(docId).sql(
         'select v.name, v.type, t.tableId, f.id, c.colId, s.title from _grist_Views_section_field as f' +
-            ' left join _grist_Views_section s on s.id = f.parentId' +
-            ' left join _grist_Tables_column c on c.id = f.colRef' +
-            ' left join _grist_Tables t on t.id = c.parentId' +
-            ' left join _grist_Views v on v.id = s.parentId' +
-            ' where v.name = ? and c.colId = ? and s.title = ?',
+        ' left join _grist_Views_section s on s.id = f.parentId' +
+        ' left join _grist_Tables_column c on c.id = f.colRef' +
+        ' left join _grist_Tables t on t.id = c.parentId' +
+        ' left join _grist_Views v on v.id = s.parentId' +
+        ' where v.name = ? and c.colId = ? and s.title = ?',
         ['Friends', 'Favorite_Film', ''],
       )).records[0].fields;
       assert.equal(field.colId, 'Favorite_Film');

@@ -205,8 +205,8 @@ function getAttr(value: any, attrName: string, valueNode: ParsedPredicateFormula
     return getStringMethod(value, attrName);
   }
   else if (value !== null && typeof value === 'object' &&
-      !Array.isArray(value) &&            // We don't support attribute lookups on arrays.
-      value.hasOwnProperty(attrName)) {
+    !Array.isArray(value) &&            // We don't support attribute lookups on arrays.
+    value.hasOwnProperty(attrName)) {
     // Check value and attrName more carefully to reduce the risk of shenanigans.
     return value[attrName];
   }

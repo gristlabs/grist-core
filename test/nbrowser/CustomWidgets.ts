@@ -213,7 +213,7 @@ describe('CustomWidgets', function () {
   // Gets or sets access level
   async function access(level?: AccessLevel) {
     const text = {
-      [AccessLevel.none] : "No document access",
+      [AccessLevel.none]: "No document access",
       [AccessLevel.read_table]: "Read selected table",
       [AccessLevel.full]: "Full document access",
     };

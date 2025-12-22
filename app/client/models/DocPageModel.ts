@@ -428,7 +428,7 @@ contact the document owners to attempt a document recovery. [{{error}}]", {error
     comparisonUrlId: string | undefined): Promise<void> {
     const {openMode: urlOpenMode, linkParameters} = options;
     console.log(`DocPageModel _openDoc starting for ${urlId} (mode ${urlOpenMode})` +
-                (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
+      (comparisonUrlId ? ` (compare ${comparisonUrlId})` : ''));
     const gristDocModulePromise = loadGristDoc();
 
     const docResponse = await retryOnNetworkError(flow, getDoc.bind(null, this._api, urlId));

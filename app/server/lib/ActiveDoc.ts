@@ -1479,7 +1479,7 @@ export class ActiveDoc extends EventEmitter {
     // Permit code view if user can read everything, or can download/copy (perhaps
     // via an exceptional permission for sample documents)
     if (!(await this._granularAccess.canReadEverything(docSession) ||
-          await this.canDownload(docSession))) {
+      await this.canDownload(docSession))) {
       throw new ApiError('Cannot view code, it may contain private material', 403);
     }
     await this.waitForInitialization();
@@ -1645,7 +1645,7 @@ export class ActiveDoc extends EventEmitter {
       }
       if (actionHash !== bundle.actionHash) {
         throw new Error(`Hash mismatch for actionNum ${actionNum}: ` +
-                        `expected ${actionHash} but got ${bundle.actionHash}`);
+          `expected ${actionHash} but got ${bundle.actionHash}`);
       }
     }
     let actions: UserAction[];
@@ -2463,7 +2463,7 @@ export class ActiveDoc extends EventEmitter {
       // nothing seems best, as long as we follow the recommendations in migrations.py (never
       // remove/modify/rename metadata tables or columns, or change their meaning).
       this._log.warn(docSession, "Doc is newer (v%s) than this version of Grist (v%s); " +
-        "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
+      "proceeding with fingers crossed", docSchemaVersion, schemaVersion);
     }
 
     if (!this._isSnapshot) {
@@ -3069,8 +3069,8 @@ export class ActiveDoc extends EventEmitter {
   private _logSnapshotProgress(docSession: OptDocSession) {
     const snapshotProgress = this._docManager.storageManager.getSnapshotProgress(this.docName);
     const lastWindowTime = (snapshotProgress.lastWindowStartedAt &&
-        snapshotProgress.lastWindowDoneAt &&
-        snapshotProgress.lastWindowDoneAt > snapshotProgress.lastWindowStartedAt) ?
+      snapshotProgress.lastWindowDoneAt &&
+      snapshotProgress.lastWindowDoneAt > snapshotProgress.lastWindowStartedAt) ?
       snapshotProgress.lastWindowDoneAt : Date.now();
     const delay = snapshotProgress.lastWindowStartedAt ?
       lastWindowTime - snapshotProgress.lastWindowStartedAt : null;
@@ -3449,8 +3449,8 @@ export class ActiveDoc extends EventEmitter {
     // work around this limit at the API level. That's fine, their
     // reward will be pain.
     if (options.checkInternal && Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
-        futureSize > Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
-        !this.docData?.docSettings().attachmentStoreId) {
+      futureSize > Deps.MAX_INTERNAL_ATTACHMENTS_BYTES &&
+      !this.docData?.docSettings().attachmentStoreId) {
       throw new LimitExceededError("Exceeded internal attachments limit for document");
     }
   }

@@ -26,13 +26,13 @@ import pickBy from 'lodash/pickBy';
 //          switch(linkType){} would make things cleaner.
 // TODO JV: also should add "Custom-widget-linked" to this, but holding off until Jarek's changes land
 type LinkType = "Filter:Summary-Group" |
-                "Filter:Col->Col"|
-                "Filter:Row->Col"|
-                "Summary"|
-                "Show-Referenced-Records"|
-                "Cursor:Same-Table"|
-                "Cursor:Reference"|
-                "Error:Invalid";
+  "Filter:Col->Col"|
+  "Filter:Row->Col"|
+  "Summary"|
+  "Show-Referenced-Records"|
+  "Cursor:Same-Table"|
+  "Cursor:Reference"|
+  "Error:Invalid";
 
 // If this LinkingState represents a filter link, it will set its filterState to this object
 // The filterColValues portion is just the data needed for filtering (same as manual filtering), and is passed
@@ -525,10 +525,10 @@ export class LinkingState extends Disposable {
       const filterLabelVals: string[] = displayValues.map(v => displayValFormatter.formatAny(v));
 
       return {
-        filters:      {[tgtColId || "id"]: filterValues},
+        filters: {[tgtColId || "id"]: filterValues},
         filterLabels: {[tgtColId || "id"]: filterLabelVals},
-        operations:   {[tgtColId || "id"]: operation},
-        colTypes:     {[tgtColId || "id"]: (tgtCol || srcCol)!.type()},
+        operations: {[tgtColId || "id"]: operation},
+        colTypes: {[tgtColId || "id"]: (tgtCol || srcCol)!.type()},
         //at least one of tgt/srcCol is guaranteed to be non-null, and they will have the same type
       } as FilterState;
     }));

@@ -13,7 +13,7 @@ import {dom, styled} from 'grainjs';
 function needsMobileButtons(): boolean {
   // Check for touch support
   const hasTouchSupport = Boolean('ontouchstart' in window ||
-                         (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
+    (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
 
   // Check if primary pointer is coarse (finger/stylus) vs fine (mouse)
   const primaryPointerIsCoarse = window.matchMedia('(pointer: coarse)').matches;

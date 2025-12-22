@@ -1058,9 +1058,9 @@ export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) =
  */
 export function notSet(value: any) {
   return value === undefined || value === null || value === ''
-         || (Array.isArray(value) && !value.length)
-         || (typeof value === 'object' && !Object.keys(value).length)
-         || (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
+    || (Array.isArray(value) && !value.length)
+    || (typeof value === 'object' && !Object.keys(value).length)
+    || (['[object Map]', '[object Set'].includes(value.toString()) && !value.size);
 }
 
 /**

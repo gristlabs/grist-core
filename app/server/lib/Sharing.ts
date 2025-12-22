@@ -252,7 +252,7 @@ export class Sharing {
       // of tests.
       await accessControl.canApplyBundle();
       insightLog?.mark("accessRulesCheck");
-      return { result : {bundle: applyResult, accessControl}};
+      return { result: {bundle: applyResult, accessControl}};
     }
     catch (applyExc) {
       insightLog?.mark("dataEngineReverting");

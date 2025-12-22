@@ -117,7 +117,7 @@ const EMERGENCY_RULE_SET: RuleSet = {
   colIds: '*',
   body: [{
     aclFormula: "user.Access in [OWNER]",
-    matchFunc:  input => ['owners'].includes(String(input.user!.Access)),
+    matchFunc: input => ['owners'].includes(String(input.user!.Access)),
     permissions: parsePermissions('all'),
     permissionsText: 'all',
   }, {

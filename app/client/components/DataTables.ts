@@ -72,7 +72,7 @@ export class DataTables extends Disposable {
                       testId('table-id'),
                       dom.text(tableRec.tableId),
                     ),
-                    { title : t("Click to copy") },
+                    { title: t("Click to copy") },
                     dom.on('click', async (e, d) => {
                       e.stopImmediatePropagation();
                       e.preventDefault();
@@ -233,7 +233,7 @@ export class DataTables extends Disposable {
     }
     confirmModal(t(
       "Delete {{formattedTableName}} data, and remove it from all pages?",
-      {formattedTableName : r.formattedTableName()},
+      {formattedTableName: r.formattedTableName()},
     ), 'Delete', doRemove);
   }
 

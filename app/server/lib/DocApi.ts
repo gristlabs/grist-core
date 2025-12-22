@@ -1066,7 +1066,7 @@ export class DocWorkerApi {
           const registeredWebhook = await registerWebhook(activeDoc, req, webhook.fields);
           registeredWebhooks.push(registeredWebhook);
         }
-        res.json({webhooks:  registeredWebhooks.map((rw) => {
+        res.json({webhooks: registeredWebhooks.map((rw) => {
           return {id: rw.webhookId};
         })});
       }),
@@ -1850,7 +1850,7 @@ export class DocWorkerApi {
     // Start a timing for the document.
     this._app.post('/api/docs/:docId/timing/start', isOwner, withDoc(async (activeDoc, req, res) => {
       if (activeDoc.isTimingOn) {
-        res.status(400).json({error:`Timing already started for ${activeDoc.docName}`});
+        res.status(400).json({error: `Timing already started for ${activeDoc.docName}`});
         return;
       }
       // isTimingOn flag is switched synchronously.
@@ -1862,7 +1862,7 @@ export class DocWorkerApi {
     // Stop a timing for the document.
     this._app.post('/api/docs/:docId/timing/stop', isOwner, withDoc(async (activeDoc, req, res) => {
       if (!activeDoc.isTimingOn) {
-        res.status(400).json({error:`Timing not started for ${activeDoc.docName}`});
+        res.status(400).json({error: `Timing not started for ${activeDoc.docName}`});
         return;
       }
       res.json(await activeDoc.stopTiming());
@@ -2410,7 +2410,7 @@ export class DocWorkerApi {
       context: {
         site: _.pick(document.workspace.org, "id", "name", "domain"),
       },
-      details:  {
+      details: {
         document: {
           ..._.pick(document, "id", "name"),
           workspace: _.pick(document.workspace, "id", "name"),
@@ -2772,14 +2772,14 @@ function applySort(
   // make sure the column is there.
   else {
     // This is enough information for ServerGetters
-    _columns = [..._columns, { id : 'id', fields: {colRef: 0 }}];
+    _columns = [..._columns, { id: 'id', fields: {colRef: 0 }}];
   }
 
   // Once we have proper columns, we can convert them to format that ServerColumnGetters
   // understand.
   properColumns = _columns.map(c => ({
     ...c.fields,
-    id : c.fields.colRef,
+    id: c.fields.colRef,
     colId: c.id,
   }));
 

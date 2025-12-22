@@ -76,7 +76,7 @@ export class ActionCounter extends dispose.Disposable {
     for (let i = 0; i < log.length; i++) {
       const action = log[log.length - i - 1];
       if (action.actionNum === state.n &&
-          action.actionHash === state.h) {
+        action.actionHash === state.h) {
         base = log.length - i;
         break;
       }

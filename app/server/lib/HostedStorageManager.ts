@@ -846,8 +846,8 @@ export class HostedStorageManager implements IDocStorageManager {
     const db = await SQLiteDB.openDBRaw(fname, OpenMode.OPEN_READONLY);
     try {
       const actionQuery = await db.get('select actionHash, actionNum from _gristsys_ActionHistoryBranch as b ' +
-                                       'left join _gristsys_ActionHistory as h on h.id = b.actionRef ' +
-                                       'where b.name = ?', 'shared');
+        'left join _gristsys_ActionHistory as h on h.id = b.actionRef ' +
+        'where b.name = ?', 'shared');
       const h = actionQuery?.actionHash;
       if (h) { result.h = h; }
       const n = actionQuery?.actionNum;

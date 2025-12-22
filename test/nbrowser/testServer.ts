@@ -143,7 +143,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
         DOC_PORT: '8100',
         DOC_WORKER_COUNT: '5',
         PORT: '0',
-        APP_UNTRUSTED_URL : "http://localhost:18096",
+        APP_UNTRUSTED_URL: "http://localhost:18096",
       })),
       // This skips type-checking when running server, but reduces startup time a lot.
       TS_NODE_TRANSPILE_ONLY: 'true',

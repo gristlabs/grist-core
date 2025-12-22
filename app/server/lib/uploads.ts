@@ -93,7 +93,7 @@ export function addUploadRoute(
     }
     catch(err) {
       if ((err as ApiError).status === 403) {
-        res.status(403).json({error:'Insufficient access to document to copy it entirely'});
+        res.status(403).json({error: 'Insufficient access to document to copy it entirely'});
         return;
       }
       throw err;
@@ -489,8 +489,8 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
   }
   catch(err) {
     if (err?.code === "EPROTO" || // https vs http error
-        err?.code === "ECONNREFUSED" || // server does not listen
-        err?.code === "ENOTFOUND") { // could not resolve domain
+      err?.code === "ECONNREFUSED" || // server does not listen
+      err?.code === "ENOTFOUND") { // could not resolve domain
       throw new ApiError(`Can't connect to the server. The URL seems to be invalid. Error code ${err.code}`, 400);
     }
     throw err;
@@ -536,7 +536,7 @@ async function _checkForError(response: FetchResponse) {
       // Probably we hit some login page
       if (response.url.startsWith("https://accounts.google.com")) {
         throw new ApiError("Importing directly from a Google Drive URL is not supported yet. " +
-        'Use the "Import from Google Drive" menu option instead.', 403);
+          'Use the "Import from Google Drive" menu option instead.', 403);
       }
       else {
         throw new ApiError("Could not import the requested file, check if you have all required permissions.", 403);

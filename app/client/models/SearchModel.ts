@@ -359,7 +359,7 @@ class FinderImpl implements IFinder {
 
   private _matches(): boolean {
     if (this._pageStepper.index < 0 || this._sectionStepper.index < 0 ||
-        this._rowStepper.index < 0 || this._fieldStepper.index < 0) {
+      this._rowStepper.index < 0 || this._fieldStepper.index < 0) {
       console.warn("match outside");
       return false;
     }
@@ -447,9 +447,9 @@ class FinderImpl implements IFinder {
   private _isCurrentPosition(pos: SearchPosition): boolean {
     return (
       this._pageStepper.index === pos.pageIndex &&
-        this._sectionStepper.index === pos.sectionIndex &&
-        this._rowStepper.index === pos.rowIndex &&
-        this._fieldStepper.index === pos.fieldIndex
+      this._sectionStepper.index === pos.sectionIndex &&
+      this._rowStepper.index === pos.rowIndex &&
+      this._fieldStepper.index === pos.fieldIndex
     );
   }
 }

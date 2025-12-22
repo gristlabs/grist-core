@@ -97,7 +97,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
 
   const hasChange = Computed.create(ctrl, (use) => {
     return use(editedLabel)?.trim() !== field.displayLabel.peek()
-        || use(editedDesc)?.trim() !== field.description.peek();
+      || use(editedDesc)?.trim() !== field.description.peek();
   });
 
   const cantSave = Computed.create(ctrl, (use) => {

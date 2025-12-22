@@ -142,7 +142,7 @@ export class ACLUsersPopup extends Disposable {
     const extraState: IGristUrlState = {};
     if (resetDocPage) { extraState.docPage = undefined; }
     if (this.pageModel?.isPrefork.get() &&
-        this.pageModel?.currentDoc.get()?.access !== 'owners') {
+      this.pageModel?.currentDoc.get()?.access !== 'owners') {
       // "View As" is restricted to document owners on the back-end. Non-owners can be
       // permitted to pretend to be owners of a pre-forked document, but if they want
       // to do "View As", that would be layering pretence over pretense. Better to just

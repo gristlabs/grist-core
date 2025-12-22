@@ -420,7 +420,7 @@ export async function addRequestUser(
     // which can be more confusing than necessary.
     const isSessionGetRequest = (
       ['/session/access/active', '/session/access/all'].includes(mreq.url)
-        && mreq.method === 'GET'
+      && mreq.method === 'GET'
     );
 
     if (!isSessionGetRequest) {
@@ -574,7 +574,7 @@ export async function getOrSetDocAuth(
     // A permit with a user set to the anonymous user and linked to this document
     // gets updated to full access.
     if (mreq.specialPermit && mreq.userId === dbManager.getAnonymousUserId() &&
-        mreq.specialPermit.docId === mreq.docAuth.docId) {
+      mreq.specialPermit.docId === mreq.docAuth.docId) {
       mreq.docAuth = {...mreq.docAuth, access: 'owners'};
     }
   }

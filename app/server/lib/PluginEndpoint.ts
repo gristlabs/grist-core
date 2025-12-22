@@ -43,8 +43,8 @@ function servePluginContent(req: express.Request, res: express.Response,
   //   WebWorker main script, since that's hard to distinguish in electron case, and should not
   //   enable XSS.
   if (matchHost(req.get('host'), untrustedContentHost) ||
-      req.get('X-From-Plugin-WebView') === "true" ||
-      mimeTypes.lookup(path.extname(pluginPath)) === "application/javascript") {
+    req.get('X-From-Plugin-WebView') === "true" ||
+    mimeTypes.lookup(path.extname(pluginPath)) === "application/javascript") {
     const dirs = pluginManager.dirs();
     const contentRoot = pluginKind === "installed" ? dirs.installed :
       (pluginKind === "builtIn" ? dirs.builtIn : dirs.bundled);

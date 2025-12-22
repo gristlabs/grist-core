@@ -99,7 +99,7 @@ export class ReferenceListEditor extends NewBaseEditor {
       createToken: text => new ReferenceItem(text, 'invalid'),
       acOptions,
       openAutocompleteOnFocus: true,
-      readonly : options.readonly,
+      readonly: options.readonly,
       trimLabels: true,
       styles: {cssTokenField, cssToken, cssDeleteButton, cssDeleteIcon},
     });

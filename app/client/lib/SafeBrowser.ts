@@ -203,7 +203,7 @@ export class SafeBrowser extends BaseComponent {
   private _createViewProcess(path: string): [ViewProcess, number] {
     const rpc = this._createRpc(path);
     const url = `${this._untrustedContentOrigin}/plugins/${this._plugin.definition.id}/${path}`
-    + `?host=${G.window.location.origin}`;
+      + `?host=${G.window.location.origin}`;
     const viewId = this._viewCount++;
     const process = SafeBrowser.createView(this, rpc, url);
     this._viewProcesses.set(viewId, process);
@@ -254,10 +254,10 @@ export class ClientProcess extends Disposable {
     this._src = src;
     this._actionRouter = new ActionRouter(this.rpc);
     const gristAPI: GristAPI = {
-      subscribe:    tbind(this._actionRouter.subscribeTable, this._actionRouter),
-      unsubscribe:  tbind(this._actionRouter.unsubscribeTable, this._actionRouter),
-      render:       tbind(this._safeBrowser.renderImpl, this._safeBrowser),
-      dispose:      tbind(this._safeBrowser.disposeImpl, this._safeBrowser),
+      subscribe: tbind(this._actionRouter.subscribeTable, this._actionRouter),
+      unsubscribe: tbind(this._actionRouter.unsubscribeTable, this._actionRouter),
+      render: tbind(this._safeBrowser.renderImpl, this._safeBrowser),
+      dispose: tbind(this._safeBrowser.disposeImpl, this._safeBrowser),
     };
     rpc.registerImpl<GristAPI>(RPC_GRISTAPI_INTERFACE, gristAPI, checkers.GristAPI);
     this.autoDisposeCallback(() => {

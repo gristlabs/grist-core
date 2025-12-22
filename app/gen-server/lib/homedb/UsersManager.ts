@@ -368,7 +368,7 @@ export class UsersManager {
     }
     catch (e) {
       if (e.name === 'QueryFailedError' && e.detail &&
-          e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
+        e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
         // because we have to serialize sqlite transactions in any case to get around a typeorm
         // limitation.

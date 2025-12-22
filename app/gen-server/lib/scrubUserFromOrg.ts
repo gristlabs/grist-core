@@ -184,7 +184,7 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
     .leftJoin('workspace_acl_rules.group', 'workspace_groups')
     .leftJoin('group_users', 'workspace_group_users',
       'workspace_group_users.group_id = workspace_groups.id and ' +
-              'workspace_group_users.user_id = :userId')
+      'workspace_group_users.user_id = :userId')
     .andWhere('workspace_groups.name = :guestName', {guestName: roles.GUEST})
     .groupBy('workspaces.id, workspace_groups.id, workspace_group_users.user_id')
     .having('workspace_group_users.user_id is null')
@@ -213,7 +213,7 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
     .leftJoin('org_acl_rules.group', 'org_groups')
     .leftJoin('group_users', 'org_group_users',
       'org_group_users.group_id = org_groups.id and ' +
-              'org_group_users.user_id = :userId')
+      'org_group_users.user_id = :userId')
     .andWhere('org_groups.name = :guestName', {guestName: roles.GUEST})
     .groupBy('org_groups.id, org_group_users.user_id')
     .having('org_group_users.user_id is null')
