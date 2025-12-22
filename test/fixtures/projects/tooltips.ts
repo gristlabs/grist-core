@@ -49,8 +49,8 @@ function setupTest() {
     cssTrigger('Info tooltip',
       (el) => {
         return descriptionInfoTooltip(
-          'Multi line text\nAnd a https://link.to/page.html?with=filter in it'
-        , 'prefix');
+          'Multi line text\nAnd a https://link.to/page.html?with=filter in it',
+         'prefix');
       },
       testId('visible'),
     ),
