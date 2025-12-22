@@ -251,7 +251,8 @@ export function buildFormulaConfig(
       if (commonType === 'data') { return t('Data columns', {count: 2}); }
       if (commonType === 'mixed') { return t('Mixed Behavior'); }
       return t('Empty columns', {count: 2});
-    } else {
+    }
+ else {
       if (type === 'formula') { return t('Formula columns', {count: 1}); }
       if (type === 'data') { return t('Data columns', {count: 1}); }
       return t('Empty columns', {count: 1});
@@ -332,7 +333,8 @@ export function buildFormulaConfig(
     if (formula && !column.hasTriggerFormula.peek()) {
       // then convert column to a trigger formula column
       await gristDoc.docModel.convertToTrigger(column.id.peek(), formula);
-    } else if (column.hasTriggerFormula.peek()) {
+    }
+ else if (column.hasTriggerFormula.peek()) {
       // else, if it was already a trigger formula column, just update formula.
       await gristDoc.docModel.updateFormula(column.id.peek(), formula);
     }

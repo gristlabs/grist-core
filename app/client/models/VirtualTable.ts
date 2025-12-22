@@ -139,7 +139,8 @@ export class VirtualTableData extends TableData {
           ...this._editor(actions),
           getRecordNew: rowId => newTable.getRecord(rowId),
         });
-      } catch (e) {
+      }
+ catch (e) {
         actions.reverse();
         for (const action of actions) {
           await this.cache.sendTableActions(action.undo);

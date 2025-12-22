@@ -73,7 +73,8 @@ export function getProviderFromHostname(url: string): AssistantProvider {
   let hostname: string;
   try {
     hostname = new URL(url).hostname;
-  } catch {
+  }
+ catch {
     return null;
   }
 

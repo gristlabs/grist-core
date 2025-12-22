@@ -37,7 +37,8 @@ export class CellDiffTool {
       return this._prepareTextDiff(
         formatter.formatAny(versions.parent),
         formatter.formatAny(versions.remote));
-    } else if (!('remote' in versions)) {
+    }
+ else if (!('remote' in versions)) {
       // Change was made locally only.
       return this._prepareTextDiff(
         formatter.formatAny(versions.parent),

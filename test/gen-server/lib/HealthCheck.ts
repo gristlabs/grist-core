@@ -87,7 +87,8 @@ describe('HealthCheck', function() {
 
           // Plain /status endpoint should be unaffected.
           assert.isTrue((await fetch(server.server.getOwnUrl() + '/status')).ok);
-        } finally {
+        }
+ finally {
           resolve();
           await blockerPromise;
         }
@@ -105,7 +106,8 @@ describe('HealthCheck', function() {
 
           // Plain /status endpoint should be unaffected.
           assert.isTrue((await fetch(server.server.getOwnUrl() + '/status')).ok);
-        } finally {
+        }
+ finally {
           await redisForwarder.connect();
           // Wait a little for various redis-using code to reconnect, to avoid test hangs,
           // presumably caused by some race conditions when going into cleanup immediately.

@@ -354,7 +354,8 @@ for (const version of versions) {
       }
       if (doc) {
         await doc.execTransaction(addRecords);
-      } else {
+      }
+ else {
         await addRecords();
       }
       assert(history.haveLocalActions());

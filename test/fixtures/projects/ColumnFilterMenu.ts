@@ -117,11 +117,13 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
     testWrapper(
       testControls(
         dom('button', 'Open menu', testId('filter-menu-btn'),
-          (elem) => { setPopupToCreateDom(elem, openFilterMenu, {
+          (elem) => {
+ setPopupToCreateDom(elem, openFilterMenu, {
             attach: 'body',
             placement: 'bottom-start',
             trigger: ['click']
-          }); })
+          }); 
+})
       ),
       testContent(
         dom(

@@ -170,7 +170,8 @@ export function getAnonymousFeatures(): Features {
     // If GRIST_DEFAULT_PRODUCT is not set, we assume that anonymous users
     // should have access to the free personal product.
     return personalFreeFeatures;
-  } else {
+  }
+ else {
     // If GRIST_DEFAULT_PRODUCT is set, we assume that anonymous users
     // should have access to the product specified by it.
     const product = PRODUCTS.find(p => p.name === process.env.GRIST_DEFAULT_PRODUCT);
@@ -212,7 +213,8 @@ export async function synchronizeProducts(
 ): Promise<string[]> {
   try {
     await connection.query('select name, features, stripe_product_id from products limit 1');
-  } catch (e) {
+  }
+ catch (e) {
     // No usable products table, do not try to synchronize.
     return [];
   }
@@ -232,14 +234,16 @@ export async function synchronizeProducts(
         const p = existingProducts.get(product.name)!;
         try {
           assert.deepStrictEqual(p.features, product.features);
-        } catch (e) {
+        }
+ catch (e) {
           if (apply) {
             p.features = product.features;
             await transaction.save(p);
           }
           changingProducts.push(p.name);
         }
-      } else {
+      }
+ else {
         if (apply) {
           const p = new Product();
           p.name = product.name;

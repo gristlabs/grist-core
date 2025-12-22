@@ -1831,7 +1831,8 @@ async function panelOptions(options: {
   async function sync(state: boolean, el: WebElement) {
     if (state && !await el.getAttribute('checked')) {
       await el.click();
-    } else if (!state && await el.getAttribute('checked')) {
+    }
+ else if (!state && await el.getAttribute('checked')) {
       await el.click();
     }
   }
@@ -2005,9 +2006,11 @@ async function isCommentResolved(index: number, where: Place = 'popup') {
 function waitForPopup(state: 'empty' | 'filled' | 'any' = 'any') {
   if (state === 'empty') {
     return driver.findWait(".test-discussion-popup .test-discussion-topic-empty", 100);
-  } else if (state === 'filled') {
+  }
+ else if (state === 'filled') {
     return driver.findWait(".test-discussion-popup .test-discussion-topic-filled", 100);
-  } else {
+  }
+ else {
     return driver.findWait(".test-discussion-popup .test-discussion-topic", 100);
   }
 }
@@ -2141,7 +2144,8 @@ async function addRow() {
 async function assertThrows(test: () => Promise<any>) {
   try {
     await test();
-  } catch (err) {
+  }
+ catch (err) {
     assert.match(err.message, /Cannot access cell/);
     return;
   }

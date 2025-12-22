@@ -62,11 +62,13 @@ export function addUploadRoute(
     try {
       const uploadResult: UploadResult = await handleUpload(req, res);
       res.status(200).send(JSON.stringify(uploadResult));
-    } catch (err) {
+    }
+ catch (err) {
       req.resume();
       if (err.message && /Request aborted/.test(err.message)) {
         log.warn("File upload request aborted", err);
-      } else {
+      }
+ else {
         log.error("Error uploading file", err);
       }
       // Respond with a JSON error like jsonErrorHandler does for API calls,
@@ -88,7 +90,8 @@ export function addUploadRoute(
         globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
       }
       res.status(200).send(JSON.stringify(uploadResult));
-    } catch(err) {
+    }
+ catch(err) {
       if ((err as ApiError).status === 403) {
         res.status(403).json({error:'Insufficient access to document to copy it entirely'});
         return;
@@ -186,7 +189,8 @@ export async function parseMultipartFormRequest(
   form.parse(req);
   try {
     await finished;
-  } finally {
+  }
+ finally {
     // Waiting for all part handlers to settle makes using this function more intuitive.
     // Need to wait for the parsing to be finished first, to ensure all part exist.
     await Promise.allSettled(partPromises);
@@ -323,7 +327,8 @@ export class UploadSet {
       try {
         info.cleanupTimer.disable();
         await info.cleanupCallback();
-      } catch (err) {
+      }
+ catch (err) {
         log.warn(`Error cleaning upload ${info.uploadId}: ${err}`);
       }
     }
@@ -385,7 +390,8 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
   }
   try {
     await uploadInfo.cleanupCallback();
-  } catch (err) {
+  }
+ catch (err) {
     // This is unexpected, but if the move succeeded, let's warn but not fail on cleanup error.
     log.warn(`Error cleaning upload ${uploadInfo.uploadId} after move: ${err}`);
   }
@@ -419,7 +425,8 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
       // Still call the original callback, so that `tmp` module doesn't keep remembering about
       // this directory and doesn't try to delete it again on exit.
       await tmpCleanup();
-    } catch (err) {
+    }
+ catch (err) {
       // OK if it fails because the dir is already removed.
     }
   }
@@ -446,7 +453,8 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     if (isDriveUrl(url)) {
       response = await downloadFromGDrive(url, code);
       fileName = ''; // Read the file name from headers.
-    } else {
+    }
+ else {
       response = await Deps.fetch(url, {
         redirect: 'follow',
         follow: 10,
@@ -478,7 +486,8 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     log.debug(`done fetching url: ${url} to ${destPath}`);
     const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
     return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
-  } catch(err) {
+  }
+ catch(err) {
     if (err?.code === "EPROTO" || // https vs http error
         err?.code === "ECONNREFUSED" || // server does not listen
         err?.code === "ENOTFOUND") { // could not resolve domain
@@ -528,7 +537,8 @@ async function _checkForError(response: FetchResponse) {
       if (response.url.startsWith("https://accounts.google.com")) {
         throw new ApiError("Importing directly from a Google Drive URL is not supported yet. " +
         'Use the "Import from Google Drive" menu option instead.', 403);
-      } else {
+      }
+ else {
         throw new ApiError("Could not import the requested file, check if you have all required permissions.", 403);
       }
     }
@@ -537,10 +547,12 @@ async function _checkForError(response: FetchResponse) {
   const body = await response.json().catch(() => ({}));
   if (response.status === 404) {
     throw new ApiError("File can't be found at the requested URL.", 404);
-  } else if (response.status >= 500 && response.status < 600) {
+  }
+ else if (response.status >= 500 && response.status < 600) {
     throw new ApiError(`Remote server returned an error (${body.error || response.statusText})`,
       response.status, body.details);
-  } else {
+  }
+ else {
     throw new ApiError(body.error || response.statusText, response.status, body.details);
   }
 }
@@ -557,9 +569,11 @@ export function makeAccessId(worker: string|Request|GristServer, userId: number|
   let host: string;
   if (typeof worker === 'string') {
     host = worker;
-  } else if ('getHost' in worker) {
+  }
+ else if ('getHost' in worker) {
     host = worker.getHost();
-  } else {
+  }
+ else {
     const gristServer = (worker as RequestWithGrist).gristServer;
     if (!gristServer) { throw new Error('Problem accessing server with upload'); }
     host = gristServer.getHost();

@@ -154,10 +154,12 @@ export function buildEditor(props: Props, ...args: IDomArgs<HTMLElement>) {
       if (percentHeight < 40) {
         dragAbove.set(true);
         dragBelow.set(false);
-      } else if (percentHeight > 60) {
+      }
+ else if (percentHeight > 60) {
         dragAbove.set(false);
         dragBelow.set(true);
-      } else {
+      }
+ else {
         dragAbove.set(false);
         dragBelow.set(false);
       }

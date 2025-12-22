@@ -53,7 +53,8 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
             ? new Date().setDate(new Date().getDate() + 7)
             : null,
         });
-      } else {
+      }
+ else {
         Object.assign(coachingPopup, {
           lastDismissedAt: Date.now(),
           timesDismissed: coachingPopup.timesDismissed + 1,

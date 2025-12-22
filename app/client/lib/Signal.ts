@@ -179,7 +179,8 @@ export class Signal<T = any> implements IDisposable, IDisposableOwner {
         this.state.set(emitted);
         this._emitter.trigger('signal', emitted);
       });
-    } else {
+    }
+ else {
       this.state.set(value);
       this._emitter.trigger('signal', value);
     }

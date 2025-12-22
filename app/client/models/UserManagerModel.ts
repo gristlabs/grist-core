@@ -214,9 +214,11 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
   public async save(userApi: UserAPI, resourceId: number|string): Promise<void> {
     if (this.resourceType === 'organization') {
       await userApi.updateOrgPermissions(resourceId as number, this.getDelta());
-    } else if (this.resourceType === 'workspace') {
+    }
+ else if (this.resourceType === 'workspace') {
       await userApi.updateWorkspacePermissions(resourceId as number, this.getDelta());
-    } else if (this.resourceType === 'document') {
+    }
+ else if (this.resourceType === 'document') {
       await userApi.updateDocPermissions(resourceId as string, this.getDelta());
     }
   }
@@ -230,7 +232,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // The member is replaced with the isRemoved set to false to trigger an
       // update to the membersEdited observable array.
       this.membersEdited.splice(index, 1, {...existing, isRemoved: false});
-    } else if (existing) {
+    }
+ else if (existing) {
       const effective = existing.effectiveAccess.get();
       if (effective && effective !== roles.GUEST) {
         // If the member is visible, throw to inform the user.
@@ -240,7 +243,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // They should be treated as a new user - removing them should make them invisible again.
       existing.access.set(role);
       existing.isNew = true;
-    } else {
+    }
+ else {
       const newMember = this._buildEditableMember({
         id: -1, // Use a placeholder for the unknown userId
         email,
@@ -258,7 +262,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     const index = this.membersEdited.get().indexOf(member);
     if (member.isNew) {
       this.membersEdited.splice(index, 1);
-    } else {
+    }
+ else {
       // Keep it in the array with a flag, to simplify comparing "before" and "after" arrays.
       this.membersEdited.splice(index, 1, {...member, isRemoved: true});
     }
@@ -361,7 +366,8 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       const initialAccessBasicRole = roles.getEffectiveRole(getRealAccess(member, this.initData));
       // This pretends to be a computed to match the other case, but is really a constant.
       inheritedAccess = Computed.create(this, use => initialAccessBasicRole);
-    } else {
+    }
+ else {
       // Gives the role inherited from parent taking the maxInheritedRole into account.
       inheritedAccess = Computed.create(this, this.maxInheritedRole, (use, maxInherited) =>
         roles.getWeakestRole(member.parentAccess, maxInherited));
@@ -398,9 +404,11 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
 export function getResourceParent(resource: ResourceType): ResourceType|null {
   if (resource === 'workspace') {
     return 'organization';
-  } else if (resource === 'document') {
+  }
+ else if (resource === 'document') {
     return 'workspace';
-  } else {
+  }
+ else {
     return null;
   }
 }

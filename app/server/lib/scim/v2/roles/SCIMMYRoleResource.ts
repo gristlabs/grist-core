@@ -23,7 +23,8 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
   public static basepath(path?: string) {
     if (path === undefined) {
       return SCIMMYRoleResource._basepath;
-    } else {
+    }
+ else {
       SCIMMYRoleResource._basepath = (path.endsWith(SCIMMYRoleResource.endpoint) ?
         path :
         `${path}${SCIMMYRoleResource.endpoint}`);
@@ -106,7 +107,8 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
           500, null!, `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by egress handler`
         );
       }
-    } catch (ex) {
+    }
+ catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
       }
@@ -154,7 +156,8 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
           `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`
         );
       }
-    } catch (ex) {
+    }
+ catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
       }
@@ -206,7 +209,8 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     }
     try {
       await SCIMMYRoleResource._degress(this, ctx);
-    } catch (ex) {
+    }
+ catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
       }

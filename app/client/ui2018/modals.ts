@@ -90,16 +90,20 @@ export class ModalControl extends Disposable implements IModalControl {
       const closePromise = options.close ? this.closeAndWait() : null;
       try {
         await func(...args);
-      } catch (err) {
+      }
+ catch (err) {
         if (err instanceof StayOpen) {
           this.preventClose();
-        } else if (options.catchErrors) {
+        }
+ else if (options.catchErrors) {
           reportError(err);
           this.preventClose();
-        } else {
+        }
+ else {
           throw err;
         }
-      } finally {
+      }
+ finally {
         this._inProgress.set(this._inProgress.get() - 1);
         if (closePromise) {
           await closePromise;
@@ -117,7 +121,8 @@ export class ModalControl extends Disposable implements IModalControl {
       }
       if (this._shouldClose) { this._doClose(); }
       return this._shouldClose;
-    } finally {
+    }
+ finally {
       this._closePromise = undefined;
     }
   }
@@ -196,7 +201,8 @@ export function modal(
 
     if (variant === 'collapsing') {
       collapseAndCloseModal();
-    } else {
+    }
+ else {
       closeModal();
     }
   }

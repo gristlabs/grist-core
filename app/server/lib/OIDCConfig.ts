@@ -241,7 +241,8 @@ function buildEnabledProtections(section: AppSettings): Set<EnabledProtectionStr
   }
   try {
     return new Set(EnabledProtection.checkAll(enabledProtections));
-  } catch (e) {
+  }
+ catch (e) {
     if (e instanceof StringUnionError) {
       throw new TypeError(`OIDC: Invalid protection in GRIST_OIDC_IDP_ENABLED_PROTECTIONS: ${e.actual}.`+
         ` Expected at least one of these values: "${e.values.join(",")}"`
@@ -309,7 +310,8 @@ export class OIDCBuilder {
     let mreq;
     try {
       mreq = this._getRequestWithSession(req);
-    } catch(err) {
+    }
+ catch(err) {
       log.warn("OIDCConfig callback:", err.message);
       return this._sendErrorPage(req, res);
     }
@@ -356,7 +358,8 @@ export class OIDCBuilder {
         idToken: tokenSet.id_token,
       };
       res.redirect(targetUrl ?? '/');
-    } catch (err) {
+    }
+ catch (err) {
       log.error(`OIDC callback failed: ${err.stack}`);
       const maybeResponse = this._maybeExtractDetailsFromError(err);
       if (maybeResponse) {

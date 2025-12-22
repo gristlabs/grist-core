@@ -150,7 +150,8 @@ export function docBreadcrumbs(
         if (use(options.isFork) && !use(options.isTutorialFork)) {
           if (options.isProposable && use(options.isProposable)) {
             return cssTag(t("suggesting"), testId('proposing-changes-tag'));
-          } else {
+          }
+ else {
             return cssTag(t("unsaved"), testId('unsaved-tag'));
           }
         }
@@ -165,7 +166,8 @@ export function docBreadcrumbs(
             return cssTag(t("suggesting"), tooltip({title: t(`You may make edits,
 but they will not affect the original document.
 You can propose them as suggestions.`)}), testId('fiddle-tag'));
-          } else {
+          }
+ else {
             return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
 not affect the original document.`)}), testId('fiddle-tag'));
           }
@@ -176,7 +178,8 @@ not affect the original document.`)}), testId('fiddle-tag'));
                                dom('a', dom.on('click', () => options.proposeChanges?.()),
                                    'suggesting ', icon('Pencil')),
                                testId('propose-changes-tag'));
-          } else {
+          }
+ else {
             return cssTag(t("editing"), tooltip({
               title: 'Editing directly. Work on a copy if you want to propose changes.'
             }), testId('direct-tag'));

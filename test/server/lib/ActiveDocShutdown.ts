@@ -136,7 +136,8 @@ describe('ActiveDocShutdown', function() {
       // Check that doc eventually closes.
       await waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0), 10 * timeout);
 
-    } finally {
+    }
+ finally {
       // Restore the stubbed method.
       _sandbox.restore();
     }

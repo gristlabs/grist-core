@@ -59,13 +59,15 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuOriginal(doc, pageModel, {isSnapshot: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: backToCurrent});
-    } else if (doc.isTutorialFork) {
+    }
+ else if (doc.isTutorialFork) {
       return shareButton(t("Save copy"), () => [
         menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
         menuOriginal(doc, pageModel, {isTutorialFork: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
-    } else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
+    }
+ else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
       // A new unsaved document, or a fiddle, or a public example.
       const saveActionTitle =
           doc.isBareFork ? t("Save Document") :
@@ -75,7 +77,8 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuSaveCopy({pageModel, doc, saveActionTitle}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
-    } else if (doc.isFork) {
+    }
+ else if (doc.isFork) {
       if (isProposable) {
         return shareButton([
           t("Suggest Changes"),
@@ -103,7 +106,8 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
           menuOriginal(doc, pageModel),
           menuExports(doc, pageModel),
         ], {buttonAction: saveCopy});
-      } else {
+      }
+ else {
         return shareButton(t("Unsaved"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
@@ -111,7 +115,8 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
           menuExports(doc, pageModel),
         ]);
       }
-    } else {
+    }
+ else {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate document")}),
@@ -138,7 +143,8 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
       hoverTooltip(t('Share'), {key: 'topBarBtnTooltip'}),
       testId('tb-share'),
     );
-  } else if (options.buttonAction) {
+  }
+ else if (options.buttonAction) {
     // Split button: the left text part calls `buttonAction`, and the circular icon opens menu.
     return cssShareButton(
       cssShareAction(buttonText,
@@ -152,7 +158,8 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
         testId('tb-share'),
       ),
     );
-  } else {
+  }
+ else {
     // Combined button: the left text part and circular icon open the menu as a single button.
     return cssShareButton(
       cssShareButton.cls('-combined'),

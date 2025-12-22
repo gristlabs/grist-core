@@ -170,7 +170,8 @@ export function parseDateStrict(
       const value = m.valueOf() / 1000;
       if (results) {
         results.add(value);
-      } else {
+      }
+ else {
         return value;
       }
     }
@@ -296,12 +297,14 @@ function parseTimeZone(str: string, timezone: string): { remaining: string, tzOf
   if (tzMatch) {
     tzOffset = '+00:00';
     matchStart = tzMatch.index + 1;  // skip [^a-zA-Z] at regex start
-  } else {
+  }
+ else {
     tzMatch = NUMERIC_TZ_REGEX.exec(str);
     if (tzMatch) {
       tzOffset = calculateOffset(tzMatch);
       matchStart = tzMatch.index;
-    } else if (timezone) {
+    }
+ else if (timezone) {
       // Abbreviations are simply stripped and ignored, so tzOffset is not set in this case
       tzMatch = tzAbbreviations(timezone).exec(str);
       if (tzMatch) {
@@ -331,7 +334,8 @@ function standardizeTime(timeString: string): { remaining: string, time: string 
   const ampm = (match[6] || '').toLowerCase();
   if (hours < 12 && hours > 0 && ampm.startsWith('p')) {
     hours += 12;
-  } else if (hours === 12 && ampm.startsWith('a')) {
+  }
+ else if (hours === 12 && ampm.startsWith('a')) {
     hours = 0;
   }
   const hh = String(hours).padStart(2, '0');
@@ -365,7 +369,8 @@ export function guessDateFormats(values: Array<string | null>, timezone: string 
     let guessed: string | string[];
     try {
       guessed = guessFormat(dateString);
-    } catch {
+    }
+ catch {
       continue;
     }
     if (typeof guessed === "string") {

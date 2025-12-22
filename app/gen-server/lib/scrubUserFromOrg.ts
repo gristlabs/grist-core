@@ -81,7 +81,8 @@ export async function scrubUserFromOrg(
       // further inspection.
       if (isGuest) { toDelete.push(mention); continue; }
       removeUserMentions.set(getMentionKey(mention), mention);
-    } else {
+    }
+ else {
       if (isGuest) { continue; }
       callerUserMentions.set(getMentionKey(mention), mention);
     }

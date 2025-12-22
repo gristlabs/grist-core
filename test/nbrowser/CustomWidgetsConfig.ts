@@ -94,7 +94,8 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
   // for modified and emptyNotSaved menu should be greyed and buttons should be hidden
   if (state === 'modified' || state === 'emptyNotSaved') {
     assert.isTrue(await driver.find('.active_section .test-section-menu-wrapper').matches('[class*=-unsaved]'));
-  } else {
+  }
+ else {
     assert.isFalse(await driver.find('.active_section .test-section-menu-wrapper').matches('[class*=-unsaved]'));
   }
   // open menu
@@ -102,21 +103,25 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
   // for modified state, there should be buttons save and revert
   if (state === 'modified' || state === 'emptyNotSaved') {
     assert.isTrue(await driver.find('.test-section-menu-btn-save').isPresent());
-  } else {
+  }
+ else {
     assert.isFalse(await driver.find('.test-section-menu-btn-save').isPresent());
   }
   const text = await driver.find('.test-section-menu-custom-options').getText();
   if (state === 'empty' || state === 'emptyNotSaved') {
     assert.equal(text, '(empty)');
-  } else if (state === 'modified') {
+  }
+ else if (state === 'modified') {
     assert.equal(text, '(modified)');
-  } else if (state === 'customized') {
+  }
+ else if (state === 'customized') {
     assert.equal(text, '(customized)');
   }
   // there should be option to delete custom options
   if (state === 'empty' || state === 'emptyNotSaved') {
     assert.isFalse(await driver.find('.test-section-menu-btn-remove-options').isPresent());
-  } else {
+  }
+ else {
     assert.isTrue(await driver.find('.test-section-menu-btn-remove-options').isPresent());
   }
   await driver.sendKeys(Key.ESCAPE);
@@ -1272,7 +1277,8 @@ const widget = {
     if (parsed?.error) {
       // Rethrow the error.
       throw new Error(parsed.error);
-    } else {
+    }
+ else {
       // Or return result.
       return parsed;
     }

@@ -23,7 +23,8 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
       const emoji = useBindable(use, icon?.emoji);
       if (isEmoji(emoji)) {
         return cssEmoji(emoji);
-      } else {
+      }
+ else {
         return cssInitials(getIconFromName(useBindable(use, docName)));
       }
     }),

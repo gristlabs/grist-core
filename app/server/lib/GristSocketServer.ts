@@ -154,7 +154,8 @@ export class GristSocketServer {
         }
 
         this._eioServer.handleRequest(req as EngineRequest, res);
-      } else {
+      }
+ else {
         // Otherwise fallback to the pre-existing listener(s)
         for (const listener of this._originalHttpServerListeners) {
           listener.call(this._httpServer, req, res);

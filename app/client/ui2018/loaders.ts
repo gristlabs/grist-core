@@ -57,7 +57,8 @@ export function watchPromise<T extends (...args: any[]) => any>(fun: T): T & {bu
     loading.set(true);
     try {
       return await fun(...args);
-    } finally {
+    }
+ finally {
       if (!loading.isDisposed()) {
         loading.set(false);
       }

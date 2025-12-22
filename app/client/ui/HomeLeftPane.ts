@@ -238,7 +238,8 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
         if (!all.length) {
           // There was only one workspace, navigate to all docs.
           await urlState().pushUrl({homePage: 'all'});
-        } else {
+        }
+ else {
           // Maintain the index.
           const newIndex = Math.max(0, Math.min(index, all.length - 1));
           await urlState().pushUrl({ws: all[newIndex].id});

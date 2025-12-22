@@ -572,7 +572,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           const result = await this._installAPI.checkUpdates();
           if (controller.signal.aborted) { return; }
           actions.gotLatestVersion(result);
-        } catch(err) {
+        }
+ catch(err) {
           if (controller.signal.aborted) { return; }
           state.set(State.ERROR);
           reportError(err);
@@ -595,7 +596,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         latestVersionAvailable.set(data);
         if (data.isNewer) {
           state.set(State.AVAILABLE);
-        } else {
+        }
+ else {
           state.set(State.CURRENT);
         }
       }
@@ -623,9 +625,11 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       if (Date.now() - lastCheck > STALE_VERSION_CHECK_TIME_IN_MS) {
         // It's been too long since we last checked
         state.set(State.STALE);
-      } else if (latestVersionAvailable.get()?.isNewer === true) {
+      }
+ else if (latestVersionAvailable.get()?.isNewer === true) {
         state.set(State.AVAILABLE);
-      } else if (latestVersionAvailable.get()?.isNewer === false) {
+      }
+ else if (latestVersionAvailable.get()?.isNewer === false) {
         state.set(State.CURRENT);
       }
     }
@@ -639,7 +643,8 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
     enabledController.onWrite((val) => {
       if (val) {
         actions.enableAutoCheck();
-      } else {
+      }
+ else {
         actions.disableAutoCheck();
       }
     });
@@ -858,7 +863,8 @@ learn more.",
           }
         ),
       });
-    } else {
+    }
+ else {
       const model = new AuditLogsModelImpl({
         configsAPI: new InstallConfigsAPI(),
       });
@@ -878,9 +884,11 @@ learn more.",
       const destinations = use(model.streamingDestinations);
       if (!destinations) {
         return null;
-      } else if (destinations.length === 0) {
+      }
+ else if (destinations.length === 0) {
         return cssValueLabel(cssDangerText(t("Off")));
-      } else {
+      }
+ else {
         const [first, ...rest] = destinations;
         let status: string;
         if (rest.length > 0) {
@@ -891,7 +899,8 @@ learn more.",
               remainingDestinationsCount: rest.length,
             }
           );
-        } else {
+        }
+ else {
           status = getDestinationDisplayName(first.name);
         }
         return cssValueLabel(cssHappyText(status));

@@ -89,7 +89,8 @@ export class ActiveDocImport {
                                                    importOptions, false);
       await globalUploadSet.cleanup(dataSource.uploadId);
       return importResult;
-    } finally {
+    }
+ finally {
       this._activeDoc.stopBundleUserActions(docSession);
     }
   }
@@ -167,7 +168,8 @@ export class ActiveDocImport {
         for (const srcColId of srcColIds) {
           updatedRecords[srcColId][srcRowId] = [[''], [(comparisonResult[`${hiddenTableId}.${srcColId}`][i])]];
         }
-      } else {
+      }
+ else {
         // Otherwise, a match was found between source and destination tables.
         for (const srcColId of srcColIds) {
           const matchingDestColId = srcToDestColIds.get(srcColId)![0];
@@ -220,7 +222,8 @@ export class ActiveDocImport {
     this._activeDoc.startBundleUserActions(docSession);
     try {
       return this._importFiles(docSession, uploadInfo, [], {}, false);
-    } finally {
+    }
+ finally {
       this._activeDoc.stopBundleUserActions(docSession);
     }
   }
@@ -287,7 +290,8 @@ export class ActiveDocImport {
         transformSectionRef = results.retValues[0].viewSectionRef;
         createdTableId = hiddenTableId;
 
-      } else {
+      }
+ else {
         if (destTableId === SKIP_TABLE) {
           await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
           continue;
@@ -498,7 +502,8 @@ export class ActiveDocImport {
     srcAndDestColIds.forEach(([srcColId, destColId]) => {
       if (!srcToDestColIds.has(srcColId)) {
         srcToDestColIds.set(srcColId, [destColId]);
-      } else {
+      }
+ else {
         srcToDestColIds.get(srcColId)!.push(destColId);
       }
     });
@@ -541,7 +546,8 @@ export class ActiveDocImport {
           });
         }
         numNewRecords++;
-      } else {
+      }
+ else {
         // Otherwise, a match was found between source and destination tables, so we merge their columns.
         for (const srcColId of srcColIds) {
           const matchingDestColIds = srcToDestColIds.get(srcColId);

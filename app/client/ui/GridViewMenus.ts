@@ -169,7 +169,8 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
         )
       ),
     ];
-  } else {
+  }
+ else {
     return [
       menuDivider(),
       menuSubHeaderMenu(
@@ -300,7 +301,8 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
           if (isListType(col.type())) {
             return `any([len(${col.table().tableId()}.lookupRecords(${col.colId()}` +
               `=CONTAINS(x))) > 1 for x in $${col.colId()}])`;
-          } else {
+          }
+ else {
             return `$${col.colId()} != "" and $${col.colId()} is not None and ` +
               `len(${col.table().tableId()}.lookupRecords(` +
               `${col.colId()}=$${col.colId()})) > 1`;
@@ -406,15 +408,18 @@ function buildLookupSection(gridView: GridView, index?: number){
       return [
         'sum', 'average', 'min', 'max',
       ];
-    } else if (col.pureType() === 'Bool') {
+    }
+ else if (col.pureType() === 'Bool') {
       return [
         'count', 'percent'
       ];
-    } else if (col.pureType() === 'Date' || col.pureType() === 'DateTime') {
+    }
+ else if (col.pureType() === 'Date' || col.pureType() === 'DateTime') {
       return [
         'list', 'min', 'max',
       ];
-    } else {
+    }
+ else {
       return [
         'list'
       ];
@@ -484,7 +489,8 @@ function buildLookupSection(gridView: GridView, index?: number){
       // For Ref column we will just show the column name.
       if (ref.pureType() === 'Ref') {
         label = col.label();
-      } else {
+      }
+ else {
         // For RefList column we will show the column name and the aggregation function which is the first
         // on of suggested action (and a default action).
         label = menuLabelWithBadge(col.label(), suggestAggregation(col)[0]);
@@ -503,7 +509,8 @@ function buildLookupSection(gridView: GridView, index?: number){
             testId(`new-columns-menu-lookup-column`),
             testId(`new-columns-menu-lookup-column-${col.colId()}`),
           );
-        } else {
+        }
+ else {
           // Depending on the number of aggregation functions we will either create a plain menu item
           // or submenu with all the functions.
           const functions = suggestAggregation(col);
@@ -513,7 +520,8 @@ function buildLookupSection(gridView: GridView, index?: number){
               testId(`new-columns-menu-lookup-column`),
               testId(`new-columns-menu-lookup-column-${col.colId()}`)
             );
-          } else {
+          }
+ else {
             return menuItemSubmenu(
               () => functions.map(fun => menuItem(
                 () => insertAggLookup(fun), fun,
@@ -640,7 +648,8 @@ function buildLookupSection(gridView: GridView, index?: number){
             if (aggregationList.length === 1) {
               const action = () => insertColumn(tab, col, refCol, firstAggregation);
               return menuItem(action, content, testId('new-columns-menu-revlookup-column'));
-            } else {
+            }
+ else {
               // We have some other suggested columns, we will build submenu for them.
               const submenu = () => {
                 const items = aggregationList.map((fun) => {
@@ -874,7 +883,8 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       // if user clicked the first column or a column just after frozen set
       if (firstColumnIndex === 0 || firstColumnIndex === numFrozen) {
         text = t('Freeze {{count}} columns', {count: 1});
-      } else {
+      }
+ else {
         // else user clicked any other column that is farther, offer to freeze
         // proper number of column
         const properNumber = firstColumnIndex - numFrozen + 1;
@@ -886,11 +896,13 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         text,
         numFrozen : firstColumnIndex + 1
       };
-    } else if (isFrozenColumn) {
+    }
+ else if (isFrozenColumn) {
       // when user clicked last column in frozen set - offer to unfreeze this column
       if (firstColumnIndex + 1 === numFrozen) {
         text = t('Unfreeze {{count}} columns', {count: 1});
-      } else {
+      }
+ else {
         // else user clicked column that is not the last in a frozen set
         // offer to unfreeze proper number of columns
         const properNumber = numFrozen - firstColumnIndex;
@@ -902,30 +914,35 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         text,
         numFrozen : indices[0]
       };
-    } else {
+    }
+ else {
       return null;
     }
-  } else {
+  }
+ else {
     if (isLastFrozenSet) {
       text = t('Unfreeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen - length
       };
-    } else if (isFirstNormalSet) {
+    }
+ else if (isFirstNormalSet) {
       text = t('Freeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen + length
       };
-    } else if (isSpanSet) {
+    }
+ else if (isSpanSet) {
       const toFreeze = lastColumnIndex + 1 - numFrozen;
       text = t('Freeze {{count}} more columns', {count: toFreeze});
       return {
         text,
         numFrozen : numFrozen + toFreeze
       };
-    }  else {
+    }
+  else {
       return null;
     }
   }
@@ -950,7 +967,8 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
     const index = columnsInSpec.indexOf(colId);
     if (index > -1) {
       return t("Sorted (#{{count}})", {count: index + 1});
-    } else {
+    }
+ else {
       return t("Add to sort");
     }
   }

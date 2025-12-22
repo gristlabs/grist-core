@@ -129,7 +129,8 @@ describe('HomeDBManager', function() {
       org = await home.getOrg({userId: user.id}, orgId);
       assert.equal(org.data!.billingAccount.product.name, STUB_PLAN);
       await home.deleteOrg({userId: user.id}, orgId);
-    } finally {
+    }
+ finally {
       oldEnv.restore();
     }
   });

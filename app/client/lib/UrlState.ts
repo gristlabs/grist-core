@@ -80,12 +80,14 @@ export class UrlState<IUrlState extends object> extends Disposable {
       try {
         if (options.replace) {
           this._window.history.replaceState(null, '', newUrl);
-        } else {
+        }
+ else {
           this._window.history.pushState(null, '', newUrl);
         }
         // pushState/replaceState above do not trigger 'popstate' event, so we call loadState() manually.
         this.loadState();
-      } catch (e) {
+      }
+ catch (e) {
         // If we fail, we may be in a context where Grist doesn't have
         // control over history, e.g. an iframe with srcdoc. Go ahead
         // and apply the application state change (e.g. switching to a
@@ -94,7 +96,8 @@ export class UrlState<IUrlState extends object> extends Disposable {
         log.debug(`pushUrl failure: ${e}`);
         this.state.set(this._stateImpl.decodeUrl(new URL(newUrl)));
       }
-    } else {
+    }
+ else {
       this._window._urlStateLoadPage!(newUrl);
     }
   }

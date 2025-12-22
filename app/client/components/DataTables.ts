@@ -143,7 +143,8 @@ export class DataTables extends Disposable {
           use(table.tableNameDef), isSummaryTable ? use(table.groupDesc) : ''
         ].filter(p => Boolean(p?.trim())).join(' ');
         return cssTableName(tableName);
-      } else {
+      }
+ else {
         return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
             buildTableName(vs, {isEditing}, cssRenamableTableName.cls(''), testId('widget-title'))
@@ -203,7 +204,8 @@ export class DataTables extends Disposable {
             async () => {
               if (isDisabled) {
                 await this._enableRecordCard(table);
-              } else {
+              }
+ else {
                 await this._disableRecordCard(table);
               }
             },

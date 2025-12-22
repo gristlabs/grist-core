@@ -42,7 +42,8 @@ export class DocRequests {
         const action = ["RespondToRequests", zipObject(keys, responses), cachedRequestKeys];
         await this._activeDoc.applyUserActions(makeExceptionalDocSession("system"), [action]);
       }
-    } finally {
+    }
+ finally {
       this._numPending -= numRequests;
       if (this._numPending === 0) {
         log.debug(`Removing DocRequests._cacheDir: ${this._cacheDir!.name}`);
@@ -66,7 +67,8 @@ export class DocRequests {
       const result = await fse.readJSON(cachePath);
       result.content = Buffer.from(result.content, "base64");
       return result;
-    } catch {
+    }
+ catch {
       const result = await this._handleSingleRequestRaw(request);
       const resultForJson = {...result} as any;
       if ('content' in result) {
@@ -100,7 +102,8 @@ export class DocRequests {
         content, status, statusText, encoding,
         headers: fromPairs([...response.headers]),
       };
-    } catch (e) {
+    }
+ catch (e) {
       return {error: String(e)};
     }
   }

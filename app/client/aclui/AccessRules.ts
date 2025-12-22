@@ -368,7 +368,8 @@ export class AccessRules extends Disposable {
         // Assign the rules for the fake "*SPECIAL:SchemaEdit" resource to the default resource where they belong.
         if (isSchemaEditResource(rule.resourceRec!)) {
           resourceRowId = defaultResourceRowId;
-        } else {
+        }
+ else {
           const resourceKey = serializeResource(rule.resourceRec as RowRecord);
           resourceRowId = resourceSync.rowIdMap.get(resourceKey);
           if (!resourceRowId) {
@@ -431,7 +432,8 @@ export class AccessRules extends Disposable {
           ...resourceSync.userActions,
           ...rulesSync.userActions
         ]);
-      } catch (e) {
+      }
+ catch (e) {
         // Report the error, but go on to update the rules. The user may lose their entries, but
         // will see what's in the document. To preserve entries and show what's wrong, we try to
         // catch errors earlier.
@@ -764,7 +766,8 @@ as well as copy or download it.`
     if (this._ruleStatus.get() === RuleStatus.Unchanged) {
       // If no changes, it's safe to just reload the rules from docData.
       this.update().catch(e => this._errorMessage.set(e.message));
-    } else {
+    }
+ else {
       this._errorMessage.set(
         t('Access rules have changed. Click Reset to revert your changes and refresh the rules.')
       );
@@ -798,7 +801,8 @@ as well as copy or download it.`
         if (!ruleColIds.has(colId)) { continue; }
         if (ruleColIds.size === 1) {
           rule.remove();
-        } else {
+        }
+ else {
           rule.removeColId(colId);
         }
       }
@@ -857,7 +861,8 @@ class TableRules extends Disposable {
     if (!this._colRuleSets) {
       // Must be a newly-created TableRules object. Just create a default RuleSet (for tableId:*)
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
-    } else if (this._defRuleSet) {
+    }
+ else if (this._defRuleSet) {
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules,
         this._defRuleSet);
    }
@@ -989,7 +994,8 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
           seen.allow.add(colId);
           seen.deny.add(colId);
           seen.mixed.add(colId);
-        } else {
+        }
+ else {
           seen[sign].add(colId);
           seen.mixed.add(colId);
         }
@@ -1015,7 +1021,8 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
   public removeRuleSet(ruleSet: ObsRuleSet) {
     if (ruleSet === this._defaultRuleSet.get()) {
       this._defaultRuleSet.set(null);
-    } else {
+    }
+ else {
       removeItem(this._columnRuleSets, ruleSet);
     }
     if (!this._defaultRuleSet.get() && this._columnRuleSets.get().length === 0) {
@@ -1041,7 +1048,8 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
     if (!ruleSet) {
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
       this.addDefaultRules(this._accessRules.getSeedRules());
-    } else {
+    }
+ else {
       const part = ruleSet.addRulePart(ruleSet.getDefaultCondition());
       setTimeout(() => part.focusEditor?.(), 0);
     }
@@ -1642,7 +1650,8 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
     if (value) {
       const rulePart = makeRulePart(this.props);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
-    } else {
+    }
+ else {
       this._body.set(builtInRules);
       if (builtInRules.length === 0) {
         this._body.push(ObsRulePart.create(this._body, this, undefined));
@@ -1739,10 +1748,12 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
     if (value === 'confirm') {
       const rulePart = makeRulePart(schemaEditRules.allowEditors);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
-    } else if (!value) {
+    }
+ else if (!value) {
       const rulePart = makeRulePart(schemaEditRules.denyEditors);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
-    } else {
+    }
+ else {
       this._body.set(builtInRules);
     }
   }
@@ -2169,9 +2180,11 @@ class ObsRulePart extends Disposable {
     try {
       this._formulaProperties.set(await this._ruleSet.accessRules.checkAclFormula(text));
       this.sanityCheck();
-    } catch (e) {
+    }
+ catch (e) {
       this._formulaError.set(e.message);
-    } finally {
+    }
+ finally {
       this._checkPending.set(false);
     }
   }
@@ -2327,11 +2340,14 @@ function makeSuggestionExample(value: unknown): string|undefined {
   // Produce a representation of the value similar to Python's repr(), at least in the common case.
   if (typeof value === "string") {
     return JSON.stringify(value);     // Make clear that this is a string value
-  } else if (typeof value === "boolean") {
+  }
+ else if (typeof value === "boolean") {
     return value ? "True" : "False";
-  } else if (value === null) {
+  }
+ else if (value === null) {
     return "None";
-  } else if (value !== undefined) {
+  }
+ else if (value !== undefined) {
     return String(value);
   }
 }

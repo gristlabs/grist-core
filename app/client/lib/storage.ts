@@ -45,7 +45,8 @@ function testStorage(storageName: 'localStorage'|'sessionStorage'): Storage|null
     if (ok) {
       return storage;
     }
-  } catch (e) {
+  }
+ catch (e) {
     // Fall through
   }
   console.warn(`${storageName} is not available; will use fallback`);

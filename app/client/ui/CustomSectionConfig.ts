@@ -276,7 +276,8 @@ class ColumnListPicker extends Disposable {
   private _list(value?: number[]) {
     if (value) {
       this._value.set(value);
-    } else {
+    }
+ else {
       let current = (this._value.get() || []) as number[];
       // Ignore if the saved value is not a number list.
       if (!Array.isArray(current)) {
@@ -408,7 +409,8 @@ export class CustomSectionConfig extends Disposable {
     if (widgetId) {
       const pluginId = use(this._section.customDef.pluginId);
       return (pluginId || '') + ':' + widgetId;
-    } else {
+    }
+ else {
       return CUSTOM_URL_WIDGET_ID;
     }
   });
@@ -538,7 +540,8 @@ export class CustomSectionConfig extends Disposable {
         let visibleText = null;
         if (use(this._isCustomUrlWidget)) {
           visibleText = t('Custom URL');
-        } else {
+        }
+ else {
           const widget = use(this._selectedWidget) ?? use(this._section.customDef.widgetDef);
           visibleText = widget ? getWidgetName(widget) : use(this._widgetId);
         }
@@ -580,9 +583,11 @@ export class CustomSectionConfig extends Disposable {
             {placeholder: t('Enter Custom URL'), type: 'url'},
           ),
         );
-      } else if (!widget?.description && !widget?.authors?.[0] && !widget?.lastUpdatedAt) {
+      }
+ else if (!widget?.description && !widget?.authors?.[0] && !widget?.lastUpdatedAt) {
         return cssDetailsMessage(t('Missing description and author information.'));
-      } else {
+      }
+ else {
         return cssWidgetDetails(
           !widget?.description ? null : cssWidgetDescription(
             widget.description,

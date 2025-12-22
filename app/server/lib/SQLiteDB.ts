@@ -176,20 +176,24 @@ export class SQLiteDB implements ISQLiteDB {
     // module. In that case, we apply migrations starting with the first one.
     if (userVersion === 0 && (await isGristEmpty(db))) {
       await db._initNewDB(schemaInfo);
-    } else if (mode === OpenMode.CREATE_EXCL) {
+    }
+ else if (mode === OpenMode.CREATE_EXCL) {
       await db.close();
       throw new ErrorWithCode('EEXISTS', `EEXISTS: Database already exists: ${dbPath}`);
-    } else {
+    }
+ else {
       // Don't attempt migrations in OPEN_READONLY mode.
       if (mode === OpenMode.OPEN_READONLY) {
         const targetVer: number = schemaInfo.migrations.length;
         if (userVersion < targetVer) {
           db._migrationError = new Error(`SQLiteDB[${dbPath}] needs migration but is readonly`);
         }
-      } else {
+      }
+ else {
         try {
           db._migrationBackupPath = await db._migrate(userVersion, schemaInfo, hooks);
-        } catch (err) {
+        }
+ catch (err) {
           db._migrationError = err;
         }
       }
@@ -218,7 +222,8 @@ export class SQLiteDB implements ISQLiteDB {
     const db = await SQLiteDB.openDBRaw(dbPath, OpenMode.OPEN_READONLY);
     try {
       return await db.getMigrationVersion();
-    } finally {
+    }
+ finally {
       await db.close();
     }
   }
@@ -249,7 +254,8 @@ export class SQLiteDB implements ISQLiteDB {
     const newCount = (SQLiteDB._openPaths.get(dbPath) || 0) + delta;
     if (newCount > 0) {
       SQLiteDB._openPaths.set(dbPath, newCount);
-    } else {
+    }
+ else {
       SQLiteDB._openPaths.delete(dbPath);
     }
     return newCount;
@@ -350,7 +356,8 @@ export class SQLiteDB implements ISQLiteDB {
     await this._db.limitAttach(1);  // VACUUM implementation uses ATTACH.
     try {
       await this.exec("VACUUM");
-    } finally {
+    }
+ finally {
       await this._db.limitAttach(0);  // Outside of VACUUM, we don't allow ATTACH.
     }
   }
@@ -364,10 +371,12 @@ export class SQLiteDB implements ISQLiteDB {
       try {
         if (Array.isArray(stmt)) {
           await this.run(stmt[0], ...stmt[1]);
-        } else {
+        }
+ else {
           await this.exec(stmt);
         }
-      } catch (err) {
+      }
+ catch (err) {
         log.warn(`SQLiteDB: Failed to run ${stmt}`);
         throw err;
       }
@@ -390,7 +399,8 @@ export class SQLiteDB implements ISQLiteDB {
         try {
           await this._db.close();
           break;
-        } catch (e) {
+        }
+ catch (e) {
           if (String(e).match(/SQLITE_BUSY: unable to close due to unfinalized statements or unfinished backups/)) {
             // Try again! now that this._closed is set, any pending backup should stop.
             // It will stop quickly if in the middle of a backup, or more slowly if on
@@ -399,7 +409,8 @@ export class SQLiteDB implements ISQLiteDB {
               log.debug("SQLiteDB[%s]: waiting to close", this._dbPath);
             }
             await delay(100);
-          } else {
+          }
+ else {
             throw e;
           }
         }
@@ -455,7 +466,8 @@ export class SQLiteDB implements ISQLiteDB {
               () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback))
             )
       );
-    } finally {
+    }
+ finally {
       if (this._needVacuum) {
         await this.requestVacuum();
       }
@@ -523,10 +535,12 @@ export class SQLiteDB implements ISQLiteDB {
       const value = await callback();
       await this.exec("COMMIT");
         return value;
-    } catch (err) {
+    }
+ catch (err) {
       try {
         await this.exec("ROLLBACK");
-      } catch (rollbackErr) {
+      }
+ catch (rollbackErr) {
           log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
       }
       throw err;    // Throw the original error from the transaction.
@@ -560,7 +574,8 @@ export class SQLiteDB implements ISQLiteDB {
     if (actualVer > targetVer) {
       log.warn("SQLiteDB[%s]: DB is at version %s ahead of target version %s",
         this._dbPath, actualVer, targetVer);
-    } else if (actualVer < targetVer) {
+    }
+ else if (actualVer < targetVer) {
       log.info("SQLiteDB[%s]: DB needs migration from version %s to %s",
         this._dbPath, actualVer, targetVer);
       const versions = range(actualVer, targetVer);
@@ -579,7 +594,8 @@ export class SQLiteDB implements ISQLiteDB {
 
         log.info("SQLiteDB[%s]: DB backed up to %s, migrated to %s",
           this._dbPath, backupPath, targetVer);
-      } catch (err) {
+      }
+ catch (err) {
         // If the transaction failed, we trust SQLite to have left the DB in unmodified state, so
         // we remove the pointless backup.
         await fse.remove(backupPath);
@@ -588,7 +604,8 @@ export class SQLiteDB implements ISQLiteDB {
           this._dbPath, actualVer, targetVer, err);
         err.message = `SQLiteDB[${this._dbPath}] migration to ${targetVer} failed: ${err.message}`;
         throw err;
-      } finally {
+      }
+ finally {
         await hooks.afterMigration?.(targetVer, success);
       }
     }

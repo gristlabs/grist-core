@@ -91,9 +91,11 @@ export function searchableMenu(
         if (!item.cleanText.includes(cleanSearchValue)) { return null; }
         if (item.label && item.action) {
           return menuItem(item.action, item.label, ...(item.args || []));
-        } else if (item.builder) {
+        }
+ else if (item.builder) {
           return item.builder();
-        } else {
+        }
+ else {
           throw new Error('Invalid menu item');
         }
       });
@@ -355,7 +357,8 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
               dom.on('change', (_ev, elem) => {
                 if (elem.checked) {
                   selectedOptions.push(fullOption.value);
-                } else {
+                }
+ else {
                   selectedOpts.delete(fullOption.value);
                   selectedOptions.set([...selectedOpts]);
                 }
@@ -432,7 +435,8 @@ export function inputMenu(createFunc: weasel.MenuCreateFunc, options?: weasel.IM
     dom.onElem(triggerElem, 'input', () => {
       if ((triggerElem as HTMLInputElement).value.length > 0) {
         ctl.open();
-      } else {
+      }
+ else {
         ctl.close();
       }
     });
@@ -449,7 +453,8 @@ export function inputMenu(createFunc: weasel.MenuCreateFunc, options?: weasel.IM
 export function upgradableMenuItem(needUpgrade: boolean, action: () => void, ...rem: any[]) {
   if (needUpgrade) {
     return menuItem(() => reportError(new NeedUpgradeError()), ...rem, " *");
-  } else {
+  }
+ else {
     return menuItem(action, ...rem);
   }
 }
@@ -884,7 +889,8 @@ export function *buildMenuItems(current: Array<MenuItem>): IterableIterator<Elem
     if (isHeader && item.submenu) {
       yield menuSubHeaderMenu(() => [...buildMenuItems(item.submenu!)], {}, item.header ?? item.label);
       continue;
-    } else if (isHeader) {
+    }
+ else if (isHeader) {
       yield menuSubHeader(item.header ?? item.label);
       continue;
     }

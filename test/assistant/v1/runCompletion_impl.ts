@@ -220,7 +220,8 @@ export async function runCompletion() {
                 const rowId = rowIds[i];
                 if (followUp) {
                   lastFollowUp = txt;
-                } else {
+                }
+ else {
                   await sendMessage(txt, rowId);
                 }
                 break;
@@ -234,7 +235,8 @@ export async function runCompletion() {
 
       try {
         await sendMessage();
-      } catch (e) {
+      }
+ catch (e) {
         console.error(e);
       }
 
@@ -243,7 +245,8 @@ export async function runCompletion() {
 
       if (success) {
         successCount++;
-      } else {
+      }
+ else {
         // TODO: log the difference between expected and actual, similar to what mocha does on
         // failure.
         // console.log('expected=', expected);
@@ -267,7 +270,8 @@ export async function runCompletion() {
         }, null, 2));
       caseCount++;
     }
-  } finally {
+  }
+ finally {
     await docTools.after();
     log.transports.file.level = 'debug';
     console.log(`Ai assistance requests stats: ${fetcher.callCount} calls`);

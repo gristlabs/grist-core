@@ -108,7 +108,8 @@ function initBeacon(): void {
       ));
       _beacon('init', beaconId);
       _beacon('config', {display: {style: "manual"}});
-    } else {
+    }
+ else {
       (window as any).Beacon = () => null;
       reportWarning("Support form is not configured");
     }
@@ -181,7 +182,8 @@ function _beaconOpen(userObj: IUserObj|null, options: IBeaconOpenOptions) {
         attrs[`error-${i}-stack`] = JSON.stringify(error.stack.trim().split('\n'));
       }
     });
-  } else {
+  }
+ else {
     Beacon('config', {messaging: {contactForm: {showSubject: true}}});
   }
 

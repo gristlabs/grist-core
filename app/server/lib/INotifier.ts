@@ -139,7 +139,8 @@ export class EmitNotifier extends EventEmitter implements INotifier {
     this._testPendingNotifications++;
     try {
       await (this._primaryNotifier[methodName] as any)(...args);
-    } finally {
+    }
+ finally {
       this._testPendingNotifications--;
     }
   }

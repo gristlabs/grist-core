@@ -126,7 +126,8 @@ export class Document extends Resource {
       // completely.
       if (props.options === null) {
         this.options = null;
-      } else {
+      }
+ else {
         this.options = this.options || {};
         if (props.options.description !== undefined) {
           this.options.description = props.options.description;
@@ -146,7 +147,8 @@ export class Document extends Resource {
           // completely.
           if (props.options.tutorial === null) {
             this.options.tutorial = null;
-          } else {
+          }
+ else {
             this.options.tutorial = this.options.tutorial || {};
             if (props.options.tutorial.lastSlideIndex !== undefined) {
               this.options.tutorial.lastSlideIndex = props.options.tutorial.lastSlideIndex;
@@ -159,7 +161,8 @@ export class Document extends Resource {
         if (props.options.appearance !== undefined) {
           if (props.options.appearance === null) {
             this.options.appearance = null;
-          } else {
+          }
+ else {
             this.options.appearance = this.options.appearance || {};
             if (props.options.appearance.icon !== undefined) {
               this.options.appearance.icon = props.options.appearance.icon;
@@ -169,7 +172,8 @@ export class Document extends Resource {
         if (props.options.proposedChanges !== undefined) {
           if (props.options.proposedChanges === null) {
             this.options.proposedChanges = null;
-          } else {
+          }
+ else {
             this.options.proposedChanges = this.options.proposedChanges || {};
             // Merge individual properties, once there are more than one, following
             // the example of appearance and tutorial above.

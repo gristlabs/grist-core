@@ -197,7 +197,8 @@ export function buildColorPicker(
       try {
         // TODO: disable the trigger btn while saving
         await onSave?.();
-      } catch (e) {
+      }
+ catch (e) {
         onRevert?.();
         if (!onRevert) {
           models.forEach(m => m.revert());

@@ -2020,7 +2020,8 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
             `but received a value of type ${typeof value}[]`
           );
         }
-      } else if (dataType === 'date') {
+      }
+ else if (dataType === 'date') {
         if (!(value instanceof Date) && typeof value !== 'string') {
           throw new Error(
             `Telemetry metadata ${key} of event ${event} expected a value of type Date or string ` +
@@ -2032,7 +2033,8 @@ export function buildTelemetryEventChecker(telemetryLevel: TelemetryLevel) {
             `Telemetry metadata ${key} of event ${event} has an ambiguous date string`
           );
         }
-      } else if (dataType !== typeof value) {
+      }
+ else if (dataType !== typeof value) {
         throw new Error(
           `Telemetry metadata ${key} of event ${event} expected a value of type ${dataType} ` +
           `but received a value of type ${typeof value}`

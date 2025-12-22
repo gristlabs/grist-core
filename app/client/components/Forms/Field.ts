@@ -145,7 +145,8 @@ export class FieldModel extends BoxModel {
       dom.style('opacity', (use) => {
         if ((use(use(this.field).widgetOptionsJson) as FormFieldOptions).formIsHidden) {
           return '50%';
-        } else {
+        }
+ else {
           return '';
         }
       }),
@@ -383,7 +384,8 @@ class ChoiceModel extends Question {
       // Make sure it is an array of strings.
       if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
         return [];
-      } else {
+      }
+ else {
         const sort = use(this._sortOrder);
         if (sort !== 'default') {
           choices.sort((a, b) => a.localeCompare(b));
@@ -401,7 +403,8 @@ class ChoiceModel extends Question {
       dom.domComputed(this._format, (format) => {
         if (format === 'select') {
           return this._renderSelectInput();
-        } else {
+        }
+ else {
           return this._renderRadioInput();
         }
       }),
@@ -488,7 +491,8 @@ class BoolModel extends Question {
     return dom.domComputed(this._format, (format) => {
       if (format === 'switch') {
         return this._renderSwitchInput();
-      } else {
+      }
+ else {
         return this._renderCheckboxInput();
       }
     });
@@ -637,7 +641,8 @@ class RefModel extends RefListModel {
       dom.domComputed(this._format, (format) => {
         if (format === 'select') {
           return this._renderSelectInput();
-        } else {
+        }
+ else {
           return this._renderRadioInput();
         }
       }),

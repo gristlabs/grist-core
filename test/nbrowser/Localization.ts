@@ -162,7 +162,8 @@ describe("Localization", function() {
       // Wrong file format.
       fs.writeFileSync(path.join(tempDirectory, 'dummy.json'), 'invalid json');
       await assert.isRejected(server.restart(false, true));
-    } finally {
+    }
+ finally {
       oldEnv.restore();
       await server.restart();
     }

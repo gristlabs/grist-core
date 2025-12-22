@@ -25,7 +25,8 @@ async function clearCurrentWindowStorage() {
   if ((await driver.getCurrentUrl()).startsWith('http')) {
     try {
       await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
-    } catch (err) {
+    }
+ catch (err) {
       console.log("Could not clear window storage after the test ended: %s", err.message);
     }
   }

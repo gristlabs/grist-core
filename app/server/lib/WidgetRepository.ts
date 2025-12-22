@@ -116,7 +116,8 @@ export class UrlWidgetRepository implements IWidgetRepository {
       if (!response.ok) {
         if (response.status === 404) {
           throw new ApiError('WidgetRepository: Remote widget list not found', 404);
-        } else {
+        }
+ else {
           const body = await response.text().catch(() => '');
           throw new ApiError(
             `WidgetRepository: Remote server returned an error: ${body || response.statusText}`, response.status
@@ -129,13 +130,15 @@ export class UrlWidgetRepository implements IWidgetRepository {
       }
       fixUrls(widgets, this._staticUrl);
       return widgets;
-    } catch (err) {
+    }
+ catch (err) {
       if (this._required) {
         if (!(err instanceof ApiError)) {
           throw new ApiError(String(err), 500);
         }
         throw err;
-      } else {
+      }
+ else {
         log.error("WidgetRepository: Error fetching widget list - " +
             String(err));
         return [];

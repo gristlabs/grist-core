@@ -45,7 +45,8 @@ export async function insightLogWrap<T>(
   const timer = setTimeout(() => log.rawInfo(`${prefix} running`, entry.getMeta()), logIfLongerThanMs);
   try {
     return await asyncLocalStorage.run(entry, callback);
-  } finally {
+  }
+ finally {
     clearTimeout(timer);
     entry.mark("end");
     log.rawInfo(`${prefix} done`, entry.getMeta());

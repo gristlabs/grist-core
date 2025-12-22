@@ -90,25 +90,32 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
                       `ON ${quoteIdent(alias)}.id = ` +
                       `${quoteIdent(query.tableId)}.${quoteIdent(formula.refColId)}`);
             sqlFormula = `${quoteIdent(alias)}.${quoteIdent(formula.colId)}`;
-          } else {
+          }
+ else {
             error = "Cannot find column";
           }
-        } else {
+        }
+ else {
           error = "Cannot find table";
         }
-      } else if (formula.kind === 'column') {
+      }
+ else if (formula.kind === 'column') {
         const altColumn = columns.filterRecords({parentId: tableRef, isFormula: false, colId: formula.colId});
         // TODO: deal with a formula column.
         if (altColumn.length > 0) {
           sqlFormula = `${quoteIdent(query.tableId)}.${quoteIdent(formula.colId)}`;
-        } else {
+        }
+ else {
           error = "Cannot find column";
         }
-      } else if (formula.kind === 'literalNumber') {
+      }
+ else if (formula.kind === 'literalNumber') {
         sqlFormula = `${formula.value}`;
-      } else if (formula.kind === 'error') {
+      }
+ else if (formula.kind === 'error') {
         error = formula.msg;
-      } else {
+      }
+ else {
         throw new Error('Unrecognized type of formula');
       }
       if (error) {
@@ -121,7 +128,8 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
         selects.add(`${sqlFormula} as ${quoteIdent(colId)}`);
       }
     }
-  } else {
+  }
+ else {
     // Select all data and formula columns.
     selects.add(`${quoteIdent(query.tableId)}.*`);
   }

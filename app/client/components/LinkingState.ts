@@ -105,21 +105,23 @@ export class LinkingState extends Disposable {
 
       if (srcSection.table().summarySourceTable() && srcColId === "group") {
         return "Filter:Summary-Group"; //implemented as col->col, but special-cased in select-by
-      } else if (srcColId && tgtColId) {
+      }
+ else if (srcColId && tgtColId) {
         return "Filter:Col->Col";
-      } else if (!srcColId && tgtColId) {
+      }
+ else if (!srcColId && tgtColId) {
         return "Filter:Row->Col";
-      } else if (srcColId && !tgtColId) { // Col->Row, i.e. show a ref
+      }
+ else if (srcColId && !tgtColId) { // Col->Row, i.e. show a ref
         if (isRefListType(srcCol.type())) // TODO: fix this once ref-links are unified, both could be show-ref-rec
           { return "Show-Referenced-Records"; }
-        else
-          { return "Cursor:Reference"; }
-      } else if (!srcColId && !tgtColId) { //Either same-table cursor link OR summary link
-        if (isSummaryOf(srcSection.table(), tgtSection.table()))
-          { return "Summary"; }
-        else
-          { return "Cursor:Same-Table"; }
-      } else { // This case shouldn't happen, but just check to be safe
+        else { return "Cursor:Reference"; }
+      }
+ else if (!srcColId && !tgtColId) { //Either same-table cursor link OR summary link
+        if (isSummaryOf(srcSection.table(), tgtSection.table())) { return "Summary"; }
+        else { return "Cursor:Same-Table"; }
+      }
+ else { // This case shouldn't happen, but just check to be safe
         return "Error:Invalid";
       }
     }));
@@ -128,20 +130,23 @@ export class LinkingState extends Disposable {
       const operation = (tgtColId && isRefListType(tgtCol.type())) ? 'intersects' : 'in';
       this.filterState = this._srcCustomFilter(tgtCol, operation); // works whether tgtCol is the empty col or not
 
-    } else if (tgtColId) { // Standard filter link
+    }
+ else if (tgtColId) { // Standard filter link
       // If srcCol is the empty col, is a row->col filter (i.e. id -> tgtCol)
       // else is a col->col filter (srcCol -> tgtCol)
       // MakeFilterObs handles it either way
       this.filterState = this._makeFilterObs(srcCol, tgtCol);
 
-    } else if (srcColId && isRefListType(srcCol.type())) {  // "Show Referenced Records" link
+    }
+ else if (srcColId && isRefListType(srcCol.type())) {  // "Show Referenced Records" link
       // tgtCol is the emptycol (i.e. the id col)
       // srcCol must be a reference to the tgt table
       // Link will filter tgt section to show exactly the set of rowIds referenced by the srcCol
       // (NOTE: currently we only do this for reflists, single refs handled as cursor links for now)
       this.filterState = this._makeFilterObs(srcCol, undefined);
 
-    } else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { //Summary linking
+    }
+ else if (!srcColId && isSummaryOf(srcSection.table(), tgtSection.table())) { //Summary linking
       // We do summary filtering if no cols specified and summary section is linked to a more detailed summary
       // (or to the summarySource table)
       // Implemented as multiple column filters, one for each groupByCol of the src table
@@ -196,7 +201,8 @@ export class LinkingState extends Disposable {
       _update();
 
       // ================ CURSOR LINKS: =================
-    } else { //!tgtCol && !summary-link && (!lookup-link || !reflist),
+    }
+ else { //!tgtCol && !summary-link && (!lookup-link || !reflist),
       //        either same-table cursor-link (!srcCol && !tgtCol, so do activeRowId -> cursorPos)
       //        or cursor-link by reference   ( srcCol && !tgtCol, so do srcCol -> cursorPos)
 
@@ -381,8 +387,7 @@ export class LinkingState extends Disposable {
   private _makeFilterObs(
       srcCol: ColumnRec|undefined,
       tgtCol: ColumnRec|undefined,
-      owner: MultiHolder = this): ko.Computed<FilterState> | undefined
-  {
+      owner: MultiHolder = this): ko.Computed<FilterState> | undefined {
     const srcColId = srcCol?.colId();
     const tgtColId = tgtCol?.colId();
 
@@ -453,18 +458,21 @@ export class LinkingState extends Disposable {
         filterValues = [selectorCellVal];
         displayValues = [displayCellVal];
 
-      } else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], slice off the L
+      }
+ else if(isSrcRefList && isList(selectorCellVal)) { //Reflists are: ["L", ref1, ref2, ...], slice off the L
         filterValues = selectorCellVal.slice(1);
 
         //selectorValue and displayValue might not match up? Shouldn't happen, but let's yell loudly if it does
         if (isList(displayCellVal) && displayCellVal.length === selectorCellVal.length) {
           displayValues = displayCellVal.slice(1);
-        } else {
+        }
+ else {
           console.warn("Error in LinkingState: displayVal list doesn't match selectorVal list ");
           displayValues = filterValues; //fallback to unformatted values
         }
 
-      } else { //isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
+      }
+ else { //isSrcRefList && !isList(val), probably null. Happens with blank reflists, or if cursor on the 'new' row
         filterValues = [];
         displayValues = [];
         if(selectorCellVal !== null) { // should be null, but let's warn if it's not
@@ -608,12 +616,12 @@ function isSummaryOf(summary: TableRec, detail: TableRec): boolean {
  * @returns {ColumnRec} The corresponding column of tgtTable
  */
 function summaryGetCorrespondingCol(srcGBCol: ColumnRec, tgtTable: TableRec): ColumnRec {
-  if(!isSummaryOf(srcGBCol.table(), tgtTable))
-  { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
+  if(!isSummaryOf(srcGBCol.table(), tgtTable)) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: srcTable must be summary of tgtTable"); }
 
   if(tgtTable.summarySourceTable() === 0) { //if direct summary
     return srcGBCol.summarySource();
-  } else { // else summary->summary, match by colId
+  }
+ else { // else summary->summary, match by colId
     const srcColId = srcGBCol.colId();
     const retVal = tgtTable.groupByColumns().find(tgtCol => tgtCol.colId() === srcColId); //should always exist
     if(!retVal) { throw Error("ERROR in LinkingState summaryGetCorrespondingCol: summary table lacks groupby col"); }

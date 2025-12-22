@@ -21,7 +21,8 @@ describe("PyMomentTest", function() {
     const pyZones = await sandbox.pyCall("test_tz_data");
     try {
       assert.deepEqual(jsZones, pyZones);
-    } catch (e) {
+    }
+ catch (e) {
       console.log("Timezone data in sandbox/grist/tzdata does not match " +
         "node_modules/moment-timezone/data/unpacked/latest.json");
       e.message += ": Perhaps re-run 'node sandbox/install_tz.js && ./build python'?";

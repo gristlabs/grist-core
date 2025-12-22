@@ -77,7 +77,8 @@ export class DateEditor extends NTextEditor {
   protected formatValue(value: CellValue, formatString: string|undefined, shouldFallBackToValue: boolean) {
     if (typeof value === 'number' && formatString) {
       return moment.tz(value*1000, this.timezone).format(formatString);
-    } else {
+    }
+ else {
       // If value is AltText, return it unchanged. This way we can see it and edit in the editor.
       return (shouldFallBackToValue && typeof value === 'string') ? value : "";
     }
@@ -194,7 +195,8 @@ async function doLoadLocale(locale: string): Promise<string> {
   console.debug(`DateEditor: loading locale ${locale}`);
   try {
     await loadScript(`bootstrap-datepicker/dist/locales/bootstrap-datepicker.${locale}.min.js`);
-  } catch (e) {
+  }
+ catch (e) {
     console.warn(`DateEditor: failed to load ${locale}`);
   }
   return locale;

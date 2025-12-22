@@ -30,7 +30,8 @@ export class ColumnCache<T> {
       for (const colId of Object.keys(colValues)) {
         this._cachedColIndexes.delete(colId);
       }
-    } else {
+    }
+ else {
       // For add/delete actions and all schema changes, drop the cache entirely to be on the safe side.
       this._clearCache();
     }

@@ -260,7 +260,8 @@ export class HostedStorageManager implements IDocStorageManager {
       this._prepareFiles.add(docName);
       const isNew = !(await this._claimDocument(docName, srcDocName));
       return isNew;
-    } finally {
+    }
+ finally {
       this._prepareFiles.delete(docName);
     }
   }
@@ -320,7 +321,8 @@ export class HostedStorageManager implements IDocStorageManager {
           output: this.getPath(docId),
         });
         return;
-      } else {
+      }
+ else {
         throw new Error(`cannot find ${docId}`);
       }
     }
@@ -347,11 +349,13 @@ export class HostedStorageManager implements IDocStorageManager {
       this.markAsChanged(docId, 'edit');
       // Invalidate usage; it'll get re-computed the next time the document is opened.
       this.scheduleUsageUpdate(docId, null, true);
-    } catch (err) {
+    }
+ catch (err) {
       this._log.error(docId, "problem replacing doc: %s", err);
       await fse.move(tmpPath, docPath, {overwrite: true});
       throw err;
-    } finally {
+    }
+ finally {
       // NOTE: fse.remove succeeds also when the file does not exist.
       await fse.remove(tmpPath);
     }
@@ -515,7 +519,8 @@ export class HostedStorageManager implements IDocStorageManager {
         snapshotProgress.windowsStarted++;
       }
       this._uploads.addOperation(docName);
-    } finally {
+    }
+ finally {
       if (reason === 'edit') {
         this._markAsEdited(docName, timestamp);
       }
@@ -660,18 +665,21 @@ export class HostedStorageManager implements IDocStorageManager {
             // Exists in S3, with a version not known to be latest seen
             // by this worker - so wipe local version and defer to S3.
             await this._wipeCache(docName);
-          } else {
+          }
+ else {
             // Go ahead and use local version.
             return true;
           }
-        } else {
+        }
+ else {
           // Doc exists locally and in S3 (according to redis).
           // Make sure the checksum matches.
           const checksum = await this._getHash(await this._prepareBackup(docName));
           if (checksum === docStatus.docMD5) {
             // Fine, accept the doc as existing on our file system.
             return true;
-          } else {
+          }
+ else {
             this._log.info(docName, "Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
             // The file that exists locally does not match S3.  But S3 is the canonical version.
             // On the assumption that the local file is outdated, delete it.
@@ -811,11 +819,13 @@ export class HostedStorageManager implements IDocStorageManager {
       if (changeMade) {
         await this._onInventoryChange(docId);
       }
-    } catch (e) {
+    }
+ catch (e) {
       snapshotProgress.errors++;
       // Snapshot window completion time deliberately not set.
       throw e;
-    } finally {
+    }
+ finally {
       // Clean up backup.
       // NOTE: fse.remove succeeds also when the file does not exist.
       if (tmpPath) { await fse.remove(tmpPath); }
@@ -842,14 +852,16 @@ export class HostedStorageManager implements IDocStorageManager {
       if (h) { result.h = h; }
       const n = actionQuery?.actionNum;
       if (n) { result.n = String(n); }
-    } catch (e) {
+    }
+ catch (e) {
       // Tolerate files that don't have _gristsys_* yet (although we don't need to).
     }
     try {
       const tzQuery = await db.get('select timezone from _grist_DocInfo where id = 1');
       const tz = tzQuery?.timezone;
       if (tz) { result.tz = tz; }
-    } catch (e) {
+    }
+ catch (e) {
       // Tolerate files that don't have _grist_DocInfo yet.
     }
     await db.close();

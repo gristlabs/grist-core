@@ -114,10 +114,12 @@ function getCompatibleTypes(tableId: TableRef,
   let compatibleTypes: Array<IWidgetType> = [];
   if (tableId !== 'New Table') {
     compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
-  } else if (isNewPage) {
+  }
+ else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     compatibleTypes = ['record', 'form'];
-  } else {
+  }
+ else {
     // The type 'chart' makes little sense when creating a new table.
     compatibleTypes = ['record', 'single', 'detail', 'form'];
   }
@@ -223,7 +225,8 @@ export function buildPageWidgetPicker(
     if (value.table.get() === 'New Table') {
       // Adding empty table will show a prompt, so we don't want to wait for it.
       await savePromise;
-    } else {
+    }
+ else {
       // If savePromise throws an error, before or after timeout, we let the error propagate as it
       // should be handle by the caller.
       if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
@@ -488,7 +491,8 @@ export class PageWidgetSelect extends Disposable {
   private _selectPivot(tid: TableRef, pivotEl: HTMLElement) {
     if (this._isSelected(pivotEl)) {
       this._closeSummarizePanel();
-    } else {
+    }
+ else {
       if (tid !== this._value.table.get()) {
         this._value.columns.set([]);
         this._value.table.set(tid);

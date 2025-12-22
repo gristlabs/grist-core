@@ -49,7 +49,8 @@ export class Activation extends BaseEntity {
 
     if (props.prefs === null) {
       this.prefs = null;
-    } else {
+    }
+ else {
       this.prefs = this.prefs || {};
       if (props.prefs.telemetry !== undefined) {
         this.prefs.telemetry = this.prefs.telemetry || {};

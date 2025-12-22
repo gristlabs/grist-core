@@ -146,7 +146,8 @@ export class SubprocessControl implements ISandboxControl {
     for (const proc of await this._getAllProcesses()) {
       try {
         process.kill(proc.pid, 'SIGKILL');
-      } catch (e) {
+      }
+ catch (e) {
         // Don't worry if process is already killed.
         if (e.code !== 'ESRCH') { throw e; }
       }
@@ -160,7 +161,8 @@ export class SubprocessControl implements ISandboxControl {
       const pid = monitoredProcess.pid;
       const memory = (await pidusage(pid)).memory;
       return { memory };
-    } catch (e) {
+    }
+ catch (e) {
       return { memory: Infinity };
     }
   }

@@ -135,7 +135,8 @@ export class AppHeader extends Disposable {
         {href: commonUrls.templates},
         testId('org'),
       );
-    } else {
+    }
+ else {
       return cssOrg(
         dom.cls('_cssOrg'),
         cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
@@ -174,7 +175,8 @@ export class AppHeader extends Disposable {
   private _setHomePageUrl(link: AppLogoLink) {
     if (link.type === 'href') {
       return {href: link.href};
-    } else {
+    }
+ else {
       return urlState().setLinkUrl({org: link.domain});
     }
   }

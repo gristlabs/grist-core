@@ -132,10 +132,12 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
       status = Status.SAVING;
       inputEl.disabled = true;
       // Ignore errors; save() callback is expected to handle their reporting.
-      try { await save(inputEl.value); } catch (e) { /* ignore */ }
+      try { await save(inputEl.value); }
+ catch (e) { /* ignore */ }
       inputEl.disabled = false;
       revertToSaved();
-    } else if (status === Status.NORMAL) {
+    }
+ else if (status === Status.NORMAL) {
       // If we are not editing, nothing to save, but lets end in the expected blurred state.
       inputEl.blur();
     }

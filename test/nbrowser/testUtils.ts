@@ -159,7 +159,8 @@ function checkForAlerts() {
     const isAlertShown = await gu.isAlertShown();
     try {
       assert.isFalse(isAlertShown, "Unexpected alert open after the test ended");
-    } finally {
+    }
+ finally {
       if (isAlertShown) {
         await gu.acceptAlert();
       }
@@ -203,7 +204,8 @@ async function clearCurrentWindowStorage() {
   if ((await driver.getCurrentUrl()).startsWith('http')) {
     try {
       await driver.executeScript('window.sessionStorage.clear(); window.localStorage.clear();');
-    } catch (err) {
+    }
+ catch (err) {
       log.info("Could not clear window storage after the test ended: %s", err.message);
     }
   }
@@ -271,7 +273,8 @@ export function setupRequirement(options: TestSuiteOptions) {
         try {
           await api.newOrg({name: `Test${suffix} Grist`, domain: orgName});
           isNew = true;
-        } catch (e) {
+        }
+ catch (e) {
           // Assume the org already exists.
         }
         if (isNew) {
@@ -289,7 +292,8 @@ export function setupRequirement(options: TestSuiteOptions) {
                 'gristoid+chimpy@gmail.com': 'managers',
               }
             });
-          } catch (e) {
+          }
+ catch (e) {
             // ignore if no billing endpoint
             if (!String(e).match('404: Not Found')) {
               throw e;

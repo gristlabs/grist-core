@@ -78,7 +78,8 @@ function setupTest() {
                   n: () => { sub.dispose(); reject(new Error("fake-error")); },
                 });
               });
-            } finally {
+            }
+ finally {
               saving.set(saving.get() - 1);
             }
           }

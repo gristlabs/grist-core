@@ -154,7 +154,8 @@ export class GristWSConnection extends Disposable {
     if (getGristConfig().getWorker) {
       this.trigger('connectState', false);
       this._initialConnection = this.connect();
-    } else {
+    }
+ else {
       this._log("GristWSConnection not activating for hosted grist page with no document present");
     }
   }
@@ -333,7 +334,8 @@ export class GristWSConnection extends Disposable {
     let url: string;
     try {
       url = this._buildWebsocketUrl(isReconnecting, timezone);
-    } catch (e) {
+    }
+ catch (e) {
       this._warn('Failed to get the URL for the worker serving the document');
       this._scheduleReconnect(isReconnecting);
       return;
@@ -413,7 +415,8 @@ export class GristWSConnection extends Disposable {
       // that for us, although it could.  TODO: update home server to produce
       // standalone doc worker urls.
       this._docWorkerUrl = url ? addOrgToPath(url, this._settings.getPageUrl()) : url;
-    } catch (e) {
+    }
+ catch (e) {
       this._warn('Failed to connect to server for document');
     }
   }

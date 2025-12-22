@@ -240,7 +240,8 @@ function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[
       if (name === 'AddRecord') {
         rowIdHint = retValue;
         break;
-      } else if (name === 'BulkAddRecord') {
+      }
+ else if (name === 'BulkAddRecord') {
         rowIdHint = retValue[0];
         break;
       }

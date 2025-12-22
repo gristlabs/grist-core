@@ -213,7 +213,8 @@ export function splitPageInitial(name: string): {initial: string, displayName: s
   // (Other matching non-emojis include characters like '*', but those are nicer to show as emojis.)
   if (m && !/^\d$/.test(m[0])) {
     return {initial: m[0], displayName: name.slice(m[0].length).trim(), hasEmoji: true};
-  } else {
+  }
+ else {
     return {initial: Array.from(name)[0], displayName: name.trim(), hasEmoji: false};
   }
 }
@@ -309,7 +310,8 @@ function onHoverSupport(yesNo: boolean) {
   // and use trivial match-all/match-none media queries on desktop browsers.
   if (isDesktop()) {
     return yesNo ? 'all' : 'not all';
-  } else {
+  }
+ else {
     return yesNo ? '(hover: hover)' : '(hover: none)';
   }
 }

@@ -40,7 +40,8 @@ describe('SelectionSummary', function () {
     ), 500);
     if (count === null) {
       assert.isFalse(await driver.find('.test-selection-summary-count').isPresent());
-    } else {
+    }
+ else {
       await gu.waitToPass(async () => assert.equal(
         await driver.find('.test-selection-summary-count').getText(),
         `COUNT ${count}`
@@ -48,7 +49,8 @@ describe('SelectionSummary', function () {
     }
     if (sum === null) {
       assert.isFalse(await driver.find('.test-selection-summary-sum').isPresent());
-    } else {
+    }
+ else {
       await gu.waitToPass(async () => assert.equal(
         await driver.find('.test-selection-summary-sum').getText(),
         `SUM ${sum}`

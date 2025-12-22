@@ -116,7 +116,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
     if (window.gristApp) {
       // If we have gristApp, we use directly.
       this.app = window.gristApp as App;
-    } else {
+    }
+ else {
       // Otherwise, we create a new InMemoryApp, suitable for tests.
       this.app = this.autoDispose(new InMemoryApp(appModel.topAppModel));
     }
@@ -259,7 +260,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
           if (!cols[colId] && !!def.transform) {
             // In that case fill it up with nulls first.
             cols[colId] = Array(rows.length).fill(null);
-          } else if (!cols[colId]) {
+          }
+ else if (!cols[colId]) {
             throw new Error(`Column ${colId} not found in external data`);
           }
 
@@ -293,7 +295,8 @@ export class VirtualDoc extends DisposableWithEvents implements GristDoc {
         this.autoDispose(obs.addListener(async (isHidden) => {
           if (!isHidden) {
             await this.showColumn(tableId, coldId);
-          } else {
+          }
+ else {
             await this.hideColumn(tableId, coldId);
           }
         }));

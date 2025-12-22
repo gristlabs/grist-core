@@ -269,7 +269,8 @@ export class TopAppModelImpl extends Disposable implements TopAppModel {
         }
       }
       AppModelImpl.create(this.appObs, this, user, org, orgError);
-    } catch (err) {
+    }
+ catch (err) {
       // tslint:disable-next-line:no-console
       console.log(`getSessionActive() failed: ${err}`);
       if (this.isDisposed()) { return; }
@@ -320,19 +321,26 @@ export class AppModelImpl extends Disposable implements AppModel {
     (_use, state) => {
       if (state.doc) {
         return 'doc';
-      } else if (state.billing) {
+      }
+ else if (state.billing) {
         return 'billing';
-      } else if (state.welcome) {
+      }
+ else if (state.welcome) {
         return 'welcome';
-      } else if (state.account) {
+      }
+ else if (state.account) {
         return 'account';
-      } else if (state.adminPanel) {
+      }
+ else if (state.adminPanel) {
         return 'admin';
-      } else if (state.activation) {
+      }
+ else if (state.activation) {
         return 'activation';
-      } else if (state.auditLogs) {
+      }
+ else if (state.auditLogs) {
         return 'audit-logs';
-      } else {
+      }
+ else {
         return 'home';
       }
     });
@@ -375,7 +383,8 @@ export class AppModelImpl extends Disposable implements AppModel {
         priceId: state.params?.billingPlan,
         product: state.params?.planType,
       }).catch(reportError);
-    } else if (state.upgradeTeam) {
+    }
+ else if (state.upgradeTeam) {
         // Remove params from the URL.
       urlState().pushUrl({upgradeTeam: false, params: {}}, {avoidReload: true, replace: true}).catch(() => {});
       this.showUpgradeModal({
@@ -411,13 +420,15 @@ export class AppModelImpl extends Disposable implements AppModel {
     if (this.planName && this.currentOrg) {
       if (this.isPersonal) {
         await this.showNewSiteModal(plan);
-      } else if (this.isTeamSite) {
+      }
+ else if (this.isTeamSite) {
         await buildUpgradeModal(this, {
           appModel: this,
           pickPlan: plan,
           reason: 'upgrade'
         });
-      } else {
+      }
+ else {
         throw new Error("Unexpected state");
       }
     }

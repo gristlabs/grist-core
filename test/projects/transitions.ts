@@ -25,13 +25,15 @@ describe('transitions', function() {
     if (Array.isArray(expected.width)) {
       assert.isAbove(parseFloat(widthStr), expected.width[0]);
       assert.isBelow(parseFloat(widthStr), expected.width[1]);
-    } else {
+    }
+ else {
       assert.equal(parseFloat(widthStr), expected.width);
     }
     if (Array.isArray(expected.opacity)) {
       assert.isAbove(parseFloat(opacityStr), expected.opacity[0]);
       assert.isBelow(parseFloat(opacityStr), expected.opacity[1]);
-    } else {
+    }
+ else {
       assert.equal(parseFloat(opacityStr), expected.opacity);
     }
     assert.equal(parseFloat(countStr), expected.finished);

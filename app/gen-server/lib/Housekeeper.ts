@@ -143,10 +143,12 @@ export class Housekeeper {
       // document worker to which they are assigned.
       try {
         await this._server.hardDeleteDoc(doc.id);
-      } catch (err) {
+      }
+ catch (err) {
         if (err instanceof ApiError) {
           log.error(`failed to delete document ${doc.id}: error status ${err.status} ${err.message}`);
-        } else {
+        }
+ else {
           log.error(`failed to delete document ${doc.id}: error status ${String(err)}`);
         }
       }
@@ -189,7 +191,8 @@ export class Housekeeper {
         if (result.status !== 200) {
           log.error(`failed to delete fork ${docId}: error status ${result.status}`);
         }
-      } finally {
+      }
+ finally {
         await this._permitStore.removePermit(permitKey);
       }
     }
@@ -224,7 +227,8 @@ export class Housekeeper {
         url,
         status: response.status,
       });
-    } else {
+    }
+ else {
       log.rawError('testProxyUrl failed', {
         url,
         status: response.status,
@@ -495,7 +499,8 @@ export class Housekeeper {
         res.status(result.status);
         // Return JSON result, or an empty object if no result provided.
         res.json(await result.json().catch(() => ({})));
-      } finally {
+      }
+ finally {
         await this._permitStore.removePermit(permitKey);
       }
     });

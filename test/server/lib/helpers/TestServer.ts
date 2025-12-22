@@ -145,7 +145,8 @@ export class TestServer {
 
       // wait for check
       return (await fetch(`${this.serverUrl}/status/hooks`, {timeout: 1000})).ok;
-    } catch (err) {
+    }
+ catch (err) {
       log.warn("Failed to initialize server", err);
       return false;
     }
@@ -188,7 +189,8 @@ export class TestServer {
         }),
         maxDelay,
       ]);
-    } finally {
+    }
+ finally {
       clearTimeout(timeout);
     }
   }

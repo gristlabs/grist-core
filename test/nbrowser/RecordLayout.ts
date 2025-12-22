@@ -274,7 +274,8 @@ describe('RecordLayout', function() {
       assert.equal(editorRect.y, cellRect.y);
       assert.equal(editorRect.height, cellRect.height);
       assert.isAtLeast(editorRect.width, cellRect.width);
-    } finally {
+    }
+ finally {
       // on error make sure editor is closed
       await driver.sendKeys(Key.ESCAPE);
     }

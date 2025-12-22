@@ -80,7 +80,8 @@ export class InactivityTimer {
     this._beginActivity();
     try {
       return await promise;
-    } finally {
+    }
+ finally {
       this._endActivity();
     }
   }

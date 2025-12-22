@@ -276,7 +276,8 @@ export class TableData extends ActionDispatcher implements SkippableRows {
           bulkColValues[colId][i] = value;
         }
       }
-    } else {
+    }
+ else {
       bulkColValues = fromPairs(
         colIds
           .filter(colId => colId !== 'id')
@@ -437,7 +438,8 @@ export class TableData extends ActionDispatcher implements SkippableRows {
             }
           }
         }
-      } else {
+      }
+ else {
         this._rowMap.set(rowIds[i], destIndex);
         this._rowIdCol[destIndex] = rowIds[i];
         for (const {colId, defl, values} of this._colArray) {

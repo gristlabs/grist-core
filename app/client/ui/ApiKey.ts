@@ -91,7 +91,8 @@ make API calls for your own account."), testId('description')),
     this._loading.set(true);
     try {
       await promise;
-    } finally {
+    }
+ finally {
       this._loading.set(false);
     }
   }

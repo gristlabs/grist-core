@@ -46,10 +46,12 @@ export class AuditLogsModelImpl extends Disposable implements AuditLogsModel {
       }
 
       this.streamingDestinations.set(value);
-    } catch (e) {
+    }
+ catch (e) {
       if (e.status === 404) {
         this.streamingDestinations.set([]);
-      } else {
+      }
+ else {
         throw e;
       }
     }

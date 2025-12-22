@@ -159,7 +159,8 @@ describe('Scim', () => {
     async function withUserName(userName: string, cb: (userName: string) => Promise<void>) {
       try {
         await cb(userName);
-      } finally {
+      }
+ finally {
         const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
         if (user && !isAffirmative(process.env.NO_CLEANUP)) {
           await cleanupUser(user.id);
@@ -220,7 +221,8 @@ describe('Scim', () => {
             detail: error.message
           });
           assert.equal(res.status, 500);
-        } finally {
+        }
+ finally {
           sandbox.restore();
         }
       });
@@ -683,7 +685,8 @@ describe('Scim', () => {
       async function withGroupNames<T>(groupNames: string[], cb: (groupNames: string[]) => Promise<T>) {
         try {
           await cb(groupNames);
-        } finally {
+        }
+ finally {
           if (!isAffirmative(process.env.NO_CLEANUP)) {
             await cleanupGroups();
           }

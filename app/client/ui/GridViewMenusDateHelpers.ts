@@ -541,7 +541,8 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
       // If no value in selected row, use current time for consistency
       const date = timestamp ? moment.tz(timestamp * 1000, timezone) : moment.tz(moment(), timezone);
       return date;
-    } catch (ex) {
+    }
+ catch (ex) {
       console.warn(`Can not read current value of column: ${ex}`);
       // Always use current time as fallback for consistency
       return moment();
@@ -663,7 +664,8 @@ export function buildDateHelpersMenuItems(gridView: GridView, index?: number) {
             itemTestId(section.header(), submenuLabel)
           )
         );
-      } else {
+      }
+ else {
         // This is a direct menu item
         // Skip DateTime-only items if column is Date
         if (!isDateTime && item.type.startsWith('DateTime')) {

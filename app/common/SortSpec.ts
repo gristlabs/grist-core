@@ -153,11 +153,14 @@ export namespace Sort {
   export function setColDirection(colSpec: ColSpec, dir: Direction): ColSpec {
     if (typeof colSpec == "number") {
       return Math.abs(colSpec) * dir;
-    } else if (colSpec.startsWith(VirtualId.PREFIX)) {
+    }
+ else if (colSpec.startsWith(VirtualId.PREFIX)) {
       return dir === DESC ? `-${colSpec}` : colSpec;
-    } else if (colSpec.startsWith(`-${VirtualId.PREFIX}`)) {
+    }
+ else if (colSpec.startsWith(`-${VirtualId.PREFIX}`)) {
       return dir === ASC ? colSpec.slice(1) : colSpec;
-    }  else {
+    }
+  else {
       return detailsToSpec({ ...parseColSpec(colSpec), direction: dir });
     }
   }
@@ -168,7 +171,8 @@ export namespace Sort {
   export function createColSpec(colRef: ColRef, dir: Direction): ColSpec {
     if (typeof colRef === "number") {
       return colRef * dir;
-    } else {
+    }
+ else {
       return dir === ASC ? colRef : `-${colRef}`;
     }
   }
@@ -292,7 +296,8 @@ export namespace Sort {
   export function parseSortColRefs(sortColRefs: string): SortSpec {
     try {
       return JSON.parse(sortColRefs);
-    } catch (err) {
+    }
+ catch (err) {
       return [];
     }
   }
@@ -338,9 +343,11 @@ export namespace Sort {
         if (![...colIdToRef.values()].includes(colRef)) {
           throw new Error(`invalid column id ${key}`);
         }
-      } else if (!colIdToRef.has(key)) {
+      }
+ else if (!colIdToRef.has(key)) {
         throw new Error(`unknown key ${key}`);
-      } else {
+      }
+ else {
         colRef = colIdToRef.get(key)!;
       }
       return `${sign || ""}${colRef}${options ?? ""}`;
@@ -362,10 +369,12 @@ export function VirtualId(symbol = '') {
       const generated = `${VirtualId.PREFIX}${_virtualIdCounter++}`;
       _virtualSymbols.set(symbol, generated);
       return generated;
-    } else {
+    }
+ else {
       return _virtualSymbols.get(symbol)!;
     }
-  } else {
+  }
+ else {
     return `${VirtualId.PREFIX}${_virtualIdCounter++}`;
   }
 }

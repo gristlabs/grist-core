@@ -110,7 +110,8 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
     log.transports.file.level = level;
     if (optCaptureTo instanceof Function) {
       log.add(CaptureTransport as any, { captureFunc: optCaptureTo, name });  // typing is off.
-    } else if (optCaptureTo) {
+    }
+ else if (optCaptureTo) {
       const suiteName = this.test?.parent?.title || 'unknown-suite';
       const testDir = await createTestDir(suiteName);
       const logPath = path.join(testDir, optCaptureTo);
@@ -180,7 +181,8 @@ export async function captureLog(
     if (options.waitForFirstLog) {
       await captureFirstLogPromise;
     }
-  } finally {
+  }
+ finally {
     log.remove(name);
     log.transports.file.level = prevLogLevel;
   }
@@ -241,7 +243,8 @@ export async function readTestScript(file: string) {
   fullText.split("\n").forEach(function(line, i) {
     if (line.match(/^\s*\/\//)) {
       allLines.push('');
-    } else {
+    }
+ else {
       line = line.replace(/"(APPLY|CHECK_OUTPUT|LOAD_SAMPLE)"\s*,/, '"$1@' + (i + 1) + '",');
       allLines.push(line);
     }
@@ -264,7 +267,8 @@ export async function processTestScriptSteps<T>(body: Promise<[string, T]>[],
     step[0] = (lineNoPos === -1) ? stepName : stepName.slice(0, lineNoPos);
     try {
       await stepCallback(step);
-    } catch (e) {
+    }
+ catch (e) {
       e.message = "LINE " + lineNum + ": " + e.message;
       throw e;
     }
@@ -278,9 +282,11 @@ export function deepSubstitute(obj: any, from: any, to: any): any {
   from = _.isArray(from) ? from : [from];
   if (_.isArray(obj)) {
     return obj.map(el => deepSubstitute(el, from, to));
-  } else if (obj && typeof obj === 'object' && !_.isFunction(obj)) {
+  }
+ else if (obj && typeof obj === 'object' && !_.isFunction(obj)) {
     return _.mapObject(obj, el => deepSubstitute(el, from, to));
-  } else {
+  }
+ else {
     return from.indexOf(obj) !== -1 ? to : obj;
   }
 }

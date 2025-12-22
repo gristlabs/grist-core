@@ -186,7 +186,8 @@ describe('CustomWidgets', function () {
             result = "__undefined__";
           }
           done(result);
-        } catch (e) {
+        }
+ catch (e) {
           done(String(e.message || e));
         }
       };
@@ -219,7 +220,8 @@ describe('CustomWidgets', function () {
     if (!level) {
       const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
       return Object.entries(text).find(e => e[1] === currentAccess)![0];
-    } else {
+    }
+ else {
       await driver.find('.test-config-widget-access .test-select-open').click();
       await gu.findOpenMenuItem('li', text[level]).click();
       await gu.waitForServer();

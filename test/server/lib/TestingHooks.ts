@@ -13,7 +13,8 @@ describe('TestingHooks', function() {
     const stub: TestingHooksClient = await connectTestingHooks(tmpName);
     try {
       assert.equal(await stub.getPort(), 192348);
-    } finally {
+    }
+ finally {
       server.close();
       stub.close();
     }

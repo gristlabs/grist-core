@@ -77,7 +77,8 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     this.onDispose(async () => {
       try {
         await this._shutdown();
-      } catch (e) {
+      }
+ catch (e) {
         if (!String(e).match(/GristWSConnection disposed/)) {
           reportError(e);
         }
@@ -141,9 +142,11 @@ export class DocComm extends Disposable implements ActiveDocAPI {
       if (!this._isClosed) {
         await this.closeDoc();
       }
-    } catch (err) {
+    }
+ catch (err) {
       console.warn(`DocComm: closeDoc failed: ${err}`);
-    } finally {
+    }
+ finally {
       if (!this._comm.isDisposed()) {
         this._comm.releaseDocConnection(this._docId);
       }
@@ -179,7 +182,8 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     }
     try {
       return await this._callDocMethod(name, ...args);
-    } catch (err) {
+    }
+ catch (err) {
       // TODO should be the suggested fork id and fork user.
       if (err.shouldFork) {
         // If the server suggests to fork, do it now, or wait for the fork already pending.

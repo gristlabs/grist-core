@@ -83,11 +83,14 @@ export function parsePermissions(permissionsText: string): PartialPermissionSet 
   for (const ch of permissionsText) {
     if (ch === '+') {
       value = "allow";
-    } else if (ch === '-') {
+    }
+ else if (ch === '-') {
       value = "deny";
-    } else if (!PERMISSION_BITS.hasOwnProperty(ch) || value === "") {
+    }
+ else if (!PERMISSION_BITS.hasOwnProperty(ch) || value === "") {
       throw new Error(`Invalid permissions specification ${JSON.stringify(permissionsText)}`);
-    } else {
+    }
+ else {
       const prop = PERMISSION_BITS[ch];
       pset[prop] = value;
     }
@@ -107,7 +110,8 @@ export function permissionSetToText(permissionSet: Partial<PartialPermissionSet>
     const value = permissionSet[prop];
     if (value === "allow") {
       add += ch;
-    } else if (value === "deny") {
+    }
+ else if (value === "deny") {
       remove += ch;
     }
   }

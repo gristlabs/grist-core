@@ -111,9 +111,11 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
             .filter(w => !w.isSupportWorkspace)
             .map(w => w.docs)
         );
-      } else if (ws) {
+      }
+ else if (ws) {
         return ws.docs;
-      } else {
+      }
+ else {
         return [];
       }
     }
@@ -176,7 +178,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       const viewSettings = makeLocalViewSettings(null, 'all');
       this.currentSort = viewSettings.currentSort;
       this.currentView = viewSettings.currentView;
-    } else {
+    }
+ else {
       // Preference for sorting. Defaults to 'name'. Saved to server on write.
       this.currentSort = Computed.create(this, this._userOrgPrefs,
         (use, prefs) => SortPref.parse(prefs?.docMenuSort) || 'name')
@@ -378,7 +381,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     let templateWss: Workspace[] = [];
     try {
       templateWss = await this._app.api.getTemplates();
-    } catch {
+    }
+ catch {
       reportError('Failed to load templates');
     }
     if (this.isDisposed()) { return null; }
@@ -410,7 +414,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       if (this.isDisposed()) { return; }
 
       this.onboardingTutorial.set(doc);
-    } catch (e) {
+    }
+ catch (e) {
       console.error(e);
       reportError('Failed to load welcome tutorial');
     }

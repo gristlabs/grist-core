@@ -108,12 +108,14 @@ export function exitPromise(child: ChildProcess): Promise<number|string> {
 export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: boolean): string {
   if (options.type === 'sqlite') {
     return `sqlite://${options.database}`;
-  } else if (options.type === 'postgres') {
+  }
+ else if (options.type === 'postgres') {
     const pass = options.password ? `:${options.password}` : '';
     const creds = includeCredentials && options.username ? `${options.username}${pass}@` : '';
     const port = options.port ? `:${options.port}` : '';
     return `postgres://${creds}${options.host}${port}/${options.database}`;
-  } else {
+  }
+ else {
     return `${options.type}://?`;
   }
 }
@@ -136,7 +138,8 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
       });
       throw new Error(`Document failed integrity checks - is it corrupted? Event ID: ${uuid}`);
     }
-  } finally {
+  }
+ finally {
     await db.close();
   }
 }
@@ -164,7 +167,8 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
         signal?.removeEventListener('abort', reject);
       };
     });
-  } finally {
+  }
+ finally {
     cleanup();
   }
 }
@@ -220,9 +224,11 @@ export function expectedResetDate(startMs: number, endMs: number, now?: number):
   const periods = range(0, 12).map((nr) => {
     if (nr === 0) {
       return period(startMs, endOf(nr));
-    } else if (nr !== 11) {
+    }
+ else if (nr !== 11) {
       return period(endOf(nr - 1), endOf(nr));
-    } else {
+    }
+ else {
       return period(endOf(nr - 1), endMs);
     }
   });

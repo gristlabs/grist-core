@@ -60,7 +60,8 @@ function relativeDateOptionsSpec(value: IRangeBoundType): Array<IRangeBoundType>
 
   if (value === undefined) {
     return DEFAULT_OPTION_LIST;
-  } else if (isRelativeBound(value)) {
+  }
+ else if (isRelativeBound(value)) {
     value = relativeDateToUnixTimestamp(value);
   }
 

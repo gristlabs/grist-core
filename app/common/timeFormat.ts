@@ -43,7 +43,8 @@ function timeFormatHelper(out: string[], format: string, date: Date) {
     const helper = timeFormatKeys[c];
     if (helper) {
       helper(out, date);
-    } else {
+    }
+ else {
       out.push(c);
     }
   }

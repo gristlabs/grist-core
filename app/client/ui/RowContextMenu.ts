@@ -43,7 +43,8 @@ export function RowContextMenu({
       menuItemCmd(allCommands.insertRecordAfter, t("Insert row"),
         dom.cls('disabled', disableInsert)),
     );
-  } else {
+  }
+ else {
     result.push(
       menuItemCmd(allCommands.insertRecordBefore, t("Insert row above"),
         dom.cls('disabled', disableInsert)),

@@ -51,17 +51,21 @@ export class FormModelImpl extends Disposable implements FormModel {
         this.error.set(null);
       });
       this.form.set(await this._formAPI.getForm(this._getFetchFormParams()));
-    } catch (e: unknown) {
+    }
+ catch (e: unknown) {
       let error: string | undefined;
       if (e instanceof ApiError) {
         const code = e.details?.code;
         if (code === 'FormNotFound') {
           error = t("Oops! The form you're looking for doesn't exist.");
-        } else if (code === 'FormNotPublished') {
+        }
+ else if (code === 'FormNotPublished') {
           error = t('Oops! This form is no longer published.');
-        } else if (e.status === 401 || e.status === 403) {
+        }
+ else if (e.status === 401 || e.status === 403) {
           error = t("You don't have access to this form.");
-        } else if (e.status === 404) {
+        }
+ else if (e.status === 404) {
           error = t("Oops! The form you're looking for doesn't exist.");
         }
       }
@@ -102,7 +106,8 @@ export class FormModelImpl extends Disposable implements FormModel {
           }),
         new Promise(resolve => setTimeout(resolve, 1000)),
       ]);
-    } finally {
+    }
+ finally {
       this.submitting.set(false);
     }
   }
@@ -120,9 +125,11 @@ export class FormModelImpl extends Disposable implements FormModel {
 
     if (doc) {
       return {docId: doc};
-    } else if (form.shareKey) {
+    }
+ else if (form.shareKey) {
       return {shareKey: form.shareKey};
-    } else {
+    }
+ else {
       throw new Error('invalid urlState: undefined "doc" or "shareKey"');
     }
   }

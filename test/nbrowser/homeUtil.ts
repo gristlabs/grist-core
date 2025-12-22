@@ -99,7 +99,8 @@ export class HomeUtil {
       if (showGristTour !== undefined) { await this._initShowGristTour(email, showGristTour); }
       if (showTips) {
         await this.enableTips(email);
-      } else {
+      }
+ else {
         await this.disableTips(email);
       }
       // TestingHooks communicates via JSON, so it's impossible to send an `undefined` value for org
@@ -112,7 +113,8 @@ export class HomeUtil {
         {name, email, loginEmail: normalizeEmail(email), loginMethod},
         org
       );
-    } else {
+    }
+ else {
       if (loginMethod && loginMethod !== 'Email + Password') {
         throw new Error('only Email + Password logins supported for external server tests');
       }
@@ -129,7 +131,8 @@ export class HomeUtil {
       // Fill the login form (either test or Grist).
       if (await this.isOnTestLoginPage()) {
         await this.fillTestLoginForm(email, name);
-      } else {
+      }
+ else {
         await this.fillGristLoginForm(email);
       }
 
@@ -162,7 +165,8 @@ export class HomeUtil {
       const testingHooks = await this.server.getTestingHooks();
       const sid = await this.getGristSid();
       if (sid) { await testingHooks.setLoginSessionProfile(sid, null, org); }
-    } else {
+    }
+ else {
       await this.driver.get(`${this.server.getHost()}/logout`);
       await this._acceptAlertIfPresent();
     }
@@ -408,7 +412,8 @@ export class HomeUtil {
     // Fill the login form (either test or Grist).
     if (await this.isOnTestLoginPage()) {
       await this.fillTestLoginForm(email, name);
-    } else {
+    }
+ else {
       await this.fillGristLoginForm(email);
     }
   }
@@ -490,7 +495,8 @@ export class HomeUtil {
         ...(enabled ? ALL_TIPS_ENABLED : ALL_TIPS_DISABLED),
       };
       await dbManager.updateOrg({userId: user.id}, user.personalOrg.id, {userPrefs: newUserPrefs});
-    } else {
+    }
+ else {
       await this.driver.executeScript(`
         const userPrefs = JSON.parse(localStorage.getItem('userPrefs:u=${user.id}') || '{}');
         localStorage.setItem('userPrefs:u=${user.id}', JSON.stringify({
@@ -504,7 +510,8 @@ export class HomeUtil {
   private async _acceptAlertIfPresent() {
     try {
       await (await this.driver.switchTo().alert()).accept();
-    } catch {
+    }
+ catch {
       /* There was no alert to accept. */
     }
   }

@@ -140,9 +140,11 @@ export class DocSettingsPage extends Disposable {
                 const acceptProposals = !this._acceptProposals.get();
                 await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
                 window.location.reload();
-              } catch(e) {
+              }
+ catch(e) {
                 reportError(e);
-              } finally {
+              }
+ finally {
                 this._working.set(false);
               }
             }),
@@ -174,7 +176,8 @@ export class DocSettingsPage extends Disposable {
                   testId('timing-stop')
                 )
               );
-            } else {
+            }
+ else {
               return cssSmallButtonSettings(t('Start timing'),
                 dom.on('click', this._startTiming.bind(this)),
                 testId('timing-start')
@@ -308,7 +311,8 @@ document is first opened, or when a document responds to changes.'
       if (r.stores.length === 0) {
         // There are no external providers (for now there can be at most 1).
         stores.set([]);
-      } else {
+      }
+ else {
         stores.set([INTERNAL, EXTERNAL]);
       }
     });
@@ -401,7 +405,8 @@ document is first opened, or when a document responds to changes.'
           isUploadingObs.set(true);
           try {
             await this._uploadAttachmentsArchive(file);
-          } finally {
+          }
+ finally {
             if (!isUploadingObs.isDisposed()) {
               isUploadingObs.set(false);
             }
@@ -440,7 +445,8 @@ document is first opened, or when a document responds to changes.'
         canUserClose: true,
         expireSec: 5,
       });
-    } catch (err) {
+    }
+ catch (err) {
       reportWarning(err.toString(), {
         key: "attachmentArchiveUploadError",
         title: "Attachments upload failed",
@@ -480,7 +486,8 @@ No data will be lost, except possibly currently pending actions.'
           await this._gristDoc.docApi.forceReload();
           ctl.close();
           urlState().pushUrl({docPage: 'timing'}).catch(reportError);
-        } else {
+        }
+ else {
           await this._gristDoc.docApi.startTiming();
           ctl.close();
         }
@@ -558,9 +565,11 @@ No data will be lost, except possibly currently pending actions.'
         let docType: DocumentType;
         if (selected.get() === DocTypeOption.Regular) {
           docType = DOCTYPE_NORMAL;
-        } else if (selected.get() === DocTypeOption.Template) {
+        }
+ else if (selected.get() === DocTypeOption.Template) {
           docType = DOCTYPE_TEMPLATE;
-        } else {
+        }
+ else {
           docType = DOCTYPE_TUTORIAL;
         }
 
@@ -740,7 +749,8 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
     if (yes) {
       return cssMarkdownSpan(
         `${someExternal()} ${newInInternal()}\n\n${learnMore()}`, ...args, testId('transfer-message-in-progress'));
-    } else {
+    }
+ else {
       return cssMarkdownSpan(
         `${someExternal()} ${startToInternal()} ${newInInternal()}\n\n${learnMore()}`,
         ...args,
@@ -770,7 +780,8 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
         testId('transfer-message-in-progress'),
         ...args
       );
-    } else {
+    }
+ else {
       return cssMarkdownSpan(
         `${someInternal()} ${startToExternal()} ${newInExternal()}\n\n${learnMore()}`,
         testId('transfer-message-static'),

@@ -373,11 +373,13 @@ export class GranularAccess implements GranularAccessForBundle {
       const override = attrs.override || (attrs.override = await this._getViewAsUser(linkParameters));
       access = override.access;
       fullUser = override.user;
-    } else if (linkId) {
+    }
+ else if (linkId) {
       // Anonymize user info for form submissions.
       // Note: This is half-baked and doesn't account for other types of shares besides forms.
       fullUser = this._homeDbManager?.makeFullUser(this._homeDbManager.getAnonymousUser()) ?? null;
-    } else {
+    }
+ else {
       fullUser = docSession.fullUser;
     }
     const user = new User();
@@ -427,7 +429,8 @@ export class GranularAccess implements GranularAccessForBundle {
             params: [get(user, clause.charId)],
           },
         });
-      } catch (e) {
+      }
+ catch (e) {
         log.warn(`User attribute ${clause.name} failed`, e);
       }
       if (rows && rows[2].length > 0) { rec = new RecordView(rows, 0); }
@@ -469,7 +472,8 @@ export class GranularAccess implements GranularAccessForBundle {
     try {
       await this.getCellValue(docSession, cell, docData);
       return true;
-    } catch(err) {
+    }
+ catch(err) {
       if (err instanceof ErrorWithCode) { return false; }
       throw err;
     }
@@ -492,7 +496,8 @@ export class GranularAccess implements GranularAccessForBundle {
       if (record) {
         rows = ['TableData', cell.tableId, [cell.rowId], getColValues([record])];
       }
-    } else {
+    }
+ else {
       rows = await this._fetchQueryFromDB({
         tableId: cell.tableId,
         filters: { id: [cell.rowId] }
@@ -563,7 +568,8 @@ export class GranularAccess implements GranularAccessForBundle {
       try {
         await this.assertAttachmentAccess(docSession, possibleCell, attId);
         return possibleCell;
-      } catch (e) {
+      }
+ catch (e) {
         if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
           continue;
         }
@@ -668,7 +674,8 @@ export class GranularAccess implements GranularAccessForBundle {
       }
       try {
         ruleCollection.checkDocEntities(tmpDocData);
-      } catch (err) {
+      }
+ catch (err) {
         throw new ApiError(err.message, 400);
       }
     }
@@ -762,7 +769,8 @@ export class GranularAccess implements GranularAccessForBundle {
     try {
       const filtered = await this._getOutgoingDocActionsForNotifications(userData);
       return describeDocActions(filtered, this._docData);
-    } catch (err) {
+    }
+ catch (err) {
       if (err.code === 'NEED_RELOAD') {
         // If something changes that affects access and tells each client to reload, then consider
         // it a change visible to all users, even though we can't tell which tables are affected.
@@ -770,11 +778,14 @@ export class GranularAccess implements GranularAccessForBundle {
         // The error message normally mentions the reason for the reload, so get category from that.
         if (err.message.includes('user attributes')) {
           result.categories.push('user attributes');
-        } else if (err.message.includes('access rules')) {
+        }
+ else if (err.message.includes('access rules')) {
           result.categories.push('access rules');
-        } else if (err.message.includes('share')) {
+        }
+ else if (err.message.includes('share')) {
           result.categories.push('forms');
-        } else {
+        }
+ else {
           result.categories.push('metadata');   // catch-all
         }
         return result;
@@ -816,7 +827,8 @@ export class GranularAccess implements GranularAccessForBundle {
       }
 
       return docComments;
-    } catch (err) {
+    }
+ catch (err) {
       if (err.code === 'NEED_RELOAD') {
         // If something changes that affects access and tells each client to reload, then we
         // can't tell what comment actions are visible. This should never happen in normal use
@@ -986,7 +998,8 @@ export class GranularAccess implements GranularAccessForBundle {
           await this._checkIncomingDocAction({docSession, action, actionIdx});
           // Nothing forbidden!  Keep this action unchanged.
           proposedActions.push(action);
-        } catch (e) {
+        }
+ catch (e) {
           if (String(e.code) !== 'ACL_DENY') { throw e; }
           const acts = await this._prefilterDocAction({docSession, action, actionIdx});
           proposedActions.push(...acts);
@@ -1001,7 +1014,8 @@ export class GranularAccess implements GranularAccessForBundle {
           this._metaSteps = null;
         }
       }
-    } finally {
+    }
+ finally {
       await this.finishedBundle();
     }
     return [['ApplyUndoActions', proposedActions]];
@@ -1027,7 +1041,8 @@ export class GranularAccess implements GranularAccessForBundle {
     ];
     if (actionNames.includes(name)) {
       return true;
-    } else if (isDataAction(a)) {
+    }
+ else if (isDataAction(a)) {
       const tableId = getTableId(a);
       if (tableId === '_grist_Tables_column' || tableId === '_grist_Validations') {
         return true;
@@ -1339,7 +1354,8 @@ export class GranularAccess implements GranularAccessForBundle {
             access: isValidRole(access) ? access : null,  // 'null' -> null a bit circuitously
           });
         }
-      } catch (e) {
+      }
+ catch (e) {
         log.warn(`User attribute ${clause.name} failed`, e);
       }
     }
@@ -1428,9 +1444,11 @@ export class GranularAccess implements GranularAccessForBundle {
     const name = a[0] as string;
     if (name === 'ApplyUndoActions') {
       return this._checkSimpleDataActions(docSession, a[1] as UserAction[]);
-    } else if (name === 'ApplyDocActions') {
+    }
+ else if (name === 'ApplyDocActions') {
       return this._checkSimpleDataActions(docSession, a[1] as UserAction[]);
-    } else if (isDataAction(a)) {
+    }
+ else if (isDataAction(a)) {
       const tableId = getTableId(a);
       if (isMetadataTable(tableId)) {
         return false;
@@ -1439,7 +1457,8 @@ export class GranularAccess implements GranularAccessForBundle {
       const accessCheck = await this._getAccessForActionType(docSession, a, 'fatal');
       accessCheck.get(tableAccess);  // will throw if access denied.
       return true;
-    } else {
+    }
+ else {
       // Any other action might change schema, so continuing could lead
       // to false detections of failures. For example, renaming a column
       // and then updating cells within it should be allowed.
@@ -1455,15 +1474,19 @@ export class GranularAccess implements GranularAccessForBundle {
         if (await this.hasNuancedAccess(docSession)) {
           throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need uncomplicated access`);
         }
-      } else if (SURPRISING_ACTIONS.has(name)) {
+      }
+ else if (SURPRISING_ACTIONS.has(name)) {
         if (!await this.hasFullAccess(docSession)) {
           throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions need full access`);
         }
-      } else if (OK_ACTIONS.has(name)) {
+      }
+ else if (OK_ACTIONS.has(name)) {
         // fine, anyone can do these at any time, continue.
-      } else if (OTHER_RECOGNIZED_ACTIONS.has(name)) {
+      }
+ else if (OTHER_RECOGNIZED_ACTIONS.has(name)) {
         // these are known actions that have not been specifically classified.
-      } else {
+      }
+ else {
         // we've hit something unexpected - perhaps a UserAction has been added
         // without considering access control.
         throw new ErrorWithCode('ACL_DENY', `Blocked by access rules: '${name}' actions are not controlled`);
@@ -1652,17 +1675,20 @@ export class GranularAccess implements GranularAccessForBundle {
     permInfo = new TransformColumnPermissionInfo(permInfo);
     if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return a;
-    } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
+    }
+ else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord' || a[0] === 'UpdateRecord' ||
                a[0] === 'BulkUpdateRecord' || a[0] === 'ReplaceTableData' || a[0] === 'TableData') {
       const na = cloneDeep(a);
       this._filterColumns(na[3], colId => accessCheck.get(permInfo.getColumnAccess(tableId, colId)) !== 'deny');
       if (Object.keys(na[3]).length === 0) { return null; }
       return na;
-    } else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
+    }
+ else if (a[0] === 'AddColumn' || a[0] === 'RemoveColumn' || a[0] === 'RenameColumn' ||
                a[0] === 'ModifyColumn') {
       const colId: string = a[2];
       if (accessCheck.get(permInfo.getColumnAccess(tableId, colId)) === 'deny') { return null; }
-    } else {
+    }
+ else {
       // Remaining cases of AddTable, RemoveTable, RenameTable should have
       // been handled at the table level.
     }
@@ -1727,10 +1753,12 @@ export class GranularAccess implements GranularAccessForBundle {
           // For updates, we need to send the entire row as an add, since the client
           // doesn't know anything about it yet.
           forceAdds.add(id);
-        } else {
+        }
+ else {
           // Remaining cases are [Bulk]RemoveRecord.
         }
-      } else {
+      }
+ else {
         // The row was allowed and now is forbidden.
         // If the action is a removal, that is just right.
         if (action[0] === 'RemoveRecord' || action[0] === 'BulkRemoveRecord') { continue; }
@@ -1739,7 +1767,8 @@ export class GranularAccess implements GranularAccessForBundle {
         if (action[0] === 'UpdateRecord' || action[0] === 'BulkUpdateRecord') {
           // For updates, we need to remove the entire row.
           forceRemoves.add(id);
-        } else {
+        }
+ else {
           // Remaining cases are add-like actions.
         }
       }
@@ -1893,7 +1922,8 @@ export class GranularAccess implements GranularAccessForBundle {
     let rowsNewRec = rowsAfter;
     if (isSomeAddRecordAction(action)) {
       rowsRec = rowsAfter;
-    } else if (isSomeRemoveRecordAction(action)) {
+    }
+ else if (isSomeRemoveRecordAction(action)) {
       rowsNewRec = rowsBefore;
     }
 
@@ -1917,9 +1947,11 @@ export class GranularAccess implements GranularAccessForBundle {
     let censorAt: (colId: string, idx: number) => void;
     if (colValues === undefined) {
       censorAt = () => 1;
-    } else if (Array.isArray(action[2])) {
+    }
+ else if (Array.isArray(action[2])) {
       censorAt = (colId, idx) => (copyOnNeed() as BulkColValues)[colId][idx] = [GristObjCode.Censored];
-    } else {
+    }
+ else {
       censorAt = colId => (copyOnNeed() as ColValues)[colId] = [GristObjCode.Censored];
     }
 
@@ -1945,7 +1977,8 @@ export class GranularAccess implements GranularAccessForBundle {
       const access = accessCheck.get(rowAccess);
       if (access === 'deny') {
         toRemove.push(idx);
-      } else if (access !== 'allow' && colValues) {
+      }
+ else if (access !== 'allow' && colValues) {
         // Go over column rules.
         for (const colId of Object.keys(colValues)) {
           const colAccess = rowPermInfo.getColumnAccess(tableId, colId);
@@ -1962,10 +1995,12 @@ export class GranularAccess implements GranularAccessForBundle {
         copyOnNeed();
         if (Array.isArray(filteredAction[2])) {
           this._removeRowsAt(toRemove, filteredAction[2], filteredAction[3]);
-        } else {
+        }
+ else {
           filteredAction = null;
         }
-      } else {
+      }
+ else {
         // Artificially introduced removals are ok, otherwise this is suspect.
         if (filteredAction[0] !== 'RemoveRecord' && filteredAction[0] !== 'BulkRemoveRecord') {
           throw new Error('Unexpected row removal');
@@ -1996,7 +2031,8 @@ export class GranularAccess implements GranularAccessForBundle {
         if (rowAccess.read === 'deny') {
           toRemove.push(rowIds[idx]);
         }
-      } else {
+      }
+ else {
         const colAccess = rowPermInfo.getColumnRuleSetAspect(colRuleSet);
         if (colAccess.read === 'deny') {
           toRemove.push(rowIds[idx]);
@@ -2100,7 +2136,8 @@ export class GranularAccess implements GranularAccessForBundle {
         access: dbAccess.access,
         user: this._homeDbManager?.makeFullUser(dbUser) || null
       };
-    } else if (linkParameters.aclAsUser) {
+    }
+ else if (linkParameters.aclAsUser) {
       // Look further for the user, in user attribute tables or examples.
       const otherUsers = (await this.collectViewAsUsersFromUserAttributeTables())
                           .concat(this.getExampleViewAsUsers());
@@ -2109,7 +2146,8 @@ export class GranularAccess implements GranularAccessForBundle {
       if (!dummyUser) {
         // Make sure the user is in the table or examples, otherwise we return no access.
         return {access: null, user: null};
-      } else {
+      }
+ else {
         let access = dummyUser.access || null;
         if (!access) {
           // In case the dummy user has no access to the document, check if the document
@@ -2129,7 +2167,8 @@ export class GranularAccess implements GranularAccessForBundle {
           }
         };
       }
-    } else {
+    }
+ else {
       return {access: null, user: null};
     }
   }
@@ -2334,7 +2373,8 @@ export class GranularAccess implements GranularAccessForBundle {
       // replaceRuler logic avoids updating rules between paired changes of resources and rules.
       if (actionHasRuleChange(docAction)) {
         replaceRuler = true;
-      } else if (replaceRuler) {
+      }
+ else if (replaceRuler) {
         ruler = new Ruler(this);
         await ruler.update(metaDocData);
         replaceRuler = false;
@@ -2366,10 +2406,12 @@ export class GranularAccess implements GranularAccessForBundle {
     if (access === 'deny') {
       // Filter out this action entirely.
       return [];
-    } else if (access === 'allow') {
+    }
+ else if (access === 'allow') {
       // Retain this action entirely.
       return [action];
-    } else if (access === 'mixedColumns') {
+    }
+ else if (access === 'mixedColumns') {
       // Retain some or all columns entirely.
       const act = this._pruneColumns(action, permInfo, tableId, accessCheck);
       return act ? [act] : [];
@@ -2424,19 +2466,23 @@ export class GranularAccess implements GranularAccessForBundle {
       // Granular access rules don't apply to metadata directly, instead there
       // is a process of censorship (see later in this method).
       results = [action];
-    } else {
+    }
+ else {
       const permInfo = await this._getStepAccess(cursor);
       const tableAccess = permInfo.getTableAccess(tableId);
       const access = this.getReadPermission(tableAccess);
       const readAccessCheck = this._readAccessCheck(cursor.docSession);
       if (access === 'deny') {
         // filter out this data.
-      } else if (access === 'allow') {
+      }
+ else if (access === 'allow') {
         results.push(action);
-      } else if (access === 'mixedColumns') {
+      }
+ else if (access === 'mixedColumns') {
         const act = this._pruneColumns(action, permInfo, tableId, readAccessCheck);
         if (act) { results.push(act); }
-      } else {
+      }
+ else {
         // The remainder is the mixed condition.
         for (const act of await this._pruneRows(cursor)) {
           const prunedAct = this._pruneColumns(act, permInfo, tableId, readAccessCheck);
@@ -2448,7 +2494,8 @@ export class GranularAccess implements GranularAccessForBundle {
     for (const act of results) {
       if (STRUCTURAL_TABLES.has(getTableId(act)) && isDataAction(act)) {
         await this._filterOutgoingStructuralTables(cursor, act, secondPass);
-      } else {
+      }
+ else {
         secondPass.push(act);
       }
     }
@@ -2619,7 +2666,8 @@ export class GranularAccess implements GranularAccessForBundle {
     try {
       await this._assertSchemaAccess(docSession);
       return docActions;
-    } catch (e: unknown) {
+    }
+ catch (e: unknown) {
       if (e instanceof ErrorWithCode && e.code === 'ACL_DENY') {
         return docActions.filter((a) => {
           const tableId = getTableId(a);
@@ -2696,13 +2744,17 @@ export class GranularAccess implements GranularAccessForBundle {
         return dummyAccessCheck;
       }
       return accessChecks[severity].schemaEdit;
-    } else if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
+    }
+ else if (a[0] === 'UpdateRecord' || a[0] === 'BulkUpdateRecord') {
       return accessChecks[severity].update;
-    } else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
+    }
+ else if (a[0] === 'RemoveRecord' || a[0] === 'BulkRemoveRecord') {
       return accessChecks[severity].delete;
-    } else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
+    }
+ else if (a[0] === 'AddRecord' || a[0] === 'BulkAddRecord') {
       return accessChecks[severity].create;
-    } else {
+    }
+ else {
       return accessChecks[severity].schemaEdit;
     }
   }
@@ -2932,7 +2984,8 @@ class RecordEditor implements InfoEditor {
     if (this.optional && !(colId in this._data)) { return this; }
     if (this._bulk) {
       (this._data as BulkColValues)[colId][this.index] = val;
-    } else {
+    }
+ else {
       (this._data as ColValues)[colId] = val;
     }
     return this;
@@ -3140,7 +3193,8 @@ export class CensorshipInfo {
       const tableAccess = permInfo.getTableAccess(tableId);
       if (tableAccess.perms.read === 'deny') {
         this.censoredTables.add(tableRef);
-      } else if (tableAccess.perms.read === 'allow') {
+      }
+ else if (tableAccess.perms.read === 'allow') {
         uncensoredTables.add(tableRef);
       }
     }
@@ -3379,7 +3433,8 @@ export function filterColValues(action: DataAction,
     const peers = parts.get(mergedKey);
     if (!peers) {
       parts.set(mergedKey, [action[0], action[1], [rowIds[idx]], values]);
-    } else {
+    }
+ else {
       peers[2].push(rowIds[idx]);
       for (const key of keys) {
         peers[3][key].push(values[key][0]);

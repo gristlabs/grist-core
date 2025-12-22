@@ -32,7 +32,8 @@ export function sameUser(a: UserProfile|FullUser, b: UserProfile|FullUser): bool
   }
   if (a.loginEmail && b.loginEmail) {
     return a.loginEmail === b.loginEmail;
-  } else {
+  }
+ else {
     return normalizeEmail(a.email) === normalizeEmail(b.email);
   }
 }

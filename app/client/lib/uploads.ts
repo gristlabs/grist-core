@@ -51,7 +51,8 @@ export async function selectFiles(options: SelectFileOptions,
   if (typeof electronSelectFiles === 'function') {
     onProgress(0);
     result = await electronSelectFiles(getElectronOptions(options));
-  } else {
+  }
+ else {
     const fileList = await selectPicker(options);
     // start the progress bar only after the user selected the files
     onProgress(0);
@@ -123,7 +124,8 @@ export async function uploadFiles(
     if (totalSize > maxUploadSizeImport) {
       throw new UserError(`Imported files may not exceed ${byteString(maxUploadSizeImport)}`);
     }
-  } else if (options.sizeLimit === 'attachment' && maxUploadSizeAttachment) {
+  }
+ else if (options.sizeLimit === 'attachment' && maxUploadSizeAttachment) {
     // For attachments, we limit the size of each attachment.
     if (fileList.some(f => (f.size > maxUploadSizeAttachment))) {
       throw new UserError(`Attachments may not exceed ${byteString(maxUploadSizeAttachment)}`);
@@ -166,7 +168,8 @@ async function uploadFormData(
         console.warn("Upload failed", xhr.status, xhr.responseText);
         const err = safeJsonParse(xhr.responseText, null);
         reject(new UserError('Upload failed: ' + (err && err.error || xhr.status)));
-      } else {
+      }
+ else {
         onProgress(100);
         resolve(JSON.parse(xhr.responseText));
       }
@@ -192,7 +195,8 @@ export async function fetchURL(
   let response: Response;
   try {
     response = await window.fetch(url);
-  } catch (err) {
+  }
+ catch (err) {
     console.log( // tslint:disable-line:no-console
       `Could not fetch ${url} on the Client, falling back to server fetch: ${err.message}`
     );

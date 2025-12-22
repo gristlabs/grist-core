@@ -163,7 +163,8 @@ export class Throttle {
     let cpuDuration: number;
     try {
       cpuDuration = (await pidusage(this._options.readPid || this._options.pid)).ctime;
-    } catch (e) {
+    }
+ catch (e) {
       // process may have disappeared.
       this._log(`Throttle measurement error: ${e}`, this._options.logMeta);
       return;
@@ -271,7 +272,8 @@ export class Throttle {
           }, this._timing.traceNudgeOffset);
         }
       }
-    } catch (e) {
+    }
+ catch (e) {
       // process may have disappeared
       this._log(`Throttle error: ${e}`, this._options.logMeta);
     }

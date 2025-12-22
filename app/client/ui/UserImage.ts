@@ -19,11 +19,14 @@ export function createUserImage(user: User, size: Size, ...args: DomElementArg[]
     ...(function*() {
       if (user === 'exampleUser') {
         yield [cssUserImage.cls('-example'), cssExampleUserIcon('EyeShow')];
-      } else if (user === 'addUser') {
+      }
+ else if (user === 'addUser') {
         yield [cssUserImage.cls('-add'), cssUserIcon('AddUser')];
-      } else if (!user || user.anonymous) {
+      }
+ else if (!user || user.anonymous) {
         yield cssUserImage.cls('-anon');
-      } else {
+      }
+ else {
         if (user.picture) {
           yield cssUserPicture({src: user.picture}, dom.on('error', (ev, el) => dom.hideElem(el, true)));
         }

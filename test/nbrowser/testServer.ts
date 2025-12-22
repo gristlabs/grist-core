@@ -72,7 +72,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
 
       if (process.env.TESTDIR) {
         this.testDir = path.join(process.env.TESTDIR, workerIdText);
-      } else {
+      }
+ else {
         // Create a testDir of the form grist_test_{USER}_{SERVER_NAME}_{WORKER_ID}, removing any previous one.
         const username = process.env.USER || "nobody";
         this.testDir = path.join(tmpdir(), `grist_test_${username}_${this._name}_${workerIdText}`);
@@ -207,7 +208,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     this._server.kill('SIGSTOP');
     try {
       await callback();
-    } finally {
+    }
+ finally {
       log.info("Resuming node server");
       this.resume();
     }
@@ -250,7 +252,8 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
   public async isServerReady(): Promise<boolean> {
     try {
       return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
-    } catch (err) {
+    }
+ catch (err) {
       return false;
     }
   }

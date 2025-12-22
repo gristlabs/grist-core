@@ -74,10 +74,12 @@ export class CustomView extends BaseView {
       if (!this.isDisposed() && !this._frame?.isDisposed()) {
         try {
           await this._frame.editOptions();
-        } catch(err) {
+        }
+ catch(err) {
           if (err.message === "Unknown interface") {
             throw new UserError("Custom widget doesn't expose configuration screen.");
-          } else {
+          }
+ else {
             throw err;
           }
         }
@@ -183,7 +185,8 @@ export class CustomView extends BaseView {
 
     if (this._pluginInstance) {
       this._foundPlugin(true);
-    } else {
+    }
+ else {
       this._foundPlugin(false);
       this._foundSection(false);
     }
@@ -205,7 +208,8 @@ export class CustomView extends BaseView {
       const el = this._customSection.element;
       el.classList.add("flexitem");
       this._foundSection(true);
-    } else {
+    }
+ else {
       this._foundSection(false);
     }
   }
@@ -416,7 +420,8 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
         if (document.activeElement === frame) {
           try {
             handler();
-          } finally {
+          }
+ finally {
             // Stop checking, we will start again after next mouseenter.
             stop();
           }

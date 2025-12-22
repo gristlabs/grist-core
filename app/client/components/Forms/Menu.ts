@@ -89,7 +89,8 @@ export function buildMenu(props: Props, ...args: IDomArgs<HTMLElement>): IDomArg
       const custom = props.insertBox ? (el: NewBox) => () => {
         if ('add' in el || 'show' in el) {
           return view.addNewQuestion(props.insertBox!, el);
-        } else {
+        }
+ else {
           props.insertBox!(components.defaultElement(el.structure));
           return view.save();
         }

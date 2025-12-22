@@ -366,7 +366,8 @@ describe("NumberParse", function() {
                   basicFormatter.format(parsed!),
                   basicFormatter.format(num),
                 );
-              } catch (e) {
+              }
+ catch (e) {
                 // Handy information for understanding failures
                 // tslint:disable-next-line:no-console
                 console.log({

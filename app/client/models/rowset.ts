@@ -230,7 +230,8 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
       if (this._filterFunc(r)) {
         this._matchingRows.add(r);
         outputRows.push(r);
-      } else {
+      }
+ else {
         this._addExcludedRow(r);
       }
     }
@@ -262,7 +263,8 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
   public onRowNotify(rows: RowsChanged, notifyValue: any) {
     if (rows === ALL) {
       this.trigger('rowNotify', ALL, notifyValue);
-    } else {
+    }
+ else {
       const outputRows = [];
       for (const r of rows) {
         if (this._matchingRows.has(r)) {
@@ -285,11 +287,13 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
       if (this._filterFunc(r)) {
         if (this._matchingRows.has(r)) {
           (changes.updates || (changes.updates = [])).push(r);
-        } else if (this._deleteExcludedRow(r)) {
+        }
+ else if (this._deleteExcludedRow(r)) {
           this._matchingRows.add(r);
           (changes.adds || (changes.adds = [])).push(r);
         }
-      } else {
+      }
+ else {
         if (this._matchingRows.delete(r)) {
           this._addExcludedRow(r);
           (changes.removes || (changes.removes = [])).push(r);
@@ -471,7 +475,8 @@ export class RowGrouping<Value> extends RowListener {
       const newValue = this._groupFunc(r);
       if (newValue === oldValue) {
         _addToMapOfArrays(updateGroup || (updateGroup = new Map()), oldValue, r);
-      } else {
+      }
+ else {
         this._rowsToValues.set(r, newValue);
         _addToMapOfArrays(removeGroup || (removeGroup = new Map()), oldValue, r);
         _addToMapOfArrays(insertGroup || (insertGroup = new Map()), newValue, r);
@@ -504,7 +509,8 @@ export class RowGrouping<Value> extends RowListener {
       for (const group of this._valuesToGroups.values()) {
         group.trigger('rowNotify', ALL, notifyValue);
       }
-    } else {
+    }
+ else {
       const groupedRows = new Map();
       for (const r of rows) {
         _addToMapOfArrays(groupedRows, this._rowsToValues.get(r), r);
@@ -583,7 +589,8 @@ export class SortedRowSet extends RowListener {
         const insertIndex = sortedIndex(this._koArray.peek(), r, this._compareFunc);
         this._koArray.splice(insertIndex, 0, r);
       }
-    } else {
+    }
+ else {
       this._koArray.assign(this._keep(Array.from(this._allRows).sort(this._compareFunc)));
     }
   }
@@ -602,7 +609,8 @@ export class SortedRowSet extends RowListener {
           this._koArray.splice(index, 1);
         }
       }
-    } else {
+    }
+ else {
       this._koArray.assign(this._keep(Array.from(this._allRows).sort(this._compareFunc)));
     }
   }
@@ -629,7 +637,8 @@ export class SortedRowSet extends RowListener {
       // may no longer be in the correct sort order, so binary search is broken until they are gone.
       this.onRemoveRows(rows);
       this.onAddRows(rows);
-    } else {
+    }
+ else {
       this._koArray.assign(this._keep(Array.from(this._koArray.peek()).sort(this._compareFunc)));
     }
   }
@@ -680,7 +689,8 @@ export class SortedRowSet extends RowListener {
     for (let i = 0; i < n; i++) {
       if (keeping[i]) {
         skipping = false;
-      } else {
+      }
+ else {
         if (!skipping) {
           edge[i] = true;
           skipping = true;

@@ -50,7 +50,8 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
     if (id < 0) {
       // Reroute negative IDs to our local stash of records.
       return this._extraRecordsById.get(id);
-    } else {
+    }
+ else {
       // Everything else, we just pass along.
       return this._originalTable.getRecord(id);
     }
@@ -343,7 +344,8 @@ export class ACLRulesReader {
 
         tableId = referencedTable.tableId;
         colId = visibleCol.colId;
-      } else {
+      }
+ else {
         const info = extractInfoFromColType(column.type);
         if (info.type !== 'Ref' && info.type !== 'RefList') {
           // should never happen

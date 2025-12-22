@@ -1181,7 +1181,8 @@ describe('ActiveDoc', async function() {
       const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
       assert.deepEqual(data.Flag, [true, 'moop'], "Expected 'meep' to be truthy");
       await activeDoc.shutdown();
-    } finally {
+    }
+ finally {
       env.restore();
     }
   });
@@ -1201,7 +1202,8 @@ describe('ActiveDoc', async function() {
       const data = (await activeDoc.fetchTable(fakeSession, 'Info', true)).tableData[3];
       assert.deepEqual(data.Flag, ['meep', false], "Expected 'moop' to be falsy");
       await activeDoc.shutdown();
-    } finally {
+    }
+ finally {
       env.restore();
     }
   });
@@ -1308,7 +1310,8 @@ describe('ActiveDoc', async function() {
         transfer = await activeDoc.attachmentTransferStatus();
         assert.equal(transfer.status.failures, 2);
         assert.equal(transfer.status.successes, 0);
-      } finally {
+      }
+ finally {
         stub.restore();
         await activeDoc.shutdown();
       }

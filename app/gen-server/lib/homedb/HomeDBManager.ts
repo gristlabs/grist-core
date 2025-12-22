@@ -955,7 +955,8 @@ export class HomeDBManager implements HomeDBAuth {
       // users can only be presented when the user has proven login access to each.
       if (domain && !this.isMergedOrg(domain)) {
         queryBuilder = this._whereOrg(queryBuilder, domain);
-      } else {
+      }
+ else {
         return {status: 200, data: []};
       }
     }
@@ -1045,7 +1046,8 @@ export class HomeDBManager implements HomeDBAuth {
         features: getAnonymousFeatures(),
         product: patch(new Product(), {name: PERSONAL_FREE_PLAN})
       });
-    } else {
+    }
+ else {
       // We can't delegate filtering of removed documents to the db, since we'll be
       // caching authentication.  But we also don't need to delegate filtering, since
       // it is very simple at the single-document level.  So we direct the db to include
@@ -1240,7 +1242,8 @@ export class HomeDBManager implements HomeDBAuth {
       if (domain) {
         try {
           checkSubdomainValidity(domain);
-        } catch (e) {
+        }
+ catch (e) {
           return {
             status: 400,
             errMessage: `Domain is not permitted: ${e.message}`
@@ -1302,7 +1305,8 @@ export class HomeDBManager implements HomeDBAuth {
           });
           Object.assign(billingAccount, billing);
         }
-      } else {
+      }
+ else {
         log.warn("Creating org with shared billing account");
         // Use the billing account from the user's personal org to start with.
         billingAccount = await manager.createQueryBuilder()
@@ -1351,7 +1355,8 @@ export class HomeDBManager implements HomeDBAuth {
       try {
         const result = await manager.save([org, ...org.aclRules, ...groups, ...billingAccountEntities]);
         savedOrg = result[0] as Organization;
-      } catch (e) {
+      }
+ catch (e) {
         if (e.name === 'QueryFailedError' && e.message &&
             e.message.match(/unique constraint/i)) {
           throw new ApiError('Domain already in use', 400);
@@ -1406,7 +1411,8 @@ export class HomeDBManager implements HomeDBAuth {
         // will affect other users.
         markPermissions = Permissions.SCHEMA_EDIT;
         modifyPrefs = true;
-      } else if (key === 'userPrefs' || key === 'userOrgPrefs') {
+      }
+ else if (key === 'userPrefs' || key === 'userOrgPrefs') {
         // These keys only affect the current user.
         modifyPrefs = true;
       } else {
@@ -1438,7 +1444,8 @@ export class HomeDBManager implements HomeDBAuth {
           }
           try {
             checkSubdomainValidity(props.domain);
-          } catch (e) {
+          }
+ catch (e) {
             return {
               status: 400,
               errMessage: `Domain is not permitted: ${e.message}`
@@ -1737,7 +1744,8 @@ export class HomeDBManager implements HomeDBAuth {
         doc.aliases = [alias];
         alias.urlId = doc.urlId;
         alias.orgId = workspace.org.id;
-      } else {
+      }
+ else {
         doc.aliases = [];
       }
       doc.workspace = workspace;
@@ -1893,7 +1901,8 @@ export class HomeDBManager implements HomeDBAuth {
           manager,
           allowSpecialPermit: options?.allowSpecialPermit,
         });
-      } else {
+      }
+ else {
         query = this._doc(scope, {
           manager,
           markPermissions,
@@ -1973,7 +1982,8 @@ export class HomeDBManager implements HomeDBAuth {
         const data = structuredClone(fork);
         await manager.remove(fork);
         return {status: 200, data};
-      } else {
+      }
+ else {
         const docQuery = this._doc(scope, {
           manager,
           markPermissions: Permissions.REMOVE | Permissions.SCHEMA_EDIT,
@@ -2097,7 +2107,8 @@ export class HomeDBManager implements HomeDBAuth {
             notifications.push(this._billingManagerNotification(userId, memberUserId,
                                                                 billingAccount.orgs));
           }
-        } else {
+        }
+ else {
           if (manager) {
             // Don't allow a user to remove themselves as a manager, to be consistent
             // with ACL behavior.
@@ -2542,12 +2553,14 @@ export class HomeDBManager implements HomeDBAuth {
     // Previewer user can see everyone on the list.
     if (scope.userId === this._usersManager.getPreviewerUserId()) {
       // No need to filter users, just return all of them.
-    } else {
+    }
+ else {
       const isPublic = !thisUser || thisUser.anonymous || !docRealAccess;
       if (!isPublic && roles.canEdit(docRealAccess)) {
         if (roles.canEditAccess(orgMap[scope.userId] ?? null)) {
           // If this user is an org owner, return all users unfiltered.
-        } else if (roles.canEditAccess(thisUser?.parentAccess ?? null)) {
+        }
+ else if (roles.canEditAccess(thisUser?.parentAccess ?? null)) {
           const canViewWorkspace = (user: UserAccessData) => roles.canView(getRealAccess({
             // Figure out the access level on workspace (including inherited access from org).
             access: wsMapWithMembership[user.id] || null,
@@ -2555,7 +2568,8 @@ export class HomeDBManager implements HomeDBAuth {
           }, {maxInheritedRole: wsMaxInheritedRole}));
           // If user is owner of the workspace, return all users on the workspace and on the document.
           users = users.filter(user => canViewDoc(user) || canViewWorkspace(user));
-        } else {
+        }
+ else {
           // For any other editor/owner non-public user, we return all users who can see the document.
           users = users.filter(user => canViewDoc(user));
         }
@@ -2565,7 +2579,8 @@ export class HomeDBManager implements HomeDBAuth {
           personalMetadata.public = false;
           personalMetadata.personal = true;
         }
-      } else {
+      }
+ else {
         users = thisUser ? [thisUser] : [];
         personalMetadata.public = isPublic;
         personalMetadata.personal = true;
@@ -2913,7 +2928,8 @@ export class HomeDBManager implements HomeDBAuth {
       if (!domain) {
         domain = personalDomain;
       }
-    } else if (suppressDomain || !domain) {
+    }
+ else if (suppressDomain || !domain) {
       // If no subdomain is set, or custom subdomains or forbidden, return something
       // uninspiring but unique, like o-NN where NN is the org ID.
       domain = `o-${this._idPrefix}${orgId}`;
@@ -3168,7 +3184,8 @@ export class HomeDBManager implements HomeDBAuth {
           status: 201,
           data: config,
         };
-      } else {
+      }
+ else {
         const config: Config = this.unwrapQueryResult(queryResult);
         const previous = structuredClone(config);
         config.value = value;
@@ -3277,7 +3294,8 @@ export class HomeDBManager implements HomeDBAuth {
           status: 201,
           data: config,
         };
-      } else {
+      }
+ else {
         const config: Config = this.unwrapQueryResult(configQueryResult);
         const previous = structuredClone(config);
         config.value = value;
@@ -3345,7 +3363,8 @@ export class HomeDBManager implements HomeDBAuth {
         .leftJoinAndSelect("configs.org", "orgs")
         .andWhere("configs.org_id = :orgId", { orgId });
       query = this._addFeatures(query);
-    } else {
+    }
+ else {
       query = query.andWhere("configs.org_id IS NULL");
     }
     return query.getOne();
@@ -3675,7 +3694,8 @@ export class HomeDBManager implements HomeDBAuth {
       .leftJoinAndSelect("configs.org", "orgs");
     if (this.isMergedOrg(org)) {
       query = query.where("orgs.owner_id = :userId", { userId: scope.userId });
-    } else {
+    }
+ else {
       query = this._whereOrg(query, org, false);
     }
     const effectiveUserId = scope.userId;
@@ -3806,7 +3826,8 @@ export class HomeDBManager implements HomeDBAuth {
     if (org === null || (options.needRealOrg && this.isMergedOrg(org))) {
       if (!scope || !scope.userId) { throw new Error('_org: requires userId'); }
       query = query.where('orgs.owner_id = :userId', {userId: scope.userId});
-    } else {
+    }
+ else {
       query = this._whereOrg(query, org, includeSupport);
     }
     if (options.markPermissions) {
@@ -3896,13 +3917,15 @@ export class HomeDBManager implements HomeDBAuth {
       // This is the support user.  Some of their documents end up as examples on team sites.
       // so urlIds need to be checked globally, which corresponds to placing no extra where
       // clause here.
-    } else if (org.ownerId) {
+    }
+ else if (org.ownerId) {
       // This is a personal org, so look for conflicts in any personal org
       // (needed to ensure consistency in merged personal org).
       // We don't need to do anything special about examples since they are stored in a personal
       // org.
       aliasQuery = aliasQuery.andWhere('orgs.owner_id is not null');
-    } else {
+    }
+ else {
       // For team sites, just check within the team site.
       // We also need to check within the support@ org for conflict with examples, which
       // currently have an existence within team sites.
@@ -4118,19 +4141,23 @@ export class HomeDBManager implements HomeDBAuth {
     if (doc.type === 'tutorial') {
       if (ids.userId === this._usersManager.getPreviewerUserId()) {
         res.access = 'viewers';
-      } else if (ids.forkUserId && ids.forkUserId === ids.userId) {
+      }
+ else if (ids.forkUserId && ids.forkUserId === ids.userId) {
         res.access = 'owners';
-      } else {
+      }
+ else {
         res.access = null;
       }
-    } else {
+    }
+ else {
       // Forks without a user id are editable by anyone with view access to the trunk.
       if (ids.forkUserId === undefined && roles.canView(res.access)) { res.access = 'owners'; }
       if (ids.forkUserId !== undefined) {
         // A fork user id is known, so only that user should get to edit the fork.
         if (ids.userId === ids.forkUserId) {
           if (roles.canView(res.access)) { res.access = 'owners'; }
-        } else {
+        }
+ else {
           // reduce to viewer if not already viewer
           res.access = roles.getWeakestRole('viewers', res.access);
         }
@@ -4272,7 +4299,8 @@ export class HomeDBManager implements HomeDBAuth {
     const args = [...Object.keys(content).map(key => [`'${key}'`, content[key]])];
     if (this._dbType === 'postgres') {
       return `json_agg(json_build_object(${args.join(',')}))`;
-    } else {
+    }
+ else {
       return `json_group_array(json_object(${args.join(',')}))`;
     }
   }
@@ -4384,7 +4412,8 @@ export class HomeDBManager implements HomeDBAuth {
           'docs.id = :permitForkId',
           'is_permitted'
         );
-    } else {
+    }
+ else {
       query = query
         .setParameter('forkUserId', scope.userId)
         .setParameter('forkAnonId', this._usersManager.getAnonymousUserId())
@@ -4418,9 +4447,11 @@ export class HomeDBManager implements HomeDBAuth {
     const onDefault = 'docs.workspace_id = workspaces.id';
     if (scope.showAll) {
       return onDefault;
-    } else if (scope.showRemoved) {
+    }
+ else if (scope.showRemoved) {
       return `${onDefault} AND (workspaces.removed_at IS NOT NULL OR docs.removed_at IS NOT NULL)`;
-    } else {
+    }
+ else {
       return `${onDefault} AND (workspaces.removed_at IS NULL AND docs.removed_at IS NULL)`;
     }
   }
@@ -4474,7 +4505,8 @@ export class HomeDBManager implements HomeDBAuth {
       const supportId = this._usersManager.getSpecialUserId(SUPPORT_EMAIL);
       return qb.andWhere(new Brackets(q =>
         this._wherePlainOrg(q, org).orWhere('orgs.owner_id = :supportId', {supportId})));
-    } else {
+    }
+ else {
       return this._wherePlainOrg(qb, org);
     }
   }
@@ -4487,11 +4519,13 @@ export class HomeDBManager implements HomeDBAuth {
       // this is someone's personal org
       const ownerId = org.split(`docs-${this._idPrefix}`)[1];
       qb = qb.andWhere('orgs.owner_id = :ownerId', {ownerId});
-    } else if (org.startsWith(`o-${this._idPrefix}`)) {
+    }
+ else if (org.startsWith(`o-${this._idPrefix}`)) {
       // this is an org identified by org id
       const orgId = org.split(`o-${this._idPrefix}`)[1];
       qb = qb.andWhere('orgs.id = :orgId', {orgId});
-    } else {
+    }
+ else {
       // this is a regular domain
       qb = qb.andWhere('orgs.domain = :org', {org});
     }
@@ -4687,7 +4721,8 @@ export class HomeDBManager implements HomeDBAuth {
     });
     if (resources.length === 0 && !options.emptyAllowed) {
       return {errMessage: "access denied", status: 403};
-    } else {
+    }
+ else {
       return {
         status: 200,
         data: resources
@@ -4794,9 +4829,11 @@ export class HomeDBManager implements HomeDBAuth {
         for (const pref of prefs) {
           if (pref.orgId && pref.userId) {
             value.userOrgPrefs = pref.prefs;
-          } else if (pref.orgId) {
+          }
+ else if (pref.orgId) {
             value.orgPrefs = pref.prefs;
-          } else if (pref.userId) {
+          }
+ else if (pref.userId) {
             value.userPrefs = pref.prefs;
           }
         }
@@ -4812,7 +4849,8 @@ export class HomeDBManager implements HomeDBAuth {
         if (subValue & Permissions.PUBLIC) { // tslint:disable-line:no-bitwise
           value.public = true;
         }
-      } else {
+      }
+ else {
         // Resource may be accessed by multiple users, encoded in JSON.
         const accessOptions: AccessOption[] = readJson(this._dbType, subValue);
         value.accessOptions = accessOptions.map(option => ({
@@ -4861,7 +4899,8 @@ export class HomeDBManager implements HomeDBAuth {
       const getBasicPermissions = (q: SelectQueryBuilder<any>) => {
         if (permissions !== null) {
           q = q.select('acl_rules.permissions');
-        } else {
+        }
+ else {
           const everyoneId = this._usersManager.getSpecialUserId(EVERYONE_EMAIL);
           const anonId = this._usersManager.getSpecialUserId(ANONYMOUS_USER_EMAIL);
           // Overall permissions are the bitwise-or of all individual
@@ -4915,7 +4954,8 @@ export class HomeDBManager implements HomeDBAuth {
         q = q.andWhere(`acl_rules.${idColumn} = ${resType}.id`);
         if (permissions !== null) {
           q = q.andWhere(`(acl_rules.permissions & :permissions) = :permissions`, {permissions}).limit(1);
-        } else if (!UsersManager.isSingleUser(users)) {
+        }
+ else if (!UsersManager.isSingleUser(users)) {
           q = q.addSelect('profiles.id');
           q = q.addSelect('profiles.display_email');
           q = q.addSelect('profiles.name');
@@ -4929,7 +4969,8 @@ export class HomeDBManager implements HomeDBAuth {
       };
       if (UsersManager.isSingleUser(users)) {
         return getBasicPermissions(qb.subQuery());
-      } else {
+      }
+ else {
         return qb.subQuery()
           .from(subQb => getBasicPermissions(subQb.subQuery()), 'options')
           .select(this._aggJsonObject({id: 'options.id',
@@ -4985,7 +5026,8 @@ export class HomeDBManager implements HomeDBAuth {
             cond = cond.orWhere(`acl_rules.permissions = :${permissionsVariable}`,
                                 {[permissionsVariable]: Permissions.VIEW});
           }
-        } else {
+        }
+ else {
           cond = cond.where(`profiles.id IN (gu0.user_id, gu1.user_id, gu2.user_id, gu3.user_id)`);
         }
         return cond;
@@ -5000,7 +5042,8 @@ export class HomeDBManager implements HomeDBAuth {
                          'on users.id = logins.user_id where logins.email in (:...emails))',
                          'profiles', '1 = 1');
         qb = qb.setParameter('emails', [...emails]);
-      } else {
+      }
+ else {
         // Add a dummy user with id 0, for simplicity.  This user will
         // not match any group.  The casts are needed for a postgres 9.5 issue
         // where type inference fails (we use 9.5 on jenkins).
@@ -5080,7 +5123,8 @@ export class HomeDBManager implements HomeDBAuth {
       if (limit.showRemoved) {
         qb = qb.addSelect('docs.id IS NULL AND workspaces.removed_at IS NULL',
                           'workspaces_filtered_out');
-      } else {
+      }
+ else {
         qb = qb.addSelect('docs.id IS NULL AND workspaces.removed_at IS NOT NULL',
                           'workspaces_filtered_out');
       }
@@ -5435,12 +5479,14 @@ async function verifyEntity(
       status: 404,
       errMessage: `${getFrom(queryBuilder)} not found`
     };
-  } else if (results.entities.length > 1) {
+  }
+ else if (results.entities.length > 1) {
     return {
       status: 400,
       errMessage: `ambiguous ${getFrom(queryBuilder)} request`
     };
-  } else if (!options.skipPermissionCheck && !results.raw[0].is_permitted) {
+  }
+ else if (!options.skipPermissionCheck && !results.raw[0].is_permitted) {
     return {
       status: 403,
       errMessage: "access denied"
@@ -5471,7 +5517,8 @@ export async function makeDocAuthResult(docPromise: Promise<Document>): Promise<
     const removed = Boolean(doc.removedAt || doc.workspace.removedAt);
     const disabled = Boolean(doc.disabledAt);
     return {docId: doc.id, access: doc.access, removed, disabled, cachedDoc: doc};
-  } catch (error) {
+  }
+ catch (error) {
     return {docId: null, access: null, removed: null, disabled: null, error};
   }
 }

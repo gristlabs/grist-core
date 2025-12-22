@@ -37,7 +37,8 @@ const testId = makeTestId('test-dm-');
 function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, view: 'list'|'icons') {
   if (view === 'icons') {
     return buildPinnedDoc(home, doc, workspace, true);
-  } else {
+  }
+ else {
     return css.docRowWrapper(
       cssDocRowLink(
         urlState().setLinkUrl({...docUrl(doc), org: workspace.orgDomain}),

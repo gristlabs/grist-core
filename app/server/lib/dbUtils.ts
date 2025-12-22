@@ -15,7 +15,8 @@ export async function getMigrations(dataSource: DataSource): Promise<MigrationSu
   let migrationsInDb: string[];
   try {
     migrationsInDb = (await dataSource.query('select name from migrations')).map((rec: any) => rec.name);
-  } catch (e) {
+  }
+ catch (e) {
     // If no migrations have run, there'll be no migrations table - which is fine,
     // it just means 0 migrations run yet.  Sqlite+Postgres report this differently,
     // so any query error that mentions the name of our table is treated as ok.
@@ -130,7 +131,8 @@ export async function withSqliteForeignKeyConstraintDisabled<T>(
   if (sqlite) { await dataSource.query("PRAGMA foreign_keys = OFF;"); }
   try {
     return await cb();
-  } finally {
+  }
+ finally {
     if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
   }
 }

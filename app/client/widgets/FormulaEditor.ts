@@ -156,7 +156,8 @@ export class FormulaEditor extends NewBaseEditor {
       // TODO: look into whether we can support undo/redo while the editor is detached.
       if (isDetached) {
         options.gristDoc.getUndoStack().disable();
-      } else {
+      }
+ else {
         options.gristDoc.getUndoStack().enable();
       }
     });
@@ -335,7 +336,8 @@ export class FormulaEditor extends NewBaseEditor {
     }
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
-    } else {
+    }
+ else {
       const withAiButton =
         this._canDetach &&
         !this.isDetached.get() &&
@@ -434,7 +436,8 @@ export class FormulaEditor extends NewBaseEditor {
     if (!aceObj.selection.isEmpty()) {
       // If text selected, replace whole selection
       aceObj.session.replace(aceObj.selection.getRange(), '$' + colId);
-    } else {
+    }
+ else {
       // Not a selection, gotta figure out what to replace
       const pos = aceObj.getCursorPosition();
       const line = aceObj.session.getLine(pos.row);
@@ -443,7 +446,8 @@ export class FormulaEditor extends NewBaseEditor {
         // Not touching an identifier, insert colId as normal
         aceObj.insert('$' + colId);
         // We are touching an identifier
-      } else if (result.ident.startsWith('$')) {
+      }
+ else if (result.ident.startsWith('$')) {
         // If ident is a colId, replace it
         const idRange = AceEditor.makeRange(pos.row, result.start, pos.row, result.end);
         aceObj.session.replace(idRange, '$' + colId);
@@ -477,7 +481,8 @@ function _isInIdentifier(line: string, column: number) {
     if (match) {
         const ident = match[0];
         return { ident, start: startOfIdent, end: startOfIdent + ident.length};
-    } else {
+    }
+ else {
         return null;
     }
 }
@@ -514,7 +519,8 @@ export function openFormulaEditor(options: {
 
   if (options.field) {
     options.column = options.field.origCol();
-  } else if (options.canDetach) {
+  }
+ else if (options.canDetach) {
     throw new Error('Field is required for detached editor');
   }
 
@@ -536,11 +542,13 @@ export function openFormulaEditor(options: {
     if (formula !== column.formula.peek()) {
       if (options.onSave) {
         await options.onSave(column, formula);
-      } else {
+      }
+ else {
         await column.updateColValues({formula});
       }
       editor.dispose();
-    } else {
+    }
+ else {
       editor.dispose();
       options.onCancel?.();
     }
@@ -616,7 +624,8 @@ export function getFormulaError(owner: Disposable, options: {
     owner.autoDispose(subscription);
     onValueChange(editRow.cells[colId].peek());
     return formulaError;
-  } else {
+  }
+ else {
 
     // We can't rely on the editRow we got, as this is owned by the view. When we will be detached the view will be
     // gone. So, we will create our own observable that will be updated when the row is updated.
@@ -673,7 +682,8 @@ function errorMonitor(
             reportError(er);
           }
         });
-    } else {
+    }
+ else {
       formulaError.set(undefined);
     }
   };
@@ -702,7 +712,8 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
         (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
         t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells})
       );
-    } else {
+    }
+ else {
       errorMessage.set('');
     }
   }

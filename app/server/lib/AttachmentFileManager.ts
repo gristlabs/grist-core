@@ -206,7 +206,8 @@ export class AttachmentFileManager extends EventEmitter {
         await destinationStore.delete(this._getDocPoolId(), fileIdent);
         throw new MismatchedFileHashError(fileIdent, fileHash);
       }
-    } else {
+    }
+ else {
       const hashStream = new HashPassthroughStream();
       const bufferStream = new MemoryWritableStream();
       await stream.promises.pipeline(fileData, hashStream, bufferStream);
@@ -384,10 +385,12 @@ export class AttachmentFileManager extends EventEmitter {
               await new Promise(resolve => setTimeout(resolve, Number(process.env.GRIST_TEST_TRANSFER_DELAY)));
             }
             this._successes++;
-          } catch (e) {
+          }
+ catch (e) {
             this._failures++;
             this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
-          } finally {
+          }
+ finally {
             // If a transfer request comes in mid-transfer, it will need re-running.
             if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
               this._pendingFileTransfers.delete(fileIdent);
@@ -395,7 +398,8 @@ export class AttachmentFileManager extends EventEmitter {
           }
         }
       }
-    } finally {
+    }
+ finally {
       if (!this._loopAbort.aborted) {
         await this._docStorage.requestVacuum();
         await this._notifyAboutEnd();
@@ -626,7 +630,8 @@ export class AttachmentFileManager extends EventEmitter {
   private async _getFileDataFromAttachmentStore(store: IAttachmentStore, fileIdent: string): Promise<AttachmentFile> {
     try {
       return await store.download(this._getDocPoolId(), fileIdent);
-    } catch(e) {
+    }
+ catch(e) {
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
   }

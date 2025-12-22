@@ -73,12 +73,14 @@ export class Gristifier {
         // we can do something via a view.
         await this._createView(docSession, activeDoc, tableId, Object.keys(table), columnDefs);
         outcomes.push({tableId, viewed: true, reason: 'id complications'});
-      } else {
+      }
+ else {
         await this._registerTable(docSession, activeDoc, tableId, columnDefs);
         if (options.addSort) {
           await this._addManualSort(activeDoc, tableId);
           outcomes.push({tableId, addManualSort: true});
-        } else {
+        }
+ else {
           outcomes.push({tableId});
         }
       }
@@ -135,10 +137,12 @@ export class Gristifier {
       const decodedResults = results.map(row => DocStorage.decodeRowValues(row));
       if (options.json) {
         console.log(JSON.stringify(decodedResults, null, 2));
-      } else {
+      }
+ else {
         console.table(decodedResults);
       }
-    } finally {
+    }
+ finally {
       await db.close();
     }
   }

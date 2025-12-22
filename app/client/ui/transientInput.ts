@@ -27,7 +27,8 @@ export function transientInput({initialValue, save, close}: ITransientInputOptio
         await save(input.value);
       }
       close();
-    } catch (err) {
+    }
+ catch (err) {
       reportError(err);
       delayedFocus();
     }

@@ -580,7 +580,8 @@ export class DocTriggers {
     if (!trigger.isReadyColRef) {
       // User hasn't configured a column, so all records are considered ready immediately
       readyBefore = recordDelta.existedBefore;
-    } else {
+    }
+ else {
       const isReadyColId = this._getColId(trigger.isReadyColRef)!;
 
       // Must be the actual boolean `true`, not just anything truthy
@@ -592,22 +593,26 @@ export class DocTriggers {
       const cellDelta: CellDelta | undefined = tableDelta.columnDeltas[isReadyColId]?.[rowId];
       if (!recordDelta.existedBefore) {
         readyBefore = false;
-      } else if (!cellDelta ) {
+      }
+ else if (!cellDelta ) {
         // Cell wasn't changed, and the record is ready now, so it was ready before.
         // This requires that the ActionSummary contains all changes to the isReady column.
         readyBefore = true;
-      } else {
+      }
+ else {
         const deltaBefore = cellDelta[0];
         if (deltaBefore === null) {
           // The record didn't exist before, so it definitely wasn't ready
           // (although we probably shouldn't reach this since we already checked recordDelta.existedBefore)
           readyBefore = false;
-        } else if (deltaBefore === "?") {
+        }
+ else if (deltaBefore === "?") {
           // The ActionSummary shouldn't contain this kind of delta at all
           // since it comes from a single action bundle, not a combination of summaries.
           this._log('Unexpected deltaBefore === "?"', {level: 'warn', trigger});
           readyBefore = true;
-        } else {
+        }
+ else {
           // Only remaining case is that deltaBefore is a single-element array containing the previous value.
           const [valueBefore] = deltaBefore;
 
@@ -629,7 +634,8 @@ export class DocTriggers {
       // check if any of the columns to check were changed to consider this an update
       if (colIdsToCheck.length === 0 || colIdsToCheck.some(colId => tableDelta.columnDeltas[colId]?.[rowId])) {
         eventType = "update";
-      } else {
+      }
+ else {
         return false;
       }
       // If we allow subscribing to deletion in the future
@@ -638,7 +644,8 @@ export class DocTriggers {
       // } else {
       //   eventType = "remove";
       // }
-    } else {
+    }
+ else {
       eventType = "add";
     }
 
@@ -706,7 +713,8 @@ export class DocTriggers {
       let success: boolean;
       if (!url) {
         success = true;
-      } else {
+      }
+ else {
         await this._stats.logStatus(id, 'sending');
         meta = {webhookId: id, host: new URL(url).host, quantity: batch.length};
         this._log("Sending batch of webhook events", meta);
@@ -744,12 +752,14 @@ export class DocTriggers {
           }
           // We are postponed, so mark that.
           await this._stats.logStatus(id, 'postponed');
-        } else {
+        }
+ else {
           // We are draining the queue and we skipped some events, so mark that.
           await this._stats.logStatus(id, 'error');
           await this._stats.logBatch(id, 'rejected');
         }
-      } else {
+      }
+ else {
         await this._stats.logStatus(id, 'idle');
         if (meta) {
           this._log("Successfully sent batch of webhook events", meta);
@@ -839,7 +849,8 @@ export class DocTriggers {
           size,
         });
         this._log(`Webhook responded with non-200 status`, {level: 'warn', status: response.status, attempt});
-      } catch (e) {
+      }
+ catch (e) {
         await this._stats.logBatch(id, 'failure', {
           httpStatus: null,
           error: (e.message || 'Unrecognized error during fetch'),
@@ -865,7 +876,8 @@ export class DocTriggers {
         }
         try {
           await delayAbort(TRIGGER_WAIT_DELAY, signal);
-        } catch (e) {
+        }
+ catch (e) {
           // If signal was aborted, don't log anything as we probably was cleared.
           return false;
         }
@@ -882,7 +894,8 @@ export function isUrlAllowed(urlString: string) {
   let url: URL;
   try {
     url = new URL(urlString);
-  } catch (e) {
+  }
+ catch (e) {
     return false;
   }
 
@@ -944,7 +957,8 @@ class PersistedStore<Keys> {
         multi.expire(this._redisKey, WEBHOOK_STATS_CACHE_TTL);
       }
       await multi.execAsync();
-    } else {
+    }
+ else {
       for (const [key, value] of keyValues) {
         this._statsCache.set(`${id}:${key}`, value);
       }
@@ -955,7 +969,8 @@ class PersistedStore<Keys> {
     if (this._redisClient) {
       const values = (await this._redisClient.hgetallAsync(this._redisKey)) || {};
       return keys.map(key => [key, values[`${id}:${key}`] || '']);
-    } else {
+    }
+ else {
       return keys.map(key => [key, this._statsCache.get(`${id}:${key}`) || '']);
     }
   }
@@ -1090,7 +1105,8 @@ class WebhookStatistics extends PersistedStore<StatsKey> {
     // Update webhook stats.
     if (status === 'success') {
       batchSummary.push([`lastSuccessTime`, now.toString()]);
-    } else if (status === 'failure') {
+    }
+ else if (status === 'failure') {
       batchSummary.push([`lastFailureTime`, now.toString()]);
     }
     if (stats?.error) {

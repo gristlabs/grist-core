@@ -129,7 +129,8 @@ export class SortConfig extends Disposable {
         // but keep the directions
         specs = Sort.setSortDirection(specs, colRef, Sort.direction(newSpec));
         specs = Sort.setSortDirection(specs, newRef, Sort.direction(colSpec!));
-      } else {
+      }
+ else {
         specs = Sort.replace(specs, colRef, Sort.createColSpec(newRef, Sort.direction(colSpec!)));
       }
       this._saveSort(specs);

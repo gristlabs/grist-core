@@ -125,7 +125,8 @@ export default class NumberParse {
     const digitsMap = this.digitsMap = getDigitsMap(locale);
     if (digitsMap.size === 0) {
       this._replaceDigits = (s: string) => s;
-    } else {
+    }
+ else {
       const digitsRegex = new RegExp([...digitsMap.keys()].join("|"), "g");
       this._replaceDigits = (s: string) => s.replace(digitsRegex, d => digitsMap.get(d) || d);
     }
@@ -260,7 +261,8 @@ export default class NumberParse {
       if (result < 0 && !isParenthesised) {
         // If we see a negative number not surrounded by parens, assume that any other parens mean something else
         parens = false;
-      } else if (parens === null && isParenthesised) {
+      }
+ else if (parens === null && isParenthesised) {
         // If we're still unsure about parens (i.e. the above case hasn't been encountered)
         // then one parenthesised number is enough to guess that the parens option should be used.
         parens = true;
@@ -272,9 +274,11 @@ export default class NumberParse {
       let mode: NumMode = "decimal";
       if (isCurrency) {
         mode = "currency";
-      } else if (isPercent) {
+      }
+ else if (isPercent) {
         mode = "percent";
-      } else if (isScientific) {
+      }
+ else if (isScientific) {
         mode = "scientific";
       }
       modes[mode] += 1;

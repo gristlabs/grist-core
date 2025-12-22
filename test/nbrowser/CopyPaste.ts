@@ -687,7 +687,8 @@ async function copyTestData(cb: gu.IClipboard) {
       sel.addRange(range);
     `);
     await cb.copy();
-  } finally {
+  }
+ finally {
     await serving?.shutdown();
   }
 }

@@ -100,7 +100,8 @@ export class DocPluginManager {
         checkers.ParseFileResult.check(result);
         checkReferences(result.tables);
         return result;
-      } catch (err) {
+      }
+ catch (err) {
         throw new Error('Grist json format could not be parsed: ' + err);
       }
     }
@@ -129,7 +130,8 @@ export class DocPluginManager {
         checkers.ParseFileResult.check(result);
         checkReferences(result.tables);
         return result;
-      } catch (err) {
+      }
+ catch (err) {
         const cleanerMessage = err.message.replace(/^\[Sandbox\] (Exception)?/, '').trim();
         messages.push(cleanerMessage);
         log.warn(`DocPluginManager.parseFile: ${name} Failed parseFile `, err.message);
@@ -217,7 +219,8 @@ export class DocPluginManager {
           }
         }
         this._pluginInstances.push(pluginInstance);
-      } catch (err) {
+      }
+ catch (err) {
         log.info(`DocPluginInstance: failed to create instance ${plugin.id}: ${err.message}`);
       }
     }

@@ -31,7 +31,8 @@ export async function pruneActionHistory(docPath: string, keepN: number) {
     const history = new ActionHistoryImpl(docStorage);
     await history.initialize();
     await history.deleteActions(keepN);
-  } finally {
+  }
+ finally {
     await docStorage.shutdown();
   }
 }
@@ -48,7 +49,8 @@ export async function pruneActionHistoryFromConsole(argv: string[]): Promise<num
   const keepN = parseInt(argv[1], 10) || 1;
   try {
     await pruneActionHistory(docPath, keepN);
-  } catch (e) {
+  }
+ catch (e) {
     log.error(e);
     return 1;
   }

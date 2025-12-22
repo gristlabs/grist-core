@@ -52,7 +52,8 @@ export function buildRenameColumn(options: IColumnTitleOptions) {
       ctl.autoDispose(options.isEditing.subscribe((editing) => {
         if (editing) {
           ctl.open();
-        } else if (!ctl.isDisposed()) {
+        }
+ else if (!ctl.isDisposed()) {
           ctl.close();
         }
       }));
@@ -173,7 +174,8 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
       if (document.activeElement === descInput && descInput?.selectionStart === 0) {
         labelInput?.focus();
         labelInput?.select();
-      } else {
+      }
+ else {
         return true;
       }
     },
@@ -186,7 +188,8 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         };
         showDesc.set(true);
         focus();
-      } else {
+      }
+ else {
         return true;
       }
     }
@@ -297,25 +300,30 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
       ),
     ),
     // After showing the popup, focus the label input and select it's content.
-    (elem) => { setTimeout(() => {
+    (elem) => {
+ setTimeout(() => {
       if (ctrl.isDisposed()) { return; }
       if (canRename.get()) {
         labelInput?.focus();
         labelInput?.select();
-      } else if (canChangeDesc.get()) {
+      }
+ else if (canChangeDesc.get()) {
         descInput?.focus();
         descInput?.select();
       }
-    }, 0); },
+    }, 0); 
+},
     // Create a FocusLayer to keep focus in this popup while it's active, by default when focus is stolen
     // by someone else, we will bring back it to the label element. Clicking anywhere outside the popup
     // will close it, but not when we click on the header itself (as it will reopen it). So this one
     // makes sure that the focus is restored in the label.
-    (elem) => { FocusLayer.create(ctrl, {
+    (elem) => {
+ FocusLayer.create(ctrl, {
       defaultFocusElem: elem,
       pauseMousetrap: false,
       allowFocus: Clipboard.allowFocus
-    }); },
+    }); 
+},
     restoreFocus
   );
 }

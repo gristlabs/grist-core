@@ -19,7 +19,8 @@ describe('cssVars', function() {
       legacyVarsMapping.forEach(({old, new: newVar}) => {
         if (!allVars[old]) {
           errors.push(`${old} is missing, it should be mapped to ${newVar} theme token.`);
-        } else if (allVars[old] !== newVar) {
+        }
+ else if (allVars[old] !== newVar) {
           errors.push(`${old} should be mapped to ${newVar} theme token, but is mapped to ${allVars[old]}.`);
         }
       });

@@ -49,7 +49,8 @@ export function relativeDateToUnixTimestamp(bound: IRelativeDateSpec): number {
 
       // date must have "hh:mm:ss" set to "00:00:00"
       date.startOf('day');
-    } else {
+    }
+ else {
       date.startOf(unit);
     }
   }
@@ -73,7 +74,8 @@ export function formatRelBounds(periods: IPeriod[]): string {
 
     if (endOf) {
       return `Last day of ${formatReference(periods[0])}`;
-    } else {
+    }
+ else {
       return `1st day of ${formatReference(periods[0])}`;
     }
   }
@@ -88,7 +90,8 @@ export function formatRelBounds(periods: IPeriod[]): string {
     if (periods[0].unit === 'week') {
       if (periods[1].quantity === 0) {
         startOrEnd = 'start ';
-      } else if (periods[1].quantity === 6) {
+      }
+ else if (periods[1].quantity === 6) {
         startOrEnd = 'end ';
       }
     }
@@ -122,7 +125,8 @@ function formatDay(quantity: number, refUnit: IPeriod['unit']): string {
       return 'Last day';
     }
     return `${ord(-quantity)} to last day`;
-  } else {
+  }
+ else {
     return `${ord(quantity + 1)} day`;
   }
 }

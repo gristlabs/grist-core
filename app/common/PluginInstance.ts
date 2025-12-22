@@ -61,7 +61,8 @@ export abstract class BaseComponent implements IForwarderDest {
       this.inactivityTimer.disable();
       try {
         await this.deactivateImplementation();
-      } catch (e) {
+      }
+ catch (e) {
         // If it fails, we warn and swallow the exception (or it would be an unhandled rejection).
         if (this._logger.warn) { this._logger.warn(`Deactivate failed: ${e.message}`); }
       }

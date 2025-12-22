@@ -68,7 +68,8 @@ export class Doom {
           const info = await result.json().catch(e => null);
           throw new ApiError(`failed to delete document ${doc.id}: ${result.status} ${JSON.stringify(info)}`, 500);
         }
-      } finally {
+      }
+ finally {
         await this._permitStore.removePermit(permitKey);
       }
     }
@@ -200,7 +201,8 @@ export class Doom {
         const info = await result.json().catch(e => null);
         throw new ApiError(`failed to delete customer: ${result.status} ${JSON.stringify(info)}`, result.status);
       }
-    } finally {
+    }
+ finally {
       await this._permitStore.removePermit(permitKey);
     }
     await this._dbManager.updateBillingAccount(

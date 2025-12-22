@@ -382,7 +382,8 @@ function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
       throw new Error("unexpected origin");
     }
     return url;
-  } catch (e) {
+  }
+ catch (e) {
     log.warn(`SamlConfig: ignoring invalid redirect URL: ${e.message}`);
   }
   return originUrl;

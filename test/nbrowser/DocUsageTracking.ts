@@ -87,7 +87,8 @@ describe('DocUsageTracking', function() {
         // Check that element has a -flash class, meaning it was highlighted.
         assert.equal(classes.includes('-flash'), true);
         await driver.navigate().back();
-      } else {
+      }
+ else {
         await driver.findWait('.test-top-panel', 100);
         assert.equal(await driver.find('.test-external-attachment-banner-text').isPresent(), false);
         assert.equal(await driver.find('.test-doc-usage-message-text').isPresent(), false);
@@ -139,7 +140,8 @@ async function goToDocUsage() {
 async function assertUsageMessage(text: string | null) {
   if (text === null) {
     assert.isFalse(await driver.find('.test-doc-usage-message').isPresent());
-  } else {
+  }
+ else {
     assert.equal(await driver.findWait('.test-doc-usage-message-text', 2000).getText(), text);
   }
 }

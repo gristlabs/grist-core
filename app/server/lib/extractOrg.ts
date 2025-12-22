@@ -98,9 +98,11 @@ export class Hosts {
           `'${parts.orgFromPath}' does not match '${parts.orgFromHost}'`, 400);
       }
       return {org: parts.subdomain || '', url: parts.pathRemainder, isCustomHost: false};
-    } else if (hostType === 'plugin') {
+    }
+ else if (hostType === 'plugin') {
       return {org: '', url: parts.pathRemainder, isCustomHost: false};
-    } else {
+    }
+ else {
       // Otherwise check for a custom host.
       const org = await mapGetOrSet(this._host2org, hostname, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, {where: {host: hostname}});
@@ -143,7 +145,8 @@ export class Hosts {
     try {
       await this.addOrgInfo(req);
       return next();
-    } catch (err) {
+    }
+ catch (err) {
       return resp.status(err.status || 500).send({error: err.message});
     }
   }

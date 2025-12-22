@@ -71,7 +71,8 @@ export class ProposedChangesPage extends Disposable {
       dom.maybe(this.isInitialized, (init) => {
         if (init === 'slow') {
           return loadingSpinner();
-        } else {
+        }
+ else {
           return this.body.buildDom();
         }
       })
@@ -587,13 +588,16 @@ function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): Table
       let item;
       if (cell === null) {
         item = '...';
-      } else if (!Array.isArray(cell)) {
+      }
+ else if (!Array.isArray(cell)) {
         item = cell;
-      } else {
+      }
+ else {
         const [pre, post] = cell;
         if (!pre && !post) {
           item = '';
-        } else {
+        }
+ else {
           item = ['V', {
             parent: pre?.[0],
             remote: post?.[0],

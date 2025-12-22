@@ -256,7 +256,8 @@ class CollapsedDropZone extends Disposable {
       if (ok) {
         pushedLeaf = EmptyLeaf.create(null, this.model);
         layout.addBox(pushedLeaf);
-      } else if (pushedLeaf) {
+      }
+ else if (pushedLeaf) {
         layout.destroy(pushedLeaf);
       }
     }));
@@ -351,25 +352,29 @@ class CollapsedDropZone extends Disposable {
         const left = 0;
         const right = root.offsetLeft + 50;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
-      } else if (box instanceof CollapsedLeaf && i === boxes.length - 1) {
+      }
+ else if (box instanceof CollapsedLeaf && i === boxes.length - 1) {
         // Last one is very similar, little rectangle on the left part.
         const left = root.offsetLeft + root.offsetWidth - 30;
         const right = root.offsetLeft + root.offsetWidth + 30;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
-      } else if (box instanceof CollapsedLeaf && prev instanceof CollapsedLeaf) {
+      }
+ else if (box instanceof CollapsedLeaf && prev instanceof CollapsedLeaf) {
         // In between, we have a rectangle from the left border to the right border.
         const leftRoot = prev.rootElement;
         const rightRoot = root;
         const left = leftRoot.offsetLeft + leftRoot.offsetWidth - 30;
         const right = rightRoot.offsetLeft + 30;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
-      } else if (next && box instanceof TargetLeaf && i === 0) {
+      }
+ else if (next && box instanceof TargetLeaf && i === 0) {
         // If this is a first box and it is a target, the first rectangle will be much larger, it should cover
         // the TargetLeaf width.
         const left = 0;
         const right = next.rootElement.offsetLeft;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
-      } else if (box instanceof TargetLeaf && prev instanceof CollapsedLeaf && next instanceof CollapsedLeaf) {
+      }
+ else if (box instanceof TargetLeaf && prev instanceof CollapsedLeaf && next instanceof CollapsedLeaf) {
         // If this box is target between two collapsed boxes, we will have a rectangle from the prev to next
         // covering the whole target leaf.
         const left = prev.rootElement.offsetLeft + prev.rootElement.offsetWidth - 30;
@@ -386,7 +391,8 @@ class CollapsedDropZone extends Disposable {
       this._lastTarget = TargetLeaf.create(null, this.model);
       await this._lastTarget.insert(index);
       this._lastIndex = index;
-    } finally {
+    }
+ finally {
       this._stop();
     }
   }
@@ -397,7 +403,8 @@ class CollapsedDropZone extends Disposable {
       await this._lastTarget?.remove();
       this._lastTarget = undefined;
       this._lastIndex = -1;
-    } finally {
+    }
+ finally {
       this._stop();
     }
   }
@@ -459,7 +466,8 @@ class CollapsedLayout extends Disposable {
     this.holder.autoDispose(leaf);
     if (index < 0) {
       this._boxes.push(leaf);
-    } else {
+    }
+ else {
       this._boxes.splice(index, 0, leaf);
     }
     return leaf;
@@ -845,7 +853,8 @@ class ExternalLeaf extends Disposable implements Dropped {
     this.autoDispose(miniDrag.listen((box) => {
       if (box) {
         this.model.viewLayout.layoutEditor.triggerUserEditStart();
-      } else {
+      }
+ else {
         const dropTargeter = this.model.viewLayout.layoutEditor.dropTargeter;
         dropTargeter.removeTargetHints();
         // Save the layout immediately after the drop. Otherwise we would wait a bit,
@@ -887,7 +896,8 @@ class ExternalLeaf extends Disposable implements Dropped {
           dropped.removeFromLayout();
           if (part.isChild) {
             part.box.addChild(box, part.isAfter);
-          } else {
+          }
+ else {
             part.box.addSibling(box, part.isAfter);
           }
           this.model.viewLayout.viewModel.activeSectionId(leaf);
@@ -957,7 +967,8 @@ class ExternalLeaf extends Disposable implements Dropped {
             floater.mouseOffsetX = 0;
             floater.mouseOffsetY = 0;
           }
-        } else if (lastContent) {
+        }
+ else if (lastContent) {
           lastContent.style.display = '';
           const floater = model.viewLayout.layoutEditor.floater;
           const currentContent = floater.leafContent.peek() as HTMLElement;

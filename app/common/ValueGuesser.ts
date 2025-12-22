@@ -62,7 +62,8 @@ abstract class ValueGuesser<T> {
         if (this.allowBlank()) {
           result.push(null);
           continue;
-        } else {
+        }
+ else {
           return null;
         }
       }
@@ -98,9 +99,11 @@ class BoolGuesser extends ValueGuesser<boolean> {
   public parse(value: string): boolean | string {
     if (value === "true") {
       return true;
-    } else if (value === "false") {
+    }
+ else if (value === "false") {
       return false;
-    } else {
+    }
+ else {
       return value;
     }
   }
@@ -153,7 +156,8 @@ class DateGuesser extends ValueGuesser<number> {
     let type;
     if (widgetOptions.timeFormat) {
       type = 'DateTime:' + this._tz;
-    } else {
+    }
+ else {
       type = 'Date';
       this._tz = "UTC";
     }

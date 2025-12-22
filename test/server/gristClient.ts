@@ -181,7 +181,8 @@ export async function openClient(server: FlexServer, email: string, org: string,
       await scopedSession.updateUserProfile({} as any, profile);
     }
     headers.Cookie = cookie;
-  } else {
+  }
+ else {
     headers[emailHeader] = email;
   }
   const ws = new GristClientSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {

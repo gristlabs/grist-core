@@ -73,7 +73,8 @@ export class DocTutorial extends Disposable {
           Math.floor((slideIndex / numSlides) * 100),
           this._percentComplete ?? 0
         );
-      } else {
+      }
+ else {
         this._percentComplete = undefined;
       }
     }));
@@ -336,7 +337,8 @@ export class DocTutorial extends Disposable {
     const lastVisitedOrg = this._appModel.lastVisitedOrgDomain.get();
     if (lastVisitedOrg) {
       await urlState().pushUrl({org: lastVisitedOrg});
-    } else {
+    }
+ else {
       window.location.assign(getWelcomeHomeUrl());
     }
   }

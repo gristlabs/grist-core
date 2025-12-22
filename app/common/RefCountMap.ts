@@ -109,7 +109,8 @@ export class RefCountMap<Key, Value> implements IDisposable {
           if (!r.disposeTimeout) {
             r.disposeTimeout = setTimeout(() => this._doDisposeKey(key), this._gracePeriodMs);
           }
-        } else {
+        }
+ else {
           this._doDisposeKey(key);
         }
       }

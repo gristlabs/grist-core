@@ -145,7 +145,8 @@ export class ColumnTransform extends Disposable {
       this.transformColumn.origColRef(this.origColumn.getRowId());
       this._setTransforming(true);
       return this.postAddTransformColumn();
-    } finally {
+    }
+ finally {
       this.isCallPending(false);
     }
   }
@@ -231,7 +232,8 @@ export class ColumnTransform extends Disposable {
         // that seems the best way to avoid calculating the formula on wrong values.
         await this.gristDoc.docData.sendActions(this.executeActions());
       }
-    } finally {
+    }
+ finally {
       // Wait until the change completed to set column back, to avoid value flickering.
       field.colRef(origRef);
       const cleanupProm = tableData.sendTableAction(['RemoveColumn', transformColId]);

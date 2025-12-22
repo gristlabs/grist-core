@@ -66,33 +66,42 @@ function createMainPage(appModel: AppModel, appObj: App) {
     const err = appModel.orgError;
     if (err && err.status === 404) {
       return createNotFoundPage(appModel);
-    } else if (err && (err.status === 401 || err.status === 403)) {
+    }
+ else if (err && (err.status === 401 || err.status === 403)) {
       // Generally give access denied error.
       // The exception is for document pages, where we want to allow access to documents
       // shared publicly without being shared specifically with the current user.
       if (appModel.pageType.get() !== 'doc') {
         return createForbiddenPage(appModel);
       }
-    } else {
+    }
+ else {
       return createOtherErrorPage(appModel, err && err.error);
     }
   }
   return dom.domComputed(appModel.pageType, (pageType) => {
     if (pageType === 'home') {
       return dom.create(pagePanelsHome, appModel, appObj);
-    } else if (pageType === 'billing') {
+    }
+ else if (pageType === 'billing') {
       return domAsync(loadBillingPage().then(bp => dom.create(bp.BillingPage, appModel)));
-    } else if (pageType === 'welcome') {
+    }
+ else if (pageType === 'welcome') {
       return dom.create(WelcomePage, appModel, appObj);
-    } else if (pageType === 'account') {
+    }
+ else if (pageType === 'account') {
       return domAsync(loadAccountPage().then(ap => dom.create(ap.AccountPage, appModel, appObj)));
-    } else if (pageType === 'admin') {
+    }
+ else if (pageType === 'admin') {
       return domAsync(loadAdminPanel().then(m => dom.create(m.AdminPanel, appModel, appObj)));
-    } else if (pageType === 'activation') {
+    }
+ else if (pageType === 'activation') {
       return domAsync(loadActivationPage().then(ap => dom.create(ap.getActivationPage(), appModel)));
-    } else if (pageType === 'audit-logs') {
+    }
+ else if (pageType === 'audit-logs') {
       return domAsync(loadAuditLogsPage().then(m => dom.create(m.AuditLogsPage, appModel, appObj)));
-    } else {
+    }
+ else {
       return dom.create(pagePanelsDoc, appModel, appObj);
     }
   });

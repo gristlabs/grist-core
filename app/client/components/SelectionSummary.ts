@@ -63,7 +63,8 @@ export class SelectionSummary extends Disposable {
     const type = use(this._cellSelector.currentSelectType);
     if (type === COL) {
       return {begin: 0, end: use(this._rowTotalCount)};
-    } else {
+    }
+ else {
       const start = use(this._cellSelector.row.start);
       const end = use(this._cellSelector.row.end);
       return {
@@ -77,7 +78,8 @@ export class SelectionSummary extends Disposable {
     const type = use(this._cellSelector.currentSelectType);
     if (type === ROW) {
       return {begin: 0, end: use(this._colTotalCount)};
-    } else {
+    }
+ else {
       const start = use(this._cellSelector.col.start);
       const end = use(this._cellSelector.col.end);
       return {
@@ -143,7 +145,8 @@ export class SelectionSummary extends Disposable {
     const rowRange = this._rowRange.get();
     if (rows === ALL) {
       this._scheduleRecalc();
-    } else {
+    }
+ else {
       const rowArray = this._sortedRows.getKoArray().peek();
       const rowIdSet = new Set(rows);
       for (let r = rowRange.begin; r < rowRange.end; r++) {
@@ -237,11 +240,13 @@ export class SelectionSummary extends Disposable {
               if (typeof value === 'number') {
                 countNumeric++;
                 sum += value;
-              } else if (value !== null && value !== undefined && value !== '' && !isEmpty?.(value)) {
+              }
+ else if (value !== null && value !== undefined && value !== '' && !isEmpty?.(value)) {
                 countNonEmpty++;
               }
             }
-          } else {
+          }
+ else {
             for (const i of rowIndices) {
               const value = values[i];
               if (value !== null && value !== undefined && value !== '' && value !== false && !isEmpty?.(value)) {
@@ -254,7 +259,8 @@ export class SelectionSummary extends Disposable {
         if (countNumeric > 0) {
           const sumValue = sumFormatter ? sumFormatter.formatAny(sum) : String(sum);
           summary.push({id: 'sum', label: 'Sum ', value: sumValue, clickToCopy: true});
-        } else {
+        }
+ else {
           summary.push({id: 'count', label: 'Count ', value: String(countNonEmpty), clickToCopy: true});
         }
       }

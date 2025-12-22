@@ -62,7 +62,8 @@ export class DocWorker {
         .set('Cache-Control', 'private, max-age=3600')
         .set("Content-Security-Policy", "sandbox; default-src: 'none'")
         .send(data);
-    } catch (err) {
+    }
+ catch (err) {
       res.status(404).send({error: err.toString()});
     }
   }
@@ -78,7 +79,8 @@ export class DocWorker {
     let removeHistory: boolean = false;
     if (isAffirmative(req.query.template)) {
       removeData = removeHistory = true;
-    } else if (isAffirmative(req.query.nohistory)) {
+    }
+ else if (isAffirmative(req.query.nohistory)) {
       removeHistory = true;
     }
 
@@ -97,7 +99,8 @@ export class DocWorker {
           if (err) {
             if (err.message && /Request aborted/.test(err.message)) {
               log.warn(`Download request aborted for doc ${docId}`, err);
-            } else {
+            }
+ else {
               log.error(`Download failure for doc ${docId}`, err);
             }
           }
@@ -175,7 +178,8 @@ export class DocWorker {
         // used instead, which will coincide with the docId for hosted grist but not for
         // standalone grist.
         urlId = activeDoc.docName;
-      } else {
+      }
+ else {
         // Otherwise, if being used without a client, expect the doc query parameter to
         // be the docId.
         urlId = stringParam(req.query.doc, 'doc');
@@ -185,7 +189,8 @@ export class DocWorker {
       const docAuth = await getOrSetDocAuth(mreq, this._dbManager, this._gristServer, urlId);
       assertAccess('viewers', docAuth);
       next();
-    } catch (err) {
+    }
+ catch (err) {
       log.info(`DocWorker can't access document ${urlId} with userId ${mreq.userId}: ${err}`);
       res.status(err.status || 404).send({error: err.toString()});
     }

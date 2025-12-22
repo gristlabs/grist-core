@@ -561,7 +561,8 @@ function testDocApi(settings: {
         const urlId = resp.data;
         if (mode === 'logged in') {
           assert.match(urlId, /^new~[^~]*~[0-9]+$/);
-        } else {
+        }
+ else {
           assert.match(urlId, /^new~[^~]*$/);
         }
 
@@ -574,7 +575,8 @@ function testDocApi(settings: {
         if (mode === 'anonymous') {
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
           assert.equal(resp.data.access, 'owners');
-        } else {
+        }
+ else {
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
           assert.equal(resp.status, 403);
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
@@ -585,7 +587,8 @@ function testDocApi(settings: {
         resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
         if (content === 'with content') {
           assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
-        } else {
+        }
+ else {
           assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
         }
       });
@@ -631,7 +634,8 @@ function testDocApi(settings: {
       resp = await axios.get(`${serverUrl}/api/docs/${urlId}/tables/Table1/data`, user);
       if (content === 'with content') {
         assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
-      } else {
+      }
+ else {
         assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
       }
 
@@ -1540,7 +1544,8 @@ function testDocApi(settings: {
           if (limit) {
             url.searchParams.append('limit', String(limit));
           }
-        } else {
+        }
+ else {
           if (sort) {
             config.headers!['x-sort'] = sort.join(',');
           }
@@ -1756,10 +1761,12 @@ function testDocApi(settings: {
     assert.equal(resp.status, status);
     if (test instanceof RegExp) {
       assert.match(resp.data.error, test, message);
-    } else {
+    }
+ else {
       try {
         assert.deepEqual(resp.data, test, message);
-      } catch (err) {
+      }
+ catch (err) {
         console.log(JSON.stringify(resp.data));
         console.log(JSON.stringify(test));
         throw err;
@@ -2547,8 +2554,7 @@ function testDocApi(settings: {
       assert.deepEqual(resp.data, Buffer.from('123456'));
     });
 
-    async function assertArchiveContents(archive: string | Buffer, expectedFiles: { name: string; contents?: string }[])
-    {
+    async function assertArchiveContents(archive: string | Buffer, expectedFiles: { name: string; contents?: string }[]) {
       const getFileName = (filePath: string) => filePath.substring(filePath.indexOf("_") + 1);
       const files = await decompress(archive);
       for (const expectedFile of expectedFiles) {
@@ -3442,7 +3448,8 @@ function testDocApi(settings: {
       assert.equal(resp.data.A[1], 'Orange');
       resp = await axios.get(`${serverUrl}/api/docs/urlid1/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[1], 'Orange');
-    } finally {
+    }
+ finally {
       await userApi.deleteDoc(doc1);
     }
   });
@@ -3468,7 +3475,8 @@ function testDocApi(settings: {
       assert.equal(resp.data.A[0], 'Apple');
       resp = await axios.get(`${serverUrl}/api/docs/${doc2}/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[0], 'Orange');
-    } finally {
+    }
+ finally {
       await userApi.deleteDoc(doc1);
       await nasaApi.deleteDoc(doc2);
     }
@@ -3497,7 +3505,8 @@ function testDocApi(settings: {
         A: ['Orange'], B: [99]
       }, chimpy);
       assert.equal(resp.status, 404);
-    } finally {
+    }
+ finally {
       await userApi.deleteDoc(doc1);
       await nasaApi.deleteDoc(doc2);
     }
@@ -3560,7 +3569,8 @@ function testDocApi(settings: {
         sourceDocId: doc3
       }, kiwi);
       assert.equal(resp.status, 200);
-    } finally {
+    }
+ finally {
       await userApi.deleteDoc(doc1);
       await userApi.deleteDoc(doc2);
       await userApi.deleteDoc(doc3);
@@ -4165,7 +4175,8 @@ function testDocApi(settings: {
         try {
           // Make some doc request so that it fails or succeeds
           await api.getTable(docId, "Table1");
-        } catch (e) {
+        }
+ catch (e) {
           success = false;
         }
 
@@ -4174,7 +4185,8 @@ function testDocApi(settings: {
         // If a new day starts in the middle of the requests, this test will fail.
         if (success) {
           assert.isAtMost(i, max + 1);
-        } else {
+        }
+ else {
           assert.isAtLeast(i, max + 1);
         }
       }
@@ -4483,7 +4495,8 @@ function testDocApi(settings: {
           try {
             await delayAbort(20000, scoped.signal); // We don't expect to wait for this, we should be aborted
             assert.fail('Should have been aborted');
-          } catch (exc) {
+          }
+ catch (exc) {
             res.status(probeStatus);
             res.send(probeMessage);
             res.end();
@@ -4501,7 +4514,8 @@ function testDocApi(settings: {
             res.sendStatus(200);
             res.end();
             longFinished.emit(body[0].A);
-          } catch (exc) {
+          }
+ catch (exc) {
             res.sendStatus(200); // Send ok, so that it won't be seen as an error.
             res.end();
             longFinished.emit([408, body[0].A]); // We will signal that this is success but after aborting timeout.
@@ -4749,7 +4763,8 @@ function testDocApi(settings: {
 
           if (ctx.enabled) {
             assert.isAbove(redisPushIndex, 0, "Should have pushed events to the redis queue");
-          } else {
+          }
+ else {
             assert.equal(redisPushIndex, -1, "Should not have pushed any events to the redis queue");
           }
         });
@@ -5492,10 +5507,12 @@ function testDocApi(settings: {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const {unsubscribeKey, ...fieldsWithoutUnsubscribeKey} = stats[0].fields;
               assert.deepEqual(fieldsWithoutUnsubscribeKey, { ...expectedFields, ...fields });
-            } else {
+            }
+ else {
               if (error instanceof RegExp) {
                 assert.match(resp.data.details?.userError || resp.data.error, error);
-              } else {
+              }
+ else {
                 assert.deepEqual(resp.data, {error});
               }
             }
@@ -5559,7 +5576,8 @@ function testDocApi(settings: {
         anonConfig.headers!.Host = chimpyConfig.headers!.Host =
           'api.example.com';
         allowedOrigin = 'http://front.example.com';
-      } else {
+      }
+ else {
         allowedOrigin = serverUrl;
       }
 
@@ -5594,7 +5612,8 @@ function testDocApi(settings: {
           if (config === anonConfig) {
             // Requests without credentials are still OK.
             assert.equal(response.status, 200);
-          } else {
+          }
+ else {
             assert.equal(response.status, 403);
             assert.deepEqual(response.data, {error: 'Credentials not supported for cross-origin requests'});
           }
@@ -5712,7 +5731,8 @@ function testDocApi(settings: {
         ], chimpy);
       resp = await axios.post(url, query, kiwi);
       assert.equal(resp.status, 403);
-    } finally {
+    }
+ finally {
       // Remove extra viewer; remove extra table.
       const delta = {
         users: { 'kiwi@getgrist.com': null },
@@ -5734,7 +5754,8 @@ function testDocApi(settings: {
         chimpy);
       if (accept) {
         assert.equal(resp.status, 200);
-      } else {
+      }
+ else {
         assert.equal(resp.status, 400);
       }
       return resp.data;

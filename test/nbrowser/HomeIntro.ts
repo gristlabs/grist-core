@@ -109,13 +109,15 @@ describe('HomeIntro', function() {
 
     if (options.team) {
       assert.equal(await driver.find('.test-topbar-manage-team').getText(), 'Manage team');
-    } else {
+    }
+ else {
       assert.equal(await driver.find('.test-topbar-manage-team').isPresent(), false);
     }
 
     if (options.anon) {
       assert.isFalse(await driver.find('.test-welcome-menu').isPresent());
-    } else {
+    }
+ else {
       await driver.find('.test-welcome-menu').click();
       await driver.find('.test-welcome-menu-only-show-documents').click();
       await gu.waitForServer();
@@ -169,7 +171,8 @@ describe('HomeIntro', function() {
         assert.equal(await driver.find('.test-save-copy').isPresent(), true);
         // There is no original of this document.
         assert.equal(await driver.find('.test-open-original').isPresent(), false);
-      } else {
+      }
+ else {
         assert.equal(await driver.find('.test-tb-share-action').isPresent(), false);
       }
     });
@@ -314,8 +317,7 @@ async function testEmptyWorkspace() {
 async function checkDocAndRestore(
   isLoggedIn: boolean,
   docChecker: () => Promise<void>,
-  stepsBackToDocMenu: number = 1)
-{
+  stepsBackToDocMenu: number = 1) {
   await waitAndDismiss();
   await docChecker();
   for (let i = 0; i < stepsBackToDocMenu; i++) {

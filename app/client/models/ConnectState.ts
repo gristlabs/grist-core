@@ -24,7 +24,8 @@ export class ConnectStateManager extends Disposable {
       this._timers.forEach(t => clearTimeout(t));
       this._timers = [];
       this._setState(ConnectState.Connected);
-    } else if (this.connectState.get() === ConnectState.Connected) {
+    }
+ else if (this.connectState.get() === ConnectState.Connected) {
       this._timers = [
         setTimeout(() => this._setState(ConnectState.RecentlyDisconnected),
                    ConnectStateManager.timeToRecentlyDisconnected),

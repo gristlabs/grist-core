@@ -81,7 +81,8 @@ export class MinIOExternalStorage implements ExternalStorage {
         snapshotId: head.versionId,
         ...head.metaData && { metadata: toGristMetadata(head.metaData) },
       };
-    } catch (err) {
+    }
+ catch (err) {
       // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
       // and should return a falsy null.
       // Other errors like 'ECONNRESET' and 'InternalError' are fatal errors and should be thrown
@@ -106,7 +107,8 @@ export class MinIOExternalStorage implements ExternalStorage {
     const filestream = fse.createReadStream(fname);
     try {
       return await this.uploadStream(key, filestream, stat.size, metadata);
-    } finally {
+    }
+ finally {
       filestream.destroy();
     }
   }
@@ -148,7 +150,8 @@ export class MinIOExternalStorage implements ExternalStorage {
   public async remove(key: string, snapshotIds?: string[]) {
     if (snapshotIds) {
       await this._deleteVersions(key, snapshotIds);
-    } else {
+    }
+ else {
       await this._deleteAllVersions(key);
     }
   }

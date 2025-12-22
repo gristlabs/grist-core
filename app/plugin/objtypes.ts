@@ -106,7 +106,8 @@ export class UnknownValue {
   public static safeRepr(value: unknown): string {
     try {
       return String(value);
-    } catch (e) {
+    }
+ catch (e) {
       return `<${typeof value}>`;
     }
   }
@@ -164,28 +165,37 @@ export function encodeObject(value: unknown): CellValue {
     }
     if (value == null) {
       return null;
-    } else if (value instanceof Reference) {
+    }
+ else if (value instanceof Reference) {
       return [GristObjCode.Reference, value.tableId, value.rowId];
-    } else if (value instanceof ReferenceList) {
+    }
+ else if (value instanceof ReferenceList) {
       return [GristObjCode.ReferenceList, value.tableId, value.rowIds];
-    } else if (value instanceof Date) {
+    }
+ else if (value instanceof Date) {
       const timestamp = value.valueOf() / 1000;
       if ('timezone' in value) {
         return [GristObjCode.DateTime, timestamp, (value as GristDateTime).timezone];
-      } else {
+      }
+ else {
         // TODO Depending on how it's used, may want to return ['d', timestamp] for UTC midnight.
         return [GristObjCode.DateTime, timestamp, 'UTC'];
       }
-    } else if (value instanceof CensoredValue) {
+    }
+ else if (value instanceof CensoredValue) {
       return [GristObjCode.Censored];
-    } else if (value instanceof RaisedException) {
+    }
+ else if (value instanceof RaisedException) {
       return [GristObjCode.Exception, value.name, value.message, value.details];
-    } else if (Array.isArray(value)) {
+    }
+ else if (Array.isArray(value)) {
       return [GristObjCode.List, ...value.map(encodeObject)];
-    } else if (isPlainObject(value)) {
+    }
+ else if (isPlainObject(value)) {
       return [GristObjCode.Dict, mapValues(value as any, encodeObject, {sort: true})];
     }
-  } catch (e) {
+  }
+ catch (e) {
     // Fall through to return a best-effort representation.
   }
   // We either don't know how to convert the value, or failed during the conversion. Instead we
@@ -219,7 +229,8 @@ export function decodeObject(value: CellValue): unknown {
       case 'C': return new CensoredValue();
       case 'U': return new UnknownValue(args[0]);
     }
-  } catch (e) {
+  }
+ catch (e) {
     err = e;
   }
   // If we can't decode, return an UnknownValue with some attempt to represent what we couldn't

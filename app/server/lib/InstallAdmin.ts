@@ -45,7 +45,8 @@ export abstract class InstallAdmin {
         throw new ApiError('Access denied', 403);
       }
       next();
-    } catch (err) {
+    }
+ catch (err) {
       next(err);
     }
   }

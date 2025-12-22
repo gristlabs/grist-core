@@ -148,8 +148,7 @@ export function isReferenceList(value: CellValue): value is [GristObjCode.Refere
  * Returns whether a value (as received in a DocAction) represents a reference or reference list.
  */
 export function isReferencing(value: CellValue):
-  value is [GristObjCode.ReferenceList|GristObjCode.Reference, string, number[]|number]
-{
+  value is [GristObjCode.ReferenceList|GristObjCode.Reference, string, number[]|number] {
   return Array.isArray(value) &&
     (value[0] === GristObjCode.ReferenceList || value[0] === GristObjCode.Reference);
 }

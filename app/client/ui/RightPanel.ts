@@ -147,7 +147,8 @@ export class RightPanel extends Disposable {
     this.autoDispose(subscribe((use) => {
       if (!use(this._isForm) && use(this._subTab) === 'submission') {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('sortAndFilter'));
-      } else if (use(this._isForm) && use(this._subTab) === 'sortAndFilter') {
+      }
+ else if (use(this._isForm) && use(this._subTab) === 'sortAndFilter') {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('submission'));
       }
     }));
@@ -659,7 +660,8 @@ export class RightPanel extends Disposable {
 
               if (colId == "id") {
                 return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
-              } else {
+              }
+ else {
                 return dom("tr",
                   dom("td", cssLinkInfoIcon("Filter"),
                     `${colId}`),
@@ -669,7 +671,8 @@ export class RightPanel extends Disposable {
                       cssLinkInfoIcon("FieldReference"): null,
                     `${vals.join(', ')}`)),
                 );
-            } }), //end of keys(filterLabels).map
+            } 
+}), //end of keys(filterLabels).map
         ));
       };
 
@@ -685,7 +688,8 @@ export class RightPanel extends Disposable {
 
       const linkType = lstate.linkTypeDescription();
 
-      return cssLinkInfoPanel(() => { switch (linkType) {
+      return cssLinkInfoPanel(() => {
+ switch (linkType) {
           case "Filter:Summary-Group":
           case "Filter:Col->Col":
           case "Filter:Row->Col":
@@ -714,7 +718,8 @@ export class RightPanel extends Disposable {
           case "Error:Invalid":
           default:
             return dom("div", `Error: Couldn't identify link state`);
-        } },
+        } 
+},
         ...domArgs
       ); // End of cssLinkInfoPanel
     });
@@ -828,7 +833,8 @@ export class RightPanel extends Disposable {
       const widgetType = getTelemetryWidgetTypeFromVS(activeSection);
       if (val !== NoLink) {
         logTelemetryEvent('linkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
-      } else {
+      }
+ else {
         logTelemetryEvent('unlinkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
       }
 
@@ -1159,7 +1165,8 @@ function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComp
           itemOrHeader.label ? dom('div.config_header', itemOrHeader.label) : null,
           dom.forEach(itemOrHeader.items, item => buildItemDom(item)),
         );
-      } else {
+      }
+ else {
         return buildItemDom(itemOrHeader);
       }
     })

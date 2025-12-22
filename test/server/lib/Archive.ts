@@ -76,9 +76,11 @@ function testArchive(type: string, makeArchive: ArchiveCreator) {
       const output = new MemoryWritableStream();
       try {
         await archive.packInto(output, { endDestStream: end });
-      } catch(err) {
+      }
+ catch(err) {
         // Do nothing, don't care about this error.
-      } finally {
+      }
+ finally {
         assert.equal(output.closed, end, `expected ${name} to be ${ end ? "closed" : "open" }`);
       }
     };

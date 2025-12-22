@@ -141,8 +141,7 @@ export function getActiveEl(
   // If there’s a shadow root, recursively find the active element within it.
   // If the recursive call returns null, return the active element
   // of the top-level Document.
-  if (activeEl.shadowRoot)
-    { return getActiveEl(activeEl.shadowRoot) || document.activeElement; }
+  if (activeEl.shadowRoot) { return getActiveEl(activeEl.shadowRoot) || document.activeElement; }
 
   // If not, we can just return the active element
   return activeEl;

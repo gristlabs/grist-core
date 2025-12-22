@@ -15,8 +15,7 @@ export function enableExternalAttachmentsForTestSuite(options: {
   thresholdMb?: number,
   transferDelay?: number,
 }):
-  { envVars: Record<string, string>; getAttachmentsDir(): string; }
-{
+  { envVars: Record<string, string>; getAttachmentsDir(): string; } {
   const {thresholdMb, transferDelay} = options;
   const envVars: Record<string, string> = {
     GRIST_EXTERNAL_ATTACHMENTS_MODE: 'test',
@@ -69,7 +68,8 @@ function setEnvVars(vars: Record<string, string | undefined>) {
   for (const [varName, varValue] of Object.entries(vars)) {
     if (varValue === undefined) {
       delete process.env[varName];
-    } else {
+    }
+ else {
       process.env[varName] = varValue;
     }
   }

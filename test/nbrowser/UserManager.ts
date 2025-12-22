@@ -40,7 +40,8 @@ async function assertRole(name: string, roleLabel: string|null, inherited: boole
   const row = driver.findContent('.test-um-member', new RegExp(`${name}@getgrist.com`));
   if (!roleLabel) {
     assert.isTrue(!(await row.isPresent()) || await row.find(".test-um-member-undo").isPresent());
-  } else {
+  }
+ else {
     assert.equal(await row.find(`.test-um-member-role`).getText(), roleLabel);
     if (inherited !== null) {
       await row.find(`.test-um-member-role`).click();
@@ -60,7 +61,8 @@ const assertAccessDetails = stackWrapFunc(async function(name: string, role: str
   assert.equal(await row.find('.test-um-member-role').getText(), role);
   if (annotation) {
     assert.equal(await row.find('.test-um-member-annotation').getText(), annotation);
-  } else {
+  }
+ else {
     assert.isFalse(await row.find('.test-um-member-annotation').isPresent());
   }
 });
@@ -833,7 +835,8 @@ describe('UserManager', function() {
       const docUsers = (await api.forRemoved().getDocAccess(doc.id)).users.map(u => u.email);
       assert.includeMembers(docUsers, ['mario@getgrist.com']);
       assert.notInclude(docUsers, 'luigi@getgrist.com');
-    } finally {
+    }
+ finally {
       // Remove users we added.
       await api.updateOrgPermissions('current', {
         users: fromPairs(users.map(u => [`${u}@getgrist.com`, null]))

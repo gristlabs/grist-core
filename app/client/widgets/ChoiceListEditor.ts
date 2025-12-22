@@ -65,7 +65,8 @@ export class ChoiceListEditor extends NewBaseEditor {
       try {
         const dropdownConditionFilter = this._buildDropdownConditionFilter();
         acItems = acItems.filter(item => dropdownConditionFilter(item));
-      } catch (e) {
+      }
+ catch (e) {
         acItems = [];
         this._dropdownConditionError = e.message;
       }
@@ -257,9 +258,11 @@ export class ChoiceListEditor extends NewBaseEditor {
   private _buildNoItemsMessage(): string {
     if (this._dropdownConditionError) {
       return t('Error in dropdown condition');
-    } else if (this._hasDropdownCondition) {
+    }
+ else if (this._hasDropdownCondition) {
       return t('No choices matching condition');
-    } else {
+    }
+ else {
       return t('No choices to select');
     }
   }

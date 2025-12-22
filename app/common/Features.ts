@@ -189,11 +189,14 @@ export function parseMetadata(meta: Record<string, string>): Record<string, any>
     const value = copy[key];
     if (value === '') {
       copy[key] = null;
-    } else if (value === 'true' || value === 'false') {
+    }
+ else if (value === 'true' || value === 'false') {
       copy[key] = value === 'true';
-    } else if (!isNaN(parseFloat(value))) {
+    }
+ else if (!isNaN(parseFloat(value))) {
       copy[key] = parseFloat(value);
-    } else if (!isNaN(parseInt(value, 10))) {
+    }
+ else if (!isNaN(parseInt(value, 10))) {
       copy[key] = parseInt(value, 10);
     }
 

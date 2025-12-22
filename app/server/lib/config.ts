@@ -71,7 +71,8 @@ export class FileConfig<FileContents> {
 
     try {
       fileContents = validator(rawFileContents);
-    } catch (error) {
+    }
+ catch (error) {
       const configError =
         new ConfigValidationError(`Config at ${configPath} failed validation: ${error.message}`);
       configError.cause = error;
@@ -109,8 +110,7 @@ export class FileConfig<FileContents> {
  */
 export function fileConfigAccessorFactory<FileContents>(
   fileConfig?: FileConfig<FileContents>
-): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined
-{
+): <Key extends keyof FileContents>(key: Key) => ConfigAccessors<FileContents[Key]> | undefined {
   if (!fileConfig) { return key => undefined; }
   return key => ({
     get: () => fileConfig.get(key),

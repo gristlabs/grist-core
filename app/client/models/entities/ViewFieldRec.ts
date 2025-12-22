@@ -343,7 +343,8 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
           variant: 'dropdown-condition',
         }),
       };
-    } catch (e) {
+    }
+ catch (e) {
       return {kind: 'failure', error: e.message};
     }
   });

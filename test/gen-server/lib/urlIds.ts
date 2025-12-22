@@ -92,7 +92,8 @@ describe('urlIds', function() {
         const ws1 = await getAnyWorkspace(api1);
         await assert.isRejected(api1.newDoc({name: 'my example', urlId: doc.id}, ws1),
                                 /urlId already in use as document id/);
-      } finally {
+      }
+ finally {
         doc.id = prevDocId;
         await doc.save();
       }

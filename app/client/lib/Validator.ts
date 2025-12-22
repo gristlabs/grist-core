@@ -49,7 +49,8 @@ export class ValidationGroup {
         const isValid = typeof result === 'boolean' ? result : true;
         val.set(isValid);
         if (!isValid) { valid = false; break; }
-      } catch (err) {
+      }
+ catch (err) {
         valid = false;
         val.set((err as Error).message);
         break;
@@ -104,7 +105,8 @@ export class Validator extends Disposable {
     if (typeof isValid === 'string') {
       this._message.set(isValid);
       this._isValid.set(!isValid);
-    } else {
+    }
+ else {
       this._isValid.set(isValid ? true : false);
     }
   }

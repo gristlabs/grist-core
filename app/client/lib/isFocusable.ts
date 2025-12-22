@@ -54,8 +54,7 @@ const isHidden = (el: HTMLElement) => {
   if (
     el.matches('details:not([open]) *') &&
     !el.matches('details>summary:first-of-type')
-  )
-    { return true; }
+  ) { return true; }
 
   // If this element has no painted dimensions, it's hidden.
   return !(el.offsetWidth || el.offsetHeight || el.getClientRects().length);

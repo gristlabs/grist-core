@@ -72,7 +72,8 @@ export function hasValue(formData: FormData, nameOrPrefix: string): boolean {
   if (nameOrPrefix.endsWith('*')) {
     const prefix = nameOrPrefix.slice(0, -1);
     return [...formData.keys()].filter(k => k.startsWith(prefix)).some(k => formData.get(k));
-  } else {
+  }
+ else {
     return Boolean(formData.get(nameOrPrefix));
   }
 }

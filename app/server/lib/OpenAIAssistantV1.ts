@@ -155,7 +155,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         completion,
         response.suggestedFormula
       );
-    } else {
+    }
+ else {
       response.reply = completion;
     }
     response.state = { messages };
@@ -222,7 +223,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       log.warn("AI context length exceeded: ", errorMessage);
       if (messages.length <= 2) {
         throw new TokensExceededFirstMessageError();
-      } else {
+      }
+ else {
         throw new TokensExceededLaterMessageError();
       }
     }
@@ -250,7 +252,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
     while (attempts < maxAttempts) {
       try {
         return await this._fetchCompletion(messages, params);
-      } catch (e) {
+      }
+ catch (e) {
         if (e instanceof NonRetryableError) {
           throw e;
         }
@@ -281,7 +284,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         user,
         model: this._model,
       });
-    } catch (e) {
+    }
+ catch (e) {
       if (!(e instanceof TokensExceededError)) {
         throw e;
       }
@@ -295,7 +299,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
           user,
           model: this._longerContextModel,
         });
-      } catch (e) {
+      }
+ catch (e) {
         if (!(e instanceof TokensExceededError)) {
           throw e;
         }

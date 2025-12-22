@@ -59,7 +59,8 @@ describe("extractOrg", function() {
       const values = await resp.json();
       if (!values.isCustomHost) { delete values.isCustomHost; }
       return {...values, STATUS: resp.status};
-    } catch (e) {
+    }
+ catch (e) {
       return {STATUS: resp.status};
     }
   }

@@ -154,7 +154,8 @@ export class ACLUsersPopup extends Disposable {
         window.location.assign(urlState().makeUrl(userOverrideParams(user.email,
                                                                      {...extraState, doc: forkResult.urlId})));
       });
-    } else {
+    }
+ else {
       // When forking isn't needed, we return a direct link to be maximally transparent
       // about where button will go.
       return urlState().setHref(userOverrideParams(user.email, extraState));

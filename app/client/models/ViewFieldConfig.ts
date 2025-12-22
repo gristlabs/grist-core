@@ -79,7 +79,8 @@ export class ViewFieldConfig {
         const values = listFields().map(f => f.widget());
         if (allSame(values)) {
           return values[0];
-        } else {
+        }
+ else {
           return undefined;
         }
       },
@@ -340,7 +341,8 @@ export class ViewFieldConfig {
           colIds.map(colId => ["RenameChoices", tableId, colId, renames])
         )
       ]));
-    } else {
+    }
+ else {
       const column = this._field.column.peek();
       // In case this column is being transformed - using Apply Formula to Data, bundle the action
       // together with the transformation.

@@ -201,11 +201,14 @@ export class TestServer {
     let res: Document|Workspace|Organization|null;
     if (aclRule instanceof AclRuleDoc) {
       res = await con.findOne(Document, {where: {id: aclRule.docId}});
-    } else if (aclRule instanceof AclRuleWs) {
+    }
+ else if (aclRule instanceof AclRuleWs) {
       res = await con.findOne(Workspace, {where: {id: aclRule.workspaceId}});
-    } else if (aclRule instanceof AclRuleOrg) {
+    }
+ else if (aclRule instanceof AclRuleOrg) {
       res = await con.findOne(Organization, {where: {id: aclRule.orgId}});
-    } else {
+    }
+ else {
       throw new Error('unknown type');
     }
     if (!res) { throw new Error('could not find resource'); }
@@ -280,7 +283,8 @@ export class TestSession {
     if (userName !== 'anonymous') {
       if (useApiKey) {
         headers.Authorization = 'Bearer api_key_for_' + userName.toLowerCase();
-      } else {
+      }
+ else {
         const cookie = await this.getCookieLogin(orgDomain, {
           email: `${userName.toLowerCase()}@getgrist.com`,
           name: userName

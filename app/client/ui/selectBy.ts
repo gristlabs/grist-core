@@ -173,7 +173,8 @@ function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget):
     if (summaryTable) {
       // The selected source table and groupby columns correspond to this existing summary table.
       table = summaryTable;
-    } else {
+    }
+ else {
       // This summary table doesn't exist yet. `fromColumns` will be using columns from the source table.
       // Make sure it only uses columns that are in the selected groupby columns.
       // The resulting targetColRef will incorrectly be from the source table,

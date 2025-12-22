@@ -56,7 +56,8 @@ export class ReferenceEditor extends NTextEditor {
       if (this._autocomplete) {
         if (options.editValue === undefined) {
           this._autocomplete.search(items => items.findIndex(item => item.rowId === options.cellValue));
-        } else {
+        }
+ else {
           this._autocomplete.search();
         }
       }
@@ -97,7 +98,8 @@ export class ReferenceEditor extends NTextEditor {
     if (selectedItem) {
       // Selected from the autocomplete dropdown; so we know the *value* (i.e. rowId).
       return selectedItem.rowId;
-    } else if (nocaseEqual(this.textInput.value, this._idToText())) {
+    }
+ else if (nocaseEqual(this.textInput.value, this._idToText())) {
       // Unchanged from what's already in the cell.
       return this.options.cellValue;
     }

@@ -48,31 +48,40 @@ class ActionSummarizer {
       for (const info of act[2]) {
         this._forTable(summary, tableId).columnRenames.push([null, info.id]);
       }
-    } else if (Action.isRenameTable(act)) {
+    }
+ else if (Action.isRenameTable(act)) {
       this._addRename(summary.tableRenames, [tableId, act[2]]);
-    } else if (Action.isRenameColumn(act)) {
+    }
+ else if (Action.isRenameColumn(act)) {
       this._addRename(this._forTable(summary, tableId).columnRenames, [act[2], act[3]]);
-    } else if (Action.isAddColumn(act)) {
+    }
+ else if (Action.isAddColumn(act)) {
       this._forTable(summary, tableId).columnRenames.push([null, act[2]]);
-    } else if (Action.isRemoveColumn(act)) {
+    }
+ else if (Action.isRemoveColumn(act)) {
       this._forTable(summary, tableId).columnRenames.push([act[2], null]);
-    } else if (Action.isAddRecord(act)) {
+    }
+ else if (Action.isAddRecord(act)) {
       const td = this._forTable(summary, tableId);
       td.addRows.push(act[2]);
       this._addRow(td, act[2], act[3], 1);
-    } else if (Action.isUpdateRecord(act)) {
+    }
+ else if (Action.isUpdateRecord(act)) {
       const td = this._forTable(summary, tableId);
       td.updateRows.push(act[2]);
       this._addRow(td, act[2], act[3], 1);
-    } else if (Action.isBulkAddRecord(act)) {
+    }
+ else if (Action.isBulkAddRecord(act)) {
       const td = this._forTable(summary, tableId);
       arrayExtend(td.addRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 1);
-    } else if (Action.isBulkUpdateRecord(act)) {
+    }
+ else if (Action.isBulkUpdateRecord(act)) {
       const td = this._forTable(summary, tableId);
       arrayExtend(td.updateRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 1);
-    } else if (Action.isReplaceTableData(act)) {
+    }
+ else if (Action.isReplaceTableData(act)) {
       const td = this._forTable(summary, tableId);
       arrayExtend(td.addRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 1);
@@ -87,26 +96,33 @@ class ActionSummarizer {
       for (const info of act[2]) {
         this._forTable(summary, tableId).columnRenames.push([info.id, null]);
       }
-    } else if (Action.isAddRecord(act)) { // undoing, so this is a record removal
+    }
+ else if (Action.isAddRecord(act)) { // undoing, so this is a record removal
       const td = this._forTable(summary, tableId);
       td.removeRows.push(act[2]);
       this._addRow(td, act[2], act[3], 0);
-    } else if (Action.isUpdateRecord(act)) { // undoing, so this is reversal of a record update
+    }
+ else if (Action.isUpdateRecord(act)) { // undoing, so this is reversal of a record update
       const td = this._forTable(summary, tableId);
       this._addRow(td, act[2], act[3], 0);
-    } else if (Action.isBulkAddRecord(act)) { // undoing, this may be reversing a table delete
+    }
+ else if (Action.isBulkAddRecord(act)) { // undoing, this may be reversing a table delete
       const td = this._forTable(summary, tableId);
       arrayExtend(td.removeRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 0);
-    } else if (Action.isBulkUpdateRecord(act)) { // undoing, so this is reversal of a bulk record update
+    }
+ else if (Action.isBulkUpdateRecord(act)) { // undoing, so this is reversal of a bulk record update
       const td = this._forTable(summary, tableId);
       arrayExtend(td.updateRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 0);
-    } else if (Action.isRenameTable(act)) { // undoing - sometimes renames only in undo info
+    }
+ else if (Action.isRenameTable(act)) { // undoing - sometimes renames only in undo info
       this._addRename(summary.tableRenames, [act[2], tableId]);
-    } else if (Action.isRenameColumn(act)) { // undoing - sometimes renames only in undo info
+    }
+ else if (Action.isRenameColumn(act)) { // undoing - sometimes renames only in undo info
       this._addRename(this._forTable(summary, tableId).columnRenames, [act[3], act[2]]);
-    } else if (Action.isReplaceTableData(act)) { // undoing
+    }
+ else if (Action.isReplaceTableData(act)) { // undoing
       const td = this._forTable(summary, tableId);
       arrayExtend(td.removeRows, act[2]);
       this._addRows(tableId, td, act[2], act[3], 0);
@@ -155,7 +171,8 @@ class ActionSummarizer {
       };
       if (!limitRows || alwaysPreserveColIds.has(colId)) {
         rowIds.forEach(addCellToSummary);
-      } else {
+      }
+ else {
         selectedRows.forEach(([idx, rowId]) => addCellToSummary(rowId, idx));
       }
     }
@@ -171,9 +188,11 @@ class ActionSummarizer {
     const maxRows = this._options?.maximumInlineRows;
     if (maxRows === undefined) {
       return MAXIMUM_INLINE_ROWS;
-    } else if (maxRows === null) {
+    }
+ else if (maxRows === null) {
       return Infinity;
-    } else {
+    }
+ else {
       return maxRows;
     }
   }
@@ -279,7 +298,8 @@ function planNameMerge(names1: LabelDelta[], names2: LabelDelta[]): NameMerge {
         // Table/column existed prior to part 1, so we need to expose its history.
         result.dead1.add(before1);
         result.merge.push([before1, null]);
-      } else {
+      }
+ else {
         // Table/column did not exist prior to part 1, so we erase it from history.
         result.dead1.add(after1);
         result.dead2.add(defunctTableName(after1));
@@ -528,7 +548,8 @@ export function concatenateSummaries(sums: ActionSummary[]): ActionSummary {
 export function getRenames(ref: ActionSummary|TableDelta) {
   if ('tableRenames' in ref) {
     return ref.tableRenames;
-  } else {
+  }
+ else {
     return ref.columnRenames;
   }
 }
@@ -536,7 +557,8 @@ export function getRenames(ref: ActionSummary|TableDelta) {
 export function getDeltas<T extends ActionSummary|TableDelta>(ref: T) {
   if ('tableRenames' in ref) {
     return ref.tableDeltas;
-  } else {
+  }
+ else {
     return ref.columnDeltas;
   }
 }

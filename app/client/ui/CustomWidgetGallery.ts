@@ -99,7 +99,8 @@ class CustomWidgetGallery extends Disposable {
           pluginId,
         });
         return widget ? `${pluginId}:${widgetId}` : null;
-      } else {
+      }
+ else {
         return CUSTOM_URL_WIDGET_ID;
       }
     });
@@ -182,7 +183,8 @@ class CustomWidgetGallery extends Disposable {
       widgets.push(...remoteWidgets
         .filter(({published}) => published !== false)
         .sort((a, b) => a.name.localeCompare(b.name)));
-    } catch (e) {
+    }
+ catch (e) {
       reportError(e);
     }
 
@@ -198,7 +200,8 @@ class CustomWidgetGallery extends Disposable {
     const searchText = this._searchText.get();
     if (!searchText) {
       this._filteredWidgets.set(widgets);
-    } else {
+    }
+ else {
       const searchTerms = searchText.trim().split(/\s+/);
       const searchPatterns = searchTerms.map(term =>
         new RegExp(`\\b${escapeRegExp(term)}`, 'i'));
@@ -213,9 +216,11 @@ class CustomWidgetGallery extends Disposable {
     return dom.domComputed(this._filteredWidgets, (widgets) => {
       if (widgets === null) {
         return cssLoadingSpinner(loadingSpinner());
-      } else if (widgets.length === 0) {
+      }
+ else if (widgets.length === 0) {
         return cssNoMatchingWidgets(t('No matching widgets'));
-      } else {
+      }
+ else {
         return cssWidgets(
           widgets.map((widget) => {
             const {description, authors = [], lastUpdatedAt} = widget;
@@ -341,7 +346,8 @@ class CustomWidgetGallery extends Disposable {
   private async _deselectOrClose() {
     if (this._selectedWidgetId.get()) {
       this._selectedWidgetId.set(null);
-    } else {
+    }
+ else {
       this._ctl.close();
     }
   }
@@ -367,7 +373,8 @@ class CustomWidgetGallery extends Disposable {
         const selectedWidgetId = this._selectedWidgetId.get();
         if (selectedWidgetId === CUSTOM_URL_WIDGET_ID) {
           return this._saveCustomUrlWidget(section);
-        } else {
+        }
+ else {
           return this._saveRemoteWidget(section);
         }
       }
@@ -443,9 +450,11 @@ export function getWidgetName({name, source}: ICustomWidget) {
 function getWidgetVariant({isGristLabsMaintained = false, widgetId}: ICustomWidget): WidgetVariant {
   if (widgetId === CUSTOM_URL_WIDGET_ID) {
     return 'custom';
-  } else if (isGristLabsMaintained) {
+  }
+ else if (isGristLabsMaintained) {
     return 'grist';
-  } else {
+  }
+ else {
     return 'community';
   }
 }
@@ -453,7 +462,8 @@ function getWidgetVariant({isGristLabsMaintained = false, widgetId}: ICustomWidg
 function getWidgetId({source, widgetId}: ICustomWidget) {
   if (widgetId === CUSTOM_URL_WIDGET_ID) {
     return CUSTOM_URL_WIDGET_ID;
-  } else {
+  }
+ else {
     return `${source?.pluginId ?? ''}:${widgetId}`;
   }
 }

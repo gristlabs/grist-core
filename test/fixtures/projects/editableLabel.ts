@@ -50,10 +50,12 @@ class SaveableSetup extends Disposable {
         this.pendingCalls.push(pendingCall);
       });
       this.callLog.push(`Resolved`);
-    } catch (e) {
+    }
+ catch (e) {
       this.callLog.push(`Rejected: ${e.message}`);
       throw e;
-    } finally {
+    }
+ finally {
       const index = this.pendingCalls.get().indexOf(pendingCall!);
       this.pendingCalls.splice(index, 1);
     }

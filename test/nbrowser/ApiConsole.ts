@@ -59,7 +59,8 @@ describe('ApiConsole', function () {
       await driver.findWait('button.test-modal-confirm', 3000).click();
       toasts = await gu.getToasts();
       assert.equal(toasts.length, 0);
-    } finally {
+    }
+ finally {
       // There is an extra browser tab open for the api console.
       await driver.close();
       await myTab.open();
@@ -88,7 +89,8 @@ async function openApiConsolePage() {
 async function clickWithRetry(finder: () => WebElementPromise) {
   try {
     await finder().click();
-  } catch (e) {
+  }
+ catch (e) {
     await finder().click();
   }
 }

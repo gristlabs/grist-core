@@ -17,7 +17,8 @@ function getOptions(date: string) {
 function checkOption(options: Array<{label: string, spec: any}>, label: string, spec: any) {
   try {
     assert.deepInclude(options, {label, spec});
-  } catch (e) {
+  }
+ catch (e) {
     const json = `{\n  ${options.map(o => JSON.stringify({label: o.label, spec: o.spec})).join('\n  ')}\n}`;
     assert.fail(`expected ${json} to include\n  ${JSON.stringify({label, spec})}`);
   }

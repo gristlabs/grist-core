@@ -186,7 +186,8 @@ class OnBoardingPopupsCtl extends Disposable {
 
     if (entry.showHasModal) {
       this._showHasModal();
-    } else {
+    }
+ else {
       await this._showHasPopup(movement);
     }
   }

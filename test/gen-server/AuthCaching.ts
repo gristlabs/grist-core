@@ -391,7 +391,8 @@ describe('AuthCaching', function() {
         assert.equal((await charonCli.send("openDoc", helloDocId)).error, undefined);
         passed = true;
         break;
-      } catch (err) {
+      }
+ catch (err) {
         continue;
       }
     }

@@ -39,7 +39,8 @@ export class TimingPage extends DisposableWithEvents {
     if (this._gristDoc.isTimingOn.get() === false) {
       // Just redirect back to the settings page.
       this._openSettings();
-    } else {
+    }
+ else {
       this._start().catch((ex) => {
         this._openSettings();
         reportError(ex);

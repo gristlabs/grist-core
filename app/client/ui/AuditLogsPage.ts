@@ -120,7 +120,8 @@ enable Grist Enterprise. {{contactUsLink}} to learn more.",
           ),
         }
       );
-    } else if (
+    }
+ else if (
       deploymentType === "saas" &&
       !this._appModel.currentFeatures?.teamAuditLogs
     ) {
@@ -135,7 +136,8 @@ SIEM (security information and event management) system if you \
           ),
         }
       );
-    } else {
+    }
+ else {
       this._model.fetchStreamingDestinations().catch(reportError);
       return dom.create(AuditLogStreamingConfig, this._model);
     }

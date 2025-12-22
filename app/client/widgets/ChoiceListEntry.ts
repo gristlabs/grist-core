@@ -198,7 +198,8 @@ export class ChoiceListEntry extends Disposable {
           dom.onKeyDown({Escape: () => this._cancel()}),
           dom.onKeyDown({Enter: () => this._save()}),
         );
-      } else {
+      }
+ else {
         const holder = new MultiHolder();
         const someValues = Computed.create(holder, this._values, (_use, values) =>
           values.length <= maxRows ? values : values.slice(0, maxRows - 1));
@@ -301,7 +302,8 @@ export class ChoiceListEntry extends Disposable {
       || !isEqual(this._choiceOptionsByName.get(), newOptions)) {
       // Because of the listener on this._values, editing will stop if values are updated.
       this._onSave(newValues, newOptions, new RenameMap(newTokens));
-    } else {
+    }
+ else {
       this._cancel();
     }
   }
@@ -331,7 +333,8 @@ export class ChoiceListEntry extends Disposable {
       // If user removed the label, revert back to original one.
       if (!to) {
         choiceText.set(token.label);
-      } else {
+      }
+ else {
         tokenField.replaceToken(token.label, ChoiceItem.from(token).rename(to));
         // We don't need to update choiceText, since it will be replaced (rerendered).
       }
@@ -472,7 +475,8 @@ function isJSON(string: string) {
   try {
     JSON.parse(string);
     return true;
-  } catch {
+  }
+ catch {
     return false;
   }
 }

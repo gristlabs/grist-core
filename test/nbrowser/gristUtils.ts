@@ -590,7 +590,8 @@ export async function clickReferenceListCell(cell: WebElement) {
   const tokens = await cell.findAll('.test-ref-list-cell-token-label');
   if (tokens.length > 0) {
     await tokens[0].click();
-  } else {
+  }
+ else {
     await cell.click();
   }
 }
@@ -642,7 +643,8 @@ export async function getCursorPosition(section?: WebElement|string) {
     if (rowNum && colName) {
       // This must be a detail view, and we just got the info we need.
       return {rowNum: parseInt(rowNum, 10), col: colName};
-    } else {
+    }
+ else {
       // We might be on a single card record
       const counter = await section.findAll(".grist-single-record__menu__count");
       if (counter.length) {
@@ -661,7 +663,8 @@ export async function isCursorPresent(section?: WebElement|string,
                                       type: "active" | "selected" = "selected"): Promise<boolean> {
   if (typeof section === 'string') {
     section = getSection(section);
-  } else {
+  }
+ else {
     section = section ?? driver.findWait('.active_section', 4000);
   }
   return section.find(type === 'active' ? '.active_cursor' : '.selected_cursor').isPresent();
@@ -673,7 +676,8 @@ export async function isCursorPresent(section?: WebElement|string,
 async function catchNoSuchElem(query: () => any) {
   try {
     return await query();
-  } catch (err) {
+  }
+ catch (err) {
     if (err instanceof error.NoSuchElementError) { return null; }
     throw err;
   }
@@ -682,7 +686,8 @@ async function catchNoSuchElem(query: () => any) {
 export async function retryOnStale<T>(query: () => Promise<T>): Promise<T> {
   try {
     return await query();
-  } catch (err) {
+  }
+ catch (err) {
     if (err instanceof error.StaleElementReferenceError) { return await query(); }
     throw err;
   }
@@ -727,7 +732,8 @@ export async function getFormulaText(onlyVisible = true): Promise<string> {
   assert.equal(await driver.findWait('.test-formula-editor', 500).isDisplayed(), true);
   if (onlyVisible) {
     return await driver.find('.code_editor_container').getText();
-  } else {
+  }
+ else {
     return await driver.executeScript(
       () => (document as any).querySelector(".code_editor_container").innerText
     );
@@ -806,7 +812,8 @@ export async function selectGridArea(startCell: [number, number], endCell: [numb
 
   if (startRowNum === endRowNum && startCol === endCol) {
     await getCell({ rowNum: endRowNum, col: endCol }).click();
-  } else {
+  }
+ else {
     const start = await getCell({ rowNum: startRowNum, col: startCol });
     const end = await getCell({ rowNum: endRowNum, col: endCol });
     await driver.withActions(a => a.click(start).keyDown(Key.SHIFT).click(end).keyUp(Key.SHIFT));
@@ -1025,12 +1032,14 @@ export async function doInIframe<T>(frameOrFunc: WebElement|(() => Promise<T>), 
     if (!func) {
       func = frameOrFunc as () => Promise<T>;
       iframe = await driver.findWait('iframe', 5000);
-    } else {
+    }
+ else {
       iframe = frameOrFunc as WebElement;
     }
     await driver.switchTo().frame(iframe);
     return await func();
-  } finally {
+  }
+ finally {
     await driver.switchTo().defaultContent();
   }
 }
@@ -1058,7 +1067,8 @@ export async function userActionsVerify(expectedUserActions: unknown[]): Promise
     assert.deepEqual(
       await driver.executeScript("return window.gristApp.comm.userActionsFetchAndReset()"),
       expectedUserActions);
-  } catch (err) {
+  }
+ catch (err) {
     const assertError = err as AssertionError;
     if (!Array.isArray(assertError.actual)) {
       throw new Error('userActionsVerify: no user actions, run userActionsCollect() first');
@@ -1152,7 +1162,8 @@ export async function confirm(save = true, remember = false) {
     // driver.findWait('.test-confirm-save', 50).isPresent();
     // Which doesn't work.
     await driver.findWait('.test-confirm-save', 50);
-  } catch (err) {
+  }
+ catch (err) {
     return;
   }
   if (remember) {
@@ -1160,7 +1171,8 @@ export async function confirm(save = true, remember = false) {
   }
   if (save) {
     await driver.find(".test-confirm-save").click();
-  } else {
+  }
+ else {
     await driver.find(".test-confirm-cancel").click();
   }
 }
@@ -1176,7 +1188,8 @@ export async function hideBanners() {
 export async function assertBannerText(text: string | null | RegExp) {
   if (text === null) {
     assert.isFalse(await driver.find('.test-banner-element').isPresent());
-  } else {
+  }
+ else {
     assert.match(
       await driver.findWait('.test-doc-usage-banner-text', 2000).getText(),
       typeof text === 'string' ? exactMatch(text) : text
@@ -1239,7 +1252,8 @@ export async function getPageTree(): Promise<PageTree[]> {
       parent.children ??= [];
       parent.children.push({label});
       stack.push(parent);
-    } else if (level > current) {
+    }
+ else if (level > current) {
       current = level;
       const child = {label};
       const grandFather = stack.pop()!;
@@ -1249,7 +1263,8 @@ export async function getPageTree(): Promise<PageTree[]> {
       father.children.push(child);
       stack.push(grandFather);
       stack.push(father);
-    } else {
+    }
+ else {
       while (level < current) {
         stack.pop();
         current--;
@@ -1366,7 +1381,8 @@ export async function removePage(name: string|RegExp, options: {
   const popups = await driver.findAll(".test-removepage-popup");
   if (options.expectPrompt === true) {
     assert.lengthOf(popups, 1);
-  } else if (options.expectPrompt === false) {
+  }
+ else if (options.expectPrompt === false) {
     assert.lengthOf(popups, 0);
   }
   if (popups.length) {
@@ -1378,7 +1394,8 @@ export async function removePage(name: string|RegExp, options: {
     await popup.find(`.test-option-${options.withData ? 'data': 'page'}`).click();
     if (options.cancel) {
       await driver.find(".test-modal-cancel").click();
-    } else {
+    }
+ else {
       await driver.find(".test-modal-confirm").click();
     }
   }
@@ -1504,10 +1521,12 @@ export function revertChanges(test: () => Promise<void>, invariant: () => any = 
     let wasError = false;
     try {
       await test();
-    } catch(e) {
+    }
+ catch(e) {
       wasError = true;
       throw e;
-    } finally {
+    }
+ finally {
       if (!(noCleanup && wasError)) {
         await revert();
       }
@@ -1934,9 +1953,11 @@ export async function sendKeys(...args: (string|number)[]) {
         if ([Key.ALT, Key.CONTROL, Key.SHIFT, Key.COMMAND, Key.META].includes(key)) {
           a.keyDown(key);
           toRelease.push(key);
-        } else if (key === Key.NULL) {
+        }
+ else if (key === Key.NULL) {
           toRelease.splice(0).reverse().forEach(k => a.keyUp(k));
-        } else {
+        }
+ else {
           a.sendKeys(key);
         }
         if (interval) {
@@ -2323,7 +2344,8 @@ export class Session {
       if (this.settings.email === 'anon@getgrist.com') {
         if (options?.showTips) {
           await enableTips(this.settings.email);
-        } else {
+        }
+ else {
           await disableTips(this.settings.email);
         }
         return this;
@@ -2340,12 +2362,14 @@ export class Session {
     let currentOrg: APIOrganization|undefined;
     try {
       currentOrg = await getOrg();
-    } catch (err) {
+    }
+ catch (err) {
       // ok, we may not be in a page associated with an org.
     }
     try {
       currentUser = await getUser();
-    } catch (err) {
+    }
+ catch (err) {
       // ok, we may not be in a page associated with a user.
     }
     return currentUser && currentUser.email === this.settings.email &&
@@ -2737,7 +2761,8 @@ export async function showColumn(name: string) {
   await driver.find('.active_section .mod-add-column').click();
   if (await driver.findContent('.test-new-columns-menu-hidden-column-inlined', `${name}`).isPresent()) {
     await driver.findContent('.test-new-columns-menu-hidden-column-inlined', `${name}`).click();
-  } else {
+  }
+ else {
     await driver.findContent('.test-new-columns-menu-hidden-column-collapsed', `${name}`).click();
   }
   await waitForServer();
@@ -3129,18 +3154,22 @@ export async function onNewTabForUrl(url: string, action: () => Promise<void>, o
   await driver.switchTo().window(newTab);
   try {
     await action();
-  } catch (e) {
+  }
+ catch (e) {
     console.warn("onNewTab error", e);
     failed = true;
     throw e;
-  } finally {
+  }
+ finally {
     if (test) { await fetchScreenshotAndLogs(test); }
     const newCurrentTab = await driver.getWindowHandle();
     if (newCurrentTab !== newTab) {
       console.log("onNewTab not cleaning up because is not on expected tab");
-    } else if (failed && process.env.NO_CLEANUP) {
+    }
+ else if (failed && process.env.NO_CLEANUP) {
       console.log("onNewTab not cleaning up because failed with NO_CLEANUP set");
-    } else {
+    }
+ else {
       await driver.close();
       await driver.switchTo().window(currentTab);
       console.log("onNewTab returned to original tab");
@@ -3294,7 +3323,8 @@ export async function removeFilters(save = false) {
   }
   if (save) {
     await sectionFilter.save();
-  } else {
+  }
+ else {
     await sectionFilter.click();
   }
 }
@@ -3577,7 +3607,8 @@ export function withEnvironmentSnapshot(vars: Record<string, any>) {
     for(const key of Object.keys(vars)) {
       if (vars[key] === undefined || vars[key] === null) {
         delete process.env[key];
-      } else {
+      }
+ else {
         process.env[key] = vars[key];
       }
     }
@@ -3638,7 +3669,8 @@ export async function setRangeFilterBound(minMax: 'min'|'max', value: string|{re
     await driver.sendKeys(value === null ? Key.DELETE : value);
     // send TAB to trigger blur event, that will force call on the debounced callback
     await driver.sendKeys(Key.TAB);
-  } else {
+  }
+ else {
     await waitToPass(async () => {
       // makes sure the relative options is opened
       if (!await driver.find('.grist-floatin-menu').isPresent()) {
@@ -3749,7 +3781,8 @@ export async function widgetAccess(level?: AccessLevel) {
   if (!level) {
     const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
     return Object.entries(text).find(e => e[1] === currentAccess)![0];
-  } else {
+  }
+ else {
     await driver.find('.test-config-widget-access .test-select-open').click();
     await findOpenMenuItem('li', text[level]).click();
     await waitForServer();
@@ -3789,7 +3822,8 @@ export async function changeWidgetAccess(access: 'read table'|'full'|'none') {
     if (await hasAccessPrompt()) {
       await acceptAccessRequest();
     }
-  } else {
+  }
+ else {
     // else switch access level
     await widgetAccess(access as AccessLevel);
   }
@@ -3809,7 +3843,8 @@ export async function switchToWindow(target: string) {
     try {
       await driver.getCurrentUrl();
       break;
-    } catch (e) {
+    }
+ catch (e) {
       console.log("switchToWindow retry after error:", e);
       await driver.sleep(250);
     }
@@ -3903,7 +3938,8 @@ class LockableClipboard implements ILockableClipboard {
     });
     try {
       await callback(new Clipboard());
-    } finally {
+    }
+ finally {
       await this.unlock();
     }
   }

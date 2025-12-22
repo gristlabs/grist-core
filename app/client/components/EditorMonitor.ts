@@ -74,7 +74,8 @@ export class EditorMonitor extends Disposable {
     // as currentView observable will not be changed.
     if (doc.activeViewId.get() === 'data') {
       await this._doRestorePosition(doc);
-    } else {
+    }
+ else {
       // on view shown
       this.autoDispose(oneTimeListener(doc.currentView, async () => {
         await this._doRestorePosition(doc);
@@ -170,7 +171,8 @@ class EditMemoryStorage {
         }
         this._entry = entry;
         this._timestamp = timestamp;
-      } catch (e) {
+      }
+ catch (e) {
         console.error("[EditMemory] Can't deserialize date from local storage");
       }
     }
@@ -189,7 +191,8 @@ class EditMemoryStorage {
       this._timestamp = Date.now();
       const data = { timestamp: this._timestamp, entry: this._entry };
       storage.setItem(this._storageKey(), JSON.stringify(data));
-    } catch (ex) {
+    }
+ catch (ex) {
       console.error("Can't save current edited cell state. Error message: " + ex?.message);
     }
   }

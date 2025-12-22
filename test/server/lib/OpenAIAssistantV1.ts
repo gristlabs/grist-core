@@ -279,7 +279,8 @@ describe('OpenAIAssistantV1', function () {
         assert.notMatch(systemMessageContent, /class Table2/);
         assert.notMatch(systemMessageContent, /def lookupOne/);
         assert.lengthOf(systemMessageContent, 1001);
-      } else {
+      }
+ else {
         assert.match(systemMessageContent, /class Table1/);
         assert.match(systemMessageContent, /class Table2/);
         assert.match(systemMessageContent, /def lookupOne/);
@@ -341,11 +342,13 @@ describe('OpenAIAssistantV1', function () {
           },
           status: 400,
         };
-      } else if (fakeFetch.callCount === 2) {
+      }
+ else if (fakeFetch.callCount === 2) {
         return {
           status: 500,
         };
-      } else {
+      }
+ else {
         return {
           "choices": [{
             "index": 0,

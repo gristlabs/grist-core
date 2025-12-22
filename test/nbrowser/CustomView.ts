@@ -385,7 +385,8 @@ describe('CustomView', function() {
         if (access === 'full') {
           assert.equal(cell, 'zap');
           assert.match(outcome, /zap succeeded/);
-        } else {
+        }
+ else {
           assert.notEqual(cell, 'zap');
           assert.match(outcome, /zap failed/);
         }

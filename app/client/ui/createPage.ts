@@ -24,7 +24,8 @@ export function createPage(buildPage: () => DomContents, options: {disableTheme?
   attachCssRootVars('grist');
   if (disableTheme) {
     attachDefaultLightTheme();
-  } else {
+  }
+ else {
     attachTheme();
   }
   setupLocale().catch(reportError);

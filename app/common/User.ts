@@ -60,9 +60,11 @@ export class User implements UserInfo {
     return this._toObject((value) => {
       if (value instanceof RecordView) {
         return [getTableId(value.data), value.get('id')];
-      } else if (value instanceof EmptyRecordView) {
+      }
+ else if (value instanceof EmptyRecordView) {
         return null;
-      } else {
+      }
+ else {
         return value;
       }
     });
@@ -78,9 +80,11 @@ export class User implements UserInfo {
     return this._toObject((value) => {
       if (value instanceof RecordView) {
         return value.toJSON();
-      } else if (value instanceof EmptyRecordView) {
+      }
+ else if (value instanceof EmptyRecordView) {
         return null;
-      } else {
+      }
+ else {
         return value;
       }
     }) as UserInfo;

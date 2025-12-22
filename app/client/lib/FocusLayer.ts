@@ -120,7 +120,8 @@ class FocusLayerManager extends Disposable {
     if (document.activeElement && layer.allowFocus(document.activeElement)) {
       watchElementForBlur(document.activeElement, () => this.grabFocus());
       layer.onDefaultBlur();
-    } else {
+    }
+ else {
       layer.defaultFocusElem.focus({preventScroll: true});
       layer.onDefaultFocus();
     }

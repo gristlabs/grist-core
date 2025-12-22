@@ -49,12 +49,14 @@ export async function exportToDrive(
     });
     log.debug(`Export to drive - File exported, redirecting to Google Spreadsheet ${url}`, meta);
     res.json({ url });
-  } catch (err) {
+  }
+ catch (err) {
     log.error("Export to drive - Error while sending file to GDrive", meta, err);
     // Test if google returned a valid error message.
     if (err.errors && err.errors.length) {
       throw new Error(err.errors[0].message);
-    } else {
+    }
+ else {
       throw err;
     }
   }

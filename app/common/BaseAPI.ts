@@ -21,7 +21,8 @@ export class BaseAPI {
     try {
       BaseAPI._numPendingRequests++;
       return await promise;
-    } finally {
+    }
+ finally {
       BaseAPI._numPendingRequests--;
     }
   }

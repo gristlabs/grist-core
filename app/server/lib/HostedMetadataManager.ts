@@ -135,7 +135,8 @@ export class HostedMetadataManager {
   private _setOrUpdateMetadata(docId: string, metadata: DocumentMetadata): void {
     if (!this._metadata[docId]) {
       this._metadata[docId] = metadata;
-    } else {
+    }
+ else {
       const {updatedAt, usage} = metadata;
       if (updatedAt) { this._metadata[docId].updatedAt = updatedAt; }
       if (usage !== undefined) { this._metadata[docId].usage = usage; }

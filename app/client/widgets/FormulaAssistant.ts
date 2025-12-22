@@ -135,9 +135,11 @@ export class FormulaAssistant extends Disposable {
           return actions[0][1] === tableId
             && typeof actions[0][2] === 'string'
             && [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
-        } else if (actionName === 'UpdateRecord') {
+        }
+ else if (actionName === 'UpdateRecord') {
           return actions[0][1] === '_grist_Tables_column' && actions[0][2] === this._transformColRef;
-        } else {
+        }
+ else {
           return false;
         }
       }
@@ -190,7 +192,8 @@ export class FormulaAssistant extends Disposable {
     if (this._assistantEnabled) {
       if (!this._assistantExpanded.get()) {
         this._chatPanelBody.style.setProperty('height', '0px');
-      } else {
+      }
+ else {
         // The actual height doesn't matter too much here, so we just pick
         // a value that guarantees the assistant will fill as much of the
         // available space as possible.
@@ -251,7 +254,8 @@ export class FormulaAssistant extends Disposable {
           dom.on('click', () => {
             if (this._assistantExpanded.get()) {
               this._collapseChatPanel();
-            } else {
+            }
+ else {
               this._expandChatPanel();
             }
           }),
@@ -396,9 +400,11 @@ export class FormulaAssistant extends Disposable {
       // method will be no op if we saved anything.
       if (this._action === 'save') {
         commands.allCommands.fieldEditSaveHere.run();
-      } else if (this._action === 'cancel') {
+      }
+ else if (this._action === 'cancel') {
         commands.allCommands.fieldEditCancel.run();
-      } else {
+      }
+ else {
         if (this._action !== 'close') {
           throw new Error('Unexpected value for _action');
         }
@@ -409,7 +415,8 @@ export class FormulaAssistant extends Disposable {
       await docData.sendActions([
         ['RemoveColumn', tableId, this._transformColId]
       ]);
-    } finally {
+    }
+ finally {
       // Repeat the change, in case of an error.
       this._options.field?.colRef(column.getRowId());
       column.isTransforming(false);
@@ -453,7 +460,8 @@ export class FormulaAssistant extends Disposable {
       const height = Math.min(Math.max(this._lastChatPanelHeight, 220), availableSpace);
       this._chatPanelBody.style.setProperty('height', `${height}px`);
       this._lastChatPanelHeight = height;
-    } else {
+    }
+ else {
       this._lastChatPanelHeight = availableSpace;
       this._chatPanelBody.style.setProperty('height', `${this._lastChatPanelHeight}px`);
     }
@@ -482,14 +490,16 @@ export class FormulaAssistant extends Disposable {
     // expanding and collapsing is shown.
     if (newChatPanelBodyHeight < MIN_CHAT_PANEL_BODY_HEIGHT_PX && this._isResizing.get()) {
       this._isResizing.set(false);
-    } else if (newChatPanelBodyHeight >= MIN_CHAT_PANEL_BODY_HEIGHT_PX && !this._isResizing.get()) {
+    }
+ else if (newChatPanelBodyHeight >= MIN_CHAT_PANEL_BODY_HEIGHT_PX && !this._isResizing.get()) {
       this._isResizing.set(true);
     }
 
     const collapseThreshold = 78;
     if (newChatPanelBodyHeight < collapseThreshold) {
       this._collapseChatPanel();
-    } else {
+    }
+ else {
       this._expandChatPanel();
       const calculatedHeight = Math.max(
         MIN_CHAT_PANEL_BODY_HEIGHT_PX,

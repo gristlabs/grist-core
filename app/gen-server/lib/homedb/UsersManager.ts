@@ -266,7 +266,8 @@ export class UsersManager {
         // No need to survey this user.
         newUser.isFirstTimeUser = false;
         await manager.save(newUser);
-      } else {
+      }
+ else {
         // Else update profile and login information from external profile.
         let updated = false;
         let login: Login = existing.logins[0];
@@ -364,7 +365,8 @@ export class UsersManager {
   public async getUserByLoginWithRetry(email: string, options: GetUserOptions = {}): Promise<User> {
     try {
       return await this.getUserByLogin(email, options);
-    } catch (e) {
+    }
+ catch (e) {
       if (e.name === 'QueryFailedError' && e.detail &&
           e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
@@ -433,7 +435,8 @@ export class UsersManager {
         login.email = normalizedEmail;
         login.user = user;
         needUpdate = true;
-      } else {
+      }
+ else {
         login = user.logins[0];
       }
 
@@ -599,7 +602,8 @@ export class UsersManager {
           // We tried cleaning up forks before starting the
           // transaction but one snuck back in? Just bail.
           throw new ApiError('Untimely document addition? Please retry.', 503);
-        } else {
+        }
+ else {
           doc.createdBy = null;
         }
       });
@@ -779,7 +783,8 @@ export class UsersManager {
             );
           }
           foundUserIdDelta[user.id] = role;
-        } else {
+        }
+ else {
           notFoundUserEmailDelta[email] = role!;
         }
       }
@@ -948,7 +953,8 @@ export class UsersManager {
       if (!user.apiKey || force) {
         user.apiKey = apiKeyGenerator();
         return await manager.save(User, user);
-      } else {
+      }
+ else {
         throw new ApiError("An apikey is already set, use `{force: true}` to override it.", 400);
       }
     });

@@ -279,7 +279,8 @@ export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRe
   if (!cellValues) { return undefined; }
   if (Array.isArray(docAction[2])) {
     return cellValues as CellValue[];
-  } else {
+  }
+ else {
     return [cellValues as CellValue];
   }
 }
@@ -294,24 +295,28 @@ export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|Repla
     for (let i = 0; i < rowIds.length; i++) {
       yield ['AddRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
     }
-  } else if (isBulkRemoveRecord(a)) {
+  }
+ else if (isBulkRemoveRecord(a)) {
     const [, tableId, rowIds] = a;
     for (const rowId of rowIds) {
       yield ['RemoveRecord', tableId, rowId];
     }
-  } else if (isBulkUpdateRecord(a)) {
+  }
+ else if (isBulkUpdateRecord(a)) {
     const [, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
       yield ['UpdateRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
     }
-  } else if (a[0] === 'TableData' || a[0] === 'ReplaceTableData') {
+  }
+ else if (a[0] === 'TableData' || a[0] === 'ReplaceTableData') {
     const [actionName, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
       yield [actionName, tableId, [rowIds[i]],
         Object.fromEntries(Object.entries(colValues).map(([colId, values]) => [colId, [values[i]]]))
       ];
     }
-  } else {
+  }
+ else {
     yield a;
   }
 }

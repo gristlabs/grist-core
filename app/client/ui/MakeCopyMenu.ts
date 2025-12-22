@@ -74,11 +74,13 @@ export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageMode
     buttonText = t("Overwrite");
     warningText = `${warningText} ${t("Be careful, the original has changes \
 not in this document. Those changes will be overwritten.")}`;
-  } else if (cmp.summary === 'unrelated') {
+  }
+ else if (cmp.summary === 'unrelated') {
     titleText = t("Original Looks Unrelated");
     buttonText = t("Overwrite");
     warningText = `${warningText} ${t("It will be overwritten, losing any content not in this document.")}`;
-  } else if (cmp.summary === 'same') {
+  }
+ else if (cmp.summary === 'same') {
     titleText = t('Original Looks Identical');
     warningText = `${warningText} ${t("However, it appears to be already identical.")}`;
   }
@@ -88,7 +90,8 @@ not in this document. Those changes will be overwritten.")}`;
         await docApi.replace({sourceDocId: doc.id});
         pageModel.clearUnsavedChanges();
         await urlState().pushUrl({doc: origUrlId});
-      } catch (e) {
+      }
+ catch (e) {
         reportError(e);  // For example: no write access on trunk.
       }
     }, {explanation: warningText});
@@ -207,7 +210,8 @@ class SaveCopyModal extends Disposable {
       });
       this._pageModel.clearUnsavedChanges();
       await urlState().pushUrl({org: org?.domain || undefined, doc, docPage: urlState().state.get().docPage});
-    } catch(err) {
+    }
+ catch(err) {
       // Convert access denied errors to normal Error to make it consistent with other endpoints.
       // TODO: Should not allow to click this button when user doesn't have permissions.
       if (err.status === 403) {
@@ -301,7 +305,8 @@ class SaveCopyModal extends Disposable {
         // If we show a workspace selector, default to the current document's workspace (when its
         // org is selected) even if it's not writable. User can switch the workspace manually.
         defaultWS = wss.find(ws => (ws.id === this._doc.workspace.id));
-      } else {
+      }
+ else {
         // If the workspace selector is not shown (for personal orgs), prefer the user's default
         // Home workspace as long as its writable.
         defaultWS = wss.find(ws => getWorkspaceInfo(this._app, ws).isDefault && roles.canEdit(ws.access));
@@ -313,11 +318,13 @@ class SaveCopyModal extends Disposable {
       if (firstWritable) {
         this._workspaces.set(wss);
         this._destWS.set(defaultWS || firstWritable);
-      } else {
+      }
+ else {
         this._workspaces.set([]);
         this._destWS.set(null);
       }
-    } catch (e) {
+    }
+ catch (e) {
       this._workspaces.set([]);
       this._destWS.set(null);
       throw e;

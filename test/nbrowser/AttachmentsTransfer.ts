@@ -189,7 +189,8 @@ describe("AttachmentsTransfer", function() {
         assert.equal(downloadUrl.search, idealUrl.search, "wrong search parameters in url");
         // Ensures the page isn't modified / navigated away from by the link, as subsequent tests will fail.
         await driver.find('.test-external-attachments-info a').click();
-      } finally {
+      }
+ finally {
         // Try to close the modal to minimise the chances of other tests failing.
         await driver.findContent("button", "Cancel").click();
       }
@@ -232,7 +233,8 @@ describe("AttachmentsTransfer", function() {
         await gu.waitToPass(() => testDownloadLink({format: 'tar'}), 500);
         await selectFormat(/.zip/);
         await gu.waitToPass(() => testDownloadLink({format: 'zip'}), 500);
-      } finally {
+      }
+ finally {
         // Try to close the modal to minimise the chances of other tests failing.
         await driver.findContent("button", "Cancel").click();
       }

@@ -15,7 +15,8 @@ export function expressWrap(callback: AsyncRequestHandler): express.RequestHandl
   return async (req, res, next) => {
     try {
       await callback(req, res, next);
-    } catch (err) {
+    }
+ catch (err) {
       next(err);
     }
   };
@@ -57,7 +58,8 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       // can happen with downloads if a request gets aborted. If so, just close the response; we
       // already reported the error above.
       res.end();
-    } else {
+    }
+ else {
       res.status(status).json({error: err.message || 'internal error', details});
     }
   };

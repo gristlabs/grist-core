@@ -192,7 +192,8 @@ export async function handleSandboxErrorOnPlatform<T>(
 ): Promise<T> {
   try {
     return await p;
-  } catch (err) {
+  }
+ catch (err) {
     const message = ((err instanceof Error) && err.message?.startsWith('[Sandbox] ')) ? err.message : undefined;
     if (message) {
       let match = message.match(/non-existent record #([0-9]+)/);
@@ -205,9 +206,11 @@ export async function handleSandboxErrorOnPlatform<T>(
       if (match) {
         if (match[1] === tableId) {
           platform.throwError('', `Table not found "${tableId}"`, 404);
-        } else if (colNames.includes(match[1])) {
+        }
+ else if (colNames.includes(match[1])) {
           platform.throwError('', `Invalid column "${match[1]}"`, 400);
-        } else if (colNames.includes(match[1].replace(`${tableId}.`, ''))) {
+        }
+ else if (colNames.includes(match[1].replace(`${tableId}.`, ''))) {
           platform.throwError('', `Table or column not found "${match[1]}"`, 404);
         }
       }
