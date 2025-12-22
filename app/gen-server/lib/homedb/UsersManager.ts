@@ -175,6 +175,15 @@ export class UsersManager {
     return id;
   }
 
+  /**
+   * Get the id of the admin user.
+   */
+  public getDefaultUserId(): number {
+    const id = this._specialUserIds[DEFAULT_EMAIL];
+    if (!id) { throw new Error("Admin/Default user not available"); }
+    return id;
+  }
+
   public async getUserByKey(apiKey: string): Promise<User|undefined> {
     // Include logins relation for Authorization convenience.
     return await User.findOne({where: {apiKey}, relations: ["logins"]}) || undefined;

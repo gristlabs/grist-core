@@ -2883,6 +2883,10 @@ export class HomeDBManager implements HomeDBAuth {
     return this._usersManager.getSupportUserId();
   }
 
+  public getDefaultUserId() {
+    return this._usersManager.getDefaultUserId();
+  }
+
   /**
    * @see UsersManager.prototype.completeProfiles
    */
