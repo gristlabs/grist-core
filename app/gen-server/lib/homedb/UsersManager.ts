@@ -43,7 +43,7 @@ function apiKeyGenerator(): string {
 }
 
 // Admin Email
-const DEFAULT_EMAIL = appSettings.section('access').flag('installAdminEmail').readString({
+export const DEFAULT_EMAIL = appSettings.section('access').flag('installAdminEmail').readString({
   envVar: 'GRIST_DEFAULT_EMAIL',
   defaultValue: 'you@example.com',
 })!;
