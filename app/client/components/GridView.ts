@@ -1075,7 +1075,7 @@ export default class GridView extends BaseView {
       }
       // Check value is not empty but accept 0 and false as valid values
       if (newColLabel !== null && newColLabel !== undefined && newColLabel !== "") {
-        return [...acc, ['ModifyColumn', colId, { "label": formatter.formatAny(newColLabel) }]];
+        return [...acc, ['ModifyColumn', colId, { label: formatter.formatAny(newColLabel) }]];
       }
       return acc;
     }, []);
@@ -1160,7 +1160,7 @@ export default class GridView extends BaseView {
     const vsfRowIds = oldIndices.map((i) => {
       return this.viewSection.viewFields().at(i)!.id();
     });
-    const colInfo = { 'parentPos': newPositions };
+    const colInfo = { parentPos: newPositions };
     const vsfAction = ['BulkUpdateRecord', vsfRowIds, colInfo];
     const viewFieldsTable =  this.gristDoc.docModel.viewFields;
     const numCols = oldIndices.length;
@@ -1179,7 +1179,7 @@ export default class GridView extends BaseView {
 
     const newPositions = this._getRowInsertPos(newIndex, oldIndices.length);
     const rowIds = oldIndices.map(i => this.viewData.getRowId(i));
-    const colInfo = { 'manualSort': newPositions };
+    const colInfo = { manualSort: newPositions };
     const action = ['BulkUpdateRecord', rowIds, colInfo];
     const numRows = oldIndices.length;
     const newPos = newIndex < this.cellSelector.rowLower() ? newIndex : newIndex - numRows;
@@ -1269,11 +1269,11 @@ export default class GridView extends BaseView {
 
   // Used for styling the paste data the same way the col/row is styled in the GridView.
   protected _getRowStyle(rowIndex: number) {
-    return { 'height': this.scrolly.rowOffsetTree.getValue(rowIndex) + 'px' };
+    return { height: this.scrolly.rowOffsetTree.getValue(rowIndex) + 'px' };
   }
 
   protected _getColStyle(colIndex: number) {
-    return { 'width': this.viewSection.viewFields().at(colIndex)!.widthPx() };
+    return { width: this.viewSection.viewFields().at(colIndex)!.widthPx() };
   }
 
   // TODO: for now lets just assume you are clicking on a .field, .row, or .column

@@ -213,7 +213,7 @@ export class VisibleFieldsConfig extends Disposable {
       },
     });
     return [
-      dom('div', { role: 'group', 'aria-labelledby': 'visible-fields-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'visible-fields-label' },
         cssHeader(
           cssFieldListHeader(
             dom.text(use => t("Visible {{label}}", { label: use(this._fieldLabel) })),
@@ -253,7 +253,7 @@ export class VisibleFieldsConfig extends Disposable {
           ),
         ),
       ),
-      dom('div', { role: 'group', 'aria-labelledby': 'hidden-fields-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'hidden-fields-label' },
         cssHeader(
           cssHeaderButton(
             icon(
@@ -266,7 +266,7 @@ export class VisibleFieldsConfig extends Disposable {
             // TODO: show `hidden column` only when some fields are hidden
             cssFieldListHeader(dom.text(use => t("Hidden {{label}}", { label: use(this._fieldLabel) }))),
             {
-              id: 'hidden-fields-label',
+              "id": 'hidden-fields-label',
               "aria-controls": 'hidden-fields-list',
             },
             dom.attr('aria-expanded', use => use(this._collapseHiddenFields) ? 'false' : 'true'),

@@ -324,7 +324,7 @@ export class RightPanel extends Disposable {
             dom.create(buildNameConfig, origColumn, cursor, isMultiSelect),
           ),
           cssSection(
-            dom.create(buildDescriptionConfig, origColumn.description, { cursor, "testPrefix": "column" }),
+            dom.create(buildDescriptionConfig, origColumn.description, { cursor, testPrefix: "column" }),
           ),
           cssSeparator(),
           cssSection(
@@ -512,7 +512,7 @@ export class RightPanel extends Disposable {
         )),
 
         cssSection(
-          dom.create(buildDescriptionConfig, activeSection.description, { cursor, "testPrefix": "right-widget" }),
+          dom.create(buildDescriptionConfig, activeSection.description, { cursor, testPrefix: "right-widget" }),
         ),
       ]),
 
@@ -538,7 +538,7 @@ export class RightPanel extends Disposable {
 
       domComputed((use) => {
         if (use(this._pageWidgetType) !== 'record') { return null; }
-        return dom('div', { role: 'group', 'aria-labelledby': 'row-style-label' },
+        return dom('div', { "role": 'group', 'aria-labelledby': 'row-style-label' },
           cssSeparator(),
           cssGroupLabel(t("Row style"), { id: 'row-style-label' }),
           dom.create(rowHeightConfigTable, activeSection.optionsObj),
@@ -549,7 +549,7 @@ export class RightPanel extends Disposable {
       }),
 
       dom.maybe(use => use(this._pageWidgetType) === 'chart', () =>
-        dom('div', { role: 'group', 'aria-label': t('Chart options') },
+        dom('div', { "role": 'group', 'aria-label': t('Chart options') },
           cssGroupLabel(t("CHART TYPE")),
           vct._buildChartConfigDom(),
         ),
@@ -841,7 +841,7 @@ export class RightPanel extends Disposable {
     });
     return [
       this._disableIfReadonly(),
-      dom('div', { role: 'group', 'aria-labelledby': 'data-table-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'data-table-label' },
         cssGroupLabel(t("DATA TABLE"), { id: 'data-table-label' }),
         cssRow(
           cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),

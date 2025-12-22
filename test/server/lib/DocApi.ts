@@ -850,16 +850,16 @@ function testDocApi(settings: {
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data,
       {
-        "records": [
+        records: [
           {
-            "id": 1,
-            "fields": {
-              "A": null,
-              "B": "Hi",
-              "C": 1,
+            id: 1,
+            fields: {
+              A: null,
+              B: "Hi",
+              C: 1,
             },
-            "errors": {
-              "A": "ZeroDivisionError",
+            errors: {
+              A: "ZeroDivisionError",
             },
           },
         ],
@@ -871,25 +871,25 @@ function testDocApi(settings: {
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data,
       {
-        "id": [
+        id: [
           1,
         ],
-        "manualSort": [
+        manualSort: [
           1,
         ],
-        "A": [
+        A: [
           [
             "E",
             "ZeroDivisionError",
           ],
         ],
-        "B": [
+        B: [
           "Hi",
         ],
-        "C": [
+        C: [
           1,
         ],
-        "gristHelper_Display": [
+        gristHelper_Display: [
           "Hi",
         ],
       },
@@ -1173,61 +1173,61 @@ function testDocApi(settings: {
     assert.equal(resp.status, 200);
     assert.deepEqual(resp.data,
       {
-        "tables": [
+        tables: [
           {
-            "id": "Table1",
-            "fields": {
-              "rawViewSectionRef": 2,
-              "recordCardViewSectionRef": 3,
-              "primaryViewId": 1,
-              "onDemand": false,
-              "summarySourceTable": 0,
-              "tableRef": 1,
+            id: "Table1",
+            fields: {
+              rawViewSectionRef: 2,
+              recordCardViewSectionRef: 3,
+              primaryViewId: 1,
+              onDemand: false,
+              summarySourceTable: 0,
+              tableRef: 1,
             },
           },
           // New tables start here
           {
-            "id": "Table2",
-            "fields": {
-              "rawViewSectionRef": 5,
-              "recordCardViewSectionRef": 6,
-              "primaryViewId": 2,
-              "onDemand": false,
-              "summarySourceTable": 0,
-              "tableRef": 2,
+            id: "Table2",
+            fields: {
+              rawViewSectionRef: 5,
+              recordCardViewSectionRef: 6,
+              primaryViewId: 2,
+              onDemand: false,
+              summarySourceTable: 0,
+              tableRef: 2,
             },
           },
           {
-            "id": "Table3_Renamed",
-            "fields": {
-              "rawViewSectionRef": 8,
-              "recordCardViewSectionRef": 9,
-              "primaryViewId": 3,
-              "onDemand": false,
-              "summarySourceTable": 0,
-              "tableRef": 3,
+            id: "Table3_Renamed",
+            fields: {
+              rawViewSectionRef: 8,
+              recordCardViewSectionRef: 9,
+              primaryViewId: 3,
+              onDemand: false,
+              summarySourceTable: 0,
+              tableRef: 3,
             },
           },
           {
-            "id": "NewTable1",
-            "fields": {
-              "rawViewSectionRef": 11,
-              "recordCardViewSectionRef": 12,
-              "primaryViewId": 4,
-              "onDemand": false,
-              "summarySourceTable": 0,
-              "tableRef": 4,
+            id: "NewTable1",
+            fields: {
+              rawViewSectionRef: 11,
+              recordCardViewSectionRef: 12,
+              primaryViewId: 4,
+              onDemand: false,
+              summarySourceTable: 0,
+              tableRef: 4,
             },
           },
           {
-            "id": "NewTable2",
-            "fields": {
-              "rawViewSectionRef": 14,
-              "recordCardViewSectionRef": 15,
-              "primaryViewId": 5,
-              "onDemand": false,
-              "summarySourceTable": 0,
-              "tableRef": 5,
+            id: "NewTable2",
+            fields: {
+              rawViewSectionRef: 14,
+              recordCardViewSectionRef: 15,
+              primaryViewId: 5,
+              onDemand: false,
+              summarySourceTable: 0,
+              tableRef: 5,
             },
           },
           // NewTable2_2 is hidden by ACL
@@ -1798,28 +1798,28 @@ function testDocApi(settings: {
 
     resp = await axios.get(`${docUrl}/tables/Table2/columns`, chimpy);
     assert.deepEqual(resp.data, {
-      "columns": [
+      columns: [
         {
-          "id": "R",
-          "fields": {
-            "colRef": 6,
-            "parentId": 2,
-            "parentPos": 6,
+          id: "R",
+          fields: {
+            colRef: 6,
+            parentId: 2,
+            parentPos: 6,
             // Type changed from RefList to Text
-            "type": "Text",
-            "widgetOptions": "",
-            "isFormula": false,
-            "formula": "",
-            "label": "R",
-            "description": "",
-            "untieColIdFromLabel": false,
-            "summarySourceCol": 0,
+            type: "Text",
+            widgetOptions: "",
+            isFormula: false,
+            formula: "",
+            label: "R",
+            description: "",
+            untieColIdFromLabel: false,
+            summarySourceCol: 0,
             // Display and visible columns cleared
-            "displayCol": 0,
-            "visibleCol": 0,
-            "rules": null,
-            "recalcWhen": 0,
-            "recalcDeps": null,
+            displayCol: 0,
+            visibleCol: 0,
+            rules: null,
+            recalcWhen: 0,
+            recalcDeps: null,
             reverseCol: 0,
           },
         },
@@ -1860,14 +1860,14 @@ function testDocApi(settings: {
     // Send strings that look like currency which need string parsing to become numbers
     for (const queryParams of ['?noparse=1', '']) {
       await axios.post(`${docUrl}/apply${queryParams}`, [
-        ['AddRecord', 'Table1', null, { 'A': '$1' }],
+        ['AddRecord', 'Table1', null, { A: '$1' }],
       ], chimpy);
 
       const response = await axios.post(`${recordsUrl}${queryParams}`,
         {
           records: [
-            { fields: { 'A': '$2' } },
-            { fields: { 'A': '$3' } },
+            { fields: { A: '$2' } },
+            { fields: { A: '$3' } },
           ],
         },
         chimpy);
@@ -1877,7 +1877,7 @@ function testDocApi(settings: {
       await axios.patch(`${recordsUrl}${queryParams}`,
         {
           records: [
-            { id: rowId, fields: { 'A': '$4' } },
+            { id: rowId, fields: { A: '$4' } },
           ],
         },
         chimpy);
@@ -3228,7 +3228,7 @@ function testDocApi(settings: {
     // kiwi has no access to TestDoc
     const resp = await axios.get(`${serverUrl}/api/docs/${docIds.TestDoc}/download/table-schema?tableId=Table1`, kiwi);
     assert.equal(resp.status, 403);
-    assert.deepEqual(resp.data, { "error": "No view access" });
+    assert.deepEqual(resp.data, { error: "No view access" });
   });
 
   it("GET /docs/{did}/download/table-schema returns 404 if tableId is invalid", async function() {
@@ -5782,8 +5782,8 @@ function testDocApi(settings: {
 }
 
 interface WebhookRequests {
-  add: object[][];
-  update: object[][];
+  "add": object[][];
+  "update": object[][];
   "add,update": object[][];
 }
 

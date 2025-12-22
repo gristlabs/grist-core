@@ -20,7 +20,7 @@ describe('BehavioralPrompts', function() {
   afterEach(() => gu.checkForErrors());
 
   describe('when helpCenter is hidden', function() {
-    gu.withEnvironmentSnapshot({ 'GRIST_HIDE_UI_ELEMENTS': 'helpCenter' });
+    gu.withEnvironmentSnapshot({ GRIST_HIDE_UI_ELEMENTS: 'helpCenter' });
 
     before(async () => {
       const sessionNoHelpCenter = await gu.session().user('user3').login({
@@ -229,9 +229,9 @@ describe('BehavioralPrompts', function() {
 
   describe('when in a tutorial', function() {
     gu.withEnvironmentSnapshot({
-      'GRIST_UI_FEATURES': 'tutorials',
-      'GRIST_TEMPLATE_ORG': 'templates',
-      'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
+      GRIST_UI_FEATURES: 'tutorials',
+      GRIST_TEMPLATE_ORG: 'templates',
+      GRIST_ONBOARDING_TUTORIAL_DOC_ID: 'grist-basics',
     });
 
     before(async () => {

@@ -177,9 +177,9 @@ const optionRegular = option('.test-settings-doctype-modal-option-regular');
 const optionTemplate = option('.test-settings-doctype-modal-option-template');
 const optionTutorial = option('.test-settings-doctype-modal-option-tutorial');
 const optionByLabel = {
-  'Tutorial': optionTutorial,
-  'Template': optionTemplate,
-  'Regular': optionRegular,
+  Tutorial: optionTutorial,
+  Template: optionTemplate,
+  Regular: optionRegular,
 };
 const modalConfirm = button('.test-settings-doctype-modal-confirm');
 const modalCancel = button('.test-settings-doctype-modal-cancel');

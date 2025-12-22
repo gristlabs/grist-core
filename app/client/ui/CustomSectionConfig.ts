@@ -103,7 +103,7 @@ class ColumnPicker extends Disposable {
     });
 
     const defaultLabel = this._column.typeDesc != "any" ?
-      t("Pick a {{columnType}} column", { "columnType": this._column.typeDesc }) :
+      t("Pick a {{columnType}} column", { columnType: this._column.typeDesc }) :
       t("Pick a column");
 
     return [
@@ -151,10 +151,10 @@ class ColumnPicker extends Disposable {
             Observable.create(this, null),
             [], {
               disabled: true,
-              defaultLabel: t("No {{columnType}} columns in table.", { "columnType": this._column.typeDesc }),
+              defaultLabel: t("No {{columnType}} columns in table.", { columnType: this._column.typeDesc }),
             },
           ),
-          hoverTooltip(t("No {{columnType}} columns in table.", { "columnType": this._column.typeDesc })),
+          hoverTooltip(t("No {{columnType}} columns in table.", { columnType: this._column.typeDesc })),
           testId('mapping-for-' + this._column.name),
           testId('disabled'),
         ),

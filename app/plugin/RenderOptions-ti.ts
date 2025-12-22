@@ -6,7 +6,7 @@ import * as t from "ts-interface-checker";
 export const RenderTarget = t.union(t.lit("fullscreen"), "number");
 
 export const RenderOptions = t.iface([], {
-  "height": t.opt("string"),
+  height: t.opt("string"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

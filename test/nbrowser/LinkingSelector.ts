@@ -68,7 +68,7 @@ describe('LinkingSelector', function() {
 
     // Now add a card view.
     await gu.addNewSection('Card', 'Classes', {
-      'selectBy': 'List',
+      selectBy: 'List',
     });
     await gu.renameActiveSection('Card');
     await gu.selectAllVisibleColumns();

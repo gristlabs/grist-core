@@ -268,7 +268,7 @@ function buildArrow() {
   return cssArrowContainer(
     svg('svg',
       { style: 'width: 13px; height: 18px;' },
-      svg('path', { 'd': 'M 0 0 h 13 v 18 Z' }),
+      svg('path', { d: 'M 0 0 h 13 v 18 Z' }),
     ),
   );
 }

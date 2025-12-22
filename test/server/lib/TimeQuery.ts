@@ -175,24 +175,24 @@ describe("TimeQuery", function() {
 
     // Double check that we've actually made all the changes we think we have.
     assert.deepEqual(await doc.fetchQuery(session, { tableId: 'Fish2', filters: {} }), {
-      "tableData": [
+      tableData: [
         "TableData",
         "Fish2",
         [1, 2],
         {
-          "manualSort": [
+          manualSort: [
             1,
             2,
           ],
-          "age": [
+          age: [
             "11",
             "22",
           ],
-          "color2": [
+          color2: [
             "blue",
             "red",
           ],
-          "color": [
+          color: [
             "whale",
             "bounder",
           ],

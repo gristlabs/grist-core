@@ -4,32 +4,32 @@
 import * as t from "ts-interface-checker";
 
 export const ImportSourceAPI = t.iface([], {
-  "getImportSource": t.func(t.union("ImportSource", "undefined")),
+  getImportSource: t.func(t.union("ImportSource", "undefined")),
 });
 
 export const ImportProcessorAPI = t.iface([], {
-  "processImport": t.func(t.array("GristTable"), t.param("source", "ImportSource")),
+  processImport: t.func(t.array("GristTable"), t.param("source", "ImportSource")),
 });
 
 export const FileContent = t.iface([], {
-  "content": "any",
-  "name": "string",
+  content: "any",
+  name: "string",
 });
 
 export const FileListItem = t.iface([], {
-  "kind": t.lit("fileList"),
-  "files": t.array("FileContent"),
+  kind: t.lit("fileList"),
+  files: t.array("FileContent"),
 });
 
 export const URL = t.iface([], {
-  "kind": t.lit("url"),
-  "url": "string",
+  kind: t.lit("url"),
+  url: "string",
 });
 
 export const ImportSource = t.iface([], {
-  "item": t.union("FileListItem", "URL"),
-  "options": t.opt(t.union("string", "Buffer")),
-  "description": t.opt("string"),
+  item: t.union("FileListItem", "URL"),
+  options: t.opt(t.union("string", "Buffer")),
+  description: t.opt("string"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

@@ -4,51 +4,51 @@
 import * as t from "ts-interface-checker";
 
 export const PublishedPlugin = t.iface(["BarePlugin"], {
-  "name": "string",
-  "version": "string",
+  name: "string",
+  version: "string",
 });
 
 export const BarePlugin = t.iface([], {
-  "name": t.opt("string"),
-  "components": t.iface([], {
-    "safeBrowser": t.opt("string"),
-    "safePython": t.opt("string"),
-    "unsafeNode": t.opt("string"),
-    "widgets": t.opt("string"),
-    "deactivate": t.opt(t.iface([], {
-      "inactivitySec": t.opt("number"),
+  name: t.opt("string"),
+  components: t.iface([], {
+    safeBrowser: t.opt("string"),
+    safePython: t.opt("string"),
+    unsafeNode: t.opt("string"),
+    widgets: t.opt("string"),
+    deactivate: t.opt(t.iface([], {
+      inactivitySec: t.opt("number"),
     })),
   }),
-  "contributions": t.iface([], {
-    "importSources": t.opt(t.array("ImportSource")),
-    "fileParsers": t.opt(t.array("FileParser")),
-    "customSections": t.opt(t.array("CustomSection")),
+  contributions: t.iface([], {
+    importSources: t.opt(t.array("ImportSource")),
+    fileParsers: t.opt(t.array("FileParser")),
+    customSections: t.opt(t.array("CustomSection")),
   }),
-  "experimental": t.opt("boolean"),
+  experimental: t.opt("boolean"),
 });
 
 export const ImportSource = t.iface([], {
-  "label": "string",
-  "safeHome": t.opt("boolean"),
-  "importSource": "Implementation",
-  "importProcessor": t.opt("Implementation"),
+  label: "string",
+  safeHome: t.opt("boolean"),
+  importSource: "Implementation",
+  importProcessor: t.opt("Implementation"),
 });
 
 export const FileParser = t.iface([], {
-  "fileExtensions": t.array("string"),
-  "editOptions": t.opt("Implementation"),
-  "parseFile": "Implementation",
+  fileExtensions: t.array("string"),
+  editOptions: t.opt("Implementation"),
+  parseFile: "Implementation",
 });
 
 export const CustomSection = t.iface([], {
-  "path": "string",
-  "name": "string",
+  path: "string",
+  name: "string",
 });
 
 export const Implementation = t.iface([], {
-  "component": t.union(t.lit("safeBrowser"), t.lit("safePython"), t.lit("unsafeNode")),
-  "name": "string",
-  "path": t.opt("string"),
+  component: t.union(t.lit("safeBrowser"), t.lit("safePython"), t.lit("unsafeNode")),
+  name: "string",
+  path: t.opt("string"),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

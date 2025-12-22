@@ -1421,7 +1421,7 @@ describe('ApiServer', function() {
   it('PATCH /api/docs/{did} returns 400 on wrong type values', async function() {
     // Use an unavailable property and check that the operation fails with 400.
     const did = await dbManager.testGetId('Surprise2');
-    const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, { "type": "invalid" }, chimpy);
+    const resp = await axios.patch(`${homeUrl}/api/docs/${did}`, { type: "invalid" }, chimpy);
     assert.equal(resp.status, 400);
     assert.isObject(resp.data);
     assert.hasAllKeys(resp.data, ['error']);
@@ -2572,8 +2572,8 @@ describe('ApiServer', function() {
           `Initially the service account should not get access to workspaces of ${orgName}`);
 
         const delta = {
-          "delta": {
-            "users": {
+          delta: {
+            users: {
               [serviceUserLogin]: "owners",
             },
           },

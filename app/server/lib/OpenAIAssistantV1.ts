@@ -194,7 +194,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       headers: {
         ...(this._apiKey ?
           {
-            Authorization: `Bearer ${this._apiKey}`,
+            "Authorization": `Bearer ${this._apiKey}`,
             "api-key": this._apiKey,
           } :
           undefined),

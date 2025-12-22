@@ -108,7 +108,7 @@ describe('CommentAccess', function() {
 
     // Now simulate updating some rows.
     snapshot = await access.createSnapshotWithCells([
-      ['UpdateRecord', 'Chat', 1, { 'Censored': 'test1' }],
+      ['UpdateRecord', 'Chat', 1, { Censored: 'test1' }],
     ]);
     const firstRowTest = () => {
       assert.deepEqual(snapshot.getTable('Chat')?.getTableDataAction(), ['TableData', 'Chat', [1], {
@@ -142,7 +142,7 @@ describe('CommentAccess', function() {
     await send(owner, 'Public', "Message2", 2);
 
     snapshot = await access.createSnapshotWithCells([
-      ['UpdateRecord', 'Chat', 1, { 'Censored': 'test1' }],
+      ['UpdateRecord', 'Chat', 1, { Censored: 'test1' }],
     ]);
     firstRowTest();
     // We have all cells in snapshot
@@ -345,14 +345,14 @@ describe('CommentAccess', function() {
     deepEqual(Array.from(getSingleAction([
       'BulkAddRecord', 'Chat', [1, 2], { Name: ['First', 'Second'] },
     ])), [
-      ["AddRecord", "Chat", 1, { "Name": "First" }],
-      ["AddRecord", "Chat", 2, { "Name": "Second" }],
+      ["AddRecord", "Chat", 1, { Name: "First" }],
+      ["AddRecord", "Chat", 2, { Name: "Second" }],
     ]);
     deepEqual(Array.from(getSingleAction([
       'BulkUpdateRecord', 'Chat', [1, 2], { Name: ['First', 'Second'] },
     ])), [
-      ["UpdateRecord", "Chat", 1, { "Name": "First" }],
-      ["UpdateRecord", "Chat", 2, { "Name": "Second" }],
+      ["UpdateRecord", "Chat", 1, { Name: "First" }],
+      ["UpdateRecord", "Chat", 2, { Name: "Second" }],
     ]);
     deepEqual(Array.from(getSingleAction([
       'BulkRemoveRecord', 'Chat', [2, 3],
@@ -463,7 +463,7 @@ describe('CommentAccess', function() {
       userRef: ownerRef,
     }]),
     [
-      { "tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44 },
+      { tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 44 },
     ],
     );
     deepEqual(helper.convertToCells(['UpdateRecord', '_grist_Cells', 44, {
@@ -473,7 +473,7 @@ describe('CommentAccess', function() {
       userRef: ownerRef,
     }]),
     [
-      { "tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44 },
+      { tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 44 },
     ],
     );
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [44], {
@@ -483,7 +483,7 @@ describe('CommentAccess', function() {
       userRef: [ownerRef!],
     }]),
     [
-      { "tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44 },
+      { tableId: "Chat", colId: "Public", rowId: 1, userRef: ownerRef, id: 44 },
     ],
     );
 
@@ -491,14 +491,14 @@ describe('CommentAccess', function() {
     deepEqual(helper.generateUpdate([]), null);
     deepEqual(helper.generateUpdate([1]), [
       "UpdateRecord", "_grist_Cells", 1, {
-        "content": "First",
+        content: "First",
         userRef: ownerRef,
       },
     ]);
     deepEqual(helper.generateUpdate([1, 2]), [
       "BulkUpdateRecord", "_grist_Cells", [1, 2], {
-        "content": ['First', 'Second'],
-        "userRef": [ownerRef, ownerRef],
+        content: ['First', 'Second'],
+        userRef: [ownerRef, ownerRef],
       },
     ]);
 
@@ -569,15 +569,15 @@ describe('CommentAccess', function() {
       ['AddRecord', 'Chat', 3, {}],
     ]), [
       ["BulkAddRecord", "_grist_Cells", [1, 2], {
-        "tableRef": [2, 2],
-        "colRef": [7, 6],
-        "type": [1, 1],
-        "root": [true, true],
-        "rowId": [1, 1],
-        "parentId": [0, 0],
+        tableRef: [2, 2],
+        colRef: [7, 6],
+        type: [1, 1],
+        root: [true, true],
+        rowId: [1, 1],
+        parentId: [0, 0],
         // Data is read from docData.
-        "content": ["First", "Second"],
-        "userRef": [ownerRef, ownerRef],
+        content: ["First", "Second"],
+        userRef: [ownerRef, ownerRef],
       }],
     ]);
 
@@ -617,8 +617,8 @@ describe('CommentAccess', function() {
       ['UpdateRecord', 'Chat', 1, {}],
     ]), [
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
-        "content": ["First", "Second", "Third"],
-        "userRef": [ownerRef, ownerRef, ownerRef],
+        content: ["First", "Second", "Third"],
+        userRef: [ownerRef, ownerRef, ownerRef],
       }],
     ]);
 
@@ -628,8 +628,8 @@ describe('CommentAccess', function() {
       ['UpdateRecord', '_grist_Cells', 1, {}],
     ]), [
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
-        "content": ["First", "Second", "Third"],
-        "userRef": [ownerRef, ownerRef, ownerRef],
+        content: ["First", "Second", "Third"],
+        userRef: [ownerRef, ownerRef, ownerRef],
       }],
     ]);
 
@@ -656,8 +656,8 @@ describe('CommentAccess', function() {
       }],
       // Update is sent only for existing cells.
       ["BulkUpdateRecord", "_grist_Cells", [2, 3], {
-        "content": ["Second", "Third"],
-        "userRef": [ownerRef, ownerRef],
+        content: ["Second", "Third"],
+        userRef: [ownerRef, ownerRef],
       }],
     ]);
   });
@@ -672,8 +672,8 @@ describe('CommentAccess', function() {
       ['UpdateRecord', 'Chat', 1, { Censored: 'Updated' }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Censored": ["C"] }],
-      ["UpdateRecord", "_grist_Cells", 1, { "content": "Message", "userRef": ownerRef }],
+      ["UpdateRecord", "Chat", 1, { Censored: ["C"] }],
+      ["UpdateRecord", "_grist_Cells", 1, { content: "Message", userRef: ownerRef }],
     ]);
     // Test if patch is created correctly when, records are updated
     // before table was renamed.
@@ -682,25 +682,25 @@ describe('CommentAccess', function() {
       ['RenameTable', 'Chat', 'Chat2'],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Censored": ["C"] }],
+      ["UpdateRecord", "Chat", 1, { Censored: ["C"] }],
       ["RenameTable", "Chat", "Chat2"],
-      ["UpdateRecord", "_grist_Tables", 2, { "tableId": "Chat2" }],
-      ["UpdateRecord", "_grist_Cells", 1, { "content": "Message", "userRef": ownerRef }],
+      ["UpdateRecord", "_grist_Tables", 2, { tableId: "Chat2" }],
+      ["UpdateRecord", "_grist_Cells", 1, { content: "Message", userRef: ownerRef }],
     ]);
     await owner.applyUserActions(docId, [
       ['UpdateRecord', 'Chat2', 1, { Censored: 'Updated3' }],
       ['RemoveTable', 'Chat2'],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
-      ["UpdateRecord", "Chat2", 1, { "Censored": ["C"] }],
+      ["UpdateRecord", "Chat2", 1, { Censored: ["C"] }],
       ["BulkRemoveRecord", "_grist_Views_section_field", [10, 11, 12, 13, 14, 15, 16, 17, 18]],
       ["BulkRemoveRecord", "_grist_Views_section", [4, 5, 6]],
-      ["UpdateRecord", "_grist_Tables", 2, { "rawViewSectionRef": 0 }],
-      ["UpdateRecord", "_grist_Tables", 2, { "recordCardViewSectionRef": 0 }],
+      ["UpdateRecord", "_grist_Tables", 2, { rawViewSectionRef: 0 }],
+      ["UpdateRecord", "_grist_Tables", 2, { recordCardViewSectionRef: 0 }],
       ["RemoveRecord", "_grist_TabBar", 2],
       ["RemoveRecord", "_grist_Pages", 2],
       ["RemoveRecord", "_grist_Views", 2],
-      ["UpdateRecord", "_grist_Tables", 2, { "primaryViewId": 0 }],
+      ["UpdateRecord", "_grist_Tables", 2, { primaryViewId: 0 }],
       ["BulkRemoveRecord", "_grist_Tables_column", [5, 6, 7, 8]],
       ["RemoveRecord", "_grist_Tables", 2],
       ["RemoveTable", "Chat2"],
@@ -726,36 +726,36 @@ describe('CommentAccess', function() {
     // Now reveal the private conversation to the editor.
     await censorChat(false);
     deepEqual(await cliOwner.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Public": 1 }],
+      ["UpdateRecord", "Chat", 1, { Public: 1 }],
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
-        "content": ["First", "Second", "Third"],
-        "userRef": [ownerRef, ownerRef, ownerRef],
+        content: ["First", "Second", "Third"],
+        userRef: [ownerRef, ownerRef, ownerRef],
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Public": 1 }],
-      ["BulkUpdateRecord", "Chat", [1], { "Censored": [""] }],
+      ["UpdateRecord", "Chat", 1, { Public: 1 }],
+      ["BulkUpdateRecord", "Chat", [1], { Censored: [""] }],
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
-        "content": [["C"], "Second", "Third"],
-        "userRef": ['', ownerRef, ownerRef],
+        content: [["C"], "Second", "Third"],
+        userRef: ['', ownerRef, ownerRef],
       }],
     ]);
 
     // Now hide it once again
     await censorChat(true);
     deepEqual(await cliOwner.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Public": 0 }],
+      ["UpdateRecord", "Chat", 1, { Public: 0 }],
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
-        "content": ["First", "Second", "Third"],
-        "userRef": [ownerRef, ownerRef, ownerRef],
+        content: ["First", "Second", "Third"],
+        userRef: [ownerRef, ownerRef, ownerRef],
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Public": 0 }],
-      ["BulkUpdateRecord", "Chat", [1], { "Censored": [["C"]] }],
+      ["UpdateRecord", "Chat", 1, { Public: 0 }],
+      ["BulkUpdateRecord", "Chat", [1], { Censored: [["C"]] }],
       ["BulkUpdateRecord", "_grist_Cells", [1, 2, 3], {
-        "content": [["C"], "Second", ["C"]],
-        "userRef": ['', ownerRef, ""],
+        content: [["C"], "Second", ["C"]],
+        userRef: ['', ownerRef, ""],
       }],
     ]);
   });
@@ -774,32 +774,32 @@ describe('CommentAccess', function() {
     cliEditor.flush(); cliOwner.flush();
     // Now rename table, and trigger comments retrieval, by updating a cell.
     await owner.applyUserActions(docId, [
-      ["UpdateRecord", "Chat", 1, { "Censored": "test1" }],
+      ["UpdateRecord", "Chat", 1, { Censored: "test1" }],
       ["RenameTable", "Chat", "Chat2"],
       ["RenameColumn", "Chat2", "Censored", "Censored2"],
-      ["UpdateRecord", "Chat2", 1, { "Censored2": "test2" }],
+      ["UpdateRecord", "Chat2", 1, { Censored2: "test2" }],
     ]);
     deepEqual(await cliOwner.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Censored": "test1" }],
+      ["UpdateRecord", "Chat", 1, { Censored: "test1" }],
       ["RenameTable", "Chat", "Chat2"],
-      ["UpdateRecord", "_grist_Tables", 2, { "tableId": "Chat2" }],
-      ["BulkUpdateRecord", "_grist_ACLResources", [2, 4], { "tableId": ["Chat2", "Chat2"] }],
+      ["UpdateRecord", "_grist_Tables", 2, { tableId: "Chat2" }],
+      ["BulkUpdateRecord", "_grist_ACLResources", [2, 4], { tableId: ["Chat2", "Chat2"] }],
       ["RenameColumn", "Chat2", "Censored", "Censored2"],
-      ["UpdateRecord", "_grist_Tables_column", 8, { "colId": "Censored2" }],
-      ["UpdateRecord", "_grist_ACLResources", 4, { "colIds": "Censored2" }],
-      ["UpdateRecord", "Chat2", 1, { "Censored2": "test2" }],
+      ["UpdateRecord", "_grist_Tables_column", 8, { colId: "Censored2" }],
+      ["UpdateRecord", "_grist_ACLResources", 4, { colIds: "Censored2" }],
+      ["UpdateRecord", "Chat2", 1, { Censored2: "test2" }],
       ["UpdateRecord", "_grist_Cells", 1, {
-        "content": "Secret", userRef: ownerRef,
+        content: "Secret", userRef: ownerRef,
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
-      ["UpdateRecord", "Chat", 1, { "Censored": ["C"] }],
+      ["UpdateRecord", "Chat", 1, { Censored: ["C"] }],
       ["RenameTable", "Chat", "Chat2"],
-      ["UpdateRecord", "_grist_Tables", 2, { "tableId": "Chat2" }],
+      ["UpdateRecord", "_grist_Tables", 2, { tableId: "Chat2" }],
       ["RenameColumn", "Chat2", "Censored", "Censored2"],
-      ["UpdateRecord", "_grist_Tables_column", 8, { "colId": "Censored2" }],
-      ["UpdateRecord", "Chat2", 1, { "Censored2": ["C"] }],
-      ["UpdateRecord", "_grist_Cells", 1, { "content": ["C"], "userRef": "" }],
+      ["UpdateRecord", "_grist_Tables_column", 8, { colId: "Censored2" }],
+      ["UpdateRecord", "Chat2", 1, { Censored2: ["C"] }],
+      ["UpdateRecord", "_grist_Cells", 1, { content: ["C"], userRef: "" }],
     ]);
 
     const ChatTable = 2, Censored = 8;
@@ -822,14 +822,14 @@ describe('CommentAccess', function() {
     ]);
     deepEqual(await cliOwner.readDocUserAction(), [
       ["AddRecord", "_grist_Cells", 2, {
-        "colRef": Censored, "content": "New Secret",
-        "userRef": ownerRef, "root": true, "rowId": 1, "tableRef": ChatTable, "type": 1, "parentId": 0,
+        colRef: Censored, content: "New Secret",
+        userRef: ownerRef, root: true, rowId: 1, tableRef: ChatTable, type: 1, parentId: 0,
       }],
     ]);
     deepEqual(await cliEditor.readDocUserAction(), [
       ["AddRecord", "_grist_Cells", 2, {
-        "colRef": Censored, "content": ['C'],
-        "userRef": "", "root": true, "rowId": 1, "tableRef": ChatTable, "type": 1, "parentId": 0,
+        colRef: Censored, content: ['C'],
+        userRef: "", root: true, rowId: 1, tableRef: ChatTable, type: 1, parentId: 0,
       }],
     ]);
 

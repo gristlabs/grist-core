@@ -4,30 +4,30 @@
 import * as t from "ts-interface-checker";
 
 export const ClientJsonMemoryLimits = t.iface([], {
-  "totalSize": t.opt("number"),
-  "jsonResponseReservation": t.opt("number"),
-  "maxReservationSize": t.opt(t.union("number", "null")),
+  totalSize: t.opt("number"),
+  jsonResponseReservation: t.opt("number"),
+  maxReservationSize: t.opt(t.union("number", "null")),
 });
 
 export const ITestingHooks = t.iface([], {
-  "getPort": t.func("number"),
-  "setLoginSessionProfile": t.func("void", t.param("gristSidCookie", "string"), t.param("profile", t.union("UserProfile", "null")), t.param("org", "string", true)),
-  "setServerVersion": t.func("void", t.param("version", t.union("string", "null"))),
-  "disconnectClients": t.func("void"),
-  "commShutdown": t.func("void"),
-  "commRestart": t.func("void"),
-  "commSetClientPersistence": t.func("number", t.param("ttlMs", "number")),
-  "commSetClientJsonMemoryLimits": t.func("ClientJsonMemoryLimits", t.param("limits", "ClientJsonMemoryLimits")),
-  "closeDocs": t.func("void"),
-  "setDocWorkerActivation": t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit('active'), t.lit('inactive'), t.lit('crash')))),
-  "flushAuthorizerCache": t.func("void"),
-  "flushDocs": t.func("void"),
-  "getDocClientCounts": t.func(t.array(t.tuple("string", "number"))),
-  "setActiveDocTimeout": t.func("number", t.param("seconds", "number")),
-  "setDiscourseConnectVar": t.func(t.union("string", "null"), t.param("varName", "string"), t.param("value", t.union("string", "null"))),
-  "setWidgetRepositoryUrl": t.func("void", t.param("url", "string")),
-  "getMemoryUsage": t.func("object"),
-  "tickleUnhandledErrors": t.func("void", t.param("errType", "string")),
+  getPort: t.func("number"),
+  setLoginSessionProfile: t.func("void", t.param("gristSidCookie", "string"), t.param("profile", t.union("UserProfile", "null")), t.param("org", "string", true)),
+  setServerVersion: t.func("void", t.param("version", t.union("string", "null"))),
+  disconnectClients: t.func("void"),
+  commShutdown: t.func("void"),
+  commRestart: t.func("void"),
+  commSetClientPersistence: t.func("number", t.param("ttlMs", "number")),
+  commSetClientJsonMemoryLimits: t.func("ClientJsonMemoryLimits", t.param("limits", "ClientJsonMemoryLimits")),
+  closeDocs: t.func("void"),
+  setDocWorkerActivation: t.func("void", t.param("workerId", "string"), t.param("active", t.union(t.lit('active'), t.lit('inactive'), t.lit('crash')))),
+  flushAuthorizerCache: t.func("void"),
+  flushDocs: t.func("void"),
+  getDocClientCounts: t.func(t.array(t.tuple("string", "number"))),
+  setActiveDocTimeout: t.func("number", t.param("seconds", "number")),
+  setDiscourseConnectVar: t.func(t.union("string", "null"), t.param("varName", "string"), t.param("value", t.union("string", "null"))),
+  setWidgetRepositoryUrl: t.func("void", t.param("url", "string")),
+  getMemoryUsage: t.func("object"),
+  tickleUnhandledErrors: t.func("void", t.param("errType", "string")),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

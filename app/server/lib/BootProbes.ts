@@ -33,7 +33,7 @@ export class BootProbes {
       ...this._middleware,
       expressWrap(async (_, res) => {
         res.json({
-          'probes': this._probes.map((probe) => {
+          probes: this._probes.map((probe) => {
             return { id: probe.id, name: probe.name };
           }),
         });
@@ -336,7 +336,7 @@ const _sessionSecretProbe: Probe = {
     return {
       status: usingDefaultSessionSecret ? 'warning' : 'success',
       details: {
-        "GRIST_SESSION_SECRET": process.env.GRIST_SESSION_SECRET ? "set" : "not set",
+        GRIST_SESSION_SECRET: process.env.GRIST_SESSION_SECRET ? "set" : "not set",
       },
     };
   },

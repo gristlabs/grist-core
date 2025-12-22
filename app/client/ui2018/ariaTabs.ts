@@ -42,8 +42,8 @@ export const ariaTabList = () => ({ role: "tablist" });
 export const ariaTab = (tabListId: string, tabId: string, state: Observable<string>) => {
   return [
     {
-      id: `aria-tab-${tabListId}-${tabId}`,
-      role: "tab",
+      "id": `aria-tab-${tabListId}-${tabId}`,
+      "role": "tab",
       "data-tab-id": tabId,
       "aria-controls": `aria-tabpanel-${tabListId}-${tabId}`,
     },
@@ -83,8 +83,8 @@ export const ariaTab = (tabListId: string, tabId: string, state: Observable<stri
 export const ariaTabPanel = (tabListId: string, tabId: string, state: Observable<string>, children: DomContents) => {
   return [
     {
-      id: `aria-tabpanel-${tabListId}-${tabId}`,
-      role: "tabpanel",
+      "id": `aria-tabpanel-${tabListId}-${tabId}`,
+      "role": "tabpanel",
       "aria-labelledby": `aria-tab-${tabListId}-${tabId}`,
     },
     dom.attr('aria-hidden', use => use(state) !== tabId ? "true" : "false"),

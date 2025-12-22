@@ -219,8 +219,8 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
 
   const inputElem: HTMLInputElement = searchInput(model.value, { onInput: true },
     {
-      type: 'text',
-      placeholder: t("Search in document"),
+      "type": 'text',
+      "placeholder": t("Search in document"),
       'aria-label': t("Search in document"),
     },
     dom.on('focus', () => {

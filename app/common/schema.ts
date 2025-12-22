@@ -7,7 +7,7 @@ export const SCHEMA_VERSION = 45;
 
 export const schema = {
 
-  "_grist_DocInfo": {
+  _grist_DocInfo: {
     docId: "Text",
     peers: "Text",
     basketId: "Text",
@@ -16,7 +16,7 @@ export const schema = {
     documentSettings: "Text",
   },
 
-  "_grist_Tables": {
+  _grist_Tables: {
     tableId: "Text",
     primaryViewId: "Ref:_grist_Views",
     summarySourceTable: "Ref:_grist_Tables",
@@ -25,7 +25,7 @@ export const schema = {
     recordCardViewSectionRef: "Ref:_grist_Views_section",
   },
 
-  "_grist_Tables_column": {
+  _grist_Tables_column: {
     parentId: "Ref:_grist_Tables",
     parentPos: "PositionNumber",
     colId: "Text",
@@ -45,7 +45,7 @@ export const schema = {
     recalcDeps: "RefList:_grist_Tables_column",
   },
 
-  "_grist_Imports": {
+  _grist_Imports: {
     tableRef: "Ref:_grist_Tables",
     origFileName: "Text",
     parseFormula: "Text",
@@ -58,7 +58,7 @@ export const schema = {
     hasHeaders: "Bool",
   },
 
-  "_grist_External_database": {
+  _grist_External_database: {
     host: "Text",
     port: "Int",
     username: "Text",
@@ -67,28 +67,28 @@ export const schema = {
     storage: "Text",
   },
 
-  "_grist_External_table": {
+  _grist_External_table: {
     tableRef: "Ref:_grist_Tables",
     databaseRef: "Ref:_grist_External_database",
     tableName: "Text",
   },
 
-  "_grist_TableViews": {
+  _grist_TableViews: {
     tableRef: "Ref:_grist_Tables",
     viewRef: "Ref:_grist_Views",
   },
 
-  "_grist_TabItems": {
+  _grist_TabItems: {
     tableRef: "Ref:_grist_Tables",
     viewRef: "Ref:_grist_Views",
   },
 
-  "_grist_TabBar": {
+  _grist_TabBar: {
     viewRef: "Ref:_grist_Views",
     tabPos: "PositionNumber",
   },
 
-  "_grist_Pages": {
+  _grist_Pages: {
     viewRef: "Ref:_grist_Views",
     indentation: "Int",
     pagePos: "PositionNumber",
@@ -96,13 +96,13 @@ export const schema = {
     options: "Text",
   },
 
-  "_grist_Views": {
+  _grist_Views: {
     name: "Text",
     type: "Text",
     layoutSpec: "Text",
   },
 
-  "_grist_Views_section": {
+  _grist_Views_section: {
     tableRef: "Ref:_grist_Tables",
     parentId: "Ref:_grist_Views",
     parentKey: "Text",
@@ -124,7 +124,7 @@ export const schema = {
     shareOptions: "Text",
   },
 
-  "_grist_Views_section_field": {
+  _grist_Views_section_field: {
     parentId: "Ref:_grist_Views_section",
     parentPos: "PositionNumber",
     colRef: "Ref:_grist_Tables_column",
@@ -136,19 +136,19 @@ export const schema = {
     rules: "RefList:_grist_Tables_column",
   },
 
-  "_grist_Validations": {
+  _grist_Validations: {
     formula: "Text",
     name: "Text",
     tableRef: "Int",
   },
 
-  "_grist_REPL_Hist": {
+  _grist_REPL_Hist: {
     code: "Text",
     outputText: "Text",
     errorText: "Text",
   },
 
-  "_grist_Attachments": {
+  _grist_Attachments: {
     fileIdent: "Text",
     fileName: "Text",
     fileType: "Text",
@@ -160,7 +160,7 @@ export const schema = {
     timeUploaded: "DateTime",
   },
 
-  "_grist_Triggers": {
+  _grist_Triggers: {
     tableRef: "Ref:_grist_Tables",
     eventTypes: "ChoiceList",
     isReadyColRef: "Ref:_grist_Tables_column",
@@ -172,7 +172,7 @@ export const schema = {
     options: "Text",
   },
 
-  "_grist_ACLRules": {
+  _grist_ACLRules: {
     resource: "Ref:_grist_ACLResources",
     permissions: "Int",
     principals: "Text",
@@ -185,12 +185,12 @@ export const schema = {
     memo: "Text",
   },
 
-  "_grist_ACLResources": {
+  _grist_ACLResources: {
     tableId: "Text",
     colIds: "Text",
   },
 
-  "_grist_ACLPrincipals": {
+  _grist_ACLPrincipals: {
     type: "Text",
     userEmail: "Text",
     userName: "Text",
@@ -198,12 +198,12 @@ export const schema = {
     instanceId: "Text",
   },
 
-  "_grist_ACLMemberships": {
+  _grist_ACLMemberships: {
     parent: "Ref:_grist_ACLPrincipals",
     child: "Ref:_grist_ACLPrincipals",
   },
 
-  "_grist_Filters": {
+  _grist_Filters: {
     viewSectionRef: "Ref:_grist_Views_section",
     colRef: "Ref:_grist_Tables_column",
     filter: "Text",
@@ -224,7 +224,7 @@ export const schema = {
     resolved            : "Bool",
   },
 
-  "_grist_Shares": {
+  _grist_Shares: {
     linkId: "Text",
     options: "Text",
     label: "Text",
@@ -235,7 +235,7 @@ export const schema = {
 
 export interface SchemaTypes {
 
-  "_grist_DocInfo": {
+  _grist_DocInfo: {
     docId: string;
     peers: string;
     basketId: string;
@@ -244,7 +244,7 @@ export interface SchemaTypes {
     documentSettings: string;
   };
 
-  "_grist_Tables": {
+  _grist_Tables: {
     tableId: string;
     primaryViewId: number;
     summarySourceTable: number;
@@ -253,7 +253,7 @@ export interface SchemaTypes {
     recordCardViewSectionRef: number;
   };
 
-  "_grist_Tables_column": {
+  _grist_Tables_column: {
     parentId: number;
     parentPos: number;
     colId: string;
@@ -273,7 +273,7 @@ export interface SchemaTypes {
     recalcDeps: [GristObjCode.List, ...number[]] | null;
   };
 
-  "_grist_Imports": {
+  _grist_Imports: {
     tableRef: number;
     origFileName: string;
     parseFormula: string;
@@ -286,7 +286,7 @@ export interface SchemaTypes {
     hasHeaders: boolean;
   };
 
-  "_grist_External_database": {
+  _grist_External_database: {
     host: string;
     port: number;
     username: string;
@@ -295,28 +295,28 @@ export interface SchemaTypes {
     storage: string;
   };
 
-  "_grist_External_table": {
+  _grist_External_table: {
     tableRef: number;
     databaseRef: number;
     tableName: string;
   };
 
-  "_grist_TableViews": {
+  _grist_TableViews: {
     tableRef: number;
     viewRef: number;
   };
 
-  "_grist_TabItems": {
+  _grist_TabItems: {
     tableRef: number;
     viewRef: number;
   };
 
-  "_grist_TabBar": {
+  _grist_TabBar: {
     viewRef: number;
     tabPos: number;
   };
 
-  "_grist_Pages": {
+  _grist_Pages: {
     viewRef: number;
     indentation: number;
     pagePos: number;
@@ -324,13 +324,13 @@ export interface SchemaTypes {
     options: string;
   };
 
-  "_grist_Views": {
+  _grist_Views: {
     name: string;
     type: string;
     layoutSpec: string;
   };
 
-  "_grist_Views_section": {
+  _grist_Views_section: {
     tableRef: number;
     parentId: number;
     parentKey: string;
@@ -352,7 +352,7 @@ export interface SchemaTypes {
     shareOptions: string;
   };
 
-  "_grist_Views_section_field": {
+  _grist_Views_section_field: {
     parentId: number;
     parentPos: number;
     colRef: number;
@@ -364,19 +364,19 @@ export interface SchemaTypes {
     rules: [GristObjCode.List, ...number[]] | null;
   };
 
-  "_grist_Validations": {
+  _grist_Validations: {
     formula: string;
     name: string;
     tableRef: number;
   };
 
-  "_grist_REPL_Hist": {
+  _grist_REPL_Hist: {
     code: string;
     outputText: string;
     errorText: string;
   };
 
-  "_grist_Attachments": {
+  _grist_Attachments: {
     fileIdent: string;
     fileName: string;
     fileType: string;
@@ -388,7 +388,7 @@ export interface SchemaTypes {
     timeUploaded: number;
   };
 
-  "_grist_Triggers": {
+  _grist_Triggers: {
     tableRef: number;
     eventTypes: [GristObjCode.List, ...string[]] | null;
     isReadyColRef: number;
@@ -400,7 +400,7 @@ export interface SchemaTypes {
     options: string;
   };
 
-  "_grist_ACLRules": {
+  _grist_ACLRules: {
     resource: number;
     permissions: number;
     principals: string;
@@ -413,12 +413,12 @@ export interface SchemaTypes {
     memo: string;
   };
 
-  "_grist_ACLResources": {
+  _grist_ACLResources: {
     tableId: string;
     colIds: string;
   };
 
-  "_grist_ACLPrincipals": {
+  _grist_ACLPrincipals: {
     type: string;
     userEmail: string;
     userName: string;
@@ -426,19 +426,19 @@ export interface SchemaTypes {
     instanceId: string;
   };
 
-  "_grist_ACLMemberships": {
+  _grist_ACLMemberships: {
     parent: number;
     child: number;
   };
 
-  "_grist_Filters": {
+  _grist_Filters: {
     viewSectionRef: number;
     colRef: number;
     filter: string;
     pinned: boolean;
   };
 
-  "_grist_Cells": {
+  _grist_Cells: {
     tableRef: number;
     colRef: number;
     rowId: number;
@@ -452,7 +452,7 @@ export interface SchemaTypes {
     resolved: boolean;
   };
 
-  "_grist_Shares": {
+  _grist_Shares: {
     linkId: string;
     options: string;
     label: string;

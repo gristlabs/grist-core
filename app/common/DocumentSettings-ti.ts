@@ -4,18 +4,18 @@
 import * as t from "ts-interface-checker";
 
 export const DocumentSettings = t.iface([], {
-  "locale": "string",
-  "currency": t.opt("string"),
-  "engine": t.opt("EngineCode"),
-  "attachmentStoreId": t.opt("string"),
-  "baseAction": t.opt("DocState"),
+  locale: "string",
+  currency: t.opt("string"),
+  engine: t.opt("EngineCode"),
+  attachmentStoreId: t.opt("string"),
+  baseAction: t.opt("DocState"),
 });
 
 export const EngineCode = t.lit('python3');
 
 export const DocState = t.iface([], {
-  "n": "number",
-  "h": "string",
+  n: "number",
+  h: "string",
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

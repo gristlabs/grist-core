@@ -49,7 +49,7 @@ export function createHelpTools(appModel: AppModel): DomContents {
     ),
     cssPageEntrySmall(
       cssPageLink(cssPageIcon('FieldLink'),
-        { href: commonUrls.help, 'aria-label': t("Help Center"), target: '_blank' },
+        { "href": commonUrls.help, 'aria-label': t("Help Center"), "target": '_blank' },
       ),
     ),
   );

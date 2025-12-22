@@ -61,7 +61,7 @@ export class FormView extends BaseView {
   private _formEditorBodyElement: HTMLElement;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    super(gristDoc, viewSectionModel, { 'addNewRow': false });
+    super(gristDoc, viewSectionModel, { addNewRow: false });
     this.menuHolder = Holder.create(this);
 
     // We will store selected box here.

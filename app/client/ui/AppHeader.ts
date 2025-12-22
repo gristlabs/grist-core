@@ -27,9 +27,9 @@ const testId = makeTestId('test-dm-');
 const productPills: { [name: string]: string | null } = {
   // TODO We don't label paid team plans with a tag yet, but we should label as "Pro" once we
   // update our pricing pages to refer to paid team plans as Pro plans.
-  "professional": null,   // Deprecated but used in development.
-  "team": null,           // Used for the paid team plans.
-  "teamFree": "Free",     // The new free team plan.
+  professional: null,   // Deprecated but used in development.
+  team: null,           // Used for the paid team plans.
+  teamFree: "Free",     // The new free team plan.
   // Other plans are either personal, or grandfathered, or for testing.
 };
 

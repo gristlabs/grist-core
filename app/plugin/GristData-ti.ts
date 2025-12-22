@@ -4,19 +4,19 @@
 import * as t from "ts-interface-checker";
 
 export const GristObjCode = t.enumtype({
-  "List": "L",
-  "LookUp": "l",
-  "Dict": "O",
-  "DateTime": "D",
-  "Date": "d",
-  "Skip": "S",
-  "Censored": "C",
-  "Reference": "R",
-  "ReferenceList": "r",
-  "Exception": "E",
-  "Pending": "P",
-  "Unmarshallable": "U",
-  "Versions": "V",
+  List: "L",
+  LookUp: "l",
+  Dict: "O",
+  DateTime: "D",
+  Date: "d",
+  Skip: "S",
+  Censored: "C",
+  Reference: "R",
+  ReferenceList: "r",
+  Exception: "E",
+  Pending: "P",
+  Unmarshallable: "U",
+  Versions: "V",
 });
 
 export const CellValue = t.union("number", "string", "boolean", "null", t.tuple("GristObjCode", t.rest(t.array("unknown"))));
@@ -26,12 +26,12 @@ export const BulkColValues = t.iface([], {
 });
 
 export const RowRecord = t.iface([], {
-  "id": "number",
+  id: "number",
   [t.indexKey]: "CellValue",
 });
 
 export const RowRecords = t.iface([], {
-  "id": t.array("number"),
+  id: t.array("number"),
   [t.indexKey]: t.array("CellValue"),
 });
 

@@ -4,26 +4,26 @@
 import * as t from "ts-interface-checker";
 
 export const ColumnToMap = t.iface([], {
-  "name": "string",
-  "title": t.opt(t.union("string", "null")),
-  "description": t.opt(t.union("string", "null")),
-  "type": t.opt("string"),
-  "optional": t.opt("boolean"),
-  "allowMultiple": t.opt("boolean"),
-  "strictType": t.opt("boolean"),
+  name: "string",
+  title: t.opt(t.union("string", "null")),
+  description: t.opt(t.union("string", "null")),
+  type: t.opt("string"),
+  optional: t.opt("boolean"),
+  allowMultiple: t.opt("boolean"),
+  strictType: t.opt("boolean"),
 });
 
 export const ColumnsToMap = t.array(t.union("string", "ColumnToMap"));
 
 export const InteractionOptionsRequest = t.iface([], {
-  "requiredAccess": t.opt("string"),
-  "hasCustomOptions": t.opt("boolean"),
-  "columns": t.opt("ColumnsToMap"),
-  "allowSelectBy": t.opt("boolean"),
+  requiredAccess: t.opt("string"),
+  hasCustomOptions: t.opt("boolean"),
+  columns: t.opt("ColumnsToMap"),
+  allowSelectBy: t.opt("boolean"),
 });
 
 export const InteractionOptions = t.iface([], {
-  "accessLevel": "string",
+  accessLevel: "string",
 });
 
 export const WidgetColumnMap = t.iface([], {
@@ -31,8 +31,8 @@ export const WidgetColumnMap = t.iface([], {
 });
 
 export const CustomSectionAPI = t.iface([], {
-  "configure": t.func("void", t.param("customOptions", "InteractionOptionsRequest")),
-  "mappings": t.func(t.union("WidgetColumnMap", "null")),
+  configure: t.func("void", t.param("customOptions", "InteractionOptionsRequest")),
+  mappings: t.func(t.union("WidgetColumnMap", "null")),
 });
 
 const exportedTypeSuite: t.ITypeSuite = {

@@ -4,18 +4,18 @@
 import * as t from "ts-interface-checker";
 
 export const Config = t.iface([], {
-  "id": "string",
-  "key": "ConfigKey",
-  "value": "ConfigValue",
-  "createdAt": "string",
-  "updatedAt": "string",
-  "org": t.opt("ConfigOrg"),
+  id: "string",
+  key: "ConfigKey",
+  value: "ConfigValue",
+  createdAt: "string",
+  updatedAt: "string",
+  org: t.opt("ConfigOrg"),
 });
 
 export const ConfigOrg = t.iface([], {
-  "id": "number",
-  "name": "string",
-  "domain": t.union("string", "null"),
+  id: "number",
+  name: "string",
+  domain: t.union("string", "null"),
 });
 
 export const ConfigKey = t.lit("audit_log_streaming_destinations");
@@ -25,10 +25,10 @@ export const ConfigValue = t.name("AuditLogStreamingDestinations");
 export const AuditLogStreamingDestinations = t.array("AuditLogStreamingDestination");
 
 export const AuditLogStreamingDestination = t.iface([], {
-  "id": "string",
-  "name": "AuditLogStreamingDestinationName",
-  "url": "string",
-  "token": t.opt("string"),
+  id: "string",
+  name: "AuditLogStreamingDestinationName",
+  url: "string",
+  token: t.opt("string"),
 });
 
 export const AuditLogStreamingDestinationName = t.union(t.lit("splunk"), t.lit("other"));

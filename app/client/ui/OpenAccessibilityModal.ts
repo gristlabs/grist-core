@@ -33,7 +33,7 @@ export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
         cssModalWidth('fixed-wide'),
         cssModalTitle(
           t(`Accessibility`),
-          { role: "heading", "aria-level": 1 },
+          { "role": "heading", "aria-level": 1 },
           testId('title'),
         ),
         cssModalBody(
@@ -54,7 +54,7 @@ export function openAccessibilityModal(appObs: Observable<AppModel | null>) {
 const highContrastThemeSection = (appObs: Observable<AppModel | null>, ctl: IModalControl) => {
   const themePrefs = appObs.get()?.themePrefs;
   return cssSection(
-    cssModalSubheading(t("High contrast theme"), { role: "heading", "aria-level": 2 }),
+    cssModalSubheading(t("High contrast theme"), { "role": "heading", "aria-level": 2 }),
     dom.domComputed((use) => {
       const currentTheme = themePrefs ? use(themePrefs).colors.light : undefined;
       const isHighContrast = currentTheme === 'HighContrastLight';
@@ -113,7 +113,7 @@ const keyboardSection = () => {
   const shortcutsModal = dom('span', getCssKeys(allCommands.shortcuts.humanKeys));
   const accessibilityModal = dom('span', getCssKeys(allCommands.accessibility.humanKeys));
   return cssSection(
-    cssModalSubheading(t("Keyboard navigation"), { role: "heading", "aria-level": 2 }),
+    cssModalSubheading(t("Keyboard navigation"), { "role": "heading", "aria-level": 2 }),
     dom('p', t("On a document page, keyboard navigation is first locked on the current widget.")),
     dom('p', t("Focus on other parts of the user interface using the following shortcuts:")),
     dom('ul',
@@ -133,7 +133,7 @@ const keyboardSection = () => {
       dom('li', t("Finally, the right panel – or the creator panel – is only available \
 through its own shortcut and is not included in the next and previous region cycle.")),
     ),
-    cssModalSubheading(t("Other important keyboard shortcuts"), { role: "heading", "aria-level": 2 }),
+    cssModalSubheading(t("Other important keyboard shortcuts"), { "role": "heading", "aria-level": 2 }),
     dom('ul',
       cssShortcutRow(t("{{shortcutsModal}} Show the complete list of keyboard shortcuts", { shortcutsModal })),
       cssShortcutRow(t("{{accessibilityModal}} Show the accessibility options (this modal)", { accessibilityModal })),

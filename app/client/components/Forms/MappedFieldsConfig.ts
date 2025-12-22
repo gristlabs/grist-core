@@ -67,7 +67,7 @@ export class MappedFieldsConfig extends Disposable {
     };
 
     return [
-      dom('div', { role: 'group', 'aria-labelledby': 'mapped-fields-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'mapped-fields-label' },
         cssHeader(
           cssFieldListHeader(
             dom.text(t("Mapped")),
@@ -103,7 +103,7 @@ export class MappedFieldsConfig extends Disposable {
           ),
         ),
       ),
-      dom('div', { role: 'group', 'aria-labelledby': 'unmapped-fields-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'unmapped-fields-label' },
         cssHeader(
           cssFieldListHeader(
             dom.text(t("Unmapped")),

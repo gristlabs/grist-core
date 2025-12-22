@@ -113,7 +113,7 @@ export class CustomView extends BaseView {
   private _unmappedColumns: ko.Computed<string[]>;
 
   constructor(gristDoc: GristDoc, viewSectionModel: ViewSectionRec) {
-    super(gristDoc, viewSectionModel, { 'addNewRow': true, disabledCursor: true });
+    super(gristDoc, viewSectionModel, { addNewRow: true, disabledCursor: true });
 
     this.customDef = this.viewSection.customDef;
 

@@ -22,7 +22,7 @@ export enum Level {
  * level.
  */
 export const TelemetryContracts: TelemetryContracts = {
-  apiUsage: {
+  "apiUsage": {
     description: 'Triggered when an HTTP request with an API key is made.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -41,7 +41,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantOpen: {
+  "assistantOpen": {
     category: 'AIAssistant',
     description: 'Triggered when the AI Assistant is first opened.',
     minimumTelemetryLevel: Level.full,
@@ -73,7 +73,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantSend: {
+  "assistantSend": {
     category: 'AIAssistant',
     description: 'Triggered when a message is sent to the AI Assistant.',
     minimumTelemetryLevel: Level.full,
@@ -125,7 +125,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantReceive: {
+  "assistantReceive": {
     category: 'AIAssistant',
     description: 'Triggered when a message is received from the AI Assistant.',
     minimumTelemetryLevel: Level.full,
@@ -181,7 +181,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantSave: {
+  "assistantSave": {
     category: 'AIAssistant',
     description: 'Triggered when changes in the expanded formula editor are saved after the AI Assistant ' +
       'was opened.',
@@ -222,7 +222,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantCancel: {
+  "assistantCancel": {
     category: 'AIAssistant',
     description: 'Triggered when changes in the expanded formula editor are discarded after the AI Assistant ' +
       'was opened.',
@@ -259,7 +259,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantApplySuggestion: {
+  "assistantApplySuggestion": {
     category: 'AIAssistant',
     description: 'Triggered when a suggested formula from one of the received messages was applied and saved.',
     minimumTelemetryLevel: Level.full,
@@ -296,7 +296,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantClearConversation: {
+  "assistantClearConversation": {
     category: 'AIAssistant',
     description: 'Triggered when a conversation in the AI Assistant is cleared.',
     minimumTelemetryLevel: Level.full,
@@ -328,7 +328,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantClose: {
+  "assistantClose": {
     category: 'AIAssistant',
     description: 'Triggered when a formula is saved or discarded after the AI Assistant was opened.',
     minimumTelemetryLevel: Level.full,
@@ -369,7 +369,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  assistantStartDocument: {
+  "assistantStartDocument": {
     category: 'AIAssistant',
     description: 'Triggered when a user begins the process of creating a document using the AI Assistant.',
     minimumTelemetryLevel: Level.full,
@@ -389,7 +389,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  beaconOpen: {
+  "beaconOpen": {
     category: 'HelpCenter',
     description: 'Triggered when HelpScout Beacon is opened.',
     minimumTelemetryLevel: Level.full,
@@ -405,7 +405,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  beaconArticleViewed: {
+  "beaconArticleViewed": {
     category: 'HelpCenter',
     description: 'Triggered when an article is opened in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
@@ -425,7 +425,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  beaconEmailSent: {
+  "beaconEmailSent": {
     category: 'HelpCenter',
     description: 'Triggered when an email is sent in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
@@ -441,7 +441,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  beaconSearch: {
+  "beaconSearch": {
     category: 'HelpCenter',
     description: 'Triggered when a search is made in HelpScout Beacon.',
     minimumTelemetryLevel: Level.full,
@@ -461,7 +461,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  ratedHelpCenterArticle: {
+  "ratedHelpCenterArticle": {
     category: 'HelpCenter',
     description: 'Sent by HelpCenter when user clicks thumbs-up or thumbs-down',
     minimumTelemetryLevel: Level.full,
@@ -485,7 +485,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  documentCreated: {
+  "documentCreated": {
     description: 'Triggered when a document is created.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -524,7 +524,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  documentForked: {
+  "documentForked": {
     description: 'Triggered when a document is forked.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -579,7 +579,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  documentOpened: {
+  "documentOpened": {
     description: 'Triggered when a public document or template is opened.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -630,7 +630,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  documentUsage: {
+  "documentUsage": {
     description: 'Triggered on doc open and close, as well as hourly while a document is open.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -766,7 +766,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  processMonitor: {
+  "processMonitor": {
     description: 'Triggered every 5 seconds.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
@@ -789,7 +789,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  sendingWebhooks: {
+  "sendingWebhooks": {
     description: 'Triggered when sending webhooks.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -828,7 +828,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  signupFirstVisit: {
+  "signupFirstVisit": {
     category: 'ProductVisits',
     description: 'Triggered when a new user first opens the Grist app.',
     minimumTelemetryLevel: Level.full,
@@ -856,7 +856,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  signupVerified: {
+  "signupVerified": {
     description: 'Triggered after a user successfully verifies their account during sign-up. ' +
       'Not triggered in grist-core.',
     minimumTelemetryLevel: Level.full,
@@ -876,7 +876,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  siteMembership: {
+  "siteMembership": {
     description: 'Triggered daily.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -903,7 +903,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  siteUsage: {
+  "siteUsage": {
     description: 'Triggered daily.',
     minimumTelemetryLevel: Level.limited,
     retentionPeriod: 'indefinitely',
@@ -947,7 +947,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  tutorialOpened: {
+  "tutorialOpened": {
     category: 'Tutorial',
     description: 'Triggered when a tutorial is opened.',
     minimumTelemetryLevel: Level.full,
@@ -983,7 +983,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  tutorialProgressChanged: {
+  "tutorialProgressChanged": {
     category: 'Tutorial',
     description: 'Triggered on changes to tutorial progress.',
     minimumTelemetryLevel: Level.full,
@@ -1019,7 +1019,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  tutorialRestarted: {
+  "tutorialRestarted": {
     category: 'Tutorial',
     description: 'Triggered when a tutorial is restarted.',
     minimumTelemetryLevel: Level.full,
@@ -1059,7 +1059,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  watchedVideoTour: {
+  "watchedVideoTour": {
     category: 'Welcome',
     description: 'Triggered when the video tour is closed.',
     minimumTelemetryLevel: Level.limited,
@@ -1081,7 +1081,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  answeredUseCaseQuestion: {
+  "answeredUseCaseQuestion": {
     category: 'Welcome',
     description: 'Triggered for each selected use case in the welcome questionnaire.',
     minimumTelemetryLevel: Level.full,
@@ -1097,7 +1097,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  clickedScheduleCoachingCall: {
+  "clickedScheduleCoachingCall": {
     category: 'Welcome',
     description: 'Triggered when the link to schedule a coaching call is clicked.',
     minimumTelemetryLevel: Level.full,
@@ -1113,13 +1113,13 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  deletedAccount: {
+  "deletedAccount": {
     category: 'SubscriptionPlan',
     description: 'Triggered when an account is deleted.',
     minimumTelemetryLevel: Level.full,
     retentionPeriod: 'indefinitely',
   },
-  createdSite: {
+  "createdSite": {
     category: 'TeamSite',
     description: 'Triggered when a site is created.',
     minimumTelemetryLevel: Level.full,
@@ -1135,7 +1135,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  deletedSite: {
+  "deletedSite": {
     category: 'TeamSite',
     description: 'Triggered when a site is deleted.',
     minimumTelemetryLevel: Level.full,
@@ -1151,7 +1151,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  invitedMember: {
+  "invitedMember": {
     category: 'TeamSite',
     description: 'Triggered when users are added to a team site.',
     minimumTelemetryLevel: Level.full,
@@ -1167,7 +1167,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  uninvitedMember: {
+  "uninvitedMember": {
     category: 'TeamSite',
     description: 'Triggered when users are removed from a team site.',
     minimumTelemetryLevel: Level.full,
@@ -1183,7 +1183,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  invitedDocUser: {
+  "invitedDocUser": {
     category: 'DocumentUsage',
     description: 'Triggered when users are added to a document.',
     minimumTelemetryLevel: Level.full,
@@ -1203,7 +1203,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  madeDocPublic: {
+  "madeDocPublic": {
     category: 'DocumentUsage',
     description: 'Triggered when public access to a document is enabled.',
     minimumTelemetryLevel: Level.full,
@@ -1219,7 +1219,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  madeDocPrivate: {
+  "madeDocPrivate": {
     category: 'DocumentUsage',
     description: 'Triggered when public access to a document is disabled.',
     minimumTelemetryLevel: Level.full,
@@ -1231,7 +1231,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  openedTemplate: {
+  "openedTemplate": {
     category: 'TemplateUsage',
     description: 'Triggered when a template is opened.',
     minimumTelemetryLevel: Level.full,
@@ -1251,7 +1251,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  openedTemplateTour: {
+  "openedTemplateTour": {
     category: 'TemplateUsage',
     description: 'Triggered when a document tour for a template is opened.',
     minimumTelemetryLevel: Level.full,
@@ -1271,7 +1271,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  copiedTemplate: {
+  "copiedTemplate": {
     category: 'TemplateUsage',
     description: 'Triggered when a copy of a template is saved.',
     minimumTelemetryLevel: Level.full,
@@ -1291,7 +1291,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  subscribedToPlan: {
+  "subscribedToPlan": {
     category: 'SubscriptionPlan',
     description: 'Triggered on subscription to a plan.',
     minimumTelemetryLevel: Level.full,
@@ -1307,7 +1307,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  cancelledPlan: {
+  "cancelledPlan": {
     category: 'SubscriptionPlan',
     description: 'Triggered on cancellation of a plan.',
     minimumTelemetryLevel: Level.full,
@@ -1323,7 +1323,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  createdWorkspace: {
+  "createdWorkspace": {
     category: 'DocumentUsage',
     description: 'Triggered when a workspace is created.',
     minimumTelemetryLevel: Level.full,
@@ -1339,7 +1339,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  deletedWorkspace: {
+  "deletedWorkspace": {
     category: 'DocumentUsage',
     description: 'Triggered when a workspace is deleted.',
     minimumTelemetryLevel: Level.full,
@@ -1355,7 +1355,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  visitedPage: {
+  "visitedPage": {
     category: 'ProductVisits',
     description: 'Triggered when a page is loaded.',
     minimumTelemetryLevel: Level.full,
@@ -1388,7 +1388,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  openedDoc: {
+  "openedDoc": {
     category: 'DocumentUsage',
     description: 'Triggered when a document is opened.',
     minimumTelemetryLevel: Level.full,
@@ -1488,7 +1488,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  viewedWelcomeTour: {
+  "viewedWelcomeTour": {
     category: 'Tutorial',
     description: 'Triggered when the Grist welcome tour is closed.',
     minimumTelemetryLevel: Level.full,
@@ -1508,7 +1508,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  viewedTip: {
+  "viewedTip": {
     category: 'Tutorial',
     description: 'Triggered when a tip is shown.',
     minimumTelemetryLevel: Level.full,
@@ -1528,7 +1528,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  deletedDoc: {
+  "deletedDoc": {
     category: 'DocumentUsage',
     description: 'Triggered when a document is deleted.',
     minimumTelemetryLevel: Level.full,
@@ -1548,7 +1548,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  addedPage: {
+  "addedPage": {
     category: 'DocumentUsage',
     description: 'Triggered when a page is added.',
     minimumTelemetryLevel: Level.full,
@@ -1568,7 +1568,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  deletedPage: {
+  "deletedPage": {
     category: 'DocumentUsage',
     description: 'Triggered when a page is deleted.',
     minimumTelemetryLevel: Level.full,
@@ -1588,7 +1588,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  addedWidget: {
+  "addedWidget": {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is added.',
     minimumTelemetryLevel: Level.full,
@@ -1612,7 +1612,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  deletedWidget: {
+  "deletedWidget": {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is deleted.',
     minimumTelemetryLevel: Level.full,
@@ -1636,7 +1636,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  duplicatedWidget: {
+  "duplicatedWidget": {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is duplicated.',
     minimumTelemetryLevel: Level.full,
@@ -1660,7 +1660,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  linkedWidget: {
+  "linkedWidget": {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is linked.',
     minimumTelemetryLevel: Level.full,
@@ -1684,7 +1684,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  unlinkedWidget: {
+  "unlinkedWidget": {
     category: 'WidgetUsage',
     description: 'Triggered when a widget is unlinked.',
     minimumTelemetryLevel: Level.full,
@@ -1708,7 +1708,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  publishedForm: {
+  "publishedForm": {
     category: 'WidgetUsage',
     description: 'Triggered when a form is published.',
     minimumTelemetryLevel: Level.full,
@@ -1728,7 +1728,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  unpublishedForm: {
+  "unpublishedForm": {
     category: 'WidgetUsage',
     description: 'Triggered when a form is unpublished.',
     minimumTelemetryLevel: Level.full,
@@ -1748,7 +1748,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  visitedForm: {
+  "visitedForm": {
     category: 'WidgetUsage',
     description: 'Triggered when a published form is visited.',
     minimumTelemetryLevel: Level.full,
@@ -1768,7 +1768,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  submittedForm: {
+  "submittedForm": {
     category: 'WidgetUsage',
     description: 'Triggered when a published form is submitted.',
     minimumTelemetryLevel: Level.full,
@@ -1800,7 +1800,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  changedAccessRules: {
+  "changedAccessRules": {
     category: 'AccessRules',
     description: 'Triggered when a change to access rules is saved.',
     minimumTelemetryLevel: Level.full,
@@ -1824,7 +1824,7 @@ export const TelemetryContracts: TelemetryContracts = {
       },
     },
   },
-  checkedUpdateAPI: {
+  "checkedUpdateAPI": {
     category: "SelfHosted",
     description: 'Triggered when the app checks for updates.',
     minimumTelemetryLevel: Level.full,

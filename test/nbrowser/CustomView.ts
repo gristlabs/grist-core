@@ -668,68 +668,68 @@ describe('CustomView', function() {
     await gu.waitForServer();
 
     const expected = {
-      "default": {
-        "fetchSelectedTable": {
-          "id": [1, 2],
-          "A": [["a", "b"], ["c", "d"]],
+      default: {
+        fetchSelectedTable: {
+          id: [1, 2],
+          A: [["a", "b"], ["c", "d"]],
         },
-        "fetchSelectedRecord": {
-          "id": 1,
-          "A": ["a", "b"],
+        fetchSelectedRecord: {
+          id: 1,
+          A: ["a", "b"],
         },
         // The viewApi methods don't decode data by default, hence the "L" prefixes.
-        "viewApiFetchSelectedTable": {
-          "id": [1, 2],
-          "A": [["L", "a", "b"], ["L", "c", "d"]],
+        viewApiFetchSelectedTable: {
+          id: [1, 2],
+          A: [["L", "a", "b"], ["L", "c", "d"]],
         },
-        "viewApiFetchSelectedRecord": {
-          "id": 2,
-          "A": ["L", "c", "d"],
+        viewApiFetchSelectedRecord: {
+          id: 2,
+          A: ["L", "c", "d"],
         },
         // onRecords returns rows by default, not columns.
-        "onRecords": [
-          { "id": 1, "A": ["a", "b"] },
-          { "id": 2, "A": ["c", "d"] },
+        onRecords: [
+          { id: 1, A: ["a", "b"] },
+          { id: 2, A: ["c", "d"] },
         ],
-        "onRecord": {
-          "id": 1,
-          "A": ["a", "b"],
+        onRecord: {
+          id: 1,
+          A: ["a", "b"],
         },
       },
-      "options": {
+      options: {
         // This is the result of calling the same methods as above,
         // but with the values of `keepEncoded` and `format` being the opposite of their defaults.
         // `includeColumns` is also set to either 'normal' or 'all' instead of the default 'shown',
         // which means that the 'B' column is included in all the results,
         // and the 'manualSort' columns is included in half of them.
-        "fetchSelectedTable": [
-          { "id": 1, "manualSort": 1, "A": ["L", "a", "b"], "B": 1 },
-          { "id": 2, "manualSort": 2, "A": ["L", "c", "d"], "B": 2 },
+        fetchSelectedTable: [
+          { id: 1, manualSort: 1, A: ["L", "a", "b"], B: 1 },
+          { id: 2, manualSort: 2, A: ["L", "c", "d"], B: 2 },
         ],
-        "fetchSelectedRecord": {
-          "id": 1,
-          "A": ["L", "a", "b"],
-          "B": 1,
+        fetchSelectedRecord: {
+          id: 1,
+          A: ["L", "a", "b"],
+          B: 1,
         },
-        "viewApiFetchSelectedTable": [
-          { "id": 1, "manualSort": 1, "A": ["a", "b"], "B": 1 },
-          { "id": 2, "manualSort": 2, "A": ["c", "d"], "B": 2 },
+        viewApiFetchSelectedTable: [
+          { id: 1, manualSort: 1, A: ["a", "b"], B: 1 },
+          { id: 2, manualSort: 2, A: ["c", "d"], B: 2 },
         ],
-        "viewApiFetchSelectedRecord": {
-          "id": 2,
-          "A": ["c", "d"],
-          "B": 2,
+        viewApiFetchSelectedRecord: {
+          id: 2,
+          A: ["c", "d"],
+          B: 2,
         },
-        "onRecords": {
-          "id": [1, 2],
-          "manualSort": [1, 2],
-          "A": [["L", "a", "b"], ["L", "c", "d"]],
-          "B": [1, 2],
+        onRecords: {
+          id: [1, 2],
+          manualSort: [1, 2],
+          A: [["L", "a", "b"], ["L", "c", "d"]],
+          B: [1, 2],
         },
-        "onRecord": {
-          "id": 1,
-          "A": ["L", "a", "b"],
-          "B": 1,
+        onRecord: {
+          id: 1,
+          A: ["L", "a", "b"],
+          B: 1,
         },
       },
     };
@@ -766,13 +766,13 @@ describe('CustomView', function() {
       // The alternative options all set includeColumns to 'normal' or 'all',
       // which requires full access.
       assert.deepEqual(parsed.options, {
-        "fetchSelectedTable":
+        fetchSelectedTable:
           "Error: Setting includeColumns to all requires full access. Current access level is read table",
-        "fetchSelectedRecord":
+        fetchSelectedRecord:
           "Error: Setting includeColumns to normal requires full access. Current access level is read table",
-        "viewApiFetchSelectedTable":
+        viewApiFetchSelectedTable:
           "Error: Setting includeColumns to all requires full access. Current access level is read table",
-        "viewApiFetchSelectedRecord":
+        viewApiFetchSelectedRecord:
           "Error: Setting includeColumns to normal requires full access. Current access level is read table",
       });
     });

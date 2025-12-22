@@ -1248,7 +1248,7 @@ describe('GranularAccess', function() {
 
     // Try a modification that would have a detectable side-effect even if reverted.
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["ModifyColumn", "Table1", "A", { "isFormula": true, formula: "datetime.MAXYEAR=1234",
+      ["ModifyColumn", "Table1", "A", { isFormula: true, formula: "datetime.MAXYEAR=1234",
         type: 'Int' }],
     ]), /Blocked by full structure access rules/);
 
@@ -1270,7 +1270,7 @@ describe('GranularAccess', function() {
 
     // Make sure that the poison formula was never evaluated.
     await owner.applyUserActions(docId, [
-      ["ModifyColumn", "Table1", "A", { "isFormula": true, formula: "datetime.MAXYEAR",
+      ["ModifyColumn", "Table1", "A", { isFormula: true, formula: "datetime.MAXYEAR",
         type: 'Int' }],
     ]);
     assert.deepEqual((await owner.getDocAPI(docId).getRows('Table1')).A, [9999]);
@@ -1310,7 +1310,7 @@ describe('GranularAccess', function() {
 
     // Can AddOrUpdateRecord on a table with full read access.
     await assert.isFulfilled(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data1", { "A": 100 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 100 }, { A: 200 }, {}],
     ]));
     assert.deepEqual(await editor.getDocAPI(docId).getRows('Data1'), {
       id: [1],
@@ -1320,38 +1320,38 @@ describe('GranularAccess', function() {
 
     // Cannot AddOrUpdateRecord on a table without read access.
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data2", { "A": 100 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data2", { A: 100 }, { A: 200 }, {}],
     ]), /Blocked by table read access rules/);
 
     // Cannot AddOrUpdateRecord on a table with partial read access.
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data3", { "A": 100 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data3", { A: 100 }, { A: 200 }, {}],
     ]), /Blocked by table read access rules/);
 
     // Currently cannot combine AddOrUpdateRecord with RenameTable.
     await assert.isRejected(editor.applyUserActions(docId, [
       ["RenameTable", "Data1", "DataX"],
       ["RenameTable", "Data2", "Data1"],
-      ["AddOrUpdateRecord", "Data1", { "A": 200 }, { "A": 300 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 200 }, { A: 300 }, {}],
     ]), /Can only combine AddOrUpdateRecord and BulkAddOrUpdateRecord with simple data changes/);
 
     // Currently cannot use AddOrUpdateRecord for metadata changes.
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data1", { "A": 200 }, { "A": 300 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 200 }, { A: 300 }, {}],
       ["AddOrUpdateRecord", "_grist_Tables", { tableId: "Data1" }, { tableId: "DataX" }, {}],
     ]), /AddOrUpdateRecord cannot yet be used on metadata tables/);
 
     // Currently cannot combine AddOrUpdateRecord with metadata changes.
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data1", { "A": 200 }, { "A": 300 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 200 }, { A: 300 }, {}],
       ["UpdateRecord", "_grist_Tables", 1, { tableId: "DataX" }],
     ]), /Can only combine AddOrUpdateRecord and BulkAddOrUpdateRecord with simple data changes/);
 
     // Can combine some simple data changes.
     await assert.isFulfilled(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data1", { "A": 200 }, { "A": 300 }, {}],
-      ["AddOrUpdateRecord", "Data1", { "A": 500 }, { "A": 600 }, {}],
-      ["AddOrUpdateRecord", "Data1", { "A": 300 }, { "A": 400 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 200 }, { A: 300 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 500 }, { A: 600 }, {}],
+      ["AddOrUpdateRecord", "Data1", { A: 300 }, { A: 400 }, {}],
     ]));
     assert.deepEqual(await editor.getDocAPI(docId).getRows('Data1'), {
       id: [1, 2],
@@ -1361,16 +1361,16 @@ describe('GranularAccess', function() {
 
     // Need both update + create rights
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data4", { "A": 100 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data4", { A: 100 }, { A: 200 }, {}],
     ]), /Blocked by table update access rules/);
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data4", { "A": 300 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data4", { A: 300 }, { A: 200 }, {}],
     ]), /Blocked by table update access rules/);
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data5", { "A": 100 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data5", { A: 100 }, { A: 200 }, {}],
     ]), /Blocked by table create access rules/);
     await assert.isRejected(editor.applyUserActions(docId, [
-      ["AddOrUpdateRecord", "Data5", { "A": 300 }, { "A": 200 }, {}],
+      ["AddOrUpdateRecord", "Data5", { A: 300 }, { A: 200 }, {}],
     ]), /Blocked by table create access rules/);
   });
 
@@ -1466,12 +1466,12 @@ describe('GranularAccess', function() {
         ["DuplicateTable", "Data3New", "Data3NewCopy", includeData],
       ]), /DuplicateTable currently cannot be combined with other actions/);
       await assert.isRejected(owner.applyUserActions(docId, [
-        ["AddOrUpdateRecord", "Data3", { "A": 100 }, { "A": 200 }, {}],
+        ["AddOrUpdateRecord", "Data3", { A: 100 }, { A: 200 }, {}],
         ["DuplicateTable", "Data3", "Data3Copy", includeData],
       ]), /DuplicateTable currently cannot be combined with other actions/);
       await assert.isRejected(owner.applyUserActions(docId, [
         ["DuplicateTable", "Data3", "Data3Copy", includeData],
-        ["AddRecord", "Data3Copy", null, { "A": 100 }],
+        ["AddRecord", "Data3Copy", null, { A: 100 }],
       ]), /DuplicateTable currently cannot be combined with other actions/);
     }
 
@@ -1534,7 +1534,7 @@ describe('GranularAccess', function() {
     await assert.isFulfilled(editor.applyUserActions(docId, [
       // Add a conditional formatting rule
       ['AddEmptyRule', 'Data', 0, 1],
-      ['UpdateRecord', '_grist_Tables_column', 1, { 'formula': '$A == 42' }],
+      ['UpdateRecord', '_grist_Tables_column', 1, { formula: '$A == 42' }],
     ]));
 
     await assert.isFulfilled(editor.applyUserActions(docId, [
@@ -2004,21 +2004,21 @@ describe('GranularAccess', function() {
 
       // ...and a conditional formatting rule column
       ['AddEmptyRule', 'Interactions', 0, 8],
-      ['UpdateRecord', '_grist_Tables_column', 11, { 'formula': '$Contact.Name == "Bob"' }],
+      ['UpdateRecord', '_grist_Tables_column', 11, { formula: '$Contact.Name == "Bob"' }],
 
       // Repeat the same for a *field* that uses that column
       ['SetDisplayFormula', 'Interactions', 13, null, '$Contact.Name + "2"'],
       ['AddEmptyRule', 'Interactions', 13, 0],
-      ['UpdateRecord', '_grist_Tables_column', 13, { 'formula': '$Contact.Name == "Jane"' }],
+      ['UpdateRecord', '_grist_Tables_column', 13, { formula: '$Contact.Name == "Jane"' }],
     ]);
 
     assert.deepEqual(
       (await cliOwner.readDocUserAction()).slice(-4),
       [
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_ConditionalRule": [true, false] }],
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_ConditionalRule2": [false, true] }],
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_Display": ["Bob", "Jane"] }],
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_Display2": ["Bob2", "Jane2"] }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_ConditionalRule: [true, false] }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_ConditionalRule2: [false, true] }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_Display: ["Bob", "Jane"] }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_Display2: ["Bob2", "Jane2"] }],
       ],
     );
 
@@ -2030,10 +2030,10 @@ describe('GranularAccess', function() {
     assert.deepEqual(
       (await cliEditor.readDocUserAction()).slice(-4),
       [
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_ConditionalRule": censoreds }],
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_ConditionalRule2": censoreds }],
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_Display": censoreds }],
-        ["BulkUpdateRecord", "Interactions", [3, 4], { "gristHelper_Display2": censoreds }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_ConditionalRule: censoreds }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_ConditionalRule2: censoreds }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_Display: censoreds }],
+        ["BulkUpdateRecord", "Interactions", [3, 4], { gristHelper_Display2: censoreds }],
       ],
     );
 
@@ -2313,7 +2313,7 @@ describe('GranularAccess', function() {
 
     // Convert column in bulk - we have +S bit so we can do this.
     await owner.applyUserActions(docId, [
-      ["ModifyColumn", "Data1", "A", { "type": "Text" }],
+      ["ModifyColumn", "Data1", "A", { type: "Text" }],
     ]);
 
     // Check that column changed as expected.
@@ -2861,7 +2861,7 @@ describe('GranularAccess', function() {
 
     // Check that we cannot add or delete records (despite column rule seeming to allow it).
     await assert.isRejected(owner.applyUserActions(docId, [
-      ["AddRecord", "Data1", null, { "A": 30 }],
+      ["AddRecord", "Data1", null, { A: 30 }],
     ]), /Blocked by table create access rules/);
 
     await assert.isRejected(owner.applyUserActions(docId, [
@@ -2870,12 +2870,12 @@ describe('GranularAccess', function() {
 
     // The column rule does its job: allows update to column A.
     await owner.applyUserActions(docId, [
-      ["UpdateRecord", "Data1", 2, { "A": 2000 }],
+      ["UpdateRecord", "Data1", 2, { A: 2000 }],
     ]);
 
     // But the table rule applies to column B.
     await assert.isRejected(owner.applyUserActions(docId, [
-      ["UpdateRecord", "Data1", 2, { "B": 500 }],
+      ["UpdateRecord", "Data1", 2, { B: 500 }],
     ]), /Blocked by column update access rules/);
 
     assert.deepEqual((await owner.getDocAPI(docId).getRows('Data1')), {

@@ -81,7 +81,7 @@ describe('ActionLog', function() {
   it('should attribute api actions to user', async function() {
     // Perform an action via the API.
     const api = session.createHomeApi().getDocAPI(docId);
-    await api.updateRows('Table1', { id: [1], 'A': ['bar2'] });
+    await api.updateRows('Table1', { id: [1], A: ['bar2'] });
 
     // Check that we see the correct user email, and the correct action.
     const item = await driver.find('.action_log .action_log_item');

@@ -80,7 +80,7 @@ export function getCountryCode(locale: string) {
 
   // Some defaults that we support and can't be read from language code.
   countryCode = {
-    'uk': 'UA', // Ukraine
+    uk: 'UA', // Ukraine
   }[locale] ?? locale.toUpperCase();
 
   // Test if we can use language as a country code.

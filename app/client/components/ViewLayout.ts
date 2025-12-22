@@ -48,12 +48,12 @@ const t = makeT('ViewLayout');
 
 
 const viewSectionTypes: { [key: string]: any } = {
-  record: GridView,
-  detail: DetailView,
-  chart: ChartView,
-  single: DetailView,
-  custom: CustomView,
-  form: FormView,
+  "record": GridView,
+  "detail": DetailView,
+  "chart": ChartView,
+  "single": DetailView,
+  "custom": CustomView,
+  "form": FormView,
   'custom.calendar': CustomCalendarView,
 };
 

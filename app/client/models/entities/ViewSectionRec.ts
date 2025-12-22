@@ -975,7 +975,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
     const parentPos = fieldInsertPositions(this.viewFields(), index)[0];
     const action = ['AddColumn', colId, {
       ...colInfo,
-      '_position': parentPos,
+      _position: parentPos,
     }];
     let newColInfo: NewFieldInfo;
     await docModel.docData.bundleActions('Insert column', async () => {

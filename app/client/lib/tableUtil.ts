@@ -66,10 +66,10 @@ export function makePasteHtml(tableData: TableData, selection: CopySelection, in
   const colStyle = selection.colStyle || {};    // Maps colId to style object.
 
   const elem = dom('table',
-    { border: '1', cellspacing: '0', style: 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash() || '' },
+    { "border": '1', "cellspacing": '0', "style": 'white-space: pre', 'data-grist-doc-id-hash': getDocIdHash() || '' },
     dom('colgroup', selection.colIds.map((colId, idx) =>
       dom('col', {
-        style: _styleAttr(colStyle[colId]),
+        "style": _styleAttr(colStyle[colId]),
         'data-grist-col-ref': String(selection.colRefs[idx]),
         'data-grist-col-type': tableData.getColType(colId),
       }),

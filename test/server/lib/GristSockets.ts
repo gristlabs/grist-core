@@ -121,7 +121,7 @@ describe(`GristSockets`, function() {
           };
         });
         const clientWs = new GristClientSocket(wsAddress + "/path?query=value", {
-          headers: { "cookie": "session=1234" },
+          headers: { cookie: "session=1234" },
         });
         const req = await connectionPromise;
         clientWs.close();

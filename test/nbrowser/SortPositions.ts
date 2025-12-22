@@ -158,7 +158,7 @@ describe('SortPositions', function() {
       docId = await mainSession.tempNewDoc(cleanup, 'SortPositions.grist', { load: false });
       const api = mainSession.createHomeApi();
       await api.applyUserActions(docId, [
-        ['BulkAddRecord', 'Table1', [1, 2, 3, 4], { 'A': ['a', 'b', 'c', 'd'] }],
+        ['BulkAddRecord', 'Table1', [1, 2, 3, 4], { A: ['a', 'b', 'c', 'd'] }],
       ]);
     });
 
@@ -235,7 +235,7 @@ describe('SortPositions', function() {
       const docId = await mainSession.tempNewDoc(cleanup, 'SortPositions_Bug.grist', { load: false });
       const api = mainSession.createHomeApi();
       await api.applyUserActions(docId, [
-        ['BulkAddRecord', 'Table1', [1, 2, 3], { 'A': [10, 30, 20] }],
+        ['BulkAddRecord', 'Table1', [1, 2, 3], { A: [10, 30, 20] }],
       ]);
 
       await mainSession.loadDoc(`/doc/${docId}`);
@@ -247,7 +247,7 @@ describe('SortPositions', function() {
       // Update rows 1 and 2 (first and last) in a way that keeps the newly-first row (2) in the
       // right place relative to its neighbor.
       await api.applyUserActions(docId, [
-        ['BulkUpdateRecord', 'Table1', [1, 2], { 'A': [25, 24] }],
+        ['BulkUpdateRecord', 'Table1', [1, 2], { A: [25, 24] }],
       ]);
 
       await gu.waitToPass(async () =>

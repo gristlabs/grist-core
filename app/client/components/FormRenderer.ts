@@ -465,7 +465,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
   public fieldDomAttributes() {
     if (this._format === 'radio') {
       return {
-        role: 'group',
+        "role": 'group',
         'aria-labelledby': `${this.id()}-label`,
       };
     }
@@ -506,11 +506,11 @@ class ChoiceRenderer extends BaseFieldRenderer  {
           choice,
         )),
         dom.onKeyDown({
-          Enter$: ev => this._maybeOpenSearchSelect(ev),
+          "Enter$": ev => this._maybeOpenSearchSelect(ev),
           ' $': ev => this._maybeOpenSearchSelect(ev),
-          ArrowUp$: ev => this._maybeOpenSearchSelect(ev),
-          ArrowDown$: ev => this._maybeOpenSearchSelect(ev),
-          Backspace$: () => this.value.set(''),
+          "ArrowUp$": ev => this._maybeOpenSearchSelect(ev),
+          "ArrowDown$": ev => this._maybeOpenSearchSelect(ev),
+          "Backspace$": () => this.value.set(''),
         }),
         preventSubmitOnEnter(),
       ),
@@ -684,7 +684,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
 
   public fieldDomAttributes() {
     return {
-      role: 'group',
+      "role": 'group',
       'aria-labelledby': `${this.id()}-label`,
     };
   }
@@ -755,7 +755,7 @@ class RefListRenderer extends BaseFieldRenderer {
 
   public fieldDomAttributes() {
     return {
-      role: 'group',
+      "role": 'group',
       'aria-labelledby': `${this.id()}-label`,
     };
   }
@@ -773,10 +773,10 @@ class RefListRenderer extends BaseFieldRenderer {
             dom.prop('checked', checkbox.checked),
             dom.on('change', (_e, elem) => checkbox.checked.set(elem.checked)),
             {
-              type: 'checkbox',
+              "type": 'checkbox',
               'data-grist-type': this.field.type,
-              name: `${this.name()}[]`,
-              value: checkbox.value,
+              "name": `${this.name()}[]`,
+              "value": checkbox.value,
             },
             preventSubmitOnEnter(),
           ),
@@ -835,7 +835,7 @@ class RefRenderer extends BaseFieldRenderer {
   public fieldDomAttributes() {
     if (this._format === 'radio') {
       return {
-        role: 'group',
+        "role": 'group',
         'aria-labelledby': `${this.id()}-label`,
       };
     }
@@ -870,10 +870,10 @@ class RefRenderer extends BaseFieldRenderer {
     return css.hybridSelect(
       this._selectElement = css.select(
         {
-          name: this.name(),
-          id: this.id(),
+          "name": this.name(),
+          "id": this.id(),
           'data-grist-type': this.field.type,
-          required: this.field.options.formRequired,
+          "required": this.field.options.formRequired,
         },
         dom.on('input', (_e, elem) => this.value.set(elem.value)),
         dom('option',
@@ -887,11 +887,11 @@ class RefRenderer extends BaseFieldRenderer {
           dom.prop('selected', use => use(this.value) === String(choice[0])),
         )),
         dom.onKeyDown({
-          Enter$: ev => this._maybeOpenSearchSelect(ev),
+          "Enter$": ev => this._maybeOpenSearchSelect(ev),
           ' $': ev => this._maybeOpenSearchSelect(ev),
-          ArrowUp$: ev => this._maybeOpenSearchSelect(ev),
-          ArrowDown$: ev => this._maybeOpenSearchSelect(ev),
-          Backspace$: () => this.value.set(''),
+          "ArrowUp$": ev => this._maybeOpenSearchSelect(ev),
+          "ArrowDown$": ev => this._maybeOpenSearchSelect(ev),
+          "Backspace$": () => this.value.set(''),
         }),
         preventSubmitOnEnter(),
       ),
@@ -943,7 +943,7 @@ class RefRenderer extends BaseFieldRenderer {
       css.radioList.cls('-horizontal', this._alignment === 'horizontal'),
       dom.cls('grist-radio-list'),
       dom.cls('required', Boolean(required)),
-      { name: this.name(), required, 'data-grist-type': this.field.type },
+      { "name": this.name(), required, 'data-grist-type': this.field.type },
       dom.forEach(this._radioButtons, radioButton =>
         css.radio(
           dom('input',
@@ -1000,31 +1000,31 @@ class AttachmentsRenderer extends BaseFieldRenderer {
 }
 
 const FieldRenderers = {
-  'Text': TextRenderer,
-  'Numeric': NumericRenderer,
-  'Int': NumericRenderer,
-  'Choice': ChoiceRenderer,
-  'Bool': BoolRenderer,
-  'ChoiceList': ChoiceListRenderer,
-  'Date': DateRenderer,
-  'DateTime': DateTimeRenderer,
-  'Ref': RefRenderer,
-  'RefList': RefListRenderer,
-  'Attachments': AttachmentsRenderer,
+  Text: TextRenderer,
+  Numeric: NumericRenderer,
+  Int: NumericRenderer,
+  Choice: ChoiceRenderer,
+  Bool: BoolRenderer,
+  ChoiceList: ChoiceListRenderer,
+  Date: DateRenderer,
+  DateTime: DateTimeRenderer,
+  Ref: RefRenderer,
+  RefList: RefListRenderer,
+  Attachments: AttachmentsRenderer,
 };
 
 const FormRenderers = {
-  'Paragraph': ParagraphRenderer,
-  'Section': SectionRenderer,
-  'Columns': ColumnsRenderer,
-  'Submit': SubmitRenderer,
-  'Placeholder': PlaceholderRenderer,
-  'Layout': LayoutRenderer,
-  'Field': FieldRenderer,
-  'Label': LabelRenderer,
+  Paragraph: ParagraphRenderer,
+  Section: SectionRenderer,
+  Columns: ColumnsRenderer,
+  Submit: SubmitRenderer,
+  Placeholder: PlaceholderRenderer,
+  Layout: LayoutRenderer,
+  Field: FieldRenderer,
+  Label: LabelRenderer,
   // Aliases for Paragraph.
-  'Separator': ParagraphRenderer,
-  'Header': ParagraphRenderer,
+  Separator: ParagraphRenderer,
+  Header: ParagraphRenderer,
 };
 
 function preventSubmitOnEnter() {

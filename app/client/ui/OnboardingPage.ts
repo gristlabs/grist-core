@@ -268,7 +268,7 @@ function buildVideo(_owner: IDisposableOwner, incrementStep: IncrementStep, stat
         dom.on('click', () => ctl.close()),
         (elem) => { FocusLayer.create(modalOwner, { defaultFocusElem: elem, pauseMousetrap: true }); },
         dom.onKeyDown({
-          Escape: () => ctl.close(),
+          "Escape": () => ctl.close(),
           ' ': () => youtubePlayer.playPause(),
         }),
         cssModalHeader(

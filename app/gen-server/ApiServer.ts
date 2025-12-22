@@ -991,9 +991,9 @@ export class ApiServer {
 
     const mreq = req as RequestWithLogin;
     const numInvitedUsersByAccess: Record<BasicRole, number> = {
-      'viewers': 0,
-      'editors': 0,
-      'owners': 0,
+      viewers: 0,
+      editors: 0,
+      owners: 0,
     };
     for (const [email, access] of Object.entries(delta.users)) {
       if (email === 'everyone@getgrist.com') { continue; }

@@ -54,7 +54,7 @@ function makePersonalIntro(homeModel: HomeModel, user: FullUser) {
       cssHeader(
         // this is like using a `<h1>` element, but in our case it's easier to use aria attributes than changing
         // some common `styled` components in order to use a specific h1 here
-        { role: 'heading', 'aria-level': '1' },
+        { "role": 'heading', 'aria-level': '1' },
         dom.text(use =>
           use(isNarrowScreenObs()) ?
             t("Welcome to Grist!") :

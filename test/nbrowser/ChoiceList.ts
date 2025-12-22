@@ -177,16 +177,16 @@ describe('ChoiceList', function() {
         widgetOptions: JSON.stringify({
           choices: ['Green', 'Blue', 'Black'],
           choiceOptions: {
-            'Green': {
+            Green: {
               fillColor: '#e1fede',
               textColor: '#000000',
               fontBold: true,
             },
-            'Blue': {
+            Blue: {
               fillColor: '#ccfefe',
               textColor: '#000000',
             },
-            'Black': {
+            Black: {
               fillColor: '#000000',
               textColor: '#ffffff',
             },

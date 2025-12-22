@@ -5,7 +5,7 @@ import { setupTestSuite } from 'test/nbrowser/testUtils';
 describe('HomeIntroWithoutPlayground', function() {
   this.timeout(20000);
   setupTestSuite({ samples: true });
-  gu.withEnvironmentSnapshot({ 'GRIST_ANON_PLAYGROUND': false });
+  gu.withEnvironmentSnapshot({ GRIST_ANON_PLAYGROUND: false });
 
   describe("Anonymous on merged-org", function() {
     it('should show welcome page', async function() {

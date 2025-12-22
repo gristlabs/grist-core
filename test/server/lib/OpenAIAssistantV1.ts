@@ -96,13 +96,13 @@ describe('OpenAIAssistantV1', function() {
     const reply = "Here's a formula that adds columns A and B:\n\n" +
       "```python\na = int(rec.A)\nb=int(rec.B)\n\nreturn str(a + b)\n```" +
       "\n\nLet me know if there's anything else I can help with.";
-    const replyMessage = { "role": "assistant", "content": reply };
+    const replyMessage = { role: "assistant", content: reply };
 
     fakeResponse = () => ({
-      "choices": [{
-        "index": 0,
-        "message": replyMessage,
-        "finish_reason": "stop",
+      choices: [{
+        index: 0,
+        message: replyMessage,
+        finish_reason: "stop",
       }],
       status: 200,
     });
@@ -173,15 +173,15 @@ describe('OpenAIAssistantV1', function() {
   it('does not suggest anything if formula is invalid', async function() {
     const reply = "This isn't valid Python code:\n```python\nclass = 'foo'\n```";
     const replyMessage = {
-      "role": "assistant",
-      "content": reply,
+      role: "assistant",
+      content: reply,
     };
 
     fakeResponse = () => ({
-      "choices": [{
-        "index": 0,
-        "message": replyMessage,
-        "finish_reason": "stop",
+      choices: [{
+        index: 0,
+        message: replyMessage,
+        finish_reason: "stop",
       }],
       status: 200,
     });
@@ -291,10 +291,10 @@ describe('OpenAIAssistantV1', function() {
 
   it('switches to a longer model with no retries if the model runs out of tokens while responding', async function() {
     fakeResponse = () => ({
-      "choices": [{
-        "index": 0,
-        "message": {},
-        "finish_reason": "length",
+      choices: [{
+        index: 0,
+        message: {},
+        finish_reason: "length",
       }],
       status: 200,
     });
@@ -350,10 +350,10 @@ describe('OpenAIAssistantV1', function() {
       }
       else {
         return {
-          "choices": [{
-            "index": 0,
-            "message": { role: "assistant", content: "123" },
-            "finish_reason": "stop",
+          choices: [{
+            index: 0,
+            message: { role: "assistant", content: "123" },
+            finish_reason: "stop",
           }],
           status: 200,
         };

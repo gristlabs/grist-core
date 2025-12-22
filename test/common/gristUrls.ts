@@ -208,7 +208,7 @@ describe('gristUrls', function() {
           JSON.stringify({
             [regularValueKey]: "https://getgrist.com",
             [numberValueKey]: 42,
-            [objectValueKey]: { "key": "value" },
+            [objectValueKey]: { key: "value" },
             [arrayValueKey]: ["foo"],
           }),
         );

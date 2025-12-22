@@ -376,10 +376,10 @@ async function createTestFixture(homeDb: HomeDBManager) {
 
   // Create or fetch users, returns map { alice: dbUser, ... }
   const users = {
-    'Alice': await addUser('Alice'),
-    'Bob': await addUser('Bob'),
-    'Carol': await addUser('Carol'),
-    'Dave': await addUser('Dave'),
+    Alice: await addUser('Alice'),
+    Bob: await addUser('Bob'),
+    Carol: await addUser('Carol'),
+    Dave: await addUser('Dave'),
   };
   type UserName = keyof typeof users;
 

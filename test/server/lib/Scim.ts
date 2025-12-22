@@ -140,10 +140,10 @@ describe('Scim', () => {
     }) {
       const db = getDbManager();
       const specialUsers = {
-        'anonymous': db.getAnonymousUserId(),
-        'support': db.getSupportUserId(),
-        'everyone': db.getEveryoneUserId(),
-        'preview': db.getPreviewerUserId(),
+        anonymous: db.getAnonymousUserId(),
+        support: db.getSupportUserId(),
+        everyone: db.getEveryoneUserId(),
+        preview: db.getPreviewerUserId(),
       };
       for (const [label, id] of Object.entries(specialUsers)) {
         const res = await op(id);

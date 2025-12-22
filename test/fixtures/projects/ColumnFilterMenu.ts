@@ -18,7 +18,7 @@ const dateFormatter = createFormatter('Date', { dateFormat: 'YYYY-MM-DD' }, { lo
 const dateParser = createParserRaw('Date', { dateFormat: 'YYYY-MM-DD' }, { locale: 'en-US' });
 
 const DATA_BY_TYPES: { [k: string]: Partial<IFilterMenuOptions> } = {
-  'Numeric': {
+  Numeric: {
     valueCounts: new Map(patchFilterCount([
       [1, { label: '1', count: 12 }],
       [2, { label: '2', count: 24 }],
@@ -31,7 +31,7 @@ const DATA_BY_TYPES: { [k: string]: Partial<IFilterMenuOptions> } = {
       [81, { label: '81', count: 43 }],
     ])),
   },
-  'Date': {
+  Date: {
     valueCounts: new Map(([['2022-05-05', 3], ['2022-04-05', 1], ['2022-01-05', 5]] as const)
       .map(([d, count]) => {
         const num = dateParser.cleanParse(d);
@@ -40,7 +40,7 @@ const DATA_BY_TYPES: { [k: string]: Partial<IFilterMenuOptions> } = {
     valueParser: dateParser.cleanParse.bind(dateParser),
     valueFormatter: dateFormatter.formatAny.bind(dateFormatter),
   },
-  'Text': {
+  Text: {
     valueCounts: new Map(patchFilterCount([
       ['Apples',       { label: 'Apples', count: 12 }],
       ['Bananas',      { label: 'Bananas', count: 17 }],

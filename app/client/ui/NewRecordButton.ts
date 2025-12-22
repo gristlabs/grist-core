@@ -8,8 +8,8 @@ import BaseView from 'app/client/components/BaseView';
 const t = makeT('NewRecordButton');
 
 const translationStrings = {
-  'record': t('New record'),
-  'single': t('New card'),
+  record: t('New record'),
+  single: t('New card'),
 };
 
 /**

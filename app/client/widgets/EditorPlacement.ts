@@ -105,14 +105,14 @@ export class EditorPlacement extends Disposable {
     // to hidden until we can get the sizes. As soon as sizes are available, restore visibility.
     if (!options.calcOnly) {
       Object.assign(this._editorRoot.style, {
-        visibility: 'visible',
-        left: left + 'px',
-        top: top + 'px',
+        "visibility": 'visible',
+        "left": left + 'px',
+        "top": top + 'px',
         // Set the width (but not the height) of the outer container explicitly to accommodate the
         // particular setup where a formula may include error details below -- these should
         // stretch to the calculated width (so need an explicit value), but may be dynamic in
         // height. (This feels hacky, but solves the problem.)
-        width: width + 'px',
+        "width": width + 'px',
         'max-height': maxHeight + 'px',
       });
     }

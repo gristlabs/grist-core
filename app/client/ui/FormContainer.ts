@@ -25,8 +25,8 @@ export function buildFormFooter() {
     cssPoweredByGrist(
       cssPoweredByGristLink(
         {
-          href: commonUrls.forms,
-          target: '_blank',
+          "href": commonUrls.forms,
+          "target": '_blank',
           'aria-label': t('Powered by Grist'),
         },
         t('Powered by'),

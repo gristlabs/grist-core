@@ -112,7 +112,7 @@ describe('Themes', function() {
     setupTestSuite();
 
     gu.withEnvironmentSnapshot({
-      'APP_STATIC_INCLUDE_CUSTOM_CSS': 'true',
+      APP_STATIC_INCLUDE_CUSTOM_CSS: 'true',
     });
 
     beforeEach(async function() {
@@ -147,7 +147,7 @@ describe('Themes', function() {
     setupTestSuite();
 
     gu.withEnvironmentSnapshot({
-      'GRIST_HIDE_UI_ELEMENTS': 'themes',
+      GRIST_HIDE_UI_ELEMENTS: 'themes',
     });
 
     beforeEach(async function() {
@@ -166,8 +166,8 @@ describe('Themes', function() {
     setupTestSuite();
 
     gu.withEnvironmentSnapshot({
-      'APP_STATIC_INCLUDE_CUSTOM_CSS': 'true',
-      'GRIST_HIDE_UI_ELEMENTS': 'themes',
+      APP_STATIC_INCLUDE_CUSTOM_CSS: 'true',
+      GRIST_HIDE_UI_ELEMENTS: 'themes',
     });
 
     beforeEach(async function() {

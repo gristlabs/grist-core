@@ -493,7 +493,7 @@ export class Housekeeper {
       const permitKey = await this._permitStore.setPermit({ docId, action: permitAction });
       try {
         const result = await callback(req, docId, {
-          Permit: permitKey,
+          "Permit": permitKey,
           'Content-Type': 'application/json',
         });
         res.status(result.status);

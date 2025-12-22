@@ -117,8 +117,8 @@ export function getRequestProfile(req: Request | IncomingMessage,
     const [userName] = userEmail.split("@", 1);
     if (userEmail && userName) {
       profile = {
-        "email": userEmail,
-        "name": userName,
+        email: userEmail,
+        name: userName,
       };
     }
   }

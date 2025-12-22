@@ -48,23 +48,23 @@ describe('RemoveTransformColumns', function() {
     await userAPI.applyUserActions(doc.id, [
       // Tables that should be removed.
       ["AddTable", "GristHidden_import1", [
-        { "id": "A", "type": "Text", "isFormula": false },
+        { id: "A", type: "Text", isFormula: false },
       ]],
       ["AddTable", "GristHidden_import2", [
-        { "id": "B", "type": "Numeric", "isFormula": false },
+        { id: "B", type: "Numeric", isFormula: false },
       ]],
       ["AddTable", "GristHidden_importSuffix", [
-        { "id": "D", "type": "Text", "isFormula": false },
+        { id: "D", type: "Text", isFormula: false },
       ]],
       // Tables that look ok, and won't be removed.
       ["AddTable", "GristHidden_something", [
-        { "id": "E", "type": "Text", "isFormula": false },
+        { id: "E", type: "Text", isFormula: false },
       ]],
       ["AddTable", "Hidden_import", [
-        { "id": "F", "type": "Numeric", "isFormula": false },
+        { id: "F", type: "Numeric", isFormula: false },
       ]],
       ["AddTable", "RegularTable", [
-        { "id": "C", "type": "Text", "isFormula": false },
+        { id: "C", type: "Text", isFormula: false },
       ]],
     ]);
 

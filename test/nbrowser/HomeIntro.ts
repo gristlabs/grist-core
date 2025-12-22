@@ -11,9 +11,9 @@ describe('HomeIntro', function() {
   this.timeout(40000);
   setupTestSuite({ samples: true, tutorial: true });
   gu.withEnvironmentSnapshot({
-    'GRIST_UI_FEATURES': 'templates,tutorials',
-    'GRIST_TEMPLATE_ORG': 'templates',
-    'GRIST_ONBOARDING_TUTORIAL_DOC_ID': 'grist-basics',
+    GRIST_UI_FEATURES: 'templates,tutorials',
+    GRIST_TEMPLATE_ORG: 'templates',
+    GRIST_ONBOARDING_TUTORIAL_DOC_ID: 'grist-basics',
   });
 
   describe("Anonymous on merged-org", function() {

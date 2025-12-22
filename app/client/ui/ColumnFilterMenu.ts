@@ -221,8 +221,8 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
           searchValueObs, { onInput: true },
           testId('search-input'),
           {
-            type: 'search',
-            placeholder: t('Search values'),
+            "type": 'search',
+            "placeholder": t('Search values'),
             'aria-label': t('Search values'),
           },
           dom.onKeyDown({

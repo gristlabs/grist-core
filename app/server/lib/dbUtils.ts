@@ -158,26 +158,26 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
   } : undefined;
 
   return {
-    "name": getConnectionName(),
-    "type": (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
+    name: getConnectionName(),
+    type: (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
     // but if we use that, this file will never
     // be read, and we can't configure
     // caching otherwise.
-    "database": process.env.TYPEORM_DATABASE || "landing.db",
-    "username": process.env.TYPEORM_USERNAME || undefined,
-    "password": process.env.TYPEORM_PASSWORD || undefined,
-    "host": process.env.TYPEORM_HOST || undefined,
-    "port": process.env.TYPEORM_PORT ? parseInt(process.env.TYPEORM_PORT, 10) : undefined,
-    "synchronize": false,
-    "migrationsRun": false,
-    "logging": process.env.TYPEORM_LOGGING === "true",
-    "entities": [
+    database: process.env.TYPEORM_DATABASE || "landing.db",
+    username: process.env.TYPEORM_USERNAME || undefined,
+    password: process.env.TYPEORM_PASSWORD || undefined,
+    host: process.env.TYPEORM_HOST || undefined,
+    port: process.env.TYPEORM_PORT ? parseInt(process.env.TYPEORM_PORT, 10) : undefined,
+    synchronize: false,
+    migrationsRun: false,
+    logging: process.env.TYPEORM_LOGGING === "true",
+    entities: [
       `${codeRoot}/app/gen-server/entity/*.js`,
     ],
-    "migrations": [
+    migrations: [
       `${codeRoot}/app/gen-server/migration/*.js`,        // migration files don't actually get packaged.
     ],
-    "subscribers": [
+    subscribers: [
       `${codeRoot}/app/gen-server/subscriber/*.js`,
     ],
     ...cache,

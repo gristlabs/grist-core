@@ -14,10 +14,10 @@ describe('localization', function() {
       resources: {
         en: {
           translation: {
-            'Text': 'TranslatedText',
-            'Argument': 'Translated {{arg1}} {{arg2}}{{end}}',
-            'Argument_variant': 'Variant {{arg1}} {{arg2}}{{end}}',
-            'Parent': {
+            Text: 'TranslatedText',
+            Argument: 'Translated {{arg1}} {{arg2}}{{end}}',
+            Argument_variant: 'Variant {{arg1}} {{arg2}}{{end}}',
+            Parent: {
               'Child': 'Translated child {{arg}}',
               'Not.Valid:Characters': 'Works',
             },

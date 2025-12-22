@@ -165,7 +165,7 @@ describe('UsersManager', function() {
 
       it('should retrieve no users if passed groups do not contain any', function() {
         const groups = makeGroups({
-          'members': undefined,
+          members: undefined,
         });
 
         const result = UsersManager.getUsersWithRole(groups);
@@ -176,10 +176,10 @@ describe('UsersManager', function() {
       it('should retrieve users of passed groups', function() {
         const idxIt = makeUserIdIterator();
         const groupsUsersMap = {
-          'editors': makeUsers(3, idxIt),
-          'owners': makeUsers(4, idxIt),
-          'members': makeUsers(5, idxIt),
-          'viewers': [],
+          editors: makeUsers(3, idxIt),
+          owners: makeUsers(4, idxIt),
+          members: makeUsers(5, idxIt),
+          viewers: [],
         };
         const groups = makeGroups(groupsUsersMap);
 
@@ -190,7 +190,7 @@ describe('UsersManager', function() {
 
       it('should exclude users of given IDs', function() {
         const groupUsersMap = {
-          'editors': makeUsers(5),
+          editors: makeUsers(5),
         };
         const excludedUsersId = [1, 2, 3, 4];
         const expectedUsers = [groupUsersMap.editors[0]];

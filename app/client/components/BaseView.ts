@@ -582,7 +582,7 @@ export default class BaseView extends DisposableWithEvents {
     const insertPos = Number.isInteger(rowId) ?
       this.tableModel.tableData.getValue(rowId, 'manualSort') : null;
 
-    return this.sendTableAction(['AddRecord', null, { 'manualSort': insertPos }])!
+    return this.sendTableAction(['AddRecord', null, { manualSort: insertPos }])!
       .then((rowId) => {
         if (!this.isDisposed()) {
           this._exemptFromFilterRows.addExemptRow(rowId);

@@ -647,7 +647,7 @@ export class ChartConfig extends GrainJSDisposable {
       cssSeparator(),
 
       dom.maybe(this._groupData, () =>
-        dom('div', { role: 'group', 'aria-labelledby': 'chart-split-series-label' },
+        dom('div', { "role": 'group', 'aria-labelledby': 'chart-split-series-label' },
           cssGroupLabel(t('Split Series'), { id: 'chart-split-series-label' }),
           cssRow(
             select(this._groupDataColId, this._groupDataOptions),
@@ -658,7 +658,7 @@ export class ChartConfig extends GrainJSDisposable {
       ),
 
       // TODO: user should select x axis before widget reach page
-      dom('div', { role: 'group', 'aria-labelledby': 'chart-first-field-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'chart-first-field-label' },
         cssGroupLabel(dom.text(this._firstFieldLabel), testId('first-field-label'), { id: 'chart-first-field-label' }),
         cssRow(
           select(
@@ -670,7 +670,7 @@ export class ChartConfig extends GrainJSDisposable {
         cssCheckboxRowObs(t('Aggregate values'), this._isValueAggregated),
       ),
 
-      dom('div', { role: 'group', 'aria-labelledby': 'chart-series-label' },
+      dom('div', { "role": 'group', 'aria-labelledby': 'chart-series-label' },
         cssGroupLabel(t('SERIES'), { id: 'chart-series-label' }),
         this._buildYAxis(),
         cssRow(

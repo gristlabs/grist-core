@@ -830,7 +830,7 @@ export class DocTriggers {
           body,
           headers: {
             'Content-Type': 'application/json',
-            ...(authorization ? { 'Authorization': authorization } : {}),
+            ...(authorization ? { Authorization: authorization } : {}),
           },
           signal,
         });
