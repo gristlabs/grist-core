@@ -615,7 +615,7 @@ class BoolRenderer extends BaseFieldRenderer {
   }
 
   private _renderSwitchInput() {
-    return toggleSwitch(this. checked, {
+    return toggleSwitch(this.checked, {
       label: this.field.question,
       inputArgs: [
         {name: this.name(), required: this.field.options.formRequired},
