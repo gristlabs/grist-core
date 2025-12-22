@@ -217,7 +217,7 @@ describe('TreeModel', function() {
 
         const actions = sendActionsSpy.getCall(0).args[0];
         assert.deepEqual(actions, {update: [{...records[3], indentation: 0, pagePos: null},
-                                            {...records[4], indentation: 1, pagePos: null}]});
+          {...records[4], indentation: 1, pagePos: null}]});
         assert.deepEqual(testActions(records, actions), ['A0', 'B1', 'C0', 'F0', 'D0', 'E1']);
       });
 

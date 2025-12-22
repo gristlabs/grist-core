@@ -30,7 +30,7 @@ describe('DocumentSettings', function() {
         "(GMT+05:30) Asia/Calcutta",
         "(GMT+05:30) Asia/Colombo",
         "(GMT+11:00) Antarctica/Casey",
-        ]);
+      ]);
     });
   });
 

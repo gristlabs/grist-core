@@ -77,7 +77,7 @@ ScrollyPane.prototype.prepareNewRows = function() {
   if (prevRows.length > 0) {
     // Skip this check if there are no rows, maybe we just added this pane.
     assert.equal(prevRows.length, prevItemModels.length,
-             "Rows and models not in sync: " + prevRows.length + "!=" + prevItemModels.length);
+      "Rows and models not in sync: " + prevRows.length + "!=" + prevItemModels.length);
   }
 
   this.preparedRows = [];
@@ -222,16 +222,16 @@ Scrolly.prototype.debug = function() {
               "; block at " + this.blockTop() + " of " + this.totalHeight() +
               "; scrolled to " + this.scrollTop + "; shownHeight " + this.shownHeight);
   console.assert(this.numRows, this.data.peekLength,
-               "Wrong numRows; data is " + this.data.peekLength);
+    "Wrong numRows; data is " + this.data.peekLength);
   console.assert(this.numRows, this.rowHeights.length,
-               "Wrong rowHeights size " + this.rowHeights.length);
+    "Wrong rowHeights size " + this.rowHeights.length);
   console.assert(this.numRows, this.rowOffsetTree.size(),
-               "Wrong rowOffsetTree size " + this.rowOffsetTree.size());
+    "Wrong rowOffsetTree size " + this.rowOffsetTree.size());
   var count = Math.min(this.numRendered, this.numRows);
   console.assert(this.end - this.begin, count,
-               "Wrong range size " + (this.end - this.begin));
+    "Wrong range size " + (this.end - this.begin));
   console.assert(this.activeItemModels.length, count,
-               "Wrong activeItemModels.size " + this.activeItemModels.length);
+    "Wrong activeItemModels.size " + this.activeItemModels.length);
 
   var expectedHeight = this.blockBottom - this.blockTop();
   if (count > 0) {

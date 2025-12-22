@@ -35,7 +35,7 @@ export class DocWorker {
   public async getAttachment(req: express.Request, res: express.Response): Promise<void> {
     try {
       const docSession = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
-                                             integerParam(req.query.docFD, 'docFD'));
+        integerParam(req.query.docFD, 'docFD'));
       const activeDoc = docSession.activeDoc;
       const colId = optStringParam(req.query.colId, 'colId');
       const tableId = optStringParam(req.query.tableId, 'tableId');
@@ -63,13 +63,13 @@ export class DocWorker {
         .set("Content-Security-Policy", "sandbox; default-src: 'none'")
         .send(data);
     }
- catch (err) {
+    catch (err) {
       res.status(404).send({error: err.toString()});
     }
   }
 
   public async downloadDoc(req: express.Request, res: express.Response,
-                           storageManager: IDocStorageManager, filename: string): Promise<void> {
+    storageManager: IDocStorageManager, filename: string): Promise<void> {
     const mreq = req as RequestWithLogin;
     const docId = getDocId(mreq);
 
@@ -80,7 +80,7 @@ export class DocWorker {
     if (isAffirmative(req.query.template)) {
       removeData = removeHistory = true;
     }
- else if (isAffirmative(req.query.nohistory)) {
+    else if (isAffirmative(req.query.nohistory)) {
       removeHistory = true;
     }
 
@@ -100,7 +100,7 @@ export class DocWorker {
             if (err.message && /Request aborted/.test(err.message)) {
               log.warn(`Download request aborted for doc ${docId}`, err);
             }
- else {
+            else {
               log.error(`Download failure for doc ${docId}`, err);
             }
           }
@@ -173,13 +173,13 @@ export class DocWorker {
     try {
       if (optStringParam(req.query.clientId, 'clientId')) {
         const activeDoc = this._getDocSession(stringParam(req.query.clientId, 'clientId'),
-                                              integerParam(req.query.docFD, 'docFD')).activeDoc;
+          integerParam(req.query.docFD, 'docFD')).activeDoc;
         // TODO: The docId should be stored in the ActiveDoc class. Currently docName is
         // used instead, which will coincide with the docId for hosted grist but not for
         // standalone grist.
         urlId = activeDoc.docName;
       }
- else {
+      else {
         // Otherwise, if being used without a client, expect the doc query parameter to
         // be the docId.
         urlId = stringParam(req.query.doc, 'doc');
@@ -190,7 +190,7 @@ export class DocWorker {
       assertAccess('viewers', docAuth);
       next();
     }
- catch (err) {
+    catch (err) {
       log.info(`DocWorker can't access document ${urlId} with userId ${mreq.userId}: ${err}`);
       res.status(err.status || 404).send({error: err.toString()});
     }
@@ -207,7 +207,7 @@ export class DocWorker {
  * `activeDoc.method(docSession, ...args)`.
  */
 async function activeDocMethod(role: 'viewers'|'editors'|'owners'|null, methodName: string, client: Client,
-                               docFD: number, ...args: any[]): Promise<any> {
+  docFD: number, ...args: any[]): Promise<any> {
   const docSession = client.getDocSession(docFD);
   const activeDoc = docSession.activeDoc;
   if (role) { await docSession.authorizer.assertAccess(role); }

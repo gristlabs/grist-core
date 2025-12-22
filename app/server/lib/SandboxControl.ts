@@ -147,7 +147,7 @@ export class SubprocessControl implements ISandboxControl {
       try {
         process.kill(proc.pid, 'SIGKILL');
       }
- catch (e) {
+      catch (e) {
         // Don't worry if process is already killed.
         if (e.code !== 'ESRCH') { throw e; }
       }
@@ -162,7 +162,7 @@ export class SubprocessControl implements ISandboxControl {
       const memory = (await pidusage(pid)).memory;
       return { memory };
     }
- catch (e) {
+    catch (e) {
       return { memory: Infinity };
     }
   }
@@ -215,7 +215,7 @@ export class SubprocessControl implements ISandboxControl {
    * throttling if needed.
    */
   private _configure(processes: { sandbox?: ProcessInfo, cpu?: ProcessInfo,
-                                  memory?: ProcessInfo, traced?: ProcessInfo }) {
+    memory?: ProcessInfo, traced?: ProcessInfo }) {
     if (!processes.sandbox) { return; }
     if (process.env.GRIST_THROTTLE_CPU) {
       this._throttle = new Throttle({
@@ -223,10 +223,10 @@ export class SubprocessControl implements ISandboxControl {
         readPid: processes.cpu?.pid,
         tracedPid: processes.traced?.pid,
         logMeta: {...this._options.logMeta,
-                  pid: processes.sandbox.pid,
-                  otherPids: [processes.cpu?.pid,
-                              processes.memory?.pid,
-                              processes.traced?.pid]},
+          pid: processes.sandbox.pid,
+          otherPids: [processes.cpu?.pid,
+            processes.memory?.pid,
+            processes.traced?.pid]},
       });
     }
   }
@@ -263,8 +263,8 @@ export class SubprocessControl implements ISandboxControl {
     // for gvisor's runsc, which runs on Linux only.
     const cmd =
       execFile('pgrep', ['--list-full', '--parent', String(pid)])
-      .catch(() => execFile('pgrep', ['-l', '-P', String(pid)]))   // mac version of pgrep
-      .catch(() => ({ stdout: '' }));
+        .catch(() => execFile('pgrep', ['-l', '-P', String(pid)]))   // mac version of pgrep
+        .catch(() => ({ stdout: '' }));
     const result = (await cmd).stdout;
     const parts = result
       .split('\n')

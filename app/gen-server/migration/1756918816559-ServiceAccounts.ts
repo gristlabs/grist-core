@@ -6,10 +6,10 @@ export class ServiceAccounts1756918816559 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<any> {
     const userTypeColumnTemp = new TableColumn({
-        name: 'type',
-        type: 'varchar',
-        enum: [User.LOGIN_TYPE, User.SERVICE_TYPE],
-        isNullable: true,
+      name: 'type',
+      type: 'varchar',
+      enum: [User.LOGIN_TYPE, User.SERVICE_TYPE],
+      isNullable: true,
     });
 
     await queryRunner.addColumn('users', userTypeColumnTemp);

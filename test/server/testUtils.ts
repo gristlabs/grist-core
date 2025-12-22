@@ -111,7 +111,7 @@ export function setTmpLogLevel(level: string, optCaptureTo?: CaptureFunc|string)
     if (optCaptureTo instanceof Function) {
       log.add(CaptureTransport as any, { captureFunc: optCaptureTo, name });  // typing is off.
     }
- else if (optCaptureTo) {
+    else if (optCaptureTo) {
       const suiteName = this.test?.parent?.title || 'unknown-suite';
       const testDir = await createTestDir(suiteName);
       const logPath = path.join(testDir, optCaptureTo);
@@ -182,7 +182,7 @@ export async function captureLog(
       await captureFirstLogPromise;
     }
   }
- finally {
+  finally {
     log.remove(name);
     log.transports.file.level = prevLogLevel;
   }
@@ -212,20 +212,20 @@ export function assertMatchArray(stringArray: string[], regexArray: RegExp[]) {
  */
 export function expectRejection(promise: Promise<any>, errCode: number|string, errRegexp: RegExp) {
   return promise
-  .then(function() {
-    assert(false, "Expected promise to return an error: " + errCode);
-  })
-  .catch(function(err) {
-    if (err.cause) {
-      err = err.cause;
-    }
-    assert.strictEqual(err.code, errCode);
+    .then(function() {
+      assert(false, "Expected promise to return an error: " + errCode);
+    })
+    .catch(function(err) {
+      if (err.cause) {
+        err = err.cause;
+      }
+      assert.strictEqual(err.code, errCode);
 
-    if (errRegexp !== undefined) {
-      assert(errRegexp.test(err.message), "Description doesn't match regexp: " +
+      if (errRegexp !== undefined) {
+        assert(errRegexp.test(err.message), "Description doesn't match regexp: " +
              errRegexp + ' !~ ' + err.message);
-    }
-  });
+      }
+    });
 }
 
 /**
@@ -244,7 +244,7 @@ export async function readTestScript(file: string) {
     if (line.match(/^\s*\/\//)) {
       allLines.push('');
     }
- else {
+    else {
       line = line.replace(/"(APPLY|CHECK_OUTPUT|LOAD_SAMPLE)"\s*,/, '"$1@' + (i + 1) + '",');
       allLines.push(line);
     }
@@ -258,7 +258,7 @@ export async function readTestScript(file: string) {
  * errors thrown by the callback.
  */
 export async function processTestScriptSteps<T>(body: Promise<[string, T]>[],
-                                                stepCallback: (step: [string, T]) => Promise<void>) {
+  stepCallback: (step: [string, T]) => Promise<void>) {
   for (const promise of body) {
     const step = await promise;
     const stepName = step[0];
@@ -268,7 +268,7 @@ export async function processTestScriptSteps<T>(body: Promise<[string, T]>[],
     try {
       await stepCallback(step);
     }
- catch (e) {
+    catch (e) {
       e.message = "LINE " + lineNum + ": " + e.message;
       throw e;
     }
@@ -283,10 +283,10 @@ export function deepSubstitute(obj: any, from: any, to: any): any {
   if (_.isArray(obj)) {
     return obj.map(el => deepSubstitute(el, from, to));
   }
- else if (obj && typeof obj === 'object' && !_.isFunction(obj)) {
+  else if (obj && typeof obj === 'object' && !_.isFunction(obj)) {
     return _.mapObject(obj, el => deepSubstitute(el, from, to));
   }
- else {
+  else {
     return from.indexOf(obj) !== -1 ? to : obj;
   }
 }

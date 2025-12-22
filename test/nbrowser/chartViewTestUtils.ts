@@ -46,7 +46,7 @@ export async function removeYAxis(name: string) {
 }
 
 export async function checkAxisConfig(expected: {groupingByColumn?: string|false,
-                                                 xaxis: string|undefined, yaxis: string[]}) {
+  xaxis: string|undefined, yaxis: string[]}) {
   const isGroupByPresent = await driver.find('.test-chart-group-by-column').isPresent();
   let groupingByColumn = isGroupByPresent ? await driver.find('.test-chart-group-by-column').getText() : false;
   if (groupingByColumn === 'Pick a column') {

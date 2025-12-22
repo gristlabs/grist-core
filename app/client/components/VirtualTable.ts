@@ -108,7 +108,7 @@ export class VirtualTable extends Disposable {
       this._getData = args;
       return;
     }
- else {
+    else {
       this._data = args;
     }
   }
@@ -347,7 +347,7 @@ class InMemoryGristDoc extends Disposable {
     if (window.gristApp) {
       this.app = window.gristApp as App;
     }
- else {
+    else {
       this.app = this.autoDispose(new DisposableWithEvents()) as any;
     }
     this.viewModel = this.autoDispose(this.docModel.views.createFloatingRowModel(ko.observable(viewId)));

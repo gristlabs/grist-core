@@ -14,7 +14,7 @@ import {initGristStyles} from "test/fixtures/projects/helpers/gristStyles";
 const testId = makeTestId('test-pp-');
 
 function renderPage(appModel: AppModel, showRightPane: boolean, showLeftOpener: boolean,
-                    optimizeNarrowScreen: boolean): DomContents {
+  optimizeNarrowScreen: boolean): DomContents {
   const leftPanelOpen = observable(true);
   const page: PageContents = {
     leftPanel: {
@@ -91,10 +91,10 @@ function setupTest() {
       'Show left opener',
       dom('br'),
       dom('input', {type: 'checkbox'},
-          testId('optimize-narrow-screen'),
-          dom.prop('checked', optimizeNarrowScreen),
-          dom.on('change', (ev, elem: any) => optimizeNarrowScreen.set(elem.checked)),
-         ),
+        testId('optimize-narrow-screen'),
+        dom.prop('checked', optimizeNarrowScreen),
+        dom.on('change', (ev, elem: any) => optimizeNarrowScreen.set(elem.checked)),
+      ),
       'Optimize narrow screen',
 
     ),

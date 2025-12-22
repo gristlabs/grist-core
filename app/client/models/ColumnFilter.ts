@@ -34,7 +34,7 @@ export class ColumnFilter extends Disposable {
   private _values: Set<CellValue>;
 
   constructor(private _initialFilterJson: string, private _columnType: string = '',
-              public visibleColumnType: string = '', private _allValues: CellValue[] = []) {
+    public visibleColumnType: string = '', private _allValues: CellValue[] = []) {
     super();
     this.setState(_initialFilterJson);
     this.autoDispose(this.min.addListener(() => this._updateState()));
@@ -60,7 +60,7 @@ export class ColumnFilter extends Disposable {
       this._include = false;
       this._values = new Set();
     }
- else {
+    else {
       this.min.set(undefined);
       this.max.set(undefined);
       this._include = state.include;
@@ -83,7 +83,7 @@ export class ColumnFilter extends Disposable {
       if (this._include) {
         this._values.add(val);
       }
- else {
+      else {
         this._values.delete(val);
       }
     }
@@ -100,7 +100,7 @@ export class ColumnFilter extends Disposable {
       if (this._include) {
         this._values.delete(val);
       }
- else {
+      else {
         this._values.add(val);
       }
     }
@@ -125,7 +125,7 @@ export class ColumnFilter extends Disposable {
     if (this.min.get() !== undefined || this.max.get() !== undefined) {
       filter = {min: this.min.get(), max: this.max.get()};
     }
- else {
+    else {
       const values = Array.from(this._values).sort(nativeCompare);
       filter = {[this._include ? 'included' : 'excluded']: values};
     }

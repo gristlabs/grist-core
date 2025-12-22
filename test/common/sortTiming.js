@@ -37,7 +37,7 @@ function benchmarkSortedIndex(arr, keyFunc, cmp, options, msg) {
     currArray = sortedArr.slice(0, Math.pow(2, p));
     currSearchElems = arr.slice(0, Math.pow(2, p));
     log(['Calling sortedIndex', currArray.length, 'times averaged over', options.iters,
-                'iterations |', msg]);
+      'iterations |', msg]);
     t1 = utils.time(testUnderscore, null, [currArray, currSearchElems], options);
     t2 = utils.time(testGutil, null, [currArray, currSearchElems], options);
     log(["Underscore.sortedIndex:", t1, 'ms.', 'Avg time per call:', t1/currArray.length]);
@@ -67,7 +67,7 @@ function benchmarkMultiCompareSort(arr, keys, cmps, asc, options, msg) {
     currArray = arr.slice(0, Math.pow(2, p));
     log(['==========================================================']);
     log(['Sorting', currArray.length, 'elements averaged over', options.iters,
-         'iterations |', msg]);
+      'iterations |', msg]);
     for(var i = 0; i < compareFuncs.length; i++) {
       elapsed = utils.time(Array.prototype.sort, currArray, [compareFuncs[i]], options);
       log([(i+1) + "-key compare sort took: ", elapsed, 'ms']);
@@ -94,7 +94,7 @@ function benchmarkNormalSort(arr, compareFunc, keyFunc, options, msg) {
     log(['==========================================================']);
     currArray = arr.slice(0, Math.pow(2, p));
     log(['Sorting', currArray.length, 'elements averaged over', options.iters,
-         'iterations |', msg]);
+      'iterations |', msg]);
     t1 = utils.time(Array.prototype.sort, currArray, [compareFunc], options);
     t2 = utils.time(Array.prototype.sort, currArray, [gutilCompare], options);
     t3 = utils.time(_.sortBy, null, [currArray, keyFunc], options);
@@ -119,20 +119,20 @@ describe('Performance tests', function() {
     it('should be close to underscore.sortedIndex\'s performance', function() {
       this.timeout(timeout);
       benchmarkSortedIndex(nums, _.identity, gutil.nativeCompare, options,
-                           'Sorted index benchmark on numbers');
+        'Sorted index benchmark on numbers');
       benchmarkSortedIndex(strings, _.identity, gutil.nativeCompare, options,
-                           'Sorted index benchmark on strings');
+        'Sorted index benchmark on strings');
       assert(true);
     });
   });
 
   describe('Benchmarks for various sorting', function() {
     var peopleKeys = [_.property('last'), _.property('first'), _.property('age'),
-                      _.property('year'), _.property('month'), _.property('day')];
+      _.property('year'), _.property('month'), _.property('day')];
     var cmp1 = [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare,
-                 gutil.nativeCompare, gutil.nativeCompare];
+      gutil.nativeCompare, gutil.nativeCompare];
     var stringKeys = [_.identity, function (x) { return x.length; },
-                      function (x) { return x[0]; } ];
+      function (x) { return x[0]; } ];
     var cmp2 = [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare];
     var numKeys = [_.identity, utils.mod(2), utils.mod(3), utils.mod(5)];
     var cmp3 = numKeys.map(function() { return gutil.nativeCompare; });
@@ -141,11 +141,11 @@ describe('Performance tests', function() {
     it('should be close to _.sortBy with only 1 compare key', function() {
       this.timeout(timeout);
       benchmarkNormalSort(strings, gutil.nativeCompare, _.identity, options,
-                          'Regular sort test on string array');
+        'Regular sort test on string array');
       benchmarkNormalSort(people, function(a, b) { return a.age - b.age; }, _.property('age'),
-                          options, 'Regular sort test on people array using age as sort key');
+        options, 'Regular sort test on people array using age as sort key');
       benchmarkNormalSort(nums, gutil.nativeCompare, _.identity, options,
-                          'Regular sort test on number array');
+        'Regular sort test on number array');
       assert(true);
     });
 

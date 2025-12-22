@@ -9,12 +9,12 @@ import {User} from 'app/gen-server/entity/User';
 import {DocAuthResult, HomeDBAuth} from 'app/gen-server/lib/homedb/Interfaces';
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {forceSessionChange, getSessionProfiles, getSessionUser, getSignInStatus, linkOrgWithEmail, SessionObj,
-        SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
+  SessionUserObj, SignInStatus} from 'app/server/lib/BrowserSession';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {COOKIE_MAX_AGE, getAllowedOrgForSessionID, getCookieDomain,
-        cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
+  cookieName as sessionCookieName} from 'app/server/lib/gristSessions';
 import {makeId} from 'app/server/lib/idUtils';
 import log from 'app/server/lib/log';
 import {IPermitStore, Permit} from 'app/server/lib/Permit';
@@ -30,7 +30,7 @@ export interface RequestWithLogin extends Request {
   session: SessionObj;
   org?: string;
   isCustomHost?: boolean;  // when set, the request's domain is a recognized custom host linked
-                           // with the specified org.
+  // with the specified org.
   fullUser?: FullUser;
   users?: UserProfile[];
   userId?: number;
@@ -106,7 +106,7 @@ export function isSingleUserMode(): boolean {
  * methods (such as cookies).
  */
 export function getRequestProfile(req: Request|IncomingMessage,
-                                  header: string): UserProfile|null|undefined {
+  header: string): UserProfile|null|undefined {
   let profile: UserProfile|null|undefined;
 
   // Careful reading headers. If we have an IncomingMessage, there is no
@@ -250,7 +250,7 @@ export async function addRequestUser(
       setRequestUser(mreq, dbManager, dbManager.getAnonymousUser());
       mreq.specialPermit = permit;
     }
- catch (err) {
+    catch (err) {
       log.error(`problem reading permit: ${err}`);
       return res.status(401).send('Bad request: permit could not be read');
     }
@@ -319,7 +319,7 @@ export async function addRequestUser(
         if (allowHost(req, allowedOrg.host)) {
           customHostSession = ` custom-host-match ${allowedOrg.host}`;
         }
- else {
+        else {
           // We need an exception for internal forwarding from home server to doc-workers. These use
           // internal hostnames, so we can't expect a custom domain. These requests do include an
           // Organization header, which we'll use to grant the exception, but security issues remain.
@@ -331,10 +331,10 @@ export async function addRequestUser(
           if (org && org === allowedOrg.org) {
             customHostSession = ` custom-host-fwd ${org}`;
           }
- else {
+          else {
             // Log error and fail.
             log.warn("Auth[%s]: sessionID for host %s org %s; wrong for host %s org %s", mreq.method,
-                     allowedOrg.host, allowedOrg.org, mreq.get('host'), mreq.org);
+              allowedOrg.host, allowedOrg.org, mreq.get('host'), mreq.org);
             return res.status(403).send('Bad request: invalid session ID');
           }
         }
@@ -373,7 +373,7 @@ export async function addRequestUser(
           const user = await dbManager.getUserByLogin(option.email, {userOptions});
           setRequestUser(mreq, dbManager, user);
         }
- else {
+        else {
           // No profile has access to this org.  We could choose to
           // link no profile, in which case user will end up
           // immediately presented with a sign-in page, or choose to
@@ -486,7 +486,7 @@ export function redirectToLoginUnconditionally(
     if (signUp) {
       return resp.redirect(await getSignUpRedirectUrl(req, redirectUrl));
     }
- else {
+    else {
       return resp.redirect(await getLoginRedirectUrl(req, redirectUrl));
     }
   });
@@ -505,7 +505,7 @@ export function redirectToLogin(
   dbManager: HomeDBManager,
 ): RequestHandler {
   const redirectUnconditionally = redirectToLoginUnconditionally(getLoginRedirectUrl,
-                                                                 getSignUpRedirectUrl);
+    getSignUpRedirectUrl);
   return expressWrap(async (req: Request, resp: Response, next: NextFunction) => {
     const mreq = req as RequestWithLogin;
     // This will ensure that express-session will set our cookie if it hasn't already -
@@ -530,7 +530,7 @@ export function redirectToLogin(
       // In all other cases (including unknown org), redirect user to login or sign up.
       return redirectUnconditionally(req, resp, next);
     }
- catch (err) {
+    catch (err) {
       log.info("Authorizer failed to redirect", err.message);
       return resp.status(401).send(err.message);
     }
@@ -654,7 +654,7 @@ export function getTransitiveHeaders(
   const XRequestedWith = req.get('X-Requested-With');
   const UserAgent = req.get('User-Agent');
   const Origin = req.get('Origin');  // Pass along the original Origin since it may
-                                     // play a role in granular access control.
+  // play a role in granular access control.
 
   const result: Record<string, string> = {
     ...(Authorization ? { Authorization } : undefined),

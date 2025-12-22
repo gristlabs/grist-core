@@ -145,7 +145,7 @@ describe('RangeFilter', function() {
     // check state is {"min":1649116800,"max"}
     await fu.switchToDefaultView();
     assert.equal(await driver.find('.fixture-json').getText(),
-                 `{"min":${parseDate('2022-04-05')},"max":${parseDate('2022-04-12')}}`);
+      `{"min":${parseDate('2022-04-05')},"max":${parseDate('2022-04-12')}}`);
 
     // check checkboxes state
     assert.equal(await isSelected('2022-01-05'), false);
@@ -158,7 +158,7 @@ describe('RangeFilter', function() {
     // check
     await fu.switchToDefaultView();
     assert.equal(await driver.find('.fixture-json').getText(),
-                 `{"max":${parseDate('2022-04-12')}}`);
+      `{"max":${parseDate('2022-04-12')}}`);
     assert.equal(await isSelected('2022-01-05'), true);
     assert.equal(await isSelected('2022-04-05'), true);
     assert.equal(await isSelected('2022-05-05'), false);

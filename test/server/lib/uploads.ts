@@ -189,7 +189,7 @@ describe("uploads", function() {
         await delay(200);
         assert.isFalse(await fse.pathExists(tmpDir0));
       }
- finally {
+      finally {
         sandbox.restore();
         assert.isAbove(Deps.INACTIVITY_CLEANUP_MS, tmpTimeout);   // Check that .restore() worked
       }

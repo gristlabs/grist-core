@@ -23,7 +23,7 @@ try {
       const languageName = languageDisplay.of(locale.language);
       return `${regionName} (${languageName})`;
     }
- catch (ex) {
+    catch (ex) {
       return code;
     }
   };
@@ -34,7 +34,7 @@ try {
     return {name: display(code), code};
   });
 }
- catch {
+catch {
   // Fall back to using the locale code as the display name.
   locales = localeCodes.map(code => ({name: code, code}));
 }
@@ -63,7 +63,7 @@ try {
     return {name: currencyDisplay.of(code)!, code};
   });
 }
- catch {
+catch {
   // Fall back to using the currency code as the display name.
   currencies = [...new Set(currenciesCodes)].map((code) => {
     return {name: code, code};

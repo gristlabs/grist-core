@@ -2,7 +2,7 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberImage, cssMemberListItem, cssMemberPrimary,
-        cssMemberSecondary, cssMemberText} from 'app/client/ui/UserItem';
+  cssMemberSecondary, cssMemberText} from 'app/client/ui/UserItem';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {PermissionDataWithExtraUsers} from 'app/common/ActiveDocAPI';
 import {gristFloatingMenuClass, menu, menuCssClass, menuItemLink} from 'app/client/ui2018/menus';
@@ -33,7 +33,7 @@ export class ACLUsersPopup extends Disposable {
   private _currentUser: FullUser|null = null;
 
   constructor(public pageModel: DocPageModel,
-              private _fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
+    private _fetch: () => Promise<PermissionDataWithExtraUsers|null> = () => this._fetchData()) {
     super();
   }
 
@@ -152,10 +152,10 @@ export class ACLUsersPopup extends Disposable {
         const forkResult = await this.pageModel?.gristDoc.get()?.docComm.fork();
         if (!forkResult) { throw new Error('Failed to create fork'); }
         window.location.assign(urlState().makeUrl(userOverrideParams(user.email,
-                                                                     {...extraState, doc: forkResult.urlId})));
+          {...extraState, doc: forkResult.urlId})));
       });
     }
- else {
+    else {
       // When forking isn't needed, we return a direct link to be maximally transparent
       // about where button will go.
       return urlState().setHref(userOverrideParams(user.email, extraState));

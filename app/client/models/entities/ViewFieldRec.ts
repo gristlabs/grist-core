@@ -203,16 +203,16 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
   this.displayColRef = this.autoDispose(ko.pureComputed(() => this._fieldOrColumn().displayCol() || this.colRef()));
 
   this.visibleColRef = modelUtil.addSaveInterface(this.autoDispose(ko.pureComputed({
-      read: () => this._fieldOrColumn().visibleCol(),
-      write: colRef => this._fieldOrColumn().visibleCol(colRef),
-    })),
-    colRef => docModel.docData.bundleActions(null, async () => {
-      const col = docModel.columns.getRowModel(colRef);
-      await Promise.all([
-        this._fieldOrColumn().visibleCol.saveOnly(colRef),
-        this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : ''),
-      ]);
-    }, {nestInActiveBundle: this.column.peek().isTransforming.peek()}),
+    read: () => this._fieldOrColumn().visibleCol(),
+    write: colRef => this._fieldOrColumn().visibleCol(colRef),
+  })),
+  colRef => docModel.docData.bundleActions(null, async () => {
+    const col = docModel.columns.getRowModel(colRef);
+    await Promise.all([
+      this._fieldOrColumn().visibleCol.saveOnly(colRef),
+      this._fieldOrColumn().saveDisplayFormula(colRef ? `$${this.colId()}.${col.colId()}` : ''),
+    ]);
+  }, {nestInActiveBundle: this.column.peek().isTransforming.peek()}),
   );
 
   // The display column to use for the field, or the column itself when no displayCol is set.
@@ -344,7 +344,7 @@ export function createViewFieldRec(this: ViewFieldRec, docModel: DocModel): void
         }),
       };
     }
- catch (e) {
+    catch (e) {
       return {kind: 'failure', error: e.message};
     }
   });

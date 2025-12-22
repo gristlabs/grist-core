@@ -20,9 +20,9 @@ export class BootProbes {
   public _probeById = new Map<string, Probe>();
 
   public constructor(private _app: express.Application,
-                     private _server: GristServer,
-                     private _base: string,
-                     private _middleware: express.Handler[] = []) {
+    private _server: GristServer,
+    private _base: string,
+    private _middleware: express.Handler[] = []) {
     this._addProbes();
   }
 
@@ -30,27 +30,27 @@ export class BootProbes {
     // Return a list of available probes.
     // GET /api/probes
     this._app.use(`${this._base}/probes$`,
-                  ...this._middleware,
-                  expressWrap(async (_, res) => {
-      res.json({
-        'probes': this._probes.map((probe) => {
-          return { id: probe.id, name: probe.name };
-        }),
-      });
-    }));
+      ...this._middleware,
+      expressWrap(async (_, res) => {
+        res.json({
+          'probes': this._probes.map((probe) => {
+            return { id: probe.id, name: probe.name };
+          }),
+        });
+      }));
 
     // Return result of running an individual probe.
     // GET /api/probes/:probeId
     this._app.use(`${this._base}/probes/:probeId`,
-                  ...this._middleware,
-                  expressWrap(async (req, res) => {
-      const probe = this._probeById.get(req.params.probeId);
-      if (!probe) {
-        throw new ApiError('unknown probe', 400);
-      }
-      const result = await probe.apply(this._server, req);
-      res.json(result);
-    }));
+      ...this._middleware,
+      expressWrap(async (req, res) => {
+        const probe = this._probeById.get(req.params.probeId);
+        if (!probe) {
+          throw new ApiError('unknown probe', 400);
+        }
+        const result = await probe.apply(this._server, req);
+        res.json(result);
+      }));
 
     // Fall-back for errors.
     this._app.use(`${this._base}/probes`, jsonErrorHandler);
@@ -93,7 +93,7 @@ const _admins: Probe = {
         details: {users},
       };
     }
- catch (e) {
+    catch (e) {
       return {
         status: 'fault',
         details: {error: String(e)},
@@ -121,7 +121,7 @@ const _homeUrlReachableProbe: Probe = {
         details,
       };
     }
- catch (e) {
+    catch (e) {
       return {
         details: {
           ...details,
@@ -189,7 +189,7 @@ const _statusCheckProbe: Probe = {
         details,
       };
     }
- catch (e) {
+    catch (e) {
       return {
         details: {
           ...details,
@@ -215,7 +215,7 @@ const _userProbe: Probe = {
         status: 'warning',
       };
     }
- else {
+    else {
       return {
         status: 'success',
         details,

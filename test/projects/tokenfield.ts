@@ -41,7 +41,7 @@ describe('tokenfield', function() {
     if (destLabel) {
       await driver.findContent(`.test-tokenfield-${type} .test-tokenfield-token`, destLabel).mouseMove();
     }
- else {
+    else {
       await driver.find(`.test-tokenfield-${type} .test-tokenfield-input`).mouseMove();
     }
     await driver.mouseUp();

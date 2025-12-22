@@ -44,7 +44,7 @@ export function buildACSelect(
     if (isOpen()) {
       commitOrRevert().catch(() => {});
     }
- else {
+    else {
       acOpen();
     }
   };
@@ -60,10 +60,10 @@ export function buildACSelect(
       finish();
       return true;
     }
- catch (e) {
+    catch (e) {
       return false;
     }
- finally {
+    finally {
       textInput.disabled = false;
     }
   };

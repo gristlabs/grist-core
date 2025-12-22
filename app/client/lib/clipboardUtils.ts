@@ -9,7 +9,7 @@ export async function copyToClipboard(data: string | ClipboardItem) {
   if (typeof data === 'string') {
     await copyTextToClipboard(data);
   }
- else {
+  else {
     await copyDataToClipboard(data);
   }
 }
@@ -26,7 +26,7 @@ async function copyTextToClipboard(txt: string) {
       await G.window.navigator.clipboard.writeText(txt);
       return;
     }
- catch (e) {
+    catch (e) {
       // no joy, try another way.
     }
   }

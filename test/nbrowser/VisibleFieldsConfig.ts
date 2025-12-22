@@ -59,8 +59,8 @@ describe('VisibleFieldsConfig', function() {
     // check 'A' is listed as hidden
     assert.deepEqual(
       await driver.findAll(`.test-vfc-hidden-fields .kf_draggable`, e => e.getText()),
-        ['A'],
-      );
+      ['A'],
+    );
 
     // check 'A' is hidden
     assert.deepEqual(await driver.findAll('.g-column-label', e => e.getText()), ['B', 'C']);
@@ -178,7 +178,7 @@ describe('VisibleFieldsConfig', function() {
       try {
         await findField('visible', /A/).find('input').click();
       }
- catch (e) {
+      catch (e) {
         if (!disabled) {
           throw e;
         }
@@ -188,7 +188,7 @@ describe('VisibleFieldsConfig', function() {
       try {
         await findField('hidden', /B/).find('input').click();
       }
- catch (e) {
+      catch (e) {
         if (!disabled) {
           throw e;
         }
@@ -212,14 +212,14 @@ describe('VisibleFieldsConfig', function() {
     await gu.waitForServer();
     assert.deepEqual(
       await driver.findAll(`.test-vfc-visible-fields .kf_draggable`, e => e.getText()),
-        ['C'],
-      );
+      ['C'],
+    );
     await findField('hidden', /B/).mouseMove().find('.test-vfc-hide').click();
     await gu.waitForServer();
     assert.deepEqual(
       await driver.findAll(`.test-vfc-hidden-fields .kf_draggable`, e => e.getText()),
-        ['A'],
-      );
+      ['A'],
+    );
 
     await gu.undo(4);
   });

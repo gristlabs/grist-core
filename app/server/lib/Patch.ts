@@ -67,7 +67,7 @@ export class Patch {
         }
       }
     }
- catch (e) {
+    catch (e) {
       changes.push({
         msg: String(e),
         fail: true,
@@ -156,7 +156,7 @@ export class Patch {
   }
 
   private async _doAdd(delta: TableDelta, tableId: string,
-                       rowId: number, rec: Record<string, any>): Promise<PatchItem> {
+    rowId: number, rec: Record<string, any>): Promise<PatchItem> {
     if ('manualSort' in rec) {
       delete rec.manualSort;
     }
@@ -174,7 +174,7 @@ export class Patch {
   }
 
   private async _doRemove(delta: TableDelta, tableId: string, rowId: number,
-                          rec: Record<string, any>): Promise<PatchItem> {
+    rec: Record<string, any>): Promise<PatchItem> {
     await this._applyUserActions([
       ['RemoveRecord', tableId, rowId],
     ]);
@@ -184,7 +184,7 @@ export class Patch {
   }
 
   private async _changeCell(delta: TableDelta, tableId: string, rowId: number, colId: string,
-                            pre: any, post: any): Promise<PatchItem> {
+    pre: any, post: any): Promise<PatchItem> {
     if (this._isFormula(tableId, colId)) {
       return {
         msg: 'skipped formula cell',

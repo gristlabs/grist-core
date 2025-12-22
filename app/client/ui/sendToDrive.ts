@@ -34,7 +34,7 @@ export async function sendToDrive(doc: Document, pageModel: DocPageModel) {
     const {url} = await send(token);
     G.window.location.assign(url);
   }
- catch (err) {
+  catch (err) {
     reportError(err);
   }
 }

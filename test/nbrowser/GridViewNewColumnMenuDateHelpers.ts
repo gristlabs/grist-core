@@ -410,7 +410,7 @@ async function selectDatePart(text: string, example?: string) {
     // Then click the item
     await driver.findWait(`.test-${itemTestId}`, 500).click();
   }
- else {
+  else {
     // Two levels: section -> item (direct item, no submenu)
     const itemTestId = `date-helpers-item-${makeTestPart(section)}-${makeTestPart(firstLevel)}`;
     await driver.findWait(`.test-${itemTestId}`, 500).click();

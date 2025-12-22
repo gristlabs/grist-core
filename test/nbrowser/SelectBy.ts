@@ -35,7 +35,7 @@ describe("SelectBy", function() {
       colId: ['table2_ref', 'table3_ref', 'table3_ref', 'A', 'A', 'table3_ref_2', 'A', 'group', 'count'],
       parentId: [1, 1, 2, 3, 1, 1, 4, 4, 4],
       type: ['Ref:Table2', 'Ref:Table3', 'Ref:Table3', 'Numeric', 'Text', 'Ref:Table3', 'Numeric',
-             'RefList:Table3', 'Int'],
+        'RefList:Table3', 'Int'],
       label: ['table2_ref', 'table3_ref', 'table3_ref', 'A', 'A', 'table3_ref_2', 'A', 'group', 'count'],
     });
 

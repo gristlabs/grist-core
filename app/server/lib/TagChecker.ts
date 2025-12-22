@@ -59,8 +59,8 @@ export class TagChecker {
     const [newUrl, urlTag, isOk] = this._removeTag(req.url);
     if (!isOk) {
       return resp.status(400).send({error: "Tag mismatch",
-                                    expected: this.tag,
-                                    received: urlTag});
+        expected: this.tag,
+        received: urlTag});
     }
     req.url = newUrl;
     (req as RequestWithTag).tag = urlTag;

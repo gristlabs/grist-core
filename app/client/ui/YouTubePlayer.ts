@@ -79,7 +79,7 @@ export class YouTubePlayer extends Disposable {
 
       (G.window as any).onYouTubeIframeAPIReady = () => this._handleYouTubeIframeAPIReady();
     }
- else {
+    else {
       setTimeout(() => this._handleYouTubeIframeAPIReady(), 0);
     }
   }
@@ -104,7 +104,7 @@ export class YouTubePlayer extends Disposable {
     if (this._player.getPlayerState() === PlayerState.Playing) {
       this._player.pauseVideo();
     }
- else {
+    else {
       this._player.playVideo();
     }
   }

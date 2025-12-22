@@ -40,7 +40,7 @@ export async function scrubUserFromOrg(
     .addSelect('groups.name as name')
     .leftJoin('groups.aclRule', 'acl_rules')
     .where('(group_users.user_id = :removeUserId or group_users.user_id = :callerUserId)',
-           {removeUserId, callerUserId})
+      {removeUserId, callerUserId})
     .andWhere('orgs.id = :orgId', {orgId});
 
   // Pick out group_users related specifically to the org resource, in 'mentions' format
@@ -82,7 +82,7 @@ export async function scrubUserFromOrg(
       if (isGuest) { toDelete.push(mention); continue; }
       removeUserMentions.set(getMentionKey(mention), mention);
     }
- else {
+    else {
       if (isGuest) { continue; }
       callerUserMentions.set(getMentionKey(mention), mention);
     }
@@ -167,7 +167,7 @@ export async function scrubUserFromBillingAccounts(removeUserId: number, newUser
  * user needs to be and is not already.
  */
 export async function addMissingGuestMemberships(userId: number, orgId: number,
-                                                 manager: EntityManager) {
+  manager: EntityManager) {
   // For workspaces:
   // User should be in guest group if mentioned in a doc within that workspace.
   let groupUsers = await manager.createQueryBuilder()
@@ -183,7 +183,7 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
     .leftJoin('workspaces.aclRules', 'workspace_acl_rules')
     .leftJoin('workspace_acl_rules.group', 'workspace_groups')
     .leftJoin('group_users', 'workspace_group_users',
-              'workspace_group_users.group_id = workspace_groups.id and ' +
+      'workspace_group_users.group_id = workspace_groups.id and ' +
               'workspace_group_users.user_id = :userId')
     .andWhere('workspace_groups.name = :guestName', {guestName: roles.GUEST})
     .groupBy('workspaces.id, workspace_groups.id, workspace_group_users.user_id')
@@ -212,7 +212,7 @@ export async function addMissingGuestMemberships(userId: number, orgId: number,
     .leftJoin('orgs.aclRules', 'org_acl_rules')
     .leftJoin('org_acl_rules.group', 'org_groups')
     .leftJoin('group_users', 'org_group_users',
-              'org_group_users.group_id = org_groups.id and ' +
+      'org_group_users.group_id = org_groups.id and ' +
               'org_group_users.user_id = :userId')
     .andWhere('org_groups.name = :guestName', {guestName: roles.GUEST})
     .groupBy('org_groups.id, org_group_users.user_id')

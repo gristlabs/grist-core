@@ -125,7 +125,7 @@ export class RightPanel extends Disposable {
 
   // Which subtab is open for configuring page widget.
   private _advLinkInfoCollapsed = createSessionObs(this, "rightPageAdvancedLinkInfoCollapsed",
-                                                   true, isBoolean);
+    true, isBoolean);
 
   constructor(private _gristDoc: GristDoc, private _isOpen: Observable<boolean>) {
     super();
@@ -148,7 +148,7 @@ export class RightPanel extends Disposable {
       if (!use(this._isForm) && use(this._subTab) === 'submission') {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('sortAndFilter'));
       }
- else if (use(this._isForm) && use(this._subTab) === 'sortAndFilter') {
+      else if (use(this._isForm) && use(this._subTab) === 'sortAndFilter') {
         setImmediate(() => !this._subTab.isDisposed() && this._subTab.set('submission'));
       }
     }));
@@ -333,7 +333,7 @@ export class RightPanel extends Disposable {
           ),
           cssSeparator(),
           dom.maybe<FieldBuilder|null>(fieldBuilder, builder => [
-          cssLabel(t("COLUMN TYPE")),
+            cssLabel(t("COLUMN TYPE")),
             cssSection(
               builder.buildSelectTypeDom(),
             ),
@@ -631,10 +631,10 @@ export class RightPanel extends Disposable {
 
       // Make descriptor for the link's source like: "TableName . ColName" or "${SIGMA} TableName", etc
       const fromTableDom = [
-          dom.maybe(use2 => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
-          use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
-          dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
-        ];
+        dom.maybe(use2 => use2(srcTable.summarySourceTable), () => cssLinkInfoIcon("Pivot")),
+        use(srcSec.titleDef) + (srcColId ? ` ${BLACK_CIRCLE} ${use(srcCol.label)}` : ''),
+        dom.style("white-space", "normal"), //Allow table name to wrap, reduces how often scrollbar needed
+      ];
 
       //Count filters for proper pluralization
       const hasId = lfilter.filterLabels?.hasOwnProperty("id");
@@ -661,7 +661,7 @@ export class RightPanel extends Disposable {
               if (colId == "id") {
                 return dom("div", `ERROR: ID FILTER: ${colId}[${vals}]`);
               }
- else {
+              else {
                 return dom("tr",
                   dom("td", cssLinkInfoIcon("Filter"),
                     `${colId}`),
@@ -671,16 +671,16 @@ export class RightPanel extends Disposable {
                       cssLinkInfoIcon("FieldReference"): null,
                     `${vals.join(', ')}`)),
                 );
-            } 
-}), //end of keys(filterLabels).map
-        ));
+              } 
+            }), //end of keys(filterLabels).map
+          ));
       };
 
       //Given a list of filterLabels, show them all in a box, as if a grid cell
       //Shows a "Reference" icon in the left side, since this should only be used for reflinks and cursor links
       const makeValuesBox = (valueLabels: string[]): DomContents => {
         return cssLinkInfoBody((
-            cssLinkInfoValuesBox(
+          cssLinkInfoValuesBox(
             cssLinkInfoIcon("FieldReference"),
             valueLabels.join(', ') ) //TODO: join labels like "Entries[1], Entries[2]" to "Entries[[1,2]]"
         ));
@@ -689,7 +689,7 @@ export class RightPanel extends Disposable {
       const linkType = lstate.linkTypeDescription();
 
       return cssLinkInfoPanel(() => {
- switch (linkType) {
+        switch (linkType) {
           case "Filter:Summary-Group":
           case "Filter:Col->Col":
           case "Filter:Row->Col":
@@ -719,11 +719,11 @@ export class RightPanel extends Disposable {
           default:
             return dom("div", `Error: Couldn't identify link state`);
         } 
-},
-        ...domArgs,
+      },
+      ...domArgs,
       ); // End of cssLinkInfoPanel
     });
-}
+  }
 
   private _buildLinkInfoAdvanced(activeSection: ViewSectionRec) {
     return  dom.domComputed((use): DomContents => {
@@ -742,11 +742,11 @@ export class RightPanel extends Disposable {
       // to check nullness, use `.getRowId() == 0` or `use(srcCol.colId) == undefined`
 
       const secToStr = (sec: ViewSectionRec) => (!sec || !sec.getRowId()) ?
-          'null' :
-          `#${use(sec.id)} "${use(sec.titleDef)}", (table "${use(use(sec.table).tableId)}")`;
+        'null' :
+        `#${use(sec.id)} "${use(sec.titleDef)}", (table "${use(use(sec.table).tableId)}")`;
       const colToStr = (col: ColumnRec) => (!col || !col.getRowId()) ?
-          'null' :
-          `#${use(col.id)} "${use(col.colId)}", type "${use(col.type)}")`;
+        'null' :
+        `#${use(col.id)} "${use(col.colId)}", type "${use(col.type)}")`;
 
       // linkingState can be null if the constructor throws, so for debugging we want to show link info
       // if either the viewSection or the linkingState claim there's a link
@@ -774,28 +774,28 @@ export class RightPanel extends Disposable {
           '===========================',
           // Show linkstate
           lstate == null ? "LinkState: null" : [
-              `Link Type: ${use(lstate.linkTypeDescription)}`,
-              ``,
+            `Link Type: ${use(lstate.linkTypeDescription)}`,
+            ``,
 
-              "Cursor Pos: " + cursorPosStr,
-              !lfilter ? "Filter State: null" :
-                ["Filter State:", ...(Object.keys(lfilter).map(key =>
-                  `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
-            ].join('\n'),
+            "Cursor Pos: " + cursorPosStr,
+            !lfilter ? "Filter State: null" :
+              ["Filter State:", ...(Object.keys(lfilter).map(key =>
+                `- ${key}: ${JSON.stringify((lfilter as any)[key])}`))].join('\n'),
+          ].join('\n'),
         ].join('\n');
       }
 
       const collapsed: SessionObs<boolean> = this._advLinkInfoCollapsed;
       return hasLink ? [
-          cssRow(
-            icon('Dropdown', dom.style('transform', use2 => use2(collapsed) ? 'rotate(-90deg)' : '')),
-            "Advanced Link info",
-            dom.style('font-size', `${vars.smallFontSize}`),
-            dom.style('text-transform', 'uppercase'),
-            dom.style('cursor', 'pointer'),
-            dom.on('click', () => collapsed.set(!collapsed.get())),
-          ),
-          dom.maybe(not(collapsed), () => cssRow(cssLinkInfoPre(preString))),
+        cssRow(
+          icon('Dropdown', dom.style('transform', use2 => use2(collapsed) ? 'rotate(-90deg)' : '')),
+          "Advanced Link info",
+          dom.style('font-size', `${vars.smallFontSize}`),
+          dom.style('text-transform', 'uppercase'),
+          dom.style('cursor', 'pointer'),
+          dom.on('click', () => collapsed.set(!collapsed.get())),
+        ),
+        dom.maybe(not(collapsed), () => cssRow(cssLinkInfoPre(preString))),
       ] : null;
     });
   }
@@ -834,7 +834,7 @@ export class RightPanel extends Disposable {
       if (val !== NoLink) {
         logTelemetryEvent('linkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
       }
- else {
+      else {
         logTelemetryEvent('unlinkedWidget', {full: {docIdDigest: this._gristDoc.docId(), widgetType}});
       }
 
@@ -847,7 +847,7 @@ export class RightPanel extends Disposable {
         cssRow(
           cssIcon('TypeTable'), cssDataLabel(t("SOURCE DATA")),
           cssContent(dom.text(use => use(use(table).primaryTableId)),
-                    testId('pwc-table')),
+            testId('pwc-table')),
         ),
         dom(
           'div',
@@ -865,16 +865,16 @@ export class RightPanel extends Disposable {
         dom.maybe(use => !use(activeSection.isRaw) && !use(activeSection.isRecordCard), () =>
           cssButtonRow(primaryButton(t("Edit data selection"), this._createPageWidgetPicker(),
             testId('pwc-editDataSelection')),
-            dom.maybe(
-              use => Boolean(use(use(activeSection.table).summarySourceTable)),
-              () => basicButton(
-                t("Detach"),
-                dom.on('click', () => this._gristDoc.docData.sendAction(
-                  ["DetachSummaryViewSection", activeSection.getRowId()])),
-                testId('detach-button'),
-              )),
-            cssRow.cls('-top-space'),
-        )),
+          dom.maybe(
+            use => Boolean(use(use(activeSection.table).summarySourceTable)),
+            () => basicButton(
+              t("Detach"),
+              dom.on('click', () => this._gristDoc.docData.sendAction(
+                ["DetachSummaryViewSection", activeSection.getRowId()])),
+              testId('detach-button'),
+            )),
+          cssRow.cls('-top-space'),
+          )),
       ),
 
       // TODO: "Advanced settings" is for "on-demand" marking of tables. This is now a deprecated feature. UIRowId
@@ -1166,7 +1166,7 @@ function tabContentToDom(content: Observable<TabContent[]>|TabContent[]|IDomComp
           dom.forEach(itemOrHeader.items, item => buildItemDom(item)),
         );
       }
- else {
+      else {
         return buildItemDom(itemOrHeader);
       }
     }),

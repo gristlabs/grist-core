@@ -123,7 +123,7 @@ describe('DocPrefs', function() {
           updateRej);
         await assert.isRejected(dbManager.setDocPrefs(
           getScope('viewer'), {docDefaults: samplePrefs(5), currentUser: samplePrefs(6)}),
-          updateRej);
+        updateRej);
         await assert.isRejected(dbManager.setDocPrefs(getScope('editor'), {docDefaults: samplePrefs(7)}),
           updateRej);
 

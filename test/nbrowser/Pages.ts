@@ -267,7 +267,7 @@ describe('Pages', function() {
 
     async function getInitialAndName(pageName: string|RegExp): Promise<[string, string]> {
       return await driver.findContent('.test-treeview-itemHeader', pageName)
-      .findAll('.test-docpage-initial, .test-docpage-label', el => el.getText()) as [string,
+        .findAll('.test-docpage-initial, .test-docpage-label', el => el.getText()) as [string,
         string];
     }
 

@@ -127,13 +127,13 @@ export function undefDefault<T>(x: T|undefined, y: T): T {
 type Undef1<T> = T extends [infer A] ? A : unknown;
 
 type Undef2<T> = T extends [infer A, infer B] ?
-    undefined extends A ? NonNullable<A> | Undef1<[B]> : A : Undef1<T>;
+  undefined extends A ? NonNullable<A> | Undef1<[B]> : A : Undef1<T>;
 
 type Undef3<T> = T extends [infer A, infer B, infer C] ?
-    undefined extends A ? NonNullable<A> | Undef2<[B, C]> : A : Undef2<T>;
+  undefined extends A ? NonNullable<A> | Undef2<[B, C]> : A : Undef2<T>;
 
 type Undef<T> = T extends [infer A, infer B, infer C, infer D] ?
-    undefined extends A ? NonNullable<A> | Undef3<[B, C, D]> : A : Undef3<T>;
+  undefined extends A ? NonNullable<A> | Undef3<[B, C, D]> : A : Undef3<T>;
 
 /*
 
@@ -171,11 +171,11 @@ export function numberOrDefault<T>(value: unknown, defaultVal: T): number | T {
   if (typeof value === 'number') {
     return !Number.isNaN(value) ? value : defaultVal;
   }
- else if (typeof value === 'string') {
+  else if (typeof value === 'string') {
     const maybeNumber = Number.parseFloat(value);
     return !Number.isNaN(maybeNumber) ? maybeNumber : defaultVal;
   }
- else {
+  else {
     return defaultVal;
   }
 }
@@ -187,7 +187,7 @@ export function safeJsonParse(json: string, defaultVal: any): any {
   try {
     return json !== '' && json !== undefined ? JSON.parse(json) : defaultVal;
   }
- catch (e) {
+  catch (e) {
     return defaultVal;
   }
 }
@@ -289,7 +289,7 @@ export function arrayInsertBefore<T>(array: T[], value: T, nextValue: T): void {
   if (index === -1) {
     array.push(value);
   }
- else {
+  else {
     array.splice(index, 0, value);
   }
 }
@@ -313,7 +313,7 @@ export function arrayExtend<T>(array: T[], anotherArray: T[]): void {
  * one is chosen as consistently among the faster ones.
  */
 export function arrayCopyForward<T>(toArray: T[], toStart: number,
-                                    fromArray: ArrayLike<T>, fromStart: number, count: number): void {
+  fromArray: ArrayLike<T>, fromStart: number, count: number): void {
   const end = toStart + count;
   for (const xend = end - 7; toStart < xend; fromStart += 8, toStart += 8) {
     toArray[toStart] = fromArray[fromStart];
@@ -339,7 +339,7 @@ export function arrayCopyForward<T>(toArray: T[], toStart: number,
  * one is chosen as consistently among the faster ones.
  */
 export function arrayCopyBackward<T>(toArray: T[], toStart: number,
-                                     fromArray: ArrayLike<T>, fromStart: number, count: number): void {
+  fromArray: ArrayLike<T>, fromStart: number, count: number): void {
   let i = toStart + count - 1, j = fromStart + count - 1;
   for (const xStart = toStart + 7; i >= xStart; i -= 8, j -= 8) {
     toArray[i] = fromArray[j];
@@ -367,7 +367,7 @@ export function arrayAppend<T>(toArray: T[], fromArray: ArrayLike<T>, fromStart:
   if (count === 1) {
     toArray.push(fromArray[fromStart]);
   }
- else {
+  else {
     const len = toArray.length;
     toArray.length = len + count;
     arrayCopyForward(toArray, len, fromArray, fromStart, count);
@@ -393,7 +393,7 @@ export function arraySplice<T>(target: T[], start: number, arrToInsert: ArrayLik
     arrayCopyForward(target, start + insLen, target, start, tailLen);
     arrayCopyForward(target, start, arrToInsert, 0, tailLen);
   }
- else {
+  else {
     arrayCopyForward(target, origLen, target, origLen - insLen, insLen);
     arrayCopyBackward(target, start + insLen, target, start, tailLen - insLen);
     arrayCopyForward(target, start, arrToInsert, 0, insLen);
@@ -423,7 +423,7 @@ export function sortedIndex<T>(array: ArrayLike<T>, elem: T, compareFunc: Compar
     if (compareFunc(array[mid], elem) < 0) { // mid < elem
       lo = mid + 1;
     }
- else {
+    else {
       hi = mid;
     }
   }
@@ -497,8 +497,8 @@ export function growMatrix<T>(dataMatrix: T[][], r: number, c: number): T[][] {
  * @param {Array of 1/-1's} optAscending - Comparison on sortKeyFuncs[i] is inverted if optAscending[i] == -1
  */
 export function multiCompareFunc<T, U>(sortKeyFuncs: ReadonlyArray<(a: T) => U>,
-                                       compareFuncs: ArrayLike<CompareFunc<U>>,
-                                       optAscending?: number[]): CompareFunc<T> {
+  compareFuncs: ArrayLike<CompareFunc<U>>,
+  optAscending?: number[]): CompareFunc<T> {
   if (sortKeyFuncs.length !== compareFuncs.length) {
     throw new Error('Number of sort key funcs must be the same as the number of compare funcs');
   }
@@ -572,7 +572,7 @@ export function popFromMap<K, V>(mapInst: Map<K, V>, key: K): V|undefined {
  * For each encountered value in `values`, increment the corresponding counter in `valueCounts`.
  */
 export function addCountsToMap<T>(valueCounts: Map<T, number>, values: Iterable<T>,
-                                  mapFunc: (v: any) => any = identity) {
+  mapFunc: (v: any) => any = identity) {
   for (const v of values) {
     const mappedValue = mapFunc(v);
     valueCounts.set(mappedValue, (valueCounts.get(mappedValue) || 0) + 1);
@@ -617,7 +617,7 @@ export function deepExtend(target: any, _varArgObjects: any): any {
         if (Array.isArray(src)) {
           src = deepExtend(tgt && Array.isArray(tgt) ? tgt : [], src);
         }
- else if (typeof src === 'object') {
+        else if (typeof src === 'object') {
           src = deepExtend(tgt && typeof tgt === 'object' ? tgt : {}, src);
         }
       }
@@ -638,10 +638,10 @@ export function byteString(bytes: number): string {
   if (bytes < 1024) {
     return bytes + 'B';
   }
- else if (bytes < 1024 * 1024) {
+  else if (bytes < 1024 * 1024) {
     return (bytes / 1024).toFixed(1) + 'KB';
   }
- else {
+  else {
     return (bytes / 1024 / 1024).toFixed(1) + 'MB';
   }
 }
@@ -656,7 +656,7 @@ export function byteString(bytes: number): string {
  * @returns {Object} - object mapping keys from `keysArray` to values returned by `callback`.
  */
 export function mapToObject<T>(keysArray: string[], callback: (key: string) => T,
-                               optThisArg: any): {[key: string]: T} {
+  optThisArg: any): {[key: string]: T} {
   const values: T[] = keysArray.map(callback, optThisArg);
   const map: {[key: string]: T} = {};
   for (let i = 0; i < keysArray.length; i++) {
@@ -700,9 +700,9 @@ export function pruneArray<T>(arr: T[], indexes: number[]) {
  * Using [] instead of new Array causes a "comprehension error" for some reason
  */
 const _kwlist = ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break',
-                 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
-                 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
-                 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'];
+  'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+  'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal',
+  'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'];
 /**
  * Given an arbitrary string, makes substitutions to make it a valid SQL/Python identifier.
  * Corresponds to sandbox/grist/gencode.sanitize_ident
@@ -763,8 +763,8 @@ export function genRandomId(len: number, optPrefix?: string): string {
  *  Defaults to the identity function.
  */
 export function sortedScan<T, U>(arrA: ArrayLike<T>, arrB: ArrayLike<U>,
-                                 callback: (a: T|null, B: U|null) => void,
-                                 optKeyFunc?: (item: T|U) => any) {
+  callback: (a: T|null, B: U|null) => void,
+  optKeyFunc?: (item: T|U) => any) {
   const keyFunc = optKeyFunc || identity;
   let i = 0, j = 0;
   while (i < arrA.length || j < arrB.length) {
@@ -775,11 +775,11 @@ export function sortedScan<T, U>(arrA: ArrayLike<T>, arrB: ArrayLike<U>,
       callback(a, null);
       i++;
     }
- else if (keyA === null || keyA > keyB) {
+    else if (keyA === null || keyA > keyB) {
       callback(null, b);
       j++;
     }
- else {
+    else {
       callback(a, b);
       i++;
       j++;
@@ -799,7 +799,7 @@ export function getReconnectTimeout(attemptNumber: number, intervals: ArrayLike<
     const timeout = intervals[intervals.length - 1];
     return timeout + Math.random() * timeout;
   }
- else {
+  else {
     return intervals[attemptNumber];
   }
 }
@@ -837,7 +837,7 @@ export function waitObs<T>(observable: KoObservable<T>, predicate: (value: T) =>
 export async function waitGrainObs<T>(observable: Observable<T>): Promise<NonNullable<T>>;
 export async function waitGrainObs<T>(observable: Observable<T>, predicate?: (value: T) => boolean): Promise<T>;
 export async function waitGrainObs<T>(observable: Observable<T>,
-                                      predicate: (value: T) => boolean = Boolean): Promise<T> {
+  predicate: (value: T) => boolean = Boolean): Promise<T> {
   let sub: Listener|undefined;
   const res: T = await new Promise((resolve, _reject) => {
     const value = observable.get();
@@ -935,13 +935,13 @@ export async function timeoutReached(
     const res = await Promise.race([promise, delayPromise]);
     return res == timedOut;
   }
- catch (err) {
+  catch (err) {
     if (options.rethrow) {
       throw err;
     }
     return false;
   }
- finally {
+  finally {
     clearTimeout(timer!);
   }
 }
@@ -1046,7 +1046,7 @@ export async function retryOnce<T>(fn: () => Promise<T>, recover: (e: unknown) =
   try {
     return await fn();
   }
- catch (e) {
+  catch (e) {
     await recover(e);
     return await fn();
   }

@@ -8,7 +8,7 @@ describe('SelectBySummaryRef', function() {
   addToRepl('gu2', gu);
 
   before(async function(){
-  await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
+    await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
     const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon',
       'SelectBySummaryRef.grist', false);
     await driver.get(`${server.getHost()}/o/nasa/doc/${doc.id}`);

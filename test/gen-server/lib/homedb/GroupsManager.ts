@@ -140,13 +140,13 @@ describe("GroupsManager", function () {
 
     it(`should allow to create a ${Group.ROLE_TYPE} group with the same name as an existing ${Group.TEAM_TYPE} group`,
       async function () {
-      const groupName = 'test-creategroup-same-name';
-      const { group: firstGroup } = await createDummyTeamGroup(groupName);
-      const { group: secondGroup } = await createDummyRole(groupName);
-      assert.equal(firstGroup.name, groupName);
-      assert.equal(secondGroup.name, groupName);
-      assert.notEqual(firstGroup.id, secondGroup.id);
-    });
+        const groupName = 'test-creategroup-same-name';
+        const { group: firstGroup } = await createDummyTeamGroup(groupName);
+        const { group: secondGroup } = await createDummyRole(groupName);
+        assert.equal(firstGroup.name, groupName);
+        assert.equal(secondGroup.name, groupName);
+        assert.notEqual(firstGroup.id, secondGroup.id);
+      });
 
     it(`should refuse to create a ${Group.TEAM_TYPE} group with the same name as an existing one`, async function () {
       const groupName = 'test-creategroup-same-name';

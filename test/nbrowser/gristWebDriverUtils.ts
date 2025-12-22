@@ -38,14 +38,14 @@ export class GristWebDriverUtils {
     await this.driver.wait(() => this.driver.executeScript(
       "return window.gristApp && (!window.gristApp.comm || !window.gristApp.comm.hasActiveRequests())"
         + " && window.gristApp.testNumPendingApiRequests() === 0",
-      )
+    )
       // The catch is in case executeScript() fails. This is rare but happens occasionally when
       // browser is busy (e.g. sorting) and doesn't respond quickly enough. The timeout selenium
       // allows for a response is short (and I see no place to configure it); by catching, we'll
       // let the call fail until our intended timeout expires.
       .catch((e) => { console.log("Ignoring executeScript error", String(e)); }),
-      optTimeout,
-      "Timed out waiting for server requests to complete",
+    optTimeout,
+    "Timed out waiting for server requests to complete",
     );
   }
 
@@ -194,7 +194,7 @@ export class GristWebDriverUtils {
       try {
         await this.driver.findWait('.test-behavioral-prompt-dismiss', 100).click();
       }
- catch (e) {
+      catch (e) {
         if (await this.driver.find('.test-behavioral-prompt').isPresent()) {
           throw e;
         }
@@ -223,7 +223,7 @@ export class GristWebDriverUtils {
         try {
           await check();
         }
- catch (e) {
+        catch (e) {
           // Throttle operations a little bit.
           await this.driver.sleep(delay);
           if (delay < 50) { delay += 10; }
@@ -232,7 +232,7 @@ export class GristWebDriverUtils {
         return true;
       }, timeMs);
     }
- catch (e) {
+    catch (e) {
       await check();
     }
   }
@@ -253,7 +253,7 @@ export class GristWebDriverUtils {
     try {
       await (await this.driver.switchTo().alert()).accept();
     }
- catch (e) {
+    catch (e) {
       if (!ignore) {
         throw new Error(`Failed to accept alert: ${String(e)}`);
       }
@@ -270,7 +270,7 @@ export class GristWebDriverUtils {
       await this.driver.switchTo().alert();
       return true;
     }
- catch {
+    catch {
       return false;
     }
   }
@@ -325,7 +325,7 @@ export class GristWebDriverUtils {
       if (result?.finally) {
         result.finally(done);
       }
- else {
+      else {
         done();
       }
     }, name, argument);
@@ -386,7 +386,7 @@ export class GristWebDriverUtils {
     if (size === 'medium') {
       this.resizeWindowForSuite(1440, 900);
     }
- else {
+    else {
       this.resizeWindowForSuite(1920, 1080);
     }
   }
@@ -494,7 +494,7 @@ export class GristWebDriverUtils {
       // .test-viewsection is a special 1px width element added for tests only.
       await this.driver.findContent(`.test-viewsection-title`, title).find(".test-viewsection-blank").click();
     }
- catch (e) {
+    catch (e) {
       // We might be in mobile view.
       await this.driver.findContent(`.test-viewsection-title`, title).findClosest(".view_leaf").click();
     }
@@ -513,7 +513,7 @@ export class GristWebDriverUtils {
       // .test-viewsection is a special 1px width element added for tests only.
       await section.find(".test-viewsection-blank").click();
     }
- catch (e) {
+    catch (e) {
       // We might be in mobile view.
       await section.findClosest(".view_leaf").click();
     }

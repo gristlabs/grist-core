@@ -171,44 +171,44 @@ describe('modelUtil', function() {
     assert.equal(cs(), "foo");
     assert.equal(cs.isSaved(), false);
     return cs.save()
-    .then(() => {
-      sinon.assert.calledOnce(spy);
-      sinon.assert.calledWithExactly(spy, "foo");
-      // Once saved, the observable should revert.
-      assert.equal(cs(), "world");
-      assert.equal(cs.isSaved(), true);
-      spy.resetHistory();
+      .then(() => {
+        sinon.assert.calledOnce(spy);
+        sinon.assert.calledWithExactly(spy, "foo");
+        // Once saved, the observable should revert.
+        assert.equal(cs(), "world");
+        assert.equal(cs.isSaved(), true);
+        spy.resetHistory();
 
-      // Check that saveOnly works similarly to save().
-      return cs.saveOnly("foo2");
-    })
-    .then(() => {
-      sinon.assert.calledOnce(spy);
-      sinon.assert.calledWithExactly(spy, "foo2");
-      assert.equal(cs(), "world");
-      assert.equal(cs.isSaved(), true);
-      spy.resetHistory();
+        // Check that saveOnly works similarly to save().
+        return cs.saveOnly("foo2");
+      })
+      .then(() => {
+        sinon.assert.calledOnce(spy);
+        sinon.assert.calledWithExactly(spy, "foo2");
+        assert.equal(cs(), "world");
+        assert.equal(cs.isSaved(), true);
+        spy.resetHistory();
 
-      // Check that saving the underlying value does NOT call save().
-      return cs.saveOnly("world");
-    })
-    .then(() => {
-      sinon.assert.notCalled(spy);
-      assert.equal(cs(), "world");
-      assert.equal(cs.isSaved(), true);
-      spy.resetHistory();
+        // Check that saving the underlying value does NOT call save().
+        return cs.saveOnly("world");
+      })
+      .then(() => {
+        sinon.assert.notCalled(spy);
+        assert.equal(cs(), "world");
+        assert.equal(cs.isSaved(), true);
+        spy.resetHistory();
 
-      return cs.saveOnly("bar");
-    })
-    .then(() => {
-      assert.equal(cs(), "world");
-      assert.equal(cs.isSaved(), true);
-      sinon.assert.calledOnce(spy);
-      sinon.assert.calledWithExactly(spy, "bar");
-      // If save() updated the underlying value, the customComputed should see it.
-      obs("bar");
-      assert.equal(cs(), "bar");
-      assert.equal(cs.isSaved(), true);
-    });
+        return cs.saveOnly("bar");
+      })
+      .then(() => {
+        assert.equal(cs(), "world");
+        assert.equal(cs.isSaved(), true);
+        sinon.assert.calledOnce(spy);
+        sinon.assert.calledWithExactly(spy, "bar");
+        // If save() updated the underlying value, the customComputed should see it.
+        obs("bar");
+        assert.equal(cs(), "bar");
+        assert.equal(cs.isSaved(), true);
+      });
   });
 });

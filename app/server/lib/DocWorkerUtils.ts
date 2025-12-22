@@ -116,7 +116,7 @@ export async function getWorker(
       try {
         body = await resp.json();
       }
- catch (e) {
+      catch (e) {
         throw new ApiError(resp.statusText, resp.status);
       }
       if (!(body && body.message && body.message === 'document worker not present')) {
@@ -124,7 +124,7 @@ export async function getWorker(
       }
       // This is a 404 with the expected content for a missing worker.
     }
- catch (e) {
+    catch (e) {
       log.rawDebug(`AppEndpoint.getWorker failure`, {
         url: fullUrl,
         docId: assignmentId,

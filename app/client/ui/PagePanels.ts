@@ -281,11 +281,11 @@ export function pagePanels(page: PageContents) {
       // TODO: resizing to small size should collapse. possibly should allow expanding too
       cssResizeFlexVHandle(
         {target: 'left', onSave: (val) => {
- left.panelWidth.set(val); onResize();
-                                            leftPaneDom.style['width'] = val + 'px';
-                                            setTimeout(() => dragResizer.set(false), 0); 
-},
-         onDrag: (val) => { dragResizer.set(true); }},
+          left.panelWidth.set(val); onResize();
+          leftPaneDom.style['width'] = val + 'px';
+          setTimeout(() => dragResizer.set(false), 0); 
+        },
+        onDrag: (val) => { dragResizer.set(true); }},
         testId('left-resizer'),
         dom.show(use => use(left.panelOpen) && !use(leftOverlap)),
         cssHideForNarrowScreen.cls('')),

@@ -34,14 +34,14 @@ export class TestServer {
   }
 
   public async start(servers: ServerType[] = ["home"],
-                     options: FlexServerOptions = {},
-                     {
-                       seedData = true,
-                       externalStorage = false,
-                     } = {}): Promise<string> {
+    options: FlexServerOptions = {},
+    {
+      seedData = true,
+      externalStorage = false,
+    } = {}): Promise<string> {
     await createInitialDb(undefined, seedData ? true : 'migrateOnly');
     const mergedServer = await MergedServer.create(0, servers, {logToConsole: isAffirmative(process.env.DEBUG),
-                                                      externalStorage, ...options});
+      externalStorage, ...options});
     this.server = mergedServer.flexServer;
     await mergedServer.run();
     this.serverUrl = this.server.getOwnUrl();
@@ -102,8 +102,8 @@ export class TestServer {
   // Get an api object for making requests for the named user with the named org.
   // Careful: all api objects using cookie access will be in the same session.
   public async createHomeApi(userName: string, orgDomain: string,
-                             useApiKey: boolean = false,
-                             checkAccess: boolean = true): Promise<UserAPIImpl> {
+    useApiKey: boolean = false,
+    checkAccess: boolean = true): Promise<UserAPIImpl> {
     return this.defaultSession.createHomeApi(userName, orgDomain, useApiKey, checkAccess);
   }
 
@@ -202,13 +202,13 @@ export class TestServer {
     if (aclRule instanceof AclRuleDoc) {
       res = await con.findOne(Document, {where: {id: aclRule.docId}});
     }
- else if (aclRule instanceof AclRuleWs) {
+    else if (aclRule instanceof AclRuleWs) {
       res = await con.findOne(Workspace, {where: {id: aclRule.workspaceId}});
     }
- else if (aclRule instanceof AclRuleOrg) {
+    else if (aclRule instanceof AclRuleOrg) {
       res = await con.findOne(Organization, {where: {id: aclRule.orgId}});
     }
- else {
+    else {
       throw new Error('unknown type');
     }
     if (!res) { throw new Error('could not find resource'); }
@@ -257,7 +257,7 @@ export class TestSession {
     {clearCache, sessionProps}: {clearCache?: boolean, sessionProps?: Partial<SessionUserObj>} = {},
   ) {
     const resp = await axios.get(`${this.home.getOwnUrl()}/test/session`,
-                                 {validateStatus: (s => s < 400), headers: this.headers});
+      {validateStatus: (s => s < 400), headers: this.headers});
     const cookie = this.headers.Cookie || resp.headers['set-cookie']![0];
     const cid = decodeURIComponent(cookie.split('=')[1].split(';')[0]);
     const sessionId = this.home.getSessions().getSessionIdFromCookie(cid);
@@ -277,14 +277,14 @@ export class TestSession {
 
   // get an api object for making requests for the named user with the named org.
   public async createHomeApi(userName: string, orgDomain: string,
-                             useApiKey: boolean = false,
-                             checkAccess: boolean = true): Promise<UserAPIImpl> {
+    useApiKey: boolean = false,
+    checkAccess: boolean = true): Promise<UserAPIImpl> {
     const headers: {[key: string]: string} = {};
     if (userName !== 'anonymous') {
       if (useApiKey) {
         headers.Authorization = 'Bearer api_key_for_' + userName.toLowerCase();
       }
- else {
+      else {
         const cookie = await this.getCookieLogin(orgDomain, {
           email: `${userName.toLowerCase()}@getgrist.com`,
           name: userName,

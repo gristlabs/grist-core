@@ -12,7 +12,7 @@ const testId = makeTestId('test-dm-');
 /**
  * Builds all `templateDocs` according to the specified `viewSettings`.
  */
- export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], viewSettings: ViewSettings) {
+export function buildTemplateDocs(home: HomeModel, templateDocs: Document[], viewSettings: ViewSettings) {
   const {currentView, currentSort} = viewSettings;
   return dom.domComputed(use => [use(currentView), use(currentSort)] as const, (opts) => {
     const [view, sort] = opts;
@@ -38,7 +38,7 @@ function buildTemplateDoc(home: HomeModel, doc: Document, workspace: Workspace, 
   if (view === 'icons') {
     return buildPinnedDoc(home, doc, workspace, true);
   }
- else {
+  else {
     return css.docRowWrapper(
       cssDocRowLink(
         urlState().setLinkUrl({...docUrl(doc), org: workspace.orgDomain}),

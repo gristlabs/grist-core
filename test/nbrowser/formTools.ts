@@ -17,7 +17,7 @@ export function element(type: string, arg1?: number | WebElement, arg2?: WebElem
       });
     return extra(new WebElementPromise(driver, nth));
   }
- else {
+  else {
     return extra((arg1 ?? driver).find(`.active_section .test-forms-${type}`));
   }
 }
@@ -32,7 +32,7 @@ export async function labels() {
 
 export function question(label: string) {
   return extra(driver.findContent(`.active_section .test-forms-label`, new RegExp('^' + escapeRegExp(label) + '\\*?$'))
-                     .findClosest('.test-forms-editor'));
+    .findClosest('.test-forms-editor'));
 }
 
 export function questionDrag(label: string) {
@@ -154,7 +154,7 @@ export async function formSchema(): Promise<FormElement[]> {
     if (type === 'Field') {
       label = await el.find('.test-forms-label').getText();
     }
- else {
+    else {
       content = await el.getText();
     }
 

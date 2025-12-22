@@ -26,7 +26,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
         prefs = appModel.currentValidUser.prefs;
         saveBack = newPrefs => appModel.currentValidUser && (appModel.currentValidUser.prefs = newPrefs);
       }
- else {
+      else {
         prefs = appModel.currentOrg?.[prefsTypeName];
         saveBack = newPrefs => appModel.currentOrg && (appModel.currentOrg[prefsTypeName] = newPrefs);
       }
@@ -44,7 +44,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
             });
         });
     }
- else {
+    else {
       const userId = appModel.currentUser?.id || 0;
       const jsonPrefsObs = localStorageObs(`${prefsTypeName}:u=${userId}`);
       return Computed.create(null, jsonPrefsObs, (use, p) => (p && JSON.parse(p) || {}) as PrefsType)
@@ -76,7 +76,7 @@ function makePrefFunctions<P extends keyof PrefsTypes>(prefsTypeName: P) {
         try {
           checker.check(value);
         }
- catch (e) {
+        catch (e) {
           console.error(`getPrefObs: preference ${prefName.toString()} has value of invalid type`, e);
           return defaultValue;
         }
@@ -110,13 +110,13 @@ export function markAsSeen<T>(seenIdsObs: Observable<T[] | undefined>, itemId: T
       if (isSeen) {
         seen.add(itemId);
       }
- else {
+      else {
         seen.delete(itemId);
       }
       seenIdsObs.set([...seen].sort());
     }
   }
- catch (e) {
+  catch (e) {
     // If we fail to save this preference, it's probably not worth alerting the user about,
     // so just log to console.
     // tslint:disable-next-line:no-console

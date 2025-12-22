@@ -20,8 +20,8 @@ import {WidgetRepositoryImpl} from 'app/server/lib/WidgetRepository';
 const tiCheckers = t.createCheckers(ITestingHooksTI, {UserProfile: t.name("object")});
 
 export function startTestingHooks(socketPath: string, port: number,
-                                  comm: Comm, flexServer: FlexServer,
-                                  workerServers: FlexServer[]): Promise<net.Server> {
+  comm: Comm, flexServer: FlexServer,
+  workerServers: FlexServer[]): Promise<net.Server> {
   // Create socket server listening on the given path for testing connections.
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -32,8 +32,8 @@ export function startTestingHooks(socketPath: string, port: number,
       const rpc = connectToSocket(new Rpc({logger: {}}), socket);
       // Register the testing implementation.
       rpc.registerImpl('testing',
-                       new TestingHooks(port, comm, flexServer, workerServers),
-                       tiCheckers.ITestingHooks);
+        new TestingHooks(port, comm, flexServer, workerServers),
+        tiCheckers.ITestingHooks);
     });
     server.listen(socketPath);
   });
@@ -146,7 +146,7 @@ export class TestingHooks implements ITestingHooks {
       if (limits.maxReservationSize === null) {
         (Client.jsonMemoryPool as any)._updateReserved = orig;
       }
- else {
+      else {
         // Monkey-patch reservation logic to simulate unexpected failures.
         const jsonMemoryThrowLimit = limits.maxReservationSize;
         function updateReservedWithLimit(this: typeof Client.jsonMemoryPool, sizeDelta: number) {
@@ -174,7 +174,7 @@ export class TestingHooks implements ITestingHooks {
   }
 
   public async setDocWorkerActivation(workerId: string, active: 'active'|'inactive'|'crash'):
-    Promise<void> {
+  Promise<void> {
     log.info("TestingHooks.setDocWorkerActivation called with", workerId, active);
     const matches = this._workerServers.filter(
       server => server.worker.id === workerId ||
@@ -242,7 +242,7 @@ export class TestingHooks implements ITestingHooks {
     if (value == null) {
       delete DiscourseConnectDeps[key];
     }
- else {
+    else {
       DiscourseConnectDeps[key] = value;
     }
     return prev;
@@ -265,14 +265,14 @@ export class TestingHooks implements ITestingHooks {
     if (errType === 'exception') {
       setTimeout(() => { throw new Error("TestingHooks: Fake exception"); }, 0);
     }
- else if (errType === 'rejection') {
+    else if (errType === 'rejection') {
       void(Promise.resolve(null).then(() => { throw new Error("TestingHooks: Fake rejection"); }));
     }
- else if (errType === 'error-event') {
+    else if (errType === 'error-event') {
       const emitter = new EventEmitter();
       setTimeout(() => emitter.emit('error', new Error('TestingHooks: Fake error-event')), 0);
     }
- else {
+    else {
       throw new Error(`Unrecognized errType ${errType}`);
     }
   }

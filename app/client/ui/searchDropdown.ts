@@ -3,7 +3,7 @@
 // items to bring best matches at the top.
 
 import { ACIndexImpl, ACIndexOptions, ACItem, buildHighlightedDom, HighlightFunc,
-         normalizeText } from "app/client/lib/ACIndex";
+  normalizeText } from "app/client/lib/ACIndex";
 import { makeT } from 'app/client/lib/localization';
 import { getOptionFull, SimpleList } from "app/client/lib/simpleList";
 import { theme, vars } from 'app/client/ui2018/cssVars';
@@ -141,8 +141,8 @@ class DropdownWithSearch<T> extends Disposable {
 
   private _buildItem(item: OptionItem<T>) {
     return item instanceof TruncatedListItem ?
-        [this._buildTruncatedMsgItem(item), testId('truncated-message')] :
-        [buildHighlightedDom(item.label, this._highlightFunc, cssMatchText), testId('searchable-list-item')];
+      [this._buildTruncatedMsgItem(item), testId('truncated-message')] :
+      [buildHighlightedDom(item.label, this._highlightFunc, cssMatchText), testId('searchable-list-item')];
   }
 
   private _buildTruncatedMsgItem(item: TruncatedListItem<T>) {

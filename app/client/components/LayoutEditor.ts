@@ -317,7 +317,7 @@ class DropTargeter extends Disposable {
     // wide boxes stacked vertically), and use properties that are named using the up-down
     // situation, but whose values might reflect a left-right situation.
     const pTop = upDown ? 'top' : 'left', pHeight = upDown ? 'height' : 'width',
-          pLeft = upDown ? 'left' : 'top', pWidth = upDown ? 'width' : 'height';
+      pLeft = upDown ? 'left' : 'top', pWidth = upDown ? 'width' : 'height';
     let totalHeight = upDown ? overlay.hBorder! : overlay.vBorder!;
     const singleHeight = Math.floor(totalHeight / targetParts.length);
 
@@ -336,25 +336,25 @@ class DropTargeter extends Disposable {
       targetParts.map((part, index) => {
         const rect = part.box.dom!.getBoundingClientRect();
         return dom('div.layout_editor_drop_target', (elem: HTMLDivElement) => {
-            elem.style[pHeight] = (singleHeight + 1) + 'px'; // 1px of overlap for better looks
-            elem.style[pWidth] = rect[pWidth] + 'px';
-            elem.style[pLeft] = (rect[pLeft] - outerRect[pLeft]) + 'px';
-            elem.style[pTop] = (singleHeight * index) + 'px';
-          },
-          dom.on('mouseenter', function(this: HTMLElement) {
-            this.classList.add("layout_hover");
-            self.activeTarget = part;
-            const padDir = upDown ? (isAfter ? 'Bottom' : 'Top') : (isAfter ? 'Right' : 'Left');
-            const padding = 'padding' + padDir;
-            part.box.dom!.style.transition = 'padding .3s';
-            part.box.dom!.style[padding as any] = '20px';
-          }),
-          dom.on('mouseleave', function(this: HTMLElement) {
-            this.classList.remove("layout_hover");
-            self.activeTarget = null;
-            part.box.dom!.style.padding = '0';
-          }),
-          dom.on('transitionend', this.triggerInsertion.bind(this, part)),
+          elem.style[pHeight] = (singleHeight + 1) + 'px'; // 1px of overlap for better looks
+          elem.style[pWidth] = rect[pWidth] + 'px';
+          elem.style[pLeft] = (rect[pLeft] - outerRect[pLeft]) + 'px';
+          elem.style[pTop] = (singleHeight * index) + 'px';
+        },
+        dom.on('mouseenter', function(this: HTMLElement) {
+          this.classList.add("layout_hover");
+          self.activeTarget = part;
+          const padDir = upDown ? (isAfter ? 'Bottom' : 'Top') : (isAfter ? 'Right' : 'Left');
+          const padding = 'padding' + padDir;
+          part.box.dom!.style.transition = 'padding .3s';
+          part.box.dom!.style[padding as any] = '20px';
+        }),
+        dom.on('mouseleave', function(this: HTMLElement) {
+          this.classList.remove("layout_hover");
+          self.activeTarget = null;
+          part.box.dom!.style.padding = '0';
+        }),
+        dom.on('transitionend', this.triggerInsertion.bind(this, part)),
         );
       }),
     );
@@ -366,7 +366,7 @@ class DropTargeter extends Disposable {
       if (part.isChild) {
         part.box.addChild(box, part.isAfter);
       }
- else {
+      else {
         part.box.addSibling(box, part.isAfter);
       }
     });
@@ -605,7 +605,7 @@ export class LayoutEditor extends Disposable {
       if (this.dropTargeter.activeTarget) {
         this.dropTargeter.accelerateInsertion();
       }
- else {
+      else {
         resizeLayoutBox(this.targetBox!, 'reset');
       }
     }
@@ -699,7 +699,7 @@ export class LayoutEditor extends Disposable {
       const affinity = this.dropOverlay.getAffinity(event);
       this.dropTargeter.updateTargetHints(hoverBox, affinity, this.dropOverlay, this.targetBox!);
     }
- else if (!dom.findAncestor(event.target, this.rootElem, '.layout_editor_drop_target')) {
+    else if (!dom.findAncestor(event.target, this.rootElem, '.layout_editor_drop_target')) {
       this.dropTargeter.removeTargetHints();
     }
   }
@@ -802,7 +802,7 @@ function resizeLayoutBox(layoutBox: LayoutBox, sizeRect: string|DOMRect) {
   if (layoutBox.isHBox()) {
     layoutBox.dom!.style.height = (reset ? '' : (collapse ? '0px' : (sizeRect as DOMRect).height + 'px'));
   }
- else {
+  else {
     layoutBox.dom!.style.width = (reset ? '' : (collapse ? '0px' : (sizeRect as DOMRect).width + 'px'));
   }
   layoutBox.dom!.style.opacity = collapse ? '0.0' : '1.0';
@@ -836,20 +836,20 @@ function resizeLayoutBoxSmoothly(layoutBox: LayoutBox, startRect: string|DOMRect
     dom.once(layoutBox.dom, 'transitionend', function() { resolve(); });
     resizeLayoutBox(layoutBox, endRect);
   })
-  .timeout(600)    // Transitions are only 400ms long, so complain if nothing happened for longer.
-  .catch(Promise.TimeoutError, function() {
-    console.error("LayoutEditor.resizeLayoutBoxSmoothly %s %s->%s: transition didn't run",
-      layoutBox, rectDesc(startRect), rectDesc(endRect));
+    .timeout(600)    // Transitions are only 400ms long, so complain if nothing happened for longer.
+    .catch(Promise.TimeoutError, function() {
+      console.error("LayoutEditor.resizeLayoutBoxSmoothly %s %s->%s: transition didn't run",
+        layoutBox, rectDesc(startRect), rectDesc(endRect));
     // We keep going. It should look like something's wrong and jumpy, but it should still be
     // usable and not cause errors elsewhere.
-  })
-  .finally(function() {
-    if (!layoutBox.dom) {
-      return;
-    }
-    layoutBox.dom.classList.remove('layout_editor_resize_transition');
-    layoutBox.dom.style.flexGrow = prevFlexGrow;
-  });
+    })
+    .finally(function() {
+      if (!layoutBox.dom) {
+        return;
+      }
+      layoutBox.dom.classList.remove('layout_editor_resize_transition');
+      layoutBox.dom.style.flexGrow = prevFlexGrow;
+    });
 }
 
 

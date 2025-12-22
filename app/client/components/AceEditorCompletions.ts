@@ -150,7 +150,7 @@ function initCustomCompleter() {
             funcname,
           };
         }
- else {
+        else {
           return {
             value: suggestion,
             caption: suggestion,
@@ -283,7 +283,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
       // Just being cautious, this shouldn't happen.
       console.warn(`Example "${rowData.example}" does not match caption "${rowData.caption}"`);
     }
- else {
+    else {
       exampleStart = rowData.caption.length - rowData.example.length;
     }
   }
@@ -300,11 +300,11 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
         newTokens.push({value: t.value.slice(0, end), type: t.type});
         newTokens.push({value: t.value.slice(end), type: 'grist_example'});
       }
- else {
+      else {
         newTokens.push({value: t.value, type: 'grist_example'});
       }
     }
- else {
+    else {
       // Handle links to documentation.
       // lStart/lEnd are indices of the link within the token, possibly negative.
       const lStart = linkStart - position, lEnd = linkEnd - position;
@@ -321,7 +321,7 @@ function retokenizeAceCompleterRow(rowData: AceSuggestion, tokens: Ace.Token[]):
           newTokens.push({value: afterLink, type: t.type});
         }
       }
- else {
+      else {
         newTokens.push(t);
       }
     }

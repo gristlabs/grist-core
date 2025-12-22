@@ -80,9 +80,9 @@ describe('removedAt', function() {
       assert.equal((await api.getDoc(doc11)).name, 'doc11');
       assert.typeOf((await api.getDoc(doc11)).removedAt, 'undefined');
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')),
-                       ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
+        ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
       assert.deepEqual(workspaceNames(await api.getOrgWorkspaces('current')),
-                       ['ws1', 'ws2', 'ws3', 'ws4']);
+        ['ws1', 'ws2', 'ws3', 'ws4']);
       assert.deepEqual(docNames(await api.getWorkspace(ws1)), ['doc11', 'doc12']);
       assert.deepEqual(docNames(await api.getWorkspace(ws2)), ['doc21', 'doc22']);
       assert.deepEqual(docNames(await api.getWorkspace(ws3)), ['doc31']);
@@ -95,7 +95,7 @@ describe('removedAt', function() {
       await assert.isRejected(api.getDoc(doc11), /not found/);
       assert.deepEqual(docNames(await api.getWorkspace(ws1)), ['doc12']);
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')),
-                       ['ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
+        ['ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
 
       // Check that various related endpoints are forbidden
       let docApi = api.getDocAPI(doc11);
@@ -109,9 +109,9 @@ describe('removedAt', function() {
       assert.deepEqual(docNames(await xapi.getWorkspace(ws1)), ['doc11']);
       await assert.isRejected(xapi.getWorkspace(ws2), /not found/);
       assert.deepEqual(docNames(await xapi.getOrgWorkspaces('current')),
-                       ['ws1:doc11']);
+        ['ws1:doc11']);
       assert.deepEqual(workspaceNames(await xapi.getOrgWorkspaces('current')),
-                       ['ws1']);
+        ['ws1']);
 
       docApi = xapi.getDocAPI(doc11);
       await assert.isFulfilled(docApi.getSnapshots());
@@ -130,7 +130,7 @@ describe('removedAt', function() {
       await assert.isRejected(api.getDoc(doc31), /not found/);
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')), ['ws2:doc21', 'ws2:doc22']);
       assert.deepEqual(workspaceNames(await api.getOrgWorkspaces('current')),
-                       ['ws1', 'ws2', 'ws3', 'ws4']);
+        ['ws1', 'ws2', 'ws3', 'ws4']);
       assert.deepEqual(docNames(await api.getWorkspace(ws1)), []);
       assert.deepEqual(docNames(await api.getWorkspace(ws3)), []);
 
@@ -145,9 +145,9 @@ describe('removedAt', function() {
       assert.deepEqual(docNames(await xapi.getWorkspace(ws3)), ['doc31']);
       await assert.isRejected(xapi.getWorkspace(ws2), /not found/);
       assert.deepEqual(docNames(await xapi.getOrgWorkspaces('current')),
-                       ['ws1:doc11', 'ws1:doc12', 'ws3:doc31']);
+        ['ws1:doc11', 'ws1:doc12', 'ws3:doc31']);
       assert.deepEqual(workspaceNames(await xapi.getOrgWorkspaces('current')),
-                       ['ws1', 'ws3']);
+        ['ws1', 'ws3']);
     });
 
     it('can revert soft-deleted docs', async function() {
@@ -160,7 +160,7 @@ describe('removedAt', function() {
       assert.equal((await api.getDoc(doc11)).name, 'doc11');
       assert.typeOf((await api.getDoc(doc11)).removedAt, 'undefined');
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')),
-                       ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
+        ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
       assert.deepEqual(docNames(await api.getWorkspace(ws1)), ['doc11', 'doc12']);
 
       // Check that no "trash" is visible anymore
@@ -185,7 +185,7 @@ describe('removedAt', function() {
       await assert.isRejected(api.getWorkspace(ws3), /not found/);
       await assert.isRejected(api.getWorkspace(ws4), /not found/);
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')),
-                       ['ws2:doc21', 'ws2:doc22']);
+        ['ws2:doc21', 'ws2:doc22']);
 
       // Check that workspaces are visible via forRemoved api
       assert.equal((await xapi.getWorkspace(ws1)).name, 'ws1');
@@ -205,7 +205,7 @@ describe('removedAt', function() {
       assert.deepEqual(docNames(await xapi.getWorkspace(ws3)), ['doc31']);
       assert.deepEqual(docNames(await xapi.getWorkspace(ws4)), []);
       assert.deepEqual(docNames(await xapi.getOrgWorkspaces('current')),
-                       ['ws1:doc11', 'ws1:doc12', 'ws3:doc31']);
+        ['ws1:doc11', 'ws1:doc12', 'ws3:doc31']);
     });
 
     it('can combine soft-deleted workspaces and soft-deleted docs', async function() {
@@ -213,9 +213,9 @@ describe('removedAt', function() {
       await api.softDeleteDoc(doc21);
       await xapi.softDeleteDoc(doc11);
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')),
-                       ['ws2:doc22']);
+        ['ws2:doc22']);
       assert.deepEqual(docNames(await xapi.getOrgWorkspaces('current')),
-                       ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws3:doc31']);
+        ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws3:doc31']);
     });
 
     it('can revert soft-deleted workspaces', async function() {
@@ -230,7 +230,7 @@ describe('removedAt', function() {
       assert.equal((await api.getDoc(doc11)).name, 'doc11');
       assert.typeOf((await api.getDoc(doc11)).removedAt, 'undefined');
       assert.deepEqual(docNames(await api.getOrgWorkspaces('current')),
-                       ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
+        ['ws1:doc11', 'ws1:doc12', 'ws2:doc21', 'ws2:doc22', 'ws3:doc31']);
       assert.deepEqual(docNames(await api.getWorkspace(ws1)), ['doc11', 'doc12']);
 
       // Check that no "trash" is visible anymore
@@ -366,18 +366,18 @@ describe('removedAt', function() {
 
     it('respects permanent flag on /api/docs/:did/remove', async function() {
       await bapi.testRequest(`${api.getBaseUrl()}/api/docs/${doc11}/remove`,
-                             {method: 'POST'});
+        {method: 'POST'});
       await bapi.testRequest(`${api.getBaseUrl()}/api/docs/${doc12}/remove?permanent=1`,
-                             {method: 'POST'});
+        {method: 'POST'});
       await api.undeleteDoc(doc11);
       await assert.isRejected(api.undeleteDoc(doc12), /not found/);
     });
 
     it('respects permanent flag on /api/workspaces/:wid/remove', async function() {
       await bapi.testRequest(`${api.getBaseUrl()}/api/workspaces/${ws1}/remove`,
-                             {method: 'POST'});
+        {method: 'POST'});
       await bapi.testRequest(`${api.getBaseUrl()}/api/workspaces/${ws2}/remove?permanent=1`,
-                             {method: 'POST'});
+        {method: 'POST'});
       await api.undeleteWorkspace(ws1);
       await assert.isRejected(api.undeleteWorkspace(ws2), /not found/);
     });
@@ -389,7 +389,7 @@ describe('removedAt', function() {
       await api.deleteDoc(tmp1);
       await api.softDeleteDoc(tmp2);
       await bapi.testRequest(`${api.getBaseUrl()}/api/docs/${tmp2}/remove?permanent=1`,
-                             {method: 'POST'});
+        {method: 'POST'});
       await assert.isRejected(api.undeleteDoc(tmp1));
       await assert.isRejected(api.undeleteDoc(tmp2));
     });
@@ -401,7 +401,7 @@ describe('removedAt', function() {
       await api.deleteWorkspace(tmp1);
       await api.softDeleteWorkspace(tmp2);
       await bapi.testRequest(`${api.getBaseUrl()}/api/workspaces/${tmp2}/remove?permanent=1`,
-                             {method: 'POST'});
+        {method: 'POST'});
       await assert.isRejected(api.undeleteWorkspace(tmp1));
       await assert.isRejected(api.undeleteWorkspace(tmp2));
     });

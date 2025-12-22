@@ -63,12 +63,12 @@ export function aclFormulaEditor(options: ACLFormulaOptions) {
       // The common variables.
       'user', 'rec', 'newRec',
     ]
-    .map<ISuggestionWithValue>(suggestion => [suggestion, null])   // null means no example value
-    .concat(
+      .map<ISuggestionWithValue>(suggestion => [suggestion, null])   // null means no example value
+      .concat(
       // Other completions that depend on doc schema or other rules.
-      expandAndFilterSuggestions(prefix, options.getSuggestions())
-      .map<ISuggestionWithValue>(s => [s.value, s.example || null]),
-    );
+        expandAndFilterSuggestions(prefix, options.getSuggestions())
+          .map<ISuggestionWithValue>(s => [s.value, s.example || null]),
+      );
   }
 
   setupAceEditorCompletions(editor, {getSuggestions});

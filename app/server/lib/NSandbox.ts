@@ -181,11 +181,11 @@ export class NSandbox implements ISandbox {
       if (options.minimalPipeMode !== false) {
         this._initializeMinimalPipeMode(sandboxProcess);
       }
- else {
+      else {
         this._initializeFivePipeMode(sandboxProcess);
       }
     }
- else {
+    else {
       // No child process. In this case, there should be a callback for
       // receiving and sending data.
       if (!sandboxProcess.getData) {
@@ -256,7 +256,7 @@ export class NSandbox implements ISandbox {
       this._lastResponseNumBytes = numBytes;
       return data;
     }
- finally {
+    finally {
       clearTimeout(slowCallCheck);
     }
   }
@@ -295,14 +295,14 @@ export class NSandbox implements ISandbox {
       this._streamToSandbox =
         (this.childProc.stdio as Stream[])[sandboxProcess.dataToSandboxDescriptor] as Writable;
     }
- else {
+    else {
       this._streamToSandbox = this.childProc.stdin!;
     }
     if (sandboxProcess.dataFromSandboxDescriptor) {
       this._streamFromSandbox =
         (this.childProc.stdio as Stream[])[sandboxProcess.dataFromSandboxDescriptor];
     }
- else {
+    else {
       this._streamFromSandbox = this.childProc.stdout!;
     }
     this._initializeStreamEvents();
@@ -363,10 +363,10 @@ export class NSandbox implements ISandbox {
         this._pendingReads.push([resolve, reject]);
       });
     }
- catch (e) {
+    catch (e) {
       throw new sandboxUtil.SandboxError(e.message);
     }
- finally {
+    finally {
       if (this._logTimes) {
         log.rawDebug('NSandbox pyCall', {
           ...this._logMeta,
@@ -393,7 +393,7 @@ export class NSandbox implements ISandbox {
     if (expected) {
       log.rawDebug(`Sandbox exited with code ${code} signal ${signal}`, this._logMeta);
     }
- else {
+    else {
       log.rawWarn(`Sandbox unexpectedly exited with code ${code} signal ${signal}`, this._logMeta);
     }
   }
@@ -421,7 +421,7 @@ export class NSandbox implements ISandbox {
     if (this._streamToSandbox) {
       return this._streamToSandbox.write(buf);
     }
- else {
+    else {
       if (!this._dataToSandbox) {
         throw new Error('no way to send data to sandbox');
       }
@@ -479,37 +479,37 @@ export class NSandbox implements ISandbox {
       if (!Array.isArray(data) || data.length === 0) {
         log.rawWarn("Sandbox invalid call from the sandbox", this._logMeta);
       }
- else {
+      else {
         const fname = data[0];
         const args = data.slice(1);
         log.rawDebug(`Sandbox got call to ${fname} (${args.length} args)`, this._logMeta);
         Promise.resolve()
-        .then(() => {
-          const func = this._exportedFunctions[fname];
-          if (!func) { throw new Error("No such exported function: " + fname); }
-          return func(...args);
-        })
-        .then((ret) => {
-          this._sendData(sandboxUtil.DATA, ret);
-        }, (err) => {
-          this._sendData(sandboxUtil.EXC, err.toString());
-        })
-        .catch((err) => {
-          log.rawDebug(`Sandbox sending response failed: ${err}`, this._logMeta);
-        });
+          .then(() => {
+            const func = this._exportedFunctions[fname];
+            if (!func) { throw new Error("No such exported function: " + fname); }
+            return func(...args);
+          })
+          .then((ret) => {
+            this._sendData(sandboxUtil.DATA, ret);
+          }, (err) => {
+            this._sendData(sandboxUtil.EXC, err.toString());
+          })
+          .catch((err) => {
+            log.rawDebug(`Sandbox sending response failed: ${err}`, this._logMeta);
+          });
       }
     }
- else {
+    else {
       // Handle return values for calls made to the sandbox.
       const resolvePair = this._pendingReads.shift();
       if (resolvePair) {
         if (msgCode === sandboxUtil.EXC) {
           resolvePair[1](new Error(data));
         }
- else if (msgCode === sandboxUtil.DATA) {
+        else if (msgCode === sandboxUtil.DATA) {
           resolvePair[0]({data, numBytes});
         }
- else {
+        else {
           log.rawWarn("Sandbox invalid message from sandbox", this._logMeta);
         }
       }
@@ -522,19 +522,19 @@ export class NSandbox implements ISandbox {
  */
 const spawners = {
   unsandboxed,        // No sandboxing, straight to host python.
-                      // This offers no protection to the host.
+  // This offers no protection to the host.
   docker,             // Run sandboxes in distinct docker containers.
   gvisor,             // Gvisor's runsc sandbox.
   macSandboxExec,     // Use "sandbox-exec" on Mac.
   pyodide,            // Run data engine using pyodide.
   skip: unsandboxed,  // Same as unsandboxed. Used to mean that the
-                      // user deliberately doesn't want sandboxing.
-                      // The "unsandboxed" setting is ambiguous in this
-                      // respect.
+  // user deliberately doesn't want sandboxing.
+  // The "unsandboxed" setting is ambiguous in this
+  // respect.
   sandboxed,          // Use whatever sandboxing is available. Tries in
-                      // order: gvisor, macSandboxExec, then finally
-                      // falling back on pyodide (which can be made
-                      // to run anywhere).
+  // order: gvisor, macSandboxExec, then finally
+  // falling back on pyodide (which can be made
+  // to run anywhere).
 };
 
 function isFlavor(flavor: string): flavor is keyof typeof spawners {
@@ -579,11 +579,11 @@ export class NSandboxCreator implements ISandboxCreator {
       if (!variants?.[flavor]) {
         throw new Error(`Unrecognized sandbox flavor: ${flavor}`);
       }
- else {
+      else {
         this._spawner = variants[flavor];
       }
     }
- else {
+    else {
       this._spawner = spawners[flavor];
     }
     this._flavor = flavor;
@@ -608,8 +608,8 @@ export class NSandboxCreator implements ISandboxCreator {
       deterministicMode: Boolean(process.env.LIBFAKETIME_PATH),
       logCalls: options.logCalls,
       logMeta: {flavor: this._flavor, command: this._command,
-                entryPoint: options.entryPoint || '(default)',
-                ...options.logMeta},
+        entryPoint: options.entryPoint || '(default)',
+        ...options.logMeta},
       logTimes: options.logTimes,
       command: this._command,
       preferredPythonVersion: this._preferredPythonVersion || options.preferredPythonVersion || '3',
@@ -638,7 +638,7 @@ function sandboxed(options: ISandboxOptions): SandboxProcess {
   if (hasRunsc) {
     return gvisor(options);
   }
- else if (hasSandboxExec) {
+  else if (hasSandboxExec) {
     return macSandboxExec(options);
   }
   return pyodide(options);
@@ -678,7 +678,7 @@ function unsandboxed(options: ISandboxOptions): SandboxProcess {
   }
   const command = findPython(options.command);
   const child = adjustedSpawn(command, commandArgs,
-                      {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
+    {cwd: path.join(process.cwd(), 'sandbox'), ...spawnOptions});
   return {
     name: 'unsandboxed',
     child,
@@ -732,7 +732,7 @@ function pyodide(options: ISandboxOptions): SandboxProcess {
       {cwd, ...spawnOptions},
     );
   }
- else {
+  else {
     log.rawDebug("Launching Pyodide sandbox via fork", { scriptPath, cwd, spawnOptions });
     child = fork(
       scriptPath,
@@ -775,7 +775,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
       which.sync('runsc');
       command = 'sandbox/gvisor/run.py';
     }
- catch(e) {
+    catch(e) {
       // Otherwise, don't try any heroics, user will need to
       // explicitly set the command.
       throw new Error('runsc not found');
@@ -828,7 +828,7 @@ function gvisor(options: ISandboxOptions): SandboxProcess {
     if (process.env.GRIST_CHECKPOINT_MAKE) {
       const child =
         adjustedSpawn(command, [...wrapperArgs.get(), '--checkpoint', process.env.GRIST_CHECKPOINT,
-                        `python3`, '--', ...pythonArgs, ...appendArgs]);
+          `python3`, '--', ...pythonArgs, ...appendArgs]);
       // We don't want process control for this.
       return {name: 'gvisor', child, control: () => new NoProcessControl(child)};
     }
@@ -1012,8 +1012,8 @@ function macSandboxExec(options: ISandboxOptions): SandboxProcess {
 
   const profileString = profile.join('\n');
   const child = spawn('/usr/bin/sandbox-exec',
-                      [...options.testSandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
-                      {cwd, env});
+    [...options.testSandboxArgs, '-p', profileString, command, ...pythonArgs, ...appendArgs],
+    {cwd, env});
   return {
     name: 'macSandboxExec',
     child,
@@ -1083,7 +1083,7 @@ function getAbsolutePaths(options: ISandboxOptions) {
   // in grist-core.  It is important to use real paths since we may be viewing
   // the file system through a narrow window in a container.
   const sandboxDir = path.join(realpathSync(path.join(process.cwd(), 'sandbox', 'grist')),
-                               '..');
+    '..');
   // Copy plugin options, and then make them absolute.
   if (options.importDir) {
     options.importDir = realpathSync(options.importDir);
@@ -1154,7 +1154,7 @@ function findPython(command: string|undefined): string {
     // is bundled with Grist. Not all the possibilities are needed (there are
     // multiple popular python bundles per OS).
     for (const possiblePath of [['bin', 'python'], ['bin', 'python3'],
-                                ['Scripts', 'python.exe'], ['python.exe']] as const) {
+      ['Scripts', 'python.exe'], ['python.exe']] as const) {
       const pythonPath = path.join(base, venv, ...possiblePath);
       if (fs.existsSync(pythonPath)) {
         return pythonPath;
@@ -1230,7 +1230,7 @@ function realpathSync(src: string) {
   try {
     return fs.realpathSync(src);
   }
- catch (e) {
+  catch (e) {
     return src;
   }
 }
@@ -1240,7 +1240,7 @@ function adjustedSpawn(cmd: string, args: string[], options?: SpawnOptionsWithou
   if (oomScoreAdj) {
     return spawn('choom', ['-n', oomScoreAdj, '--', cmd, ...args], options);
   }
- else {
+  else {
     return spawn(cmd, args, options);
   }
 }
@@ -1250,7 +1250,7 @@ function checkCommandExists(cmd: string) {
     which.sync(cmd);
     return true;
   }
- catch (e) {
+  catch (e) {
     if (!String(e).match(/not found/)) {
       throw e;
     }

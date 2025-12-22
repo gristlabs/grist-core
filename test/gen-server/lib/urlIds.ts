@@ -25,7 +25,7 @@ describe('urlIds', function() {
     await support.newDoc({name: 'an example', urlId: 'example'}, supportWorkspaceId);
     await support.updateWorkspacePermissions(supportWorkspaceId, {
       users: {'everyone@getgrist.com': 'viewers',
-              'anon@getgrist.com': 'viewers'},
+        'anon@getgrist.com': 'viewers'},
     });
     // Update special workspace informationn
     await home.dbManager.initializeSpecialIds();
@@ -53,7 +53,7 @@ describe('urlIds', function() {
       const ws2 = await getAnyWorkspace(api2);
       const doc1 = await api1.newDoc({name: 'testdoc1', urlId: 'urlid-common'}, ws1);
       await assert.isRejected(api2.newDoc({name: 'testdoc2', urlId: 'urlid-common'}, ws2),
-                              /urlId already in use/);
+        /urlId already in use/);
       assert((await api1.getDoc('urlid-common')).id, doc1);
       assert((await api1.getDoc('urlid-common')).urlId, 'urlid-common');
       await api1.deleteDoc(doc1);
@@ -76,7 +76,7 @@ describe('urlIds', function() {
       const api1 = await home.newSession().createHomeApi('testuser1', org);
       const ws1 = await getAnyWorkspace(api1);
       await assert.isRejected(api1.newDoc({name: 'my example', urlId: 'example'}, ws1),
-                              /urlId already in use/);
+        /urlId already in use/);
     });
 
     it(`cannot use an existing docId as a urlId in ${org}`, async function() {
@@ -91,9 +91,9 @@ describe('urlIds', function() {
         const api1 = await home.newSession().createHomeApi('testuser1', org);
         const ws1 = await getAnyWorkspace(api1);
         await assert.isRejected(api1.newDoc({name: 'my example', urlId: doc.id}, ws1),
-                                /urlId already in use as document id/);
+          /urlId already in use as document id/);
       }
- finally {
+      finally {
         doc.id = prevDocId;
         await doc.save();
       }
@@ -105,8 +105,8 @@ describe('urlIds', function() {
       await api1.newDoc({name: 'my example', urlId: `urlid-${org}`}, ws1);
       const support = await home.newSession().createHomeApi('Support', 'docs');
       await assert.isRejected(support.newDoc({name: 'my conflicting example',
-                                              urlId: `urlid-${org}`}, supportWorkspaceId),
-                              /urlId already in use/);
+        urlId: `urlid-${org}`}, supportWorkspaceId),
+      /urlId already in use/);
     });
   }
 

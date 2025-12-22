@@ -109,7 +109,7 @@ async function isAttachmentStoreOptionAvailable(option: ICreateAttachmentStoreOp
   try {
     return await option.isAvailable();
   }
- catch (error) {
+  catch (error) {
     log.error(`Error checking availability of store option '${option}'`, error);
     return false;
   }

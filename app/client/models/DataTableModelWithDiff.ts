@@ -233,20 +233,20 @@ export class TableDataWithDiff {
           remote: newValue(right),
         } as CellVersions];
       }
- else if (right !== undefined) {
+      else if (right !== undefined) {
         return [GristObjCode.Versions, {
           parent: oldValue(right),
           remote: newValue(right),
         } as CellVersions];
       }
- else if (left !== undefined) {
+      else if (left !== undefined) {
         return [GristObjCode.Versions, {
           parent: oldValue(left),
           local: newValue(left),
         } as CellVersions];
       }
     }
- else {
+    else {
       // keep row.id consistent with rowId for convenience.
       if (colId === 'id') { return rowId; }
       const {type, id} = ExtraRows.interpretRowId(rowId);
@@ -255,7 +255,7 @@ export class TableDataWithDiff {
         const value = (cell !== undefined) ? newValue(cell) : undefined;
         return value;
       }
- else if (type === 'local-remove') {
+      else if (type === 'local-remove') {
         const cell = this.leftTableDelta.columnDeltas[colId]?.[id];
         const value = (cell !== undefined) ? oldValue(cell) : undefined;
         return value;

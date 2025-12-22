@@ -167,8 +167,8 @@ export class SQLiteDB implements ISQLiteDB {
    * We report the migration error, and expose it via .migrationError property.
    */
   public static async openDB(dbPath: string, schemaInfo: SchemaInfo,
-                             mode: OpenMode = OpenMode.OPEN_CREATE,
-                             hooks: MigrationHooks = {}): Promise<SQLiteDB> {
+    mode: OpenMode = OpenMode.OPEN_CREATE,
+    hooks: MigrationHooks = {}): Promise<SQLiteDB> {
     const db = await SQLiteDB.openDBRaw(dbPath, mode);
     const userVersion: number = await db.getMigrationVersion();
 
@@ -177,11 +177,11 @@ export class SQLiteDB implements ISQLiteDB {
     if (userVersion === 0 && (await isGristEmpty(db))) {
       await db._initNewDB(schemaInfo);
     }
- else if (mode === OpenMode.CREATE_EXCL) {
+    else if (mode === OpenMode.CREATE_EXCL) {
       await db.close();
       throw new ErrorWithCode('EEXISTS', `EEXISTS: Database already exists: ${dbPath}`);
     }
- else {
+    else {
       // Don't attempt migrations in OPEN_READONLY mode.
       if (mode === OpenMode.OPEN_READONLY) {
         const targetVer: number = schemaInfo.migrations.length;
@@ -189,11 +189,11 @@ export class SQLiteDB implements ISQLiteDB {
           db._migrationError = new Error(`SQLiteDB[${dbPath}] needs migration but is readonly`);
         }
       }
- else {
+      else {
         try {
           db._migrationBackupPath = await db._migrate(userVersion, schemaInfo, hooks);
         }
- catch (err) {
+        catch (err) {
           db._migrationError = err;
         }
       }
@@ -207,7 +207,7 @@ export class SQLiteDB implements ISQLiteDB {
    * any migrations.
    */
   public static async openDBRaw(dbPath: string,
-                                mode: OpenMode = OpenMode.OPEN_CREATE): Promise<SQLiteDB> {
+    mode: OpenMode = OpenMode.OPEN_CREATE): Promise<SQLiteDB> {
     const minDb: MinDB = await getVariant().opener(dbPath, mode);
     if (SQLiteDB._addOpens(dbPath, 1) > 1) {
       log.warn("SQLiteDB[%s] avoid opening same DB more than once", dbPath);
@@ -223,7 +223,7 @@ export class SQLiteDB implements ISQLiteDB {
     try {
       return await db.getMigrationVersion();
     }
- finally {
+    finally {
       await db.close();
     }
   }
@@ -255,7 +255,7 @@ export class SQLiteDB implements ISQLiteDB {
     if (newCount > 0) {
       SQLiteDB._openPaths.set(dbPath, newCount);
     }
- else {
+    else {
       SQLiteDB._openPaths.delete(dbPath);
     }
     return newCount;
@@ -357,7 +357,7 @@ export class SQLiteDB implements ISQLiteDB {
     try {
       await this.exec("VACUUM");
     }
- finally {
+    finally {
       await this._db.limitAttach(0);  // Outside of VACUUM, we don't allow ATTACH.
     }
   }
@@ -372,11 +372,11 @@ export class SQLiteDB implements ISQLiteDB {
         if (Array.isArray(stmt)) {
           await this.run(stmt[0], ...stmt[1]);
         }
- else {
+        else {
           await this.exec(stmt);
         }
       }
- catch (err) {
+      catch (err) {
         log.warn(`SQLiteDB: Failed to run ${stmt}`);
         throw err;
       }
@@ -400,7 +400,7 @@ export class SQLiteDB implements ISQLiteDB {
           await this._db.close();
           break;
         }
- catch (e) {
+        catch (e) {
           if (String(e).match(/SQLITE_BUSY: unable to close due to unfinalized statements or unfinished backups/)) {
             // Try again! now that this._closed is set, any pending backup should stop.
             // It will stop quickly if in the middle of a backup, or more slowly if on
@@ -410,7 +410,7 @@ export class SQLiteDB implements ISQLiteDB {
             }
             await delay(100);
           }
- else {
+          else {
             throw e;
           }
         }
@@ -462,12 +462,12 @@ export class SQLiteDB implements ISQLiteDB {
       // Then assign that promise to _prevTransaction and wait for it.
       return await (
         this._prevTransaction =
-            this._prevTransaction.catch(noop).then(
-              () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback)),
-            )
+          this._prevTransaction.catch(noop).then(
+            () => asyncLocalStorage.run(true, () => this._execTransactionImpl(callback)),
+          )
       );
     }
- finally {
+    finally {
       if (this._needVacuum) {
         await this.requestVacuum();
       }
@@ -534,14 +534,14 @@ export class SQLiteDB implements ISQLiteDB {
       // of this callback, that should be the case.
       const value = await callback();
       await this.exec("COMMIT");
-        return value;
+      return value;
     }
- catch (err) {
+    catch (err) {
       try {
         await this.exec("ROLLBACK");
       }
- catch (rollbackErr) {
-          log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
+      catch (rollbackErr) {
+        log.error("SQLiteDB[%s]: Rollback failed: %s", this._dbPath, rollbackErr);
       }
       throw err;    // Throw the original error from the transaction.
     }
@@ -566,7 +566,7 @@ export class SQLiteDB implements ISQLiteDB {
    * needed, returns null. If migration failed, leaves DB unchanged and throws Error.
    */
   private async _migrate(actualVer: number, schemaInfo: SchemaInfo,
-                         hooks: MigrationHooks): Promise<string|null> {
+    hooks: MigrationHooks): Promise<string|null> {
     const targetVer: number = schemaInfo.migrations.length;
     let backupPath: string|null = null;
     let success: boolean = false;
@@ -575,7 +575,7 @@ export class SQLiteDB implements ISQLiteDB {
       log.warn("SQLiteDB[%s]: DB is at version %s ahead of target version %s",
         this._dbPath, actualVer, targetVer);
     }
- else if (actualVer < targetVer) {
+    else if (actualVer < targetVer) {
       log.info("SQLiteDB[%s]: DB needs migration from version %s to %s",
         this._dbPath, actualVer, targetVer);
       const versions = range(actualVer, targetVer);
@@ -595,7 +595,7 @@ export class SQLiteDB implements ISQLiteDB {
         log.info("SQLiteDB[%s]: DB backed up to %s, migrated to %s",
           this._dbPath, backupPath, targetVer);
       }
- catch (err) {
+      catch (err) {
         // If the transaction failed, we trust SQLite to have left the DB in unmodified state, so
         // we remove the pointless backup.
         await fse.remove(backupPath);
@@ -605,7 +605,7 @@ export class SQLiteDB implements ISQLiteDB {
         err.message = `SQLiteDB[${this._dbPath}] migration to ${targetVer} failed: ${err.message}`;
         throw err;
       }
- finally {
+      finally {
         await hooks.afterMigration?.(targetVer, success);
       }
     }
@@ -655,7 +655,7 @@ async function isGristEmpty(db: SQLiteDB): Promise<boolean> {
  */
 async function createBackupFile(filePath: string, versionNum: number): Promise<string> {
   const backupPath = await docUtils.createNumberedTemplate(
-   `${filePath}.${timeFormat('D', new Date())}.V${versionNum}{NUM}.bak`,
+    `${filePath}.${timeFormat('D', new Date())}.V${versionNum}{NUM}.bak`,
     docUtils.createExclusive);
   await docUtils.copyFile(filePath, backupPath);
   return backupPath;

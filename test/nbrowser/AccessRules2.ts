@@ -59,12 +59,12 @@ describe("AccessRules2", function() {
     assert.equal(await driver.findContent('.test-acl-user-item', email2)
       .find('.test-acl-user-access').getText(), '(Owner)');
     assert.equal(await driver.findContent('.test-acl-user-item', email3)
-                 .find('.test-acl-user-access').getText(), '(Editor)');
+      .find('.test-acl-user-access').getText(), '(Editor)');
 
     // Check examples are present.
     assert.deepEqual(
       (await driver.findAll('.test-acl-user-item span', e => e.getText()))
-      .filter(txt => txt.includes('@example')),
+        .filter(txt => txt.includes('@example')),
       ['owner@example.com', 'editor1@example.com', 'editor2@example.com', 'viewer@example.com', 'unknown@example.com']);
 
     // Add a user attribute table.
@@ -95,7 +95,7 @@ describe("AccessRules2", function() {
     // Check users from attribute table are present.
     assert.deepEqual(
       (await driver.findAll('.test-acl-user-item span', e => e.getText()))
-      .filter(txt => txt.includes('@speed')),
+        .filter(txt => txt.includes('@speed')),
       ['fast@speed.com', 'slow@speed.com']);
 
     // 'View As' is present, except for current user.
@@ -115,7 +115,7 @@ describe("AccessRules2", function() {
     // Check for a tag in the doc header.
     assert.equal(await driver.findWait('.test-view-as-banner', 2000).isPresent(), true);
     assert.match(await driver.find('.test-view-as-banner .test-select-open').getText(),
-                 new RegExp(gu.translateUser('user3').name, 'i'));
+      new RegExp(gu.translateUser('user3').name, 'i'));
     assert.equal(await driver.find('.test-info-tooltip.test-view-as-help-tooltip').isDisplayed(), true);
 
     // check the aclAsUser parameter on the url persists after navigating to another page
@@ -156,7 +156,7 @@ describe("AccessRules2", function() {
 
     // check name
     assert.match(await driver.find('.test-view-as-banner .test-select-open').getText(),
-                 new RegExp(gu.translateUser('user3').name, 'i'));
+      new RegExp(gu.translateUser('user3').name, 'i'));
 
     // select other user
     await driver.find('.test-view-as-banner .test-select-open').click();
@@ -322,7 +322,7 @@ describe("AccessRules2", function() {
     await ruleSet.find('.test-rule-part .test-rule-add').click();
     // newRec term in the following does nothing, it is just there to test renaming later.
     await enterRulePart(ruleSet, 1, `not user.MyAccess.SharedOnly or rec.Shared or newRec.Shared`,
-                        {R: 'allow'});
+      {R: 'allow'});
     await enterRulePart(ruleSet, 2, null, 'Deny all');
     await driver.find('.test-rules-save').click();
     await gu.waitToPass(async () => {
@@ -429,7 +429,7 @@ describe("AccessRules2", function() {
 
     // Check that it's what we see.
     assert.deepEqual(await driver.findAll('.test-rule-userattr-attr', getRuleText),
-        ['user.Email']);
+      ['user.Email']);
     assert.deepEqual(await driver.findAll('.test-rule-userattr .test-select-open', el => el.getText()),
       ['Access', 'Email']);
     assert.match(await driver.find('.test-rule-table-header').getText(), / ClientsTable$/);
@@ -683,7 +683,7 @@ describe("AccessRules2", function() {
 
     // Check only the remaining column is mentioned.
     assert.deepEqual(await driver.findAll('.test-acl-column', el => el.getText()),
-                     ['A']);
+      ['A']);
 
     // Remove TmpTable2.
     await gu.removePage('TmpTable2', {withData: true});

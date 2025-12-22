@@ -153,11 +153,11 @@ export class TableMetadataLoader {
     try {
       return await this._options.fetchTable(tableId);
     }
- catch (err) {
+    catch (err) {
       if (/no such table/.test(err.message)) { return null; }
       throw err;
     }
- finally {
+    finally {
       this._fetched.add(tableId);
       this._update();
     }
@@ -182,7 +182,7 @@ export class TableMetadataLoader {
 
     // Get a list of new pushes that will be needed.
     const newPushes = new Set([...this._fetched]
-                              .filter(tableId => !(this._pushes.has(tableId) ||
+      .filter(tableId => !(this._pushes.has(tableId) ||
                                                    this._pushed.has(tableId))));
 
     // Be careful to do the core push first, once we can.
@@ -205,7 +205,7 @@ export class TableMetadataLoader {
       // Mark the promise as handled to avoid "unhandledRejection", but without affecting other
       // code (which will still see `promise`, not the new promise returned by `.catch()`).
       promise.catch(() => {});
-   }
+    }
   }
 
   // Wrapper to keep track of pending promises.
@@ -214,7 +214,7 @@ export class TableMetadataLoader {
     try {
       return await op;
     }
- finally {
+    finally {
       this._pending--;
     }
   }

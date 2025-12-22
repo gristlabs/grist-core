@@ -14,7 +14,7 @@ describe('TestingHooks', function() {
     try {
       assert.equal(await stub.getPort(), 192348);
     }
- finally {
+    finally {
       server.close();
       stub.close();
     }

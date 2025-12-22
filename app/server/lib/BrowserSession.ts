@@ -63,11 +63,11 @@ export interface SessionObj {
   alive?: number;
 
   altSessionId?: string;  // An ID unique to the session, but which isn't related
-                          // to the session id used to lookup the cookie. This ID
-                          // is suitable for embedding in documents that allows
-                          // anonymous editing (e.g. to allow the user to edit
-                          // something they just added, without allowing the suer
-                          // to edit other people's contributions).
+  // to the session id used to lookup the cookie. This ID
+  // is suitable for embedding in documents that allows
+  // anonymous editing (e.g. to allow the user to edit
+  // something they just added, without allowing the suer
+  // to edit other people's contributions).
 
   oidc?: SessionOIDCInfo;
 }
@@ -119,7 +119,7 @@ export function getSessionProfiles(session: SessionObj): UserProfile[] {
  *
  */
 export function getSessionUser(session: SessionObj, org: string,
-                               userSelector: string): SessionUserObj|null {
+  userSelector: string): SessionUserObj|null {
   if (!session.users) { return null; }
   if (!session.users.length) { return null; }
 
@@ -176,9 +176,9 @@ export class ScopedSession {
    * by _sessionStore, for the organization identified by _scope.
    */
   constructor(private _sessionId: string,
-              private _sessionStore: SessionStore,
-              private _org: string,
-              private _userSelector: string) {
+    private _sessionStore: SessionStore,
+    private _org: string,
+    private _userSelector: string) {
     // Assume we need to skip cache in a hosted environment. GRIST_HOST is always set there.
     // TODO: find a cleaner way to configure this flag.
     this._live = Boolean(process.env.GRIST_HOST || process.env.GRIST_HOSTED);
@@ -209,7 +209,7 @@ export class ScopedSession {
     if (profile) {
       await this.updateUser(req, {profile});
     }
- else {
+    else {
       await this.clearScopedSession(req);
     }
   }
@@ -219,7 +219,7 @@ export class ScopedSession {
    *
    * @param {Partial<SessionUserObj>} newProps New property values to set.
    */
-   public async updateUser(req: Request, newProps: Partial<SessionUserObj>): Promise<void> {
+  public async updateUser(req: Request, newProps: Partial<SessionUserObj>): Promise<void> {
     await this.operateOnScopedSession(req, async user => ({...user, ...newProps}));
   }
 
@@ -236,7 +236,7 @@ export class ScopedSession {
    *
    */
   public async operateOnScopedSession(req: Request, op: (user: SessionUserObj) =>
-                                      Promise<SessionUserObj>): Promise<[SessionUserObj, SessionUserObj]> {
+  Promise<SessionUserObj>): Promise<[SessionUserObj, SessionUserObj]> {
     const session = await this._getSession(req);
     const user = await this.getScopedSession(session);
     const oldUser = JSON.parse(JSON.stringify(user));            // Old version to compare against.
@@ -244,7 +244,7 @@ export class ScopedSession {
     if (Object.keys(newUser).length === 0) {
       await this.clearScopedSession(req, session);
     }
- else {
+    else {
       await this._updateScopedSession(req, newUser, session);
     }
     return [oldUser, newUser];
@@ -288,7 +288,7 @@ export class ScopedSession {
         await fromCallback(cb => reqSession.reload(cb));
       }
     }
- catch (e) {
+    catch (e) {
       // (I've copied this from old code, not sure if continuing after a session save error is
       // something existing code depends on?)
       // Report and keep going. This ensures that the session matches what's in the sessionStore.

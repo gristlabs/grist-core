@@ -1,5 +1,5 @@
 import {Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne,
-        PrimaryGeneratedColumn, RelationId} from "typeorm";
+  PrimaryGeneratedColumn, RelationId} from "typeorm";
 
 import {Role} from "app/common/roles";
 import {OrganizationProperties, organizationPropertyKeys} from "app/common/UserAPI";

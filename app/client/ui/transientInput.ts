@@ -17,7 +17,7 @@ export interface ITransientInputOptions {
 }
 
 export function transientInput({initialValue, save, close}: ITransientInputOptions,
-                               ...args: Array<DomArg<HTMLInputElement>>) {
+  ...args: Array<DomArg<HTMLInputElement>>) {
   let lastSave: string = initialValue;
 
   async function onSave(explicitSave: boolean) {
@@ -28,7 +28,7 @@ export function transientInput({initialValue, save, close}: ITransientInputOptio
       }
       close();
     }
- catch (err) {
+    catch (err) {
       reportError(err);
       delayedFocus();
     }

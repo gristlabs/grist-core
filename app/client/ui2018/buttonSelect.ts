@@ -80,7 +80,7 @@ export function alignmentSelect(obs: Observable<string>, ...domArgs: DomElementA
  * Color selector button. Observable should contain a hex color value, e.g. #a4ba23.
  */
 export function colorSelect(value: Observable<string>, save: (val: string) => Promise<void>,
-                            ...domArgs: DomElementArg[]) {
+  ...domArgs: DomElementArg[]) {
   // On some machines (seen on chrome running on a Mac) the `change` event fires as many times as
   // the `input` event, hence the debounce. Also note that when user picks a first color and then a
   // second before closing the picker, it will create two user actions on Chrome, and only one in FF

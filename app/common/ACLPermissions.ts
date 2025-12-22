@@ -84,13 +84,13 @@ export function parsePermissions(permissionsText: string): PartialPermissionSet 
     if (ch === '+') {
       value = "allow";
     }
- else if (ch === '-') {
+    else if (ch === '-') {
       value = "deny";
     }
- else if (!PERMISSION_BITS.hasOwnProperty(ch) || value === "") {
+    else if (!PERMISSION_BITS.hasOwnProperty(ch) || value === "") {
       throw new Error(`Invalid permissions specification ${JSON.stringify(permissionsText)}`);
     }
- else {
+    else {
       const prop = PERMISSION_BITS[ch];
       pset[prop] = value;
     }
@@ -111,7 +111,7 @@ export function permissionSetToText(permissionSet: Partial<PartialPermissionSet>
     if (value === "allow") {
       add += ch;
     }
- else if (value === "deny") {
+    else if (value === "deny") {
       remove += ch;
     }
   }
@@ -227,7 +227,7 @@ function isEmpty(permissions: PartialPermissionSet): boolean {
  * when both are empty, in which case nonSchemaEdit will be returned as an empty permission set.
  */
 export function splitSchemaEditPermissionSet(permissions: PartialPermissionSet):
-    {schemaEdit?: PartialPermissionSet, nonSchemaEdit?: PartialPermissionSet} {
+{schemaEdit?: PartialPermissionSet, nonSchemaEdit?: PartialPermissionSet} {
 
   const schemaEdit = {...emptyPermissionSet(), schemaEdit: permissions.schemaEdit};
   const nonSchemaEdit: PartialPermissionSet = {...permissions, schemaEdit: ""};

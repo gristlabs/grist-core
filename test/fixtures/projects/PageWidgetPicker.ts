@@ -33,42 +33,42 @@ function setupTest() {
   return [
 
     domComputed( (use) => {
-        const isNewPage = use(isNewPageObs);
-        const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
-        return {isNewPage, value};
-      }, option => [
-        basicButton(
-          'Page widget picker',
-          pageWidgetPicker(onSelect, option),
-          testId('trigger'),
+      const isNewPage = use(isNewPageObs);
+      const value = use(valueOpt) ? () => valueOpt.get()! : undefined;
+      return {isNewPage, value};
+    }, option => [
+      basicButton(
+        'Page widget picker',
+        pageWidgetPicker(onSelect, option),
+        testId('trigger'),
+      ),
+      dom(
+        'div',
+        dom('h3', 'Options'),
+        dom(
+          'div', 'isNewPage: ',
+          dom(
+            'input', {type: 'checkbox'},
+            dom.prop('checked', isNewPageObs),
+            dom.on('change', (ev, elem) => isNewPageObs.set(elem.checked)),
+            testId('option-isNewPage'),
+          ),
         ),
         dom(
-          'div',
-          dom('h3', 'Options'),
+          'div', 'value: ', dom.text(use => JSON.stringify(use(valueOpt))),
           dom(
-            'div', 'isNewPage: ',
-            dom(
-              'input', {type: 'checkbox'},
-              dom.prop('checked', isNewPageObs),
-              dom.on('change', (ev, elem) => isNewPageObs.set(elem.checked)),
-              testId('option-isNewPage'),
-            ),
+            'button', 'Change',
+            pageWidgetPicker(async val => valueOpt.set(val), option),
+            testId('option-value'),
           ),
           dom(
-            'div', 'value: ', dom.text(use => JSON.stringify(use(valueOpt))),
-            dom(
-              'button', 'Change',
-              pageWidgetPicker(async val => valueOpt.set(val), option),
-              testId('option-value'),
-            ),
-            dom(
-              'button', 'omit',
-              dom.on('click', () => valueOpt.set(null)),
-              testId('option-omit-value'),
-            ),
+            'button', 'omit',
+            dom.on('click', () => valueOpt.set(null)),
+            testId('option-omit-value'),
           ),
         ),
-      ]),
+      ),
+    ]),
 
     cssCallLogs(
       dom('h3', 'Call logs: '),

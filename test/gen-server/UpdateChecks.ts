@@ -198,7 +198,7 @@ describe("UpdateChecks", function () {
       const resp = await axios.get(`${homeUrl}/api/version`, chimpy);
       assert.equal(resp.status, 404);
     }
- finally {
+    finally {
       testUtils.EnvironmentSnapshot.pop();
     }
 
@@ -253,7 +253,7 @@ describe("UpdateChecks", function () {
       if (isCritical === 'fail') {
         assert.equal(resp.status, 400);
       }
- else {
+      else {
         assert.equal(resp.status, 200);
         assert.equal(resp.data.isCritical, isCritical);
       }
@@ -295,7 +295,7 @@ async function dummyDockerHub() {
       if (odds++ % 2) {
         res.status(429).send("Too Many Requests");
       }
- else {
+      else {
         res.json(SECOND_PAGE);
       }
     });
@@ -309,7 +309,7 @@ async function dummyDockerHub() {
       if (errorCount <= 2) {
         res.status(500).send(String(errorCount));
       }
- else {
+      else {
         res.json(VERSION(errorCount));
       }
     });

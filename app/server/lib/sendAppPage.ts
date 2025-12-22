@@ -84,13 +84,13 @@ export function makeGristConfig(options: MakeGristConfigOptions): GristLoadConfi
     (homeUrl && new URL(homeUrl).hostname === 'localhost') || false;
   const mreq = req as RequestWithOrg|undefined;
 
-    // Configure form framing behavior.
+  // Configure form framing behavior.
 
   return {
     homeUrl,
     org: process.env.GRIST_SINGLE_ORG || (mreq && mreq.org),
     baseDomain,
-   // True if no subdomains or separate servers are defined for the home servers or doc workers.
+    // True if no subdomains or separate servers are defined for the home servers or doc workers.
     serveSameOrigin: !baseDomain && pathOnly,
     singleOrg: process.env.GRIST_SINGLE_ORG,
     helpCenterUrl: getHelpCenterUrl(),
@@ -203,9 +203,9 @@ export function makeSendAppPage({ server, staticDir, tag, testLogin, baseDomain 
       .map(lng => lng.replace('-', '_'))
       .map(lng =>
         readLoadedNamespaces(req.i18n).map(ns =>
-       `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`,
-      ).join("\n"),
-    ).join('\n');
+          `<link rel="preload" href="locales/${lng}.${ns}.json" as="fetch" type="application/json" crossorigin>`,
+        ).join("\n"),
+      ).join('\n');
     const content = fileContent
       .replace("<!-- INSERT WARNING -->", warning)
       .replace("<!-- INSERT TITLE -->", getDocName(config) ?? escapeExpression(translate(req, 'Loading...')))

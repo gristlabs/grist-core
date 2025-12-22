@@ -126,7 +126,7 @@ describe('FormView2', function() {
         // Verify that the form framing is now set to 'minimal'.
         assert.equal(await framing(), 'minimal', 'Form framing should be set to minimal');
       }
- finally {
+      finally {
         // Restore the environment variable to its original state.
         snap.restore();
         await server.restart();

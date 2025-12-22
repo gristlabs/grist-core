@@ -34,7 +34,7 @@ export class TestProxyServer {
           const axiosResponse = await axios.post(req.url, req.body);
           responseCode = axiosResponse.status;
         }
- catch (error: any) {
+        catch (error: any) {
           responseCode = error.response.status;
         }
         res.sendStatus(responseCode);

@@ -141,10 +141,10 @@ export class DocSettingsPage extends Disposable {
                 await docPageModel.appModel.api.updateDoc(docId, {options: {proposedChanges: {acceptProposals}}});
                 window.location.reload();
               }
- catch(e) {
+              catch(e) {
                 reportError(e);
               }
- finally {
+              finally {
                 this._working.set(false);
               }
             }),
@@ -177,7 +177,7 @@ export class DocSettingsPage extends Disposable {
                 ),
               );
             }
- else {
+            else {
               return cssSmallButtonSettings(t('Start timing'),
                 dom.on('click', this._startTiming.bind(this)),
                 testId('timing-start'),
@@ -312,7 +312,7 @@ document is first opened, or when a document responds to changes.',
         // There are no external providers (for now there can be at most 1).
         stores.set([]);
       }
- else {
+      else {
         stores.set([INTERNAL, EXTERNAL]);
       }
     });
@@ -324,9 +324,9 @@ document is first opened, or when a document responds to changes.',
     const attachmentsReady = Observable.create(this, false);
 
     Promise.all([
-        loadStatus(),
-        checkAvailableStores(),
-      ])
+      loadStatus(),
+      checkAvailableStores(),
+    ])
       .then(() => attachmentsReady.set(true))
       .catch(reportError);
 
@@ -406,7 +406,7 @@ document is first opened, or when a document responds to changes.',
           try {
             await this._uploadAttachmentsArchive(file);
           }
- finally {
+          finally {
             if (!isUploadingObs.isDisposed()) {
               isUploadingObs.set(false);
             }
@@ -446,7 +446,7 @@ document is first opened, or when a document responds to changes.',
         expireSec: 5,
       });
     }
- catch (err) {
+    catch (err) {
       reportWarning(err.toString(), {
         key: "attachmentArchiveUploadError",
         title: "Attachments upload failed",
@@ -487,7 +487,7 @@ No data will be lost, except possibly currently pending actions.',
           ctl.close();
           urlState().pushUrl({docPage: 'timing'}).catch(reportError);
         }
- else {
+        else {
           await this._gristDoc.docApi.startTiming();
           ctl.close();
         }
@@ -566,10 +566,10 @@ No data will be lost, except possibly currently pending actions.',
         if (selected.get() === DocTypeOption.Regular) {
           docType = DOCTYPE_NORMAL;
         }
- else if (selected.get() === DocTypeOption.Template) {
+        else if (selected.get() === DocTypeOption.Template) {
           docType = DOCTYPE_TEMPLATE;
         }
- else {
+        else {
           docType = DOCTYPE_TUTORIAL;
         }
 
@@ -620,9 +620,9 @@ No data will be lost, except possibly currently pending actions.',
             label: t('Template'),
             description:  t('Document automatically opens in {{fiddleModeDocUrl}}. \
 Anyone may edit, which will create a new unsaved copy.',
-              {
-                fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')),
-              },
+            {
+              fiddleModeDocUrl: cssLink({href: commonUrls.helpFiddleMode, target: '_blank'}, t('fiddle mode')),
+            },
             ),
             itemTestId: testId('doctype-modal-option-template'),
           }),
@@ -703,12 +703,12 @@ function displayCurrentType(
     label: t('Regular'),
     type: '',
   }, {
-      label: t('Template'),
-      type: 'template',
-    }, {
-      label: t('Tutorial'),
-      type: 'tutorial',
-    }].map(el => ({
+    label: t('Template'),
+    type: 'template',
+  }, {
+    label: t('Tutorial'),
+    type: 'tutorial',
+  }].map(el => ({
     ...el,
     value: el.label,
     cleanText: el.label.trim().toLowerCase(),
@@ -750,7 +750,7 @@ function stillExternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
       return cssMarkdownSpan(
         `${someExternal()} ${newInInternal()}\n\n${learnMore()}`, ...args, testId('transfer-message-in-progress'));
     }
- else {
+    else {
       return cssMarkdownSpan(
         `${someExternal()} ${startToInternal()} ${newInInternal()}\n\n${learnMore()}`,
         ...args,
@@ -781,7 +781,7 @@ function stillInternalCopy(inProgress: Observable<boolean>, ...args: IDomArgs<HT
         ...args,
       );
     }
- else {
+    else {
       return cssMarkdownSpan(
         `${someInternal()} ${startToExternal()} ${newInExternal()}\n\n${learnMore()}`,
         testId('transfer-message-static'),

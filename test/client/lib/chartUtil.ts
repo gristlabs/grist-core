@@ -17,15 +17,15 @@ describe('chartUtil', function() {
 
       // All series should be sorted according to the first one.
       assert.deepEqual(sort([[2, 1, 3, 0.5], ["a", "b", "c", "d"], [null, -1.1, "X", ['a'] as any]]),
-                            [[0.5, 1, 2, 3], ["d", "b", "a", "c"], [['a'] as any, -1.1, null, "X"]]);
+        [[0.5, 1, 2, 3], ["d", "b", "a", "c"], [['a'] as any, -1.1, null, "X"]]);
 
       // If the first one is sorted, there should be no changes.
       assert.deepEqual(sort([["a", "b", "c", "d"], [2, 1, 3, 0.5], [null, -1.1, "X", ['a'] as any]]),
-                            [["a", "b", "c", "d"], [2, 1, 3, 0.5], [null, -1.1, "X", ['a'] as any]]);
+        [["a", "b", "c", "d"], [2, 1, 3, 0.5], [null, -1.1, "X", ['a'] as any]]);
 
       // Should cope if the first series contains values of different type.
       assert.deepEqual(sort([[null, -1.1, "X", ['a'] as any], [2, 1, 3, 0.5], ["a", "b", "c", "d"]]),
-                            [[-1.1, null, ['a'] as any, "X"], [1, 2, 0.5, 3], ["b", "a", "d", "c"]]);
+        [[-1.1, null, ['a'] as any, "X"], [1, 2, 0.5, 3], ["b", "a", "d", "c"]]);
     });
   });
 

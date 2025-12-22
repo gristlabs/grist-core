@@ -10,8 +10,8 @@ import {arrayRemove} from 'app/common/gutil';
 import {FullUser} from 'app/common/LoginSessionAPI';
 import {NonGuestRole} from 'app/common/roles';
 import {ActiveSessionInfo, DocAPI, Document, DocumentOptions, DocumentProperties, DocWorkerAPI,
-        Organization, OrganizationProperties, PermissionData, PermissionDelta,
-        RenameDocOptions, UserAPI, Workspace} from 'app/common/UserAPI';
+  Organization, OrganizationProperties, PermissionData, PermissionDelta,
+  RenameDocOptions, UserAPI, Workspace} from 'app/common/UserAPI';
 
 const createdAt = '2007-04-05T14:30Z';
 const updatedAt = '2007-04-05T14:30Z';

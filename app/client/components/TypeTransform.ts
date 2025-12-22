@@ -63,7 +63,7 @@ export class TypeTransform extends ColumnTransform {
         if (use(this._isFormWidget)) {
           return transformWidget.buildFormTransformConfigDom();
         }
- else {
+        else {
           return transformWidget.buildTransformConfigDom(this.gristDoc);
         }
       }),
@@ -85,7 +85,7 @@ export class TypeTransform extends ColumnTransform {
               { title: t('Update formula (Shift+Enter)') },
             );
           }
- else {
+          else {
             return basicButton(dom.on('click', () => { this._reviseTypeChange.set(true); }),
               t('Revise'), testId("type-transform-revise"),
               dom.cls('disabled', disableButtons),

@@ -25,12 +25,12 @@ export class ConnectStateManager extends Disposable {
       this._timers = [];
       this._setState(ConnectState.Connected);
     }
- else if (this.connectState.get() === ConnectState.Connected) {
+    else if (this.connectState.get() === ConnectState.Connected) {
       this._timers = [
         setTimeout(() => this._setState(ConnectState.RecentlyDisconnected),
-                   ConnectStateManager.timeToRecentlyDisconnected),
+          ConnectStateManager.timeToRecentlyDisconnected),
         setTimeout(() => this._setState(ConnectState.ReallyDisconnected),
-                   ConnectStateManager.timeToReallyDisconnected),
+          ConnectStateManager.timeToReallyDisconnected),
       ];
       this._setState(ConnectState.JustDisconnected);
     }

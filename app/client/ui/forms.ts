@@ -73,7 +73,7 @@ export function hasValue(formData: FormData, nameOrPrefix: string): boolean {
     const prefix = nameOrPrefix.slice(0, -1);
     return [...formData.keys()].filter(k => k.startsWith(prefix)).some(k => formData.get(k));
   }
- else {
+  else {
     return Boolean(formData.get(nameOrPrefix));
   }
 }
@@ -85,7 +85,7 @@ function resize(el: HTMLElement) {
 }
 
 export function autoGrow(text: Observable<unknown>) {
-   // If this should autogrow we need to monitor width of this element.
+  // If this should autogrow we need to monitor width of this element.
   return (el: HTMLElement) => {
     let width = 0;
     const resizeObserver = new ResizeObserver((entries) => {

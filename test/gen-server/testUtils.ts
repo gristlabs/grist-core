@@ -61,7 +61,7 @@ export async function createUser(dbManager: HomeDBManager, name: string): Promis
  * Associate a given org with a given product.
  */
 export async function setPlan(dbManager: HomeDBManager, org: {billingAccount?: {id: number}},
-                              productName: string) {
+  productName: string) {
   const product = await dbManager.connection.manager.findOne(Product, {where: {name: productName}});
   if (!product) { throw new Error(`cannot find product ${productName}`); }
   if (!org.billingAccount) { throw new Error('must join billingAccount'); }

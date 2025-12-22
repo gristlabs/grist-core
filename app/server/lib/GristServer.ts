@@ -61,7 +61,7 @@ export interface GristServer extends StorageCoordinator {
   getOrgUrl(orgKey: string|number): Promise<string>;
   getMergedOrgUrl(req: RequestWithLogin, pathname?: string): string;
   getResourceUrl(resource: Organization|Workspace|Document,
-                 purpose?: 'api'|'html'): Promise<string>;
+    purpose?: 'api'|'html'): Promise<string>;
   getGristConfig(): GristLoadConfig;
   getPermitStore(): IPermitStore;
   getExternalPermitStore(): IPermitStore;

@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 import keyBy from 'lodash/keyBy';
 import mapValues from 'lodash/mapValues';
 import {ActionGroupOptions, ActionHistory, ActionHistoryUndoInfo, asActionGroup,
-        asMinimalActionGroup} from 'app/server/lib/ActionHistory';
+  asMinimalActionGroup} from 'app/server/lib/ActionHistory';
 import {ISQLiteDB, ResultRow} from 'app/server/lib/SQLiteDB';
 import { appSettings } from 'app/server/lib/AppSettings';
 
@@ -63,12 +63,12 @@ export function decodeAction(blob: Buffer | Uint8Array): LocalActionBundle {
  *
  */
 function decodeActionFromRow(row: ResultRow): LocalActionBundle {
-    const body = decodeAction(row.body);
-    // Reset actionNum and actionHash, just to have one fewer thing to worry about.
-    body.actionNum = row.actionNum;
-    body.actionHash = row.actionHash;
-    return body;
-  }
+  const body = decodeAction(row.body);
+  // Reset actionNum and actionHash, just to have one fewer thing to worry about.
+  body.actionNum = row.actionNum;
+  body.actionHash = row.actionHash;
+  return body;
+}
 
 /**
  *
@@ -261,7 +261,7 @@ export class ActionHistoryImpl implements ActionHistory {
       this._noteSharedAction(action.actionNum);
       await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                             WHERE name IN ('local_unsent', 'local_sent')`,
-                         actionRef);
+      actionRef);
     });
   }
 
@@ -291,11 +291,11 @@ export class ActionHistoryImpl implements ActionHistory {
     await this._db.execTransaction(async () => {
       const branches = await this._getBranches();
       const rows = await this._fetchParts(branches.shared, branches.local_unsent,
-                                          "_gristsys_ActionHistory.id, actionHash");
+        "_gristsys_ActionHistory.id, actionHash");
       await this._deleteRows(rows);
       await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                             WHERE name IN ('local_unsent', 'local_sent')`,
-                         branches.shared.actionRef);
+      branches.shared.actionRef);
       this._haveLocalSent = false;
       this._haveLocalUnsent = false;
       this._localActionNum = this._sharedActionNum;
@@ -305,8 +305,8 @@ export class ActionHistoryImpl implements ActionHistory {
   public async markAsSent(actions: LocalActionBundle[]): Promise<void> {
     const branches = await this._getBranches();
     const candidates = await this._fetchParts(branches.local_sent,
-                                              branches.local_unsent,
-                                              "_gristsys_ActionHistory.id, actionHash");
+      branches.local_unsent,
+      "_gristsys_ActionHistory.id, actionHash");
     let tip: number|undefined;
     try {
       for (const act of actions) {
@@ -326,11 +326,11 @@ export class ActionHistoryImpl implements ActionHistory {
         this._haveLocalSent = true;
       }
     }
- finally {
+    finally {
       if (tip) {
         await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                               WHERE name = 'local_sent'`,
-                           tip);
+        tip);
       }
     }
   }
@@ -338,9 +338,9 @@ export class ActionHistoryImpl implements ActionHistory {
   public async acceptNextSharedAction(actionHash: string|null): Promise<boolean> {
     const branches = await this._getBranches();
     const candidates = await this._fetchParts(branches.shared,
-                                              branches.local_sent,
-                                              "_gristsys_ActionHistory.id, actionHash, actionNum",
-                                              2);
+      branches.local_sent,
+      "_gristsys_ActionHistory.id, actionHash, actionNum",
+      2);
     if (candidates.length === 0) {
       return false;
     }
@@ -352,7 +352,7 @@ export class ActionHistoryImpl implements ActionHistory {
     }
     await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                           WHERE name = 'shared'`,
-                       candidate.id);
+    candidate.id);
     if (candidates.length === 1) {
       this._haveLocalSent = false;
     }
@@ -382,7 +382,7 @@ export class ActionHistoryImpl implements ActionHistory {
       this._noteSharedAction(action.actionNum);
       await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                             WHERE name IN ('local_unsent', 'local_sent')`,
-                         actionRef);
+      actionRef);
     });
     await this._pruneLargeHistory(action.actionNum);
   }
@@ -412,10 +412,10 @@ export class ActionHistoryImpl implements ActionHistory {
   public async getRecentStates(maxStates?: number): Promise<DocState[]> {
     const branches = await this._getBranches();
     const states = await this._fetchParts(null,
-                                          branches.local_unsent,
-                                          "_gristsys_ActionHistory.id, actionNum, actionHash",
-                                          maxStates,
-                                          true);
+      branches.local_unsent,
+      "_gristsys_ActionHistory.id, actionNum, actionHash",
+      maxStates,
+      true);
     return states.map(row => ({n: row.actionNum, h: row.actionHash}));
   }
 
@@ -447,10 +447,10 @@ export class ActionHistoryImpl implements ActionHistory {
     await this._db.execTransaction(async () => {
       const branches = await this._getBranches();
       const rows = await this._fetchParts(null,
-                                          branches.local_unsent,
-                                          "_gristsys_ActionHistory.id, actionHash",
-                                          keepN,
-                                          true);
+        branches.local_unsent,
+        "_gristsys_ActionHistory.id, actionHash",
+        keepN,
+        true);
       const ids = await this._deleteRows(rows, true);
       // By construction, we are removing all rows from the start of history to a certain point.
       // So, if any of the removed actions are mentioned as the tip of a branch, that tip should
@@ -473,16 +473,16 @@ export class ActionHistoryImpl implements ActionHistory {
    * If `maxActions` is supplied, at most that number of actions are returned.
    */
   private async _getRecentActionRows(maxActions: number|undefined,
-                                     withBody: boolean = true): Promise<ResultRow[]> {
+    withBody: boolean = true): Promise<ResultRow[]> {
     const branches = await this._getBranches();
     const columns = '_gristsys_ActionHistory.id, actionNum, actionHash' + (withBody ? ', body' : '');
     const result = await this._fetchParts(null,
-                                          branches.local_unsent,
-                                          columns,
-                                          maxActions,
-                                          true);
+      branches.local_unsent,
+      columns,
+      maxActions,
+      true);
     result.reverse();  // Implementation note: this could be optimized away when `maxActions`
-                       // is not specified, by simply asking _fetchParts for ascending order.
+    // is not specified, by simply asking _fetchParts for ascending order.
     return result;
   }
 
@@ -503,7 +503,7 @@ export class ActionHistoryImpl implements ActionHistory {
 
   /** Append an action to a branch. */
   private async _addAction(action: LocalActionBundle,
-                           branch: ActionIdentifiers): Promise<number> {
+    branch: ActionIdentifiers): Promise<number> {
     action.parentActionHash = branch.actionHash;
     if (!action.actionHash) {
       action.actionHash = computeActionHash(action);
@@ -515,13 +515,13 @@ export class ActionHistoryImpl implements ActionHistory {
       const id = await this._db.runAndGetId(`INSERT INTO _gristsys_ActionHistory
                                                (actionHash, parentRef, actionNum, body)
                                                VALUES (?, ?, ?, ?)`,
-                                            action.actionHash,
-                                            branch.actionRef,
-                                            action.actionNum,
-                                            buf);
+      action.actionHash,
+      branch.actionRef,
+      action.actionNum,
+      buf);
       await this._db.run(`UPDATE _gristsys_ActionHistoryBranch SET actionRef = ?
                             WHERE name = ?`,
-                         id, branch.branchName);
+      id, branch.branchName);
       return id;
     });
   }
@@ -577,10 +577,10 @@ export class ActionHistoryImpl implements ActionHistory {
    *
    */
   private async _fetchParts(start: ActionIdentifiers|null,
-                            end: ActionIdentifiers|null,
-                            selection: string,
-                            limit?: number,
-                            desc?: boolean): Promise<ResultRow[]> {
+    end: ActionIdentifiers|null,
+    selection: string,
+    limit?: number,
+    desc?: boolean): Promise<ResultRow[]> {
     if (!end) { return []; }
 
     // Collect all actions, Starting at the branch tip, and working
@@ -600,9 +600,9 @@ export class ActionHistoryImpl implements ActionHistory {
                                        WHERE _gristsys_ActionHistory.id IS NOT ?
                                        ORDER BY actionNum ${desc ? "DESC " : ""}
                                        ${limit ? ("LIMIT " + limit) : ""}`,
-                                    end.actionRef,
-                                    start ? start.actionRef : null,
-                                    start ? start.actionRef : null);
+    end.actionRef,
+    start ? start.actionRef : null,
+    start ? start.actionRef : null);
     return rows;
   }
 
@@ -623,7 +623,7 @@ export class ActionHistoryImpl implements ActionHistory {
    *
    */
   private async _fetchActions(start: ActionIdentifiers|null,
-                              end: ActionIdentifiers|null): Promise<LocalActionBundle[]> {
+    end: ActionIdentifiers|null): Promise<LocalActionBundle[]> {
     const rows = await this._fetchParts(start, end, "body, actionNum, actionHash");
     return reportTimeTaken("_fetchActions", () => rows.map(decodeActionFromRow));
   }
@@ -669,10 +669,10 @@ export class ActionHistoryImpl implements ActionHistory {
     // avoid the possibility of deleting history that has not yet been shared.
     let branches = await this._getBranches();
     const checks = (await this._fetchParts(null,
-                                           branches.shared,
-                                           "count(*) as count, sum(length(body)) as bytes",
-                                           undefined,
-                                           true))[0];
+      branches.shared,
+      "count(*) as count, sum(length(body)) as bytes",
+      undefined,
+      true))[0];
     if (checks.count <= this._options.maxRows * this._options.graceFactor &&
         checks.bytes <= this._options.maxBytes * this._options.graceFactor) {
       return; // Nothing to do, size is ok.
@@ -682,10 +682,10 @@ export class ActionHistoryImpl implements ActionHistory {
       // Make sure branches are up to date within this transaction.
       branches = await this._getBranches();
       const rows = await this._fetchParts(null,
-                                          branches.shared,
-                                          "_gristsys_ActionHistory.id, actionHash, actionNum, length(body) as bytes",
-                                          undefined,
-                                          true);
+        branches.shared,
+        "_gristsys_ActionHistory.id, actionHash, actionNum, length(body) as bytes",
+        undefined,
+        true);
       // Scan to find the first row that pushes us over a limit.
       let count: number = 0;
       let bytes: number = 0;

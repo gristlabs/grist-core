@@ -24,8 +24,8 @@
  * now the whole plugin's folder is served.
  *
  */
- // Todo: plugin resources should not be made available on the server by default, but only after
- // activation.
+// Todo: plugin resources should not be made available on the server by default, but only after
+// activation.
 
 // tslint:disable:max-classes-per-file
 
@@ -52,11 +52,11 @@ const G = getBrowserGlobals('document', 'window');
  * The SafeBrowser component implementation. Responsible for running the script, rendering the
  * views, settings up communication channel.
  */
- // todo: it is unfortunate that SafeBrowser had to expose both `renderImpl` and `disposeImpl` which
- // really have no business outside of this module. What could be done, is to have an internal class
- // ProcessManager which will be created by SafeBrowser as a private field. It will manage the
- // client processes and among other thing will expose both renderImpl and
- // disposeImpl. ClientProcess will hold a reference to ProcessManager instead of SafeBrowser.
+// todo: it is unfortunate that SafeBrowser had to expose both `renderImpl` and `disposeImpl` which
+// really have no business outside of this module. What could be done, is to have an internal class
+// ProcessManager which will be created by SafeBrowser as a private field. It will manage the
+// client processes and among other thing will expose both renderImpl and
+// disposeImpl. ClientProcess will hold a reference to ProcessManager instead of SafeBrowser.
 export class SafeBrowser extends BaseComponent {
   /**
    * Create a webview ClientProcess to render safe browser process in electron.

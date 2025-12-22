@@ -33,9 +33,9 @@ export function buildTabs(
     dom.forEach(tabs, tab => cssTab(
       cssIconAndLabel(!tab.icon ? null : cssTabIcon(tab.icon, dom.hide(isNarrowScreenObs())),
 
-      // The combination with space makes the label as wide as its bold version,
-      // to avoid slight shifts of other labels when switching tabs.
-      dom('div', tab.label, cssBoldLabelSpacer(tab.label))),
+        // The combination with space makes the label as wide as its bold version,
+        // to avoid slight shifts of other labels when switching tabs.
+        dom('div', tab.label, cssBoldLabelSpacer(tab.label))),
 
       cssTab.cls("-selected", isSelected(tab)),
 

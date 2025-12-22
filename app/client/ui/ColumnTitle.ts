@@ -53,7 +53,7 @@ export function buildRenameColumn(options: IColumnTitleOptions) {
         if (editing) {
           ctl.open();
         }
- else if (!ctl.isDisposed()) {
+        else if (!ctl.isDisposed()) {
           ctl.close();
         }
       }));
@@ -175,7 +175,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         labelInput?.focus();
         labelInput?.select();
       }
- else {
+      else {
         return true;
       }
     },
@@ -189,7 +189,7 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
         showDesc.set(true);
         focus();
       }
- else {
+      else {
         return true;
       }
     },
@@ -301,29 +301,29 @@ function buildColumnRenamePopup(ctrl: IOpenController, options: IColumnTitleOpti
     ),
     // After showing the popup, focus the label input and select it's content.
     (elem) => {
- setTimeout(() => {
-      if (ctrl.isDisposed()) { return; }
-      if (canRename.get()) {
-        labelInput?.focus();
-        labelInput?.select();
-      }
- else if (canChangeDesc.get()) {
-        descInput?.focus();
-        descInput?.select();
-      }
-    }, 0); 
-},
+      setTimeout(() => {
+        if (ctrl.isDisposed()) { return; }
+        if (canRename.get()) {
+          labelInput?.focus();
+          labelInput?.select();
+        }
+        else if (canChangeDesc.get()) {
+          descInput?.focus();
+          descInput?.select();
+        }
+      }, 0); 
+    },
     // Create a FocusLayer to keep focus in this popup while it's active, by default when focus is stolen
     // by someone else, we will bring back it to the label element. Clicking anywhere outside the popup
     // will close it, but not when we click on the header itself (as it will reopen it). So this one
     // makes sure that the focus is restored in the label.
     (elem) => {
- FocusLayer.create(ctrl, {
-      defaultFocusElem: elem,
-      pauseMousetrap: false,
-      allowFocus: Clipboard.allowFocus,
-    }); 
-},
+      FocusLayer.create(ctrl, {
+        defaultFocusElem: elem,
+        pauseMousetrap: false,
+        allowFocus: Clipboard.allowFocus,
+      }); 
+    },
     restoreFocus,
   );
 }

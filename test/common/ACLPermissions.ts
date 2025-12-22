@@ -1,5 +1,5 @@
 import {emptyPermissionSet, PartialPermissionSet, PermissionKey,
-        summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
+  summarizePermissions, summarizePermissionSet} from 'app/common/ACLPermissions';
 import {makePartialPermissions, parsePermissions, permissionSetToText} from 'app/common/ACLPermissions';
 import {mergePartialPermissions, mergePermissions, trimPermissions} from 'app/common/ACLPermissions';
 import {assert} from 'chai';
@@ -98,10 +98,10 @@ describe("ACLPermissions", function() {
 
     // Combining multiple bits.
     assert.deepEqual(merge(
-        {read: 'allowSome', create: 'allow', update: 'denySome', delete: 'deny'},
-        {read: 'deny', create: 'denySome', update: 'deny', delete: 'denySome', schemaEdit: 'deny'},
-      ),
-      {read: 'mixed', create: 'allow', update: 'deny', delete: 'deny', schemaEdit: 'deny'},
+      {read: 'allowSome', create: 'allow', update: 'denySome', delete: 'deny'},
+      {read: 'deny', create: 'denySome', update: 'deny', delete: 'denySome', schemaEdit: 'deny'},
+    ),
+    {read: 'mixed', create: 'allow', update: 'deny', delete: 'deny', schemaEdit: 'deny'},
     );
 
     assert.deepEqual(merge(makePartialPermissions(parsePermissions("all")), parsePermissions("+U-D")),

@@ -65,7 +65,7 @@ export async function main() {
       await createClient(process.env.REDIS_URL).flushdbAsync();
     }
   }
- else {
+  else {
     await updateDb();
   }
 

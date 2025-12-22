@@ -129,10 +129,10 @@ describe('ApiServerAccess', function() {
     if ("orgId" in resource) {
       url = `${homeUrl}/api/orgs/${resource.orgId}/access`;
     }
- else if ("wsId" in resource) {
+    else if ("wsId" in resource) {
       url = `${homeUrl}/api/workspaces/${resource.wsId}/access`;
     }
- else {
+    else {
       url = `${homeUrl}/api/docs/${resource.docId}/access`;
     }
     const resp = await axios.patch(
@@ -193,18 +193,18 @@ describe('ApiServerAccess', function() {
       assert.match(mail.description, /^invite kiwi@getgrist.com to http.*\/o\/docs\/\?utm_id=invite-org$/);
       const env = mail.payload.personalizations[0].dynamic_template_data;
       assert.deepEqual(pick(env, ['resource.name', 'resource.kind', 'resource.kindUpperFirst',
-                                  'resource.isTeamSite', 'resource.isWorkspace', 'resource.isDocument',
-                                  'host.name', 'host.email',
-                                  'user.name', 'user.email',
-                                  'access.role', 'access.canEdit', 'access.canView']), {
-                                    resource: {
-                                      name: 'Chimpyland', kind: 'team site', kindUpperFirst: 'Team site',
-                                      isTeamSite: true, isWorkspace: false, isDocument: false,
-                                    },
-                                    host: {name: 'Chimpy', email: 'chimpy@getgrist.com'},
-                                    user: {name: 'Kiwi', email: 'kiwi@getgrist.com'},
-                                    access: {role: 'editors', canEdit: true, canView: true},
-                                  } as any);
+        'resource.isTeamSite', 'resource.isWorkspace', 'resource.isDocument',
+        'host.name', 'host.email',
+        'user.name', 'user.email',
+        'access.role', 'access.canEdit', 'access.canView']), {
+        resource: {
+          name: 'Chimpyland', kind: 'team site', kindUpperFirst: 'Team site',
+          isTeamSite: true, isWorkspace: false, isDocument: false,
+        },
+        host: {name: 'Chimpy', email: 'chimpy@getgrist.com'},
+        user: {name: 'Kiwi', email: 'kiwi@getgrist.com'},
+        access: {role: 'editors', canEdit: true, canView: true},
+      } as any);
       assert.match(env.resource.url, /^http.*\/o\/docs\/\?utm_id=invite-org$/);
       assert.deepEqual(mail.payload.personalizations[0].to[0], {email: 'kiwi@getgrist.com', name: 'Kiwi'});
       assert.deepEqual(mail.payload.from, {email: 'support@getgrist.com', name: 'Chimpy (via Grist)'});
@@ -514,7 +514,7 @@ describe('ApiServerAccess', function() {
         { status: 200, data: null },
       );
     }
- finally {
+    finally {
       await checkAccessChange(
         { orgId },
         {
@@ -805,7 +805,7 @@ describe('ApiServerAccess', function() {
         },
       );
     }
- finally {
+    finally {
       await checkAccessChange(
         { wsId },
         { [kiwiEmail]: null, [charonEmail]: null },
@@ -1018,11 +1018,11 @@ describe('ApiServerAccess', function() {
       const mail = await assertLastMail();
       assert.lengthOf(mail.payload.personalizations, 3);
       assert.sameMembers(mail.payload.personalizations.map(p => p.to[0].email),
-                         ['user1@getgrist.com', 'user2@getgrist.com', 'user3@getgrist.com']);
+        ['user1@getgrist.com', 'user2@getgrist.com', 'user3@getgrist.com']);
       assert.deepEqual(mail.payload.personalizations.map(p => p.dynamic_template_data.access),
-                       [{role: 'editors', canEdit: true, canView: true, canEditAccess: false},
-                        {role: 'viewers', canEdit: false, canView: true, canEditAccess: false},
-                        {role: 'viewers', canEdit: false, canView: true, canEditAccess: false}]);
+        [{role: 'editors', canEdit: true, canView: true, canEditAccess: false},
+          {role: 'viewers', canEdit: false, canView: true, canEditAccess: false},
+          {role: 'viewers', canEdit: false, canView: true, canEditAccess: false}]);
     }
     delta = {
       users: {
@@ -1140,7 +1140,7 @@ describe('ApiServerAccess', function() {
         { status: 200, data: null },
       );
     }
- finally {
+    finally {
       await checkAccessChange(
         { docId: did1 },
         { "user6@example.com": null, "user7@example.com": null },
@@ -2103,8 +2103,8 @@ describe('ApiServerAccess', function() {
       // Set NASA to be specifically on a team plan, with team plan restrictions.
       const db = dbManager.connection.manager;
       nasaOrg = (await db.findOne(Organization, {where: {domain: 'nasa'},
-                                                 relations: ['billingAccount',
-                                                             'billingAccount.product']}))!;
+        relations: ['billingAccount',
+          'billingAccount.product']}))!;
       oldProduct = nasaOrg.billingAccount.product;
       nasaOrg.billingAccount.product = (await db.findOne(Product, {where: {name: 'team'}}))!;
       await nasaOrg.billingAccount.save();
@@ -2122,7 +2122,7 @@ describe('ApiServerAccess', function() {
         users: {[kiwiEmail]: 'viewers'},
       };
       const errorResp = await axios.patch(`${homeUrl}/api/workspaces/${horizonWs}/access`,
-                                          {delta: addDelta}, chimpy);
+        {delta: addDelta}, chimpy);
       assert.equal(errorResp.status, 403);
       assert.equal(errorResp.data.error, 'No external workspace shares permitted');
     });
@@ -2131,22 +2131,22 @@ describe('ApiServerAccess', function() {
       // Add Kiwi to Apathy
       const apathyDoc = await dbManager.testGetId('Apathy');
       let resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-                                   {delta: {users: {[kiwiEmail]: 'viewers'}}}, chimpy);
+        {delta: {users: {[kiwiEmail]: 'viewers'}}}, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Support to Apathy, should not count
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-                               {delta: {users: {[supportEmail]: 'viewers'}}}, chimpy);
+        {delta: {users: {[supportEmail]: 'viewers'}}}, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Ella to Apathy
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-                               {delta: {users: {'ella@getgrist.com': 'editors'}}}, chimpy);
+        {delta: {users: {'ella@getgrist.com': 'editors'}}}, chimpy);
       assert.equal(resp.status, 200);
 
       // Add Charon to Apathy
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-                               {delta: {users: {[charonEmail]: 'viewers'}}}, chimpy);
+        {delta: {users: {[charonEmail]: 'viewers'}}}, chimpy);
       assert.equal(resp.status, 403);
       assert.equal(resp.data.error, 'No more external document shares permitted');
 
@@ -2158,7 +2158,7 @@ describe('ApiServerAccess', function() {
         },
       };
       resp = await axios.patch(`${homeUrl}/api/docs/${apathyDoc}/access`,
-                               {delta: removeDelta}, chimpy);
+        {delta: removeDelta}, chimpy);
       assert.equal(resp.status, 200);
     });
   });
@@ -2284,7 +2284,7 @@ describe('ApiServerAccess', function() {
       resp = await axios.get(`${homeUrl}/api/orgs`, kiwi);
       assert.equal(resp.status, 200);
       assert.deepEqual(resp.data.map((org: any) => org.name),
-                                     ['Kiwiland', 'Fish', 'Flightless', 'Primately']);
+        ['Kiwiland', 'Fish', 'Flightless', 'Primately']);
     });
 
     describe('force flag is not needed if apiKey is not set', function() {
@@ -2304,7 +2304,7 @@ describe('ApiServerAccess', function() {
         assert.equal(resp.status, 401);
 
         const cookie = await server.getCookieLogin('nasa', {email: 'chimpy@getgrist.com',
-                                                            name: 'Chimpy'});
+          name: 'Chimpy'});
 
         // let's create an apikey
         resp = await axios.post(`${homeUrl}/o/nasa/api/profile/apikey`, {}, cookie);
@@ -2319,7 +2319,7 @@ describe('ApiServerAccess', function() {
           ['Chimpyland', 'EmptyOrg', 'EmptyWsOrg', 'Fish', 'Flightless',
             'FreeTeam', 'NASA', 'Primately', 'TestAuditLogs', 'TestDailyApiLimit',
             'TestMaxNewUserInvites']);
-       });
+      });
     });
 
   });
@@ -2385,7 +2385,7 @@ async function breakInheritance(api: UserAPI, docWs: string|number) {
       maxInheritedRole: null,
     });
   }
- else {
+  else {
     // Break inheritance for the doc.
     await api.updateDocPermissions(docWs, {
       maxInheritedRole: null,
@@ -2399,7 +2399,7 @@ async function fullInheritance(api: UserAPI, docWs: string | number) {
       maxInheritedRole: 'owners',
     });
   }
- else {
+  else {
     await api.updateDocPermissions(docWs, {
       maxInheritedRole: 'owners',
     });

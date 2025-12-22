@@ -688,7 +688,7 @@ async function copyTestData(cb: gu.IClipboard) {
     `);
     await cb.copy();
   }
- finally {
+  finally {
     await serving?.shutdown();
   }
 }

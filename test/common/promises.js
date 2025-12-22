@@ -71,37 +71,37 @@ function timeIt(name, options, func) {
   var expectedUs = options.expectedUs;
   var noLowerBound = options.noLowerBound;
   var test = it(name + " should take ~" + expectedUs + "us (up to x" + fudgeFactor + ")",
-                function(done) {
-    var n = 0;
-    var minTimeUs = Infinity;
-    function iteration(timeUs) {
-      try {
-        minTimeUs = Math.min(minTimeUs, timeUs);
-        if (n++ < reps) {
-          func(next);
-          return;
-        }
-        log("Ran test " + n + " times, min time " + minTimeUs);
-        assert(minTimeUs <= expectedUs * fudgeFactor,
-               "Time of " + minTimeUs + "us is longer than expected (" + expectedUs + ") " +
+    function(done) {
+      var n = 0;
+      var minTimeUs = Infinity;
+      function iteration(timeUs) {
+        try {
+          minTimeUs = Math.min(minTimeUs, timeUs);
+          if (n++ < reps) {
+            func(next);
+            return;
+          }
+          log("Ran test " + n + " times, min time " + minTimeUs);
+          assert(minTimeUs <= expectedUs * fudgeFactor,
+            "Time of " + minTimeUs + "us is longer than expected (" + expectedUs + ") " +
                "by more than fudge factor of " + fudgeFactor);
-        if (!noLowerBound) {
-          assert(minTimeUs >= expectedUs / fudgeFactor,
-                 "Time of " + minTimeUs + "us is shorter than expected (" + expectedUs + ") " +
+          if (!noLowerBound) {
+            assert(minTimeUs >= expectedUs / fudgeFactor,
+              "Time of " + minTimeUs + "us is shorter than expected (" + expectedUs + ") " +
                  "by more than fudge factor of " + fudgeFactor);
+          }
+          tackOnMeasuredTime(test, minTimeUs);
+          done();
+        } catch (err) {
+          tackOnMeasuredTime(test, minTimeUs);
+          done(err);
         }
-        tackOnMeasuredTime(test, minTimeUs);
-        done();
-      } catch (err) {
-        tackOnMeasuredTime(test, minTimeUs);
-        done(err);
       }
-    }
-    function next(timeUs) {
-      setTimeout(iteration, 0, timeUs);
-    }
-    next(Infinity);
-  });
+      function next(timeUs) {
+        setTimeout(iteration, 0, timeUs);
+      }
+      next(Infinity);
+    });
 }
 
 function tackOnMeasuredTime(test, timeUs) {
@@ -132,18 +132,18 @@ describe("promises", function() {
   }
 
   timeIt("simple calls", { reps: 3, expectedUs: 0.005, fudgeFactor: 10, noLowerBound: true },
-         function(reportUs) {
-    var iterations = 10000000;
-    var start = startTimer();
-    var value = 0;
-    for (var i = 0; i < iterations; i++) {
-      value = test(value);
-    }
-    var us = usecElapsed(start) / iterations;
-    assert.equal(value, iterations * 2);
-    log("Direct calls took " + us + " us / iteration");
-    reportUs(us);
-  });
+    function(reportUs) {
+      var iterations = 10000000;
+      var start = startTimer();
+      var value = 0;
+      for (var i = 0; i < iterations; i++) {
+        value = test(value);
+      }
+      var us = usecElapsed(start) / iterations;
+      assert.equal(value, iterations * 2);
+      log("Direct calls took " + us + " us / iteration");
+      reportUs(us);
+    });
 
   function testPromiseLib(promiseLib, libName, setupFunc, timingOptions) {
     var iterations = timingOptions.iters;
@@ -172,11 +172,11 @@ describe("promises", function() {
   var isNode = Boolean(process.version);
 
   testPromiseLib(bluebird, 'bluebird (no long traces)',
-                 // Sadly, no way to turn off bluebird.longStackTraces, so just do this test first.
-                 function() {
-                   assert.isFalse(bluebird.hasLongStackTraces(), "longStackTraces should be off");
-                 },
-                 { iters: 20000, reps: 3, expectedUs: isNode ? 0.3 : 1, fudgeFactor: 8});
+    // Sadly, no way to turn off bluebird.longStackTraces, so just do this test first.
+    function() {
+      assert.isFalse(bluebird.hasLongStackTraces(), "longStackTraces should be off");
+    },
+    { iters: 20000, reps: 3, expectedUs: isNode ? 0.3 : 1, fudgeFactor: 8});
 
   // TODO: with bluebird 3, we can no longer switch between having and not having longStackTraces.
   // We'd have to measure it in two different test runs. For now, can run this test with
@@ -209,7 +209,7 @@ describe("promises", function() {
   if (process.maxTickDepth) {
     // Probably running under Node
     testRepeater(process.nextTick, "process.nextTick",
-                 { iters: process.maxTickDepth*9/10, reps: 20, expectedUs: 0.1, fudgeFactor: 4 });
+      { iters: process.maxTickDepth*9/10, reps: 20, expectedUs: 0.1, fudgeFactor: 4 });
   }
   if (typeof setImmediate !== 'undefined') {
     testRepeater(setImmediate, "setImmediate",

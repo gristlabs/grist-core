@@ -11,11 +11,11 @@ async function findOnDisk(src, dest) {
   for (const lib of libs.available) {
     fs.copyFileSync(lib.fullName, path.join(dest, lib.fileName));
     fs.writeFileSync(path.join(dest, `${lib.name}-${lib.version}.json`),
-                     JSON.stringify({
-                       name: lib.name,
-                       version: lib.version,
-                       fileName: lib.fileName,
-                     }, null, 2));
+      JSON.stringify({
+        name: lib.name,
+        version: lib.version,
+        fileName: lib.fileName,
+      }, null, 2));
     console.log("Copied", {
       content: path.join(dest, lib.fileName),
       meta: path.join(dest, `${lib.name}-${lib.version}.json`),
@@ -45,9 +45,9 @@ async function findOnNet(src, dest) {
       const result2 = await fetch(url2.href);
       if (result2.status === 200) {
         fs.writeFileSync(path.join(dest, `${lib.name}-${lib.version}.json`),
-                         JSON.stringify(data, null, 2));
+          JSON.stringify(data, null, 2));
         fs.writeFileSync(path.join(dest, data.fileName),
-                         await result2.buffer());
+          await result2.buffer());
       } else {
         console.error("No payload available", {lib});
       }

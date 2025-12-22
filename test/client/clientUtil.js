@@ -50,14 +50,14 @@ function waitForSelectorAll(el, selector, count) {
   count = count || 1;
   var i;
   return new Promise(function(resolve, reject) {
-      i = setInterval(function() {
-        var q = el.querySelectorAll(selector);
-        if (q.length >= count) {
-          clearInterval(i);
-          resolve(q);
-        }
-      }, 50);
-    })
+    i = setInterval(function() {
+      var q = el.querySelectorAll(selector);
+      if (q.length >= count) {
+        clearInterval(i);
+        resolve(q);
+      }
+    }, 50);
+  })
     .timeout(1000)
     .catch(function(err) {
       clearInterval(i);
@@ -102,11 +102,11 @@ exports.querySelectorLast = querySelectorLast;
 function waitForChange(observable, delay) {
   var sub;
   return new Promise(function(resolve, reject) {
-      sub = observable.subscribe(function(val) {
-        console.warn('observable changed: ' + val.toString());
-          resolve(val);
-      });
-    })
+    sub = observable.subscribe(function(val) {
+      console.warn('observable changed: ' + val.toString());
+      resolve(val);
+    });
+  })
     .timeout(delay)
     .finally(function(){
       sub.dispose();

@@ -40,7 +40,7 @@ export class TimingPage extends DisposableWithEvents {
       // Just redirect back to the settings page.
       this._openSettings();
     }
- else {
+    else {
       this._start().catch((ex) => {
         this._openSettings();
         reportError(ex);

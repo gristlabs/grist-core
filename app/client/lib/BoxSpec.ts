@@ -59,7 +59,7 @@ function addToSpec(tmpLayout: Layout, leafId: number) {
     // Add a new child to the last row.
     lastRow.addChild(newBox, true);
   }
- else {
+  else {
     // Add a new row.
     tmpLayout.rootBox()!.addChild(newBox, true);
   }

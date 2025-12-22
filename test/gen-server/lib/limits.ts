@@ -88,19 +88,19 @@ describe('limits', function() {
     assert.lengthOf(await api.getOrgWorkspaces('current'), 1);
     await assert.isFulfilled(api.newWorkspace({name: 'work2'}, 'current'));
     await assert.isRejected(api.newWorkspace({name: 'work3'}, 'current'),
-                            /No more workspaces/);
+      /No more workspaces/);
 
     await setFeatures({maxWorkspacesPerOrg: 3, workspaces: true});
     await assert.isFulfilled(api.newWorkspace({name: 'work3'}, 'current'));
     await assert.isRejected(api.newWorkspace({name: 'work4'}, 'current'),
-                            /No more workspaces/);
+      /No more workspaces/);
 
     await setFeatures({workspaces: true});
     await assert.isFulfilled(api.newWorkspace({name: 'work4'}, 'current'));
 
     await setFeatures({maxWorkspacesPerOrg: 1, workspaces: true});
     await assert.isRejected(api.newWorkspace({name: 'work5'}, 'current'),
-                            /No more workspaces/);
+      /No more workspaces/);
   });
 
   it('can enforce limits on number of workspace shares', async function() {
@@ -208,7 +208,7 @@ describe('limits', function() {
 
     // check that smuggling in a document from another org doesn't work.
     await assert.isRejected(nasa.moveDoc(await dbManager.testGetId('Jupiter') as string, wsId),
-                            /No more documents/);
+      /No more documents/);
 
     // now make space for the document and try again.
     await setFeatures({maxDocsPerOrg: 6, workspaces: true});
@@ -323,8 +323,8 @@ describe('limits', function() {
     // Tweak NASA's product to allow 4 shares per doc.
     const db = dbManager.connection.manager;
     const nasaOrg = await db.findOne(Organization, {where: {domain: 'nasa'},
-                                                    relations: ['billingAccount',
-                                                                'billingAccount.product']});
+      relations: ['billingAccount',
+        'billingAccount.product']});
     if (!nasaOrg) { throw new Error('could not find nasa org'); }
     const nasaProduct = nasaOrg.billingAccount.product;
     const originalFeatures = nasaProduct.features;
@@ -351,11 +351,11 @@ describe('limits', function() {
     this.timeout(4000);      // This can exceed the default of 2s on Jenkins
 
     await setFeatures({maxSharesPerDoc: 10,
-                       maxSharesPerDocPerRole: {
-                         owners: 1,
-                         editors: 2,
-                       },
-                       workspaces: true});
+      maxSharesPerDocPerRole: {
+        owners: 1,
+        editors: 2,
+      },
+      workspaces: true});
     const wsId = await api.newWorkspace({name: 'roleShares'}, 'docs');
     const docId = await api.newDoc({name: 'doc'}, wsId);
 
@@ -424,11 +424,11 @@ describe('limits', function() {
 
     // Increase the limit and try again
     await setFeatures({maxSharesPerDoc: 10,
-                       maxSharesPerDocPerRole: {
-                         owners: 2,
-                         editors: 2,
-                       },
-                       workspaces: true});
+      maxSharesPerDocPerRole: {
+        owners: 2,
+        editors: 2,
+      },
+      workspaces: true});
     await assert.isFulfilled(nasa.moveDoc(beyond, wsId));
   });
 
@@ -595,7 +595,7 @@ describe('limits', function() {
       if (fulfilled) {
         await assert.isFulfilled(response);
       }
- else {
+      else {
         await assert.isRejected(response);
       }
     };

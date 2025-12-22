@@ -287,7 +287,7 @@ class GristWorker {
   private _jobs: Map<string, NodeJS.Timeout> = new Map();
 
   public constructor(public queueName: string,
-                     private _callback: (job: GristJob) => Promise<void>) {
+    private _callback: (job: GristJob) => Promise<void>) {
   }
 
   public async close() {
@@ -306,14 +306,14 @@ class GristWorker {
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);
       this._jobs.set(jobId, setTimeout(() => this._callback({name, data}),
-                                       options.delay));
+        options.delay));
       return;
     }
     if (options?.repeat) {
       const jobId = options.jobId || makeId();
       this._clearJob(jobId);
       this._jobs.set(jobId, setInterval(() => this._callback({name, data}),
-                                        options.repeat.every));
+        options.repeat.every));
       return;
     }
     await this._callback({name, data});

@@ -182,10 +182,10 @@ function describeNode(node: ParsedPredicateFormula): string {
   if (node[0] === 'Name') {
     return node[1] as string;
   }
- else if (node[0] === 'Attr') {
+  else if (node[0] === 'Attr') {
     return describeNode(node[1] as ParsedPredicateFormula) + '.' + (node[2] as string);
   }
- else {
+  else {
     return 'value';
   }
 }
@@ -201,10 +201,10 @@ function getAttr(value: any, attrName: string, valueNode: ParsedPredicateFormula
   if (typeof value.get === 'function') {
     return decodeObject(value.get(attrName));  // InfoView
   }
- else if (typeof value === 'string') {
+  else if (typeof value === 'string') {
     return getStringMethod(value, attrName);
   }
- else if (value !== null && typeof value === 'object' &&
+  else if (value !== null && typeof value === 'object' &&
       !Array.isArray(value) &&            // We don't support attribute lookups on arrays.
       value.hasOwnProperty(attrName)) {
     // Check value and attrName more carefully to reduce the risk of shenanigans.
@@ -310,7 +310,7 @@ export function typeCheckFormula(
     const sampleInput: PredicateFormulaInput = {user: sampleUser, rec: sampleRecord, newRec: sampleRecord};
     compiledFormula(sampleInput);
   }
- catch (e) {
+  catch (e) {
     return e.message;
   }
   return false;

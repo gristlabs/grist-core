@@ -86,28 +86,28 @@ export class AppHeader extends Disposable {
 
     // Personal avatar is shown only for logged in users.
     const personalAvatar = () => !this._appModel.currentValidUser
-                            ? cssAppLogo.cls('-grist-logo')
-                            : createUserImage(this._appModel.currentValidUser, 'medium', variant());
+      ? cssAppLogo.cls('-grist-logo')
+      : createUserImage(this._appModel.currentValidUser, 'medium', variant());
 
     // Team avatar is shown only for team sites (even for anonymous users).
     const teamAvatar = () => cssAppLogo.cls('-grist-logo');
 
     // Depending on site the avatar is either personal or team.
     const avatar = () => this._appModel.isPersonal
-                            ? personalAvatar()
-                            : teamAvatar();
+      ? personalAvatar()
+      : teamAvatar();
 
     // Show the image if it's set, otherwise show the avatar.
     const image = () => customImage
-                          ? dom.style('background-image', customImage ? `url(${customImage})` : '')
-                          : avatar();
+      ? dom.style('background-image', customImage ? `url(${customImage})` : '')
+      : avatar();
 
 
     // Maybe we should show custom logo and make it wide (without site switcher).
     const productFlavor = getTheme(this._appModel.topAppModel.productFlavor);
     const content = () => productFlavor.wideLogo
-                          ? null
-                          : image();
+      ? null
+      : image();
 
     const altText = t('{{- organizationName }} - Back to home', { organizationName: this._appLogoOrg.get().name });
 
@@ -136,7 +136,7 @@ export class AppHeader extends Disposable {
         testId('org'),
       );
     }
- else {
+    else {
       return cssOrg(
         dom.cls('_cssOrg'),
         cssOrgName(dom.text(this._appLogoOrgName), testId('orgname')),
@@ -176,7 +176,7 @@ export class AppHeader extends Disposable {
     if (link.type === 'href') {
       return {href: link.href};
     }
- else {
+    else {
       return urlState().setLinkUrl({org: link.domain});
     }
   }

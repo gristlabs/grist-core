@@ -1,7 +1,7 @@
 import BaseView from 'app/client/components/BaseView';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {consolidateValues, formatPercent, sortByXValues, splitValuesByIndex,
-        uniqXValues} from 'app/client/lib/chartUtil';
+  uniqXValues} from 'app/client/lib/chartUtil';
 import {Delay} from 'app/client/lib/Delay';
 import {fromKoSave} from 'app/client/lib/fromKoSave';
 import {loadPlotly, PlotlyType} from 'app/client/lib/imports';
@@ -25,7 +25,7 @@ import {Sort} from 'app/common/SortSpec';
 import {BaseFormatter} from 'app/common/ValueFormatter';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, DomContents, DomElementArg, fromKo, Disposable as GrainJSDisposable,
-        IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
+  IDisposable, IOption, makeTestId, Observable, styled, UseCB} from 'grainjs';
 import * as ko from 'knockout';
 import clamp from 'lodash/clamp';
 import debounce from 'lodash/debounce';
@@ -35,7 +35,7 @@ import merge from 'lodash/merge';
 import sum from 'lodash/sum';
 import union from 'lodash/union';
 import type {Annotations, Config, Datum, ErrorBar, Layout, LayoutAxis, Margin,
-    PlotData as PlotlyPlotData} from 'plotly.js';
+  PlotData as PlotlyPlotData} from 'plotly.js';
 import {makeT} from 'app/client/lib/localization';
 
 
@@ -107,7 +107,7 @@ function getSeriesName(series: Series, haveMultiple: boolean) {
   if (haveMultiple) {
     return `${groupName} \u2022 ${series.label}`;  // the unicode character is "black circle"
   }
- else {
+  else {
     return String(groupName);
   }
 }
@@ -259,7 +259,7 @@ export class ChartView extends BaseView {
           // For x-axis and group column data, split series we should split records.
           series = splitValuesByIndex(series, i);
         }
- else {
+        else {
           // For all y-axis, it's not sure what would be a sensible representation for choice list,
           // simply stringify choice list values seems reasonable.
           series[i].values = series[i].values.map(v => String(decodeObject(v as any)));
@@ -288,7 +288,7 @@ export class ChartView extends BaseView {
     if (!options.multiseries && series.length) {
       plotData = chartFunc(series, options, dataOptions);
     }
- else if (series.length > 1) {
+    else if (series.length > 1) {
       // We need to group all series by the first column.
       // Sort series alphabetically only if user has not defined a sort on this chart.
       const shouldSort = !series[0].isInSortSpec;
@@ -548,11 +548,11 @@ export class ChartConfig extends GrainJSDisposable {
       if (colId) { return true; }
       return force;
     }).onWrite((val) => {
-      if (val === false) {
-        this._groupDataColId.set("");
-      }
-      this._groupDataForce.set(val);
-    });
+    if (val === false) {
+      this._groupDataColId.set("");
+    }
+    this._groupDataForce.set(val);
+  });
 
   // The label to show for the first field in the axis configurator.
   private _firstFieldLabel = Computed.create(this, fromKo(this._section.chartTypeDef), (
@@ -648,7 +648,7 @@ export class ChartConfig extends GrainJSDisposable {
             value === 'separate' ? cssRowHelp(
               t("Each Y series is followed by two series, for top and bottom error bars."),
             )
-          : null,
+              : null,
         ),
       ]),
 
@@ -755,14 +755,14 @@ export class ChartConfig extends GrainJSDisposable {
         if (fieldIndex > -1) {
           await this._configFieldsHelper.changeFieldPosition(viewFields.peek()[fieldIndex], xAxisField);
         }
- else {
+        else {
           const col = findColumn();
           if (col) {
             await this._configFieldsHelper.addField(col, xAxisField);
           }
         }
       }
- finally {
+      finally {
         this._freezeYAxis.set(false);
         this._freezeXAxis.set(false);
       }
@@ -800,7 +800,7 @@ export class ChartConfig extends GrainJSDisposable {
           if (field) {
             await this._configFieldsHelper.changeFieldPosition(field, viewFields[0]);
           }
- else {
+          else {
             await this._configFieldsHelper.addField(col, viewFields[0]);
           }
 
@@ -813,7 +813,7 @@ export class ChartConfig extends GrainJSDisposable {
         await this._optionsObj.prop('multiseries').setAndSave(Boolean(colId));
 
       }
- finally {
+      finally {
         this._freezeXAxis.set(false);
         this._freezeYAxis.set(false);
       }
@@ -848,11 +848,11 @@ export class ChartConfig extends GrainJSDisposable {
     // The y-axis are all visible fields that comes after the x-axis and maybe the group data
     // column. Hence the draggable list of y-axis needs to skip either one or two visible fields.
     const skipFirst = Computed.create(this,
-                                      fromKo(this._optionsObj.prop('multiseries')),
-                                      fromKo(this._optionsObj.prop('isXAxisUndefined')),
-                                      (_use, multiseries, isUndefined) =>  (
-      (isUndefined ? 0 : 1) + (multiseries ? 1 : 0)
-    ));
+      fromKo(this._optionsObj.prop('multiseries')),
+      fromKo(this._optionsObj.prop('isXAxisUndefined')),
+      (_use, multiseries, isUndefined) =>  (
+        (isUndefined ? 0 : 1) + (multiseries ? 1 : 0)
+      ));
 
     return dom.domComputed((use) => {
       const filterFunc = (field: ViewFieldRec) => this._isCompatibleSeries(use(field.column), use);
@@ -877,12 +877,12 @@ export class ChartConfig extends GrainJSDisposable {
         if (val) {
           await this._doAggregation();
         }
- else {
+        else {
           await this._undoAggregation();
         }
       });
     }
- finally {
+    finally {
       if (!this.isDisposed()) {
         this._freezeXAxis.set(false);
       }
@@ -895,7 +895,7 @@ export class ChartConfig extends GrainJSDisposable {
     if (!this._isSummaryTable()) {
       await this._toggleSummaryTable();
     }
- else {
+    else {
       await this._setGroupByColumns([this._xAxis.get(), this._groupDataColId.get()]);
     }
   }
@@ -959,7 +959,7 @@ export class ChartConfig extends GrainJSDisposable {
 // Row for a numeric option. User can change value using spinners or directly using keyboard. In
 // case of invalid values, the field reverts to the saved one.
 function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (val: number) => Promise<void>,
-                                 ...args: DomElementArg[]) {
+  ...args: DomElementArg[]) {
   const minValue = 1;
   let input: HTMLInputElement;
 
@@ -1007,7 +1007,7 @@ function cssNumberWithSpinnerRow(label: string, value: Computed<number>, save: (
 // spinners or by directly using keyboard. Value is shown as percent. If user enter an invalid
 // value, field reverts to the saved value.
 function cssSlideRow(label: string, value: Computed<number>, save: (val: number) => Promise<void>,
-                     ...args: DomElementArg[]) {
+  ...args: DomElementArg[]) {
   let input: HTMLInputElement;
 
   // Set the input's value to the value that's saved on the server.
@@ -1148,10 +1148,10 @@ export const chartTypes: {[name: string]: ChartFunc} = {
   },
   scatter(series: Series[], options: ChartOptions): PlotData {
     return basicPlot(series.slice(1), options, {
-        type: 'scatter',
-        mode: 'text+markers',
-        text: series[0].values as string[],
-        textposition: "bottom center",
+      type: 'scatter',
+      mode: 'text+markers',
+      text: series[0].values as string[],
+      textposition: "bottom center",
     });
   },
 
@@ -1164,7 +1164,7 @@ export const chartTypes: {[name: string]: ChartFunc} = {
       trimNonNumericData(series);
       line = series[1];
     }
- else {
+    else {
       // When there is only one series of labels, simply count their occurrences.
       line = {label: 'Count', values: series[0].values.map(() => 1)};
     }

@@ -5,9 +5,9 @@ import * as _ from 'underscore';
 
 import {ColumnDelta, createEmptyActionSummary} from 'app/common/ActionSummary';
 import {ApplyUAResult, DataSourceTransformed, ImportOptions, ImportResult, ImportTableResult,
-        MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE,
-        TransformRule,
-        TransformRuleMap} from 'app/common/ActiveDocAPI';
+  MergeOptions, MergeOptionsMap, MergeStrategy, SKIP_TABLE,
+  TransformRule,
+  TransformRuleMap} from 'app/common/ActiveDocAPI';
 import {ApiError} from 'app/common/ApiError';
 import {BulkColValues, CellValue, fromTableDataAction, UserAction} from 'app/common/DocActions';
 import {DocStateComparison} from 'app/common/DocState';
@@ -66,7 +66,7 @@ export class ActiveDocImport {
    * Imports files, removes previously created temporary hidden tables and creates the new ones
    */
   public async importFiles(docSession: DocSession, dataSource: DataSourceTransformed,
-                           parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult> {
+    parseOptions: ParseOptions, prevTableIds: string[]): Promise<ImportResult> {
     this._activeDoc.startBundleUserActions(docSession);
     await this._removeHiddenTables(docSession, prevTableIds);
     const accessId = this._activeDoc.makeAccessId(docSession.userId);
@@ -79,18 +79,18 @@ export class ActiveDocImport {
    * the new tables
    */
   public async finishImportFiles(docSession: DocSession, dataSource: DataSourceTransformed,
-                                 prevTableIds: string[], importOptions: ImportOptions): Promise<ImportResult> {
+    prevTableIds: string[], importOptions: ImportOptions): Promise<ImportResult> {
     this._activeDoc.startBundleUserActions(docSession);
     try {
       await this._removeHiddenTables(docSession, prevTableIds);
       const accessId = this._activeDoc.makeAccessId(docSession.userId);
       const uploadInfo: UploadInfo = globalUploadSet.getUploadInfo(dataSource.uploadId, accessId);
       const importResult = await this._importFiles(docSession, uploadInfo, dataSource.transforms,
-                                                   importOptions, false);
+        importOptions, false);
       await globalUploadSet.cleanup(dataSource.uploadId);
       return importResult;
     }
- finally {
+    finally {
       this._activeDoc.stopBundleUserActions(docSession);
     }
   }
@@ -105,8 +105,8 @@ export class ActiveDocImport {
    * @returns {Promise} Promise that's resolved when all actions are applied successfully.
    */
   public async cancelImportFiles(docSession: DocSession,
-                                 uploadId: number,
-                                 prevTableIds: string[]): Promise<void> {
+    uploadId: number,
+    prevTableIds: string[]): Promise<void> {
     await this._removeHiddenTables(docSession, prevTableIds);
     this._activeDoc.stopBundleUserActions(docSession);
     await globalUploadSet.cleanup(uploadId);
@@ -134,7 +134,7 @@ export class ActiveDocImport {
    * `hiddenTableId` is merged into the destination table from `transformRule`.
    */
   public async generateImportDiff(hiddenTableId: string, {destCols, destTableId}: TransformRule,
-                                  {mergeCols, mergeStrategy}: MergeOptions): Promise<DocStateComparison> {
+    {mergeCols, mergeStrategy}: MergeOptions): Promise<DocStateComparison> {
     // Merge column ids from client have prefixes that need to be stripped.
     mergeCols = stripPrefixes(mergeCols);
 
@@ -169,7 +169,7 @@ export class ActiveDocImport {
           updatedRecords[srcColId][srcRowId] = [[''], [(comparisonResult[`${hiddenTableId}.${srcColId}`][i])]];
         }
       }
- else {
+      else {
         // Otherwise, a match was found between source and destination tables.
         for (const srcColId of srcColIds) {
           const matchingDestColId = srcToDestColIds.get(srcColId)![0];
@@ -223,7 +223,7 @@ export class ActiveDocImport {
     try {
       return this._importFiles(docSession, uploadInfo, [], {}, false);
     }
- finally {
+    finally {
       this._activeDoc.stopBundleUserActions(docSession);
     }
   }
@@ -291,7 +291,7 @@ export class ActiveDocImport {
         createdTableId = hiddenTableId;
 
       }
- else {
+      else {
         if (destTableId === SKIP_TABLE) {
           await this._activeDoc.applyUserActions(docSession, [['RemoveTable', hiddenTableId]]);
           continue;
@@ -325,8 +325,8 @@ export class ActiveDocImport {
    * The isHidden flag indicates whether to create temporary hidden tables, or final ones.
    */
   private async _importFiles(docSession: OptDocSession, upload: UploadInfo, transforms: TransformRuleMap[],
-                             {parseOptions = {}, mergeOptionMaps = []}: ImportOptions,
-                             isHidden: boolean): Promise<ImportResult> {
+    {parseOptions = {}, mergeOptionMaps = []}: ImportOptions,
+    isHidden: boolean): Promise<ImportResult> {
 
     // Check that upload size is within the configured limits.
     const limit = (Number(process.env.GRIST_MAX_UPLOAD_IMPORT_MB) * 1024 * 1024) || Infinity;
@@ -388,7 +388,7 @@ export class ActiveDocImport {
    * tables, such as `hiddenTableId`, `uploadFileIndex`, `origTableName`, `transformSectionRef`, `destTableId`.
    */
   private async _importFileAsNewTable(docSession: OptDocSession, tmpPath: string,
-                                      importOptions: FileImportOptions): Promise<ImportResult> {
+    importOptions: FileImportOptions): Promise<ImportResult> {
     const {originalFilename, parseOptions} = importOptions;
     log.info("ActiveDoc._importFileAsNewTable(%s, %s)", tmpPath, originalFilename);
     if (!this._activeDoc.docPluginManager) {
@@ -486,8 +486,8 @@ export class ActiveDocImport {
    * the source and destination table.
    */
   private async _mergeAndFinishImport(docSession: OptDocSession, hiddenTableId: string, destTableId: string,
-                                      {destCols, sourceCols}: TransformRule,
-                                      {mergeCols, mergeStrategy}: MergeOptions): Promise<void> {
+    {destCols, sourceCols}: TransformRule,
+    {mergeCols, mergeStrategy}: MergeOptions): Promise<void> {
     // Merge column ids from client have prefixes that need to be stripped.
     mergeCols = stripPrefixes(mergeCols);
 
@@ -503,7 +503,7 @@ export class ActiveDocImport {
       if (!srcToDestColIds.has(srcColId)) {
         srcToDestColIds.set(srcColId, [destColId]);
       }
- else {
+      else {
         srcToDestColIds.get(srcColId)!.push(destColId);
       }
     });
@@ -547,7 +547,7 @@ export class ActiveDocImport {
         }
         numNewRecords++;
       }
- else {
+      else {
         // Otherwise, a match was found between source and destination tables, so we merge their columns.
         for (const srcColId of srcColIds) {
           const matchingDestColIds = srcToDestColIds.get(srcColId);
@@ -591,7 +591,7 @@ export class ActiveDocImport {
    * @returns {Promise<BulkColValues} Decoded column values from both tables that were matched, and had differences.
    */
   private async _getTableComparison(hiddenTableId: string, destTableId: string, srcToDestColIds: Map<string, string[]>,
-                                    mergeCols: string[]): Promise<BulkColValues> {
+    mergeCols: string[]): Promise<BulkColValues> {
     const mergeColIds = new Set(mergeCols);
     const destToSrcMergeColIds = new Map();
     srcToDestColIds.forEach((destColIds, srcColId) => {
@@ -640,10 +640,10 @@ export class ActiveDocImport {
    * This function fix references that are broken by the change of table id.
    */
   private async _fixReferences(docSession: OptDocSession,
-                               tables: ImportTableResult[],
-                               fixedColumnIds: { [tableId: string]: string[]; },
-                               references: ReferenceDescription[],
-                               isHidden: boolean) {
+    tables: ImportTableResult[],
+    fixedColumnIds: { [tableId: string]: string[]; },
+    references: ReferenceDescription[],
+    isHidden: boolean) {
 
     // collect all new table ids
     const tablesByOrigName = _.indexBy(tables, 'origTableName');

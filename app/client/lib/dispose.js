@@ -123,7 +123,7 @@ Object.assign(Disposable.prototype, {
   autoDisposeWith: function(disposer, obj) {
     var list = this._disposalList || (this._disposalList = []);
     list.push({ obj: obj,
-                disposer: typeof disposer === 'string' ? methodDisposer(disposer) : disposer });
+      disposer: typeof disposer === 'string' ? methodDisposer(disposer) : disposer });
     return obj;
   },
 

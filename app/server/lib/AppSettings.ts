@@ -118,7 +118,7 @@ export class AppSettings {
     if (value !== undefined) {
       this._value = value;
     }
- else if (query.defaultValue !== undefined) {
+    else if (query.defaultValue !== undefined) {
       this._value = query.defaultValue;
     }
     if (query.acceptedValues && this._value) {

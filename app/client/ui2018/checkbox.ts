@@ -122,11 +122,11 @@ function checkbox(
   label: DomArg, right: boolean,  ...domArgs: CheckboxArg[]
 ) {
   const field = cssCheckbox(
-      { type: 'checkbox' },
-      dom.prop('checked', obs),
-      dom.on('change', (ev, el) => obs.set(el.checked)),
-      ...domArgs,
-    );
+    { type: 'checkbox' },
+    dom.prop('checked', obs),
+    dom.on('change', (ev, el) => obs.set(el.checked)),
+    ...domArgs,
+  );
   const text = label ? cssLabelText(label) : null;
   if (right) {
     return cssReversedLabel([text, cssInlineRelative(field)]);

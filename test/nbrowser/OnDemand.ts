@@ -74,7 +74,7 @@ describe('OnDemand', function() {
     await gu.waitForServer();
     await gu.waitToPass(async () => {
       assert.match(await driver.find('.test-formula-error-msg').getText(),
-      /Formula not supported.*on-demand.*unmark/si);
+        /Formula not supported.*on-demand.*unmark/si);
     });
     await gu.sendKeys(Key.ESCAPE);    // Close the formula editor.
     await gu.waitAppFocus(true);

@@ -135,8 +135,8 @@ export async function buildReassignModal(options: {
       const oldRecord = getRow(tableId, oldRowId);
       const oldValue = decodeObject(oldRecord[colId]);
       let newValue: any = Array.isArray(oldValue)
-              ? oldValue.filter(v => v !== this.data.pointer)
-              : 0;
+        ? oldValue.filter(v => v !== this.data.pointer)
+        : 0;
       if (Array.isArray(newValue) && newValue.length === 0) {
         newValue = null;
       }
@@ -193,7 +193,7 @@ export async function buildReassignModal(options: {
       }
       return encodeObject(filteredOut);
     }
- else {
+    else {
       return filteredOut[0] ?? null;
     }
   }
@@ -251,17 +251,17 @@ export async function buildReassignModal(options: {
               // We can't allow that, so we will remove this update from the action.
               valuesInAction[colId] = unassign(valuesInAction[colId], pet);
             }
- else {
+            else {
               assignPet(colId, pet, newOwnerId);
             }
           }
- else {
+          else {
             // If we will assign it to someone else in previous action, ignore this update.
             if (wasPetJustAssigned(petsCol.colId(), pet)) {
               valuesInAction[colId] = unassign(valuesInAction[colId], pet);
               continue;
             }
- else {
+            else {
               assignPet(colId, pet, newOwnerId);
               problems.push(new Problem({
                 tableId: ownersTable,
@@ -278,7 +278,7 @@ export async function buildReassignModal(options: {
 
       properActions.push(action);
     }
- else {
+    else {
       throw new Error(`Unsupported action ${action[0]}`);
     }
   }
@@ -309,7 +309,7 @@ export async function buildReassignModal(options: {
       const reverseColId = revCol.colId.peek();
       if (!reverseColId) { return; } // might happen if it is censored.
       const targetField = rawViewSection.viewFields.peek().all()
-                                        .find(f => f.colId.peek() === reverseColId);
+        .find(f => f.colId.peek() === reverseColId);
       if (!targetField) { return; }
       await commands.allCommands.setCursor.run(null, targetField);
       await commands.allCommands.rightPanelOpen.run();
@@ -367,7 +367,7 @@ function* bulkToSingle(actions: DocAction[]): Iterable<DocAction> {
         yield [name, tableId, rowIds[i], mapValues(colValues, values => values[i])];
       }
     }
- else {
+    else {
       yield a;
     }
   }

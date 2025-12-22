@@ -78,7 +78,7 @@ export function buildDescriptionConfig(
         ),
       ];
     }
- else {
+    else {
       return dom.domComputed(use => Boolean(use(description)), (haveDescription) => {
         preview = undefined;
         if (haveDescription) {
@@ -96,12 +96,12 @@ export function buildDescriptionConfig(
             ),
           ];
         }
- else {
+        else {
           return cssRow(cssTextButton(
-              t("Set description"),
-              dom.on("click", openEditor),
-              testId('description-add'),
-            ),
+            t("Set description"),
+            dom.on("click", openEditor),
+            testId('description-add'),
+          ),
           );
         }
       });

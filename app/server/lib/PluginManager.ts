@@ -50,7 +50,7 @@ export class PluginManager {
    *
    */
   public constructor(public appRoot?: string, userRoot?: string,
-                     public bundledRoot?: string) {
+    public bundledRoot?: string) {
     this._dirs = {
       installed: userRoot ? path.join(userRoot, 'plugins') : undefined,
       builtIn: appRoot ? getAppPathTo(appRoot, 'plugins') : undefined,
@@ -67,7 +67,7 @@ export class PluginManager {
     try {
       await (this.pluginsLoaded = this.loadPlugins());
     }
- catch (err) {
+    catch (err) {
       log.error("PluginManager's initialization failed: ", err);
       throw err;
     }
@@ -132,7 +132,7 @@ export class PluginManager {
       for (const plugin of invalidPlugins) {
         log.warn(`Error loading plugins: Failed to load extension from ${plugin.path}\n` +
           (plugin.errors!).map(m => "  - " + m).join("\n  "),
-          );
+        );
       }
     }
     log.info(`Found ${this._validPlugins.length} valid plugins on the system`);
@@ -150,7 +150,7 @@ async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled")
   try {
     listDir = await fse.readdir(dir);
   }
- catch (e) {
+  catch (e) {
     // Non existing dir is treated as an empty dir.
     // It is hard for user to avoid Grist checking a dir,
     // so phrase the message as information rather than error.
@@ -167,7 +167,7 @@ async function scanDirectory(dir: string, kind: "installed"|"builtIn"|"bundled")
     try {
       plugin.manifest = await readManifest(folderPath);
     }
- catch (e) {
+    catch (e) {
       plugin.errors = [];
       if (e.message) {
         plugin.errors.push(e.message);

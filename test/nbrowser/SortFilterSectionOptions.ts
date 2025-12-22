@@ -62,7 +62,7 @@ describe('SortFilterSectionOptions', function() {
 
     // Section header should now display the filter icon in the unsaved state
     assert.isTrue(await driver.find('.test-section-menu-wrapper[class*=-unsaved] .test-section-menu-filter-icon')
-                  .isPresent());
+      .isPresent());
 
     // check filter icon is displayed with -any class
     assert.isTrue(await driver.find('.test-section-menu-filter-icon').matches('[class*=-any]'));
@@ -499,8 +499,8 @@ describe('SortFilterSectionOptions', function() {
 
     // check data is correctly filtered
     assert.deepEqual(
-        await gu.getVisibleGridCells({cols: ['Name'], rowNums: [1, 2]}),
-        ['Oranges', 'Bananas'],
+      await gu.getVisibleGridCells({cols: ['Name'], rowNums: [1, 2]}),
+      ['Oranges', 'Bananas'],
     );
 
     // remove filter

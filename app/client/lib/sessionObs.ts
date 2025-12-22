@@ -54,7 +54,7 @@ export function createSessionObs<T>(
     if (stored == null) {
       storage.removeItem(key);
     }
- else {
+    else {
       storage.setItem(key, stored);
     }
   });

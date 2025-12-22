@@ -22,9 +22,9 @@ export class SafePythonComponent extends BaseComponent {
   // safe python component does not need pluginInstance.rpc because it is not possible to forward
   // calls to other component from within python
   constructor(_localPlugin: LocalPlugin,
-              private _tmpDir: string,
-              docName: string, private _server: GristServer,
-              rpcLogger = createRpcLogger(log, `PLUGIN ${_localPlugin.id} SafePython:`)) {
+    private _tmpDir: string,
+    docName: string, private _server: GristServer,
+    rpcLogger = createRpcLogger(log, `PLUGIN ${_localPlugin.id} SafePython:`)) {
     super(_localPlugin.manifest, rpcLogger);
     this._logMeta = {plugin: _localPlugin.id, docId: docName};
   }

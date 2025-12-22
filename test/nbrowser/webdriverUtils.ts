@@ -29,7 +29,7 @@ export async function withDriverLogging(
     try {
       await fetchScreenshotAndLogs(test);
     }
- finally {
+    finally {
       running = false;
     }
   }
@@ -39,7 +39,7 @@ export async function withDriverLogging(
   try {
     return await callback();
   }
- finally {
+  finally {
     clearInterval(periodic);
     clearTimeout(timeout);
   }

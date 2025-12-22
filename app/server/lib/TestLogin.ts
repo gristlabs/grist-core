@@ -10,9 +10,9 @@ export async function getTestLoginSystem(): Promise<GristLoginSystem> {
   return {
     async getMiddleware(gristServer: GristServer) {
       async function getLoginRedirectUrl(req: Request, url: URL)  {
-          const target = new URL(gristServer.getHomeUrl(req, 'test/login'));
-          target.searchParams.append('next', url.href);
-          return target.href || url.href;
+        const target = new URL(gristServer.getHomeUrl(req, 'test/login'));
+        target.searchParams.append('next', url.href);
+        return target.href || url.href;
       }
       return {
         getLoginRedirectUrl,

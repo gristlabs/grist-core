@@ -163,15 +163,15 @@ describe('LinkingSelector', function() {
 
     // STUDENTS Card shows appropriate value
     assert.deepEqual(await gu.getVisibleDetailCells(
-        {section: 'STUDENTS Card', cols: ['First_Name', 'Policy_Number'], rowNums: [1]}),
-      ['Mordy', '468617']);
+      {section: 'STUDENTS Card', cols: ['First_Name', 'Policy_Number'], rowNums: [1]}),
+    ['Mordy', '468617']);
 
     // Select another student
     await gu.getCell({section: students, rowNum: 2, col: 'Last_Name'}).click();
     assert.deepEqual(await getCursorSelectorInfo(students), {linkSelector: 2, cursor: {rowNum: 2, col: 1}});
     assert.deepEqual(await gu.getVisibleDetailCells(
-        {section: 'STUDENTS Card', cols: ['First_Name', 'Policy_Number'], rowNums: [1]}),
-      ['Noam', '663208']);
+      {section: 'STUDENTS Card', cols: ['First_Name', 'Policy_Number'], rowNums: [1]}),
+    ['Noam', '663208']);
 
     // There is no longer a cursor in FAMILIES, but still a link-selector.
     assert.deepEqual(await getCursorSelectorInfo(families), {linkSelector: 3, cursor: null});

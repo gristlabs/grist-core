@@ -50,7 +50,7 @@ export function toUserProfile(scimUser: SCIMMY.Schemas.User): UserProfile {
   }
   return {
     name: scimUser.displayName ?? '', // The empty string will be transformed to a named deduced from the
-                                      // email by the HomeDBManager
+    // email by the HomeDBManager
     picture: scimUser.photos?.[0]?.value,
     locale: scimUser.locale,
     email: emailValue ?? scimUser.userName,

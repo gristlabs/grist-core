@@ -41,10 +41,10 @@ export function numericSpinner(
     if (defaultValue === undefined) {
       return 0;
     }
- else if (typeof defaultValue === 'number') {
+    else if (typeof defaultValue === 'number') {
       return defaultValue;
     }
- else {
+    else {
       return defaultValue.get();
     }
   };

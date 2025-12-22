@@ -155,7 +155,7 @@ export class GristWSConnection extends Disposable {
       this.trigger('connectState', false);
       this._initialConnection = this.connect();
     }
- else {
+    else {
       this._log("GristWSConnection not activating for hosted grist page with no document present");
     }
   }
@@ -311,7 +311,7 @@ export class GristWSConnection extends Disposable {
   private _scheduleHeartbeat() {
     this._clearHeartbeat();
     this._heartbeatTimeout = setTimeout(this._sendHeartbeat.bind(this),
-                                        Math.round(HEARTBEAT_PERIOD_IN_SECONDS * 1000));
+      Math.round(HEARTBEAT_PERIOD_IN_SECONDS * 1000));
   }
 
   // send a heartbeat message, including the document url for server-side logs
@@ -335,7 +335,7 @@ export class GristWSConnection extends Disposable {
     try {
       url = this._buildWebsocketUrl(isReconnecting, timezone);
     }
- catch (e) {
+    catch (e) {
       this._warn('Failed to get the URL for the worker serving the document');
       this._scheduleReconnect(isReconnecting);
       return;
@@ -416,7 +416,7 @@ export class GristWSConnection extends Disposable {
       // standalone doc worker urls.
       this._docWorkerUrl = url ? addOrgToPath(url, this._settings.getPageUrl()) : url;
     }
- catch (e) {
+    catch (e) {
       this._warn('Failed to connect to server for document');
     }
   }

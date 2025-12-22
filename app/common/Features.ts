@@ -29,8 +29,8 @@ export interface Features {
   vanityDomain?: boolean;   // are user-selected domains allowed (unenforced) (default: true)
 
   workspaces?: boolean;     // are workspaces shown in web interface (default: true)
-                            // (this was intended as something we can turn off to shut down
-                            // web access to content while leaving access to billing)
+  // (this was intended as something we can turn off to shut down
+  // web access to content while leaving access to billing)
 
   /**
    * Some optional limits.  Since orgs can change plans, limits will typically be checked
@@ -42,61 +42,61 @@ export interface Features {
    */
 
   maxSharesPerDoc?: number; // Maximum number of users that can be granted access to a
-                            // particular doc.  Doesn't count users granted access at
-                            // workspace or organization level.  Doesn't count billable
-                            // users if applicable (default: unlimited)
+  // particular doc.  Doesn't count users granted access at
+  // workspace or organization level.  Doesn't count billable
+  // users if applicable (default: unlimited)
 
   maxSharesPerDocPerRole?: {[role: string]: number};  // As maxSharesPerDoc, but
-                            // for specific roles.  Roles are named as in app/common/roles.
-                            // Applied independently to maxSharesPerDoc.
-                            // (default: unlimited)
+  // for specific roles.  Roles are named as in app/common/roles.
+  // Applied independently to maxSharesPerDoc.
+  // (default: unlimited)
   maxSharesPerWorkspace?: number;  // Maximum number of users that can be granted access to
-                            // a particular workspace.  Doesn't count users granted access
-                            // at organizational level, or billable users (default: unlimited)
+  // a particular workspace.  Doesn't count users granted access
+  // at organizational level, or billable users (default: unlimited)
 
   maxDocsPerOrg?: number;   // Maximum number of documents allowed per org.
-                            // (default: unlimited)
+  // (default: unlimited)
   maxWorkspacesPerOrg?: number;   // Maximum number of workspaces allowed per org.
-                            // (default: unlimited)
+  // (default: unlimited)
 
   readOnlyDocs?: boolean;   // if set, docs can only be read, not written.
 
   snapshotWindow?: SnapshotWindow;  // if set, controls how far back snapshots are kept.
 
   baseMaxRowsPerDocument?: number;  // If set, establishes a default maximum on the
-                                 // number of rows (total) in a single document.
-                                 // Actual max for a document may be higher.
+  // number of rows (total) in a single document.
+  // Actual max for a document may be higher.
   baseMaxApiUnitsPerDocumentPerDay?: number;  // Similar for api calls.
   baseMaxDataSizePerDocument?: number;  // Similar maximum for number of bytes of 'normal' data in a document
   baseMaxAttachmentsBytesPerDocument?: number;  // Similar maximum for total number of bytes used
-                                                // for attached files in a document
+  // for attached files in a document
   maxAttachmentsBytesPerOrg?: number; // Limit across a site.
 
   gracePeriodDays?: number;  // Duration of the grace period in days, before entering delete-only mode
   noGraceBanner?: boolean;   // If set, a banner is hidden, used for enterprise plans.
 
   baseMaxAssistantCalls?: number; // Maximum number of AI assistant calls. Defaults to 0 if not set, use -1 to indicate
-                                  // unbound limit. This is total limit, not per month or per day, it is used as a seed
-                                  // value for the limits table. To create a per-month limit, there must be a separate
-                                  // task that resets the usage in the limits table.
+  // unbound limit. This is total limit, not per month or per day, it is used as a seed
+  // value for the limits table. To create a per-month limit, there must be a separate
+  // task that resets the usage in the limits table.
   minimumUnits?: number; // Minimum number of units for the plan. Default no minimum.
 
   meteredSeats?: boolean;       // If set, the number of seats is metered, and Grist should
-                                // try to update subscription in Stripe (by increasing the quantity).
+  // try to update subscription in Stripe (by increasing the quantity).
 
   teamAuditLogs?: boolean; // Access to team-level audit logging.
 
   maxNewUserInvitesPerOrg?: number; // Maximum number of site/workspace/doc invites to new users before
-                                    // additional requests are blocked (until invited users log in or are
-                                    // uninvited).
+  // additional requests are blocked (until invited users log in or are
+  // uninvited).
 
   installationEnabled?: boolean; // Allows self hosted Grist plan. Grist will generate an activation
-                                 // key for the installation, which will unblock enterprise features.
+  // key for the installation, which will unblock enterprise features.
 
   // The following features are used for self managed Grist instance (called installation).
 
   installationSeats?: number;           // Number of seats bought (should be filled in by Stripe). Grist won't allow
-                                        // more users than this number.
+  // more users than this number.
 
   installationReadOnly?: boolean;       // If set, docs can only be read, not written.
 
@@ -190,13 +190,13 @@ export function parseMetadata(meta: Record<string, string>): Record<string, any>
     if (value === '') {
       copy[key] = null;
     }
- else if (value === 'true' || value === 'false') {
+    else if (value === 'true' || value === 'false') {
       copy[key] = value === 'true';
     }
- else if (!isNaN(parseFloat(value))) {
+    else if (!isNaN(parseFloat(value))) {
       copy[key] = parseFloat(value);
     }
- else if (!isNaN(parseInt(value, 10))) {
+    else if (!isNaN(parseInt(value, 10))) {
       copy[key] = parseInt(value, 10);
     }
 

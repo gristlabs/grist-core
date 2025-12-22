@@ -188,7 +188,7 @@ export function constructUrl(value: CellValue): string {
     // Try to construct a valid URL
     return (new URL(url)).toString();
   }
- catch (e) {
+  catch (e) {
     // Not a valid URL, so try to prefix it with https
     return 'https://' + url;
   }
@@ -205,7 +205,7 @@ export function sameDocumentUrlState(urlValue: CellValue): IGristUrlState | null
   try {
     url = new URL(urlString);
   }
- catch {
+  catch {
     return null;
   }
   const oldOrigin = window.location.origin;
@@ -219,7 +219,7 @@ export function sameDocumentUrlState(urlValue: CellValue): IGristUrlState | null
   if (urlStateImpl.needPageLoad(urlState().state.get(), result)) {
     return null;
   }
- else {
+  else {
     return result;
   }
 }

@@ -11,7 +11,7 @@ import { textInput } from 'app/client/ui/inputs';
 import { pagePanels } from "app/client/ui/PagePanels";
 import { createUserImage } from 'app/client/ui/UserImage';
 import { cssMemberImage, cssMemberListItem, cssMemberPrimary,
-         cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
+  cssMemberSecondary, cssMemberText } from 'app/client/ui/UserItem';
 import { buildWelcomeSitePicker } from 'app/client/ui/WelcomeSitePicker';
 import { basicButtonLink, bigBasicButtonLink, bigPrimaryButton } from "app/client/ui2018/buttons";
 import { mediaSmall, testId, theme, vars } from "app/client/ui2018/cssVars";
@@ -58,7 +58,7 @@ export class WelcomePage extends Disposable {
       headerMain: [cssFlexSpace(), dom.create(AccountWidget, this._appModel)],
       contentMain: (
         page === 'teams' ? dom.create(buildWelcomeSitePicker, this._appModel) :
-        this._buildPageContent(page)
+          this._buildPageContent(page)
       ),
       app: this._appObj,
     });
@@ -69,9 +69,9 @@ export class WelcomePage extends Disposable {
       cssTitle('Welcome to Grist'),
       testId('welcome-page'),
       page === 'signup' ? dom.create(this._buildSignupForm.bind(this)) :
-      page === 'verify' ? dom.create(this._buildVerifyForm.bind(this)) :
-      page === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
-      null,
+        page === 'verify' ? dom.create(this._buildVerifyForm.bind(this)) :
+          page === 'select-account' ? dom.create(this._buildAccountPicker.bind(this)) :
+            null,
     ));
   }
 
@@ -97,14 +97,14 @@ export class WelcomePage extends Disposable {
       { method: "post", action: action.href },
       handleSubmitForm(pending, () => _redirectToSiblingPage('verify')),
       cssParagraph(
-          `Welcome Sumo-ling! ` +  // This flow currently only used with AppSumo.
+        `Welcome Sumo-ling! ` +  // This flow currently only used with AppSumo.
           `Your Grist site is almost ready. Let's get your account set up and verified. ` +
           `If you already have a Grist account as `,
-          dom('b', email.get()),
-          ` you can just `,
-          cssLink({href: getLoginUrl({nextUrl: null})}, 'log in'),
-          ` now. Otherwise, please pick a password.`,
-         ),
+        dom('b', email.get()),
+        ` you can just `,
+        cssLink({href: getLoginUrl({nextUrl: null})}, 'log in'),
+        ` now. Otherwise, please pick a password.`,
+      ),
       cssSeparatedLabel('The email address you activated Grist with:'),
       cssInput(
         email, { onInput: true },
@@ -160,17 +160,17 @@ export class WelcomePage extends Disposable {
           verified.pathname = '/verified';
           window.location.assign(verified.href);
         }
- else if (result.status === 'resent') {
+        else if (result.status === 'resent') {
           // just to give a sense that something happened...
           window.location.reload();
         }
       }),
       cssParagraph(
-          `Please check your email for a 6-digit verification code, and enter it here.`),
+        `Please check your email for a 6-digit verification code, and enter it here.`),
       cssParagraph(
-          `If you've any trouble, try our full set of sign-up options. Do take care to use ` +
+        `If you've any trouble, try our full set of sign-up options. Do take care to use ` +
           `the email address you activated with: `,
-          dom('b', email.get())),
+        dom('b', email.get())),
       cssSeparatedLabel('Confirmation code'),
       inputEl = cssInput(
         code, { onInput: true },
@@ -183,12 +183,12 @@ export class WelcomePage extends Disposable {
         dom.boolAttr('hidden', true),
       ),
       cssButtonGroup(
-         bigPrimaryButton(
-           dom.domComputed(code, c => c ?
-                           'Apply verification code' : 'Resend verification email'),
+        bigPrimaryButton(
+          dom.domComputed(code, c => c ?
+            'Apply verification code' : 'Resend verification email'),
         ),
         bigBasicButtonLink('More sign-up options',
-                           {href: getSignupUrl({nextUrl: null})}),
+          {href: getSignupUrl({nextUrl: null})}),
       ),
     );
   }

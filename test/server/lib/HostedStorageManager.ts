@@ -101,7 +101,7 @@ class SimpleExternalStorage implements ExternalStorage {
       }
       this._version.delete(key);
     }
- else {
+    else {
       for (const snapshotId of snapshotIds) {
         this._memory.delete(snapshotId);
         this._metadata.delete(snapshotId);
@@ -119,7 +119,7 @@ class SimpleExternalStorage implements ExternalStorage {
         throw new Error('version not recognized');
       }
     }
- else {
+    else {
       snapshotId = versions[0].snapshotId;
     }
     if (!snapshotId) { throw new Error('version not found'); }
@@ -199,7 +199,7 @@ class CachedExternalStorage implements ExternalStorage {
       await fse.writeFile(fname, txt);
       return downloadedSnapshotId;
     }
- catch (e) {
+    catch (e) {
       await fse.writeFile(fname, 'put some junk here to simulate unclean failure');
       throw e;
     }
@@ -301,7 +301,7 @@ class TestStore {
     try {
       result = await fn();
     }
- finally {
+    finally {
       await this.end();
     }
     return result;
@@ -317,14 +317,14 @@ class TestStore {
     const options: HostedStorageOptions = {
       secondsBeforePush: 0.5,
       secondsBeforeFirstRetry: 3,   // rumors online suggest delays of 10-11 secs
-                                    // are not super-unusual.
+      // are not super-unusual.
       pushDocUpdateTimes: false,
 
     };
     const externalStorageCreator = (purpose: ExternalStorageSettings["purpose"]) => {
-        const result = this._externalStorageCreate(purpose, this._extraPrefix);
-        if (!result) { throw new Error('no storage'); }
-        return result;
+      const result = this._externalStorageCreate(purpose, this._extraPrefix);
+      if (!result) { throw new Error('no storage'); }
+      return result;
     };
 
     const attachmentStoreProvider =
@@ -339,19 +339,19 @@ class TestStore {
     };
 
     const storageManager = new HostedStorageManager(gristServer,
-                                                    this._localDirectory,
-                                                    this._workerId,
-                                                    false,
-                                                    this._workers,
-                                                    dbManager,
-                                                    externalStorageCreator,
-                                                    options);
+      this._localDirectory,
+      this._workerId,
+      false,
+      this._workers,
+      dbManager,
+      externalStorageCreator,
+      options);
     this.storageManager = storageManager;
     this.docManager = new DocManager(storageManager, await getGlobalPluginManager(), dbManager, attachmentStoreProvider,
-                                     {
-                                       ...createDummyGristServer(),
-                                       getStorageManager() { return storageManager; },
-                                     });
+      {
+        ...createDummyGristServer(),
+        getStorageManager() { return storageManager; },
+      });
   }
 
   // Simulates doc worker shutdown.  Closes all open documents.
@@ -441,7 +441,7 @@ describe('HostedStorageManager', function() {
         tmpDir = await createTmpDir();
 
         let externalStorageCreate:
-          (purpose: 'doc'|'meta'|'attachments', extraPrefix: string) => ExternalStorage|undefined;
+        (purpose: 'doc'|'meta'|'attachments', extraPrefix: string) => ExternalStorage|undefined;
         function requireStorage<T>(storage: T|undefined): T {
           if (storage === undefined) { throw new Error('storage not found'); }
           return storage;
@@ -1233,7 +1233,7 @@ describe('HostedStorageManager', function() {
           ]);
           assert.equal(done, true);
         }
- finally {
+        finally {
           running = false;
           await writerThread;
           await db.close();
@@ -1269,11 +1269,11 @@ describe('HostedStorageManager', function() {
             }
             eventCount++;
           }
- else if (event.phase === 'before') {
+          else if (event.phase === 'before') {
             eventStart = Date.now();
             eventAction = event.action;
           }
- else if (event.action === 'restart') {
+          else if (event.action === 'restart') {
             restartCount++;
           }
         }
@@ -1282,7 +1282,7 @@ describe('HostedStorageManager', function() {
           db, err => backupError = err, () => backupSqliteDatabase(db, src, dest, progress),
         );
         const backup =
-            (mode === 'with-doc' || mode === 'with-closing-doc') ?
+          (mode === 'with-doc' || mode === 'with-closing-doc') ?
             runBackup(db) :
             runBackup(undefined);
         const act = backup.then(() => done = true)
@@ -1315,7 +1315,7 @@ describe('HostedStorageManager', function() {
           try {
             await db.exec('INSERT INTO data VALUES (1,2,3)');
           }
- catch (e) {
+          catch (e) {
             log.error('insertion failed, that is bad news, the db was locked for too long');
             throw e;
           }
@@ -1352,7 +1352,7 @@ describe('HostedStorageManager', function() {
           // There should be no slow steps.
           assert.equal(slowSteps, 0);
         }
- else {
+        else {
           // If simulating a backup done via the connection to the source database
           // then disruption should not cause backup restart.
           assert.equal(restartCount, 0);

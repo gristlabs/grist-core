@@ -187,7 +187,7 @@ class OnBoardingPopupsCtl extends Disposable {
     if (entry.showHasModal) {
       this._showHasModal();
     }
- else {
+    else {
       await this._showHasPopup(movement);
     }
   }
@@ -339,7 +339,7 @@ class OnBoardingPopupsCtl extends Disposable {
 function buildArrow() {
   return ArrowContainer(
     svg('svg', { style: 'width: 13px; height: 34px;' },
-        svg('path', {'d': 'M 2 19 h 13 v 18 Z'})),
+      svg('path', {'d': 'M 2 19 h 13 v 18 Z'})),
   );
 }
 

@@ -156,7 +156,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         response.suggestedFormula,
       );
     }
- else {
+    else {
       response.reply = completion;
     }
     response.state = { messages };
@@ -193,9 +193,9 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       headers: {
         ...(this._apiKey
           ? {
-              Authorization: `Bearer ${this._apiKey}`,
-              "api-key": this._apiKey,
-            }
+            Authorization: `Bearer ${this._apiKey}`,
+            "api-key": this._apiKey,
+          }
           : undefined),
         "Content-Type": "application/json",
       },
@@ -206,8 +206,8 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         user,
         ...(this._maxTokens
           ? {
-              max_tokens: this._maxTokens,
-            }
+            max_tokens: this._maxTokens,
+          }
           : undefined),
       }),
       ...(DEPS.agents.trusted ? { agent: DEPS.agents.trusted } : {}),
@@ -224,7 +224,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       if (messages.length <= 2) {
         throw new TokensExceededFirstMessageError();
       }
- else {
+      else {
         throw new TokensExceededLaterMessageError();
       }
     }
@@ -253,7 +253,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
       try {
         return await this._fetchCompletion(messages, params);
       }
- catch (e) {
+      catch (e) {
         if (e instanceof NonRetryableError) {
           throw e;
         }
@@ -285,7 +285,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
         model: this._model,
       });
     }
- catch (e) {
+    catch (e) {
       if (!(e instanceof TokensExceededError)) {
         throw e;
       }
@@ -300,7 +300,7 @@ export class OpenAIAssistantV1 implements AssistantV1 {
           model: this._longerContextModel,
         });
       }
- catch (e) {
+      catch (e) {
         if (!(e instanceof TokensExceededError)) {
           throw e;
         }

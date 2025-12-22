@@ -10,17 +10,17 @@ import * as stream from 'node:stream';
 interface MinIOClient extends
   // Some of them are not directly extendable, must be omitted first and then redefined.
   Omit<minio.Client, "listObjects" | "getBucketVersioning" | "removeObjects">
-  {
-    // The official typing returns `Promise<Readable>`, dropping some useful metadata.
-    getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
-    // The official typing dropped "options" in their .d.ts file, but it is present in the underlying impl.
-    listObjects(bucket: string, key: string, recursive: boolean,
-      options: {IncludeVersion?: boolean}): minio.BucketStream<minio.BucketItem>;
-    // The released v8.0.0 wrongly returns `Promise<void>`; borrowed from PR #1297
-    getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
-    // The released v8.0.0 typing is outdated; copied over from commit 8633968.
-    removeObjects(bucketName: string, objectsList: RemoveObjectsParam): Promise<RemoveObjectsResponse[]>
-  }
+{
+  // The official typing returns `Promise<Readable>`, dropping some useful metadata.
+  getObject(bucket: string, key: string, options: {versionId?: string}): Promise<IncomingMessage>;
+  // The official typing dropped "options" in their .d.ts file, but it is present in the underlying impl.
+  listObjects(bucket: string, key: string, recursive: boolean,
+    options: {IncludeVersion?: boolean}): minio.BucketStream<minio.BucketItem>;
+  // The released v8.0.0 wrongly returns `Promise<void>`; borrowed from PR #1297
+  getBucketVersioning(bucketName: string): Promise<MinIOVersioningStatus>;
+  // The released v8.0.0 typing is outdated; copied over from commit 8633968.
+  removeObjects(bucketName: string, objectsList: RemoveObjectsParam): Promise<RemoveObjectsResponse[]>
+}
 
 type MinIOVersioningStatus = "" | {
   Status: "Enabled" | "Suspended",
@@ -82,7 +82,7 @@ export class MinIOExternalStorage implements ExternalStorage {
         ...head.metaData && { metadata: toGristMetadata(head.metaData) },
       };
     }
- catch (err) {
+    catch (err) {
       // NotFound and NoSuchKey are "expected" errors when checking for existence of a document
       // and should return a falsy null.
       // Other errors like 'ECONNRESET' and 'InternalError' are fatal errors and should be thrown
@@ -108,7 +108,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     try {
       return await this.uploadStream(key, filestream, stat.size, metadata);
     }
- finally {
+    finally {
       filestream.destroy();
     }
   }
@@ -151,7 +151,7 @@ export class MinIOExternalStorage implements ExternalStorage {
     if (snapshotIds) {
       await this._deleteVersions(key, snapshotIds);
     }
- else {
+    else {
       await this._deleteAllVersions(key);
     }
   }

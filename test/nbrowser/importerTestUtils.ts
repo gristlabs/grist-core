@@ -63,7 +63,7 @@ export const waitForDiffPreviewToLoad = async (): Promise<void> => {
       success = true;
       break;
     }
- catch (e) {
+    catch (e) {
       continue;
     }
   }
@@ -103,6 +103,6 @@ export async function openTableMapping() {
  */
 export async function openSource(text: string|RegExp) {
   await driver.findContent('.test-importer-column-match-destination', text)
-              .findClosest('.test-importer-column-match-source-destination')
-              .find('.test-importer-column-match-source').click();
+    .findClosest('.test-importer-column-match-source-destination')
+    .find('.test-importer-column-match-source').click();
 }

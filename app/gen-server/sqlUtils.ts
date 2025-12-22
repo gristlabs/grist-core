@@ -157,7 +157,7 @@ export function datetime(dbType: DatabaseType) {
  * getRawAndEntities.
  */
 export async function getRawAndEntities<T extends ObjectLiteral>(rawQueryBuilder: SelectQueryBuilder<any>,
-                                           nominalQueryBuilder: SelectQueryBuilder<T>): Promise<{
+  nominalQueryBuilder: SelectQueryBuilder<T>): Promise<{
   entities: T[],
   raw: any[],
 }> {
@@ -177,15 +177,15 @@ export async function getRawAndEntities<T extends ObjectLiteral>(rawQueryBuilder
     const rawRelationIdResults = await relationIdLoader.load(raw);
     const rawRelationCountResults = await relationCountLoader.load(raw);
     const transformer = new RawSqlResultsToEntityTransformer(expressionMap, connection.driver,
-                                                             rawRelationIdResults, rawRelationCountResults,
-                                                             queryRunner);
+      rawRelationIdResults, rawRelationCountResults,
+      queryRunner);
     const entities = transformer.transform(raw, expressionMap.mainAlias!);
     return {
       entities,
       raw,
     };
   }
- finally {
+  finally {
     // This is how the QueryBuilder <-> QueryRunner relationship is managed in TypeORM code.
     if (queryRunner !== runnerSource.queryRunner) {
       await queryRunner.release();

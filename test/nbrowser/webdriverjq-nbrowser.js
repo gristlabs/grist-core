@@ -20,7 +20,7 @@ var _ = require('underscore');
 var util = require('util');
 
 import { driver, error, stackWrapFunc,
-         WebElement, WebElementPromise } from 'mocha-webdriver';
+  WebElement, WebElementPromise } from 'mocha-webdriver';
 
 export const driverCompanion = {
   $: null,
@@ -190,13 +190,13 @@ var WebElementMethodNames = {
 Object.keys(WebElementMethodNames).forEach(function(methodName) {
   function runMethod(self, methodName, elem, ...argList) {
     var result = elem[methodName].apply(elem, argList)
-    .then(function(value) {
+      .then(function(value) {
       // Chrome makes some values unprintable by including a bogus .toString property.
-      if (value && typeof value.toString !== 'function') { delete value.toString; }
-      return value;
-    }, function(err) {
-      throw err;
-    });
+        if (value && typeof value.toString !== 'function') { delete value.toString; }
+        return value;
+      }, function(err) {
+        throw err;
+      });
     return result;
   }
   const runThisMethod = stackWrapFunc(runMethod.bind(null, this, methodName));
@@ -392,8 +392,8 @@ WebdriverJQ.prototype.waitCore = function(chained, optTimeoutSec, func, ...extra
   var self = this;
   async function conditionFunc() {
     const result = await (typeof func === 'string' ?
-                          self[func].apply(self, extraArgs) :
-                          func.apply(null, [self].concat(extraArgs)));
+      self[func].apply(self, extraArgs) :
+      func.apply(null, [self].concat(extraArgs)));
     return result === undefined ? true : result;
   }
   var waitPromise = waitImpl(timeoutMs, conditionFunc);
@@ -426,8 +426,8 @@ WebdriverJQ.prototype.sendKeys = function(varKeys) {
  */
 WebdriverJQ.prototype.sendNewText = function(string) {
   return this.sendKeys(this.$.SELECT_ALL || driverCompanion.$.SELECT_ALL,
-                       string,
-                       this.$.ENTER || driverCompanion.$.ENTER);
+    string,
+    this.$.ENTER || driverCompanion.$.ENTER);
 };
 
 /**
@@ -471,7 +471,7 @@ async function executeChain(selector, callChain) {
   let result = selector;
   if (typeof selector === 'string') {
     result = await findOldTimey(driver, selector,
-                                cc.includes('array') ||
+      cc.includes('array') ||
                                 cc.includes('length') ||
                                 cc.includes('toArray') ||
                                 cc.includes('eq') ||
@@ -511,8 +511,8 @@ async function applyCallChain(callChain, value) {
 
 function translateTestId(selector) {
   return (typeof selector === 'string' ?
-          selector.replace(/\$(\w+)/, '[data-test-id="$1"]', 'g') :
-          selector);
+    selector.replace(/\$(\w+)/, '[data-test-id="$1"]', 'g') :
+    selector);
 }
 
 export function findOldTimey(obj, key, multiple, multipleOptions) {

@@ -61,7 +61,7 @@ describe('CommentAccess', function() {
     try {
       await cli.send("closeDoc", 0);
     }
- catch (e) {
+    catch (e) {
       // Do not worry if socket is already closed by the other side.
       if (!String(e).match(/WebSocket is not open/)) {
         throw e;
@@ -463,9 +463,9 @@ describe('CommentAccess', function() {
       colRef: chatPublicColRef,
       userRef: ownerRef,
     }]),
-      [
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44},
-      ],
+    [
+      {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44},
+    ],
     );
     deepEqual(helper.convertToCells(['UpdateRecord', '_grist_Cells', 44, {
       tableRef: helper.getTableRef('Chat')!,
@@ -473,9 +473,9 @@ describe('CommentAccess', function() {
       colRef: chatPublicColRef,
       userRef: ownerRef,
     }]),
-      [
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44},
-      ],
+    [
+      {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44},
+    ],
     );
     deepEqual(helper.convertToCells(['BulkUpdateRecord', '_grist_Cells', [44], {
       tableRef: [helper.getTableRef('Chat')!],
@@ -483,9 +483,9 @@ describe('CommentAccess', function() {
       colRef: [chatPublicColRef],
       userRef: [ownerRef!],
     }]),
-      [
-        {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44},
-      ],
+    [
+      {"tableId": "Chat", "colId": "Public", "rowId": 1, userRef: ownerRef, "id": 44},
+    ],
     );
 
     // Test BulkUpdateRecord action generation from list of SingleCells.

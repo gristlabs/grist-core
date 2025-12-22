@@ -53,7 +53,7 @@ export function splitValuesByIndex<T extends {values: Datum[]}>(series: Array<T>
       if (Array.isArray(splitByValue)) {
         values = values.concat(Array(splitByValue.length).fill(s.values[i]));
       }
- else {
+      else {
         values.push(s.values[i]);
       }
     }

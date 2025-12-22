@@ -27,7 +27,7 @@ describe('DocStorageManager', function() {
       assert.equal(docStorageManager.getPath('Hello World'),
         path.join(docsRoot, 'Hello World.grist'));
       assert.equal(docStorageManager.getPath('/foo/bar/Hello.grist'),
-                   path.resolve('/foo/bar/Hello.grist'));
+        path.resolve('/foo/bar/Hello.grist'));
     });
   });
 
@@ -55,7 +55,7 @@ describe('DocStorageManager', function() {
       await verify('/foo/./bar/../Hello', path.resolve('/foo/Hello.grist'));
       // For realistic paths, they should be properly resolved.
       await verify(path.join(docsRoot, '..', 'foo'),
-                   path.resolve(docsRoot, '../foo.grist'));
+        path.resolve(docsRoot, '../foo.grist'));
     });
   });
 
@@ -90,7 +90,7 @@ describe('DocStorageManager', function() {
       await docStorageManager.deleteDoc(doc1, true);
       // Check that attempting to send items to the trash fails
       await assert.isRejected(docStorageManager.deleteDoc(doc2),
-                              /Unable to move document to trash/);
+        /Unable to move document to trash/);
       await docStorageManager.deleteDoc(doc2, true);
       // And check that all the files we created are gone.
       assert(!(await docUtils.pathExists(doc1)));
@@ -137,12 +137,12 @@ describe('DocStorageManager', function() {
       const messages = await testUtils.captureLog('warn', () => {
         return testUtils.expectRejection(
           docStorageManager.renameDoc(doc2, doc3), 'EEXIST', /file already exists.*Bar\.grist/)
-        .then(() => {
-          files = fse.readdirSync(docsRoot);
-          assert.notInclude(files, "Foo.grist");
-          assert.include(files, "Bar.grist");
-          assert.include(files, "FOO.grist");
-        });
+          .then(() => {
+            files = fse.readdirSync(docsRoot);
+            assert.notInclude(files, "Foo.grist");
+            assert.include(files, "Bar.grist");
+            assert.include(files, "FOO.grist");
+          });
       });
       testUtils.assertMatchArray(messages, [/file already exists.*Bar/]);
     });

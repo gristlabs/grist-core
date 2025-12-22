@@ -29,7 +29,7 @@ export class KeyedMutex {
     try {
       return await callback();
     }
- finally {
+    finally {
       unlock();
     }
   }

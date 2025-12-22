@@ -14,7 +14,7 @@ import {Document as APIDocument, PublicDocWorkerUrlInfo} from 'app/common/UserAP
 import {Document} from "app/gen-server/entity/Document";
 import {HomeDBManager} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {assertAccess, getTransitiveHeaders, getUserId, isAnonymousUser,
-        RequestWithLogin} from 'app/server/lib/Authorizer';
+  RequestWithLogin} from 'app/server/lib/Authorizer';
 import {DocStatus, IDocWorkerMap} from 'app/server/lib/DocWorkerMap';
 import {
   customizeDocWorkerUrl, getDocWorkerInfoOrSelfPrefix, getWorker, useWorkerPool,
@@ -41,7 +41,7 @@ export interface AttachOptions {
 
 export function attachAppEndpoint(options: AttachOptions): void {
   const {app, middleware, docMiddleware, formMiddleware, docWorkerMap,
-         forceLogin, sendAppPage, dbManager, plugins, gristServer} = options;
+    forceLogin, sendAppPage, dbManager, plugins, gristServer} = options;
   // Per-workspace URLs open the same old Home page, and it's up to the client to notice and
   // render the right workspace.
   app.get(['/', '/ws/:wsId', '/p/:page'], ...middleware, expressWrap(async (req, res) =>
@@ -78,7 +78,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     }
     if (!docWorkerMap) {
       return await sendAppPage(req, res, {path: 'app.html', status: 200, config: {plugins},
-                                          googleTagManager: 'anon'});
+        googleTagManager: 'anon'});
     }
     const mreq = req as RequestWithLogin;
     const urlId = req.params.urlId;
@@ -115,12 +115,12 @@ export function attachAppEndpoint(options: AttachOptions): void {
       assertAccess('viewers', docAuth);
 
     }
- catch (err) {
+    catch (err) {
       if (err.status === 404) {
         log.info("/:urlId/app.html did not find doc", mreq.userId, urlId, doc && doc.access, mreq.org);
         throw new ApiError('Document not found.', 404);
       }
- else if (err.status === 403) {
+      else if (err.status === 403) {
         log.info("/:urlId/app.html denied access", mreq.userId, urlId, doc && doc.access, mreq.org);
         // If the user does not have access to the document, and is anonymous, and we
         // have a login system, we may wish to redirect them to login process.
@@ -149,7 +149,7 @@ export function attachAppEndpoint(options: AttachOptions): void {
     if (!useWorkerPool()) {
       body = await gristServer.getDocTemplate();
     }
- else {
+    else {
       // The reason to pass through app.html fetched from docWorker is in case it is a different
       // version of Grist (could be newer or older).
       // TODO: More must be done for correct version tagging of URLs: <base href> assumes all
@@ -189,12 +189,12 @@ export function attachAppEndpoint(options: AttachOptions): void {
     const workerPublicUrl = publicUrl !== undefined ? customizeDocWorkerUrl(publicUrl, req) : null;
 
     await sendAppPage(req, res, {path: "", content: body.page, tag: body.tag, status: 200,
-                                 googleTagManager: 'anon', config: {
-      assignmentId: docId,
-      getWorker: {[docId]: workerPublicUrl },
-      getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
-      plugins,
-    }});
+      googleTagManager: 'anon', config: {
+        assignmentId: docId,
+        getWorker: {[docId]: workerPublicUrl },
+        getDoc: {[docId]: pruneAPIResult(doc as unknown as APIDocument)},
+        plugins,
+      }});
   });
   // Handlers for form preview URLs: one with a slug and one without.
   app.get('/doc/:urlId([^/]+)/f/:vsId', ...docMiddleware, expressWrap(async (req, res) => {
@@ -211,15 +211,15 @@ export function attachAppEndpoint(options: AttachOptions): void {
   // See https://expressjs.com/en/guide/routing.html
   app.get('/doc/:urlId([^/]+):remainder(*)', ...docMiddleware, docHandler);
   app.get('/s/:urlId([^/]+):remainder(*)',
-          (req, res, next) => {
-            // /s/<key> is another way of writing /doc/<prefix><key> for shares.
-            req.params.urlId = SHARE_KEY_PREFIX + req.params.urlId;
-            req.params.viaShare = "1";
-            next();
-          },
-          ...docMiddleware, docHandler);
+    (req, res, next) => {
+      // /s/<key> is another way of writing /doc/<prefix><key> for shares.
+      req.params.urlId = SHARE_KEY_PREFIX + req.params.urlId;
+      req.params.viaShare = "1";
+      next();
+    },
+    ...docMiddleware, docHandler);
   app.get('/:urlId([^-/]{12,})(/:slug([^/]+):remainder(*))?',
-          ...docMiddleware, docHandler);
+    ...docMiddleware, docHandler);
 }
 
 function logOpenDocumentEvents(req: RequestWithLogin, options: {

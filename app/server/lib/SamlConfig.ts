@@ -215,7 +215,7 @@ export class SamlBuilder {
       waitMinutes: 20,
     });
     const force_authn = samlNameId === undefined;  // If logged out locally, ignore any
-                                                   // log in state retained by IdP.
+    // log in state retained by IdP.
     return fromCallback(cb => sp.create_login_request_url(idp, {relay_state, force_authn}, cb));
   }
 
@@ -355,7 +355,7 @@ export class SamlBuilder {
   private async _prepareAppState(req: express.Request, redirectUrl: URL, options: {
     action: 'login' | 'logout',   // We'll need to remember whether we are logging in or out.
     waitMinutes: number        // State may need to linger quite some time for login,
-                               // less so for logout.
+    // less so for logout.
   }) {
     const permitStore = this._gristServer.getExternalPermitStore();
     const sessionId = this._gristServer.getSessions().getSessionIdFromRequest(req);
@@ -383,7 +383,7 @@ function checkRedirectUrl(untrustedUrl: string, req: express.Request): URL {
     }
     return url;
   }
- catch (e) {
+  catch (e) {
     log.warn(`SamlConfig: ignoring invalid redirect URL: ${e.message}`);
   }
   return originUrl;

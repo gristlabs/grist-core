@@ -56,7 +56,7 @@ export class MemoryPool {
     if (this.hasSpaceOrIsEmpty(size)) {
       this._updateReserved(size);
     }
- else {
+    else {
       await new Promise<void>(resolve => this._queue.push({size, resolve}));
     }
     return new MemoryReservation(size, this._updateReserved.bind(this));
@@ -67,7 +67,7 @@ export class MemoryPool {
     try {
       return await callback(memRes.updateReservation.bind(memRes));
     }
- finally {
+    finally {
       memRes.dispose();
     }
   }

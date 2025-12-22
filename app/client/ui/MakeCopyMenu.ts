@@ -75,12 +75,12 @@ export async function replaceTrunkWithFork(doc: Document, pageModel: DocPageMode
     warningText = `${warningText} ${t("Be careful, the original has changes \
 not in this document. Those changes will be overwritten.")}`;
   }
- else if (cmp.summary === 'unrelated') {
+  else if (cmp.summary === 'unrelated') {
     titleText = t("Original Looks Unrelated");
     buttonText = t("Overwrite");
     warningText = `${warningText} ${t("It will be overwritten, losing any content not in this document.")}`;
   }
- else if (cmp.summary === 'same') {
+  else if (cmp.summary === 'same') {
     titleText = t('Original Looks Identical');
     warningText = `${warningText} ${t("However, it appears to be already identical.")}`;
   }
@@ -91,7 +91,7 @@ not in this document. Those changes will be overwritten.")}`;
         pageModel.clearUnsavedChanges();
         await urlState().pushUrl({doc: origUrlId});
       }
- catch (e) {
+      catch (e) {
         reportError(e);  // For example: no write access on trunk.
       }
     }, {explanation: warningText});
@@ -211,7 +211,7 @@ class SaveCopyModal extends Disposable {
       this._pageModel.clearUnsavedChanges();
       await urlState().pushUrl({org: org?.domain || undefined, doc, docPage: urlState().state.get().docPage});
     }
- catch(err) {
+    catch(err) {
       // Convert access denied errors to normal Error to make it consistent with other endpoints.
       // TODO: Should not allow to click this button when user doesn't have permissions.
       if (err.status === 403) {
@@ -251,28 +251,28 @@ class SaveCopyModal extends Disposable {
       // Show the workspace picker only when destOrg is a team site, because personal orgs do not have workspaces.
       dom.domComputed(use => use(this._showWorkspaces) && use(this._workspaces), wss =>
         wss === false ? null :
-        wss && wss.length === 0 ? cssWarningText(t("You do not have write access to this site"),
-          testId('copy-warning')) :
-        [
-          cssField(
-            cssLabel(t("Workspace")),
-            (wss === null ?
-              cssSpinner(loadingSpinner()) :
-              select(this._destWS, wss.map(value => ({
-                value,
-                label: workspaceName(this._app, value),
-                disabled: !roles.canEdit(value.access),
-              })))
-            ),
-            testId('copy-dest-workspace'),
-          ),
-          wss ? dom.domComputed(this._destWS, destWs =>
-            destWs && !roles.canEdit(destWs.access) ?
-              cssWarningText(t("You do not have write access to the selected workspace"),
-                testId('copy-warning'),
+          wss && wss.length === 0 ? cssWarningText(t("You do not have write access to this site"),
+            testId('copy-warning')) :
+            [
+              cssField(
+                cssLabel(t("Workspace")),
+                (wss === null ?
+                  cssSpinner(loadingSpinner()) :
+                  select(this._destWS, wss.map(value => ({
+                    value,
+                    label: workspaceName(this._app, value),
+                    disabled: !roles.canEdit(value.access),
+                  })))
+                ),
+                testId('copy-dest-workspace'),
+              ),
+              wss ? dom.domComputed(this._destWS, destWs =>
+                destWs && !roles.canEdit(destWs.access) ?
+                  cssWarningText(t("You do not have write access to the selected workspace"),
+                    testId('copy-warning'),
+                  ) : null,
               ) : null,
-          ) : null,
-        ],
+            ],
       ),
     ];
   }
@@ -306,7 +306,7 @@ class SaveCopyModal extends Disposable {
         // org is selected) even if it's not writable. User can switch the workspace manually.
         defaultWS = wss.find(ws => (ws.id === this._doc.workspace.id));
       }
- else {
+      else {
         // If the workspace selector is not shown (for personal orgs), prefer the user's default
         // Home workspace as long as its writable.
         defaultWS = wss.find(ws => getWorkspaceInfo(this._app, ws).isDefault && roles.canEdit(ws.access));
@@ -319,12 +319,12 @@ class SaveCopyModal extends Disposable {
         this._workspaces.set(wss);
         this._destWS.set(defaultWS || firstWritable);
       }
- else {
+      else {
         this._workspaces.set([]);
         this._destWS.set(null);
       }
     }
- catch (e) {
+    catch (e) {
       this._workspaces.set([]);
       this._destWS.set(null);
       throw e;
@@ -386,14 +386,14 @@ you will also need to {{downloadLink}} separately. ",
               removeHistory: modalButtonUse(selected) === "nohistory" || modalButtonUse(selected) === "template",
             });
             return bigPrimaryButtonLink(t(`Download`), hooks.maybeModifyLinkAttrs({
-                href,
-                target: '_blank',
-                download: '',
-              }),
-              dom.on('click', () => {
-                ctl.close();
-              }),
-              testId('download-button-link'),
+              href,
+              target: '_blank',
+              download: '',
+            }),
+            dom.on('click', () => {
+              ctl.close();
+            }),
+            testId('download-button-link'),
             );
           }),
           bigBasicButton(t('Cancel'), dom.on('click', () => {

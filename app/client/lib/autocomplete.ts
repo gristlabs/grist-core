@@ -131,7 +131,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     if (this._triggerElem instanceof HTMLInputElement) {
       return this._triggerElem.value;
     }
- else if (this._triggerElem instanceof HTMLTextAreaElement) {
+    else if (this._triggerElem instanceof HTMLTextAreaElement) {
       return this._triggerElem.value;
     }
     return this._triggerElem.innerText;
@@ -141,10 +141,10 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     if (this._triggerElem instanceof HTMLInputElement) {
       this._triggerElem.value = value;
     }
- else if (this._triggerElem instanceof HTMLTextAreaElement) {
+    else if (this._triggerElem instanceof HTMLTextAreaElement) {
       this._triggerElem.value = value;
     }
- else {
+    else {
       this._triggerElem.innerText = value;
     }
   }
@@ -170,7 +170,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
       if (elem && this._options.getItemText) {
         this._value = this._options.getItemText(this.getSelectedItem()!);
       }
- else {
+      else {
         this._value = this._lastAsTyped;
       }
     }
@@ -208,7 +208,7 @@ export class Autocomplete<Item extends ACItem> extends Disposable {
     if (findMatch) {
       index = findMatch(this._allItems);
     }
- else {
+    else {
       index = inputVal ? acResults.selectIndex : -1;
     }
     this._setSelected(index, false);

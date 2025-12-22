@@ -74,7 +74,7 @@ export class DocTutorial extends Disposable {
           this._percentComplete ?? 0,
         );
       }
- else {
+      else {
         this._percentComplete = undefined;
       }
     }));
@@ -121,7 +121,7 @@ export class DocTutorial extends Disposable {
 
   private _buildPopupContent() {
     return [
-        dom.domComputed((use) => {
+      dom.domComputed((use) => {
         const slides = use(this._slides);
         const slideIndex = use(this._currentSlideIndex);
         const slide = slides?.[slideIndex];
@@ -246,44 +246,44 @@ export class DocTutorial extends Disposable {
     const tableData = this._docData.getTable(tableId)!;
     const slides = (await Promise.all(
       sortBy(tableData.getRowIds(), tableData.getRowPropFunc('manualSort') as any)
-      .map(async (rowId) => {
-        let slideTitle: string | undefined;
-        const imageUrls: string[] = [];
+        .map(async (rowId) => {
+          let slideTitle: string | undefined;
+          const imageUrls: string[] = [];
 
-        const getValue = (colId: string): string | undefined => {
-          const value = tableData.getValue(rowId, colId);
-          return value ? String(value) : undefined;
-        };
+          const getValue = (colId: string): string | undefined => {
+            const value = tableData.getValue(rowId, colId);
+            return value ? String(value) : undefined;
+          };
 
-        const walkTokens = (token: Token) => {
-          if (token.type === 'image') {
-            imageUrls.push(token.href);
-          }
+          const walkTokens = (token: Token) => {
+            if (token.type === 'image') {
+              imageUrls.push(token.href);
+            }
 
-          if (!slideTitle && token.type === 'heading' && token.depth === 1) {
-            slideTitle = token.text;
-          }
-        };
+            if (!slideTitle && token.type === 'heading' && token.depth === 1) {
+              slideTitle = token.text;
+            }
+          };
 
-        let slideContent = getValue('slide_content');
-        if (!slideContent) { return null; }
-        slideContent = sanitizeTutorialHTML(await marked.parse(slideContent, {
-          async: true, renderer, walkTokens,
-        }));
-
-        let boxContent = getValue('box_content');
-        if (boxContent) {
-          boxContent = sanitizeTutorialHTML(await marked.parse(boxContent, {
+          let slideContent = getValue('slide_content');
+          if (!slideContent) { return null; }
+          slideContent = sanitizeTutorialHTML(await marked.parse(slideContent, {
             async: true, renderer, walkTokens,
           }));
-        }
-        return {
-          slideContent,
-          boxContent,
-          slideTitle,
-          imageUrls,
-        };
-      }),
+
+          let boxContent = getValue('box_content');
+          if (boxContent) {
+            boxContent = sanitizeTutorialHTML(await marked.parse(boxContent, {
+              async: true, renderer, walkTokens,
+            }));
+          }
+          return {
+            slideContent,
+            boxContent,
+            slideTitle,
+            imageUrls,
+          };
+        }),
     )).filter(slide => slide !== null) as DocTutorialSlide[];
     if (this.isDisposed()) { return; }
 
@@ -338,7 +338,7 @@ export class DocTutorial extends Disposable {
     if (lastVisitedOrg) {
       await urlState().pushUrl({org: lastVisitedOrg});
     }
- else {
+    else {
       window.location.assign(getWelcomeHomeUrl());
     }
   }

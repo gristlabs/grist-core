@@ -178,7 +178,7 @@ const cssBtn = styled('div', `
 `);
 const cssFilterBarItemButton = (...args: IDomArgs<HTMLDivElement>) => (
   dom('div', cssButton.cls(''), cssButton.cls('-primary'),
-      cssBtn.cls(''), ...args)
+    cssBtn.cls(''), ...args)
 );
 const cssPlusButton = styled(cssFilterBarItemButton, `
   padding: 3px 3px

@@ -518,7 +518,7 @@ export function bindMarkdown(textObs: BindableValue<string>) {
       dom.domComputed(textObs, text => sanitizeHTMLIntoDOM(marked(text || '', {
         async: false,
       })),
-    ));
+      ));
   };
 }
 

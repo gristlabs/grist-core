@@ -258,21 +258,21 @@ function buildPrefs(viewSettings: ViewSettings, ...args: DomArg<HTMLElement>[]) 
     // The Sort selector.
     dom.update(
       select<SortPref>(viewSettings.currentSort, [
-          {value: 'name', label: t("By Name")},
-          {value: 'date', label: t("By Date Modified")},
-        ],
-        { buttonCssClass: css.sortSelector.className },
+        {value: 'name', label: t("By Name")},
+        {value: 'date', label: t("By Date Modified")},
+      ],
+      { buttonCssClass: css.sortSelector.className },
       ),
       testId('sort-mode'),
     ),
 
     // The View selector.
     buttonSelect<ViewPref>(viewSettings.currentView, [
-        {value: 'icons', icon: 'TypeTable', tooltip: t("Grid view")},
-        {value: 'list', icon: 'TypeCardList', tooltip: t("List view")},
-      ],
-      cssButtonSelect.cls("-light"),
-      testId('view-mode'),
+      {value: 'icons', icon: 'TypeTable', tooltip: t("Grid view")},
+      {value: 'list', icon: 'TypeCardList', tooltip: t("List view")},
+    ],
+    cssButtonSelect.cls("-light"),
+    testId('view-mode'),
     ),
     ...args,
   );

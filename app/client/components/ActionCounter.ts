@@ -107,7 +107,7 @@ export class ActionCounter extends dispose.Disposable {
         this._changeCount(-1);
       }
     }
- else {
+    else {
       this._countAction(action);
       this._changeCount(+1);
     }

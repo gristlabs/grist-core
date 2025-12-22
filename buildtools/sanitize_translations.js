@@ -23,13 +23,13 @@ if (process.argv[2] === "test") {
 const directoryPath = readDirectoryPath();
 
 const fileStream = fs.readdirSync(directoryPath)
-                     .map((file) => path.join(directoryPath, file))
-                     // Make sure it's a file
-                     .filter((file) => fs.lstatSync(file).isFile())
-                     // Make sure it is json file
-                     .filter((file) => file.endsWith(".json"))
-                     // Read the contents and put it into an array [path, json]
-                     .map((file) => [file, JSON.parse(fs.readFileSync(file, "utf8"))]);
+  .map((file) => path.join(directoryPath, file))
+// Make sure it's a file
+  .filter((file) => fs.lstatSync(file).isFile())
+// Make sure it is json file
+  .filter((file) => file.endsWith(".json"))
+// Read the contents and put it into an array [path, json]
+  .map((file) => [file, JSON.parse(fs.readFileSync(file, "utf8"))]);
 
 const sanitized = fileStream.map(([file, json]) => {
   return [file, json, invalidValues(json)];

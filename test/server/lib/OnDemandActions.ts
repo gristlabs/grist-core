@@ -126,7 +126,7 @@ describe('OnDemandActions', function() {
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-                     {tableData: initialData});
+      {tableData: initialData});
   });
 
   it('should create correct (Bulk)RemoveRecord', async () => {
@@ -145,7 +145,7 @@ describe('OnDemandActions', function() {
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-                     {tableData: initialData});
+      {tableData: initialData});
   });
 
   it('should handle actions bigger than maxSQLiteVariables', async function() {
@@ -157,30 +157,30 @@ describe('OnDemandActions', function() {
 
     const intermediate: TableDataAction = [
       'TableData', 'Foo', [1, 3, 4, 9].concat(times(N, i => 10 + i)), {
-      fname:      ['Aa', 'Bb', 'Cc', 'Dd'].concat(times(N, i => '')),
-      lname:      ['Xx', 'Yy', 'Zz', 'Ww'].concat(times(N, i => '')),
-      Birth_Date: [123,  null, 456,  null].concat(times(N, i => null)),
-      age:        [50,   null, 40,   null].concat(times(N, i => i * 10)),
-      manualSort: [1,    3,    4,    9].concat(times(N, i => 10 + i)),
-    }];
+        fname:      ['Aa', 'Bb', 'Cc', 'Dd'].concat(times(N, i => '')),
+        lname:      ['Xx', 'Yy', 'Zz', 'Ww'].concat(times(N, i => '')),
+        Birth_Date: [123,  null, 456,  null].concat(times(N, i => null)),
+        age:        [50,   null, 40,   null].concat(times(N, i => i * 10)),
+        manualSort: [1,    3,    4,    9].concat(times(N, i => 10 + i)),
+      }];
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-                     {tableData: intermediate});
+      {tableData: intermediate});
 
     const processed3 = await applyOnDemand(
       ['BulkRemoveRecord', 'Foo', times(N, i => 10 + i)]);
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-                     {tableData: initialData});
+      {tableData: initialData});
 
     await docStorage.applyStoredActions(processed3.undo);
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-                     {tableData: intermediate});
+      {tableData: intermediate});
 
     await docStorage.applyStoredActions(processed2.undo);
     await docStorage.applyStoredActions(processed1.undo);
 
     assert.deepEqual(await activeDoc1.fetchTable(fakeSession, 'Foo'),
-                     {tableData: initialData});
+      {tableData: initialData});
   });
 });

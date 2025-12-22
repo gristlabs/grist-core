@@ -384,7 +384,7 @@ export class Notifier extends Disposable implements INotifier {
           dom.forEach(appErrors, (appErr: IAppError) =>
             (where === 'toast' && appErr.seen ? null :
               dom('div', {tabIndex: "-1"}, timeFormat('T', new Date(appErr.timestamp)), ' ',
-                  appErr.error.message, testId('notification-app-error'))
+                appErr.error.message, testId('notification-app-error'))
             ),
           ),
           testId('notification-app-errors'),

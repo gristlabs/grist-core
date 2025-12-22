@@ -35,8 +35,8 @@ class RelativeDatesMenu extends Disposable {
   private _dropdownList: SimpleList<IRangeBoundType>;
   private _items: Observable<Array<IOptionFull<IRangeBoundType>>> = Observable.create(this, []);
   constructor(ctl: IOpenController,
-              private _obs: Observable<IRangeBoundType>,
-              private _opt: {valueFormatter(val: any): string}) {
+    private _obs: Observable<IRangeBoundType>,
+    private _opt: {valueFormatter(val: any): string}) {
     super();
     this._dropdownList = (SimpleList<IRangeBoundType>).create(this, ctl, this._items, this._action.bind(this));
     this._dropdownList.listenKeys(ctl.getTriggerElem() as HTMLElement);

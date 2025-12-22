@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {getColumnMatchingRows, getPreviewDiffCellValues, openSource as openSourceFor,
-        openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad} from 'test/nbrowser/importerTestUtils';
+  openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad} from 'test/nbrowser/importerTestUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('Importer2', function() {
@@ -226,12 +226,12 @@ describe('Importer2', function() {
     await gu.getPageItem('UploadedData2').click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
-    ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
-      'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
-      'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
-      'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
-      'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
-      'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
+      ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+        'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
+        'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
+        'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
+        'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
+        'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
     await gu.undo();
   });
 
@@ -295,7 +295,7 @@ describe('Importer2', function() {
     }
     const sources = await driver.findAll(".test-importer-source");
     // Skip both tables.
-     for(const source of sources) {
+    for(const source of sources) {
       await source.click();
       await gu.waitForServer();
       await driver.find('.test-importer-target-skip').click();
@@ -419,7 +419,7 @@ describe('Importer2', function() {
       await gu.waitForServer();
       assert.deepEqual(await gu.getVisibleGridCells(
         { rowNums: [1, 2, 3, 4, 5], cols: [0] }),
-        ['Bob', 'Alice', 'Bob', 'Alice', ''],
+      ['Bob', 'Alice', 'Bob', 'Alice', ''],
       );
 
       // Undo the last 2 imports.
@@ -661,28 +661,28 @@ describe('Importer2', function() {
       // The first half should be the original imported rows.
       assert.deepEqual(await gu.getVisibleGridCells(
         {cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
-        [
-          'Kabul', 'Kabol', '1780000', '2', '1780',
-          'Qandahar', 'Qandahar', '237500', '2', '237.5',
-          'Herat', 'Herat', '186800', '2', '186.8',
-          'Mazar-e-Sharif', 'Balkh', '127800', '2', '127.8',
-          'Amsterdam', 'Noord-Holland', '731200', '159', '731.2',
-          'Rotterdam', 'Zuid-Holland', '593321', '159', '593.321',
-        ],
+      [
+        'Kabul', 'Kabol', '1780000', '2', '1780',
+        'Qandahar', 'Qandahar', '237500', '2', '237.5',
+        'Herat', 'Herat', '186800', '2', '186.8',
+        'Mazar-e-Sharif', 'Balkh', '127800', '2', '127.8',
+        'Amsterdam', 'Noord-Holland', '731200', '159', '731.2',
+        'Rotterdam', 'Zuid-Holland', '593321', '159', '593.321',
+      ],
       );
 
       // The second half should be the newly imported rows with custom mappings.
       assert.equal(await gu.getGridRowCount(), 8159);
       assert.deepEqual(await gu.getVisibleGridCells(
         {cols: [0, 1, 2, 3, 4], rowNums: [8152, 8153, 8154, 8155, 8156, 8157]}),
-        [
-          'Gweru', 'Midlands', '0', '123', '128037',
-          'Gaza', 'Gaza', '0', '123', '353632',
-          'Khan Yunis', 'Khan Yunis', '0', '123', '123175',
-          'Hebron', 'Hebron', '0', '123', '119401',
-          'Jabaliya', 'North Gaza', '0', '123', '113901',
-          'Nablus', 'Nablus', '0', '123', '100231',
-        ],
+      [
+        'Gweru', 'Midlands', '0', '123', '128037',
+        'Gaza', 'Gaza', '0', '123', '353632',
+        'Khan Yunis', 'Khan Yunis', '0', '123', '123175',
+        'Hebron', 'Hebron', '0', '123', '119401',
+        'Jabaliya', 'North Gaza', '0', '123', '113901',
+        'Nablus', 'Nablus', '0', '123', '100231',
+      ],
       );
     });
 
@@ -775,13 +775,13 @@ describe('Importer2', function() {
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5]), [
         'Kabul', 'Kabol', [undefined, undefined, '1780000'], '', [undefined, undefined, '1780'],
         'Qandahar', 'Qandahar', [undefined, undefined, '237500'], [undefined, undefined, '2'],
-          [undefined, undefined, '237.5'],
+        [undefined, undefined, '237.5'],
         'Herat', 'Herat', [undefined, undefined, '186800'], [undefined, undefined, '2'],
-          [undefined, undefined, '186.8'],
+        [undefined, undefined, '186.8'],
         'Mazar-e-Sharif', 'Balkh', [undefined, undefined, '127800'], [undefined, undefined, '2'],
-          [undefined, undefined, '127.8'],
+        [undefined, undefined, '127.8'],
         'Amsterdam', 'Noord-Holland', [undefined, undefined, '731200'], [undefined, undefined, '159'],
-          [undefined, undefined, '731.2'],
+        [undefined, undefined, '731.2'],
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),
@@ -816,13 +816,13 @@ describe('Importer2', function() {
         // Kabul's Country column should appear blank, since we deleted it earlier.
         'Kabul', 'Kabol', ['1780000', '3560000', undefined], '', ['1780', '3560000', undefined],
         'Qandahar', 'Qandahar', ['237500', '475000', undefined], [undefined, undefined, '2'],
-          ['237.5', '475000', undefined],
+        ['237.5', '475000', undefined],
         'Herat', 'Herat', ['186800', '373600', undefined], [undefined, undefined, '2'],
-          ['186.8', '373600', undefined],
+        ['186.8', '373600', undefined],
         'Mazar-e-Sharif', 'Balkh', ['127800', '255600', undefined], [undefined, undefined, '2'],
-          ['127.8', '255600', undefined],
+        ['127.8', '255600', undefined],
         'Amsterdam', 'Noord-Holland', ['731200', '1462400', undefined], [undefined, undefined, '159'],
-          ['731.2', '1462400', undefined],
+        ['731.2', '1462400', undefined],
       ]);
       assert.equal(
         await driver.find('.test-importer-unmatched-fields').getText(),

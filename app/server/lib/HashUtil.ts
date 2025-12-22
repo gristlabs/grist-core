@@ -34,13 +34,13 @@ export class HashUtil {
       if (part === '^' || part === '^1') {
         offset++;
       }
- else if (part.startsWith('~')) {
+      else if (part.startsWith('~')) {
         offset += parseInt(part.slice(1) || '1', 10);
       }
- else if (part === '') {
+      else if (part === '') {
         // pass
       }
- else {
+      else {
         throw new Error('cannot parse hash');
       }
     }

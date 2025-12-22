@@ -76,7 +76,7 @@ describe('ColumnFilterMenu2', function() {
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2]}),
       ['true', 'foo', 'foo',
-       '', '', '',
+        '', '', '',
       ] as any,
     );
 
@@ -109,7 +109,7 @@ describe('ColumnFilterMenu2', function() {
     assert.deepEqual(
       await gu.getVisibleGridCells({cols: ['Bool', 'Choice', 'ChoiceList'], rowNums: [1, 2]}),
       ['true', 'foo', 'foo',
-       '', '', '',
+        '', '', '',
       ] as any,
     );
 

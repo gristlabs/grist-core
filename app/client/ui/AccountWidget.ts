@@ -49,10 +49,10 @@ export class AccountWidget extends Disposable {
         if (!user && isTemplate) {
           return this._buildUseThisTemplateButton();
         }
- else if (!user) {
+        else if (!user) {
           return this._buildSignInAndSignUpButtons();
         }
- else {
+        else {
           return this._buildAccountMenuButton(user);
         }
       }),
@@ -150,8 +150,8 @@ export class AccountWidget extends Disposable {
       // Show 'Organization Settings' when on a home page of a valid org.
       (!this._docPageModel && currentOrg && this._appModel.isTeamSite ?
         menuItem(() => manageTeamUsers({org: currentOrg, user, api: this._appModel.api}),
-                 roles.canEditAccess(currentOrg.access) ? t("Manage team") : t("Access Details"),
-                 testId('dm-org-access')) :
+          roles.canEditAccess(currentOrg.access) ? t("Manage team") : t("Access Details"),
+          testId('dm-org-access')) :
         // Don't show on doc pages, or for personal orgs.
         null),
 

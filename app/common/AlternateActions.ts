@@ -1,5 +1,5 @@
 import { BulkColValues, ColValues, DocAction, isSchemaAction,
-         TableDataAction, UserAction } from 'app/common/DocActions';
+  TableDataAction, UserAction } from 'app/common/DocActions';
 
 const ACTION_TYPES = new Set([
   'AddRecord', 'BulkAddRecord', 'UpdateRecord', 'BulkUpdateRecord',
@@ -24,7 +24,7 @@ export interface ProcessedAction {
 export interface AlternateStorage {
   getNextRowId(tableId: string): Promise<number>;
   fetchActionData(tableId: string, rowIds: number[],
-                  colIds?: string[]): Promise<TableDataAction>;
+    colIds?: string[]): Promise<TableDataAction>;
 }
 
 /**
@@ -81,11 +81,11 @@ export class AlternateActions {
           onDemand.push(['ApplyUndoActions', undoOnDemand]);
         }
       }
- else if (isDataTableAction && isOnDemandAction && this.usesAlternateStorage(a[1] as string)) {
+      else if (isDataTableAction && isOnDemandAction && this.usesAlternateStorage(a[1] as string)) {
         // Check whether the tableId belongs to an onDemand table.
         onDemand.push(a);
       }
- else {
+      else {
         normal.push(a);
       }
     });
@@ -96,7 +96,7 @@ export class AlternateActions {
    * Check if an action represents a schema change on an onDemand table.
    */
   public isSchemaAction(docAction: DocAction): boolean {
-   return isSchemaAction(docAction) && this.usesAlternateStorage(docAction[1]);
+    return isSchemaAction(docAction) && this.usesAlternateStorage(docAction[1]);
   }
 
   private async _doApplyUndoActions(actions: DocAction[]) {

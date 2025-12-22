@@ -23,7 +23,7 @@ describe('ApiConsole', function () {
       await clickWithRetry(() => driver.findWait('button.try-out__btn', 3000));
       await clickWithRetry(() => driver.findWait('button.execute', 3000));
       assert.equal(await driver.findWait('.test-modal-title', 3000).getText(),
-                   'Confirm Deletion');
+        'Confirm Deletion');
       await driver.findWait('button.test-modal-cancel', 3000).click();
       let toasts = await gu.getToasts();
       assert.equal(toasts.length, 1);
@@ -60,7 +60,7 @@ describe('ApiConsole', function () {
       toasts = await gu.getToasts();
       assert.equal(toasts.length, 0);
     }
- finally {
+    finally {
       // There is an extra browser tab open for the api console.
       await driver.close();
       await myTab.open();
@@ -90,7 +90,7 @@ async function clickWithRetry(finder: () => WebElementPromise) {
   try {
     await finder().click();
   }
- catch (e) {
+  catch (e) {
     await finder().click();
   }
 }

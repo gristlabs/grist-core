@@ -14,7 +14,7 @@ import groupBy from 'lodash/groupBy';
  */
 export class TableOperationsImpl implements TableOperations {
   public constructor(private _platform: TableOperationsPlatform,
-                     private _defaultOptions: OpOptions) {
+    private _defaultOptions: OpOptions) {
   }
 
   public getTableId() {
@@ -24,7 +24,7 @@ export class TableOperationsImpl implements TableOperations {
   public create(records: Types.NewRecord, options?: OpOptions): Promise<Types.MinimalRecord>;
   public create(records: Types.NewRecord[], options?: OpOptions): Promise<Types.MinimalRecord[]>;
   public async create(recordsOrRecord: Types.NewRecord[]|Types.NewRecord,
-                      options?: OpOptions): Promise<Types.MinimalRecord[]|Types.MinimalRecord> {
+    options?: OpOptions): Promise<Types.MinimalRecord[]|Types.MinimalRecord> {
     return await withRecords(recordsOrRecord, async (records) => {
       const postRecords = convertToBulkColValues(records);
       // postRecords can be an empty object, in that case we will create empty records.
@@ -50,7 +50,7 @@ export class TableOperationsImpl implements TableOperations {
   }
 
   public async upsert(recordOrRecords: Types.AddOrUpdateRecord|Types.AddOrUpdateRecord[],
-                      upsertOptions?: UpsertOptions): Promise<void> {
+    upsertOptions?: UpsertOptions): Promise<void> {
     await withRecords(recordOrRecords, async (records) => {
       const tableId = await this._platform.getTableId();
       const options = {
@@ -76,7 +76,7 @@ export class TableOperationsImpl implements TableOperations {
         return ["BulkAddOrUpdateRecord", tableId, require, fields, options];
       });
       await this._applyUserActions(tableId, [...fieldNames(records)],
-                                   actions, recordOptions);
+        actions, recordOptions);
       return [];
     });
   }
@@ -94,7 +94,7 @@ export class TableOperationsImpl implements TableOperations {
   // the request and returns a 400 error code.
   // This is exposed as a public method to support the older /data endpoint.
   public async updateRecords(columnValues: BulkColValues, rowIds: number[],
-                             options?: OpOptions) {
+    options?: OpOptions) {
     await this._addOrUpdateRecords(columnValues, rowIds, 'BulkUpdateRecord', options);
   }
 
@@ -130,7 +130,7 @@ export class TableOperationsImpl implements TableOperations {
   // Apply the supplied actions with the given options. The tableId and
   // colNames are just to improve error reporting.
   private async _applyUserActions(tableId: string, colNames: string[], actions: any[][],
-                                  options: OpOptions = {}): Promise<any> {
+    options: OpOptions = {}): Promise<any> {
     return handleSandboxErrorOnPlatform(tableId, colNames, this._platform.applyUserActions(
       actions, {...this._defaultOptions, ...options},
     ), this._platform);
@@ -193,7 +193,7 @@ export async function handleSandboxErrorOnPlatform<T>(
   try {
     return await p;
   }
- catch (err) {
+  catch (err) {
     const message = ((err instanceof Error) && err.message?.startsWith('[Sandbox] ')) ? err.message : undefined;
     if (message) {
       let match = message.match(/non-existent record #([0-9]+)/);
@@ -207,10 +207,10 @@ export async function handleSandboxErrorOnPlatform<T>(
         if (match[1] === tableId) {
           platform.throwError('', `Table not found "${tableId}"`, 404);
         }
- else if (colNames.includes(match[1])) {
+        else if (colNames.includes(match[1])) {
           platform.throwError('', `Invalid column "${match[1]}"`, 400);
         }
- else if (colNames.includes(match[1].replace(`${tableId}.`, ''))) {
+        else if (colNames.includes(match[1].replace(`${tableId}.`, ''))) {
           platform.throwError('', `Table or column not found "${match[1]}"`, 404);
         }
       }

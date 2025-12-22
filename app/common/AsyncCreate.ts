@@ -177,7 +177,7 @@ export async function freezeError<T>(promise: Promise<T>): Promise<ErrorOrValue<
     const value = await promise;
     return { unfreeze: async () => value };
   }
- catch (error) {
+  catch (error) {
     return { unfreeze: async () => { throw error; } };
   }
 }

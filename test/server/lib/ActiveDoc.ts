@@ -122,7 +122,7 @@ describe('ActiveDoc', async function() {
 
   // Set the specified table to be onDemand/regular, and reload the document.
   async function reloadOnDemand(activeDoc: ActiveDoc, tableId: string,
-                                onDemand: boolean = true): Promise<ActiveDoc> {
+    onDemand: boolean = true): Promise<ActiveDoc> {
     // We can use fetchQuery() to look up a tableRef from a tableId.
     const data = fromTableDataAction(await activeDoc.fetchQuery(fakeSession,
       {tableId: '_grist_Tables', filters: {tableId: [tableId]}}));
@@ -420,68 +420,68 @@ describe('ActiveDoc', async function() {
       const query = async (s: OptDocSession, q: ServerQuery) => (await activeDoc.fetchQuery(s, q)).tableData;
       assert.deepEqual(await query(fakeSession,
         {tableId: 'Bar', filters: {fname: ['Bob'], lname: ['Upton']}}),
-        ['TableData', 'Bar', [2], {
-          fname: ['Bob'], lname: ['Upton'], age: [28], age2: ifSupported(56), manualSort: [2],
-          theme: [1], gristHelper_Display: ['Space'],
-          nightTheme: [0],
-          volume: [15],
-          lname2: ['Upton'],
-          nightVolume: [noNumeric],
-          animal: [2], habitat: ['Australia'],
-        }]);
+      ['TableData', 'Bar', [2], {
+        fname: ['Bob'], lname: ['Upton'], age: [28], age2: ifSupported(56), manualSort: [2],
+        theme: [1], gristHelper_Display: ['Space'],
+        nightTheme: [0],
+        volume: [15],
+        lname2: ['Upton'],
+        nightVolume: [noNumeric],
+        animal: [2], habitat: ['Australia'],
+      }]);
 
       assert.deepEqual(await query(fakeSession,
         {tableId: 'Bar', filters: ageFilter}),
-        ['TableData', 'Bar', [1, 2], {
-          fname: ['Alice', 'Bob'], lname: ['Johnson', 'Upton'], age: [28, 28],
-          age2: ifSupported(56, 56),
-          manualSort: [1, 2],
-          theme: [1, 1], gristHelper_Display: ['Space', 'Space'],
-          nightTheme: [0, 0],
-          volume: [15, 15],
-          lname2: ['Johnson', 'Upton'],
-          nightVolume: [noNumeric, noNumeric],
-          animal: [0, 2], habitat: [noText, 'Australia'],
-        }]);
+      ['TableData', 'Bar', [1, 2], {
+        fname: ['Alice', 'Bob'], lname: ['Johnson', 'Upton'], age: [28, 28],
+        age2: ifSupported(56, 56),
+        manualSort: [1, 2],
+        theme: [1, 1], gristHelper_Display: ['Space', 'Space'],
+        nightTheme: [0, 0],
+        volume: [15, 15],
+        lname2: ['Johnson', 'Upton'],
+        nightVolume: [noNumeric, noNumeric],
+        animal: [0, 2], habitat: [noText, 'Australia'],
+      }]);
 
       assert.deepEqual(await query(fakeSession,
         {tableId: 'Bar', filters: {fname: ['Bob'], ...ageFilter}}),
-        ['TableData', 'Bar', [2], {
-          fname: ['Bob'], lname: ['Upton'], age: [28], age2: ifSupported(56),
-          manualSort: [2],
-          theme: [1], gristHelper_Display: ['Space'],
-          nightTheme: [0],
-          volume: [15],
-          lname2: ['Upton'],
-          nightVolume: [noNumeric],
-          animal: [2], habitat: ['Australia'],
-        }]);
+      ['TableData', 'Bar', [2], {
+        fname: ['Bob'], lname: ['Upton'], age: [28], age2: ifSupported(56),
+        manualSort: [2],
+        theme: [1], gristHelper_Display: ['Space'],
+        nightTheme: [0],
+        volume: [15],
+        lname2: ['Upton'],
+        nightVolume: [noNumeric],
+        animal: [2], habitat: ['Australia'],
+      }]);
 
       assert.deepEqual(await query(fakeSession,
         {tableId: 'Bar', filters: {fname: ['Bob']}}),
-        ['TableData', 'Bar', [2, 3], {
-          fname: ['Bob', 'Bob'], lname: ['Upton', 'C'], age: [28, 0],
-          age2: ifSupported(56, 0),
-          manualSort: [2, 3],
-          theme: [1, 2], gristHelper_Display: ['Space', 'Underwater'],
-          nightTheme: [0, 1],
-          volume: [15, 3],
-          lname2: ['Upton', 'C'],
-          nightVolume: [noNumeric, 15],
-          animal: [2, 0], habitat: ['Australia', noText],
-        }]);
+      ['TableData', 'Bar', [2, 3], {
+        fname: ['Bob', 'Bob'], lname: ['Upton', 'C'], age: [28, 0],
+        age2: ifSupported(56, 0),
+        manualSort: [2, 3],
+        theme: [1, 2], gristHelper_Display: ['Space', 'Underwater'],
+        nightTheme: [0, 1],
+        volume: [15, 3],
+        lname2: ['Upton', 'C'],
+        nightVolume: [noNumeric, 15],
+        animal: [2, 0], habitat: ['Australia', noText],
+      }]);
 
       assert.deepEqual(await query(fakeSession,
         {tableId: 'Bar', filters: {fname: ['Bob'], age: [0]}}),
-        ['TableData', 'Bar', [3], {
-          fname: ['Bob'], lname: ['C'], age: [0], age2: ifSupported(0), manualSort: [3],
-          theme: [2], gristHelper_Display: ['Underwater'],
-          nightTheme: [1],
-          volume: [3],
-          lname2: ['C'],
-          nightVolume: [15],
-          animal: [0], habitat: [noText],
-        }]);
+      ['TableData', 'Bar', [3], {
+        fname: ['Bob'], lname: ['C'], age: [0], age2: ifSupported(0), manualSort: [3],
+        theme: [2], gristHelper_Display: ['Underwater'],
+        nightTheme: [1],
+        volume: [3],
+        lname2: ['C'],
+        nightVolume: [15],
+        animal: [0], habitat: [noText],
+      }]);
 
       await assert.isRejected(query(fakeSession, {tableId: 'Foo', filters: {}}),
         /Sandbox.*Foo/);
@@ -521,10 +521,10 @@ describe('ActiveDoc', async function() {
       assert.sameMembers(await getIndexes(activeDoc), ['Bar.animal', 'Bar.nightTheme', 'Bar.theme', 'Dupe.theme']);
 
       assert.deepEqual((await activeDoc.fetchQuery(fakeSession,
-                        {tableId: 'Dupe', filters: {name: ['Me']}})).tableData,
-        ['TableData', 'Dupe', [1], {
-          manualSort: [1], name: ['Me'], theme: [2], volume: [3],
-        }]);
+        {tableId: 'Dupe', filters: {name: ['Me']}})).tableData,
+      ['TableData', 'Dupe', [1], {
+        manualSort: [1], name: ['Me'], theme: [2], volume: [3],
+      }]);
 
       // Make Bar a regular table again, and check that its indexes go away.
       activeDoc = await reloadOnDemand(activeDoc, 'Bar', false);
@@ -850,7 +850,7 @@ describe('ActiveDoc', async function() {
     await fetchValues(activeDoc1, 'Calc');
     const actions1 = await activeDoc1.getRecentActionsDirect();
     assert.deepEqual(actions1.map(a => a.userActions.map(ua => ua[0])),
-                     [[], ['AddTable', 'AddRecord']]);
+      [[], ['AddTable', 'AddRecord']]);
 
     // Close and reopen.
     await activeDoc1.shutdown();
@@ -863,7 +863,7 @@ describe('ActiveDoc', async function() {
     // overridden to be "grist".
     const actions2 = await activeDoc2.getRecentActionsDirect();
     assert.deepEqual(actions2.map(a => a.userActions.map(ua => ua[0])),
-                     [[], ['AddTable', 'AddRecord'], ['Calculate']]);
+      [[], ['AddTable', 'AddRecord'], ['Calculate']]);
     assert.equal(actions2[0].info[1].user, 'grist');
     assert.equal(actions2[1].info[1].user, 'test@test');
     assert.equal(actions2[2].info[1].user, 'grist');
@@ -1151,8 +1151,8 @@ describe('ActiveDoc', async function() {
       'https://templates!.getgrist.com/doc/lightweight-crm 8sJPiNkWZo68KFJkc5Ukbr~4',
     ] as const) {
       const activeDoc = new ActiveDoc(docTools.getDocManager(), 'docUrlTest' + docUrl.length,
-                                      new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
-                                      { docUrl });
+        new AttachmentStoreProvider([], "TEST-INSTALL-ID"),
+        { docUrl });
       await activeDoc.createEmptyDoc(fakeSession);
       await activeDoc.applyUserActions(fakeSession, [
         ["AddTable", "Info", [{id: 'Url', formula: 'SELF_HYPERLINK()'}]],
@@ -1182,7 +1182,7 @@ describe('ActiveDoc', async function() {
       assert.deepEqual(data.Flag, [true, 'moop'], "Expected 'meep' to be truthy");
       await activeDoc.shutdown();
     }
- finally {
+    finally {
       env.restore();
     }
   });
@@ -1203,7 +1203,7 @@ describe('ActiveDoc', async function() {
       assert.deepEqual(data.Flag, ['meep', false], "Expected 'moop' to be falsy");
       await activeDoc.shutdown();
     }
- finally {
+    finally {
       env.restore();
     }
   });
@@ -1311,7 +1311,7 @@ describe('ActiveDoc', async function() {
         assert.equal(transfer.status.failures, 2);
         assert.equal(transfer.status.successes, 0);
       }
- finally {
+      finally {
         stub.restore();
         await activeDoc.shutdown();
       }

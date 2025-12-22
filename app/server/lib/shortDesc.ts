@@ -42,10 +42,10 @@ export function shortDesc(topObj: any, optLimits?: DescLimits): string {
         (obj.length > lim.maxArrayLength ? ", ... (" + obj.length + " items)" : "") +
         "]";
     }
- else if (obj instanceof Uint8Array) {
+    else if (obj instanceof Uint8Array) {
       return "b'" + truncateString(obj, lim.maxBufferLength, formatUint8Array) + "'";
     }
- else if (obj && typeof obj === 'object' && !Buffer.isBuffer(obj)) {
+    else if (obj && typeof obj === 'object' && !Buffer.isBuffer(obj)) {
       const keys = Object.keys(obj);
       return "{" + keys.slice(0, lim.maxObjectKeys).map(function(key) {
         return key + ": " + _shortDesc(obj[key]);
@@ -53,10 +53,10 @@ export function shortDesc(topObj: any, optLimits?: DescLimits): string {
         (keys.length > lim.maxObjectKeys ? ", ... (" + keys.length + " keys)" : "") +
         "}";
     }
- else if (typeof obj === 'string') {
+    else if (typeof obj === 'string') {
       return inspect(truncateString(obj, lim.maxStringLength));
     }
- else {
+    else {
       return inspect(obj);
     }
   }

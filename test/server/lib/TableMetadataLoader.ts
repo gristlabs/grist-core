@@ -41,7 +41,7 @@ describe('TableMetadataLoader', function() {
       const harness = new TableMetadataLoaderHarness();
       const loader = new TableMetadataLoader(harness);
       for (const key of ['_grist_Tables', '_grist_Tables_column', '_grist_DocInfo',
-                         '_grist_Thing', 'User', 'metatables']) {
+        '_grist_Thing', 'User', 'metatables']) {
         harness.fetchWait.set(key, Math.random() * 100);
         harness.loadWait.set(key, Math.random() * 100);
       }
@@ -52,13 +52,13 @@ describe('TableMetadataLoader', function() {
       loader.startFetchingTable('_grist_Tables_column');
       loader.startFetchingTable('_grist_Thing');
       assert.deepEqual(Object.keys(await loader.fetchTablesAsActions()).sort(),
-                       ['_grist_DocInfo', '_grist_Tables', '_grist_Tables_column', '_grist_Thing']);
+        ['_grist_DocInfo', '_grist_Tables', '_grist_Tables_column', '_grist_Thing']);
       loader.startFetchingTable('User');
       await loader.wait();
       assert.deepEqual(Object.keys(await loader.fetchTablesAsActions()).sort(),
-                       ['User', '_grist_DocInfo', '_grist_Tables', '_grist_Tables_column', '_grist_Thing']);
+        ['User', '_grist_DocInfo', '_grist_Tables', '_grist_Tables_column', '_grist_Thing']);
       assert.deepEqual([...harness.loaded].sort(),
-                       ['User', '_grist_DocInfo', '_grist_Thing', 'metatables']);
+        ['User', '_grist_DocInfo', '_grist_Thing', 'metatables']);
     }
   });
 
@@ -67,7 +67,7 @@ describe('TableMetadataLoader', function() {
       const harness = new TableMetadataLoaderHarness();
       const loader = new TableMetadataLoader(harness);
       for (const key of ['_grist_Tables', '_grist_Tables_column', '_grist_DocInfo',
-                         '_grist_Thing', 'User', 'metatables']) {
+        '_grist_Thing', 'User', 'metatables']) {
         harness.fetchWait.set(key, Math.random() * 100);
         harness.loadWait.set(key, Math.random() * 100);
       }
@@ -79,9 +79,9 @@ describe('TableMetadataLoader', function() {
       loader.startFetchingTable('_grist_DocInfo');
       await loader.wait();
       assert.deepEqual(Object.keys(await loader.fetchTablesAsActions()).sort(),
-                       ['User', '_grist_DocInfo', '_grist_Tables', '_grist_Tables_column', '_grist_Thing']);
+        ['User', '_grist_DocInfo', '_grist_Tables', '_grist_Tables_column', '_grist_Thing']);
       assert.deepEqual([...harness.loaded].sort(),
-                       ['User', '_grist_DocInfo', '_grist_Thing', 'metatables']);
+        ['User', '_grist_DocInfo', '_grist_Thing', 'metatables']);
     }
   });
 });

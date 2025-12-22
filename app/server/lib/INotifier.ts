@@ -90,7 +90,7 @@ export interface TestSendGridExtensions {
 
   // Intercept outgoing messages for test purposes.
   setSendMessageCallback(op: (body: SendGridMailWithTemplateId,
-                              description: string) => Promise<void>): void;
+    description: string) => Promise<void>): void;
 }
 
 /**
@@ -140,7 +140,7 @@ export class EmitNotifier extends EventEmitter implements INotifier {
     try {
       await (this._primaryNotifier[methodName] as any)(...args);
     }
- finally {
+    finally {
       this._testPendingNotifications--;
     }
   }

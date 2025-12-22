@@ -320,7 +320,7 @@ class TextRenderer extends BaseFieldRenderer {
     if (this._format === 'singleline') {
       return this._renderSingleLineInput();
     }
- else {
+    else {
       return this._renderMultiLineInput();
     }
   }
@@ -367,7 +367,7 @@ class NumericRenderer extends BaseFieldRenderer {
     if (this._format === 'text') {
       return this._renderTextInput();
     }
- else {
+    else {
       return this._renderSpinnerInput();
     }
   }
@@ -443,7 +443,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
       this._choices = [];
     }
- else {
+    else {
       const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
       if (sortOrder !== 'default') {
         choices.sort((a, b) => String(a).localeCompare(String(b)));
@@ -477,7 +477,7 @@ class ChoiceRenderer extends BaseFieldRenderer  {
     if (this._format === 'select') {
       return this._renderSelectInput();
     }
- else {
+    else {
       return this._renderRadioInput();
     }
   }
@@ -606,7 +606,7 @@ class BoolRenderer extends BaseFieldRenderer {
     if (this._format === 'switch') {
       return this._renderSwitchInput();
     }
- else {
+    else {
       return this._renderCheckboxInput();
     }
   }
@@ -664,7 +664,7 @@ class ChoiceListRenderer extends BaseFieldRenderer  {
     if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
       choices = [];
     }
- else {
+    else {
       const sortOrder = this.field.options.formOptionsSortOrder ?? 'default';
       if (sortOrder !== 'default') {
         choices.sort((a, b) => String(a).localeCompare(String(b)));
@@ -847,7 +847,7 @@ class RefRenderer extends BaseFieldRenderer {
     if (this._format === 'select') {
       return this._renderSelectInput();
     }
- else {
+    else {
       return this._renderRadioInput();
     }
   }

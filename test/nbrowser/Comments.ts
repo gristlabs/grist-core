@@ -136,7 +136,7 @@ describe('Comments', function() {
     assert.equal(await readComment(0), 'Hello from Chimpy');
   });
 
-    it('should open the popup by using anchor link without p', async function() {
+  it('should open the popup by using anchor link without p', async function() {
     // Create a new document and add a comment.
     docId = (await session.tempShortDoc(cleanup, 'Hello.grist')).id;
 
@@ -435,7 +435,7 @@ describe('Comments', function() {
 
     // Create another doc in this workspace.
     const homeWs = await ownerApi.getOrgWorkspaces(session.teamSite.orgDomain)
-                                 .then(list => list.find(w => w.name === 'Home')?.id ?? null);
+      .then(list => list.find(w => w.name === 'Home')?.id ?? null);
     const secondDoc = await session.forWorkspace('Home').tempNewDoc(cleanup, 'Hello2', {load: false});
 
     // Add an Charon as an Owner of the Home workspace
@@ -1832,7 +1832,7 @@ async function panelOptions(options: {
     if (state && !await el.getAttribute('checked')) {
       await el.click();
     }
- else if (!state && await el.getAttribute('checked')) {
+    else if (!state && await el.getAttribute('checked')) {
       await el.click();
     }
   }
@@ -2007,10 +2007,10 @@ function waitForPopup(state: 'empty' | 'filled' | 'any' = 'any') {
   if (state === 'empty') {
     return driver.findWait(".test-discussion-popup .test-discussion-topic-empty", 100);
   }
- else if (state === 'filled') {
+  else if (state === 'filled') {
     return driver.findWait(".test-discussion-popup .test-discussion-topic-filled", 100);
   }
- else {
+  else {
     return driver.findWait(".test-discussion-popup .test-discussion-topic", 100);
   }
 }
@@ -2145,7 +2145,7 @@ async function assertThrows(test: () => Promise<any>) {
   try {
     await test();
   }
- catch (err) {
+  catch (err) {
     assert.match(err.message, /Cannot access cell/);
     return;
   }

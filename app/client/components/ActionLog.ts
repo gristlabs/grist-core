@@ -135,7 +135,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         otherAg.state(ag.isUndo ? state.UNDONE : state.DEFAULT);
       }
     }
- else {
+    else {
       // Any (non-link) action.
       if (ag.fromSelf) {
         // Bury all undos immediately preceding this action since they can no longer
@@ -149,7 +149,7 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
             // When a normal action is found, stop looking to bury previous actions.
             break;
           }
- else if (prevAction.fromSelf && prevState === state.UNDONE) {
+          else if (prevAction.fromSelf && prevState === state.UNDONE) {
             // The previous action was undone, so now it has become buried.
             prevAction.state(state.BURIED);
           }
@@ -196,12 +196,12 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
         if (name.startsWith('-')) {
           // skip
         }
- else if (renames.has(name)) {
+        else if (renames.has(name)) {
           const newName = renames.get(name) || defunctTableName(name);
           filt[newName] = prev.tableFilters![name];
           filt[newName](newName);   // Update the observable with the new name.
         }
- else {
+        else {
           filt[name] = prev.tableFilters![name];
         }
       }
@@ -227,25 +227,25 @@ export class ActionLog extends dispose.Disposable implements IDomComponent {
   private _buildLogDom() {
     this._loadActionSummaries().catch(() => gristNotify(t("Action Log failed to load")));
     return dom('div.action_log',
-        {tabIndex: '-1'},
-        dom.maybe(this._censored, () => {
-          return cssHistoryCensored(dom(
-            'p',
-            t('History blocked because of access rules.'),
-          ));
-        }),
-        // currently, if censored, no history at all available - so drop checkbox
-        dom.maybe(use => !use(this._censored), () => {
-          return dom('div',
-            labeledSquareCheckbox(fromKo(this.showAllTables),
-              t('All tables'),
-            ),
-          );
-        }),
-        dom('div.action_log_load',
-          koDom.show(() => this._loading()),
-          'Loading...'),
-        koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
+      {tabIndex: '-1'},
+      dom.maybe(this._censored, () => {
+        return cssHistoryCensored(dom(
+          'p',
+          t('History blocked because of access rules.'),
+        ));
+      }),
+      // currently, if censored, no history at all available - so drop checkbox
+      dom.maybe(use => !use(this._censored), () => {
+        return dom('div',
+          labeledSquareCheckbox(fromKo(this.showAllTables),
+            t('All tables'),
+          ),
+        );
+      }),
+      dom('div.action_log_load',
+        koDom.show(() => this._loading()),
+        'Loading...'),
+      koDom.foreach(this.displayStack, (ag: ActionGroupWithState) => {
         const timestamp = ag.time ? timeFormat("D T", new Date(ag.time)) : "";
         let desc: DomContents = ag.desc || "";
         if (ag.actionSummary) {
@@ -346,15 +346,15 @@ export abstract class ActionLogPart extends Disposable {
               'table.action_log_table',
               koDom.show(() => this.showForTable(table)),
               dom('caption',
-                  this._renderTableName(table),
-                  // Add a little button to show or hide extra context.
-                  // This is a baby step, there's a lot more that could
-                  // and should be done here.
-                  contextObs ? cssBasicButton(
-                    context[table] ? ' <' : ' >',
-                    dom.on('click', () => this.toggleContext(contextObs, table))) : null,
-                  dom.style('text-align', 'left'),
-                ),
+                this._renderTableName(table),
+                // Add a little button to show or hide extra context.
+                // This is a baby step, there's a lot more that could
+                // and should be done here.
+                contextObs ? cssBasicButton(
+                  context[table] ? ' <' : ' >',
+                  dom.on('click', () => this.toggleContext(contextObs, table))) : null,
+                dom.style('text-align', 'left'),
+              ),
               dom(
                 'tr',
                 dom('th'),
@@ -368,10 +368,10 @@ export abstract class ActionLogPart extends Disposable {
                     dom('td', this._renderCell(row.type)),
                     row.cellDeltas.map((diff, idx: number) => {
                       return dom('td',
-                                this._renderCell(diff),
-                                dom.on('click', () => {
-                                  return this.selectCell(row.rowId, act[table].header[idx], table);
-                                }));
+                        this._renderCell(diff),
+                        dom.on('click', () => {
+                          return this.selectCell(row.rowId, act[table].header[idx], table);
+                        }));
                     }));
                 }));
           }),
@@ -386,7 +386,7 @@ export abstract class ActionLogPart extends Disposable {
     if (context[table]) {
       await this._resetContext(contextObs, table, context);
     }
- else {
+    else {
       await this._setContext(contextObs, table, context);
     }
   }
@@ -416,19 +416,19 @@ export abstract class ActionLogPart extends Disposable {
       // very boring before + after values :-)
       return "";
     }
- else if (pre && !post) {
+    else if (pre && !post) {
       // this is a cell that was removed
       return dom('span.action_log_cell_remove', pre[0]);
     }
- else if (post && (pre === null || (pre[0] === null || pre[0] === ''))) {
+    else if (post && (pre === null || (pre[0] === null || pre[0] === ''))) {
       // this is a cell that was added, or modified from a previously empty value
       return dom('span.action_log_cell_add', post[0]);
     }
- else if (pre && post) {
+    else if (pre && post) {
       // a modified cell
       return dom('div',
-                 dom('span.action_log_cell_remove.action_log_cell_pre', pre[0]),
-                 dom('span.action_log_cell_add', post[0]));
+        dom('span.action_log_cell_remove.action_log_cell_pre', pre[0]),
+        dom('span.action_log_cell_add', post[0]));
     }
     return JSON.stringify(cell);
   }
@@ -466,9 +466,9 @@ export abstract class ActionLogPart extends Disposable {
     return dom('div.action_log_rename',
       koDom.show(() => this.showForTable(post || defunctTableName(pre!))),
       (!post ? ["Remove ", scope, dom("span.action_log_rename_pre", pre)] :
-       (!pre ? ["Add ", scope, dom("span.action_log_rename_post", post)] :
-        ["Rename ", scope, dom("span.action_log_rename_pre", pre),
-         " to ", dom("span.action_log_rename_post", post)])));
+        (!pre ? ["Add ", scope, dom("span.action_log_rename_post", post)] :
+          ["Rename ", scope, dom("span.action_log_rename_pre", pre),
+            " to ", dom("span.action_log_rename_post", post)])));
   }
 
   /**
@@ -476,7 +476,7 @@ export abstract class ActionLogPart extends Disposable {
    */
   private _renderTableSchemaChanges(sum: ActionSummary) {
     return dom('div',
-               sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
+      sum.tableRenames.map(pair => this._renderSchemaChange("", pair)));
   }
 
   /**
@@ -484,11 +484,11 @@ export abstract class ActionLogPart extends Disposable {
    */
   private _renderColumnSchemaChanges(sum: ActionSummary) {
     return dom('div',
-               Object.keys(sum.tableDeltas).filter(key => !key.startsWith('-')).map(key =>
-                 dom('div',
-                     koDom.show(() => this.showForTable(key)),
-                     sum.tableDeltas[key].columnRenames.map(pair =>
-                        this._renderSchemaChange(key + ".", pair)))));
+      Object.keys(sum.tableDeltas).filter(key => !key.startsWith('-')).map(key =>
+        dom('div',
+          koDom.show(() => this.showForTable(key)),
+          sum.tableDeltas[key].columnRenames.map(pair =>
+            this._renderSchemaChange(key + ".", pair)))));
   }
 
   private async _resetContext(contextObs: ko.Observable<ActionContext>, tableId: string, context: ActionContext) {
@@ -606,8 +606,8 @@ class ActionLogPartInList extends ActionLogPart {
  * Column and table renames are tracked, with updated names returned.
  */
 export function traceCell(cell: {rowId: number, colId: string, tableId: string},
-                          summary: ActionSummary,
-                          reportDeletion: (deletedObj: DeletedObject) => void) {
+  summary: ActionSummary,
+  reportDeletion: (deletedObj: DeletedObject) => void) {
   let {tableId, colId} = cell;
   const {rowId} = cell;
   // Check if this table was renamed / removed.
@@ -704,7 +704,7 @@ export async function computeContext(gristDoc: GristDoc, base: ActionSummary, in
   const result: ActionContext = {};
   for (const [tableId, tableDelta] of Object.entries(base.tableDeltas)) {
     const rowIds = new Set([...tableDelta.addRows,
-                            ...tableDelta.updateRows]);
+      ...tableDelta.updateRows]);
     const rows = await getTable(tableId, [...rowIds]);
     result[tableId] = rows;
   }
@@ -726,10 +726,10 @@ function reportDeletedObject(obj: DeletedObject, actionNum: number) {
     ));
   }
   if (obj.colId) {
-      gristNotify(t(
-        "Column {{colId}} was subsequently removed in action #{{actionNum}}",
-        {colId: obj.colId, actionNum},
-      ));
+    gristNotify(t(
+      "Column {{colId}} was subsequently removed in action #{{actionNum}}",
+      {colId: obj.colId, actionNum},
+    ));
   }
   if (obj.thisRow) {
     gristNotify(t("This row was subsequently removed in action {{actionNum}}", {actionNum}));

@@ -47,7 +47,7 @@ export function getAvailablePort(firstPort: number = 8000, optCount: number = 20
       server.on('close', () => resolve(port));
       server.listen(port, 'localhost', () => server.close());
     })
-    .catch(() => checkNext(port + 1));
+      .catch(() => checkNext(port + 1));
   }
   return bluebird.try(() => checkNext(firstPort));
 }
@@ -57,7 +57,7 @@ export function getAvailablePort(firstPort: number = 8000, optCount: number = 20
  * connected socket. (Types are specified as in @types/node.)
  */
 export function connect(options: { port: number, host?: string, localAddress?: string, localPort?: string,
-                                   family?: number, allowHalfOpen?: boolean; }): Promise<net.Socket>;
+  family?: number, allowHalfOpen?: boolean; }): Promise<net.Socket>;
 export function connect(port: number, host?: string): Promise<net.Socket>;
 export function connect(sockPath: string): Promise<net.Socket>;
 export function connect(arg: any, ...moreArgs: any[]): Promise<net.Socket> {
@@ -109,13 +109,13 @@ export function getDatabaseUrl(options: ConnectionOptions, includeCredentials: b
   if (options.type === 'sqlite') {
     return `sqlite://${options.database}`;
   }
- else if (options.type === 'postgres') {
+  else if (options.type === 'postgres') {
     const pass = options.password ? `:${options.password}` : '';
     const creds = includeCredentials && options.username ? `${options.username}${pass}@` : '';
     const port = options.port ? `:${options.port}` : '';
     return `postgres://${creds}${options.host}${port}/${options.database}`;
   }
- else {
+  else {
     return `${options.type}://?`;
   }
 }
@@ -139,7 +139,7 @@ export async function checkAllegedGristDoc(docSession: OptDocSession, fname: str
       throw new Error(`Document failed integrity checks - is it corrupted? Event ID: ${uuid}`);
     }
   }
- finally {
+  finally {
     await db.close();
   }
 }
@@ -168,7 +168,7 @@ export async function delayAbort(msec: number, signal?: AbortSignal): Promise<vo
       };
     });
   }
- finally {
+  finally {
     cleanup();
   }
 }
@@ -225,10 +225,10 @@ export function expectedResetDate(startMs: number, endMs: number, now?: number):
     if (nr === 0) {
       return period(startMs, endOf(nr));
     }
- else if (nr !== 11) {
+    else if (nr !== 11) {
       return period(endOf(nr - 1), endOf(nr));
     }
- else {
+    else {
       return period(endOf(nr - 1), endMs);
     }
   });

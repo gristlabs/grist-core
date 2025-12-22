@@ -13,15 +13,15 @@ describe('RecentItems', function() {
   describe("listItems", function() {
     it("should return a valid list", function() {
       let recentItems = new RecentItems({
-         intialItems: simpleList
+        intialItems: simpleList
       });
       assert.deepEqual(recentItems.listItems(), ['foo', 'bar', 'baz']);
     });
 
     it("should return a valid list given a keyFunc", function() {
       let recentItems = new RecentItems({
-         intialItems: objList,
-         keyFunc: item => item.path
+        intialItems: objList,
+        keyFunc: item => item.path
       });
       assert.deepEqual(recentItems.listItems(), [
         { name: 'foo', path: '/foo' },
@@ -32,14 +32,14 @@ describe('RecentItems', function() {
 
     it("should produce a list of objects with unique keys", function() {
       let recentItems = new RecentItems({
-         intialItems: [
-           { name: 'foo', path: '/foo' },
-           { name: 'bar', path: '/bar' },
-           { name: 'foo', path: '/foo' },
-           { name: 'baz', path: '/baz' },
-           { name: 'foobar', path: '/foo' },
-         ],
-         keyFunc: item => item.path
+        intialItems: [
+          { name: 'foo', path: '/foo' },
+          { name: 'bar', path: '/bar' },
+          { name: 'foo', path: '/foo' },
+          { name: 'baz', path: '/baz' },
+          { name: 'foobar', path: '/foo' },
+        ],
+        keyFunc: item => item.path
       });
       assert.deepEqual(recentItems.listItems(), [
         { name: 'bar', path: '/bar' },
@@ -47,7 +47,7 @@ describe('RecentItems', function() {
         { name: 'foobar', path: '/foo' }
       ]);
       let recentItems2 = new RecentItems({
-         intialItems: simpleList,
+        intialItems: simpleList,
       });
       assert.deepEqual(recentItems2.listItems(), ['foo', 'bar', 'baz']);
       for(let i = 0; i < 30; i++) {
@@ -58,9 +58,9 @@ describe('RecentItems', function() {
 
     it("should produce a list with the correct max length", function() {
       let recentItems = new RecentItems({
-         intialItems: objList,
-         maxCount: 2,
-         keyFunc: item => item.path
+        intialItems: objList,
+        maxCount: 2,
+        keyFunc: item => item.path
       });
       assert.deepEqual(recentItems.listItems(), [
         { name: 'bar', path: '/bar' },
@@ -77,8 +77,8 @@ describe('RecentItems', function() {
         { name: 'BAZ', path: '/baz' }
       ]);
       let recentItems2 = new RecentItems({
-         intialItems: simpleList,
-         maxCount: 10
+        intialItems: simpleList,
+        maxCount: 10
       });
       let alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
       recentItems2.addItems(alphabet);

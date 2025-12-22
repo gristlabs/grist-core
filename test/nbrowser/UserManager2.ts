@@ -48,14 +48,14 @@ describe('UserManager2', function() {
 
         // Make a document, and start editing shares.
         await session.tempDoc(cleanup, 'Hello.grist', {load: landingPage === 'doc',
-                                                       newName: landingPage + '.grist'});
+          newName: landingPage + '.grist'});
         const openUserManager = async () => {
           if (landingPage === 'docmenu') {
             await driver.findContent('.test-dm-workspace', /Home/).click();
             await gu.openDocDropdown(landingPage);
             await driver.find('.test-dm-doc-access').click();
           }
- else {
+          else {
             await openManageUsers();
           }
         };
@@ -66,7 +66,7 @@ describe('UserManager2', function() {
         if (landingPage === 'doc') {
           assert(await driver.findWait('.test-um-open-access-rules', 2000).isPresent());
         }
- else {
+        else {
           assert.isFalse(await driver.find('.test-um-open-access-rules').isPresent());
         }
 
@@ -185,7 +185,7 @@ describe('UserManager2', function() {
           .find('.member-email').getText();
         assert.sameMembers([collaborator1, collaborator2], ['zig@getgrist.com', 'zod@getgrist.com']);
       }
- finally {
+      finally {
         // Remove users we added.
         await api.updateOrgPermissions('current', {
           users: fromPairs(users.map(u => [`${u}@getgrist.com`, null])),

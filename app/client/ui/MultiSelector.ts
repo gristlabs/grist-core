@@ -34,10 +34,10 @@ const testId = makeTestId('test-ms-');
 export abstract class MultiItemSelector<Item extends BaseItem> extends Disposable {
 
   constructor(private _incItems: MutableObsArray<Item>, private _allItems: ObsArray<Item>,
-              private _options: {
-                addItemLabel: string,
-                addItemText: string
-              }) {
+    private _options: {
+      addItemLabel: string,
+      addItemText: string
+    }) {
     super();
   }
 
@@ -79,8 +79,8 @@ export abstract class MultiItemSelector<Item extends BaseItem> extends Disposabl
   protected buildDragHandle(item: Item): Element { return new Element(); }
 
   protected buildSelectBox(selectedValue: string,
-                           selectCb: (newItem: Item) => void,
-                           selectOptions?: {defLabel?: string}): Element {
+    selectCb: (newItem: Item) => void,
+    selectOptions?: {defLabel?: string}): Element {
     const obs = computed(use => selectedValue).onWrite(async (value) => {
       const newItem = this._findItemByValue(value);
       if (newItem) {

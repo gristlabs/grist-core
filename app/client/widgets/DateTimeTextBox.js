@@ -64,7 +64,7 @@ DateTimeTextBox.prototype.buildConfigDom = function(_gristDoc, isTransformConfig
     cssRow(
       gdom.create(buildTZAutocomplete, moment, fromKo(this._timezone), this._setTimezone,
         { disabled : fromKo(disabled)}),
-      ),
+    ),
     this.buildDateConfigDom(),
     cssLabel("Time Format"),
     cssRow(dom(

@@ -92,16 +92,16 @@ export async function applyAndCheckActionsForCells(
             if (!haveRecord) {
               postponed.push(id);
             }
- else if (!await hasAccess(cell, docData)) {
+            else if (!await hasAccess(cell, docData)) {
               fail();
             }
           }
- else {
+          else {
             postponed.push(id);
           }
         }
       }
- else if (isRemoveRecord(single)) {
+      else if (isRemoveRecord(single)) {
         // See if we can remove this cell.
         const cell = cellData.getCell(id);
         docData.receiveAction(single);
@@ -118,7 +118,7 @@ export async function applyAndCheckActionsForCells(
         }
         postponed = postponed.filter(i => i !== id);
       }
- else {
+      else {
         // We are updating a cell metadata. We will need to check if we can update it.
         let cell = cellData.getCell(id);
         if (!cell) {
@@ -270,7 +270,7 @@ export class CellData {
       if (read.has(key)) {
         result.set(cId, read.get(key) || []);
       }
- else {
+      else {
         // Otherwise, compute participants for this table/column/row combination.
         const participants = new Set(
           this.readCells(tableId, new Set([rowId]), colId).flatMap((c) => {
@@ -315,28 +315,28 @@ export class CellData {
             removedCells.delete(id);
             updatedCells.add(id);
           }
- else {
+          else {
             addedCells.add(id);
           }
         }
       }
- else if (isRemoveRecord(action) || isBulkRemoveRecord(action)) {
+      else if (isRemoveRecord(action) || isBulkRemoveRecord(action)) {
         for(const id of getRowIdsFromDocAction(action)) {
           if (addedCells.has(id)) {
             addedCells.delete(id);
           }
- else {
+          else {
             removedCells.add(id);
             updatedCells.delete(id);
           }
         }
       }
- else {
+      else {
         for(const id of getRowIdsFromDocAction(action)) {
           if (addedCells.has(id)) {
             // ignore
           }
- else {
+          else {
             updatedCells.add(id);
           }
         }
@@ -379,7 +379,7 @@ export class CellData {
         if (addedCells.has(id) || updatedCells.has(id) || removedCells.has(id)) {
           // If we have this cell id in the list of added/updated/removed cells, ignore it.
         }
- else {
+        else {
           updatedCells.add(id);
         }
       }
@@ -407,7 +407,7 @@ export class CellData {
           colValues.userRef = '';
         }
       }
- else {
+      else {
         const [, , rowIds, colValues] = action;
         for (let idx = 0; idx < rowIds.length; idx++) {
           const cell = this.getCell(rowIds[idx]);
@@ -514,7 +514,7 @@ export class CellData {
             id: rowIds[idx],
           });
         }
- else {
+        else {
           const cellInfo = this.getCell(rowIds[idx]);
           if (cellInfo) {
             result.push(cellInfo);
@@ -522,7 +522,7 @@ export class CellData {
         }
       }
     }
- else {
+    else {
       const rowId = getRowIds(action);
       if (this.hasCellInfo(action)) {
         const colValues = getActionColValues(action);
@@ -534,7 +534,7 @@ export class CellData {
           id: rowId,
         });
       }
- else {
+      else {
         const cellInfo = this.getCell(rowId);
         if (cellInfo) {
           result.push(cellInfo);
@@ -574,7 +574,7 @@ export class CellData {
       action[3].parentId.push(dataCell.parentId);
     }
     return action[2].length > 1 ? action :
-           action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+      action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
 
   public generateRemovals(ids: number[]) {
@@ -584,7 +584,7 @@ export class CellData {
       ids,
     ];
     return action[2].length > 1 ? action :
-          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+      action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
 
   public generateUpdate(ids: number[]) {
@@ -605,7 +605,7 @@ export class CellData {
       action[3].userRef.push(dataCell.userRef);
     }
     return action[2].length > 1 ? action :
-          action[2].length == 1 ? [...getSingleAction(action)][0] : null;
+      action[2].length == 1 ? [...getSingleAction(action)][0] : null;
   }
 }
 

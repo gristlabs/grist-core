@@ -60,7 +60,7 @@ describe('UndoJumps.ntest', function() {
     // discard notification
     await $(".test-notifier-toast-close").wait(100).click();
     positions.push({section: 'CITY Card List', rowNum: 20, col: 'Name',
-                    text: ['Santafé de Bogotá', 'det-update']});
+      text: ['Santafé de Bogotá', 'det-update']});
     let cell = gu.getDetailCell('Name', 20);
     await cell.click();
     assert.equal(await cell.text(), 'Santafé de Bogotá');

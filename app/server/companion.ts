@@ -4,7 +4,7 @@ import { synchronizeProducts } from 'app/gen-server/entity/Product';
 import { HomeDBManager } from 'app/gen-server/lib/homedb/HomeDBManager';
 import { applyPatch } from 'app/gen-server/lib/TypeORMPatches';
 import { getMigrations, getOrCreateConnection, getTypeORMSettings,
-         undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
+  undoLastMigration, updateDb } from 'app/server/lib/dbUtils';
 import { getDatabaseUrl } from 'app/server/lib/serverUtils';
 import { getTelemetryPrefs } from 'app/server/lib/Telemetry';
 import { Gristifier } from 'app/server/utils/gristify';
@@ -85,7 +85,7 @@ export function addHistoryCommand(program: commander.Command, options: CommandOp
 
 // Add commands for general configuration
 export function addSettingsCommand(program: commander.Command,
-                                   options: CommandOptions) {
+  options: CommandOptions) {
   const sub = section(program, {
     sectionName: 'settings',
     sectionDescription: 'general configuration',
@@ -114,7 +114,7 @@ async function showTelemetry(options: {
       currentLevelName: levelName,
     }, null, 2));
   }
- else {
+  else {
     if (options.all) {
       console.log("# All telemetry levels");
       console.log("");
@@ -125,7 +125,7 @@ async function showTelemetry(options: {
         console.log("");
       }
     }
- else {
+    else {
       describeTelemetryLevel(level, '');
       console.log("");
       showTelemetryAtLevel(level, '#');
@@ -172,7 +172,7 @@ function showTelemetryAtLevel(level: Level, nesting: ''|'#'|'##') {
 // Add commands related to sites:
 //   site create <domain> <owner-email>
 export function addSiteCommand(program: commander.Command,
-                               options: CommandOptions) {
+  options: CommandOptions) {
   const sub = section(program, {
     sectionName: 'site',
     sectionDescription: 'set up sites',
@@ -202,8 +202,8 @@ export function addSiteCommand(program: commander.Command,
 //   db check
 //   db url
 export function addDbCommand(program: commander.Command,
-                             options: CommandOptions,
-                             reuseConnection?: Connection) {
+  options: CommandOptions,
+  reuseConnection?: Connection) {
   function withConnection(op: (connection: Connection) => Promise<number>) {
     return async () => {
       if (!process.env.TYPEORM_LOGGING) {
@@ -281,7 +281,7 @@ export function addVersionCommand(program: commander.Command) {
         const displayVersion = options.withCommit ? `${version} (commit ${gitcommit})` : version;
         console.log(`Grist version is ${displayVersion}`);
       }
- else {
+      else {
         const displayVersion = options.withCommit ? `${version} ${gitcommit}` : version;
         console.log(displayVersion);
       }
@@ -304,7 +304,7 @@ export async function dbCheck(connection: Connection) {
     log(`Migration(s) need to be applied: ${migrations.pendingMigrations}`);
     exitCode = 1;
   }
- else {
+  else {
     log("No migrations need to be applied");
   }
   log("");
@@ -314,7 +314,7 @@ export async function dbCheck(connection: Connection) {
     log(`   (db:revert will not undo product changes)`);
     exitCode = 1;
   }
- else {
+  else {
     log(`Products unchanged`);
   }
   return exitCode;
@@ -346,7 +346,7 @@ function section(program: commander.Command, options: {
     if (options.nested) {
       return sub.command(name);
     }
- else {
+    else {
       return sub.command(`${options.sectionName}:${name}`);
     }
   };

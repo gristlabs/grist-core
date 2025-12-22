@@ -1,6 +1,6 @@
 import {computed, Computed, dom, DomElementArg, IDisposableOwner, Observable, styled} from "grainjs";
 import {cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
-        IModalControl, modal} from 'app/client/ui2018/modals';
+  IModalControl, modal} from 'app/client/ui2018/modals';
 import {bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {IOrgMemberSelectOption, UserManagerModel} from 'app/client/models/UserManagerModel';
@@ -40,7 +40,7 @@ export function buildMultiUserManagerModal(
     if (emailList.some(email => !validateEmail(email))) {
       isValidObs.set(false);
     }
- else {
+    else {
       emailList.forEach(email => onAdd(email, role));
       ctl.close();
     }
@@ -113,7 +113,7 @@ function buildEmailsTextarea(
     {onInput: true, isValid: isValidObs},
     {placeholder: "Enter one email address per line"},
     dom.on('change', _ev => isValidObs.set(true)),
-     ...args,
+    ...args,
   );
 }
 

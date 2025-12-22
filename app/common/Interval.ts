@@ -87,7 +87,7 @@ export class Interval {
       const [min, max] = [delayMs - varianceMs, delayMs + varianceMs];
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
- else {
+    else {
       return delayMs;
     }
   }
@@ -97,7 +97,7 @@ export class Interval {
     try {
       await (this._lastPendingCall = this._callback());
     }
- catch (e: unknown) {
+    catch (e: unknown) {
       this._options.onError(e);
     }
     if (!this._stopped) {

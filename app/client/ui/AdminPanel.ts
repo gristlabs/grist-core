@@ -152,8 +152,8 @@ class AdminInstallationPanel extends Disposable implements AdminPanelControls {
     // mechanism for access.
     return dom.maybe(use => use(this._checks.probes), probes => [
       (probes as any[]).length > 0
-      ? this._buildMainContentForAdmin()
-      : this._buildMainContentForOthers(),
+        ? this._buildMainContentForAdmin()
+        : this._buildMainContentForOthers(),
     ]);
   }
 
@@ -355,9 +355,9 @@ Please log in as an administrator.`)),
         const configured = details.configured;
         return cssValueLabel(
           configured ?
-              (success ? cssHappyText(t('OK') + `: ${flavor}`) :
-                  cssErrorText(t('Error') + `: ${flavor}`)) :
-              cssErrorText(t('unconfigured')));
+            (success ? cssHappyText(t('OK') + `: ${flavor}`) :
+              cssErrorText(t('Error') + `: ${flavor}`)) :
+            cssErrorText(t('unconfigured')));
       },
     );
   }
@@ -573,7 +573,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
           if (controller.signal.aborted) { return; }
           actions.gotLatestVersion(result);
         }
- catch(err) {
+        catch(err) {
           if (controller.signal.aborted) { return; }
           state.set(State.ERROR);
           reportError(err);
@@ -597,7 +597,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         if (data.isNewer) {
           state.set(State.AVAILABLE);
         }
- else {
+        else {
           state.set(State.CURRENT);
         }
       },
@@ -626,10 +626,10 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
         // It's been too long since we last checked
         state.set(State.STALE);
       }
- else if (latestVersionAvailable.get()?.isNewer === true) {
+      else if (latestVersionAvailable.get()?.isNewer === true) {
         state.set(State.AVAILABLE);
       }
- else if (latestVersionAvailable.get()?.isNewer === false) {
+      else if (latestVersionAvailable.get()?.isNewer === false) {
         state.set(State.CURRENT);
       }
     }
@@ -644,7 +644,7 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
       if (val) {
         actions.enableAutoCheck();
       }
- else {
+      else {
         actions.disableAutoCheck();
       }
     });
@@ -723,11 +723,11 @@ in the future as session IDs generated since v1.1.16 are inherently cryptographi
               inputArgs: [{id: 'admin-panel-updates-auto-check-switch'}],
             })),
           ) :
-          cssExpandedContent(
-            dom('span', t('Automatic checks are disabled. \
+            cssExpandedContent(
+              dom('span', t('Automatic checks are disabled. \
 Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to enable them.'),
-            testId('admin-panel-updates-auto-check-disabled')),
-          ),
+              testId('admin-panel-updates-auto-check-disabled')),
+            ),
         )),
     });
   }
@@ -762,8 +762,8 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
    * Show the result of an individual check.
    */
   private _buildProbeItem(info: BootProbeInfo,
-                          result: BootProbeResult,
-                          details: ProbeDetails|undefined) {
+    result: BootProbeResult,
+    details: ProbeDetails|undefined) {
 
     const status = this._encodeSuccess(result);
     return dom.create(AdminSectionItem, {
@@ -778,10 +778,10 @@ Set the environment variable GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING to "true" to
         ),
         result.verdict ? dom('pre', result.verdict) : null,
         (result.status === 'none') ? null :
-            dom('p',
-                (result.status === 'success') ? t('Check succeeded.') : t('Check failed.')),
+          dom('p',
+            (result.status === 'success') ? t('Check succeeded.') : t('Check failed.')),
         (result.status !== 'none') ? null :
-            dom('p', t('No fault detected.')),
+          dom('p', t('No fault detected.')),
         (details?.info === undefined) ? null : [
           cssCheckHeader(t('Notes')),
           details.info,
@@ -864,7 +864,7 @@ learn more.",
         ),
       });
     }
- else {
+    else {
       const model = new AuditLogsModelImpl({
         configsAPI: new InstallConfigsAPI(),
       });
@@ -885,10 +885,10 @@ learn more.",
       if (!destinations) {
         return null;
       }
- else if (destinations.length === 0) {
+      else if (destinations.length === 0) {
         return cssValueLabel(cssDangerText(t("Off")));
       }
- else {
+      else {
         const [first, ...rest] = destinations;
         let status: string;
         if (rest.length > 0) {
@@ -900,7 +900,7 @@ learn more.",
             },
           );
         }
- else {
+        else {
           status = getDestinationDisplayName(first.name);
         }
         return cssValueLabel(cssHappyText(status));

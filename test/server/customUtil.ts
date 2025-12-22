@@ -22,7 +22,7 @@ export interface Serving {
 export function addStatic(app: express.Express, rootDir?: string) {
   // mix in a copy of the plugin api
   app.use(/^\/(grist-plugin-api.js)$/, (req, res) =>
-          res.sendFile(req.params[0], {root:
+    res.sendFile(req.params[0], {root:
                                         path.resolve(getAppRoot(), "static")}));
   app.use(express.static(rootDir || path.resolve(fixturesRoot, "sites"), {
     setHeaders: (res: express.Response) => {
@@ -142,7 +142,7 @@ export async function startFakeUpdateServer() {
           isCritical: API.isCritical,
         });
       }
- catch(ex) {
+      catch(ex) {
         next(ex);
       }
     });

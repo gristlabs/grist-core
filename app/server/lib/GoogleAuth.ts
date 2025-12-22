@@ -94,7 +94,7 @@ export async function googleAuthTokenMiddleware(
   if (!optStringParam(req.query.code, 'code')) {
     throw new ApiError("Google Auth endpoint requires a code parameter in the query string", 400);
   }
- else {
+  else {
     try {
       const oAuth2Client = getGoogleAuth();
       // Decrypt code that was send back from Google Auth service. Uses GOOGLE_CLIENT_SECRET key.
@@ -104,7 +104,7 @@ export async function googleAuthTokenMiddleware(
       req.query.access_token = access_token;
       next();
     }
- catch (err) {
+    catch (err) {
       log.error("GoogleAuth - Error", err);
       throw err;
     }
@@ -139,20 +139,20 @@ export function addGoogleAuthEndpoint(
     if (optStringParam(req.query.code, 'code')) {
       log.debug("GoogleAuth - response from Google with valid code");
       messagePage(req, res, { code: stringParam(req.query.code, 'code'),
-                              origin: stringParam(req.query.state, 'state') });
+        origin: stringParam(req.query.state, 'state') });
     }
- else if (optStringParam(req.query.error, 'error')) {
+    else if (optStringParam(req.query.error, 'error')) {
       log.debug("GoogleAuth - response from Google with error code", stringParam(req.query.error, 'error'));
       if (stringParam(req.query.error, 'error') === "access_denied") {
         messagePage(req, res, { error: stringParam(req.query.error, 'error'),
-                                origin: stringParam(req.query.state, 'state') });
+          origin: stringParam(req.query.state, 'state') });
       }
- else {
+      else {
         // This should not happen, either code or error is a mandatory query parameter.
         throw new ApiError("Error authenticating with Google", 500);
       }
     }
- else {
+    else {
       const oAuth2Client = getGoogleAuth();
       const scope = stringParam(req.query.scope, 'scope');
       // Create url for origin parameter for a popup window.

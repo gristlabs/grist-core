@@ -11,7 +11,7 @@ import {theme} from 'app/client/ui2018/cssVars';
 import {DisposableWithEvents} from 'app/common/DisposableWithEvents';
 import {isNonNullish} from 'app/common/gutil';
 import {Computed, Disposable, dom, IDisposable, IDisposableOwner,
-        makeTestId, obsArray, Observable, styled} from 'grainjs';
+  makeTestId, obsArray, Observable, styled} from 'grainjs';
 import isEqual from 'lodash/isEqual';
 
 const testId = makeTestId('test-layoutTray-');
@@ -83,9 +83,9 @@ export class LayoutTray extends DisposableWithEvents {
 
     // First we can be activated when a drag has started and we have some boxes.
     this.drag.map(drag => drag && this.layout.count.get() > 0)
-             .flag() // Map to a boolean, and emit only when the value changes.
-             .filter(Boolean) // Only emit when it is set to true
-             .pipe(this.active);
+      .flag() // Map to a boolean, and emit only when the value changes.
+      .filter(Boolean) // Only emit when it is set to true
+      .pipe(this.active);
 
     // Second, we can be activated when the drag has started by the main layout, and we don't have any boxes yet, but
     // mouse pointer is relatively high on the screen.
@@ -257,7 +257,7 @@ class CollapsedDropZone extends Disposable {
         pushedLeaf = EmptyLeaf.create(null, this.model);
         layout.addBox(pushedLeaf);
       }
- else if (pushedLeaf) {
+      else if (pushedLeaf) {
         layout.destroy(pushedLeaf);
       }
     }));
@@ -277,7 +277,7 @@ class CollapsedDropZone extends Disposable {
           if (owner.isDisposed() || this._isAnimating()) {
             return;
           }
-           // If there are some previous rects (from previous calculation), test if we are still in one of them.
+          // If there are some previous rects (from previous calculation), test if we are still in one of them.
           if (this._lastTarget) {
             const stillThere = obsRects.get()[this._lastIndex]?.contains(e);
             if (stillThere) {
@@ -311,7 +311,7 @@ class CollapsedDropZone extends Disposable {
           obsRects,
           rects => rects.filter(isNonNullish).map((rect: VRect) => cssVirtualPart(
             {style: `left: ${rect.left}px; width: ${rect.width}px; top: ${rect.top}px; height: ${rect.height}px;`},
-        )));
+          )));
       }),
     ));
   }
@@ -353,13 +353,13 @@ class CollapsedDropZone extends Disposable {
         const right = root.offsetLeft + 50;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
       }
- else if (box instanceof CollapsedLeaf && i === boxes.length - 1) {
+      else if (box instanceof CollapsedLeaf && i === boxes.length - 1) {
         // Last one is very similar, little rectangle on the left part.
         const left = root.offsetLeft + root.offsetWidth - 30;
         const right = root.offsetLeft + root.offsetWidth + 30;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
       }
- else if (box instanceof CollapsedLeaf && prev instanceof CollapsedLeaf) {
+      else if (box instanceof CollapsedLeaf && prev instanceof CollapsedLeaf) {
         // In between, we have a rectangle from the left border to the right border.
         const leftRoot = prev.rootElement;
         const rightRoot = root;
@@ -367,14 +367,14 @@ class CollapsedDropZone extends Disposable {
         const right = rightRoot.offsetLeft + 30;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
       }
- else if (next && box instanceof TargetLeaf && i === 0) {
+      else if (next && box instanceof TargetLeaf && i === 0) {
         // If this is a first box and it is a target, the first rectangle will be much larger, it should cover
         // the TargetLeaf width.
         const left = 0;
         const right = next.rootElement.offsetLeft;
         rects.push(new VRect(parentRect, { left, top: lineOffset, right, height }));
       }
- else if (box instanceof TargetLeaf && prev instanceof CollapsedLeaf && next instanceof CollapsedLeaf) {
+      else if (box instanceof TargetLeaf && prev instanceof CollapsedLeaf && next instanceof CollapsedLeaf) {
         // If this box is target between two collapsed boxes, we will have a rectangle from the prev to next
         // covering the whole target leaf.
         const left = prev.rootElement.offsetLeft + prev.rootElement.offsetWidth - 30;
@@ -392,7 +392,7 @@ class CollapsedDropZone extends Disposable {
       await this._lastTarget.insert(index);
       this._lastIndex = index;
     }
- finally {
+    finally {
       this._stop();
     }
   }
@@ -404,7 +404,7 @@ class CollapsedDropZone extends Disposable {
       this._lastTarget = undefined;
       this._lastIndex = -1;
     }
- finally {
+    finally {
       this._stop();
     }
   }
@@ -467,7 +467,7 @@ class CollapsedLayout extends Disposable {
     if (index < 0) {
       this._boxes.push(leaf);
     }
- else {
+    else {
       this._boxes.splice(index, 0, leaf);
     }
     return leaf;
@@ -818,13 +818,13 @@ class ExternalLeaf extends Disposable implements Dropped {
     const multipleLeaves = () => this.model.viewLayout.layout.getAllLeafIds().length > 1;
 
     this.drag = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragStart', 'dragEnd')
-                      .filter(multipleLeaves);
+      .filter(multipleLeaves);
 
     this._drop = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragDrop')
-                      .filter(multipleLeaves);
+      .filter(multipleLeaves);
 
     this.dragMove = Signal.fromEvents(this, this.model.viewLayout.layoutEditor, 'dragMove')
-                          .filter(multipleLeaves);
+      .filter(multipleLeaves);
 
     // Now bubble up those events to the model.
 
@@ -854,7 +854,7 @@ class ExternalLeaf extends Disposable implements Dropped {
       if (box) {
         this.model.viewLayout.layoutEditor.triggerUserEditStart();
       }
- else {
+      else {
         const dropTargeter = this.model.viewLayout.layoutEditor.dropTargeter;
         dropTargeter.removeTargetHints();
         // Save the layout immediately after the drop. Otherwise we would wait a bit,
@@ -897,7 +897,7 @@ class ExternalLeaf extends Disposable implements Dropped {
           if (part.isChild) {
             part.box.addChild(box, part.isAfter);
           }
- else {
+          else {
             part.box.addSibling(box, part.isAfter);
           }
           this.model.viewLayout.viewModel.activeSectionId(leaf);
@@ -968,7 +968,7 @@ class ExternalLeaf extends Disposable implements Dropped {
             floater.mouseOffsetY = 0;
           }
         }
- else if (lastContent) {
+        else if (lastContent) {
           lastContent.style.display = '';
           const floater = model.viewLayout.layoutEditor.floater;
           const currentContent = floater.leafContent.peek() as HTMLElement;

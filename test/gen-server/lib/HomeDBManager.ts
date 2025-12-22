@@ -130,7 +130,7 @@ describe('HomeDBManager', function() {
       assert.equal(org.data!.billingAccount.product.name, STUB_PLAN);
       await home.deleteOrg({userId: user.id}, orgId);
     }
- finally {
+    finally {
       oldEnv.restore();
     }
   });
@@ -142,7 +142,7 @@ describe('HomeDBManager', function() {
     const orgId = result.data!.id;
     assert.equal(result.status, 200);
     await assert.isRejected(home.addOrg(user, {name: `${domain}!`, domain}, teamOptions),
-                            /Domain already in use/);
+      /Domain already in use/);
     await home.deleteOrg({userId: user.id}, orgId);
   });
 
@@ -272,7 +272,7 @@ describe('HomeDBManager', function() {
 
   it('can get best user for accessing org', async function() {
     let suggestion = await home.getBestUserForOrg([charonProfile, kiwiProfile],
-                                                  await home.testGetId('Fish') as number);
+      await home.testGetId('Fish') as number);
     assert.deepEqual(suggestion, {
       id: await home.testGetId('Kiwi') as number,
       email: kiwiProfile.email,
@@ -281,10 +281,10 @@ describe('HomeDBManager', function() {
       perms: 15,
     });
     suggestion = await home.getBestUserForOrg([charonProfile, kiwiProfile],
-                                              await home.testGetId('Abyss') as number);
+      await home.testGetId('Abyss') as number);
     assert.equal(suggestion!.email, charonProfile.email);
     suggestion = await home.getBestUserForOrg([charonProfile, kiwiProfile],
-                                              await home.testGetId('EmptyOrg') as number);
+      await home.testGetId('EmptyOrg') as number);
     assert.equal(suggestion, null);
   });
 
@@ -302,19 +302,19 @@ describe('HomeDBManager', function() {
     // billing account without orgs+managers
     let billingAccount = await home.getBillingAccount(chimpyScope, 'nasa', false);
     assert.hasAllKeys(billingAccount,
-                      ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
-                       'stripeSubscriptionId', 'stripePlanId', 'product', 'paid', 'isManager',
-                       'externalId', 'externalOptions', 'features', 'paymentLink']);
+      ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
+        'stripeSubscriptionId', 'stripePlanId', 'product', 'paid', 'isManager',
+        'externalId', 'externalOptions', 'features', 'paymentLink']);
 
     // billing account with orgs+managers
     billingAccount = await home.getBillingAccount(chimpyScope, 'nasa', true);
     assert.hasAllKeys(billingAccount,
-                      ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
-                       'stripeSubscriptionId', 'stripePlanId', 'product', 'orgs', 'managers', /* <-- here */
-                       'paid', 'externalId', 'externalOptions', 'features', 'paymentLink']);
+      ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
+        'stripeSubscriptionId', 'stripePlanId', 'product', 'orgs', 'managers', /* <-- here */
+        'paid', 'externalId', 'externalOptions', 'features', 'paymentLink']);
 
     await assert.isRejected(home.getBillingAccount(charonScope, 'nasa', true),
-                            /User does not have access to billing account/);
+      /User does not have access to billing account/);
   });
 
   // TypeORM does not handle parameter name reuse well, so we monkey-patch to detect it.
@@ -322,15 +322,15 @@ describe('HomeDBManager', function() {
     // Check collision in a simple query.
     // Note: it is query construction that fails, not query execution.
     assert.throws(() => home.connection.createQueryBuilder().from('orgs', 'orgs')
-                  .where('id = :id', {id: 1}).andWhere('id = :id', {id: 2}),
-                  /parameter collision/);
+      .where('id = :id', {id: 1}).andWhere('id = :id', {id: 2}),
+    /parameter collision/);
 
     // Check collision between subqueries.
     assert.throws(
       () => home.connection.createQueryBuilder().from('orgs', 'orgs')
         .select(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', {x: ['five']}))
         .addSelect(q => q.subQuery().from('orgs', 'orgs').where('x IN :x', {x: ['six']})),
-        /parameter collision/);
+      /parameter collision/);
   });
 
   it('can get the product associated with a docId', async function() {
@@ -362,8 +362,8 @@ describe('HomeDBManager', function() {
     })).data!.id;
 
     const ws = home.unwrapQueryResult(
-        await home.getOrgWorkspaces({userId}, 'features'),
-      )[0];
+      await home.getOrgWorkspaces({userId}, 'features'),
+    )[0];
 
     // Add a doc to that org.
     const addedDoc = (await home.addDocument({userId}, ws.id, {name: 'MyDoc1'})).data!;

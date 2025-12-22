@@ -51,13 +51,13 @@ describe('ColumnOps.ntest', function() {
     await gu.userActionsVerify([
       ["AddColumn", "City", null, {"_position":null}],
       ["AddRecord", "_grist_Views_section_field", null,
-       {"colRef":43, "parentId":4, "parentPos":null}]]);
+        {"colRef":43, "parentId":4, "parentPos":null}]]);
     await gu.userActionsCollect(false);
     await gu.waitAppFocus();
     await shouldHaveColumnHeader('A');
     await assert.isPresent(gu.getOpenEditingLabel(gu.getColumnHeader('A')), false);
     assert.deepEqual(await gu.getGridLabels('City'),
-       ["Name", "Country", "District", "Population", "A"]);
+      ["Name", "Country", "District", "Population", "A"]);
   });
 
   it("should allow hiding columns", async function() {
@@ -213,7 +213,7 @@ describe('ColumnOps.ntest', function() {
     await gu.sendKeys([$.ALT, '-']);
     await gu.waitForServer();
     assert.deepEqual(await gu.getGridLabels('Country'),
-       ["Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy",
+      ["Continent", "Region", "SurfaceArea", "IndepYear", "Population", "LifeExpectancy",
         "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
     // Undo to restore changes
     await gu.undo(1, 5000);
@@ -223,7 +223,7 @@ describe('ColumnOps.ntest', function() {
     await gu.clickColumnMenuItem('SurfaceArea', 'Delete', true);
     await gu.waitForServer();
     assert.deepEqual(await gu.getGridLabels('Country'),
-       ["Code", "Name", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
+      ["Code", "Name", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
     // Undo to restore changes
     await gu.undo(1, 5000);
 
@@ -233,7 +233,7 @@ describe('ColumnOps.ntest', function() {
     await gu.sendKeys([$.ALT, '-']);
     await gu.waitForServer();
     assert.deepEqual(await gu.getGridLabels('Country'),
-       ["Code", "Name", "Continent", "Region", "SurfaceArea", "GNP", "GNPOld", "LocalName",
+      ["Code", "Name", "Continent", "Region", "SurfaceArea", "GNP", "GNPOld", "LocalName",
         "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
     // Undo to restore changes
     await gu.undo(1, 5000);
@@ -248,7 +248,7 @@ describe('ColumnOps.ntest', function() {
     await gu.clickColumnMenuItem('IndepYear', 'Delete', true);
     await gu.waitForServer();
     assert.deepEqual(await gu.getGridLabels('Country'),
-       ["Code", "Name", "Continent", "Region", "SurfaceArea", "Population",
+      ["Code", "Name", "Continent", "Region", "SurfaceArea", "Population",
         "LifeExpectancy", "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState",
         "Capital", "Code2"]);
     // Undo to restore changes
@@ -264,17 +264,17 @@ describe('ColumnOps.ntest', function() {
     await gu.clickColumnMenuItem('SurfaceArea', 'Hide 7 columns', true);
     await gu.waitForServer();
     assert.deepEqual(await gu.getGridLabels('Country'),
-       ["Code", "Name", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
+      ["Code", "Name", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
     assert.deepEqual(await $('.test-vfc-visible-fields .kf_draggable_content').array().text(),
       ["Code", "Name", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState", "Capital", "Code2"]);
     assert.deepEqual(await $('.test-vfc-hidden-fields .kf_draggable_content').array().text(),
       ["Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population",
-      "LifeExpectancy", "GNP", "Self"]);
+        "LifeExpectancy", "GNP", "Self"]);
     // Undo to restore changes
     await gu.undo(1, 5000);
 
     assert.deepEqual(await gu.getGridLabels('Country'),
-       ["Code", "Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population",
+      ["Code", "Name", "Continent", "Region", "SurfaceArea", "IndepYear", "Population",
         "LifeExpectancy", "GNP", "GNPOld", "LocalName", "GovernmentForm", "HeadOfState",
         "Capital", "Code2"]);
 

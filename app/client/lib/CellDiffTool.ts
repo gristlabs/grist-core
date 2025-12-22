@@ -38,7 +38,7 @@ export class CellDiffTool {
         formatter.formatAny(versions.parent),
         formatter.formatAny(versions.remote));
     }
- else if (!('remote' in versions)) {
+    else if (!('remote' in versions)) {
       // Change was made locally only.
       return this._prepareTextDiff(
         formatter.formatAny(versions.parent),
@@ -47,8 +47,8 @@ export class CellDiffTool {
     }
     // Change was made both locally and remotely.
     return [[DIFF_DELETE, formatter.formatAny(versions.parent)],
-            [DIFF_LOCAL, formatter.formatAny(versions.local)],
-            [DIFF_INSERT, formatter.formatAny(versions.remote)]];
+      [DIFF_LOCAL, formatter.formatAny(versions.local)],
+      [DIFF_INSERT, formatter.formatAny(versions.remote)]];
   }
 
   // Run diff-match-patch on the text, do its cleanup, and then some extra

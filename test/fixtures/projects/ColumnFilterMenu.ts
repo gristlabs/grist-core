@@ -45,7 +45,7 @@ const DATA_BY_TYPES: {[k: string]: Partial<IFilterMenuOptions>} = {
       ['Apples',       {label: 'Apples', count: 12}],
       ['Bananas',      {label: 'Bananas', count: 17}],
       ['Cranberries; a very very very long-named fruit',
-       {label: 'Cranberries; a very very very long-named fruit', count: 8000}],
+        {label: 'Cranberries; a very very very long-named fruit', count: 8000}],
       ['Dates',        {label: 'Dates', count: 1}],
       ['Figs',         {label: 'Figs', count: 1}],
       ['Goji berries', {label: 'Goji berries', count: 1}],
@@ -65,13 +65,13 @@ const DATA_BY_TYPES: {[k: string]: Partial<IFilterMenuOptions>} = {
 };
 
 function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterType?: string|null} = {},
-                   resetBtn: DomArg) {
+  resetBtn: DomArg) {
   const limitShown = opts.limitShown;
   const filterType = opts.filterType || 'Text';
   const valueCounts = DATA_BY_TYPES[filterType].valueCounts!;
 
   const columnFilter = ColumnFilter.create(null, '', filterType, filterType,
-                                           Array.from(valueCounts).map(arr => arr[0]));
+    Array.from(valueCounts).map(arr => arr[0]));
 
   const filter = modelUtil.customComputed({read: () => ''});
   const pinned = modelUtil.customComputed({read: () => false});
@@ -118,30 +118,30 @@ function setupTest(owner: IDisposableOwner, opts: {limitShown?: number, filterTy
       testControls(
         dom('button', 'Open menu', testId('filter-menu-btn'),
           (elem) => {
- setPopupToCreateDom(elem, openFilterMenu, {
-            attach: 'body',
-            placement: 'bottom-start',
-            trigger: ['click'],
-          }); 
-}),
+            setPopupToCreateDom(elem, openFilterMenu, {
+              attach: 'body',
+              placement: 'bottom-start',
+              trigger: ['click'],
+            }); 
+          }),
       ),
       testContent(
         dom(
           'div',
           testId('stored-menu'),
           dom.create(columnFilterMenu, ({ model, valueCounts, renderValue, doCancel, doSave: noop, onClose: noop,
-                                          ...DATA_BY_TYPES[filterType] })),
+            ...DATA_BY_TYPES[filterType] })),
         ),
         dom.domComputed(columnFilter.filterFunc, filterFunc =>
           testOutput(
             resetBtn,
             dom('div', testId('json'), columnFilter.makeFilterJson()),
             dom('div', 'All values: ',
-            dom('span', testId('all-values'),
-            `[${Array.from(valueCounts.keys()).join(', ')}]`)),
+              dom('span', testId('all-values'),
+                `[${Array.from(valueCounts.keys()).join(', ')}]`)),
             dom('div', 'Displayed values: ',
-            dom('span', testId('displayed-values'),
-            `[${Array.from(valueCounts.keys()).filter(filterFunc).join(', ')}]`)),
+              dom('span', testId('displayed-values'),
+                `[${Array.from(valueCounts.keys()).filter(filterFunc).join(', ')}]`)),
           ),
         ),
       ),

@@ -659,13 +659,13 @@ describe('RawData', function () {
     await gu.openWidgetPanel('widget');
     assert.isTrue(
       await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
-      gu.exactMatch('Continent')).isPresent(),
+        gu.exactMatch('Continent')).isPresent(),
     );
     await driver.findContent('.test-edit-layout-controls button', 'Cancel').click();
     await gu.moveToHidden('Continent');
     assert.isFalse(
       await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
-      gu.exactMatch('Continent')).isPresent(),
+        gu.exactMatch('Continent')).isPresent(),
     );
     await driver.find('.test-vconfigtab-detail-theme').click();
     await gu.findOpenMenuItem('.test-select-row', /Blocks/).click();
@@ -679,7 +679,7 @@ describe('RawData', function () {
     await editRecordCard('Country');
     assert.isFalse(
       await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
-      gu.exactMatch('Continent')).isPresent(),
+        gu.exactMatch('Continent')).isPresent(),
     );
     assert.equal(
       await driver.find('.test-vconfigtab-detail-theme').getText(),
@@ -694,7 +694,7 @@ describe('RawData', function () {
     assert.isTrue(await driver.findWait('.test-record-card-popup-overlay', 100).isDisplayed());
     assert.isFalse(
       await driver.findContent('.active_section .g_record_detail_inner .g_record_detail_label',
-      gu.exactMatch('Continent')).isPresent(),
+        gu.exactMatch('Continent')).isPresent(),
     );
     assert.equal(
       await driver.find('.test-vconfigtab-detail-theme').getText(),

@@ -23,7 +23,7 @@ import {getDateRangeOptions, IDateRangeOption} from 'app/client/ui/DateRangeOpti
 import {cssPinButton} from 'app/client/ui/RightPanelStyles';
 import {basicButton, primaryButton, textButton} from 'app/client/ui2018/buttons';
 import {cssLabel as cssCheckboxLabel, cssCheckboxSquare,
-        cssLabelText, Indeterminate, labeledTriStateSquareCheckbox} from 'app/client/ui2018/checkbox';
+  cssLabelText, Indeterminate, labeledTriStateSquareCheckbox} from 'app/client/ui2018/checkbox';
 import {theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {cssOptionRowIcon, menu, menuCssClass, menuDivider, menuItem} from 'app/client/ui2018/menus';
@@ -39,7 +39,7 @@ import {createFormatter} from 'app/common/ValueFormatter';
 import {UIRowId} from 'app/plugin/GristAPI';
 import {decodeObject} from 'app/plugin/objtypes';
 import {Computed, dom, DomArg, DomElementArg, DomElementMethod, IDisposableOwner,
-        input, makeTestId, Observable, styled} from 'grainjs';
+  input, makeTestId, Observable, styled} from 'grainjs';
 import {IOpenController, IPopupOptions, setPopupToCreateDom} from 'popweasel';
 import concat from 'lodash/concat';
 import identity from 'lodash/identity';
@@ -306,7 +306,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
                   if (elem.checked) {
                     columnFilter.add(key);
                   }
- else {
+                  else {
                     columnFilter.delete(key);
                   }
                 }),
@@ -345,7 +345,7 @@ export function columnFilterMenu(owner: IDisposableOwner, opts: IFilterMenuOptio
               buildSummary(t("Future values"), [], true, model),
             ];
           }
- else {
+          else {
             return anyOtherValues ? [
               buildSummary(t('Others'), otherValues, true, model),
             ] : [
@@ -412,7 +412,7 @@ export interface IRangeInputOptions {
 
 // The range input with the preset links.
 function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: IRangeInputOptions,
-                    ...args: DomArg<HTMLDivElement>[]) {
+  ...args: DomArg<HTMLDivElement>[]) {
 
   const buildInput = () => [
     dom.maybe(use => isRelativeBound(use(obs)), () => relativeToken(obs, opts)),
@@ -444,7 +444,7 @@ function rangeInput(obs: Observable<number|undefined|IRelativeDateSpec>, opts: I
 
 // Attach the date options dropdown to elem.
 function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|undefined|IRelativeDateSpec>,
-                                    opts: IRangeInputOptions) {
+  opts: IRangeInputOptions) {
   const popupCtl = relativeDatesControl(elem, obs, {
     ...opts,
     placement: 'right-start',
@@ -456,7 +456,7 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|un
     if (opts.isSelected.get()) {
       popupCtl.open();
     }
- else {
+    else {
       popupCtl.close();
     }
   };
@@ -473,7 +473,7 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|un
           if (popupCtl.isOpen()) {
             opts.nextSelected?.();
           }
- else {
+          else {
             popupCtl.open();
           }
         }
@@ -486,8 +486,8 @@ function attachRelativeDatesOptions(elem: HTMLElement, obs: Observable<number|un
 }
 
 function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
-                      opts: IRangeInputOptions,
-                      ...args: DomArg<HTMLDivElement>[]) {
+  opts: IRangeInputOptions,
+  ...args: DomArg<HTMLDivElement>[]) {
   const valueParser = opts.valueParser || Number;
   const formatValue = opts.valueFormatter;
   const placeholder = opts.placeholder;
@@ -533,7 +533,7 @@ function numericInput(obs: Observable<number|undefined|IRelativeDateSpec>,
 }
 
 function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
-                       opts: IRangeInputOptions) {
+  opts: IRangeInputOptions) {
   return cssTokenContainer(
     cssTokenToken(
       dom.text(use => formatRelBounds(use(obs) as IRelativeDateSpec)),
@@ -565,7 +565,7 @@ function relativeToken(obs: Observable<number|undefined|IRelativeDateSpec>,
  * `switchFilterType` is true it also converts the filter into an exclusion filter.
  */
 function buildSummary(label: string|Computed<string>, values: Array<[CellValue, IFilterCount]>,
-                      switchFilterType: boolean, model: ColumnFilterMenuModel) {
+  switchFilterType: boolean, model: ColumnFilterMenuModel) {
   const columnFilter = model.columnFilter;
   const checkboxState = Computed.create(
     null, columnFilter.isInclusionFilter, columnFilter.filterFunc,
@@ -589,28 +589,28 @@ function buildSummary(label: string|Computed<string>, values: Array<[CellValue, 
 
     }).onWrite((val) => {
 
-      if (switchFilterType) {
+    if (switchFilterType) {
 
-        // Note that if `includeFutureValues` is true, we only needs to toggle the filter type
-        // between exclusive and inclusive. Doing this will automatically excludes/includes all
-        // other values, so no need for extra steps.
-        const state = val ?
-          {excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key))} :
-          {included: model.filteredKeys.get().filter(key => columnFilter.includes(key))};
-        columnFilter.setState(state);
+      // Note that if `includeFutureValues` is true, we only needs to toggle the filter type
+      // between exclusive and inclusive. Doing this will automatically excludes/includes all
+      // other values, so no need for extra steps.
+      const state = val ?
+        {excluded: model.filteredKeys.get().filter(key => !columnFilter.includes(key))} :
+        {included: model.filteredKeys.get().filter(key => columnFilter.includes(key))};
+      columnFilter.setState(state);
 
+    }
+    else {
+
+      const keys = values.map(([key]) => key);
+      if (val) {
+        columnFilter.addMany(keys);
       }
- else {
-
-        const keys = values.map(([key]) => key);
-        if (val) {
-          columnFilter.addMany(keys);
-        }
- else {
-          columnFilter.deleteMany(keys);
-        }
+      else {
+        columnFilter.deleteMany(keys);
       }
-    });
+    }
+  });
 
   return cssMenuItem(
     dom.autoDispose(checkboxState),
@@ -644,7 +644,7 @@ function getEmptyCountMap(fieldOrColumn: ViewFieldRec|ColumnRec): Map<CellValue,
   if (columnType === 'Bool') {
     values = [true, false];
   }
- else if (['Choice', 'ChoiceList'].includes(columnType)) {
+  else if (['Choice', 'ChoiceList'].includes(columnType)) {
     const options = fieldOrColumn.origCol().widgetOptionsJson;
     values = options.prop('choices')() ?? [];
   }
@@ -715,13 +715,13 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
   const [allRows, hiddenRows] = partition(Array.from(rowSource.getAllRows()), filterFunc.get());
   const valueCounts = getEmptyCountMap(fieldOrColumn);
   addCountsToMap(valueCounts, allRows, {keyMapFunc, labelMapFunc, columnType,
-                                        valueMapFunc});
+    valueMapFunc});
   addCountsToMap(valueCounts, hiddenRows, {keyMapFunc, labelMapFunc, columnType,
-                                           areHiddenRows: true, valueMapFunc});
+    areHiddenRows: true, valueMapFunc});
 
   const valueCountsArr = Array.from(valueCounts);
   const columnFilter = ColumnFilter.create(openCtl, filter.peek(), columnType, visibleColumnType,
-                                           valueCountsArr.map(arr => arr[0]));
+    valueCountsArr.map(arr => arr[0]));
   sectionFilter.setFilterOverride(fieldOrColumn.origCol().getRowId(), columnFilter); // Will be removed on menu disposal
   const model = ColumnFilterMenuModel.create(openCtl, {
     columnFilter,
@@ -755,7 +755,7 @@ export function createFilterMenu(params: ICreateFilterMenuParams) {
       if (columnFilter.initialFilterJson === NEW_FILTER_JSON) {
         viewSection.revertFilter(fieldOrColumn.origCol().origColRef());
       }
- else {
+      else {
         const initialFilter = columnFilter.initialFilterJson;
         columnFilter.setState(initialFilter);
         viewSection.setFilter(
@@ -799,7 +799,7 @@ function getMapFuncs(columnType: string, tableData: TableData, fieldOrColumn: Vi
       return labels.map(l => formatter.formatAny(l));
     };
   }
- else {
+  else {
     // If this is Markdown widget, remove all formatting (mostly for links).
     const widget = fieldOrColumn.widget();
     const isMarkdown = widget === 'Markdown';
@@ -869,8 +869,8 @@ interface ICountOptions {
  * Note that this logic is replicated in BaseView.prototype.filterByThisCellValue.
  */
 function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: UIRowId[],
-                        { keyMapFunc = identity, labelMapFunc = identity, columnType,
-                          areHiddenRows = false, valueMapFunc }: ICountOptions) {
+  { keyMapFunc = identity, labelMapFunc = identity, columnType,
+    areHiddenRows = false, valueMapFunc }: ICountOptions) {
 
   for (const rowId of rowIds) {
     let key = keyMapFunc(rowId);
@@ -913,7 +913,7 @@ function addCountsToMap(valueMap: Map<CellValue, IFilterCount>, rowIds: UIRowId[
  * isHiddenRow is true.
  */
 function addSingleCountToMap(valueMap: Map<CellValue, IFilterCount>, value: any, label: () => any,
-                             displayValue: () => any, isHiddenRow: boolean) {
+  displayValue: () => any, isHiddenRow: boolean) {
   if (!valueMap.has(value)) {
     valueMap.set(value, { label: label(), count: 0, displayValue: displayValue() });
   }
@@ -923,7 +923,7 @@ function addSingleCountToMap(valueMap: Map<CellValue, IFilterCount>, value: any,
 }
 
 function getCount(values: Array<[CellValue, IFilterCount]>) {
-   return values.reduce((acc, val) => acc + val[1].count, 0);
+  return values.reduce((acc, val) => acc + val[1].count, 0);
 }
 
 const defaultPopupOptions: IPopupOptions = {

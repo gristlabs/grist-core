@@ -92,7 +92,7 @@ describe('OnBoardingPopups', function() {
     try {
       await driver.findContent('button', /Add New/).click();
     }
- catch(e) {
+    catch(e) {
       assert.match(e.message, /element click intercepted/);
     }
 

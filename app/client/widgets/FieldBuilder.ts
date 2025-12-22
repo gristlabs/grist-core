@@ -59,7 +59,7 @@ const t = makeT('FieldBuilder');
 
 // Creates a FieldBuilder object for each field in viewFields
 export function createAllFieldWidgets(gristDoc: GristDoc, viewFields: ko.Computed<KoArray<ViewFieldRec>>,
-                                      cursor: Cursor, options: { isPreview?: boolean } = {}) {
+  cursor: Cursor, options: { isPreview?: boolean } = {}) {
   // TODO: Handle disposal from the map when fields are removed.
   return viewFields().map(function(field) {
     return new FieldBuilder(gristDoc, field, cursor, options);
@@ -129,7 +129,7 @@ export class FieldBuilder extends Disposable {
   private readonly _isEditorActive = Observable.create(this, false);
 
   public constructor(public readonly gristDoc: GristDoc, public readonly field: ViewFieldRec,
-                     private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
+    private _cursor: Cursor, private _options: { isPreview?: boolean } = {}) {
     super();
 
     this._docModel = gristDoc.docModel;
@@ -183,7 +183,7 @@ export class FieldBuilder extends Disposable {
         if (type.startsWith('Ref:')) {
           this._setType(`Ref:${val}`);
         }
- else {
+        else {
           this._setType(`RefList:${val}`);
         }
       },
@@ -216,7 +216,7 @@ export class FieldBuilder extends Disposable {
       if (this._isForm()) {
         return UserTypeImpl.getFormWidgetConstructor(this.options().widget, this._readOnlyPureType());
       }
- else {
+      else {
         return UserTypeImpl.getWidgetConstructor(this.options().widget, this._readOnlyPureType());
       }
     })).onlyNotifyUnequal());
@@ -337,7 +337,7 @@ export class FieldBuilder extends Disposable {
                 },
               });
             }
- else {
+            else {
               return null;
             }
           },
@@ -354,14 +354,14 @@ export class FieldBuilder extends Disposable {
       grainjsDom.maybe(this._isTransformingType, () => {
         // Editor dom must be built before preparing transform.
         return dom('div.type_transform_prompt',
-                   kf.prompt(
-                     dom('div',
-                         grainjsDom.maybe(this._isRef, () => this._buildRefTableSelect()),
-                         grainjsDom.maybe(use => use(this.field.column().isTransforming),
-                                          () => this.columnTransform!.buildDom()),
-                     ),
-                   ),
-                   grainjsDom.onDispose(onDispose),
+          kf.prompt(
+            dom('div',
+              grainjsDom.maybe(this._isRef, () => this._buildRefTableSelect()),
+              grainjsDom.maybe(use => use(this.field.column().isTransforming),
+                () => this.columnTransform!.buildDom()),
+            ),
+          ),
+          grainjsDom.onDispose(onDispose),
         );
       }),
     ];
@@ -388,9 +388,9 @@ export class FieldBuilder extends Disposable {
         this.gristDoc.docData.bundleActions(t("Changing multiple column types"), () =>
           Promise.all(this.field.viewSection.peek().selectedFields.peek().map(f =>
             f.column.peek().type.setAndSave(calculatedType),
-        ))).catch(reportError);
+          ))).catch(reportError);
       }
- else if (column.pureType() === 'Any') {
+      else if (column.pureType() === 'Any') {
         // If this is Any column, guess the final options.
         const guessedOptions = guessWidgetOptionsSync({
           docModel: this._docModel,
@@ -407,20 +407,20 @@ export class FieldBuilder extends Disposable {
               !isEqual(existingOptions, guessedOptions)
                 ? column.widgetOptions.setAndSave(widgetOptions)
                 : Promise.resolve(),
-                column.type.setAndSave(calculatedType),
+              column.type.setAndSave(calculatedType),
             ]),
           ).catch(reportError);
         });
       }
- else {
+      else {
         column.type.setAndSave(calculatedType).catch(reportError);
       }
     }
- else if (!this.columnTransform) {
+    else if (!this.columnTransform) {
       this.columnTransform = TypeTransform.create(null, this.gristDoc, this);
       this.columnTransform.prepare(newType).catch(reportError);
     }
- else {
+    else {
       if (this.columnTransform instanceof TypeTransform) {
         this.columnTransform.setType(newType).catch(reportError);
       }
@@ -430,28 +430,28 @@ export class FieldBuilder extends Disposable {
   // Builds the reference type table selector. Built when the column is type reference.
   public _buildRefTableSelect() {
     const allTables = Computed.create(null, use =>
-                                      use(this._docModel.visibleTables.getObservable()).map(tableRec => ({
-                                        value: use(tableRec.tableId),
-                                        label: use(tableRec.tableNameDef),
-                                        icon: 'FieldTable' as const,
-                                      })),
-                                     );
+      use(this._docModel.visibleTables.getObservable()).map(tableRec => ({
+        value: use(tableRec.tableId),
+        label: use(tableRec.tableNameDef),
+        icon: 'FieldTable' as const,
+      })),
+    );
     const isDisabled = Computed.create(null, (use) => {
       return use(this.origColumn.disableModifyBase) || use(this.field.config.multiselect);
     });
     return [
       cssLabel(t('DATA FROM TABLE'),
         kd.maybe(this._showRefConfigPopup, () => {
-            return dom('div', this.gristDoc.behavioralPromptsManager.attachPopup(
-              'referenceColumnsConfig',
-              {
-                onDispose: () => this._showRefConfigPopup(false),
-                popupOptions: {
-                  placement: 'left-start',
-                },
+          return dom('div', this.gristDoc.behavioralPromptsManager.attachPopup(
+            'referenceColumnsConfig',
+            {
+              onDispose: () => this._showRefConfigPopup(false),
+              popupOptions: {
+                placement: 'left-start',
               },
-            ));
-          },
+            },
+          ));
+        },
         ),
       ),
       cssRow(
@@ -478,34 +478,34 @@ export class FieldBuilder extends Disposable {
           this.columnTransform = FormulaTransform.create(null, this.gristDoc, this);
           return this.columnTransform.prepare();
         }
- else {
+        else {
           return this.columnTransform && this.columnTransform.cancel();
         }
       },
     });
     return dom('div',
-               dom.autoDispose(transformButton),
-               dom.onDispose(() => {
-                 // When losing focus, if there's an active column transform, finalize it.
-                 if (this.columnTransform) {
-                   this.columnTransform.finalize().catch(reportError);
-                 }
-               }),
-               cssRow(
-                 textButton(t('Apply formula to data'),
-                 dom.on('click', () => transformButton(true)),
-                 kd.hide(this._isTransformingFormula),
-                 kd.boolAttr('disabled', () =>
-                   this._isTransformingType() ||
+      dom.autoDispose(transformButton),
+      dom.onDispose(() => {
+        // When losing focus, if there's an active column transform, finalize it.
+        if (this.columnTransform) {
+          this.columnTransform.finalize().catch(reportError);
+        }
+      }),
+      cssRow(
+        textButton(t('Apply formula to data'),
+          dom.on('click', () => transformButton(true)),
+          kd.hide(this._isTransformingFormula),
+          kd.boolAttr('disabled', () =>
+            this._isTransformingType() ||
                    this.origColumn.isFormula() ||
                    this.origColumn.disableModifyBase() ||
                    this.field.config.multiselect()),
-                 dom.testId("FieldBuilder_editTransform"),
-                 testId('edit-transform'),
-               )),
-               kd.maybe(this._isTransformingFormula, () => {
-                 return this.columnTransform!.buildDom();
-               }),
+          dom.testId("FieldBuilder_editTransform"),
+          testId('edit-transform'),
+        )),
+      kd.maybe(this._isTransformingFormula, () => {
+        return this.columnTransform!.buildDom();
+      }),
     );
   }
 
@@ -556,18 +556,18 @@ export class FieldBuilder extends Disposable {
                 kd.toggleClass('fieldbuilder_settings_header', true),
                 kf.label(
                   dom('div.fieldbuilder_settings_button',
-                      dom.testId('FieldBuilder_settings'),
-                      kd.text(() => this.field.useColOptions() ? t('Common') : t('Separate')), ' ▾',
-                      menu(() => FieldSettingsMenu(
-                        this.field.useColOptions(),
-                        this.field.viewSection().isRaw(),
-                        {
-                          useSeparate: () => this.fieldSettingsUseSeparate(),
-                          saveAsCommon: () => this.fieldSettingsSaveAsCommon(),
-                          revertToCommon: () => this.fieldSettingsRevertToCommon(),
-                        },
-                      )),
-                    ),
+                    dom.testId('FieldBuilder_settings'),
+                    kd.text(() => this.field.useColOptions() ? t('Common') : t('Separate')), ' ▾',
+                    menu(() => FieldSettingsMenu(
+                      this.field.useColOptions(),
+                      this.field.viewSection().isRaw(),
+                      {
+                        useSeparate: () => this.fieldSettingsUseSeparate(),
+                        saveAsCommon: () => this.fieldSettingsSaveAsCommon(),
+                        revertToCommon: () => this.fieldSettingsRevertToCommon(),
+                      },
+                    )),
+                  ),
                   t('Field in {{count}} views', {
                     count: kd.text(() => this.origColumn.viewFields().all().length),
                   }),
@@ -665,10 +665,10 @@ export class FieldBuilder extends Disposable {
       if ((value as any) && this._isRightType()(cell, this.options) || row._isAddRow.peek()) {
         return this.widgetImpl();
       }
- else if (gristTypes.isVersions(cell)) {
+      else if (gristTypes.isVersions(cell)) {
         return this.diffImpl;
       }
- else {
+      else {
         return null;
       }
     }).extend({ deferred: true })).onlyNotifyUnequal();
@@ -722,35 +722,35 @@ export class FieldBuilder extends Disposable {
     return (elem: Element) => {
       this._rowMap.set(row, elem);
       dom(elem,
-          dom.autoDispose(domHolder),
-          kd.style('--grist-cell-color', cellText),
-          kd.style('--grist-cell-background-color', cellFill),
-          kd.style('--grist-rule-color', ruleText),
-          kd.style('--grist-column-rule-background-color', ruleFill),
-          this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
-          kd.toggleClass('field-with-comments', hasComment),
-          kd.maybe(hasComment, () => dom('div.field-comment-indicator',
-            dom.on('click', (e: MouseEvent) => {
-              commands.allCommands.openDiscussion.run();
-              e.stopPropagation();
-            }),
-          )),
-          kd.toggleClass("readonly", toKo(ko, this._readonly)),
-          kd.maybe(isSelected, () => dom('div.selected_cursor',
-                                         kd.toggleClass('active_cursor', isActive),
-                                        )),
-          kd.scope(widgetObs, (widget: NewAbstractWidget) => {
-            if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
-            const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
-            if (cellDom === null) { return null; }
-            return dom(cellDom, kd.toggleClass('has_cursor', isActive),
-                       kd.toggleClass('field-error-from-style', errorInStyle),
-                       kd.toggleClass('font-bold', fontBold),
-                       kd.toggleClass('font-underline', fontUnderline),
-                       kd.toggleClass('font-italic', fontItalic),
-                       kd.toggleClass('font-strikethrough', fontStrikethrough));
+        dom.autoDispose(domHolder),
+        kd.style('--grist-cell-color', cellText),
+        kd.style('--grist-cell-background-color', cellFill),
+        kd.style('--grist-rule-color', ruleText),
+        kd.style('--grist-column-rule-background-color', ruleFill),
+        this._options.isPreview ? null : kd.cssClass(this.field.formulaCssClass),
+        kd.toggleClass('field-with-comments', hasComment),
+        kd.maybe(hasComment, () => dom('div.field-comment-indicator',
+          dom.on('click', (e: MouseEvent) => {
+            commands.allCommands.openDiscussion.run();
+            e.stopPropagation();
           }),
-         );
+        )),
+        kd.toggleClass("readonly", toKo(ko, this._readonly)),
+        kd.maybe(isSelected, () => dom('div.selected_cursor',
+          kd.toggleClass('active_cursor', isActive),
+        )),
+        kd.scope(widgetObs, (widget: NewAbstractWidget) => {
+          if (this.isDisposed()) { return null; }   // Work around JS errors during field removal.
+          const cellDom = widget ? widget.buildDom(row) : buildErrorDom(row, this.field);
+          if (cellDom === null) { return null; }
+          return dom(cellDom, kd.toggleClass('has_cursor', isActive),
+            kd.toggleClass('field-error-from-style', errorInStyle),
+            kd.toggleClass('font-bold', fontBold),
+            kd.toggleClass('font-underline', fontUnderline),
+            kd.toggleClass('font-italic', fontItalic),
+            kd.toggleClass('font-strikethrough', fontStrikethrough));
+        }),
+      );
     };
   }
 
@@ -895,7 +895,7 @@ export class FieldBuilder extends Disposable {
         if (refElem.isConnected) {
           formulaEditor.attach(refElem);
         }
- else {
+        else {
           // Else, we will navigate to the position we left off, dispose the editor and the content.
           formulaEditor.dispose();
           grainjsDom.domDispose(content);
@@ -971,10 +971,10 @@ function notTransparent(color: string): string {
   if (!color) {
     return color;
   }
- else if (color.startsWith('#') && color.length === 9) {
+  else if (color.startsWith('#') && color.length === 9) {
     return color.substring(0, 7);
   }
- else if (color.startsWith('rgba')) {
+  else if (color.startsWith('rgba')) {
     // rgba(255, 255, 255)
     // rgba(255, 255, 255, 0.5)
     // rgba(255 255 255 / 0.5)

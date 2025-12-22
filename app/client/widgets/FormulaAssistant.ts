@@ -136,10 +136,10 @@ export class FormulaAssistant extends Disposable {
             && typeof actions[0][2] === 'string'
             && [this._transformColId, this._options.column.id.peek()].includes(actions[0][2]);
         }
- else if (actionName === 'UpdateRecord') {
+        else if (actionName === 'UpdateRecord') {
           return actions[0][1] === '_grist_Tables_column' && actions[0][2] === this._transformColRef;
         }
- else {
+        else {
           return false;
         }
       },
@@ -193,7 +193,7 @@ export class FormulaAssistant extends Disposable {
       if (!this._assistantExpanded.get()) {
         this._chatPanelBody.style.setProperty('height', '0px');
       }
- else {
+      else {
         // The actual height doesn't matter too much here, so we just pick
         // a value that guarantees the assistant will fill as much of the
         // available space as possible.
@@ -255,7 +255,7 @@ export class FormulaAssistant extends Disposable {
             if (this._assistantExpanded.get()) {
               this._collapseChatPanel();
             }
- else {
+            else {
               this._expandChatPanel();
             }
           }),
@@ -337,7 +337,7 @@ export class FormulaAssistant extends Disposable {
     const isFormula = true;
     await this._options.gristDoc.docData.sendAction(
       ['ModifyColumn', tableId, this._transformColId, {formula, isFormula},
-    ]);
+      ]);
     if (!this.isDisposed()) {
       this._options.editor.focus();
     }
@@ -401,10 +401,10 @@ export class FormulaAssistant extends Disposable {
       if (this._action === 'save') {
         commands.allCommands.fieldEditSaveHere.run();
       }
- else if (this._action === 'cancel') {
+      else if (this._action === 'cancel') {
         commands.allCommands.fieldEditCancel.run();
       }
- else {
+      else {
         if (this._action !== 'close') {
           throw new Error('Unexpected value for _action');
         }
@@ -416,7 +416,7 @@ export class FormulaAssistant extends Disposable {
         ['RemoveColumn', tableId, this._transformColId],
       ]);
     }
- finally {
+    finally {
       // Repeat the change, in case of an error.
       this._options.field?.colRef(column.getRowId());
       column.isTransforming(false);
@@ -461,7 +461,7 @@ export class FormulaAssistant extends Disposable {
       this._chatPanelBody.style.setProperty('height', `${height}px`);
       this._lastChatPanelHeight = height;
     }
- else {
+    else {
       this._lastChatPanelHeight = availableSpace;
       this._chatPanelBody.style.setProperty('height', `${this._lastChatPanelHeight}px`);
     }
@@ -491,7 +491,7 @@ export class FormulaAssistant extends Disposable {
     if (newChatPanelBodyHeight < MIN_CHAT_PANEL_BODY_HEIGHT_PX && this._isResizing.get()) {
       this._isResizing.set(false);
     }
- else if (newChatPanelBodyHeight >= MIN_CHAT_PANEL_BODY_HEIGHT_PX && !this._isResizing.get()) {
+    else if (newChatPanelBodyHeight >= MIN_CHAT_PANEL_BODY_HEIGHT_PX && !this._isResizing.get()) {
       this._isResizing.set(true);
     }
 
@@ -499,7 +499,7 @@ export class FormulaAssistant extends Disposable {
     if (newChatPanelBodyHeight < collapseThreshold) {
       this._collapseChatPanel();
     }
- else {
+    else {
       this._expandChatPanel();
       const calculatedHeight = Math.max(
         MIN_CHAT_PANEL_BODY_HEIGHT_PX,
@@ -576,24 +576,24 @@ function buildIntroMessage(...args: DomElementArg[]) {
         ),
         getGristConfig().assistant?.provider === "OpenAI"
           ? cssAiMessageBullet(
-              cssTickIcon("Tick"),
-              dom("div",
-                t(
-                  "When you talk to me, your questions and your document structure (visible in {{codeView}}) \
+            cssTickIcon("Tick"),
+            dom("div",
+              t(
+                "When you talk to me, your questions and your document structure (visible in {{codeView}}) \
 are sent to OpenAI. {{learnMore}}.",
-                  {
-                    codeView: cssLink(
-                      t("Code view"),
-                      urlState().setLinkUrl({ docPage: "code" }),
-                    ),
-                    learnMore: cssLink(t("Learn more"), {
-                      href: commonUrls.helpFormulaAssistantDataUse,
-                      target: "_blank",
-                    }),
-                  },
-                ),
+                {
+                  codeView: cssLink(
+                    t("Code view"),
+                    urlState().setLinkUrl({ docPage: "code" }),
+                  ),
+                  learnMore: cssLink(t("Learn more"), {
+                    href: commonUrls.helpFormulaAssistantDataUse,
+                    target: "_blank",
+                  }),
+                },
               ),
-            )
+            ),
+          )
           : null,
       ),
       cssAiMessageParagraph(

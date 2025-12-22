@@ -69,7 +69,7 @@ describe('AuthCaching', function() {
     helloDocId = (await homeServer.getHomeDBManager().testGetId('Jupiter')) as string;
     const srcPath = path.resolve(testUtils.fixturesRoot, 'docs', 'Hello.grist');
     await fse.copy(srcPath, path.resolve(docsServer.docsRoot, `${helloDocId}.grist`),
-                   { dereference: true });
+      { dereference: true });
 
     // Add Kiwi to 'viewers' for this doc.
     const resp = await axios.patch(`${homeUrl}/api/docs/${helloDocId}/access`,
@@ -392,7 +392,7 @@ describe('AuthCaching', function() {
         passed = true;
         break;
       }
- catch (err) {
+      catch (err) {
         continue;
       }
     }

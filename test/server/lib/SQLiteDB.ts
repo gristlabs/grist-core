@@ -484,7 +484,7 @@ describe('SQLiteDB', function() {
     await db0.close();
     const db1 = await SQLiteDB.openDB(dbPath('testAttach1'), schemaInfo, OpenMode.OPEN_CREATE);
     await assert.isRejected(db1.exec(`ATTACH '${dbPath('testAttach0')}' AS zing`),
-                            /SQLITE_ERROR: too many attached databases - max 0/);
+      /SQLITE_ERROR: too many attached databases - max 0/);
     await db1.close();
   });
 

@@ -8,7 +8,7 @@ import * as weasel from 'popweasel';
  * A styled version of select() from ui2018/menus, for use in the AccessRules page.
  */
 export function aclSelect<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
-                             options: weasel.ISelectUserOptions = {}) {
+  options: weasel.ISelectUserOptions = {}) {
   return cssSelect(obs, optionArray, {buttonArrow: cssSelectArrow('Collapse'), ...options});
 }
 

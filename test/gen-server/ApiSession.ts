@@ -61,7 +61,7 @@ describe('ApiSession', function() {
     const resp = await axios.get(`${serverUrl}/o/nasa/api/session/access/active`, cookie);
     assert.equal(resp.status, 200);
     assert.hasAllKeys(resp.data.org, ['id', 'name', 'access', 'domain', 'owner', 'billingAccount',
-                                      'createdAt', 'updatedAt', 'host']);
+      'createdAt', 'updatedAt', 'host']);
     assert.deepEqual(resp.data.org.billingAccount, {
       id: 1,
       individual: false,
@@ -88,9 +88,9 @@ describe('ApiSession', function() {
     const userId = await server.dbManager.testGetId('Chimpy') as number;
     const org2 = await server.dbManager.getOrg({userId}, 'nasa');
     assert.hasAllKeys(org2.data!.billingAccount,
-                      ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
-                       'stripeSubscriptionId', 'stripePlanId', 'product', 'paid', 'isManager',
-                       'externalId', 'externalOptions', 'features', 'paymentLink']);
+      ['id', 'individual', 'inGoodStanding', 'status', 'stripeCustomerId',
+        'stripeSubscriptionId', 'stripePlanId', 'product', 'paid', 'isManager',
+        'externalId', 'externalOptions', 'features', 'paymentLink']);
   });
 
   it('GET /api/session/access/active returns orgErr when org is forbidden', async function() {

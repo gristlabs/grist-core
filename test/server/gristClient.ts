@@ -38,7 +38,7 @@ export class GristClient {
   constructor(public ws: GristClientSocket) {
     ws.onmessage = (data: string) => {
       const msg = pick(JSON.parse(data),
-                       ['reqId', 'error', 'errorCode', 'data', 'type', 'docFD']);
+        ['reqId', 'error', 'errorCode', 'data', 'type', 'docFD']);
       if (this._ignoreTrivialActions && msg.type === 'docUserAction' &&
           msg.data?.actionGroup?.internal === true &&
           msg.data?.docActions?.length === 0) {
@@ -167,7 +167,7 @@ export class GristClient {
 }
 
 export async function openClient(server: FlexServer, email: string, org: string,
-                                 emailHeader?: string): Promise<GristClient> {
+  emailHeader?: string): Promise<GristClient> {
   const headers: Record<string, string> = {};
   if (!emailHeader) {
     const resp = await axios.get(`${server.getOwnUrl()}/test/session`);
@@ -182,7 +182,7 @@ export async function openClient(server: FlexServer, email: string, org: string,
     }
     headers.Cookie = cookie;
   }
- else {
+  else {
     headers[emailHeader] = email;
   }
   const ws = new GristClientSocket('ws://localhost:' + server.getOwnPort() + `/o/${org}`, {

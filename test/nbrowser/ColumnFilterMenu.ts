@@ -185,11 +185,11 @@ describe('ColumnFilterMenu', function() {
 
     // Check that there's only 5 values left ('3' is missing)
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-                     ['n/a', '-1', '1', '2', '5']);
+      ['n/a', '-1', '1', '2', '5']);
 
     // Check `Others` shows unique count
     assert.equal(await driver.find('.test-filter-menu-summary').getText(),
-                 'Others (1)');
+      'Others (1)');
 
     // Check `Others` is checked
     assert.equal(await driver.find('.test-filter-menu-summary').find('input').matches(':checked'), true);
@@ -208,11 +208,11 @@ describe('ColumnFilterMenu', function() {
 
     // Check there's only 4 values left
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-                     ['Bananas', 'Clementines', 'Grapefruit', 'Grapes']);
+      ['Bananas', 'Clementines', 'Grapefruit', 'Grapes']);
 
     // check `Others` shows 2 unique values
     assert.equal(await driver.find('.test-filter-menu-summary').getText(),
-                 'Others (2)');
+      'Others (2)');
 
     // check `Others` is in indeterminate state
     assert.equal(await driver.find('.test-filter-menu-summary').find('input').matches(':checked'), false);
@@ -247,7 +247,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check Apples and Oranges are unchecked
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-                     ['Apples', 'Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges']);
+      ['Apples', 'Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges']);
     assert.equal(await findByName('Apples').find('input').matches(':checked'), false);
     assert.equal(await findByName('Oranges').find('input').matches(':checked'), false);
 
@@ -259,7 +259,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check there's only 4 values left
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-                     ['n/a', '-1', '2', '5']);
+      ['n/a', '-1', '2', '5']);
 
     // Click Others
     await driver.find('.test-filter-menu-summary').click();
@@ -334,7 +334,7 @@ describe('ColumnFilterMenu', function() {
 
     // check Apples is missing
     assert.deepEqual(await driver.findAll('.test-filter-menu-list .test-filter-menu-value', e => e.getText()),
-                     ['Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges']);
+      ['Bananas', 'Clementines', 'Grapefruit', 'Grapes', 'Oranges']);
 
     // check count is (1)
     assert.deepEqual(

@@ -38,16 +38,16 @@ export class ToggleEnterpriseWidget extends Disposable {
     if (!use(this._isEnterpriseEdition) || !status) {
       return 'core';
     }
- else if (status.key) {
+    else if (status.key) {
       return 'activated';
     }
- else if (status.trial && status.trial.daysLeft > 0) {
+    else if (status.trial && status.trial.daysLeft > 0) {
       return 'trial';
     }
- else if (use(this._activation)?.error) {
+    else if (use(this._activation)?.error) {
       return 'error';
     }
- else {
+    else {
       return 'no-key';
     }
   });
@@ -139,8 +139,8 @@ of 30 days has expired. Get an activation key by [contacting us]({{contactLink}}
 not need an activation key to run Grist Core.
 
 Learn more in our [Help Center]({{helpCenter}}).`, {
-            contactLink: commonUrls.contact,
-            helpCenter: commonUrls.helpEnterpriseOptIn,
+          contactLink: commonUrls.contact,
+          helpCenter: commonUrls.helpEnterpriseOptIn,
         })),
       ),
       this._buildPasteYourKey(),
@@ -266,8 +266,8 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
             markdown((txt ? txt + ' ' : '') + t(
               `To continue using Grist Enterprise, you need to
                   [contact us]({{signupLink}}) to get your activation key.`, {
-              signupLink: commonUrls.contact,
-            })),
+                signupLink: commonUrls.contact,
+              })),
           )),
         ),
         cssSpacer(),
@@ -313,9 +313,9 @@ Learn more in our [Help Center]({{helpCenter}}).`, {
           markdown(t(
             `Your trial period has expired on **{{expireAt}}**. To continue using Grist Enterprise, you need to
 [sign up for Grist Enterprise]({{signupLink}}) and paste your activation key below.`, {
-            signupLink: commonUrls.plans,
-            expireAt,
-          })),
+              signupLink: commonUrls.plans,
+              expireAt,
+            })),
         ),
         dom('span', dom.text(trialExpiredIso), {style: 'display: none;'}, testId('trial-expiration-date')),
       ]),

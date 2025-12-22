@@ -54,7 +54,7 @@ describe('ColumnFilterMenu2', function() {
     it('should group values beyond', async () => {
       // check `Other values` is present
       assert.deepEqual(await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
-                       ['Other values (14)', 'Future values']);
+        ['Other values (14)', 'Future values']);
 
       // check there are actually 17 unique values in total (where 17 is 14 unique other values
       // added to the 3 the number of values shown);
@@ -65,7 +65,7 @@ describe('ColumnFilterMenu2', function() {
 
       // check `Other values` is checked
       assert.equal(await driver.findContent('.test-filter-menu-summary', /Other values/).find('input').isSelected(),
-                   true);
+        true);
 
       // check 'Date', 'Figs' and 'Rhubarb' are not shown
       assert.notIncludeMembers(
@@ -77,7 +77,7 @@ describe('ColumnFilterMenu2', function() {
 
       // check 'Other values' is unchecked
       assert.equal(await driver.findContent('.test-filter-menu-summary', /Other values/).find('input').isSelected(),
-                   false);
+        false);
 
       // check 'Date', 'Figs' and 'Rhubarb' are excluded
       assert.includeMembers((await parseFilterState()).excluded, ['Dates', 'Figs', 'Rhubarb']);
@@ -89,20 +89,20 @@ describe('ColumnFilterMenu2', function() {
 
       // check Apple is not included
       assert.equal(await driver.findContent('.test-filter-menu-list label', /Apple/).find('input').isSelected(),
-                   false);
+        false);
 
       // Click 'Other values'
       await driver.findContent('.test-filter-menu-summary', /Other values/).find('label').click();
 
       // Check Apple is still not included
       assert.equal(await driver.findContent('.test-filter-menu-list label', /Apple/).find('input').isSelected(),
-                   false);
+        false);
     });
 
     it('should also have a working `Future Values`', async () => {
       // check Future Values is checked
       assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
-                   true);
+        true);
 
       // check filter is an exclusion filter
       assert.deepEqual(Object.keys(await parseFilterState()), ['excluded']);
@@ -112,7 +112,7 @@ describe('ColumnFilterMenu2', function() {
 
       // check Future values is unchecked
       assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
-                   false);
+        false);
 
       // Check filter is an inclusion filter
       assert.deepEqual(Object.keys(await parseFilterState()), ['included']);
@@ -126,7 +126,7 @@ describe('ColumnFilterMenu2', function() {
 
         // Check `Other Matching` is shown
         assert.deepEqual(await driver.findAll('.test-filter-menu-summary', e => e.find('label').getText()),
-                         ['Other Matching (6)', 'Other Non-Matching (8)']);
+          ['Other Matching (6)', 'Other Non-Matching (8)']);
 
         // chech all values adds up (shown values) + (other matching) + (other non-matching)
         assert.equal(3 + 6 + 8, (await parseAllValues()).length);

@@ -16,7 +16,7 @@ const testId = makeTestId('test-video-tour-');
 /**
  * Opens a modal containing a video tour of Grist.
  */
- export function openVideoTour(refElement: HTMLElement) {
+export function openVideoTour(refElement: HTMLElement) {
   return modal(
     (ctl, owner) => {
       const youtubePlayer = YouTubePlayer.create(owner,

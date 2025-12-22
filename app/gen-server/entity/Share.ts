@@ -2,7 +2,7 @@ import {ShareOptions} from 'app/common/ShareOptions';
 import {Document} from 'app/gen-server/entity/Document';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {BaseEntity, Column, Entity, JoinColumn, ManyToOne,
-        PrimaryColumn} from 'typeorm';
+  PrimaryColumn} from 'typeorm';
 
 @Entity({name: 'shares'})
 export class Share extends BaseEntity {

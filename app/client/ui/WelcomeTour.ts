@@ -34,9 +34,9 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Configuring your document'),
       body: () => [
         dom('p',
-            t('Toggle the {{creatorPanel}} to format columns, ', {creatorPanel: dom('em', t('creator panel'))}),
-            t('convert to card view, select data, and more.'),
-          ),
+          t('Toggle the {{creatorPanel}} to format columns, ', {creatorPanel: dom('em', t('creator panel'))}),
+          t('convert to card view, select data, and more.'),
+        ),
       ],
       placement: 'left',
       cropPadding: true,
@@ -46,11 +46,11 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Customizing columns'),
       body: () => [
         dom('p',
-            t('Set formatting options, formulas, or column types, such as dates, choices, or attachments. ')),
+          t('Set formatting options, formulas, or column types, such as dates, choices, or attachments. ')),
         dom('p',
-            t('Make it relational! Use the {{ref}} type to link tables. ', {
-              ref: ShortcutKey(t('Reference')),
-            })),
+          t('Make it relational! Use the {{ref}} type to link tables. ', {
+            ref: ShortcutKey(t('Reference')),
+          })),
       ],
       placement: 'right',
     },
@@ -69,7 +69,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Sharing'),
       body: () => [
         dom('p', t('Use the Share button ({{share}}) to share the document or export data.',
-        {share: TopBarButtonIcon(t('Share'))})),
+          {share: TopBarButtonIcon(t('Share'))})),
       ],
       placement: 'bottom',
       cropPadding: true,
@@ -92,7 +92,7 @@ export function getOnBoardingMessages(): IOnBoardingMsg[] {
       title: t('Flying higher'),
       body: () => [
         dom('p', t('Use {{helpCenter}} for documentation or questions.',
-        {helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center'))})),
+          {helpCenter: ShortcutKey(GreyIcon('Help'), t('Help Center'))})),
       ],
       placement: 'right',
     },

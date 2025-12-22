@@ -112,10 +112,10 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
             .map(w => w.docs),
         );
       }
- else if (ws) {
+      else if (ws) {
         return ws.docs;
       }
- else {
+      else {
         return [];
       }
     },
@@ -179,7 +179,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
       this.currentSort = viewSettings.currentSort;
       this.currentView = viewSettings.currentView;
     }
- else {
+    else {
       // Preference for sorting. Defaults to 'name'. Saved to server on write.
       this.currentSort = Computed.create(this, this._userOrgPrefs,
         (use, prefs) => SortPref.parse(prefs?.docMenuSort) || 'name')
@@ -278,56 +278,56 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     await this.updateWorkspaces();
   }
 
-    // Fetches and updates workspaces, which include contained docs as well.
-    public async updateWorkspaces() {
-      if (this.isDisposed()) {
-        return;
-      }
-      const org = this._app.currentOrg;
-      if (!org) {
-        this.workspaces.set([]);
-        this.trashWorkspaces.set([]);
-        this.templateWorkspaces.set([]);
-        return;
-      }
-
-      this.loading.set(true);
-      const currentPage = this.currentPage.get();
-      const promises = [
-        this._fetchWorkspaces(org.id, false).catch(reportError),
-        currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : Promise.resolve(null),
-        this._maybeFetchTemplates(),
-      ] as const;
-
-      const promise = Promise.all(promises);
-      if (await isLongerThan(promise, DELAY_BEFORE_SPINNER_MS)) {
-        this.loading.set("slow");
-      }
-      const [wss, trashWss, templateWss] = await promise;
-      if (this.isDisposed()) {
-        return;
-      }
-      // bundleChanges defers computeds' evaluations until all changes have been applied.
-      bundleChanges(() => {
-        this.workspaces.set(wss || []);
-        this.trashWorkspaces.set(trashWss || []);
-        this.templateWorkspaces.set(templateWss || []);
-        this.loading.set(false);
-        this.available.set(!!wss);
-        // Hide workspace name if we are showing a single (non-support) workspace, and active
-        // product doesn't allow adding workspaces.  It is important to check both conditions because:
-        //   * A personal org, where workspaces can't be added, can still have multiple
-        //     workspaces via documents shared by other users.
-        //   * An org with workspace support might happen to just have one workspace right
-        //     now, but it is good to show names to highlight the possibility of adding more.
-        const nonSupportWss = Array.isArray(wss) ? wss.filter(ws => !ws.isSupportWorkspace) : null;
-        this.singleWorkspace.set(
-          // The anon personal site always has 0 non-support workspaces.
-          nonSupportWss?.length === 0 ||
-          nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app),
-        );
-      });
+  // Fetches and updates workspaces, which include contained docs as well.
+  public async updateWorkspaces() {
+    if (this.isDisposed()) {
+      return;
     }
+    const org = this._app.currentOrg;
+    if (!org) {
+      this.workspaces.set([]);
+      this.trashWorkspaces.set([]);
+      this.templateWorkspaces.set([]);
+      return;
+    }
+
+    this.loading.set(true);
+    const currentPage = this.currentPage.get();
+    const promises = [
+      this._fetchWorkspaces(org.id, false).catch(reportError),
+      currentPage === 'trash' ? this._fetchWorkspaces(org.id, true).catch(reportError) : Promise.resolve(null),
+      this._maybeFetchTemplates(),
+    ] as const;
+
+    const promise = Promise.all(promises);
+    if (await isLongerThan(promise, DELAY_BEFORE_SPINNER_MS)) {
+      this.loading.set("slow");
+    }
+    const [wss, trashWss, templateWss] = await promise;
+    if (this.isDisposed()) {
+      return;
+    }
+    // bundleChanges defers computeds' evaluations until all changes have been applied.
+    bundleChanges(() => {
+      this.workspaces.set(wss || []);
+      this.trashWorkspaces.set(trashWss || []);
+      this.templateWorkspaces.set(templateWss || []);
+      this.loading.set(false);
+      this.available.set(!!wss);
+      // Hide workspace name if we are showing a single (non-support) workspace, and active
+      // product doesn't allow adding workspaces.  It is important to check both conditions because:
+      //   * A personal org, where workspaces can't be added, can still have multiple
+      //     workspaces via documents shared by other users.
+      //   * An org with workspace support might happen to just have one workspace right
+      //     now, but it is good to show names to highlight the possibility of adding more.
+      const nonSupportWss = Array.isArray(wss) ? wss.filter(ws => !ws.isSupportWorkspace) : null;
+      this.singleWorkspace.set(
+        // The anon personal site always has 0 non-support workspaces.
+        nonSupportWss?.length === 0 ||
+          nonSupportWss?.length === 1 && _isSingleWorkspaceMode(this._app),
+      );
+    });
+  }
 
   private _checkForDuplicates(name: string): void {
     if (this.workspaces.get().find(ws => ws.name === name)) {
@@ -338,7 +338,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
   private async _fetchWorkspaces(orgId: number, forRemoved: boolean) {
     let api = this._app.api;
     if (forRemoved) {
-        api = api.forRemoved();
+      api = api.forRemoved();
     }
     const wss = await api.getOrgWorkspaces(orgId);
     if (this.isDisposed()) { return null; }
@@ -366,8 +366,8 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     // by their name.  All alphabetical ordering is case-insensitive.
     // Workspaces shared from support account (e.g. samples) are put last.
     return sortBy(wss, ws => [ws.isSupportWorkspace,
-                                ownerName(this._app, ws).toLowerCase(),
-                                ws.name.toLowerCase()]);
+      ownerName(this._app, ws).toLowerCase(),
+      ws.name.toLowerCase()]);
   }
 
   /**
@@ -382,7 +382,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
     try {
       templateWss = await this._app.api.getTemplates();
     }
- catch {
+    catch {
       reportError('Failed to load templates');
     }
     if (this.isDisposed()) { return null; }
@@ -415,7 +415,7 @@ export class HomeModelImpl extends Disposable implements HomeModel, ViewSettings
 
       this.onboardingTutorial.set(doc);
     }
- catch (e) {
+    catch (e) {
       console.error(e);
       reportError('Failed to load welcome tutorial');
     }

@@ -22,7 +22,7 @@ const ORG_HOST_CACHE_TTL = 60 * 1000;
 export interface RequestOrgInfo {
   org: string;
   isCustomHost: boolean;   // when set, the request's domain is a recognized custom host linked
-                           // with the specified org.
+  // with the specified org.
 
   // path remainder after stripping /o/{org} if any.
   url: string;
@@ -43,7 +43,7 @@ export class Hosts {
 
   // baseDomain should start with ".". It may be undefined for localhost or single-org mode.
   constructor(private _baseDomain: string|undefined, private _dbManager: HomeDBManager,
-              private _gristServer: GristServer|undefined) {
+    private _gristServer: GristServer|undefined) {
   }
 
   /**
@@ -99,10 +99,10 @@ export class Hosts {
       }
       return {org: parts.subdomain || '', url: parts.pathRemainder, isCustomHost: false};
     }
- else if (hostType === 'plugin') {
+    else if (hostType === 'plugin') {
       return {org: '', url: parts.pathRemainder, isCustomHost: false};
     }
- else {
+    else {
       // Otherwise check for a custom host.
       const org = await mapGetOrSet(this._host2org, hostname, async () => {
         const o = await this._dbManager.connection.manager.findOne(Organization, {where: {host: hostname}});
@@ -146,7 +146,7 @@ export class Hosts {
       await this.addOrgInfo(req);
       return next();
     }
- catch (err) {
+    catch (err) {
       return resp.status(err.status || 500).send({error: err.message});
     }
   }
@@ -171,7 +171,7 @@ export class Hosts {
 
   private _getHostType(host: string) {
     const pluginUrl = isAffirmative(process.env.GRIST_TRUST_PLUGINS) ?
-        undefined : this._gristServer?.getPluginUrl();
+      undefined : this._gristServer?.getPluginUrl();
     return getHostType(host, {baseDomain: this._baseDomain, pluginUrl});
   }
 }

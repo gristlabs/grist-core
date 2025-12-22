@@ -69,7 +69,7 @@ describe('Throttle', function() {
           assert.isBelow(stats.cpuDuration, 2500);
           assert.isAbove(stats.offDuration, 1000);
         }
- else {
+        else {
           // Sleep should take almost no cpu.
           assert.isBelow(stats.cpuDuration, 100);
           assert.equal(stats.offDuration, 0);
@@ -77,7 +77,7 @@ describe('Throttle', function() {
       }
       // Clear the setInterval that the pidusage module sets up internally.
       await delay(100);  // Wait a little in case an async pidusage call hasn't finished yet.
-                         // TODO: fix pidusage upstream to allow graceful shutdown.
+      // TODO: fix pidusage upstream to allow graceful shutdown.
       pidusage.clear();
     });
   }

@@ -177,7 +177,7 @@ export class ExtendedRowSource extends RowSource {
   ) {
     super();
 
-   // Listen to the two event types a rowSource might produce, and map the rows in them.
+    // Listen to the two event types a rowSource might produce, and map the rows in them.
     this.listenTo(parentRowSource, 'rowChange', (changeType: ChangeType, rows: RowList) => {
       this.trigger('rowChange', changeType, rows);
     });
@@ -231,7 +231,7 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
         this._matchingRows.add(r);
         outputRows.push(r);
       }
- else {
+      else {
         this._addExcludedRow(r);
       }
     }
@@ -264,7 +264,7 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
     if (rows === ALL) {
       this.trigger('rowNotify', ALL, notifyValue);
     }
- else {
+    else {
       const outputRows = [];
       for (const r of rows) {
         if (this._matchingRows.has(r)) {
@@ -288,12 +288,12 @@ export class BaseFilteredRowSource extends RowListener implements RowSource {
         if (this._matchingRows.has(r)) {
           (changes.updates || (changes.updates = [])).push(r);
         }
- else if (this._deleteExcludedRow(r)) {
+        else if (this._deleteExcludedRow(r)) {
           this._matchingRows.add(r);
           (changes.adds || (changes.adds = [])).push(r);
         }
       }
- else {
+      else {
         if (this._matchingRows.delete(r)) {
           this._addExcludedRow(r);
           (changes.removes || (changes.removes = [])).push(r);
@@ -476,7 +476,7 @@ export class RowGrouping<Value> extends RowListener {
       if (newValue === oldValue) {
         _addToMapOfArrays(updateGroup || (updateGroup = new Map()), oldValue, r);
       }
- else {
+      else {
         this._rowsToValues.set(r, newValue);
         _addToMapOfArrays(removeGroup || (removeGroup = new Map()), oldValue, r);
         _addToMapOfArrays(insertGroup || (insertGroup = new Map()), newValue, r);
@@ -510,7 +510,7 @@ export class RowGrouping<Value> extends RowListener {
         group.trigger('rowNotify', ALL, notifyValue);
       }
     }
- else {
+    else {
       const groupedRows = new Map();
       for (const r of rows) {
         _addToMapOfArrays(groupedRows, this._rowsToValues.get(r), r);
@@ -541,7 +541,7 @@ export class SortedRowSet extends RowListener {
   private _keepFunc?: (rowId: number|'new') => boolean;
 
   constructor(private _compareFunc: CompareFunc<UIRowId>,
-              private _skippableRows?: SkippableRows) {
+    private _skippableRows?: SkippableRows) {
     super();
     this._koArray = this.autoDispose(koArray<UIRowId>());
     this._keepFunc = _skippableRows?.getKeepFunc();
@@ -590,7 +590,7 @@ export class SortedRowSet extends RowListener {
         this._koArray.splice(insertIndex, 0, r);
       }
     }
- else {
+    else {
       this._koArray.assign(this._keep(Array.from(this._allRows).sort(this._compareFunc)));
     }
   }
@@ -610,7 +610,7 @@ export class SortedRowSet extends RowListener {
         }
       }
     }
- else {
+    else {
       this._koArray.assign(this._keep(Array.from(this._allRows).sort(this._compareFunc)));
     }
   }
@@ -638,7 +638,7 @@ export class SortedRowSet extends RowListener {
       this.onRemoveRows(rows);
       this.onAddRows(rows);
     }
- else {
+    else {
       this._koArray.assign(this._keep(Array.from(this._koArray.peek()).sort(this._compareFunc)));
     }
   }
@@ -690,7 +690,7 @@ export class SortedRowSet extends RowListener {
       if (keeping[i]) {
         skipping = false;
       }
- else {
+      else {
         if (!skipping) {
           edge[i] = true;
           skipping = true;

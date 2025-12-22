@@ -8,7 +8,7 @@ import {GristLoadConfig} from 'app/common/gristUrls';
 import * as roles from 'app/common/roles';
 import {getGristConfig} from 'app/common/urlUtils';
 import {ANONYMOUS_USER_EMAIL, Document, EVERYONE_EMAIL, FullUser, getRealAccess, Organization,
-        PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
+  PermissionData, PermissionDelta, UserAPI, Workspace} from 'app/common/UserAPI';
 import {computed, Computed, Disposable, obsArray, ObsArray, observable, Observable} from 'grainjs';
 import some from 'lodash/some';
 
@@ -25,7 +25,7 @@ export interface UserManagerModel {
   maxInheritedRole: Observable<roles.BasicRole|null>;  // Current unsaved maxInheritedRole setting
   membersEdited: ObsArray<IEditableMember>;    // Current unsaved editable array of members
   publicMember: IEditableMember|null;          // Member whose access (VIEWER or null) represents that of
-                                               // anon@ or everyone@ (depending on the settings and resource).
+  // anon@ or everyone@ (depending on the settings and resource).
   isAnythingChanged: Computed<boolean>;        // Indicates whether there are unsaved changes
   isSelfRemoved: Computed<boolean>;            // Indicates whether current user is removed
   isOrg: boolean;                              // Indicates if the UserManager is for an org
@@ -215,10 +215,10 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     if (this.resourceType === 'organization') {
       await userApi.updateOrgPermissions(resourceId as number, this.getDelta());
     }
- else if (this.resourceType === 'workspace') {
+    else if (this.resourceType === 'workspace') {
       await userApi.updateWorkspacePermissions(resourceId as number, this.getDelta());
     }
- else if (this.resourceType === 'document') {
+    else if (this.resourceType === 'document') {
       await userApi.updateDocPermissions(resourceId as string, this.getDelta());
     }
   }
@@ -233,7 +233,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // update to the membersEdited observable array.
       this.membersEdited.splice(index, 1, {...existing, isRemoved: false});
     }
- else if (existing) {
+    else if (existing) {
       const effective = existing.effectiveAccess.get();
       if (effective && effective !== roles.GUEST) {
         // If the member is visible, throw to inform the user.
@@ -244,7 +244,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       existing.access.set(role);
       existing.isNew = true;
     }
- else {
+    else {
       const newMember = this._buildEditableMember({
         id: -1, // Use a placeholder for the unknown userId
         email,
@@ -263,7 +263,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     if (member.isNew) {
       this.membersEdited.splice(index, 1);
     }
- else {
+    else {
       // Keep it in the array with a flag, to simplify comparing "before" and "after" arrays.
       this.membersEdited.splice(index, 1, {...member, isRemoved: true});
     }
@@ -340,7 +340,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
     // shouldSupportAnon() exceptions.
     const email =
       shouldSupportAnon() ? ANONYMOUS_USER_EMAIL :
-      (this.resourceType === 'document') ? EVERYONE_EMAIL : null;
+        (this.resourceType === 'document') ? EVERYONE_EMAIL : null;
     if (!email) { return null; }
     const user = this.initData.users.find(m => m.email === email);
     return this._buildEditableMember({
@@ -367,7 +367,7 @@ export class UserManagerModelImpl extends Disposable implements UserManagerModel
       // This pretends to be a computed to match the other case, but is really a constant.
       inheritedAccess = Computed.create(this, use => initialAccessBasicRole);
     }
- else {
+    else {
       // Gives the role inherited from parent taking the maxInheritedRole into account.
       inheritedAccess = Computed.create(this, this.maxInheritedRole, (use, maxInherited) =>
         roles.getWeakestRole(member.parentAccess, maxInherited));
@@ -405,10 +405,10 @@ export function getResourceParent(resource: ResourceType): ResourceType|null {
   if (resource === 'workspace') {
     return 'organization';
   }
- else if (resource === 'document') {
+  else if (resource === 'document') {
     return 'workspace';
   }
- else {
+  else {
     return null;
   }
 }

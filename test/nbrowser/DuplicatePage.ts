@@ -124,7 +124,7 @@ describe('DuplicatePage', async function() {
     assert.deepEqual(
       await driver.find('.g_record_detail')
         .findAll('.layout_hbox', hbox => hbox
-                 .findAll('.g_record_detail_label', e => e.getText())),
+          .findAll('.g_record_detail_label', e => e.getText())),
       [['Name', 'Country', 'Pop. \'000'], ['District', 'Population']],
     );
   });

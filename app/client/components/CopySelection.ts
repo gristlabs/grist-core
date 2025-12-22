@@ -26,10 +26,10 @@ export class CopySelection {
   }>;
 
   constructor(tableData: TableData, public readonly rowIds: UIRowId[], public readonly fields: ViewFieldRec[],
-              options: {
-                rowStyle?: {[r: number]: object},
-                colStyle?: {[c: string]: object},
-              },
+    options: {
+      rowStyle?: {[r: number]: object},
+      colStyle?: {[c: string]: object},
+    },
   ) {
     this.rowStyle = options.rowStyle;
     this.colStyle = options.colStyle;

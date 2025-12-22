@@ -168,11 +168,11 @@ designed to ensure that you're the only person who can access your account, even
           }),
         )),
         !getGristConfig().canCloseAccount ? null : [
-            dom.create(DeleteAccountDialog, user),
+          dom.create(DeleteAccountDialog, user),
         ],
-),
+      ),
       testId('body'),
-    )));
+      )));
   }
 
   private _buildHeaderMain() {

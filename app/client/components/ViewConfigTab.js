@@ -45,7 +45,7 @@ function ViewConfigTab(options) {
     koArray.syncedKoArray(this.viewModel.viewSections, function(section) {
       return ViewSectionData.create(section);
     })
-    .setAutoDisposeValues()
+      .setAutoDisposeValues()
   );
 
   this.isDetail = this.autoDispose(ko.computed(function() {
@@ -91,15 +91,15 @@ ViewConfigTab.prototype._makeOnDemand = function(table) {
   // After saving the changed setting, force the reload of the document.
   const onConfirm = () => {
     return table.onDemand.saveOnly(!table.onDemand.peek())
-    .then(() => {
-      return this.gristDoc.docComm.reloadDoc()
-      .catch((err) => {
-        // Ignore the expected error from the socket shutdown that we asked for.
-        if (!err.message.includes('GristWSConnection disposed')) {
-          throw err;
-        }
-      })
-    });
+      .then(() => {
+        return this.gristDoc.docComm.reloadDoc()
+          .catch((err) => {
+            // Ignore the expected error from the socket shutdown that we asked for.
+            if (!err.message.includes('GristWSConnection disposed')) {
+              throw err;
+            }
+          })
+      });
   }
 
   if (table.onDemand()) {
@@ -107,14 +107,14 @@ ViewConfigTab.prototype._makeOnDemand = function(table) {
       explanation: dom('div', 'If you unmark table ', dom('b', table), ' as On-Demand, ' +
         'its data will be loaded into the calculation engine and will be available ' +
         'for use in formulas. For a big table, this may greatly increase load times.',
-        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
+      dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
     });
   } else {
     confirmModal('Make table On-Demand?', 'Make On-Demand', onConfirm, {
       explanation: dom('div', 'If you make table ', dom('b', table), ' On-Demand, ' +
         'its data will no longer be loaded into the calculation engine and will not be available ' +
         'for use in formulas. It will remain available for viewing and editing.',
-        dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
+      dom('br'), dom('br'), 'Changing this setting will reload the document for all users.'),
     });
   }
 };
@@ -241,7 +241,7 @@ ViewConfigTab.prototype._buildCustomTypeItems = function() {
       // harder to accomplish and is left as a TODO.
       dom('datalist#list_plugin',  kd.foreach(koArray(allPlugins), value => dom('option', {value}))),
       dom('datalist#list_section', kd.scope(customSectionIds, sections => kd.foreach(koArray(sections), (value) => dom('option', {value}))))
-      ))
+    ))
   }];
 };
 

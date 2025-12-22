@@ -19,7 +19,7 @@ export function getEffectiveRole(role: Role|null): BasicRole|null {
   if (role === GUEST || role === MEMBER) {
     return VIEWER;
   }
- else {
+  else {
     return role;
   }
 }

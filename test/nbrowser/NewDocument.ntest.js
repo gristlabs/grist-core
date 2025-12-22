@@ -68,10 +68,10 @@ describe('NewDocument.ntest', function() {
     let result = await driver.executeAsyncScript(() => {
       var cb = arguments[arguments.length - 1];
       window.gristApp.comm.getDocList()
-      .then(
-        newName => cb("unexpected success"),
-        err => { cb(err.toString()); throw err; }
-      );
+        .then(
+          newName => cb("unexpected success"),
+          err => { cb(err.toString()); throw err; }
+        );
     });
     assert.match(result, /Unknown method getDocList/);
 
@@ -162,12 +162,12 @@ describe('NewDocument.ntest', function() {
         await gu.sendKeys('=', '$A', $.ENTER);
         await gu.waitForServer();
         assert.deepEqual(await gu.getGridValues({ rowNums: [1, 2], cols: [0, 1, 2] }),
-                         ['A1', 'B1', 'A1', 'A2', 'B2', 'A2']);
+          ['A1', 'B1', 'A1', 'A2', 'B2', 'A2']);
         await gu.clickCellRC(0, 1);
         await gu.sendKeys([$.SHIFT, $.RIGHT], [$.SHIFT, $.DOWN], delKey);
         await gu.waitForServer();
         assert.deepEqual(await gu.getGridValues({ rowNums: [1, 2], cols: [0, 1, 2] }),
-                         [ 'A1', '', 'A1', 'A2', '', 'A2' ]);
+          [ 'A1', '', 'A1', 'A2', '', 'A2' ]);
       };
       await testDelete($.BACK_SPACE);
       await testDelete($.DELETE);

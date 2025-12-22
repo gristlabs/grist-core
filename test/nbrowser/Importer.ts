@@ -5,7 +5,7 @@
 import {assert, driver, Key} from 'mocha-webdriver';
 import * as gu from 'test/nbrowser/gristUtils';
 import {getColumnMatchingRows, getParseOptionInput, getPreviewDiffCellValues,
-        openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad} from 'test/nbrowser/importerTestUtils';
+  openTableMapping, waitForColumnMapping, waitForDiffPreviewToLoad} from 'test/nbrowser/importerTestUtils';
 import {setupTestSuite} from 'test/nbrowser/testUtils';
 
 describe('Importer', function() {
@@ -294,12 +294,12 @@ describe('Importer', function() {
     await gu.getPageItem('UploadedData2').click();
     await gu.waitForServer();
     assert.deepEqual(await gu.getVisibleGridCells({cols: [0, 1, 2, 3, 4], rowNums: [1, 2, 3, 4, 5, 6]}),
-    ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
-      'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
-      'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
-      'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
-      'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
-      'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
+      ['BUS100',      'Intro to Business',   '',                    '01/13/2021',      '',
+        'BUS102',      'Business Law',        'Nathalie Patricia',   '01/13/2021',      '',
+        'BUS300',      'Business Operations', 'Michael Rian',        '01/14/2021',      '',
+        'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',      '',
+        'BUS500',      'Ethics and Law',      'Filip Andries',       '01/13/2021',      '',
+        'BUS540',      'Capstone',            '',                    '01/13/2021',      '']);
 
     // Undo and check that we are back to the original state.
     await gu.undo();
@@ -348,9 +348,9 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
     // Look at a small subset of the imported table.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
-                     ['Africa', 'Eastern Africa', 'Burundi',
-                       'Africa', 'Eastern Africa', 'Burundi',
-                       'Africa', 'Eastern Africa', 'Comoros']);
+      ['Africa', 'Eastern Africa', 'Burundi',
+        'Africa', 'Eastern Africa', 'Burundi',
+        'Africa', 'Eastern Africa', 'Comoros']);
   });
 
   it('should import correctly in prefork mode', async function() {
@@ -364,9 +364,9 @@ describe('Importer', function() {
     assert.equal(await driver.find('.test-importer-dialog').isPresent(), false);
     // Look at a small subset of the imported table.
     assert.deepEqual(await gu.getVisibleGridCells({rowNums: [1, 2, 3], cols: [0, 1, 2]}),
-                     ['Africa', 'Eastern Africa', 'Burundi',
-                       'Africa', 'Eastern Africa', 'Burundi',
-                       'Africa', 'Eastern Africa', 'Comoros']);
+      ['Africa', 'Eastern Africa', 'Burundi',
+        'Africa', 'Eastern Africa', 'Burundi',
+        'Africa', 'Eastern Africa', 'Comoros']);
     await driver.get(`${docUrl}`);
     await gu.acceptAlert();
     await gu.waitForDocToLoad();
@@ -664,9 +664,9 @@ describe('Importer', function() {
           'BUS301',      'History of Business', 'Mariyam Melania',     '01/14/2021',       '',
           'BUS500',      [undefined, undefined, 'Ethics and Law'],     'Filip Andries',    '01/13/2021', '',
           [undefined, 'BUS501', undefined], [undefined, 'Marketing', undefined], [undefined, 'Michael Rian', undefined],
-            [undefined, '01/13/2021', undefined], [undefined, 'false', undefined],
+          [undefined, '01/13/2021', undefined], [undefined, 'false', undefined],
           [undefined, 'BUS539', undefined], [undefined, 'Independent Study', undefined],   '',
-            [undefined, '01/13/2021', undefined], [undefined, 'true', undefined],
+          [undefined, '01/13/2021', undefined], [undefined, 'true', undefined],
           'BUS540',      'Capstone',            '',                    '01/13/2021',      ['true', 'false', undefined],
           '', '', '', '', '',
         ],
@@ -983,21 +983,21 @@ describe('Importer', function() {
       assert.deepEqual(await getPreviewDiffCellValues([0, 1, 2, 3, 4], [1, 2, 3, 4, 5, 6, 7]),
         [
           [undefined, 'BUS100-NEW', undefined], [undefined, 'Intro to Business', undefined], '',
-            [undefined, '01/13/2021', undefined], [undefined, 'false', undefined],
+          [undefined, '01/13/2021', undefined], [undefined, 'false', undefined],
           [undefined, 'BUS102-NEW', undefined], [undefined, 'Business Law', undefined],
-            [undefined, 'Nathalie Patricia', undefined], [undefined, '01/13/2021', undefined],
-            [undefined, 'false', undefined],
+          [undefined, 'Nathalie Patricia', undefined], [undefined, '01/13/2021', undefined],
+          [undefined, 'false', undefined],
           [undefined, 'BUS300-NEW', undefined], [undefined, 'Business Operations', undefined],
-            [undefined, 'Michael Rian', undefined], [undefined, '01/14/2021', undefined],
-            [undefined, 'false', undefined],
+          [undefined, 'Michael Rian', undefined], [undefined, '01/14/2021', undefined],
+          [undefined, 'false', undefined],
           [undefined, 'BUS301-NEW', undefined], [undefined, 'History of Business', undefined],
-            [undefined, 'Mariyam Melania', undefined], [undefined, '01/14/2021', undefined],
-            [undefined, 'false', undefined],
+          [undefined, 'Mariyam Melania', undefined], [undefined, '01/14/2021', undefined],
+          [undefined, 'false', undefined],
           [undefined, 'BUS500-NEW', undefined], [undefined, 'Ethics and Law', undefined],
-            [undefined, 'Filip Andries', undefined], [undefined, '01/13/2021', undefined],
-            [undefined, 'false', undefined],
+          [undefined, 'Filip Andries', undefined], [undefined, '01/13/2021', undefined],
+          [undefined, 'false', undefined],
           [undefined, 'BUS540-NEW', undefined], [undefined, 'Capstone', undefined], '',
-            [undefined, '01/13/2021', undefined], [undefined, 'true', undefined],
+          [undefined, '01/13/2021', undefined], [undefined, 'true', undefined],
           '', '', '', '', '',
         ],
       );

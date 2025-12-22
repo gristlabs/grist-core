@@ -50,15 +50,15 @@ export interface FilteredDocUsageSummary extends FilteredDocUsage {
 /**
  * Returns an empty org usage summary with values initialized to 0.
  */
- export function createEmptyOrgUsageSummary(): OrgUsageSummary {
-   return {
-     countsByDataLimitStatus: {
-       approachingLimit: 0,
-       gracePeriod: 0,
-       deleteOnly: 0,
-     },
-     attachments: {
-       totalBytes: 0,
-     },
+export function createEmptyOrgUsageSummary(): OrgUsageSummary {
+  return {
+    countsByDataLimitStatus: {
+      approachingLimit: 0,
+      gracePeriod: 0,
+      deleteOnly: 0,
+    },
+    attachments: {
+      totalBytes: 0,
+    },
   };
 }

@@ -57,7 +57,7 @@ export class CodeEditorPanel extends DisposableWithEvents {
         this._denied.set(false);
       }
     }
- catch (err) {
+    catch (err) {
       if (!String(err).match(/Cannot view code/)) {
         throw err;
       }

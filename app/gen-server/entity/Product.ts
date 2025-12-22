@@ -1,12 +1,12 @@
 import {Features, FREE_PLAN,
-        Product as IProduct,
-        isManagedPlan,
-        PERSONAL_FREE_PLAN,
-        PERSONAL_LEGACY_PLAN,
-        STUB_PLAN,
-        SUSPENDED_PLAN,
-        TEAM_FREE_PLAN,
-        TEAM_PLAN} from 'app/common/Features';
+  Product as IProduct,
+  isManagedPlan,
+  PERSONAL_FREE_PLAN,
+  PERSONAL_LEGACY_PLAN,
+  STUB_PLAN,
+  SUSPENDED_PLAN,
+  TEAM_FREE_PLAN,
+  TEAM_PLAN} from 'app/common/Features';
 import {nativeValues} from 'app/gen-server/lib/values';
 import * as assert from 'assert';
 import {BillingAccount} from 'app/gen-server/entity/BillingAccount';
@@ -70,7 +70,7 @@ export const teamFreeFeatures: Features = {
 /**
  * A summary of features available in free personal sites.
  */
- export const personalFreeFeatures: Features = {
+export const personalFreeFeatures: Features = {
   workspaces: true,
   maxSharesPerWorkspace: 0,   // workspace sharing is disabled.
   maxSharesPerDoc: 2,
@@ -155,7 +155,7 @@ export function getDefaultProductNames() {
   return {
     // Personal site start off on a functional plan.
     personal: defaultProduct || PERSONAL_FREE_PLAN,
-     // Team site starts off on a limited plan, requiring subscription.
+    // Team site starts off on a limited plan, requiring subscription.
     teamInitial: defaultProduct || STUB_PLAN,
     // Team site that has been 'turned off'.
     teamCancel: 'suspended',
@@ -171,7 +171,7 @@ export function getAnonymousFeatures(): Features {
     // should have access to the free personal product.
     return personalFreeFeatures;
   }
- else {
+  else {
     // If GRIST_DEFAULT_PRODUCT is set, we assume that anonymous users
     // should have access to the product specified by it.
     const product = PRODUCTS.find(p => p.name === process.env.GRIST_DEFAULT_PRODUCT);
@@ -214,7 +214,7 @@ export async function synchronizeProducts(
   try {
     await connection.query('select name, features, stripe_product_id from products limit 1');
   }
- catch (e) {
+  catch (e) {
     // No usable products table, do not try to synchronize.
     return [];
   }
@@ -222,7 +222,7 @@ export async function synchronizeProducts(
   await connection.transaction(async (transaction) => {
     const desiredProducts = new Map(products.map(p => [p.name, p]));
     const existingProducts = new Map((await transaction.find(Product))
-                                     .map(p => [p.name, p]));
+      .map(p => [p.name, p]));
     for (const product of desiredProducts.values()) {
       if (existingProducts.has(product.name)) {
 
@@ -235,7 +235,7 @@ export async function synchronizeProducts(
         try {
           assert.deepStrictEqual(p.features, product.features);
         }
- catch (e) {
+        catch (e) {
           if (apply) {
             p.features = product.features;
             await transaction.save(p);
@@ -243,7 +243,7 @@ export async function synchronizeProducts(
           changingProducts.push(p.name);
         }
       }
- else {
+      else {
         if (apply) {
           const p = new Product();
           p.name = product.name;

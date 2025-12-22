@@ -18,7 +18,7 @@ export async function createDocAndOpen(home: HomeModel) {
     const doc = await home.app.api.getDoc(docId);
     await urlState().pushUrl(docUrl(doc));
   }
- catch (err) {
+  catch (err) {
     reportError(err);
   }
 }
@@ -46,7 +46,7 @@ export async function importFromPluginAndOpen(home: HomeModel, source: ImportSou
       await urlState().pushUrl(docUrl(doc));
     }
   }
- catch (err) {
+  catch (err) {
     reportError(err);
   }
 }

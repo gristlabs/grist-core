@@ -7,7 +7,7 @@ import {PageRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import MetaTableModel from 'app/client/models/MetaTableModel';
 import {find as findInTree, fromTableData, TreeItemRecord, TreeRecord,
-        TreeTableData} from 'app/client/models/TreeModel';
+  TreeTableData} from 'app/client/models/TreeModel';
 import {TreeViewComponent} from 'app/client/ui/TreeViewComponent';
 import {cssRadioCheckboxOptions, radioCheckboxOption} from 'app/client/ui2018/checkbox';
 import {theme} from 'app/client/ui2018/cssVars';
@@ -133,15 +133,15 @@ function removeView(activeDoc: GristDoc, viewId: number, pageName: string) {
       if (option === 'data') {
         await docData.sendActions(removeAll(), `Remove page ${pageName} with tables ${tableNames}`);
       }
- else if (option === 'page') {
+      else if (option === 'page') {
         await docData.sendActions(removePage(), `Remove only page ${pageName}`);
       }
- else {
+      else {
         // This should not happen, as save should be disabled when no option is selected.
       }
     });
   }
- else {
+  else {
     return docData.sendActions(removePage(), `Remove only page ${pageName}`);
   }
 }

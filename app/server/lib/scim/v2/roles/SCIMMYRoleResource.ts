@@ -24,7 +24,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     if (path === undefined) {
       return SCIMMYRoleResource._basepath;
     }
- else {
+    else {
       SCIMMYRoleResource._basepath = (path.endsWith(SCIMMYRoleResource.endpoint) ?
         path :
         `${path}${SCIMMYRoleResource.endpoint}`);
@@ -35,8 +35,8 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
 
   /** @implements {SCIMMY.Types.Resource.ingress<typeof SCIMMY.Resources.User, SCIMMY.Schemas.User>} */
   public static ingress(handler: SCIMMY.Types.Resource.IngressHandler<any, any>) {
-      this._ingress = handler;
-      return this;
+    this._ingress = handler;
+    return this;
   }
 
   /** @implements {SCIMMY.Types.Resource.egress<typeof SCIMMY.Resources.User, SCIMMY.Schemas.User>} */
@@ -108,7 +108,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
         );
       }
     }
- catch (ex) {
+    catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
       }
@@ -150,14 +150,14 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
       if (target instanceof Object) {
         return new SCIMMYRoleSchema(target, "out", SCIMMYRoleResource.basepath(), this.attributes);
       }
-        // Otherwise, ingress has not been implemented correctly
+      // Otherwise, ingress has not been implemented correctly
       else {
         throw new SCIMMY.Types.Error(500, null!,
           `Unexpected ${target === undefined ? "empty" : "invalid"} value returned by ingress handler`,
         );
       }
     }
- catch (ex) {
+    catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
       }
@@ -210,7 +210,7 @@ export class SCIMMYRoleResource extends SCIMMY.Types.Resource<SCIMMYRoleSchema> 
     try {
       await SCIMMYRoleResource._degress(this, ctx);
     }
- catch (ex) {
+    catch (ex) {
       if (ex instanceof SCIMMY.Types.Error) {
         throw ex;
       }

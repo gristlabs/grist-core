@@ -204,7 +204,7 @@ export interface IGristUrlState {
     style?: InterfaceStyle;
     compare?: string;
     linkParameters?: Record<string, string>;  // Parameters to pass as 'user.Link' in granular ACLs.
-                                              // Encoded in URL as query params with extra '_' suffix.
+    // Encoded in URL as query params with extra '_' suffix.
     themeSyncWithOs?: boolean;
     themeAppearance?: ThemeAppearance;
     themeName?: ThemeName;
@@ -214,8 +214,8 @@ export interface IGristUrlState {
   };
   hash?: HashLink;   // if present, this specifies an individual row within a section of a page.
   api?: boolean;     // indicates that the URL should be encoded as an API URL, not as a landing page.
-                     // But this barely works, and is suitable only for documents. For decoding it
-                     // indicates that the URL probably points to an API endpoint.
+  // But this barely works, and is suitable only for documents. For decoding it
+  // indicates that the URL probably points to an API endpoint.
   viaShare?: boolean; // Accessing document via a special share.
   form?: {
     vsId: number;      // a view section id of a form.
@@ -326,10 +326,10 @@ export function getOrgUrlInfo(newOrg: string, currentHost: string, options: OrgU
  *    localhost:8080/o/<org>
  */
 export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
-                          state: IGristUrlState, baseLocation: Location | URL,
-                          options: {
-                            tweaks?: UrlTweaks,
-                          } = {}): string {
+  state: IGristUrlState, baseLocation: Location | URL,
+  options: {
+    tweaks?: UrlTweaks,
+  } = {}): string {
   const url = new URL(baseLocation.href);
   const parts = ['/'];
 
@@ -352,7 +352,7 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
     if (state.api) {
       parts.push(`docs/${encodeURIComponent(state.doc)}`);
     }
- else if (state.viaShare) {
+    else if (state.viaShare) {
       // Use a special path, and remove SHARE_KEY_PREFIX from id.
       let id = state.doc;
       if (id.startsWith(SHARE_KEY_PREFIX)) {
@@ -360,10 +360,10 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
       }
       parts.push(`s/${encodeURIComponent(id)}`);
     }
- else if (state.slug) {
+    else if (state.slug) {
       parts.push(`${encodeURIComponent(state.doc)}/${encodeURIComponent(state.slug)}`);
     }
- else {
+    else {
       parts.push(`doc/${encodeURIComponent(state.doc)}`);
     }
     if (state.mode && OpenDocMode.guard(state.mode)) {
@@ -376,10 +376,10 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
       parts.push(`/f/${state.form.vsId}`);
     }
   }
- else if (state.form?.shareKey) {
+  else if (state.form?.shareKey) {
     parts.push(`forms/${encodeURIComponent(state.form.shareKey)}/${encodeURIComponent(state.form.vsId)}`);
   }
- else if (state.homePage === 'trash' || state.homePage === 'templates') {
+  else if (state.homePage === 'trash' || state.homePage === 'templates') {
     parts.push(`p/${state.homePage}`);
   }
 
@@ -420,32 +420,32 @@ export function encodeUrl(gristConfig: Partial<GristLoadConfig>,
   if (state.homePageTab) {
     url.hash = state.homePageTab;
   }
- else if (state.hash && state.hash.anchor) {
+  else if (state.hash && state.hash.anchor) {
     url.hash = state.hash.anchor;
   }
- else if (state.hash) {
+  else if (state.hash) {
     // Project tests use hashes, so only set hash if there is an anchor.
     url.hash = makeAnchorLinkValue(state.hash);
   }
- else if (state.welcomeTour) {
+  else if (state.welcomeTour) {
     url.hash = 'repeat-welcome-tour';
   }
- else if (state.docTour) {
+  else if (state.docTour) {
     url.hash = 'repeat-doc-tour';
   }
- else if (state.manageUsers) {
+  else if (state.manageUsers) {
     url.hash = 'manage-users';
   }
- else if (state.createTeam) {
+  else if (state.createTeam) {
     url.hash = 'create-team';
   }
- else if (state.upgradeTeam) {
+  else if (state.upgradeTeam) {
     url.hash = 'upgrade-team';
   }
- else if (state.adminPanelTab) {
+  else if (state.adminPanelTab) {
     url.hash = state.adminPanelTab;
   }
- else {
+  else {
     url.hash = '';
   }
   options.tweaks?.postEncode?.({
@@ -522,7 +522,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (gristConfig.org || gristConfig.singleOrg) {
     state.org = gristConfig.org || gristConfig.singleOrg;
   }
- else if (!gristConfig.pathOnly && subdomain.org) {
+  else if (!gristConfig.pathOnly && subdomain.org) {
     state.org = subdomain.org;
   }
   const sp = new URLSearchParams(location.search);
@@ -537,7 +537,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
     if (map.has('p')) { state.docPage = parseDocPage(map.get('p')!); }
     if (map.has('f')) { state.form = {vsId: parseInt(map.get('f')!, 10)}; }
   }
- else {
+  else {
     if (map.has('p')) {
       const p = map.get('p')!;
       state.homePage = HomePage.parse(p);
@@ -564,13 +564,13 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
   if (map.has('signup')) {
     state.login = 'signup';
   }
- else if (map.has('login')) {
+  else if (map.has('login')) {
     state.login = 'login';
   }
- else if (map.has('verified')) {
+  else if (map.has('verified')) {
     state.login = 'verified';
   }
- else if (map.has('forgot-password')) {
+  else if (map.has('forgot-password')) {
     state.login = 'forgot-password';
   }
   if (sp.has('state')) {
@@ -642,7 +642,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
       if (part.startsWith('rr')) {
         hashMap.set(part.slice(0, 2), part.slice(2));
       }
- else {
+      else {
         hashMap.set(part.slice(0, 1), part.slice(1));
       }
     }
@@ -654,7 +654,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         anchor,
       };
     }
- else if (hashMap.has('#') && ['a1', 'a2', 'a3', 'a4'].includes(hashMap.get('#') || '')) {
+    else if (hashMap.has('#') && ['a1', 'a2', 'a3', 'a4'].includes(hashMap.get('#') || '')) {
       const link: HashLink = {};
       const keys = [
         'sectionId',
@@ -667,7 +667,7 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
           ch = 'rr';
           link.rickRow = true;
         }
- else {
+        else {
           ch = key.substr(0, 1);
           if (!hashMap.has(ch)) { continue; }
         }
@@ -675,22 +675,22 @@ export function decodeUrl(gristConfig: Partial<GristLoadConfig>, location: Locat
         if (key === 'rowId' && value === 'new') {
           link[key] = 'new';
         }
- else if (key === 'rowId' && value && value.includes("-")) {
+        else if (key === 'rowId' && value && value.includes("-")) {
           const rowIdParts = value.split("-").map(p => (p === 'new' ? p : parseInt(p, 10)));
           link[key] = rowIdParts[0];
           link.linkingRowIds = rowIdParts.slice(1);
         }
- else {
+        else {
           link[key] = parseInt(value!, 10);
         }
       }
       if (hashMap.get('#') === 'a2') {
         link.popup = true;
       }
- else if (hashMap.get('#') === 'a3') {
+      else if (hashMap.get('#') === 'a3') {
         link.recordCard = true;
       }
- else if (hashMap.get('#') === 'a4') {
+      else if (hashMap.get('#') === 'a4') {
         link.comments = true;
       }
       state.hash = link;
@@ -725,7 +725,7 @@ export function userOverrideParams(email: string|null, extraState?: IGristUrlSta
     if (email) {
       linkParameters.aclAsUser = email;
     }
- else {
+    else {
       delete linkParameters.aclAsUser;
     }
     delete linkParameters.aclAsUserId;
@@ -1111,7 +1111,7 @@ export function isOrgInPathOnly(host?: string): boolean {
     const gristConfig: GristLoadConfig = (window as any).gristConfig;
     return (gristConfig && gristConfig.pathOnly) || false;
   }
- else {
+  else {
     if (host && host.match(localhostRegex)) { return true; }
     return (process.env.GRIST_ORG_IN_PATH === 'true');
   }
@@ -1178,7 +1178,7 @@ export function parseFirstUrlPart(tag: string, path: string): {value?: string, p
   if (match && match[1] === tag) {
     return {value: match[2], path: sanitizePathTail(match[3])};
   }
- else {
+  else {
     return {path};
   }
 }
@@ -1271,16 +1271,16 @@ export function makeAnchorLinkValue(hash: HashLink): string {
     if (hash.comments) {
       hashParts.push('a4');
     }
- else if (hash.recordCard) {
+    else if (hash.recordCard) {
       hashParts.push('a3');
     }
- else if (hash.popup) {
+    else if (hash.popup) {
       hashParts.push('a2');
     }
- else if (hash.anchor) {
+    else if (hash.anchor) {
       hashParts.push(hash.anchor);
     }
- else {
+    else {
       hashParts.push('a1');
     }
     for (const key of ['sectionId', 'rowId', 'colRef'] as Array<keyof HashLink>) {
@@ -1354,7 +1354,7 @@ function withAdminDefinedUrls(defaultUrls: ICommonUrls): ICommonUrls {
   try {
     adminDefinedUrls = JSON.parse(adminDefinedUrlsStr);
   }
- catch(e) {
+  catch(e) {
     throw new Error("The JSON passed to GRIST_CUSTOM_COMMON_URLS is malformed");
   }
 

@@ -58,7 +58,7 @@ describe("Localization", function() {
       const lang = langRaw?.replace(/_/g, '-');
       const ns = file.split('.')[1];
       const clientFile = path.join(localeDirectory,
-                                    `${langRaw}.client.json`);
+        `${langRaw}.client.json`);
       const clientText = fs.readFileSync(clientFile, { encoding: 'utf8' });
       if (!clientText.includes('Translators: please translate this only when')) {
         // Translation not ready if this key is not present.
@@ -163,7 +163,7 @@ describe("Localization", function() {
       fs.writeFileSync(path.join(tempDirectory, 'dummy.json'), 'invalid json');
       await assert.isRejected(server.restart(false, true));
     }
- finally {
+    finally {
       oldEnv.restore();
       await server.restart();
     }

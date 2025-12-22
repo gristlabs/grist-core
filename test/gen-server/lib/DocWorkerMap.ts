@@ -262,7 +262,7 @@ describe('DocWorkerMap', function() {
           assert.sameMembers(await cli.smembersAsync('workers-available-funkytown'), ['worker1', 'worker2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-default'), ['worker3', 'worker4']);
           assert.sameMembers(await cli.smembersAsync('workers-available'),
-                            ['worker0', 'worker1', 'worker2', 'worker3', 'worker4']);
+            ['worker0', 'worker1', 'worker2', 'worker3', 'worker4']);
           for (let i = 0; i < 20; i++) {
             const assignment = await workers.assignDocWorker(`blizzard${i}`);
             assert.equal(assignment.docWorker.id, 'worker0');
@@ -301,14 +301,14 @@ describe('DocWorkerMap', function() {
             await workers.setWorkerAvailability(`worker${i}_v2`, true);
           }
           assert.sameMembers(await cli.smembersAsync('workers-available-blizzard'),
-                            ['worker5', 'worker0_v2']);
+            ['worker5', 'worker0_v2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-funkytown'),
-                            ['worker2', 'worker6', 'worker1_v2', 'worker2_v2']);
+            ['worker2', 'worker6', 'worker1_v2', 'worker2_v2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-default'),
-                            ['worker3', 'worker4', 'worker3_v2', 'worker4_v2']);
+            ['worker3', 'worker4', 'worker3_v2', 'worker4_v2']);
           assert.sameMembers(await cli.smembersAsync('workers-available'),
-                            ['worker2', 'worker3', 'worker4', 'worker5', 'worker6',
-                              'worker0_v2', 'worker1_v2', 'worker2_v2', 'worker3_v2', 'worker4_v2']);
+            ['worker2', 'worker3', 'worker4', 'worker5', 'worker6',
+              'worker0_v2', 'worker1_v2', 'worker2_v2', 'worker3_v2', 'worker4_v2']);
 
           // ...and then remove the old one
           workers = new DocWorkerMap([cli], 'ver1');
@@ -320,12 +320,12 @@ describe('DocWorkerMap', function() {
           workers = new DocWorkerMap([cli], 'ver2');
           elections = await cli.hgetallAsync('elections-ver2');
           assert.deepEqual(elections, { blizzard: '["worker0_v2"]',
-                                        funkytown: '["worker1_v2","worker2_v2"]' });
+            funkytown: '["worker1_v2","worker2_v2"]' });
           assert.sameMembers(await cli.smembersAsync('workers-available-blizzard'), ['worker0_v2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-funkytown'), ['worker1_v2', 'worker2_v2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-default'), ['worker3_v2', 'worker4_v2']);
           assert.sameMembers(await cli.smembersAsync('workers-available'),
-                            ['worker0_v2', 'worker1_v2', 'worker2_v2', 'worker3_v2', 'worker4_v2']);
+            ['worker0_v2', 'worker1_v2', 'worker2_v2', 'worker3_v2', 'worker4_v2']);
           for (let i = 0; i < 20; i++) {
             const assignment = await workers.assignDocWorker(`blizzard${i}`);
             assert.equal(assignment.docWorker.id, 'worker0_v2');
@@ -355,18 +355,18 @@ describe('DocWorkerMap', function() {
 
           // Register a worker in a special group.
           await workers.addWorker({id: 'worker_secondary', internalUrl: 'internal', publicUrl: 'public',
-                                  group: 'secondary'});
+            group: 'secondary'});
           await workers.setWorkerAvailability('worker_secondary', true);
 
           // Check that worker lists look sane.
           assert.sameMembers(await cli.smembersAsync('workers'),
-                            ['worker0', 'worker1', 'worker2', 'worker_secondary']);
+            ['worker0', 'worker1', 'worker2', 'worker_secondary']);
           assert.sameMembers(await cli.smembersAsync('workers-available'),
-                            ['worker0', 'worker1', 'worker2']);
+            ['worker0', 'worker1', 'worker2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-default'),
-                            ['worker0', 'worker1', 'worker2']);
+            ['worker0', 'worker1', 'worker2']);
           assert.sameMembers(await cli.smembersAsync('workers-available-secondary'),
-                            ['worker_secondary']);
+            ['worker_secondary']);
 
           // Check that worker-*-group keys are as expected.
           assert.equal(await cli.getAsync('worker-worker_secondary-group'), 'secondary');
@@ -379,7 +379,7 @@ describe('DocWorkerMap', function() {
           // Check that other docs don't end up on the special group's worker.
           for (let i = 0; i < 50; i++) {
             assert.match((await workers.assignDocWorker(`normaldoc${i}`)).docWorker.id,
-                        /^worker\d$/);
+              /^worker\d$/);
           }
         });
       });

@@ -160,8 +160,8 @@ export class DynamicQuerySet extends RowSource {
    * makeQuery() calls, cb() is always called at least once, and always asynchronously.
    */
   public makeQuery(filters: {[colId: string]: any[]},
-                   operations: {[colId: string]: QueryOperation},
-                   cb: (err: Error|null, changed: boolean) => void): void {
+    operations: {[colId: string]: QueryOperation},
+    cb: (err: Error|null, changed: boolean) => void): void {
     const query: ClientQuery = {tableId: this._tableModel.tableData.tableId, filters, operations};
     const newQuerySet = this._querySetManager.useQuerySet(this._holder, query);
     const ticket = this._getTicket();
@@ -173,7 +173,7 @@ export class DynamicQuerySet extends RowSource {
       if (!ticket.isValid()) { return; }
       this._updateQuerySetDebounced(newQuerySet, cb);
     })
-    .catch((err) => { cb(err, false); });
+      .catch((err) => { cb(err, false); });
   }
 
   private _updateQuerySet(nextQuerySet: QuerySet, cb: (err: Error|null, changed: boolean) => void): void {
@@ -193,7 +193,7 @@ export class DynamicQuerySet extends RowSource {
       }
       cb(null, true);
     }
- catch (err) {
+    catch (err) {
       cb(err, true);
     }
   }
@@ -278,7 +278,7 @@ export class QuerySet extends BaseFilteredRowSource {
         tableQS.addQuerySet(this, data.tableData);
       });
     }
- else {
+    else {
       // For regular (small), we fetch in bulk (and do nothing if already fetched).
       fetchPromise = tableModel.fetch(false);
     }

@@ -183,7 +183,7 @@ function wrapChangeParamByIdentity(appModel: AppModel, system: any, oriAction: a
       const examples: Example[] = tables.map(table => ({value: table.id, summary: table.id}));
       setExamples(examples, "tableId");
     })
-    .catch(reportError);
+      .catch(reportError);
   }
 
   // When a tableId is selected, fetch the list of columns and set examples for colId.
@@ -201,11 +201,11 @@ function wrapChangeParamByIdentity(appModel: AppModel, system: any, oriAction: a
       const docAPI = new ExtendedDocAPIImpl(baseUrl, docId);
       // Second argument of `true` includes hidden columns like gristHelper_Display and manualSort.
       docAPI.listColumns(value, true)
-      .then(({columns}: {columns: RecordWithStringId[]}) => {
-        const examples = columns.map(col => ({value: col.id, summary: col.fields.label as string}));
-        setExamples(examples, "colId");
-      })
-      .catch(reportError);
+        .then(({columns}: {columns: RecordWithStringId[]}) => {
+          const examples = columns.map(col => ({value: col.id, summary: col.fields.label as string}));
+          setExamples(examples, "colId");
+        })
+        .catch(reportError);
     }
   }
   return oriAction(...args);
@@ -367,7 +367,7 @@ createAppPage((appModel) => {
       onComplete,
     });
   })
-  .catch(reportError);
+    .catch(reportError);
 
   return rootNode;
 });

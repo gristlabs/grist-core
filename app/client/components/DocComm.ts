@@ -66,7 +66,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
   private listenTo: BackboneEvents['listenTo'];  // set by Backbone
 
   constructor(private _comm: Comm, openResponse: OpenLocalDocResult, private _docId: string,
-              private _notifier: Notifier) {
+    private _notifier: Notifier) {
     super();
     this._setOpenResponse(openResponse);
     // If *this* doc is shutdown forcibly (e.g. via reloadDoc call), mark it as closed, so we
@@ -78,7 +78,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
       try {
         await this._shutdown();
       }
- catch (e) {
+      catch (e) {
         if (!String(e).match(/GristWSConnection disposed/)) {
           reportError(e);
         }
@@ -143,10 +143,10 @@ export class DocComm extends Disposable implements ActiveDocAPI {
         await this.closeDoc();
       }
     }
- catch (err) {
+    catch (err) {
       console.warn(`DocComm: closeDoc failed: ${err}`);
     }
- finally {
+    finally {
       if (!this._comm.isDisposed()) {
         this._comm.releaseDocConnection(this._docId);
       }
@@ -183,7 +183,7 @@ export class DocComm extends Disposable implements ActiveDocAPI {
     try {
       return await this._callDocMethod(name, ...args);
     }
- catch (err) {
+    catch (err) {
       // TODO should be the suggested fork id and fork user.
       if (err.shouldFork) {
         // If the server suggests to fork, do it now, or wait for the fork already pending.

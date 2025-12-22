@@ -96,9 +96,9 @@ const testId = makeTestId('test-treeview-');
  * such visual artifact (handle, target and target's parent) are hidden, but if the cursor re-enter
  * the component without releasing the mouse, they will show again allowing user to resume dragging.
  */
- // note to self: in the future the model will be updated by the server, which could cause conflicts
- // if the user is dragging at the same time. It could be simpler to freeze the model and to differ
- // their resolution until after the drag terminates.
+// note to self: in the future the model will be updated by the server, which could cause conflicts
+// if the user is dragging at the same time. It could be simpler to freeze the model and to differ
+// their resolution until after the drag terminates.
 export class TreeViewComponent extends Disposable {
 
   private readonly _options: Required<TreeViewOptions>;
@@ -263,7 +263,7 @@ export class TreeViewComponent extends Disposable {
           replaceChildren(elem, itemHeaderElem, itemChildrenElem);
           dom.styleElem(arrowElement, 'visibility', itemChildren.get().length ? 'visible' : 'hidden');
         }
- else {
+        else {
           replaceChildren(elem, itemHeaderElem);
           dom.styleElem(arrowElement, 'visibility', 'hidden');
         }
@@ -419,7 +419,7 @@ export class TreeViewComponent extends Disposable {
       this._target.set({width, left, top});
       this._hideTarget.set(false);
     }
- else {
+    else {
       this._hideTarget.set(true);
     }
   }
@@ -457,7 +457,7 @@ export class TreeViewComponent extends Disposable {
       drag.highlightedBox.autoDispose({dispose: () => newParent.highlight.set(false)});
       newParent.highlight.set(true);
     }
- else {
+    else {
       // setting holder to a dump value allows to dispose the previous value
       drag.highlightedBox.autoDispose({dispose: noop});
     }
@@ -500,7 +500,7 @@ export class TreeViewComponent extends Disposable {
         }
         return {zone: 'within', item};
       }
- else {
+      else {
         return {zone: 'below', item};
       }
     }
@@ -513,7 +513,7 @@ export class TreeViewComponent extends Disposable {
     while (el.parentElement
            && el.parentElement !== parent
            && el.parentElement !== this._containerElement // let's stop at the top element
-           ) {
+    ) {
       el = el.parentElement;
     }
     return el.parentElement === parent;
@@ -595,7 +595,7 @@ export class TreeViewComponent extends Disposable {
     if (eq(drag.item, item) || !children || children.get().length && !item.collapsed.get()) {
       drag.autoExpander.clear();
     }
- else {
+    else {
       const callback = () => {
 
         // Expanding the item needs some extra care. Because we could push the dragged item
@@ -652,7 +652,7 @@ function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
       if (handler) {
         handler.onMove(ev);
       }
- else {
+      else {
         clearTimeout(timeoutId);
       }
     }
@@ -660,7 +660,7 @@ function delayedMouseDrag(startDrag: MouseDragStart, delay: number) {
       if (handler) {
         handler.onStop(ev);
       }
- else {
+      else {
         clearTimeout(timeoutId);
       }
     }

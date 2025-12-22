@@ -90,7 +90,7 @@ async function markAction(filename: string) {
     const documentSettingsObj: DocumentSettings = safeJsonParse(documentSettings, {});
     documentSettingsObj.baseAction = states[0];
     await db.run('UPDATE _grist_DocInfo SET documentSettings = ?',
-                 JSON.stringify(documentSettingsObj));
+      JSON.stringify(documentSettingsObj));
   }
   await db.close();
 }

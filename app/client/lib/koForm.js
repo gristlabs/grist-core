@@ -146,7 +146,7 @@ exports.buttonSelect = function(valueObservable, moreButtonArgs) {
 
   // TODO: Is adding ":not(.disabled)" the best way to avoid execution?
   G.$(groupElem).on('click', '.kf_button:not(.disabled)', function() {
-      setSaveValue(valueObservable, ko.utils.domData.get(this, 'kfOptionValue'));
+    setSaveValue(valueObservable, ko.utils.domData.get(this, 'kfOptionValue'));
   });
 
   kd.makeBinding(valueObservable, function(groupElem, value) {
@@ -462,18 +462,18 @@ exports.draggableList = function(contentArray, itemCreateFunc, options) {
           kd.toggleClass('kf_draggable--vertical', options.axis === 'y'),
           kd.cssClass(options.itemClass),
           (options.drag_indicator ?
-           (typeof options.drag_indicator === 'boolean' ?
-            dom('span.kf_drag_indicator.kf_draggable__icon.icon-dragdrop') :
-            options.drag_indicator()
-           ) : null),
+            (typeof options.drag_indicator === 'boolean' ?
+              dom('span.kf_drag_indicator.kf_draggable__icon.icon-dragdrop') :
+              options.drag_indicator()
+            ) : null),
           kd.domData('model', item),
           kd.maybe(removeFunc !== undefined && options.removeButton, function() {
             return dom('span.drag_delete.kf_draggable__icon.icon-remove',
               dom.on('click', function() {
                 removeFunc(item)
-                .catch(function(err) {
-                  console.warn('Failed to remove item', err);
-                });
+                  .catch(function(err) {
+                    console.warn('Failed to remove item', err);
+                  });
               })
             );
           }),
@@ -516,10 +516,10 @@ function handleReorderStop(container, e, ui) {
   if (reorderFunc && !ui.item.prev().is(originalPrev)) {
     var movingItem = ko.utils.domData.get(ui.item[0], 'model');
     reorderFunc(movingItem, getNextDraggableItemModel(ui.item))
-    .catch(function(err) {
-      console.warn('Failed to reorder item', err);
-      G.$(container).sortable('cancel');
-    });
+      .catch(function(err) {
+        console.warn('Failed to reorder item', err);
+        G.$(container).sortable('cancel');
+      });
   }
   resetDraggedItem(ui.item[0]);
 }
@@ -532,20 +532,20 @@ function handleConnectedStop(e, ui) {
 
   if (removeOriginal && receive) {
     removeOriginal(ko.utils.domData.get(ui.item[0], 'model'))
-    .then(function(removedItem) {
-      return receive(removedItem, getNextDraggableItemModel(ui.item))
-      .then(function() {
-        ui.item.remove();
+      .then(function(removedItem) {
+        return receive(removedItem, getNextDraggableItemModel(ui.item))
+          .then(function() {
+            ui.item.remove();
+          })
+          .catch(revertRemovedItem.bind(null, ui, originalParent, removedItem));
       })
-      .catch(revertRemovedItem.bind(null, ui, originalParent, removedItem));
-    })
-    .catch(function(err) {
-      console.warn('Error removing item', err);
-      G.$(originalParent).sortable('cancel');
-    })
-    .finally(function() {
-      resetDraggedItem(ui.item[0]);
-    });
+      .catch(function(err) {
+        console.warn('Error removing item', err);
+        G.$(originalParent).sortable('cancel');
+      })
+      .finally(function() {
+        resetDraggedItem(ui.item[0]);
+      });
   } else {
     console.warn('Missing remove or receive');
   }
@@ -560,11 +560,11 @@ function revertRemovedItem(ui, parent, item, err) {
       getNextDraggableItemModel(originalPrev) :
       getDraggableItemModel(parent.children('.kf_draggable').first());
     originalReceiveFunc(item, originalNextItem)
-    .catch(function(err) {
-      console.warn('Failed to receive item in original collection.', err);
-    }).finally(function() {
-      ui.item.remove();
-    });
+      .catch(function(err) {
+        console.warn('Failed to receive item in original collection.', err);
+      }).finally(function() {
+        ui.item.remove();
+      });
   }
 }
 
@@ -592,9 +592,9 @@ function enableDraggableConnection(draggable) {
   });
 
   if (G.$(draggable).sortable("option", "disabled") && (
-      ko.utils.domData.get(draggable, 'receiveFunc') ||
+    ko.utils.domData.get(draggable, 'receiveFunc') ||
       ko.utils.domData.get(draggable, 'removeFunc')
-      )) {
+  )) {
     G.$(draggable).sortable( "option", { disabled: false });
   }
 }

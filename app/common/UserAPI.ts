@@ -1,12 +1,12 @@
 import {ApplyUAResult, ForkResult, FormulaTimingInfo,
-        PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
+  PermissionDataWithExtraUsers, QueryFilters, TimingStatus} from 'app/common/ActiveDocAPI';
 import {AssistanceRequest, AssistanceResponse} from 'app/common/Assistance';
 import {BaseAPI, IOptions} from 'app/common/BaseAPI';
 import {BillingAPI, BillingAPIImpl} from 'app/common/BillingAPI';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {ICustomWidget} from 'app/common/CustomWidget';
 import {BulkColValues, TableColValues, TableRecordValue, TableRecordValues,
-        TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
+  TableRecordValuesWithoutIds, UserAction} from 'app/common/DocActions';
 import {DocCreationInfo, OpenDocMode} from 'app/common/DocListAPI';
 import {DocStateComparison, DocStates} from 'app/common/DocState';
 import {OrgUsageSummary} from 'app/common/DocUsage';
@@ -62,7 +62,7 @@ export interface OrganizationProperties extends CommonProperties {
   userPrefs?: UserPrefs;        // Preferences specific to user (but not a particular org)
 }
 export const organizationPropertyKeys = [...commonPropertyKeys, 'domain',
-                                         'orgPrefs', 'userOrgPrefs', 'userPrefs'];
+  'orgPrefs', 'userOrgPrefs', 'userPrefs'];
 
 // Basic information about an organization, excluding the user's access level
 export interface OrganizationWithoutAccessInfo extends OrganizationProperties {
@@ -123,8 +123,8 @@ export interface Workspace extends WorkspaceProperties {
   orgDomain?: string;
   access: roles.Role;
   owner?: FullUser;  // Set when workspaces are in the "docs" pseudo-organization,
-                     // assembled from multiple personal organizations.
-                     // Not set when workspaces are all from the same organization.
+  // assembled from multiple personal organizations.
+  // Not set when workspaces are all from the same organization.
 
   // Set when the workspace belongs to support@getgrist.com. We expect only one such workspace
   // ("Examples & Templates"), containing sample documents.
@@ -146,7 +146,7 @@ export interface DocumentOptions {
   icon?: string|null;
   openMode?: OpenDocMode|null;
   externalId?: string|null;  // A slot for storing an externally maintained id.
-                             // Not used in grist-core, but handy for Electron app.
+  // Not used in grist-core, but handy for Electron app.
   tutorial?: TutorialMetadata|null;
   appearance?: DocumentAppearance|null;
   // Whether search engines should index this document. Defaults to `false`.
@@ -464,7 +464,7 @@ export interface UserAPI {
 /**
  * Parameters for the download CSV and XLSX endpoint (/download/table-schema & /download/csv & /download/csv).
  */
- export interface DownloadDocParams {
+export interface DownloadDocParams {
   tableId: string;
   viewSection?: number;
   activeSortSpec?: string;
@@ -974,8 +974,8 @@ export class UserAPIImpl extends BaseAPI implements UserAPI {
 
   public async deleteUser(userId: number, name: string) {
     await this.request(`${this._url}/api/users/${userId}`,
-                       {method: 'DELETE',
-                        body: JSON.stringify({name})});
+      {method: 'DELETE',
+        body: JSON.stringify({name})});
   }
 
   public async closeAccount(userId: number): Promise<boolean> {
@@ -1005,7 +1005,7 @@ export class DocWorkerAPIImpl extends BaseAPI implements DocWorkerAPI {
   }
 
   public async importDocToWorkspace(uploadId: number, workspaceId: number, browserSettings?: BrowserSettings):
-      Promise<DocCreationInfo> {
+  Promise<DocCreationInfo> {
     return this.requestJson(`${this.url}/api/workspaces/${workspaceId}/import`, {
       method: 'POST',
       body: JSON.stringify({ uploadId, browserSettings }),
@@ -1210,7 +1210,7 @@ export class DocAPIImpl extends BaseAPI implements DocAPI {
     return this.requestJson(`${this._url}/copy`, {
       body: JSON.stringify({workspaceId, documentName, asTemplate}),
       method: 'POST',
-     });
+    });
   }
 
   public async compareVersion(leftHash: string, rightHash: string): Promise<DocStateComparison> {

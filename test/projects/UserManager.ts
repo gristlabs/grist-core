@@ -18,7 +18,7 @@ describe('UserManager', () => {
     try {
       return await member.find('.test-um-member-email').getText();
     }
- catch {
+    catch {
       return await member.find('.test-um-member-name').getText();
     }
   }

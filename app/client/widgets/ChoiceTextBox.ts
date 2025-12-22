@@ -122,12 +122,12 @@ export class ChoiceTextBox extends NTextBox {
       use => use(this.field.disableModify)
         || use(use(this.field.column).disableEditData)
         || use(this.field.config.options.disabled('choices')),
-      );
+    );
 
     const mixed = Computed.create(null,
       use => !use(disabled)
         && (use(this.field.config.options.mixed('choices')) || use(this.field.config.options.mixed('choiceOptions'))),
-      );
+    );
 
     return [
       cssLabel(t('CHOICES')),

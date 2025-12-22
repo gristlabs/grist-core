@@ -72,7 +72,7 @@ describe('FieldConfigTab.ntest', function() {
 
     // Id should be unchanged, but we should be able to change it now.
     assert.deepEqual(await gu.getGridValues({ rowNums: [1, 2, 3, 4], cols: [1] }),
-                     ['', 'world', '', '']);
+      ['', 'world', '', '']);
     assert(await $(".test-field-col-id").val(), "B");
     await $(".test-field-col-id").sendNewText("baz");
     assert(await $(".test-field-col-id").val(), "baz");
@@ -82,7 +82,7 @@ describe('FieldConfigTab.ntest', function() {
 
     // Make sure the changing Ids does not effect the data in the column
     assert.deepEqual(await gu.getGridValues({ rowNums: [1, 2, 3, 4], cols: [1] }),
-                     ['', 'world', '', '']);
+      ['', 'world', '', '']);
     await assert.hasClass(gu.getCell(0, 1).find('.field_clip'), 'invalid', false);
   });
 

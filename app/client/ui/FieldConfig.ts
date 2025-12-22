@@ -16,7 +16,7 @@ import {RecalcWhen} from 'app/common/gristTypes';
 import {sanitizeIdent} from 'app/common/gutil';
 import {CursorPos} from 'app/plugin/GristAPI';
 import {bundleChanges, Computed, dom, DomContents, DomElementArg, fromKo, MultiHolder,
-        Observable, styled} from 'grainjs';
+  Observable, styled} from 'grainjs';
 import * as ko from 'knockout';
 import { components, tokens } from 'app/common/ThemePrefs';
 
@@ -45,9 +45,9 @@ export function buildNameConfig(
   // update a different column.
   const editors: HTMLInputElement[] = [];
   owner.autoDispose(
-   cursor.subscribe(() => {
-     editors.forEach(e => e.blur());
-   }),
+    cursor.subscribe(() => {
+      editors.forEach(e => e.blur());
+    }),
   );
   const setEditor = (id: number) => (el: HTMLInputElement) => { editors[id] = el; };
 
@@ -197,7 +197,7 @@ export function buildFormulaConfig(
   const selectedColumns = () => viewSection.get()?.selectedFields.peek().map(f => f.column.peek()) || [];
   const selectedColumnIds = () => selectedColumns().map(f => f.id.peek()) || [];
 
-   // Clear and reset all option for multiple selected columns.
+  // Clear and reset all option for multiple selected columns.
   const clearAndResetAll = () => selectOption(
     () => Promise.all([
       gristDoc.docModel.clearColumns(selectedColumnIds()),
@@ -252,7 +252,7 @@ export function buildFormulaConfig(
       if (commonType === 'mixed') { return t('Mixed Behavior'); }
       return t('Empty columns', {count: 2});
     }
- else {
+    else {
       if (type === 'formula') { return t('Formula columns', {count: 1}); }
       if (type === 'data') { return t('Data columns', {count: 1}); }
       return t('Empty columns', {count: 1});
@@ -283,7 +283,7 @@ export function buildFormulaConfig(
     convertToData,
     t("Convert column to data"), 'Database',
     dom.cls('disabled', isSummaryTable),
-    );
+  );
 
   // Clears the column
   const clearAndResetOption = () => selectOption(
@@ -334,7 +334,7 @@ export function buildFormulaConfig(
       // then convert column to a trigger formula column
       await gristDoc.docModel.convertToTrigger(column.id.peek(), formula);
     }
- else if (column.hasTriggerFormula.peek()) {
+    else if (column.hasTriggerFormula.peek()) {
       // else, if it was already a trigger formula column, just update formula.
       await gristDoc.docModel.updateFormula(column.id.peek(), formula);
     }
@@ -371,82 +371,82 @@ export function buildFormulaConfig(
   ];
 
   return dom.maybe(behavior, (type: BEHAVIOR) => [
-      cssLabel(t("COLUMN BEHAVIOR")),
-      ...(type === "empty" ? [
-        menu(behaviorLabel(), [
-          convertToDataOption(),
-        ]),
+    cssLabel(t("COLUMN BEHAVIOR")),
+    ...(type === "empty" ? [
+      menu(behaviorLabel(), [
+        convertToDataOption(),
+      ]),
+      cssEmptySeparator(),
+      cssRow(textButton(
+        t("Set formula"),
+        dom.on("click", setFormula),
+        dom.prop("disabled", disableOtherActions),
+        testId("field-set-formula"),
+      )),
+      cssRow(withInfoTooltip(
+        textButton(
+          t("Set trigger formula"),
+          dom.on("click", setTrigger),
+          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
+          testId("field-set-trigger"),
+        ),
+        'setTriggerFormula',
+      )),
+      cssRow(textButton(
+        t("Make into data column"),
+        dom.on("click", convertToData),
+        dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
+        testId("field-set-data"),
+      )),
+    ] : type === "formula" ? [
+      menu(behaviorLabel(), [
+        convertToDataOption(),
+        clearAndResetOption(),
+      ]),
+      formulaBuilder(onSaveConvertToFormula),
+      cssEmptySeparator(),
+      cssRow(textButton(
+        t("Convert to trigger formula"),
+        dom.on("click", convertFormulaToTrigger),
+        dom.hide(maybeFormula),
+        dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
+        testId("field-set-trigger"),
+      )),
+    ] : /* type == 'data' */ [
+      menu(behaviorLabel(),
+        [
+          dom.domComputed(origColumn.hasTriggerFormula, hasTrigger => hasTrigger ?
+          // If we have trigger, we will convert it directly to a formula column
+            convertTriggerToFormulaOption() :
+          // else we will convert to empty column and open up the editor
+            convertDataColumnToFormulaOption(),
+          ),
+          clearAndResetOption(),
+        ],
+      ),
+      // If data column is or wants to be a trigger formula:
+      dom.maybe(use => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
+        cssLabel(t("TRIGGER FORMULA")),
+        formulaBuilder(onSaveConvertToTrigger, false),
+        dom.create(buildFormulaTriggers, origColumn, {
+          disabled: disableOtherActions,
+          notTrigger: maybeTrigger,
+        }),
+      ]),
+      // Else offer a way to convert to trigger formula.
+      dom.maybe(use => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
         cssEmptySeparator(),
-        cssRow(textButton(
-          t("Set formula"),
-          dom.on("click", setFormula),
-          dom.prop("disabled", disableOtherActions),
-          testId("field-set-formula"),
-        )),
         cssRow(withInfoTooltip(
           textButton(
             t("Set trigger formula"),
-            dom.on("click", setTrigger),
-            dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
+            dom.on("click", convertDataColumnToTriggerColumn),
+            dom.prop("disabled", disableOtherActions),
             testId("field-set-trigger"),
           ),
           'setTriggerFormula',
         )),
-        cssRow(textButton(
-          t("Make into data column"),
-          dom.on("click", convertToData),
-          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
-          testId("field-set-data"),
-        )),
-      ] : type === "formula" ? [
-        menu(behaviorLabel(), [
-          convertToDataOption(),
-          clearAndResetOption(),
-        ]),
-        formulaBuilder(onSaveConvertToFormula),
-        cssEmptySeparator(),
-        cssRow(textButton(
-          t("Convert to trigger formula"),
-          dom.on("click", convertFormulaToTrigger),
-          dom.hide(maybeFormula),
-          dom.prop("disabled", use => use(isSummaryTable) || use(disableOtherActions)),
-          testId("field-set-trigger"),
-        )),
-      ] : /* type == 'data' */ [
-        menu(behaviorLabel(),
-          [
-            dom.domComputed(origColumn.hasTriggerFormula, hasTrigger => hasTrigger ?
-              // If we have trigger, we will convert it directly to a formula column
-              convertTriggerToFormulaOption() :
-              // else we will convert to empty column and open up the editor
-              convertDataColumnToFormulaOption(),
-            ),
-            clearAndResetOption(),
-          ],
-        ),
-        // If data column is or wants to be a trigger formula:
-        dom.maybe(use => use(maybeTrigger) || use(origColumn.hasTriggerFormula), () => [
-          cssLabel(t("TRIGGER FORMULA")),
-          formulaBuilder(onSaveConvertToTrigger, false),
-          dom.create(buildFormulaTriggers, origColumn, {
-            disabled: disableOtherActions,
-            notTrigger: maybeTrigger,
-          }),
-        ]),
-        // Else offer a way to convert to trigger formula.
-        dom.maybe(use => !(use(maybeTrigger) || use(origColumn.hasTriggerFormula)), () => [
-          cssEmptySeparator(),
-          cssRow(withInfoTooltip(
-            textButton(
-              t("Set trigger formula"),
-              dom.on("click", convertDataColumnToTriggerColumn),
-              dom.prop("disabled", disableOtherActions),
-              testId("field-set-trigger"),
-            ),
-            'setTriggerFormula',
-          )),
-        ]),
       ]),
+    ]),
   ]);
 }
 

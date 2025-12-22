@@ -7,7 +7,7 @@ import {FloatingPopup, PopupPosition} from 'app/client/ui/FloatingPopup';
 import {theme} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
 import {Disposable, dom, Holder, IDisposableOwner, IDomArgs,
-        makeTestId, MultiHolder, Observable, styled} from 'grainjs';
+  makeTestId, MultiHolder, Observable, styled} from 'grainjs';
 
 const t = makeT('FloatingEditor');
 
@@ -85,8 +85,8 @@ export class FloatingEditor extends Disposable {
         width: FLOATING_POPUP_WIDTH_PX,
         height: 711,
         content: () => (content = editor.detach()), // this will be called immediately, and will move some dom between
-                                                    // existing editor and the popup. We need to save it, so we can
-                                                    // detach it on close.
+        // existing editor and the popup. We need to save it, so we can
+        // detach it on close.
         title: () => title, // We are not reactive yet
         closeButton: true,  // Show the close button with a hover
         closeButtonIcon: 'Minimize',
@@ -98,7 +98,7 @@ export class FloatingEditor extends Disposable {
             popupOwner.dispose();
             await editor.attach(content);
           }
- finally {
+          finally {
             layer.dispose();
           }
         },
@@ -116,7 +116,7 @@ export class FloatingEditor extends Disposable {
       // Show the popup with the editor.
       popup.showPopup();
     }
- finally {
+    finally {
       // Dispose the focus layer, we only needed it for the time when the dom was moved between parents.
       tempOwner.dispose();
     }
@@ -135,12 +135,12 @@ export class FloatingEditor extends Disposable {
       // Anchor the floating editor to the top-left corner of the refElement.
       left = rect.left;
     }
- else if (window.innerWidth - right >= FLOATING_POPUP_WIDTH_PX) {
+    else if (window.innerWidth - right >= FLOATING_POPUP_WIDTH_PX) {
       // If there's enough space to the right of refElement, position the
       // floating editor there.
       left = right;
     }
- else {
+    else {
       // Otherwise position it to the left of refElement; note that it may still
       // overlap if there isn't enough space on this side either.
       left = rect.left - FLOATING_POPUP_WIDTH_PX;

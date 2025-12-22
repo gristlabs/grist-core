@@ -59,7 +59,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
    * in the URL. This is similar to navigating to a new URL, but does not reload the page.
    */
   public async pushUrl(urlState: IUrlState|UpdateFunc<IUrlState>,
-                       options: {replace?: boolean, avoidReload?: boolean} = {}) {
+    options: {replace?: boolean, avoidReload?: boolean} = {}) {
     const prevState = this.state.get();
     const newState = this._mergeState(prevState, urlState);
 
@@ -81,13 +81,13 @@ export class UrlState<IUrlState extends object> extends Disposable {
         if (options.replace) {
           this._window.history.replaceState(null, '', newUrl);
         }
- else {
+        else {
           this._window.history.pushState(null, '', newUrl);
         }
         // pushState/replaceState above do not trigger 'popstate' event, so we call loadState() manually.
         this.loadState();
       }
- catch (e) {
+      catch (e) {
         // If we fail, we may be in a context where Grist doesn't have
         // control over history, e.g. an iframe with srcdoc. Go ahead
         // and apply the application state change (e.g. switching to a
@@ -97,7 +97,7 @@ export class UrlState<IUrlState extends object> extends Disposable {
         this.state.set(this._stateImpl.decodeUrl(new URL(newUrl)));
       }
     }
- else {
+    else {
       this._window._urlStateLoadPage!(newUrl);
     }
   }

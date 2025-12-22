@@ -38,8 +38,8 @@ export class DocHistory extends Disposable implements IDomComponent {
       dom.domComputed(this._subTab, subTab =>
         buildConfigContainer(
           subTab === 'activity' ? this._actionLog.buildDom() :
-          subTab === 'snapshots' ? dom.create(this._buildSnapshots.bind(this)) :
-          null,
+            subTab === 'snapshots' ? dom.create(this._buildSnapshots.bind(this)) :
+              null,
         ),
       ),
     ];
@@ -73,13 +73,13 @@ export class DocHistory extends Disposable implements IDomComponent {
     const docApi = userApi.getDocAPI(origUrlId);
     docApi.getSnapshots().then(result =>
       snapshots.isDisposed() || snapshots.set(result.snapshots)).catch((err) => {
-        snapshotsDenied.set(true);
-        // "cannot confirm access" is what we expect if snapshots
-        // are denied because of access rules.
-        if (!String(err).match(/cannot confirm access/)) {
-          reportError(err);
-        }
-      });
+      snapshotsDenied.set(true);
+      // "cannot confirm access" is what we expect if snapshots
+      // are denied because of access rules.
+      if (!String(err).match(/cannot confirm access/)) {
+        reportError(err);
+      }
+    });
     return dom(
       'div',
       {tabIndex: '-1'},  // Voodoo needed to allow copying text.
@@ -110,11 +110,11 @@ export class DocHistory extends Disposable implements IDomComponent {
             ),
             cssMenuDots(icon('Dots'),
               menu(() => [
-                  menuItemLink(setLink(snapshot), t("Open snapshot")),
-                  menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
-                  prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
-                ],
-                {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className},
+                menuItemLink(setLink(snapshot), t("Open snapshot")),
+                menuItemLink(setLink(snapshot, origUrlId), t("Compare to current")),
+                prevSnapshot && menuItemLink(setLink(prevSnapshot, snapshot.docId), t("Compare to previous")),
+              ],
+              {placement: 'bottom-end', parentSelectorToMark: '.' + cssSnapshotCard.className},
               ),
               testId('doc-history-snapshot-menu'),
             ),

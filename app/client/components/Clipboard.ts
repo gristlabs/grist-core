@@ -196,14 +196,14 @@ export class Clipboard extends Disposable {
         'text/html': new Blob([htmlText], {type: 'text/html'}),
       });
     }
- else {
+    else {
       data = plainText;
     }
 
     try {
       await copyToClipboard(data);
     }
- catch {
+    catch {
       showUnavailableMenuCommandModal(action);
       return;
     }
@@ -224,7 +224,7 @@ export class Clipboard extends Disposable {
       this._cutCallback = pasteObj.cutCallback;
       this._cutData = cutData;
     }
- else {
+    else {
       this._cutCallback = null;
       this._cutData = null;
     }
@@ -253,7 +253,7 @@ export class Clipboard extends Disposable {
     try {
       clipboardItems = await readDataFromClipboard();
     }
- catch {
+    catch {
       showUnavailableMenuCommandModal('paste');
       return;
     }
@@ -272,7 +272,7 @@ export class Clipboard extends Disposable {
         commands.allCommands.paste.run(pasteData, this._cutCallback);
       }
     }
- else {
+    else {
       this._cutData = null;
       commands.allCommands.paste.run(pasteData, null);
     }
@@ -299,7 +299,7 @@ function getPasteData(plainText: string, htmlText: string, fileItems: File[]): P
   try {
     return parsePasteHtml(htmlText);
   }
- catch (e) {
+  catch (e) {
     const text = plainText.replace(/^\uFEFF/, '');
     if (text) {
       return tsvDecode(plainText.replace(/\r\n?/g, "\n").trimEnd());
@@ -323,7 +323,7 @@ async function getTextFromClipboardItem(clipboardItem: ClipboardItem|undefined, 
   try {
     return (await clipboardItem.getType(type)).text();
   }
- catch {
+  catch {
     // No clipboard data exists for the MIME type.
     return '';
   }
@@ -340,7 +340,7 @@ async function getFilesFromClipboardItems(clipboardItems: ClipboardItem[]): Prom
       const mimeType = item.types.find(mtime => !mtime.startsWith("text/"));
       return mimeType ? item.getType(mimeType) : null;
     })
-    .filter(isNonNullish),
+      .filter(isNonNullish),
   );
   return blobs.map(blob => new File([blob], 'from-clipboard', {type: blob.type}));
 }

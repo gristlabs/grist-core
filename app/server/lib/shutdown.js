@@ -56,9 +56,9 @@ function runCleanupHandlers() {
     cleanupHandlers = [];
     _cleanupHandlersPromise = Promise.all(handlers.map(function(handler) {
       return Promise.try(handler.method.bind(handler.context)).timeout(handler.timeout)
-      .catch(function(err) {
-        log.warn(`Cleanup error for '${handler.name}' handler: ` + err);
-      });
+        .catch(function(err) {
+          log.warn(`Cleanup error for '${handler.name}' handler: ` + err);
+        });
     }));
   }
   return _cleanupHandlersPromise;
@@ -77,17 +77,17 @@ function signalExit(signal) {
   }
   process.on(signal, dup);
   return runCleanupHandlers()
-  .finally(function() {
-    log.info("Server %s exiting on %s", prog, signal);
-    process.removeListener(signal, dup);
-    delete signalsHandled[signal];
-    // Exit with the expected exit code for being killed by this signal.
-    // Unlike re-sending the same signal, the explicit exit works even
-    // in a situation when Grist is the init (pid 1) process in a container
-    // See https://github.com/gristlabs/grist-core/pull/830 (and #892)
-    const signalNumber = os.constants.signals[signal];
-    process.exit(process.pid, 128 + signalNumber);
-  });
+    .finally(function() {
+      log.info("Server %s exiting on %s", prog, signal);
+      process.removeListener(signal, dup);
+      delete signalsHandled[signal];
+      // Exit with the expected exit code for being killed by this signal.
+      // Unlike re-sending the same signal, the explicit exit works even
+      // in a situation when Grist is the init (pid 1) process in a container
+      // See https://github.com/gristlabs/grist-core/pull/830 (and #892)
+      const signalNumber = os.constants.signals[signal];
+      process.exit(process.pid, 128 + signalNumber);
+    });
 }
 
 /**
@@ -112,8 +112,8 @@ export function exit(optExitCode) {
   var code = optExitCode || 0;
   log.info("Server %s cleaning up", prog);
   return runCleanupHandlers()
-  .finally(function() {
-    log.info("Server %s exiting with code %s", prog, code);
-    process.exit(code);
-  });
+    .finally(function() {
+      log.info("Server %s exiting with code %s", prog, code);
+      process.exit(code);
+    });
 }

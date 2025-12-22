@@ -84,19 +84,19 @@ export class HostedMetadataManager {
     }
     if (this._push) { return; }
     this._push = this._performUpdate()
-    .catch((err) => {
-      log.error("HostedMetadataManager error performing update: ", err);
-    })
-    .then(() => {
-      this._push = null;
-      if (!this._closing && !this._timeout && Object.keys(this._metadata).length !== 0) {
+      .catch((err) => {
+        log.error("HostedMetadataManager error performing update: ", err);
+      })
+      .then(() => {
+        this._push = null;
+        if (!this._closing && !this._timeout && Object.keys(this._metadata).length !== 0) {
         // If we have metadata that hasn't been pushed up yet, but no push scheduled,
         // go ahead and schedule an immediate push. This can happen if `scheduleUpdate`
         // is called frequently with minimizeDelay set to true, particularly when
         // _performUpdate is taking a bit longer than normal to complete.
-        this._schedulePush(0);
-      }
-    });
+          this._schedulePush(0);
+        }
+      });
   }
 
   /**
@@ -136,7 +136,7 @@ export class HostedMetadataManager {
     if (!this._metadata[docId]) {
       this._metadata[docId] = metadata;
     }
- else {
+    else {
       const {updatedAt, usage} = metadata;
       if (updatedAt) { this._metadata[docId].updatedAt = updatedAt; }
       if (usage !== undefined) { this._metadata[docId].usage = usage; }

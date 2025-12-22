@@ -211,10 +211,10 @@ external storage.",
       ) +
       "\n\n" +
       t(
-      "[Learn more.]({{link}})", {
-        link: commonUrls.attachmentStorage,
-      },
-    )),
+        "[Learn more.]({{link}})", {
+          link: commonUrls.attachmentStorage,
+        },
+      )),
     ...args,
   ),
   adminControls: (...args: DomElementArg[]) => cssTooltipContent(
@@ -234,12 +234,12 @@ Only .tar attachment archives downloaded from Grist can be uploaded here.",
   formFraming: (...args: DomElementArg[]) => cssTooltipContent(
     cssMarkdownSpan(
       t(
-"This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. \
+        "This form is created by a Grist user, and is not endorsed by Grist Labs, Inc. \
 or any party providing this service. For your security, do not submit passwords through this form, \
 and be careful when clicking embedded links. Report malicious forms to [{{mail}}](mailto:{{mail}}).", {
-        mail: getGristConfig().supportEmail,
-      },
-    )),
+          mail: getGristConfig().supportEmail,
+        },
+      )),
   ),
   formUrlValues: () => cssTooltipContent(
     dom('div',
@@ -259,10 +259,10 @@ to be reviewed by the document owner prior to integration.",
       ) +
       "\n\n" +
       t(
-      "[Learn more.]({{link}})", {
-        link: commonUrls.helpSuggestions,
-      },
-    )),
+        "[Learn more.]({{link}})", {
+          link: commonUrls.helpSuggestions,
+        },
+      )),
   ),
 };
 
@@ -322,8 +322,8 @@ export const GristBehavioralPrompts: Record<BehavioralPrompt, BehavioralPromptCo
       dom('div', t('Select the table to link to.')),
       dom('div', t('Cells in a reference column always identify an {{entire}} \
 record in that table, but you may select which column from that record to show.', {
-          entire: cssItalicizedText(t('entire')),
-        })),
+        entire: cssItalicizedText(t('entire')),
+      })),
       dom('div',
         cssLink({href: commonUrls.helpUnderstandingReferenceColumns, target: '_blank'}, t('Learn more.')),
       ),

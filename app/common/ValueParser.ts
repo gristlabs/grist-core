@@ -145,7 +145,7 @@ export class ReferenceParser extends ValueParser {
         value = n;
         // Don't return yet because we need to check that this row ID exists
       }
- else {
+      else {
         return raw;
       }
     }
@@ -168,7 +168,7 @@ export class ReferenceListParser extends ReferenceParser {
     try {
       values = JSON.parse(raw);
     }
- catch {
+    catch {
       values = null;
     }
     if (!Array.isArray(values)) {
@@ -187,7 +187,7 @@ export class ReferenceListParser extends ReferenceParser {
         values = numbers;
         // Don't return yet because we need to check that these row IDs exist
       }
- else {
+      else {
         return raw;
       }
     }
@@ -206,7 +206,7 @@ export class ReferenceListParser extends ReferenceParser {
       if (rowId) {
         rowIds.push(rowId);
       }
- else {
+      else {
         // There's no matching value in the visible column, i.e. this is not a valid reference.
         // We need to return a string which will become AltText.
         return raw;
@@ -338,7 +338,7 @@ function parseColValues<T extends ColValues | BulkColValues>(
       // `colValues` is of type `BulkColValues`
       return (values as CellValue[]).map(parseIfString);
     }
- else {
+    else {
       // `colValues` is of type `ColValues`, `values` is just one value
       return parseIfString(values);
     }

@@ -45,7 +45,7 @@ export async function setupLocale() {
         if (lang === i18next.options.fallbackLng && n === i18next.options.defaultNS) {
           throw new Error(`Failed to load ${resourceUrl}`);
         }
- else {
+        else {
           console.warn(`Failed to load ${resourceUrl}`);
           return;
         }
@@ -60,7 +60,7 @@ export async function setupLocale() {
     await Promise.all(pathsToLoad);
     console.log("Localization initialized in " + (Date.now() - now) + "ms");
   }
- catch (error: any) {
+  catch (error: any) {
     reportError(error);
   }
 }
@@ -81,7 +81,7 @@ export function detectCurrentLang() {
 
 export function setAnonymousLocale(lng: string) {
   document.cookie = lng ? `grist_user_locale=${lng}; path=/; max-age=31536000`
-                        : 'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    : 'grist_user_locale=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
 }
 
 /**
@@ -113,7 +113,7 @@ function domT(key: string, args: any, tImpl: typeof i18next.t) {
   if (!args || !domElements.length) {
     return tImpl(key, args || undefined);
   }
- else {
+  else {
     // Make a copy of the arguments, and remove any dom elements from it. It will instruct
     // i18next library to use `missingInterpolationHandler` handler.
     const copy = {...args};

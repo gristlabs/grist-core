@@ -80,7 +80,7 @@ export class ViewFieldConfig {
         if (allSame(values)) {
           return values[0];
         }
- else {
+        else {
           return undefined;
         }
       },
@@ -217,7 +217,7 @@ export class ViewFieldConfig {
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
           for(const key of ['textColor', 'fillColor', 'fontBold',
-                            'fontItalic', 'fontUnderline', 'fontStrikethrough']) {
+            'fontItalic', 'fontUnderline', 'fontStrikethrough']) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
             // If all columns have the same value, use it.
@@ -279,7 +279,7 @@ export class ViewFieldConfig {
           const optionList = fields.map(f => f.widgetOptionsJson());
           // And fill only those that are common
           for(const key of ['headerTextColor', 'headerFillColor', 'headerFontBold',
-                            'headerFontItalic', 'headerFontUnderline', 'headerFontStrikethrough']) {
+            'headerFontItalic', 'headerFontUnderline', 'headerFontStrikethrough']) {
             // Setting null means that this options is there, but has no value.
             result[key] = null;
             // If all columns have the same value, use it.
@@ -342,7 +342,7 @@ export class ViewFieldConfig {
         ),
       ]));
     }
- else {
+    else {
       const column = this._field.column.peek();
       // In case this column is being transformed - using Apply Formula to Data, bundle the action
       // together with the transformation.
@@ -351,7 +351,7 @@ export class ViewFieldConfig {
       return this._docModel.docData.bundleActions("Update choices configuration", () => Promise.all([
         this._field.widgetOptionsJson.save(),
         !hasRenames ? null
-        : this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
+          : this._docModel.docData.sendAction(["RenameChoices", tableId, column.colId.peek(), renames]),
       ]), actionOptions);
     }
 

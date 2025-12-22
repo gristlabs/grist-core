@@ -75,7 +75,7 @@ export class MergedServer {
       const userPort = checkUserContentPort();
       ms.flexServer.setServesPlugins(userPort !== undefined);
     }
- else {
+    else {
       ms.flexServer.setServesPlugins(false);
     }
 
@@ -223,7 +223,7 @@ export class MergedServer {
         }
       }
     }
- catch(e) {
+    catch(e) {
       await this.close();
       throw e;
     }
@@ -284,7 +284,7 @@ export async function startMain() {
 
     return server.flexServer;
   }
- catch (e) {
+  catch (e) {
     log.error('mergedServer failed to start', e);
     process.exit(1);
   }

@@ -21,7 +21,7 @@ export async function checksumFileStream(stream: Readable, algorithm: string = '
     });
     return shaSum.digest('hex');
   }
- finally {
+  finally {
     stream.removeAllListeners();      // Isn't strictly necessary.
   }
 }

@@ -77,7 +77,7 @@ export class DocSnapshotPruner {
       await this._ext.remove(key, snapshotIds);
       log.info(`Pruned ${snapshotIds.length} versions of ${versions.length} for document ${key}`);
     }
- else {
+    else {
       await this._ext.remove(key, snapshotIds);
       log.info(`Pruned ${snapshotIds.length} externally selected versions for document ${key}`);
     }
@@ -165,8 +165,8 @@ export class DocSnapshotInventory implements IInventory {
    * of the version list.
    */
   public async uploadAndAdd(key: string,
-                            upload: () => Promise<{snapshot?: ObjSnapshotWithMetadata,
-                                                   prevSnapshotId: string|null}>) {
+    upload: () => Promise<{snapshot?: ObjSnapshotWithMetadata,
+      prevSnapshotId: string|null}>) {
     await this._mutex.runExclusive(key, async() => {
       const {snapshot, prevSnapshotId} = await upload();
       if (!snapshot) {
@@ -281,7 +281,7 @@ export class DocSnapshotInventory implements IInventory {
       }
       return null;
     }
- catch (e) {
+    catch (e) {
       return null;
     }
   }
@@ -305,7 +305,7 @@ export class DocSnapshotInventory implements IInventory {
         this._normalizeMetadata(head);
         results.push(head);
       }
- else {
+      else {
         log.debug(`When reconstructing history of ${key}, did not find ${snapshot.snapshotId}`);
       }
     }
@@ -369,11 +369,11 @@ export function shouldKeepSnapshots(snapshots: ObjSnapshotWithMetadata[], snapsh
   // Track saved version per hour, day, week, month, year, and number of times a version
   // has been saved based on a corresponding rule.
   const buckets: TimeBucket[] = [
-      {range: 'hour', prev: start, usage: 0, cap: capHour},
-      {range: 'day', prev: start, usage: 0, cap: capDay},
-      {range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek},
-      {range: 'month', prev: start, usage: 0, cap: capMonth},
-      {range: 'year', prev: start, usage: 0, cap: capYear},
+    {range: 'hour', prev: start, usage: 0, cap: capHour},
+    {range: 'day', prev: start, usage: 0, cap: capDay},
+    {range: 'isoWeek', prev: start, usage: 0, cap: capIsoWeek},
+    {range: 'month', prev: start, usage: 0, cap: capMonth},
+    {range: 'year', prev: start, usage: 0, cap: capYear},
   ];
 
   // For each snapshot starting with newest, check if it is worth saving by comparing

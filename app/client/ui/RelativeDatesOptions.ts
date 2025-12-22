@@ -48,7 +48,7 @@ const DEFAULT_OPTION_LIST: IRelativeDateSpec[] = [
 
 
 export function relativeDatesOptions(value: IRangeBoundType, valueFormatter: (val: any) => string,
-                                   ): Array<{label: string, spec: IRangeBoundType}> {
+): Array<{label: string, spec: IRangeBoundType}> {
   return relativeDateOptionsSpec(value)
     .map(spec => ({spec, label: formatBoundOption(spec, valueFormatter)}));
 }
@@ -61,7 +61,7 @@ function relativeDateOptionsSpec(value: IRangeBoundType): Array<IRangeBoundType>
   if (value === undefined) {
     return DEFAULT_OPTION_LIST;
   }
- else if (isRelativeBound(value)) {
+  else if (isRelativeBound(value)) {
     value = relativeDateToUnixTimestamp(value);
   }
 
@@ -75,7 +75,7 @@ function relativeDateOptionsSpec(value: IRangeBoundType): Array<IRangeBoundType>
 
   relDate = getMatchingDoubleRelativeDate(value, {unit: 'week'});
   if (Math.abs(relDate[0].quantity) <= 4) {
-      res.push(relDate);
+    res.push(relDate);
   }
 
   // any day of the month (with longer limit for 1st day of the month)

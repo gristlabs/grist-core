@@ -22,7 +22,7 @@ const G = browserGlobals.get('document', 'window');
 export interface FileDialogOptions {
   multiple?: boolean;   // Whether multiple files may be selected.
   accept?: string;      // Comma-separated list of content-type specifiers,
-                        // e.g. ".jpg,.png", "text/plain", "audio/*", "video/*", "image/*".
+  // e.g. ".jpg,.png", "text/plain", "audio/*", "video/*", "image/*".
 }
 
 type FilesCB = (files: File[]) => void;

@@ -62,7 +62,7 @@ export async function buildCodeHighlighter(options: BuildCodeHighlighterOptions 
       aceThemeName = 'dracula';
       aceTheme = dracula;
     }
- else {
+    else {
       aceThemeName = 'chrome';
       aceTheme = chrome;
     }
@@ -123,7 +123,7 @@ export function buildHighlightedCode(
       aceThemeName = 'dracula';
       aceTheme = dracula;
     }
- else {
+    else {
       aceThemeName = 'chrome';
       aceTheme = chrome;
     }
@@ -141,7 +141,7 @@ export function buildHighlightedCode(
     elem => subscribeElem(elem, code, async (newCodeText) => {
       codeText.set(newCodeText);
       await updateHighlightedCode(elem);
-      }),
+    }),
     elem => subscribeElem(elem, gristThemeObs(), async (newCodeTheme) => {
       codeTheme.set(newCodeTheme);
       await updateHighlightedCode(elem);

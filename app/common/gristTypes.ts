@@ -63,8 +63,8 @@ export function extractInfoFromColType(colType: string): GristTypeInfo {
   const [type, arg] = (colon === -1) ? [colType] : [colType.slice(0, colon), colType.slice(colon + 1)];
   return (type === 'Ref') ? {type, tableId: String(arg)} :
     (type === 'RefList')  ? {type, tableId: String(arg)} :
-    (type === 'DateTime') ? {type, timezone: String(arg)} :
-    {type} as GristTypeInfo;
+      (type === 'DateTime') ? {type, timezone: String(arg)} :
+        {type} as GristTypeInfo;
 }
 
 /**
@@ -182,7 +182,7 @@ function isBooleanOrNull(v: CellValue) { return isBoolean(v) || v === null; }
 
 // These values are not regular cell values, even in a column of type Any.
 const abnormalValueTypes: string[] = [GristObjCode.Exception, GristObjCode.Pending, GristObjCode.Skip,
-                                      GristObjCode.Unmarshallable, GristObjCode.Versions];
+  GristObjCode.Unmarshallable, GristObjCode.Versions];
 
 function isNormalValue(value: CellValue) {
   return !abnormalValueTypes.includes(getObjCode(value)!);

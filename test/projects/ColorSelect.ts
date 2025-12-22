@@ -57,7 +57,7 @@ describe("ColorSelect", function() {
     const isItalic = (await driver.findAll('.test-client-cell.font-italic')).length === 1;
     const isStrikeThrough = (await driver.findAll('.test-client-cell.font-strikethrough')).length === 1;
     const current =
-        (isBold ? bold : 0) |
+      (isBold ? bold : 0) |
         (isUnderline ? underline : 0) |
         (isItalic ? italic : 0) |
         (isStrikeThrough ? strike : 0);
@@ -69,9 +69,9 @@ describe("ColorSelect", function() {
     const isUnderline = (await driver.findAll('.test-font-option-FontUnderline[class*=-selected]')).length === 1;
     const isItalic = (await driver.findAll('.test-font-option-FontItalic[class*=-selected]')).length === 1;
     const isStrikeThrough = (await driver.findAll('.test-font-option-FontStrikethrough[class*=-selected]'))
-                            .length === 1;
+      .length === 1;
     const selected =
-        (isBold ? bold : 0) |
+      (isBold ? bold : 0) |
         (isUnderline ? underline : 0) |
         (isItalic ? italic : 0) |
         (isStrikeThrough ? strike : 0);
@@ -144,9 +144,9 @@ describe("ColorSelect", function() {
     await driver.find('.test-color-select').mouseMove({x: 300});
     await driver.withActions(a => a.click());
     assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                     [`Called: ${JSON.stringify(
-                      { fill: swatches[4], text: swatches[3],
-                        underline: true, strikethrough: true}) }`]);
+      [`Called: ${JSON.stringify(
+        { fill: swatches[4], text: swatches[3],
+          underline: true, strikethrough: true}) }`]);
   });
 
   it('should allow to choose custom color', async function() {
@@ -195,7 +195,7 @@ describe("ColorSelect", function() {
     await clickApply();
     await gu.waitToPass(async () => {
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                     [`Called: ${JSON.stringify({fill: "#FFFFFF", text: swatches[7], italic: true})}`]);
+        [`Called: ${JSON.stringify({fill: "#FFFFFF", text: swatches[7], italic: true})}`]);
     });
   });
 

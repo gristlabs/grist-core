@@ -67,7 +67,7 @@ class Stepper<T> {
       if (p) {
         return p.then(() => this.setStart(step));
       }
- else {
+      else {
         this.setStart(step);
       }
     }
@@ -179,7 +179,7 @@ class FinderImpl implements IFinder {
   private _clearCursorHighlight: (() => void)|undefined;
 
   constructor(private _gristDoc: GristDoc, value: string, private _openDocPageCB: DocPageOpener,
-              public multiPage: Observable<boolean>, private _onPageChange?: () => void) {
+    public multiPage: Observable<boolean>, private _onPageChange?: () => void) {
     this._searchRegexp = makeRegexp(value);
   }
 
@@ -203,12 +203,12 @@ class FinderImpl implements IFinder {
     if ('data' === this._gristDoc.activeViewId.get()) {
       // Get all raw sections.
       const rawSections = this._gristDoc.docModel.visibleTables.peek()
-                              // sort in order that is the same as on the raw data list page,
-                              .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
-                              // get rawViewSection,
-                              .map(table => table.rawViewSection.peek())
-                              // and test if it isn't an empty record.
-                              .filter(s => Boolean(s.id.peek()));
+      // sort in order that is the same as on the raw data list page,
+        .sort((a, b) => nativeCompare(a.tableNameDef.peek(), b.tableNameDef.peek()))
+      // get rawViewSection,
+        .map(table => table.rawViewSection.peek())
+      // and test if it isn't an empty record.
+        .filter(s => Boolean(s.id.peek()));
       // Pretend that those are pages.
       this._pageStepper.array = rawSections.map(r => new RawSectionWrapper(r));
       // Find currently selected one (by comparing to active section id)
@@ -220,7 +220,7 @@ class FinderImpl implements IFinder {
         await this._pageStepper.value.openPage();
       }
     }
- else {
+    else {
       // Else read all visible pages.
       const pages = this._gristDoc.docModel.visibleDocPages.peek();
       this._pageStepper.array = pages.map(p => new PageRecWrapper(p, this._openDocPageCB));
@@ -300,12 +300,12 @@ class FinderImpl implements IFinder {
     await this._initNewSectionAny();
   }
 
-    // TODO There are issues with filtering. A section may have filters applied, and it may be
-    // auto-filtered (linked sections). If a tab is shown, we have the filtered list of rowIds; if
-    // the tab is not shown, it takes work to apply explicit filters. For linked sections, the
-    // sensible behavior seems to scan through ALL values, then once a match is found, set the
-    // cursor that determines the linking to include the matched row. And even that may not always
-    // be possible. So this is an open question.
+  // TODO There are issues with filtering. A section may have filters applied, and it may be
+  // auto-filtered (linked sections). If a tab is shown, we have the filtered list of rowIds; if
+  // the tab is not shown, it takes work to apply explicit filters. For linked sections, the
+  // sensible behavior seems to scan through ALL values, then once a match is found, set the
+  // cursor that determines the linking to include the matched row. And even that may not always
+  // be possible. So this is an open question.
 
   private _initNewSectionCommon() {
     const section = this._sectionStepper.value;
@@ -332,10 +332,10 @@ class FinderImpl implements IFinder {
     if (skip) {
       this._rowStepper.array = [];
     }
- else if (viewInstance) {
+    else if (viewInstance) {
       this._rowStepper.array = viewInstance.sortedRows.getKoArray().peek() as number[];
     }
- else {
+    else {
       // If we are searching through another page (not currently loaded), we will NOT have a
       // viewInstance, but we use the unsorted unfiltered row list, and if we find a match, the
       // _loadSection() method will load the page and we'll repeat the search with a viewInstance.
@@ -554,7 +554,7 @@ export class SearchModelImpl extends Disposable implements SearchModel {
       finder.startPosition = finder.getCurrentPosition();
       await cb(finder);
     }
- finally {
+    finally {
       this.isRunning.set(false);
       this.noMatch.set(!finder.matchFound);
     }

@@ -118,7 +118,7 @@ function toggleCustomized(info: SourceInfo, colId: string, on: boolean): void {
   if (!on) {
     customizedColumns.delete(colId);
   }
- else {
+  else {
     customizedColumns.add(colId);
   }
   info.customizedColumns.set(new Set(customizedColumns));
@@ -175,21 +175,21 @@ export async function selectAndImport(
     // Importer disposes itself when its dialog is closed, so we do not take ownership of it.
     await Importer.create(null, gristDoc, importSourceElem, createPreview).pickAndUploadSource(null);
   }
- catch(err1) {
+  catch(err1) {
     // If the url was a Google Drive Url, run the google drive plugin.
     if (!(err1 instanceof GDriveUrlNotSupported)) {
       reportError(err1);
     }
- else {
+    else {
       const gdrivePlugin = imports.find(p => p.plugin.definition.id === 'builtIn/gdrive' && p !== importSourceElem);
       if (!gdrivePlugin) {
         reportError(err1);
       }
- else {
+      else {
         try {
           await Importer.create(null, gristDoc, gdrivePlugin, createPreview).pickAndUploadSource(null);
         }
- catch(err2) {
+        catch(err2) {
           reportError(err2);
         }
       }
@@ -222,10 +222,10 @@ export async function importFromFile(gristDoc: GristDoc, createPreview: CreatePr
   try {
     onProgress(0);
     uploadResult = await uploadFiles(files, {docWorkerUrl: gristDoc.docComm.docWorkerUrl,
-                                              sizeLimit: 'import'}, onProgress);
+      sizeLimit: 'import'}, onProgress);
     onProgress(100);
   }
- finally {
+  finally {
     if (progress) {
       progress.dispose();
     }
@@ -320,11 +320,11 @@ export class Importer extends DisposableWithEvents {
    * This is helper that makes sure that those fields from the transformSection are in a good state to show.
    */
   private _transformFields: Computed<ViewFieldRec[]|null> = Computed.create(
-      this, this._sourceInfoSelected, (use, info) => {
-    const section = info && use(info.transformSection);
-    if (!section || use(section._isDeleted)) { return null; }
-    return use(use(section.viewFields).getObservable());
-  });
+    this, this._sourceInfoSelected, (use, info) => {
+      const section = info && use(info.transformSection);
+      if (!section || use(section._isDeleted)) { return null; }
+      return use(use(section.viewFields).getObservable());
+    });
 
   /**
    * Prepare a Map, mapping of colRef of each transform column to the set of options to offer in
@@ -351,11 +351,11 @@ export class Importer extends DisposableWithEvents {
    * There are some special cases for References and column ids.
    */
   private _transformColImportOptions: Computed<Map<number, Map<string, string>>> = Computed.create(
-      this, this._transformFields, this._sourceInfoSelected, (use, fields, info) => {
-    if (!fields || !info) { return new Map(); }
-    return new Map(fields.map(f =>
-      [use(f.colRef), this._makeImportOptionsForCol(use(f.column), info)]));
-  });
+    this, this._transformFields, this._sourceInfoSelected, (use, fields, info) => {
+      if (!fields || !info) { return new Map(); }
+      return new Map(fields.map(f =>
+        [use(f.colRef), this._makeImportOptionsForCol(use(f.column), info)]));
+    });
 
   /**
    * List of labels of destination columns that aren't mapped to a source column, i.e. transform
@@ -377,7 +377,7 @@ export class Importer extends DisposableWithEvents {
       if (!section || section.isDisposed() || use(section._isDeleted)) { return null; }
       const fields = use(use(section.viewFields).getObservable());
       const labels = fields?.filter(f => (use(use(f.column).formula).trim() === ''))
-                            .map(f => use(f.label)) ?? null;
+        .map(f => use(f.label)) ?? null;
       return labels?.length ? labels : null;
     };
     for (const info of sources) {
@@ -387,9 +387,9 @@ export class Importer extends DisposableWithEvents {
   });
 
   constructor(private _gristDoc: GristDoc,
-              // null tells to use the built-in file picker.
-              private _importSourceElem: ImportSourceElement|null,
-              private _createPreview: CreatePreviewFunc) {
+    // null tells to use the built-in file picker.
+    private _importSourceElem: ImportSourceElement|null,
+    private _createPreview: CreatePreviewFunc) {
     super();
     const label = _importSourceElem?.importSource.label || t("Import from file");
     this._screen = PluginScreen.create(this, label);
@@ -411,9 +411,9 @@ export class Importer extends DisposableWithEvents {
         // On electron, it uses the native file selector (without actually uploading anything),
         // which is why this requires a slightly different flow.
         uploadResult = uploadResult || await selectFiles({docWorkerUrl: this._docComm.docWorkerUrl,
-                                                          multiple: true, sizeLimit: 'import'});
+          multiple: true, sizeLimit: 'import'});
       }
- else {
+      else {
         // Need to use plugin to get the data, and manually upload it.
         const plugin = this._importSourceElem.plugin;
         const handle = this._screen.renderPlugin(plugin);
@@ -427,23 +427,23 @@ export class Importer extends DisposableWithEvents {
           if (item.kind === "fileList") {
             const files = item.files.map(({content, name}) => new File([content], name));
             uploadResult = await uploadFiles(files, {docWorkerUrl: this._docComm.docWorkerUrl,
-                                                     sizeLimit: 'import'});
+              sizeLimit: 'import'});
           }
- else if (item.kind ===  "url") {
+          else if (item.kind ===  "url") {
             if (isDriveUrl(item.url)) {
               uploadResult = await this._fetchFromDrive(item.url);
             }
- else {
+            else {
               uploadResult = await fetchURL(this._docComm, item.url);
             }
           }
- else {
+          else {
             throw new Error(`Import source of kind ${(item as any).kind} are not yet supported!`);
           }
         }
       }
     }
- catch (err) {
+    catch (err) {
       if (err instanceof CancelledError) {
         await this._cancelImport();
         return;
@@ -460,7 +460,7 @@ export class Importer extends DisposableWithEvents {
       this._uploadResult = uploadResult;
       await this._reImport(uploadResult);
     }
- else {
+    else {
       await this._cancelImport();
     }
   }
@@ -634,7 +634,7 @@ export class Importer extends DisposableWithEvents {
       // And finally render the main screen.
       this._renderMain(upload);
     }
- catch (e) {
+    catch (e) {
       console.warn("Import failed", e);
       this._screen.renderError(e.message);
     }
@@ -1070,7 +1070,7 @@ export class Importer extends DisposableWithEvents {
                       if (isCustom) {
                         return this._buildCustomFormula(owner3, field, info);
                       }
- else {
+                      else {
                         return this._buildSourceSelector(owner3, field, info);
                       }
                     }),
@@ -1088,7 +1088,7 @@ export class Importer extends DisposableWithEvents {
                           if (matched) {
                             await this._setColumnFormula(transformCol, matched[0], info);
                           }
- else {
+                          else {
                             await this._gristDoc.docModel.clearColumns([field.colRef()]);
                           }
                         }),
@@ -1107,10 +1107,10 @@ export class Importer extends DisposableWithEvents {
             cssOptions(
               dom.domComputed(info.destTableId, destId => cssTableName(
                 destId === NEW_TABLE ? t("New Table") :
-                destId === SKIP_TABLE ? t("Skip Import") :
-                dom.domComputed(this._destTables, list =>
-                  list.find(dt => dt.value === destId)?.label ?? t("New Table"),
-                ),
+                  destId === SKIP_TABLE ? t("Skip Import") :
+                    dom.domComputed(this._destTables, list =>
+                      list.find(dt => dt.value === destId)?.label ?? t("New Table"),
+                    ),
               )),
               options,
             ),
@@ -1207,7 +1207,7 @@ export class Importer extends DisposableWithEvents {
         const formula = `${refTableId}.lookupOne(${visibleColId}=$${sourceId}) or ($${sourceId} and str($${sourceId}))`;
         options.set(formula, sourceLabel);
       }
- else {
+      else {
         options.set(`$${sourceId}`, sourceLabel);
       }
       if (isRefDest && ['Numeric', 'Int'].includes(sourceCol.type.peek())) {
@@ -1251,7 +1251,7 @@ export class Importer extends DisposableWithEvents {
     if (formula === null) {
       await this._gristDoc.docModel.clearColumns([transformColRef], {keepType: true});
     }
- else {
+    else {
       await this._gristDoc.docModel.columns.sendTableAction(
         ['UpdateRecord', transformColRef, { formula, isFormula: true }]);
     }
@@ -1320,8 +1320,8 @@ export class Importer extends DisposableWithEvents {
         // changed, we don't care here as this whole computed will be recreated by the caller.
         const myFormula = use(transformCol.formula);
         const anyOther = info.transformSection.get()?.viewFields.peek().all()
-            .filter(f => f.column.peek() !== transformCol)
-            .map(f => use(f.column.peek().formula));
+          .filter(f => f.column.peek() !== transformCol)
+          .map(f => use(f.column.peek().formula));
         // If we picked this formula thats ok.
         if (formula === myFormula) { return true; }
         // If any other column picked this formula, then we should not show it.
@@ -1426,7 +1426,7 @@ export class Importer extends DisposableWithEvents {
     try {
       return await fetchURL(this._docComm, itemUrl);
     }
- catch(err) {
+    catch(err) {
       // It is not a public file or the file id in the url is wrong,
       // but we have no way to check it, so we assume that it is private file
       // and ask the user for the permission (if we are configured to do so)
@@ -1437,17 +1437,17 @@ export class Importer extends DisposableWithEvents {
           const code = await getGoogleCodeForReading(this);
           options.googleAuthorizationCode = code;
         }
- catch(permError) {
+        catch(permError) {
           if (permError?.message === ACCESS_DENIED) {
             // User declined to give us full readonly permission, fallback to GoogleDrive plugin
             // or cancel import if GoogleDrive plugin is not configured.
             throw new GDriveUrlNotSupported(itemUrl);
           }
- else if(permError?.message === AUTH_INTERRUPTED) {
+          else if(permError?.message === AUTH_INTERRUPTED) {
             // User closed the window - we assume he doesn't want to continue.
             throw new CancelledError();
           }
- else {
+          else {
             // Some other error happened during authentication, report to user.
             throw err;
           }
@@ -1455,7 +1455,7 @@ export class Importer extends DisposableWithEvents {
         // Download file from private drive, if it fails, report the error to user.
         return await fetchURL(this._docComm, itemUrl, options);
       }
- else {
+      else {
         // We are not allowed to ask for full readonly permission, fallback to GoogleDrive plugin.
         throw new GDriveUrlNotSupported(itemUrl);
       }

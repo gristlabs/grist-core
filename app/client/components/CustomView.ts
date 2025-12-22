@@ -75,11 +75,11 @@ export class CustomView extends BaseView {
         try {
           await this._frame.editOptions();
         }
- catch(err) {
+        catch(err) {
           if (err.message === "Unknown interface") {
             throw new UserError("Custom widget doesn't expose configuration screen.");
           }
- else {
+          else {
             throw err;
           }
         }
@@ -136,7 +136,7 @@ export class CustomView extends BaseView {
       const columns = this.viewSection.columnsToMap();
       if (!columns) { return []; }
       const required = columns.filter(col => typeof col === 'string' || !(col.optional === true))
-                              .map(col => typeof col === 'string' ? col : col.name);
+        .map(col => typeof col === 'string' ? col : col.name);
       const mapped = this.viewSection.mappedColumns() || {};
       return required.filter(col => !mapped[col]);
     }));
@@ -153,8 +153,8 @@ export class CustomView extends BaseView {
         return false;
       }
       const rowIds = Object.entries(mappings).filter(f => f[1])
-                        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId as number])
-                        .flat();
+        .map(([rowId, colId]) => Array.isArray(colId) ? colId : [colId as number])
+        .flat();
       const redactedColumns = gristDoc.docModel.columns.rowModels.filter(r => !r.colId()).map(r => r.id());
       return rowIds.some(r => redactedColumns.includes(r));
     }));
@@ -186,7 +186,7 @@ export class CustomView extends BaseView {
     if (this._pluginInstance) {
       this._foundPlugin(true);
     }
- else {
+    else {
       this._foundPlugin(false);
       this._foundSection(false);
     }
@@ -209,7 +209,7 @@ export class CustomView extends BaseView {
       el.classList.add("flexitem");
       this._foundSection(true);
     }
- else {
+    else {
       this._foundSection(false);
     }
   }
@@ -228,9 +228,9 @@ export class CustomView extends BaseView {
     const showPluginNotification = ko.pureComputed(() => showPlugin() && !this._foundPlugin());
     const showSectionNotification = ko.pureComputed(() => showPlugin() && this._foundPlugin() && !this._foundSection());
     const showPluginContent = ko.pureComputed(() => showPlugin() && this._foundSection())
-        // For the view to update when switching from one section to another one, the computed
-        // observable must always notify.
-        .extend({notify: 'always'});
+    // For the view to update when switching from one section to another one, the computed
+    // observable must always notify.
+      .extend({notify: 'always'});
     // Some widgets have built-in settings that should override anything
     // that is in the rest of the view options. Ideally, everything would
     // be consistent. We could fix inconsistencies if we find them, but
@@ -249,7 +249,7 @@ export class CustomView extends BaseView {
         kd.maybe(this._hasAclHiddenColumns, () => [
           dom('h1', kd.text(t("Some required columns are hidden by access rules"))),
           dom('p',
-      t('To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.'),
+            t('To use this widget, all mapped columns must be visible. Please contact document owner or modify access rules.'),
           ),
         ]),
         kd.maybe(() => !this._hasAclHiddenColumns(), () => [
@@ -421,7 +421,7 @@ function onFrameFocus(frame: HTMLIFrameElement, handler: () => void) {
           try {
             handler();
           }
- finally {
+          finally {
             // Stop checking, we will start again after next mouseenter.
             stop();
           }

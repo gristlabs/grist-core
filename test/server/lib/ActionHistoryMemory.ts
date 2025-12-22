@@ -29,7 +29,7 @@ describe('ActionHistoryMemory', function() {
 
   const MAX_SPACE = 110;     // Memory limit for node to use (in MB).
   const RANGE = 200_000;    // Our "big actions" are formula calculations returning a python
-                            // range() of this length
+  // range() of this length
 
   let serverProcess: ChildProcess;
   let serverExitPromise: Promise<number|string>;

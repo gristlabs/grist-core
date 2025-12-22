@@ -79,13 +79,13 @@ function getRefTableIdFromData(docModel: DocModel, column: ColumnRec): string|nu
       if (gristTypes.isReferencing(value)) {
         return value[1];
       }
- else if (gristTypes.isList(value)) {
+      else if (gristTypes.isList(value)) {
         const item = value[1];
         if (gristTypes.isReference(item)) {
           return item[1];
         }
       }
- else if (typeof value === 'string') {
+      else if (typeof value === 'string') {
         // If it looks like a formatted Ref(List) value, e.g:
         //   - Table1[123]
         //   - [Table1[1], Table1[2], Table1[3]]
@@ -170,7 +170,7 @@ export async function prepTransformColInfo(options: {
         suggestedColRef = origCol.visibleCol.peek();
         suggestedTableId = origColTypeInfo.tableId;
       }
- else {
+      else {
         // Finds a reference suggestion column and sets it as the current reference value.
         const columnData = tableData.getDistinctValues(origDisplayCol.colId(), 100);
         if (!columnData) { break; }
@@ -257,8 +257,8 @@ export function guessWidgetOptionsSync(options: {
         const columnData = tableData.getDistinctValues(sourceCol.colId(), 100);
         if (columnData) {
           const choices = Array.from(columnData).filter(isNonNullish)
-                                                .map(v => String(v).trim())
-                                                .filter(Boolean);
+            .map(v => String(v).trim())
+            .filter(Boolean);
           widgetOptions = {...widgetOptions, choices};
         }
       }

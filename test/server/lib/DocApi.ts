@@ -562,7 +562,7 @@ function testDocApi(settings: {
         if (mode === 'logged in') {
           assert.match(urlId, /^new~[^~]*~[0-9]+$/);
         }
- else {
+        else {
           assert.match(urlId, /^new~[^~]*$/);
         }
 
@@ -576,7 +576,7 @@ function testDocApi(settings: {
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, chimpy);
           assert.equal(resp.data.access, 'owners');
         }
- else {
+        else {
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, charon);
           assert.equal(resp.status, 403);
           resp = await axios.get(`${homeUrl}/api/docs/${urlId}`, nobody);
@@ -588,7 +588,7 @@ function testDocApi(settings: {
         if (content === 'with content') {
           assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
         }
- else {
+        else {
           assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
         }
       });
@@ -613,7 +613,7 @@ function testDocApi(settings: {
         ...(content === 'with content'
           ? [formData, config]
           : [body, user]),
-        );
+      );
       assert.equal(resp.status, 200);
       const urlId = resp.data;
       assert.notMatch(urlId, /^new~[^~]*~[0-9]+$/);
@@ -635,7 +635,7 @@ function testDocApi(settings: {
       if (content === 'with content') {
         assert.deepEqual(resp.data, {id: [1, 2], manualSort: [1, 2], A: [1, 3], B: [2, 4]});
       }
- else {
+      else {
         assert.deepEqual(resp.data, {id: [], manualSort: [], A: [], B: [], C: []});
       }
 
@@ -662,7 +662,7 @@ function testDocApi(settings: {
           ...(content === 'with content'
             ? [formData, config]
             : [body, user]),
-          );
+        );
         assert.equal(resp.status, 403);
         assert.equal(resp.data.error, 'access denied');
       }
@@ -682,7 +682,7 @@ function testDocApi(settings: {
         ...(content === 'with content'
           ? [formData, config]
           : [body, user]),
-        );
+      );
       assert.equal(resp.status, 200);
       const urlId = resp.data;
       assert.notMatch(urlId, /^new~[^~]*~[0-9]+$/);
@@ -717,7 +717,7 @@ function testDocApi(settings: {
         ...(content === 'with content'
           ? [formData, config]
           : [body, user]),
-        );
+      );
       assert.equal(resp.status, 400);
       assert.equal(resp.data.error, 'Cannot add document to a deleted workspace');
 
@@ -741,7 +741,7 @@ function testDocApi(settings: {
         ...(content === 'with content'
           ? [formData, config]
           : [body, user]),
-        );
+      );
       assert.equal(resp.status, 404);
       assert.equal(resp.data.error, 'workspace not found');
     });
@@ -1303,9 +1303,9 @@ function testDocApi(settings: {
         const result = await axios.get(url, {...chimpy, params});
         assert.equal(result.status, 200);
         return new Map<string, object>(
-            result.data.columns.map(
-              ({id, fields}: {id: string, fields: object}) => [id, fields],
-            ),
+          result.data.columns.map(
+            ({id, fields}: {id: string, fields: object}) => [id, fields],
+          ),
         );
       }
 
@@ -1545,7 +1545,7 @@ function testDocApi(settings: {
             url.searchParams.append('limit', String(limit));
           }
         }
- else {
+        else {
           if (sort) {
             config.headers!['x-sort'] = sort.join(',');
           }
@@ -1762,11 +1762,11 @@ function testDocApi(settings: {
     if (test instanceof RegExp) {
       assert.match(resp.data.error, test, message);
     }
- else {
+    else {
       try {
         assert.deepEqual(resp.data, test, message);
       }
- catch (err) {
+      catch (err) {
         console.log(JSON.stringify(resp.data));
         console.log(JSON.stringify(test));
         throw err;
@@ -1801,43 +1801,43 @@ function testDocApi(settings: {
 
     resp = await axios.get(`${docUrl}/tables/Table2/columns`, chimpy);
     assert.deepEqual(resp.data, {
-        "columns": [
-          {
-            "id": "R",
-            "fields": {
-              "colRef": 6,
-              "parentId": 2,
-              "parentPos": 6,
-              // Type changed from RefList to Text
-              "type": "Text",
-              "widgetOptions": "",
-              "isFormula": false,
-              "formula": "",
-              "label": "R",
-              "description": "",
-              "untieColIdFromLabel": false,
-              "summarySourceCol": 0,
-              // Display and visible columns cleared
-              "displayCol": 0,
-              "visibleCol": 0,
-              "rules": null,
-              "recalcWhen": 0,
-              "recalcDeps": null,
-              reverseCol: 0,
-            },
+      "columns": [
+        {
+          "id": "R",
+          "fields": {
+            "colRef": 6,
+            "parentId": 2,
+            "parentPos": 6,
+            // Type changed from RefList to Text
+            "type": "Text",
+            "widgetOptions": "",
+            "isFormula": false,
+            "formula": "",
+            "label": "R",
+            "description": "",
+            "untieColIdFromLabel": false,
+            "summarySourceCol": 0,
+            // Display and visible columns cleared
+            "displayCol": 0,
+            "visibleCol": 0,
+            "rules": null,
+            "recalcWhen": 0,
+            "recalcDeps": null,
+            reverseCol: 0,
           },
-        ],
-      },
+        },
+      ],
+    },
     );
 
     resp = await axios.get(`${docUrl}/tables/Table2/records`, chimpy);
     assert.deepEqual(resp.data, {
-        records:
+      records:
           [
             // Reflist converted to comma separated display values.
             {id: 1, fields: {R: "Alice, Bob"}},
           ],
-      },
+    },
     );
   });
 
@@ -1889,7 +1889,7 @@ function testDocApi(settings: {
     // Check the results
     const resp = await axios.get(recordsUrl, chimpy);
     assert.deepEqual(resp.data, {
-        records:
+      records:
           [
             // Without string parsing
             {id: 1, fields: {A: '$1'}},
@@ -1901,7 +1901,7 @@ function testDocApi(settings: {
             {id: 5, fields: {A: 2}},
             {id: 6, fields: {A: 4}},
           ],
-      },
+    },
     );
   });
 
@@ -1965,59 +1965,59 @@ function testDocApi(settings: {
 
       // This would normally add a record, but noadd suppresses that
       await check([
-          {
-            require: {A: 100},
-          },
-        ],
-        {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
-        {noadd: "1"},
+        {
+          require: {A: 100},
+        },
+      ],
+      {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
+      {noadd: "1"},
       );
 
       // This would normally update A from 1 to 11, bot noupdate suppresses that
       await check([
-          {
-            require: {A: 1},
-            fields: {A: 11},
-          },
-        ],
-        {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
-        {noupdate: "1"},
+        {
+          require: {A: 1},
+          fields: {A: 11},
+        },
+      ],
+      {id: [1, 2, 3], A: [1, 33, 4], B: [0, 0, 6]},
+      {noupdate: "1"},
       );
 
       // There are 2 records with B=0, update them both to B=1
       // Use onmany=all to specify that they should both be updated
       await check([
-          {
-            require: {B: 0},
-            fields: {B: 1},
-          },
-        ],
-        {id: [1, 2, 3], A: [1, 33, 4], B: [1, 1, 6]},
-        {onmany: "all"},
+        {
+          require: {B: 0},
+          fields: {B: 1},
+        },
+      ],
+      {id: [1, 2, 3], A: [1, 33, 4], B: [1, 1, 6]},
+      {onmany: "all"},
       );
 
       // In contrast to the above, the default behaviour for no value of onmany
       // is to only update the first matching record,
       // so only one of the records with B=1 is updated to B=2
       await check([
-          {
-            require: {B: 1},
-            fields: {B: 2},
-          },
-        ],
-        {id: [1, 2, 3], A: [1, 33, 4], B: [2, 1, 6]},
+        {
+          require: {B: 1},
+          fields: {B: 2},
+        },
+      ],
+      {id: [1, 2, 3], A: [1, 33, 4], B: [2, 1, 6]},
       );
 
       // By default, strings in `require` and `fields` are parsed based on column type,
       // so these dollar amounts are treated as currency
       // and parsed as A=4 and A=44
       await check([
-          {
-            require: {A: "$4"},
-            fields: {A: "$44"},
-          },
-        ],
-        {id: [1, 2, 3], A: [1, 33, 44], B: [2, 1, 6]},
+        {
+          require: {A: "$4"},
+          fields: {A: "$44"},
+        },
+      ],
+      {id: [1, 2, 3], A: [1, 33, 44], B: [2, 1, 6]},
       );
 
       // Turn off the default string parsing with noparse=1
@@ -2025,64 +2025,64 @@ function testDocApi(settings: {
       // A="$44" wouldn't match and would create a new record.
       // Because A="$55" isn't parsed, the raw string is stored in the table.
       await check([
-          {
-            require: {A: 44},
-            fields: {A: "$55"},
-          },
-        ],
-        {id: [1, 2, 3], A: [1, 33, "$55"], B: [2, 1, 6]},
-        {noparse: 1},
+        {
+          require: {A: 44},
+          fields: {A: "$55"},
+        },
+      ],
+      {id: [1, 2, 3], A: [1, 33, "$55"], B: [2, 1, 6]},
+      {noparse: 1},
       );
 
       await check([
-          // First three records already exist and nothing happens
-          {require: {A: 1}},
-          {require: {A: 33}},
-          {require: {A: "$55"}},
-          // Without string parsing, A="$33" doesn't match A=33 and a new record is created
-          {require: {A: "$33"}},
-        ],
-        {id: [1, 2, 3, 4], A: [1, 33, "$55", "$33"], B: [2, 1, 6, 0]},
-        {noparse: 1},
+        // First three records already exist and nothing happens
+        {require: {A: 1}},
+        {require: {A: 33}},
+        {require: {A: "$55"}},
+        // Without string parsing, A="$33" doesn't match A=33 and a new record is created
+        {require: {A: "$33"}},
+      ],
+      {id: [1, 2, 3, 4], A: [1, 33, "$55", "$33"], B: [2, 1, 6, 0]},
+      {noparse: 1},
       );
 
       // Checking that updating by `id` works.
       await check([
-          {
-            require: {id: 3},
-            fields: {A: "66"},
-          },
-        ],
-        {id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0]},
+        {
+          require: {id: 3},
+          fields: {A: "66"},
+        },
+      ],
+      {id: [1, 2, 3, 4], A: [1, 33, 66, "$33"], B: [2, 1, 6, 0]},
       );
 
       // Test bulk case with a mixture of record shapes
       await check([
-          {
-            require: {A: 1},
-            fields: {A: 111},
-          },
-          {
-            require: {A: 33},
-            fields: {A: 222, B: 444},
-          },
-          {
-            require: {id: 3},
-            fields: {A: 555, B: 666},
-          },
-        ],
-        {id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0]},
+        {
+          require: {A: 1},
+          fields: {A: 111},
+        },
+        {
+          require: {A: 33},
+          fields: {A: 222, B: 444},
+        },
+        {
+          require: {id: 3},
+          fields: {A: 555, B: 666},
+        },
+      ],
+      {id: [1, 2, 3, 4], A: [111, 222, 555, "$33"], B: [2, 444, 666, 0]},
       );
 
       // allow_empty_require option with empty `require` updates all records
       await check([
-          {
-            require: {},
-            fields: {A: 99, B: 99},
-          },
-        ],
-        {id: [1, 2, 3, 4], A: [99, 99, 99, 99], B: [99, 99, 99, 99]},
-        {allow_empty_require: "1", onmany: "all"},
+        {
+          require: {},
+          fields: {A: 99, B: 99},
+        },
+      ],
+      {id: [1, 2, 3, 4], A: [99, 99, 99, 99], B: [99, 99, 99, 99]},
+      {allow_empty_require: "1", onmany: "all"},
       );
     });
 
@@ -2128,14 +2128,14 @@ function testDocApi(settings: {
           details: {userError: 'Error: ' +
             'body.records[0] is not a AddOrUpdateRecord; ' +
             'body.records[0].require is missing',
-         }});
+          }});
       await test({records: [{require: {id: "1"}}]},
         {
           error: 'Invalid payload',
           details: {userError: 'Error: ' +
             'body.records[0] is not a AddOrUpdateRecord; ' +
             'body.records[0].require.id is not a number',
-        }});
+          }});
     });
   });
 
@@ -2493,7 +2493,7 @@ function testDocApi(settings: {
   });
 
   async function addAttachmentsToDoc(docId: string, attachments: {name: string, contents: string}[],
-                                     user: AxiosRequestConfig = chimpy) {
+    user: AxiosRequestConfig = chimpy) {
     const formData = new FormData();
     for (const attachment of attachments) {
       formData.append('upload', attachment.contents, attachment.name);
@@ -2531,9 +2531,9 @@ function testDocApi(settings: {
         delete record.fields.timeUploaded;
       }
       assert.deepEqual(records, [
-          {id: 2, fields: {fileName: "world.jpg", fileSize: 6}},
-          {id: 3, fields: {fileName: "hello.png", fileSize: 6}},
-        ],
+        {id: 2, fields: {fileName: "world.jpg", fileSize: 6}},
+        {id: 3, fields: {fileName: "hello.png", fileSize: 6}},
+      ],
       );
     });
 
@@ -3060,7 +3060,7 @@ function testDocApi(settings: {
           const resp = await axios.get(url, chimpy);
           assert.equal(resp.status, 200);
           assert.equal(resp.data.records[0].fields.fileName, 'Test.txt');
-      });
+        });
     });
   });
 
@@ -3336,7 +3336,7 @@ function testDocApi(settings: {
         options: '{"publish": true}',
       }],
       ['UpdateRecord', '_grist_Views_section', 1,
-       {shareOptions: '{"publish": true, "form": true}'}],
+        {shareOptions: '{"publish": true, "form": true}'}],
       ['UpdateRecord', '_grist_Pages', 1, {shareRef: 1}],
     ];
     let resp: AxiosResponse;
@@ -3449,7 +3449,7 @@ function testDocApi(settings: {
       resp = await axios.get(`${serverUrl}/api/docs/urlid1/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[1], 'Orange');
     }
- finally {
+    finally {
       await userApi.deleteDoc(doc1);
     }
   });
@@ -3476,7 +3476,7 @@ function testDocApi(settings: {
       resp = await axios.get(`${serverUrl}/api/docs/${doc2}/tables/Table1/data`, chimpy);
       assert.equal(resp.data.A[0], 'Orange');
     }
- finally {
+    finally {
       await userApi.deleteDoc(doc1);
       await nasaApi.deleteDoc(doc2);
     }
@@ -3506,7 +3506,7 @@ function testDocApi(settings: {
       }, chimpy);
       assert.equal(resp.status, 404);
     }
- finally {
+    finally {
       await userApi.deleteDoc(doc1);
       await nasaApi.deleteDoc(doc2);
     }
@@ -3570,7 +3570,7 @@ function testDocApi(settings: {
       }, kiwi);
       assert.equal(resp.status, 200);
     }
- finally {
+    finally {
       await userApi.deleteDoc(doc1);
       await userApi.deleteDoc(doc2);
       await userApi.deleteDoc(doc3);
@@ -3895,12 +3895,12 @@ function testDocApi(settings: {
       const resp = await axios.post(
         `${serverUrl}/api/docs/${docIds.Timesheets}/tables/Table1/_subscribe`,
         requestBody, chimpy,
-        );
-        assert.equal(resp.status, status);
-        for (const error of errors) {
-          assert.match(resp.data.details?.userError || resp.data.error, error);
-        }
+      );
+      assert.equal(resp.status, status);
+      for (const error of errors) {
+        assert.match(resp.data.details?.userError || resp.data.error, error);
       }
+    }
 
     async function postWebhookCheck(requestBody: any, status: number, ...errors: RegExp[]) {
       const resp = await axios.post(
@@ -3918,11 +3918,11 @@ function testDocApi(settings: {
       const registerResponse = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
       const resp = await axios.get(`${serverUrl}/api/docs/${docIds.Timesheets}/webhooks`, chimpy);
       try{
-      assert.equal(resp.status, 200);
-      assert.isAtLeast(resp.data.webhooks.length, 1);
-      assert.containsAllKeys(resp.data.webhooks[0], ['id', 'fields']);
-      assert.containsAllKeys(resp.data.webhooks[0].fields,
-        ['enabled', 'isReadyColumn', 'memo', 'name', 'tableId', 'eventTypes', 'url']);
+        assert.equal(resp.status, 200);
+        assert.isAtLeast(resp.data.webhooks.length, 1);
+        assert.containsAllKeys(resp.data.webhooks[0], ['id', 'fields']);
+        assert.containsAllKeys(resp.data.webhooks[0].fields,
+          ['enabled', 'isReadyColumn', 'memo', 'name', 'tableId', 'eventTypes', 'url']);
       }
       finally{
         //cleanup
@@ -3952,22 +3952,22 @@ function testDocApi(settings: {
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: []}}]},
         400, /url is missing/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: [],
-              url: "https://example.com"}}]},
-        400, /eventTypes must be a non-empty array/);
+        url: "https://example.com"}}]},
+      400, /eventTypes must be a non-empty array/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["foo"],
-              url: "https://example.com"}}]},
-        400, /eventTypes\[0] is none of "add", "update"/);
+        url: "https://example.com"}}]},
+      400, /eventTypes\[0] is none of "add", "update"/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"]}}]},
         400, /url is missing/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
-              url: "https://evil.com"}}]},
-        403, /Provided url is forbidden/);
+        url: "https://evil.com"}}]},
+      403, /Provided url is forbidden/);
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
-              url: "http://example.com"}}]},
-        403, /Provided url is forbidden/);  // not https
+        url: "http://example.com"}}]},
+      403, /Provided url is forbidden/);  // not https
       await postWebhookCheck({webhooks:[{fields: {tableId: "Table1", eventTypes: ["add"],
-              url: "https://example.com", isReadyColumn: "bar"}}]},
-        404, /Column not found "bar"/);
+        url: "https://example.com", isReadyColumn: "bar"}}]},
+      404, /Column not found "bar"/);
       await postWebhookCheck({webhooks:[{fields: {eventTypes: ["add"], url: "https://example.com"}}]},
         400, /tableId is missing/);
       await postWebhookCheck({}, 400, /webhooks is missing/);
@@ -3979,8 +3979,8 @@ function testDocApi(settings: {
           },
         }],
       },
-        // this check was previously just wrong, was the test not running somehow??
-        404, /Column not found "notExisting"/);
+      // this check was previously just wrong, was the test not running somehow??
+      404, /Column not found "notExisting"/);
 
     });
 
@@ -4070,13 +4070,13 @@ function testDocApi(settings: {
 
     it("POST /docs/{did}/webhooks is adding new webhook to table "+
        "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function(){
-        const registeredWebhook = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
-        let webhookList = await getRegisteredWebhooks();
-        assert.equal(webhookList.length, 1);
-        assert.equal(webhookList[0].id, registeredWebhook.webhooks[0].id);
-        await deleteWebhookCheck(registeredWebhook.webhooks[0].id);
-        webhookList = await getRegisteredWebhooks();
-        assert.equal(webhookList.length, 0);
+      const registeredWebhook = await postWebhookCheck({webhooks:[{fields:{tableId: "Table1", eventTypes: ["add"], url: "https://example.com"}}]}, 200);
+      let webhookList = await getRegisteredWebhooks();
+      assert.equal(webhookList.length, 1);
+      assert.equal(webhookList[0].id, registeredWebhook.webhooks[0].id);
+      await deleteWebhookCheck(registeredWebhook.webhooks[0].id);
+      webhookList = await getRegisteredWebhooks();
+      assert.equal(webhookList.length, 0);
     });
 
     it("POST /docs/{did}/webhooks is adding new webhook should be able to add many webhooks at once", async function(){
@@ -4176,7 +4176,7 @@ function testDocApi(settings: {
           // Make some doc request so that it fails or succeeds
           await api.getTable(docId, "Table1");
         }
- catch (e) {
+        catch (e) {
           success = false;
         }
 
@@ -4186,7 +4186,7 @@ function testDocApi(settings: {
         if (success) {
           assert.isAtMost(i, max + 1);
         }
- else {
+        else {
           assert.isAtLeast(i, max + 1);
         }
       }
@@ -4496,7 +4496,7 @@ function testDocApi(settings: {
             await delayAbort(20000, scoped.signal); // We don't expect to wait for this, we should be aborted
             assert.fail('Should have been aborted');
           }
- catch (exc) {
+          catch (exc) {
             res.status(probeStatus);
             res.send(probeMessage);
             res.end();
@@ -4515,7 +4515,7 @@ function testDocApi(settings: {
             res.end();
             longFinished.emit(body[0].A);
           }
- catch (exc) {
+          catch (exc) {
             res.sendStatus(200); // Send ok, so that it won't be seen as an error.
             res.end();
             longFinished.emit([408, body[0].A]); // We will signal that this is success but after aborting timeout.
@@ -4617,122 +4617,122 @@ function testDocApi(settings: {
         it(ctx.itMsg,
           async function () {
           // Create a test document.
-          const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
-          const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
-          const doc = userApi.getDocAPI(docId);
+            const ws1 = (await userApi.getOrgWorkspaces('current'))[0].id;
+            const docId = await userApi.newDoc({name: 'testdoc'}, ws1);
+            const doc = userApi.getDocAPI(docId);
 
-          // Make a webhook for every combination of event types
-          const {subscribeResponses, webhookIds} = await createWebhooks({
-            docId, tableId: 'Table1', isReadyColumn: "B", watchedColIds: ctx.watchedColIds,
-            eventTypesSet: [
-              ["add"],
-              ["update"],
-              ["add", "update"],
-            ],
-          });
-
-          // Add and update some rows, trigger some events
-          // Values of A where B is true and thus the record is ready are [1, 4, 7, 8]
-          // So those are the values seen in expectedEvents
-          await doc.addRows("Table1", {
-            A: [1, 2],
-            B: [true, false], // 1  is ready, 2 is not ready yet
-          });
-          await doc.updateRows("Table1", {id: [2], A: [3]});  // still not ready
-          await doc.updateRows("Table1", {id: [2], A: [4], B: [true]});  // ready!
-          await doc.updateRows("Table1", {id: [2], A: [5], B: [false]});  // not ready again
-          await doc.updateRows("Table1", {id: [2], A: [6]});  // still not ready
-          await doc.updateRows("Table1", {id: [2], A: [7], B: [true]});  // ready!
-          await doc.updateRows("Table1", {id: [2], A: [8]});  // still ready!
-
-          // The end result here is additions for column A (now A3) with values [13, 15, 18]
-          // and an update for 101
-          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-            ['BulkAddRecord', 'Table1', [3, 4, 5, 6], {A: [9, 10, 11, 12], B: [true, true, false, false]}],
-            ['BulkUpdateRecord', 'Table1', [1, 2, 3, 4, 5, 6], {
-              A: [101, 102, 13, 14, 15, 16],
-              B: [true, false, true, false, true, false],
-            }],
-
-            ['RenameColumn', 'Table1', 'A', 'A3'],
-            ['RenameColumn', 'Table1', 'B', 'B3'],
-
-            ['RenameTable', 'Table1', 'Table12'],
-
-            // FIXME a double rename A->A2->A3 doesn't seem to get summarised correctly
-            // ['RenameColumn', 'Table12', 'A2', 'A3'],
-            // ['RenameColumn', 'Table12', 'B2', 'B3'],
-
-            ['RemoveColumn', 'Table12', 'C'],
-          ], chimpy);
-
-          // FIXME record changes after a RenameTable in the same bundle
-          //  don't appear in the action summary
-          await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
-            ['AddRecord', 'Table12', 7, {A3: 17, B3: false}],
-            ['UpdateRecord', 'Table12', 7, {A3: 18, B3: true}],
-
-            ['AddRecord', 'Table12', 8, {A3: 19, B3: true}],
-            ['UpdateRecord', 'Table12', 8, {A3: 20, B3: false}],
-
-            ['AddRecord', 'Table12', 9, {A3: 20, B3: true}],
-            ['RemoveRecord', 'Table12', 9],
-          ], chimpy);
-
-          // Add 200 rows. These become the `expected200AddEvents`
-          await doc.addRows("Table12", {
-            A3: _.range(200, 400),
-            B3: arrayRepeat(200, true),
-          });
-
-          await receivedLastEvent;
-
-          // Unsubscribe
-          await Promise.all(subscribeResponses.map(async (subscribeResponse) => {
-            const unsubscribeResponse = await axios.post(
-              `${serverUrl}/api/docs/${docId}/tables/Table12/_unsubscribe`,
-              subscribeResponse, chimpy,
-            );
-            assert.equal(unsubscribeResponse.status, 200);
-            assert.deepEqual(unsubscribeResponse.data, {success: true});
-          }));
-
-          // Further changes should generate no events because the triggers are gone
-          await doc.addRows("Table12", {
-            A3: [88, 99],
-            B3: [true, false],
-          });
-
-          assert.deepEqual(requests, expectedRequests);
-
-          // Check that the events were all pushed to the redis queue
-          const queueRedisCalls = redisCalls.filter(args => args[1] === "webhook-queue-" + docId);
-          const redisPushes = _.chain(queueRedisCalls)
-            .filter(args => args[0] === "rpush")          // Array<["rpush", key, ...events: string[]]>
-            .flatMap(args => args.slice(2))               // events: string[]
-            .map(JSON.parse)                              // events: WebhookEvent[]
-            .groupBy('id')                                // {[webHookId: string]: WebhookEvent[]}
-            .mapKeys((_value, key) => webhookIds[key])    // {[eventTypes: 'add'|'update'|'add,update']: WebhookEvent[]}
-            .mapValues(group => _.map(group, 'payload'))  // {[eventTypes: 'add'|'update'|'add,update']: RowRecord[]}
-            .value();
-          const expectedPushes = _.mapValues(expectedRequests, value => _.flatten(value));
-          assert.deepEqual(redisPushes, expectedPushes);
-
-          // Check that the events were all removed from the redis queue
-          const redisTrims = queueRedisCalls.filter(args => args[0] === "ltrim")
-            .map(([, , start, end]) => {
-              assert.equal(end, '-1');
-              start = Number(start);
-              assert.isTrue(start > 0);
-              return start;
+            // Make a webhook for every combination of event types
+            const {subscribeResponses, webhookIds} = await createWebhooks({
+              docId, tableId: 'Table1', isReadyColumn: "B", watchedColIds: ctx.watchedColIds,
+              eventTypesSet: [
+                ["add"],
+                ["update"],
+                ["add", "update"],
+              ],
             });
-          const expectedTrims = Object.values(redisPushes).map(value => value.length);
-          assert.equal(
-            _.sum(redisTrims),
-            _.sum(expectedTrims),
-          );
 
-        });
+            // Add and update some rows, trigger some events
+            // Values of A where B is true and thus the record is ready are [1, 4, 7, 8]
+            // So those are the values seen in expectedEvents
+            await doc.addRows("Table1", {
+              A: [1, 2],
+              B: [true, false], // 1  is ready, 2 is not ready yet
+            });
+            await doc.updateRows("Table1", {id: [2], A: [3]});  // still not ready
+            await doc.updateRows("Table1", {id: [2], A: [4], B: [true]});  // ready!
+            await doc.updateRows("Table1", {id: [2], A: [5], B: [false]});  // not ready again
+            await doc.updateRows("Table1", {id: [2], A: [6]});  // still not ready
+            await doc.updateRows("Table1", {id: [2], A: [7], B: [true]});  // ready!
+            await doc.updateRows("Table1", {id: [2], A: [8]});  // still ready!
+
+            // The end result here is additions for column A (now A3) with values [13, 15, 18]
+            // and an update for 101
+            await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+              ['BulkAddRecord', 'Table1', [3, 4, 5, 6], {A: [9, 10, 11, 12], B: [true, true, false, false]}],
+              ['BulkUpdateRecord', 'Table1', [1, 2, 3, 4, 5, 6], {
+                A: [101, 102, 13, 14, 15, 16],
+                B: [true, false, true, false, true, false],
+              }],
+
+              ['RenameColumn', 'Table1', 'A', 'A3'],
+              ['RenameColumn', 'Table1', 'B', 'B3'],
+
+              ['RenameTable', 'Table1', 'Table12'],
+
+              // FIXME a double rename A->A2->A3 doesn't seem to get summarised correctly
+              // ['RenameColumn', 'Table12', 'A2', 'A3'],
+              // ['RenameColumn', 'Table12', 'B2', 'B3'],
+
+              ['RemoveColumn', 'Table12', 'C'],
+            ], chimpy);
+
+            // FIXME record changes after a RenameTable in the same bundle
+            //  don't appear in the action summary
+            await axios.post(`${serverUrl}/api/docs/${docId}/apply`, [
+              ['AddRecord', 'Table12', 7, {A3: 17, B3: false}],
+              ['UpdateRecord', 'Table12', 7, {A3: 18, B3: true}],
+
+              ['AddRecord', 'Table12', 8, {A3: 19, B3: true}],
+              ['UpdateRecord', 'Table12', 8, {A3: 20, B3: false}],
+
+              ['AddRecord', 'Table12', 9, {A3: 20, B3: true}],
+              ['RemoveRecord', 'Table12', 9],
+            ], chimpy);
+
+            // Add 200 rows. These become the `expected200AddEvents`
+            await doc.addRows("Table12", {
+              A3: _.range(200, 400),
+              B3: arrayRepeat(200, true),
+            });
+
+            await receivedLastEvent;
+
+            // Unsubscribe
+            await Promise.all(subscribeResponses.map(async (subscribeResponse) => {
+              const unsubscribeResponse = await axios.post(
+                `${serverUrl}/api/docs/${docId}/tables/Table12/_unsubscribe`,
+                subscribeResponse, chimpy,
+              );
+              assert.equal(unsubscribeResponse.status, 200);
+              assert.deepEqual(unsubscribeResponse.data, {success: true});
+            }));
+
+            // Further changes should generate no events because the triggers are gone
+            await doc.addRows("Table12", {
+              A3: [88, 99],
+              B3: [true, false],
+            });
+
+            assert.deepEqual(requests, expectedRequests);
+
+            // Check that the events were all pushed to the redis queue
+            const queueRedisCalls = redisCalls.filter(args => args[1] === "webhook-queue-" + docId);
+            const redisPushes = _.chain(queueRedisCalls)
+              .filter(args => args[0] === "rpush")          // Array<["rpush", key, ...events: string[]]>
+              .flatMap(args => args.slice(2))               // events: string[]
+              .map(JSON.parse)                              // events: WebhookEvent[]
+              .groupBy('id')                                // {[webHookId: string]: WebhookEvent[]}
+              .mapKeys((_value, key) => webhookIds[key])    // {[eventTypes: 'add'|'update'|'add,update']: WebhookEvent[]}
+              .mapValues(group => _.map(group, 'payload'))  // {[eventTypes: 'add'|'update'|'add,update']: RowRecord[]}
+              .value();
+            const expectedPushes = _.mapValues(expectedRequests, value => _.flatten(value));
+            assert.deepEqual(redisPushes, expectedPushes);
+
+            // Check that the events were all removed from the redis queue
+            const redisTrims = queueRedisCalls.filter(args => args[0] === "ltrim")
+              .map(([, , start, end]) => {
+                assert.equal(end, '-1');
+                start = Number(start);
+                assert.isTrue(start > 0);
+                return start;
+              });
+            const expectedTrims = Object.values(redisPushes).map(value => value.length);
+            assert.equal(
+              _.sum(redisTrims),
+              _.sum(expectedTrims),
+            );
+
+          });
       });
 
       [{
@@ -4764,7 +4764,7 @@ function testDocApi(settings: {
           if (ctx.enabled) {
             assert.isAbove(redisPushIndex, 0, "Should have pushed events to the redis queue");
           }
- else {
+          else {
             assert.equal(redisPushIndex, -1, "Should not have pushed any events to the redis queue");
           }
         });
@@ -5430,7 +5430,7 @@ function testDocApi(settings: {
 
         it('should work correctly', async function () {
           async function check(fields: any, status: number, error?: RegExp | string,
-                               expectedFieldsCallback?: (fields: any) => any) {
+            expectedFieldsCallback?: (fields: any) => any) {
 
             const origFields = {
               tableId: 'Table1',
@@ -5508,11 +5508,11 @@ function testDocApi(settings: {
               const {unsubscribeKey, ...fieldsWithoutUnsubscribeKey} = stats[0].fields;
               assert.deepEqual(fieldsWithoutUnsubscribeKey, { ...expectedFields, ...fields });
             }
- else {
+            else {
               if (error instanceof RegExp) {
                 assert.match(resp.data.details?.userError || resp.data.error, error);
               }
- else {
+              else {
                 assert.deepEqual(resp.data, {error});
               }
             }
@@ -5577,7 +5577,7 @@ function testDocApi(settings: {
           'api.example.com';
         allowedOrigin = 'http://front.example.com';
       }
- else {
+      else {
         allowedOrigin = serverUrl;
       }
 
@@ -5613,7 +5613,7 @@ function testDocApi(settings: {
             // Requests without credentials are still OK.
             assert.equal(response.status, 200);
           }
- else {
+          else {
             assert.equal(response.status, 403);
             assert.deepEqual(response.data, {error: 'Credentials not supported for cross-origin requests'});
           }
@@ -5732,7 +5732,7 @@ function testDocApi(settings: {
       resp = await axios.post(url, query, kiwi);
       assert.equal(resp.status, 403);
     }
- finally {
+    finally {
       // Remove extra viewer; remove extra table.
       const delta = {
         users: { 'kiwi@getgrist.com': null },
@@ -5755,7 +5755,7 @@ function testDocApi(settings: {
       if (accept) {
         assert.equal(resp.status, 200);
       }
- else {
+      else {
         assert.equal(resp.status, 400);
       }
       return resp.data;

@@ -20,10 +20,10 @@ export function buildHomeIntro(homeModel: HomeModel): DomContents {
   if (isAnonym) {
     return makeAnonIntro(homeModel);
   }
- else if (isPersonal) {
+  else if (isPersonal) {
     return makePersonalIntro(homeModel, user);
   }
- else {
+  else {
     return makeTeamSiteIntro(homeModel);
   }
 }

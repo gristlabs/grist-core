@@ -97,7 +97,7 @@ export class DiscussionModelImpl extends Disposable implements DiscussionModel {
     const section = gristDoc.docModel.viewSections.getRowModel(cursorPos.sectionId);
     const column = section.viewFields.peek().peek()[cursorPos.fieldIndex].column.peek();
     const rowId = Number(cursorPos.rowId);
-     const comments = Computed.create(null, (use) => {
+    const comments = Computed.create(null, (use) => {
       const fromColumn = use(use(column.cells).getObservable());
       const forRow = fromColumn.filter(d => use(d.rowId) === rowId && use(d.root) && !use(d.hidden));
       return forRow;
@@ -243,7 +243,7 @@ export class CommentPopup extends Disposable {
               cursorPos: _props.cursorPos,
             });
           }
- else {
+          else {
             return dom.create(EmptyThread, {
               access,
               text: this._newText,
@@ -482,10 +482,10 @@ class SingleThread extends Disposable implements IDomComponent {
       await this.props.cell.reply(list[list.length - 1], md);
       this._entry.clear();
     }
- catch (err) {
+    catch (err) {
       return reportError(err);
     }
- finally {
+    finally {
       this._commentList.scrollTo(0, 10000);
     }
   }
@@ -613,7 +613,7 @@ class Comment extends Disposable {
       parent?: CellRec|null,
       panel?: boolean,
       args?: DomArg<HTMLDivElement>[]
-  }) {
+    }) {
     super();
     this._replies = createObsArray(this, props.comment.children());
     this._hasReplies = Computed.create(this, use => use(this._replies).length > 0);
@@ -749,36 +749,36 @@ class Comment extends Disposable {
           this.props.panel &&
           !use(this.props.gristDoc.isReadonly) &&
           !use(comment.resolved),
-          () => dom.domComputed((use) => {
-            if (!use(this.replying)) {
-              return cssReplyButton(icon('Message'), t('Reply'),
-                testId('comment-reply-button'),
-                dom.on('click', withStop(() => this.replying.set(true))),
-                dom.style('margin-left', use2 => use2(this._hasReplies) ? '16px' : '0px'),
-              );
-            }
- else {
-              return dom.create(CommentEntry, {
-                text: Observable.create(null, new CommentWithMentions()),
-                args: [dom.style('margin-top', '8px'), testId('editor-reply')],
-                mainButton: t('Reply'),
-                buttons: [t('Cancel')],
-                currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
-                onSave: (value: CommentWithMentions) => {
+        () => dom.domComputed((use) => {
+          if (!use(this.replying)) {
+            return cssReplyButton(icon('Message'), t('Reply'),
+              testId('comment-reply-button'),
+              dom.on('click', withStop(() => this.replying.set(true))),
+              dom.style('margin-left', use2 => use2(this._hasReplies) ? '16px' : '0px'),
+            );
+          }
+          else {
+            return dom.create(CommentEntry, {
+              text: Observable.create(null, new CommentWithMentions()),
+              args: [dom.style('margin-top', '8px'), testId('editor-reply')],
+              mainButton: t('Reply'),
+              buttons: [t('Cancel')],
+              currentUserId: this.props.gristDoc.currentUser.get()?.id ?? 0,
+              onSave: (value: CommentWithMentions) => {
+                this.replying.set(false);
+                topic.reply(comment, value).catch(reportError);
+              },
+              onCancel: () => this.replying.set(false),
+              onClick: (button) => {
+                if (button === t('Cancel')) {
                   this.replying.set(false);
-                  topic.reply(comment, value).catch(reportError);
-                },
-                onCancel: () => this.replying.set(false),
-                onClick: (button) => {
-                  if (button === t('Cancel')) {
-                    this.replying.set(false);
-                  }
-                },
-                mode: 'reply',
-                access: this.props.access,
-              });
-            }
-          }),
+                }
+              },
+              mode: 'reply',
+              access: this.props.access,
+            });
+          }
+        }),
         ),
         // Resolved marker
         dom.domComputed((use) => {
@@ -807,7 +807,7 @@ class Comment extends Disposable {
     if (editing) {
       domDispatch(this._bodyDom, Comment.EDIT, this);
     }
- else {
+    else {
       domDispatch(this._bodyDom, Comment.CANCEL, this);
     }
   }
@@ -905,7 +905,7 @@ class CommentEntry extends Disposable {
       if (button === t("Cancel")) {
         this.props.onCancel?.();
       }
- else {
+      else {
         this.props.onClick?.(button);
       }
     });
@@ -1000,7 +1000,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
       if (use(this._currentPageKo)) {
         return [...new Set(use(viewSections).map(vs => use(vs.table)).filter(tb => use(tb.tableId)))];
       }
- else {
+      else {
         return use(this._grist.docModel.visibleTables.getObservable()).filter(tb => use(tb.tableId));
       }
     });
@@ -1016,7 +1016,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
           return fieldSet.has(use(ds.colRef));
         };
       }
- else {
+      else {
         return () => true;
       }
     });
@@ -1048,7 +1048,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         if (list) {
           list.forEach(source => watcher.subscribeTo(source));
         }
- else {
+        else {
           // Page
           watcher.rowFilter.set(() => true);
         }
@@ -1164,7 +1164,7 @@ export class DiscussionPanel extends Disposable implements IDomComponent {
         }
       }
     }
- else {
+    else {
       sectionId = section.sectionId;
       fieldIndex = section.fieldIndex;
     }
@@ -1247,7 +1247,7 @@ function commentAuthor(grist: GristDoc, userRef?: string, userName?: string): Fu
     }
     return loggedInUser;
   }
- else {
+  else {
     if (typeof userName !== 'string') {
       return null;
     }

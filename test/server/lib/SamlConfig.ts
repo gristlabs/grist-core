@@ -102,7 +102,7 @@ describe('SamlConfig', () => {
       assert.match(relayState, /permit-external-[0-9a-f-]+/, 'should have a relay state');
       const samlRequest = decodeSaml(idpUrl.searchParams.get('SAMLRequest') || '');
       assert.match(samlRequest, new RegExp(`AssertionConsumerServiceURL="${spHost}/saml/assert"`),
-                   'SAML request should redirect back to Grist');
+        'SAML request should redirect back to Grist');
 
       // Now we pretend that the IdP server authenticated the user and
       // sent back a SAML login, which we post back to the SAML
@@ -137,7 +137,7 @@ describe('SamlConfig', () => {
       assert.equal(idpLogoutUrl.origin + idpLogoutUrl.pathname, idpHost, 'should redirect to IdP host');
       const samlLogoutRequest = decodeSaml(idpLogoutUrl.searchParams.get('SAMLRequest') || '');
       assert.match(samlLogoutRequest, /samlp:LogoutRequest/,
-                   'SAML logout request should have the right root element');
+        'SAML logout request should have the right root element');
 
       const logoutRelayState = idpLogoutUrl.searchParams.get('RelayState') || '';
       assert.match(logoutRelayState, /permit-external-[0-9a-f-]+/, 'should have a relay state');

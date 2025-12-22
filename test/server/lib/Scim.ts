@@ -160,7 +160,7 @@ describe('Scim', () => {
       try {
         await cb(userName);
       }
- finally {
+      finally {
         const user = await getDbManager().getExistingUserByLogin(userName + "@getgrist.com");
         if (user && !isAffirmative(process.env.NO_CLEANUP)) {
           await cleanupUser(user.id);
@@ -222,7 +222,7 @@ describe('Scim', () => {
           });
           assert.equal(res.status, 500);
         }
- finally {
+        finally {
           sandbox.restore();
         }
       });
@@ -363,7 +363,7 @@ describe('Scim', () => {
             id: String(userIdByName['chimpy']),
             userName: 'chimpy@getgrist.com',
           },
-            "should have retrieved only chimpy's username and not other attribute");
+          "should have retrieved only chimpy's username and not other attribute");
         });
 
         checkCommonErrors('post', '/Users/.search', searchExample);
@@ -587,10 +587,10 @@ describe('Scim', () => {
             path: "displayName",
             value: newName,
           }, {
-              op: "replace",
-              path: "locale",
-              value: 'fr',
-            }],
+            op: "replace",
+            path: "locale",
+            value: 'fr',
+          }],
         });
 
         it('should replace values of an existing user', async function () {
@@ -617,8 +617,8 @@ describe('Scim', () => {
           });
           assert.equal(res.status, 404);
         });
-          checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
-        });
+        checkCommonErrors('patch', '/Users/1', validPatchBody('new name2'));
+      });
 
       describe('DELETE /Users/{id}', function () {
         let userToDeleteId: number;
@@ -686,7 +686,7 @@ describe('Scim', () => {
         try {
           await cb(groupNames);
         }
- finally {
+        finally {
           if (!isAffirmative(process.env.NO_CLEANUP)) {
             await cleanupGroups();
           }

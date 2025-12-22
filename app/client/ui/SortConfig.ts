@@ -130,7 +130,7 @@ export class SortConfig extends Disposable {
         specs = Sort.setSortDirection(specs, colRef, Sort.direction(newSpec));
         specs = Sort.setSortDirection(specs, newRef, Sort.direction(colSpec!));
       }
- else {
+      else {
         specs = Sort.replace(specs, colRef, Sort.createColSpec(newRef, Sort.direction(colSpec!)));
       }
       this._saveSort(specs);
@@ -197,17 +197,17 @@ export class SortConfig extends Disposable {
           // when allowedTypes is null, flag can be used for every column
           const enabled = !allowedTypes || allowedTypes.includes(column!.type);
           return cssMenuItem(
-              labeledLeftSquareCheckbox(
-                computed as any,
-                label,
-                dom.prop('disabled', !enabled),
-              ),
-              dom.cls(cssOptionMenuItem.className),
-              dom.cls('disabled', !enabled),
-              testId('option'),
-              testId(`option-${flag}`),
-            );
-          },
+            labeledLeftSquareCheckbox(
+              computed as any,
+              label,
+              dom.prop('disabled', !enabled),
+            ),
+            dom.cls(cssOptionMenuItem.className),
+            dom.cls('disabled', !enabled),
+            testId('option'),
+            testId(`option-${flag}`),
+          );
+        },
         ), menuOptions),
       ),
       cssSortIconBtn(

@@ -64,7 +64,7 @@ async function makeDocTour(docData: DocData, docComm: DocComm): Promise<IOnBoard
     try {
       new URL(linkUrl);
     }
- catch {
+    catch {
       validLinkUrl = false;
     }
 

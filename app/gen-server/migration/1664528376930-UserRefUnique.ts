@@ -9,10 +9,10 @@ export class UserRefUnique1664528376930 implements MigrationInterface {
 
     // Update users that don't have unique ref set.
     const userList = await queryRunner.manager.createQueryBuilder()
-    .select(["users.id", "users.ref"])
-    .from("users", "users")
-    .where("users.ref is null")
-    .getMany();
+      .select(["users.id", "users.ref"])
+      .from("users", "users")
+      .where("users.ref is null")
+      .getMany();
     userList.forEach(u => u.ref = makeId());
 
     const userChunks = chunk(userList, 300);

@@ -136,8 +136,8 @@ describe('UserPresence', function() {
   // public access to a doc, and in both cases public users should show as anonymous
   publicEmails.forEach((currentPublicEmail) => {
     const _newPermissions = zipObject(
-        publicEmails,
-        publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null),
+      publicEmails,
+      publicEmails.map(email => email === currentPublicEmail ? 'viewers' : null),
     );
 
     describe(`shows the correct profile details - public email ${currentPublicEmail}`, async function() {

@@ -59,26 +59,26 @@ export function getColumnTypes(gristDoc: GristDoc, tableId: string, pure = false
     `RefList:${tableId}`,
     "Attachments"];
   return typeNames.map(type => ({type, obj: UserType.typeDefs[type.split(':')[0]]}))
-      .map((ct): {
-        displayName: string,
-        colType: string,
-        testIdName: string,
-        icon: IconName | undefined,
+    .map((ct): {
+      displayName: string,
+      colType: string,
+      testIdName: string,
+      icon: IconName | undefined,
       openCreatorPanel: boolean } => ({
-          displayName: t(ct.obj.label),
-          colType: ct.type,
-          testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
-          icon: ct.obj.icon,
-          openCreatorPanel: isFullReferencingType(ct.type),
-        })).map((ct) => {
-    if (!pure) { return ct; }
-    else {
-      return {
-        ...ct,
-        colType: ct.colType.split(':')[0],
-      };
-    }
-  });
+      displayName: t(ct.obj.label),
+      colType: ct.type,
+      testIdName: ct.obj.label.toLowerCase().replace(' ', '-'),
+      icon: ct.obj.icon,
+      openCreatorPanel: isFullReferencingType(ct.type),
+    })).map((ct) => {
+      if (!pure) { return ct; }
+      else {
+        return {
+          ...ct,
+          colType: ct.colType.split(':')[0],
+        };
+      }
+    });
 }
 
 function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomElementArg[] {
@@ -102,19 +102,19 @@ function buildAddNewColumMenuSection(gridView: GridView, index?: number): DomEle
             async () => {
               await gridView.insertColumn(null, {index, colInfo: {type: colType.colType}, onPopupClose: () => {
                 if(!colType.openCreatorPanel || isNarrowScreen()) { return; }
-                  commands.allCommands.fieldTabOpen.run();
-                  commands.allCommands.rightPanelOpen.run();
-                  commands.allCommands.showPopup.run({popup: "referenceColumnsConfig"});
+                commands.allCommands.fieldTabOpen.run();
+                commands.allCommands.rightPanelOpen.run();
+                commands.allCommands.showPopup.run({popup: "referenceColumnsConfig"});
               }});
             },
             menuIcon(colType.icon as IconName),
             colType.displayName === 'Reference'?
-                  gridView.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
-                    popupOptions: {
-                      attach: `.${menuCssClass}`,
-                      placement: 'left-start',
-                    },
-                  }):null,
+              gridView.gristDoc.behavioralPromptsManager.attachPopup('referenceColumns', {
+                popupOptions: {
+                  attach: `.${menuCssClass}`,
+                  placement: 'left-start',
+                },
+              }):null,
             colType.displayName,
             testId(`new-columns-menu-add-${colType.testIdName}`)),
         ),
@@ -170,7 +170,7 @@ function buildHiddenColumnsMenuItems(gridView: GridView, index?: number) {
       ),
     ];
   }
- else {
+  else {
     return [
       menuDivider(),
       menuSubHeaderMenu(
@@ -246,8 +246,8 @@ function buildTimestampMenuItems(gridView: GridView, index?: number) {
       testId('new-columns-menu-shortcuts-timestamp-change'),
     ),
   ], {},
-    t("Timestamp"),
-    testId('new-columns-menu-shortcuts-timestamp'),
+  t("Timestamp"),
+  testId('new-columns-menu-shortcuts-timestamp'),
   );
 }
 
@@ -302,7 +302,7 @@ function buildDetectDuplicatesMenuItems(gridView: GridView, index?: number) {
             return `any([len(${col.table().tableId()}.lookupRecords(${col.colId()}` +
               `=CONTAINS(x))) > 1 for x in $${col.colId()}])`;
           }
- else {
+          else {
             return `$${col.colId()} != "" and $${col.colId()} is not None and ` +
               `len(${col.table().tableId()}.lookupRecords(` +
               `${col.colId()}=$${col.colId()})) > 1`;
@@ -409,17 +409,17 @@ function buildLookupSection(gridView: GridView, index?: number){
         'sum', 'average', 'min', 'max',
       ];
     }
- else if (col.pureType() === 'Bool') {
+    else if (col.pureType() === 'Bool') {
       return [
         'count', 'percent',
       ];
     }
- else if (col.pureType() === 'Date' || col.pureType() === 'DateTime') {
+    else if (col.pureType() === 'Date' || col.pureType() === 'DateTime') {
       return [
         'list', 'min', 'max',
       ];
     }
- else {
+    else {
       return [
         'list',
       ];
@@ -490,7 +490,7 @@ function buildLookupSection(gridView: GridView, index?: number){
       if (ref.pureType() === 'Ref') {
         label = col.label();
       }
- else {
+      else {
         // For RefList column we will show the column name and the aggregation function which is the first
         // on of suggested action (and a default action).
         label = menuLabelWithBadge(col.label(), suggestAggregation(col)[0]);
@@ -510,7 +510,7 @@ function buildLookupSection(gridView: GridView, index?: number){
             testId(`new-columns-menu-lookup-column-${col.colId()}`),
           );
         }
- else {
+        else {
           // Depending on the number of aggregation functions we will either create a plain menu item
           // or submenu with all the functions.
           const functions = suggestAggregation(col);
@@ -521,13 +521,13 @@ function buildLookupSection(gridView: GridView, index?: number){
               testId(`new-columns-menu-lookup-column-${col.colId()}`),
             );
           }
- else {
+          else {
             return menuItemSubmenu(
               () => functions.map(fun => menuItem(
                 () => insertAggLookup(fun), fun,
-                  testId(`new-columns-menu-lookup-submenu-function`),
-                  testId(`new-columns-menu-lookup-submenu-function-${fun}`),
-                )),
+                testId(`new-columns-menu-lookup-submenu-function`),
+                testId(`new-columns-menu-lookup-submenu-function-${fun}`),
+              )),
               {
                 action: () => insertAggLookup(suggestAggregation(col)[0]),
               },
@@ -649,7 +649,7 @@ function buildLookupSection(gridView: GridView, index?: number){
               const action = () => insertColumn(tab, col, refCol, firstAggregation);
               return menuItem(action, content, testId('new-columns-menu-revlookup-column'));
             }
- else {
+            else {
               // We have some other suggested columns, we will build submenu for them.
               const submenu = () => {
                 const items = aggregationList.map((fun) => {
@@ -683,7 +683,7 @@ function buildLookupSection(gridView: GridView, index?: number){
   const reverseLookupMenu = buildReverseLookupsMenuItems();
 
   const menuContent = (lookupMenu.length === 0 && reverseLookupMenu.length === 0)
-  ? [menuText(
+    ? [menuText(
       t('No reference columns.'),
       testId('new-columns-menu-lookups-none'),
     )]
@@ -700,7 +700,7 @@ function buildLookupSection(gridView: GridView, index?: number){
       testId('new-columns-menu-lookups'),
     ),
     ...menuContent,
-    ];
+  ];
 }
 
 export interface IMultiColumnContextMenu {
@@ -746,7 +746,7 @@ export function buildColumnContextMenu(options: IColumnContextMenu) {
       customMenuItem(
         allCommands.sortAsc.run,
         dom('span', t("Sort"), {style: 'flex: 1  0 auto; margin-right: 8px;'},
-            testId('sort-label')),
+          testId('sort-label')),
         icon('Sort', dom.style('transform', 'scaley(-1)')),
         'A-Z',
         dom.style('flex', ''),
@@ -838,7 +838,7 @@ export function buildMultiColumnMenu(options: IMultiColumnContextMenu) {
 }
 
 export function freezeAction(options: IMultiColumnContextMenu): { text: string; numFrozen: number; } | null {
- /**
+  /**
    * When user clicks last column - don't offer freezing
    * When user clicks on a normal column - offer him to freeze all the columns to the
    * left (inclusive).
@@ -884,7 +884,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
       if (firstColumnIndex === 0 || firstColumnIndex === numFrozen) {
         text = t('Freeze {{count}} columns', {count: 1});
       }
- else {
+      else {
         // else user clicked any other column that is farther, offer to freeze
         // proper number of column
         const properNumber = firstColumnIndex - numFrozen + 1;
@@ -897,12 +897,12 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         numFrozen : firstColumnIndex + 1,
       };
     }
- else if (isFrozenColumn) {
+    else if (isFrozenColumn) {
       // when user clicked last column in frozen set - offer to unfreeze this column
       if (firstColumnIndex + 1 === numFrozen) {
         text = t('Unfreeze {{count}} columns', {count: 1});
       }
- else {
+      else {
         // else user clicked column that is not the last in a frozen set
         // offer to unfreeze proper number of columns
         const properNumber = numFrozen - firstColumnIndex;
@@ -915,11 +915,11 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         numFrozen : indices[0],
       };
     }
- else {
+    else {
       return null;
     }
   }
- else {
+  else {
     if (isLastFrozenSet) {
       text = t('Unfreeze {{count}} columns', {count: length});
       return {
@@ -927,14 +927,14 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         numFrozen : numFrozen - length,
       };
     }
- else if (isFirstNormalSet) {
+    else if (isFirstNormalSet) {
       text = t('Freeze {{count}} columns', {count: length});
       return {
         text,
         numFrozen : numFrozen + length,
       };
     }
- else if (isSpanSet) {
+    else if (isSpanSet) {
       const toFreeze = lastColumnIndex + 1 - numFrozen;
       text = t('Freeze {{count}} more columns', {count: toFreeze});
       return {
@@ -942,7 +942,7 @@ export function freezeAction(options: IMultiColumnContextMenu): { text: string; 
         numFrozen : numFrozen + toFreeze,
       };
     }
-  else {
+    else {
       return null;
     }
   }
@@ -968,7 +968,7 @@ function getAddToSortLabel(sortSpec: Sort.SortSpec, colId: number): string|undef
     if (index > -1) {
       return t("Sorted (#{{count}})", {count: index + 1});
     }
- else {
+    else {
       return t("Add to sort");
     }
   }

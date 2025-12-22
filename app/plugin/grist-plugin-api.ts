@@ -19,7 +19,7 @@
 // tslint:disable:no-console
 
 import { ColumnsToMap, CustomSectionAPI, InteractionOptions, InteractionOptionsRequest,
-         WidgetColumnMap } from 'app/plugin/CustomSectionAPI';
+  WidgetColumnMap } from 'app/plugin/CustomSectionAPI';
 import {
   AccessTokenOptions, AccessTokenResult, FetchSelectedOptions, GristAPI, GristDocAPI,
   GristView, RPC_GRISTAPI_INTERFACE,
@@ -76,7 +76,7 @@ export const viewApi: GristView = {
       }
       return rows;
     }
- else {
+    else {
       return data;
     }
   },
@@ -332,7 +332,7 @@ export function mapColumnNames(data: any, options?: {
           to[widgetCol] = gristCol.map(col => from[col]);
         });
       }
- else {
+      else {
         transformations.push((from, to) => {
           for (const [idx, col] of gristCol.entries()) {
             to[col] = from[widgetCol]?.[idx];
@@ -341,15 +341,15 @@ export function mapColumnNames(data: any, options?: {
       }
       // Copy column directly under widget column name.
     }
- else if (!Array.isArray(gristCol) && gristCol) {
+    else if (!Array.isArray(gristCol) && gristCol) {
       if (!options.reverse) {
         transformations.push((from, to) => to[widgetCol] = from[gristCol]);
       }
- else {
+      else {
         transformations.push((from, to) => to[gristCol] = from[widgetCol]);
       }
     }
- else if (!isOptional(widgetCol)) {
+    else if (!isOptional(widgetCol)) {
       // Column was not configured but was required.
       return null;
     }
@@ -478,7 +478,7 @@ export async function addImporter(name: string, path: string, mode: 'fullscreen'
         // checker is omitted in stub because call will be checked just after in grist.
         return await rpc.getStub<ImportSourceAPI>(stubName).getImportSource();
       }
- finally {
+      finally {
         await api.dispose(procId);
       }
     },
@@ -546,7 +546,7 @@ if (typeof window !== 'undefined') {
     rpc.setSendMessage(msg => preloadWindow.sendToHost(msg));
     preloadWindow.onGristMessage((data: any) => rpc.receiveMessage(data));
   }
- else {
+  else {
     rpc.setSendMessage(msg => window.parent.postMessage(msg, "*"));
     window.onmessage = (e: MessageEvent) => rpc.receiveMessage(e.data);
   }
@@ -556,13 +556,13 @@ if (typeof window !== 'undefined') {
   rpc.registerFunc("print", () => window.print());
 
 }
- else if (typeof process === 'undefined') {
+else if (typeof process === 'undefined') {
   // Web worker. We can't really bring in the types for WebWorker (available with --lib flag)
   // without conflicting with a regular window, so use just use `self as any` here.
   self.onmessage = (e: MessageEvent) => rpc.receiveMessage(e.data);
   rpc.setSendMessage((mssg: any) => (self as any).postMessage(mssg));
 }
- else if (typeof process.send !== 'undefined') {
+else if (typeof process.send !== 'undefined') {
   // Forked ChildProcess of node or electron.
   // sendMessage callback returns void 0 because rpc process.send returns a boolean and rpc
   // expecting void|Promise interprets truthy values as Promise which cause failure.
@@ -570,7 +570,7 @@ if (typeof window !== 'undefined') {
   process.on('message', (data: any) => rpc.receiveMessage(data));
   process.on('disconnect', () => { process.exit(0); });
 }
- else {
+else {
   // Not a recognized environment, perhaps plain nodejs run independently of Grist, or tests
   // running under mocha. For now, we only provide a dysfunctional implementation. It allows
   // plugins to call methods like registerFunction() without failing, so that plugin code may be
@@ -584,13 +584,13 @@ function createRpcLogger(): IRpcLogger {
   if (typeof window !== 'undefined') {
     prefix = `PLUGIN VIEW ${getPluginPath(window.location)}:`;
   }
- else if (typeof process === 'undefined') {
+  else if (typeof process === 'undefined') {
     prefix = `PLUGIN VIEW ${getPluginPath(self.location)}:`;
   }
- else if (typeof process.send !== 'undefined') {
+  else if (typeof process.send !== 'undefined') {
     prefix = `PLUGIN NODE ${process.env.GRIST_PLUGIN_PATH || "<unset-plugin-id>"}:`;
   }
- else {
+  else {
     return {};
   }
   return {

@@ -16,7 +16,7 @@ export function expressWrap(callback: AsyncRequestHandler): express.RequestHandl
     try {
       await callback(req, res, next);
     }
- catch (err) {
+    catch (err) {
       next(err);
     }
   };
@@ -59,7 +59,7 @@ const buildJsonErrorHandler = (options: JsonErrorHandlerOptions = {}): express.E
       // already reported the error above.
       res.end();
     }
- else {
+    else {
       res.status(status).json({error: err.message || 'internal error', details});
     }
   };

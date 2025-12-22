@@ -97,8 +97,8 @@ SqliteDriver.prototype.createQueryRunner = SqliteDriverPatched.prototype.createQ
 export function applyPatch() {
   // tslint: disable-next-line
   EntityManager.prototype.transaction = async function<T>(
-      arg1: IsolationLevel | ((entityManager: EntityManager) => Promise<T>),
-      arg2?: (entityManager: EntityManager) => Promise<T>): Promise<T> {
+    arg1: IsolationLevel | ((entityManager: EntityManager) => Promise<T>),
+    arg2?: (entityManager: EntityManager) => Promise<T>): Promise<T> {
     const isolation =
       typeof arg1 === "string"
         ? arg1
@@ -136,11 +136,11 @@ export function applyPatch() {
             await queryRunner.commitTransaction();
             return result;
           }
- finally {
+          finally {
             clearInterval(timer);
           }
         }
- catch (err) {
+        catch (err) {
           if (!(err instanceof ApiError)) {
             // Log with a stack trace in case of unexpected DB problems. Don't bother logging for
             // errors (like ApiError) that clearly come from our own code.
@@ -151,7 +151,7 @@ export function applyPatch() {
             await queryRunner.rollbackTransaction();
             // tslint: disable-next-line
           }
- catch (rollbackError) {
+          catch (rollbackError) {
             // tslint: disable-next-line
           }
           throw err;
@@ -171,12 +171,12 @@ export function applyPatch() {
           maxTotalMsec: 3000,
         });
       }
- else {
+      else {
         // When not using SQLite, don't do anything special.
         return await runOrRollback();
       }
     }
- finally {
+    finally {
       await queryRunner.release();
     }
   };
@@ -201,7 +201,7 @@ async function callWithRetry<T>(op: () => Promise<T>, options: {
     try {
       return await op();
     }
- catch (e) {
+    catch (e) {
       // throw if not worth retrying
       if (options.worthRetry && e instanceof Error && !options.worthRetry(e)) {
         throw e;

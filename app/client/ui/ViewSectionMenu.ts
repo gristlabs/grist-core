@@ -73,7 +73,7 @@ export function viewSectionMenu(
          && !use(viewSection.isRecordCard)
          && !use(singleVisible) // not in single section
          && use(viewSection.canExpand)
-         ;
+    ;
   });
 
   return [
@@ -121,10 +121,10 @@ export function viewSectionMenu(
         dom.domComputed(displaySaveObs, displaySave => [
           displaySave ? cssSaveButtonsRow(
             cssSaveButton(t("Save"), testId('btn-save'),
-                          dom.on('click', () => { ctl.close(); save(); }),
-                          dom.boolAttr('disabled', isReadonly)),
+              dom.on('click', () => { ctl.close(); save(); }),
+              dom.boolAttr('disabled', isReadonly)),
             basicButton(t("Revert"), testId('btn-revert'),
-                        dom.on('click', () => { ctl.close(); revert(); })),
+              dom.on('click', () => { ctl.close(); revert(); })),
           ) : null,
         ]),
         // Updates to active sort or filters can cause menu contents to grow, while
@@ -201,7 +201,7 @@ function makeCustomOptions(section: ViewSectionRec) {
     if (use(section.activeCustomOptions)) {
       return use(section.activeCustomOptions.isSaved) ? t("(customized)") : t("(modified)");
     }
- else {
+    else {
       return t("(empty)");
     }
   });

@@ -135,9 +135,9 @@ export class Billing1556726945436 implements MigrationInterface {
 
     // Add a reference to billing accounts from orgs.
     await queryRunner.addColumn('orgs', new TableColumn({
-        name: 'billing_account_id',
-        type: 'integer',
-        isNullable: true,
+      name: 'billing_account_id',
+      type: 'integer',
+      isNullable: true,
     }));
     await queryRunner.createForeignKey('orgs', new TableForeignKey({
       columnNames: ['billing_account_id'],
@@ -151,16 +151,16 @@ export class Billing1556726945436 implements MigrationInterface {
     // list of payment managers seeded by owners of that account.
     const query =
       queryRunner.manager.createQueryBuilder()
-      .select('orgs.id')
-      .from(Organization, 'orgs')
-      .leftJoin('orgs.owner', 'owners')
-      .addSelect('orgs.owner.id')
-      .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
-      .leftJoinAndSelect('acl_rules.group', 'groups')
-      .leftJoin('groups.memberUsers', 'users')
-      .addSelect('users.id')
-      .where('permissions & 8 = 8');  // seed managers with owners+editors, omitting guests+viewers
-                                      // (permission 8 is "Remove")
+        .select('orgs.id')
+        .from(Organization, 'orgs')
+        .leftJoin('orgs.owner', 'owners')
+        .addSelect('orgs.owner.id')
+        .leftJoinAndSelect('orgs.aclRules', 'acl_rules')
+        .leftJoinAndSelect('acl_rules.group', 'groups')
+        .leftJoin('groups.memberUsers', 'users')
+        .addSelect('users.id')
+        .where('permissions & 8 = 8');  // seed managers with owners+editors, omitting guests+viewers
+    // (permission 8 is "Remove")
     const orgs = await query.getMany();
     for (const org of orgs) {
       const individual = Boolean(org.owner);
@@ -177,7 +177,7 @@ export class Billing1556726945436 implements MigrationInterface {
           .values([{billingAccountId, userId: org.owner.id}])
           .execute();
       }
- else {
+      else {
         for (const rule of org.aclRules) {
           for (const user of rule.group.memberUsers) {
             await queryRunner.manager.createQueryBuilder()

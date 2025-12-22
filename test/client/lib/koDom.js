@@ -16,13 +16,13 @@ describe('koDom', function() {
       var obs = ko.observable('bar');
       var width = ko.observable(17);
       var elem = dom('div',
-                     kd.attr('a1', 'foo'),
-                     kd.attr('a2', obs),
-                     kd.attr('a3', function() { return "a3" + obs(); }),
-                     kd.text(obs),
-                     kd.style('width', function() { return width() + 'px'; }),
-                     kd.toggleClass('isbar', function() { return obs() === 'bar'; }),
-                     kd.cssClass(function() { return 'class' + obs(); }));
+        kd.attr('a1', 'foo'),
+        kd.attr('a2', obs),
+        kd.attr('a3', function() { return "a3" + obs(); }),
+        kd.text(obs),
+        kd.style('width', function() { return width() + 'px'; }),
+        kd.toggleClass('isbar', function() { return obs() === 'bar'; }),
+        kd.cssClass(function() { return 'class' + obs(); }));
 
       assert.equal(elem.getAttribute('a1'), 'foo');
       assert.equal(elem.getAttribute('a2'), 'bar');
@@ -61,10 +61,10 @@ describe('koDom', function() {
     it("should handle any number of children", function() {
       var obs = ko.observable();
       var elem = dom('div', 'Hello',
-                     kd.scope(obs, function(value) {
-                       return value;
-                     }),
-                     'World');
+        kd.scope(obs, function(value) {
+          return value;
+        }),
+        'World');
       assert.equal(elem.textContent, "HelloWorld");
       obs("Foo");
       assert.equal(elem.textContent, "HelloFooWorld");
@@ -103,13 +103,13 @@ describe('koDom', function() {
     it("should handle any number of children", function() {
       var obs = ko.observable(0);
       var elem = dom('div', 'Hello',
-                     kd.maybe(function() { return obs() > 0; }, function() {
-                       return dom("span", "Foo");
-                     }),
-                     kd.maybe(function() { return obs() > 1; }, function() {
-                       return [dom("span", "Foo"), dom("span", "Bar")];
-                     }),
-                     "World");
+        kd.maybe(function() { return obs() > 0; }, function() {
+          return dom("span", "Foo");
+        }),
+        kd.maybe(function() { return obs() > 1; }, function() {
+          return [dom("span", "Foo"), dom("span", "Bar")];
+        }),
+        "World");
       assert.equal(elem.textContent, "HelloWorld");
       obs(1);
       assert.equal(elem.textContent, "HelloFooWorld");
@@ -137,11 +137,11 @@ describe('koDom', function() {
       // Make sure the loop notices elements already in the model.
       model.assign(["a", "b", "c"]);
       var elem = dom('div', "[",
-                     kd.foreach(model, function(item) {
-                       return dom('span', ":", dom('span', kd.text(item)));
-                     }),
-                     "]"
-                    );
+        kd.foreach(model, function(item) {
+          return dom('span', ":", dom('span', kd.text(item)));
+        }),
+        "]"
+      );
 
       assert.equal(elem.textContent, "[:a:b:c]");
 

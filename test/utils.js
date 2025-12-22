@@ -55,8 +55,8 @@ function timingDescribe(desc, func) {
   // If under Node, non-empty ENABLE_TIMING_TESTS environment variable turns on the timing tests.
   // If under the Browser, we look for 'timing=1' among URL params, set by test/browser.js.
   var enableTimingTests = (process.browser ?
-      (location.search.substr(1).split("&").indexOf("timing=1") !== -1) :
-      process.env.ENABLE_TIMING_TESTS);
+    (location.search.substr(1).split("&").indexOf("timing=1") !== -1) :
+    process.env.ENABLE_TIMING_TESTS);
 
   function body() {
     func();
@@ -109,8 +109,8 @@ function timingTest(expectedMs, desc, testFunc) {
  * in the browser when running /test.html manually, go to /test.html?timing=1.
  */
 exports.timing = {
- describe: timingDescribe,
- it: timingTest
+  describe: timingDescribe,
+  it: timingTest
 };
 
 
@@ -137,11 +137,11 @@ function genPeople(num, seed) {
   var chance = new Chance(seed);
   for (var i = 0; i < num; i++) {
     people.push(new TestPerson(chance.last(),
-                               chance.first(),
-                               chance.integer(ageOpts),
-                               parseInt(chance.year()),
-                               chance.integer(monthOpts),
-                               chance.integer(dayOpts)
+      chance.first(),
+      chance.integer(ageOpts),
+      parseInt(chance.year()),
+      chance.integer(monthOpts),
+      chance.integer(dayOpts)
     ));
   }
   return people;

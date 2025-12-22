@@ -169,16 +169,16 @@ export class Marshaller {
         if (value instanceof WrappedObj) {
           return value.code;
         }
- else if (value === null) {
+        else if (value === null) {
           return marshalCodes.NONE;
         }
- else if (value instanceof Uint8Array) {
+        else if (value instanceof Uint8Array) {
           return marshalCodes.STRING;
         }
- else if (Buffer.isBuffer(value)) {
+        else if (Buffer.isBuffer(value)) {
           return marshalCodes.STRING;
         }
- else if (Array.isArray(value)) {
+        else if (Array.isArray(value)) {
           return marshalCodes.LIST;
         }
         return marshalCodes.DICT;
@@ -337,7 +337,7 @@ export class Unmarshaller extends EventEmitter {
         }
       }
     }
- catch (err) {
+    catch (err) {
       // If the error is `needMoreData`, we silently return. We'll retry by reparsing the message
       // from scratch after the next push(). If buffers contain complete serialized messages, the
       // cost should be minor. But this design might get very inefficient if we have big messages
@@ -348,7 +348,7 @@ export class Unmarshaller extends EventEmitter {
           console.log("Unmarshaller: Need more data; wasted parsing of %d bytes", err.consumedData);
         }
       }
- else {
+      else {
         err.message = "Unmarshaller: " + err.message;
         throw err;
       }
@@ -402,7 +402,7 @@ export class Unmarshaller extends EventEmitter {
     if (hi >= 0) {
       return new BigInt(TwoTo32, [unsignedLow, hi], 1).toNative();
     }
- else {
+    else {
       // This part is tricky. See unittests for check of correctness.
       return new BigInt(TwoTo32, [TwoTo32 - unsignedLow, -hi - 1], -1).toNative();
     }
@@ -496,7 +496,7 @@ export function loads(byteArray: Uint8Array|Buffer, options?: UnmarshalOptions):
   if (typeof parsedValue === 'undefined') {
     throw new Error("loads: input data truncated");
   }
- else if (unmarshaller.memBuf.size() > 0) {
+  else if (unmarshaller.memBuf.size() > 0) {
     throw new Error("loads: extra bytes past end of input");
   }
   return parsedValue;

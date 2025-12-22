@@ -138,7 +138,7 @@ describe('ApiServer', function() {
 
         // Confirm that anon doesn't see this org from /session/access/all
         resp = await axios.get(`${homeUrl}/api/session/access/all`,
-                               await server.getCookieLogin('nasa', null));
+          await server.getCookieLogin('nasa', null));
         assert.equal(resp.status, 200);
         assert.deepEqual([], resp.data.orgs.map((o: any) => o.name));
 
@@ -149,8 +149,8 @@ describe('ApiServer', function() {
         let orgs = resp.data.map((o: any) => o.name);
         assert.notInclude(orgs, 'Abyss');
         resp = await axios.get(`${homeUrl}/o/nasa/api/session/access/all`,
-                               await server.getCookieLogin('nasa', {email: 'chimpy@getgrist.com',
-                                                                    name: 'Chimpy'}));
+          await server.getCookieLogin('nasa', {email: 'chimpy@getgrist.com',
+            name: 'Chimpy'}));
         assert.equal(resp.status, 200);
         orgs = resp.data.orgs.map((o: any) => o.name);
         assert.notInclude(orgs, 'Abyss');
@@ -163,17 +163,17 @@ describe('ApiServer', function() {
         if (users.includes('everyone')) {
           assert.include(orgs, 'Abyss');
         }
- else {
+        else {
           assert.notInclude(orgs, 'Abyss');
         }
         resp = await axios.get(`${homeUrl}/o/deep/api/session/access/all`,
-                               await server.getCookieLogin('deep', {email: 'chimpy@getgrist.com',
-                                                                    name: 'Chimpy'}));
+          await server.getCookieLogin('deep', {email: 'chimpy@getgrist.com',
+            name: 'Chimpy'}));
         assert.equal(resp.status, 200);
         orgs = resp.data.orgs.map((o: any) => o.name);
         assert.notInclude(orgs, 'Abyss');
       }
- finally {
+      finally {
         // Cleanup: remove anon from org
         let resp = await axios.patch(`${homeUrl}/api/orgs/${oid}/access`, {
           delta: {users: removeUsers},
@@ -231,7 +231,7 @@ describe('ApiServer', function() {
     assert.equal(resp.data[0].name, 'Kiwiland');
     assert.equal(resp.data[0].owner.name, 'Kiwi');
     assert.deepEqual(resp.data.map((org: any) => org.name),
-                     ['Kiwiland', 'Fish', 'Flightless', 'Primately']);
+      ['Kiwiland', 'Fish', 'Flightless', 'Primately']);
   });
 
   it('GET /api/orgs/{oid} is operational', async function() {
@@ -305,7 +305,7 @@ describe('ApiServer', function() {
     assert.equal(resp.data[0].id, await dbManager.testGetId('Horizon'));
     assert.equal(resp.data[1].id, await dbManager.testGetId('Rovers'));
     assert.deepEqual(resp.data[0].docs.map((doc: any) => doc.name),
-                     ['Jupiter', 'Pluto', 'Beyond']);
+      ['Jupiter', 'Pluto', 'Beyond']);
     // Check that Primately access is as expected.
     const oid2 = await dbManager.testGetId('Primately');
     const resp2 = await axios.get(`${homeUrl}/api/orgs/${oid2}/workspaces`, kiwi);
@@ -407,7 +407,7 @@ describe('ApiServer', function() {
     const wid = await dbManager.testGetId('Horizon');
     const resp = await axios.get(`${homeUrl}/api/workspaces/${wid}`, chimpy);
     assert.deepEqual(resp.data.docs.map((doc: any) => doc.name),
-                     ['Jupiter', 'Pluto', 'Beyond']);
+      ['Jupiter', 'Pluto', 'Beyond']);
     assert.equal(resp.data.org.name, 'NASA');
     assert.equal(resp.data.org.owner, null);
   });
@@ -1144,7 +1144,7 @@ describe('ApiServer', function() {
       await axios.get(`${homeUrl}/api/docs/${did}/records`, chimpy);
       assert.equal(resp.status, 200);
     }
- finally {
+    finally {
       chimpyUser.disabledAt = null;
       await chimpyUser.save();
     }
@@ -2226,30 +2226,30 @@ describe('ApiServer', function() {
 
     // others cannot delete this user
     resp = await axios.delete(`${homeUrl}/api/users/${userId}`,
-                              {data: {name: "Meep"}, ...configForUser("chimpy")});
+      {data: {name: "Meep"}, ...configForUser("chimpy")});
     assert.equal(resp.status, 403);
     assert.match(resp.data.error, /not permitted/);
 
     // user cannot delete themselves if they get their name wrong
     resp = await axios.delete(`${homeUrl}/api/users/${userId}`,
-                              {data: {name: "Moop"}, ...configForUser("meep")});
+      {data: {name: "Moop"}, ...configForUser("meep")});
     assert.equal(resp.status, 400);
     assert.match(resp.data.error, /user name did not match/);
 
     // user can delete themselves if they get the name right
     resp = await axios.delete(`${homeUrl}/api/users/${userId}`,
-                              {data: {name: "Meep"}, ...configForUser("meep")});
+      {data: {name: "Meep"}, ...configForUser("meep")});
     assert.equal(resp.status, 200);
 
     // create a user with a blank name
     const userBlank = await dbManager.getUserByLogin('blank@getgrist.com',
-                                                     {profile: {email: 'blank@getgrist.com',
-                                                      name: ''}});
+      {profile: {email: 'blank@getgrist.com',
+        name: ''}});
     await dbManager.connection.query("update users set api_key = 'api_key_for_blank' where id = $1", [userBlank.id]);
 
     // check that user can delete themselves
     resp = await axios.delete(`${homeUrl}/api/users/${userBlank.id}`,
-                              {data: {name: ""}, ...configForUser("blank")});
+      {data: {name: ""}, ...configForUser("blank")});
     assert.equal(resp.status, 200);
 
     const countsAfter = await getRowCounts();
@@ -2643,7 +2643,7 @@ describe('ApiServer', function() {
             const accessToOrgAfterBan = await axios.get(`${homeUrl}/api/orgs/${oid}`, serviceAccountReqConfig);
             assert.equal(accessToOrgAfterBan.status, 403, "Service Account should no longer list NASA org");
           }
- finally {
+          finally {
             // Unban chimpy so the next tests work
             await axios.post(`${homeUrl}/api/users/${chimpyId}/enable`, { name: 'Ham' }, ham);
           }
@@ -2666,7 +2666,7 @@ describe('ApiServer', function() {
         assert.equal(resp.status, 403);
         assert.deepEqual(resp.data, {error: 'access denied'});
       }
- else {
+      else {
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.data, expected);
       }
@@ -2857,7 +2857,7 @@ describe('ApiServer', function() {
       assert.lengthOf(resp3.data, 2);
       assert.deepEqual(resp3.data[0].docs.map((doc: any) => doc.name), ['Lightweight CRM']);
     }
- finally {
+    finally {
       // Remove the 'Grist Templates' org.
       if (oid) {
         await axios.delete(`${homeUrl}/api/orgs/${oid}/force-delete`, support);
@@ -2911,8 +2911,8 @@ async function upgradeOrg(dbManager: HomeDBManager, name: string) {
   // Upgrade this org to a fancier plan, for vanity domain
   const db = dbManager.connection.manager;
   const dbOrg = await db.findOne(Organization,
-                                 {where: {name},
-                                  relations: ['billingAccount', 'billingAccount.product']});
+    {where: {name},
+      relations: ['billingAccount', 'billingAccount.product']});
   if (!dbOrg) { throw new Error(`cannot find ${name}`); }
   const product = await db.findOne(Product, {where: {name: 'team'}});
   if (!product) { throw new Error('cannot find product'); }

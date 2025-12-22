@@ -20,8 +20,8 @@ function setupTest() {
     cssRow(
       dom.maybe(showTriggerObs, () => (
         cssTrigger('Close on disposed', hoverTooltip("Tooltip6", {closeDelay: 2000, openDelay: 500}),
-                   dom('button', dom.on('click', () => showTriggerObs.set(false)), 'Hide'),
-                   testId('dispose'))
+          dom('button', dom.on('click', () => showTriggerObs.set(false)), 'Hide'),
+          testId('dispose'))
       )),
       cssLabel(
         dom(
@@ -50,7 +50,7 @@ function setupTest() {
       (el) => {
         return descriptionInfoTooltip(
           'Multi line text\nAnd a https://link.to/page.html?with=filter in it',
-         'prefix');
+          'prefix');
       },
       testId('visible'),
     ),

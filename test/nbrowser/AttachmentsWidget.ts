@@ -540,7 +540,7 @@ describe("AttachmentsWidget", function () {
       assert.deepEqual(await getCellThumbnailTitles(cell), ["grist.png"]);
       await gu.undo();
     }
- else {
+    else {
       // If shouldSave is false, there should be no actions.
       await gu.userActionsVerify([]);
     }

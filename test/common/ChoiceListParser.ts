@@ -10,7 +10,7 @@ function testParse(input: string, expected?: string[]) {
   if (expected) {
     assert.deepEqual(result, ["L", ...expected], input);
   }
- else {
+  else {
     assert.isNull(result, input);
   }
 }

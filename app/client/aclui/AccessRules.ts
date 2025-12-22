@@ -289,8 +289,8 @@ export class AccessRules extends Disposable {
 
     this._tableRules.set(
       rules.getAllTableIds()
-      .filter(tableId => (tableId !== SPECIAL_RULES_TABLE_ID))
-      .map(tableId => TableRules.create(this._tableRules,
+        .filter(tableId => (tableId !== SPECIAL_RULES_TABLE_ID))
+        .map(tableId => TableRules.create(this._tableRules,
           tableId, this, rules.getAllColumnRuleSets(tableId), rules.getTableDefaultRuleSet(tableId))),
     );
 
@@ -369,7 +369,7 @@ export class AccessRules extends Disposable {
         if (isSchemaEditResource(rule.resourceRec!)) {
           resourceRowId = defaultResourceRowId;
         }
- else {
+        else {
           const resourceKey = serializeResource(rule.resourceRec as RowRecord);
           resourceRowId = resourceSync.rowIdMap.get(resourceKey);
           if (!resourceRowId) {
@@ -433,7 +433,7 @@ export class AccessRules extends Disposable {
           ...rulesSync.userActions,
         ]);
       }
- catch (e) {
+      catch (e) {
         // Report the error, but go on to update the rules. The user may lose their entries, but
         // will see what's in the document. To preserve entries and show what's wrong, we try to
         // catch errors earlier.
@@ -767,7 +767,7 @@ as well as copy or download it.`
       // If no changes, it's safe to just reload the rules from docData.
       this.update().catch(e => this._errorMessage.set(e.message));
     }
- else {
+    else {
       this._errorMessage.set(
         t('Access rules have changed. Click Reset to revert your changes and refresh the rules.'),
       );
@@ -794,7 +794,7 @@ as well as copy or download it.`
   }
 
   private _addButtonsForMissingColumns(buttons: Array<HTMLAnchorElement | HTMLButtonElement>,
-                                       tableId: string, colIds: string[]) {
+    tableId: string, colIds: string[]) {
     const removeColRules = (rules: TableRules, colId: string) => {
       for (const rule of rules.columnRuleSets.get()) {
         const ruleColIds = new Set(rule.getColIdList());
@@ -802,7 +802,7 @@ as well as copy or download it.`
         if (ruleColIds.size === 1) {
           rule.remove();
         }
- else {
+        else {
           rule.removeColId(colId);
         }
       }
@@ -852,7 +852,7 @@ class TableRules extends Disposable {
   private _defaultRuleSet = Observable.create<DefaultObsRuleSet|null>(this, null);
 
   constructor(public readonly tableId: string, public _accessRules: AccessRules,
-              private _colRuleSets?: RuleSet[], private _defRuleSet?: RuleSet) {
+    private _colRuleSets?: RuleSet[], private _defRuleSet?: RuleSet) {
     super();
     this._columnRuleSets.set(this._colRuleSets?.map(rs =>
       this._createColumnObsRuleSet(this._columnRuleSets, rs,
@@ -862,10 +862,10 @@ class TableRules extends Disposable {
       // Must be a newly-created TableRules object. Just create a default RuleSet (for tableId:*)
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
     }
- else if (this._defRuleSet) {
+    else if (this._defRuleSet) {
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules,
         this._defRuleSet);
-   }
+    }
 
     this.ruleStatus = Computed.create(this, (use) => {
       const columnRuleSets = use(this._columnRuleSets);
@@ -995,7 +995,7 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
           seen.deny.add(colId);
           seen.mixed.add(colId);
         }
- else {
+        else {
           seen[sign].add(colId);
           seen.mixed.add(colId);
         }
@@ -1022,7 +1022,7 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
     if (ruleSet === this._defaultRuleSet.get()) {
       this._defaultRuleSet.set(null);
     }
- else {
+    else {
       removeItem(this._columnRuleSets, ruleSet);
     }
     if (!this._defaultRuleSet.get() && this._columnRuleSets.get().length === 0) {
@@ -1049,7 +1049,7 @@ that might be order-dependent. Try splitting rules up differently?', {colId, tab
       DefaultObsRuleSet.create(this._defaultRuleSet, this._accessRules, this, this._haveColumnRules);
       this.addDefaultRules(this._accessRules.getSeedRules());
     }
- else {
+    else {
       const part = ruleSet.addRulePart(ruleSet.getDefaultCondition());
       setTimeout(() => part.focusEditor?.(), 0);
     }
@@ -1197,7 +1197,7 @@ abstract class ObsRuleSet extends Disposable {
       resourceRec: {tableId, colIds: this.getColIds()},
     }))
     // Skip entirely empty rule parts: they are invalid and dropping them is the best fix.
-    .filter(part => part.aclFormula || part.permissionsText);
+      .filter(part => part.aclFormula || part.permissionsText);
   }
 
   public getColIds(): string {
@@ -1248,8 +1248,8 @@ abstract class ObsRuleSet extends Disposable {
   }
 
   public addRulePart(beforeRule: ObsRulePart|null,
-                     content?: RulePart,
-                     isNew: boolean = false): ObsRulePart {
+    content?: RulePart,
+    isNew: boolean = false): ObsRulePart {
     const body = this._body.get();
     const i = beforeRule ? body.indexOf(beforeRule) : body.length;
     const part = ObsRulePart.create(this._body, this, content, isNew);
@@ -1272,11 +1272,11 @@ abstract class ObsRuleSet extends Disposable {
       const myEveryonePart = (oldParts.length === 1 && !oldParts[0].getRulePart().aclFormula) ? oldParts[0] : null;
       const newEveryonePart = newParts[newParts.length - 1]?.getRulePart().aclFormula ? null :
         newParts[newParts.length - 1];
-       if (myEveryonePart && newEveryonePart) {
-         // It suffices to remove the existing rule that applies to everyone,
-         // which is just an empty default from rule set creation.
-         removeItem(this._body, myEveryonePart);
-       }
+      if (myEveryonePart && newEveryonePart) {
+        // It suffices to remove the existing rule that applies to everyone,
+        // which is just an empty default from rule set creation.
+        removeItem(this._body, myEveryonePart);
+      }
     }
     for (const part of [...newParts].reverse()) {
       const {permissionsText, aclFormula, memo} = part.getRulePart();
@@ -1400,7 +1400,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
   private _colIds = Observable.create<string[]>(this, this._initialColIds);
 
   constructor(accessRules: AccessRules, tableRules: TableRules, ruleSet: RuleSet|undefined,
-              private _initialColIds: string[]) {
+    private _initialColIds: string[]) {
     super(accessRules, tableRules, ruleSet);
 
     this.formulaError = Computed.create(this, (use) => {
@@ -1448,7 +1448,7 @@ class ColumnObsRuleSet extends ObsRuleSet {
 
 class DefaultObsRuleSet extends ObsRuleSet {
   constructor(accessRules: AccessRules, tableRules: TableRules|null,
-              private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
+    private _haveColumnRules?: Observable<boolean>, ruleSet?: RuleSet) {
     super(accessRules, tableRules, ruleSet);
   }
   public buildResourceDom() {
@@ -1651,7 +1651,7 @@ class SpecialObsRuleSet extends ColumnObsRuleSet {
       const rulePart = makeRulePart(this.props);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
     }
- else {
+    else {
       this._body.set(builtInRules);
       if (builtInRules.length === 0) {
         this._body.push(ObsRulePart.create(this._body, this, undefined));
@@ -1749,11 +1749,11 @@ class SpecialSchemaObsRuleSet extends SpecialObsRuleSet {
       const rulePart = makeRulePart(schemaEditRules.allowEditors);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
     }
- else if (!value) {
+    else if (!value) {
       const rulePart = makeRulePart(schemaEditRules.denyEditors);
       this._body.set([ObsRulePart.create(this._body, this, rulePart, true), ...builtInRules]);
     }
- else {
+    else {
       this._body.set(builtInRules);
     }
   }
@@ -1776,7 +1776,7 @@ class ObsUserAttributeRule extends Disposable {
   private _userAttrError = Observable.create(this, '');
 
   constructor(private _accessRules: AccessRules, private _userAttr?: UserAttributeRule,
-              private _options: {focus?: boolean} = {}) {
+    private _options: {focus?: boolean} = {}) {
     super();
     this.formulaError = Computed.create(
       this, this._tableId, this._lookupColId, this._userAttrError,
@@ -2076,8 +2076,8 @@ class ObsRulePart extends Disposable {
             placeholder: dom.text((use) => {
               return (
                 this._ruleSet.isSoleCondition(use, this) ? t('Everyone') :
-                this._ruleSet.isLastCondition(use, this) ? t('Everyone Else') :
-                t('Enter Condition')
+                  this._ruleSet.isLastCondition(use, this) ? t('Everyone Else') :
+                    t('Enter Condition')
               );
             }),
             getSuggestions: () => this._completions.get(),
@@ -2181,10 +2181,10 @@ class ObsRulePart extends Disposable {
       this._formulaProperties.set(await this._ruleSet.accessRules.checkAclFormula(text));
       this.sanityCheck();
     }
- catch (e) {
+    catch (e) {
       this._formulaError.set(e.message);
     }
- finally {
+    finally {
       this._checkPending.set(false);
     }
   }
@@ -2233,7 +2233,7 @@ class ObsRulePart extends Disposable {
  * TODO This is a general-purpose function, and should live in a separate module.
  */
 function syncRecords(tableData: TableData, newRecords: RowRecord[],
-                     uniqueId: (r: RowRecord) => string = (r => String(r.id)),
+  uniqueId: (r: RowRecord) => string = (r => String(r.id)),
 ): {userActions: UserAction[], rowIdMap: Map<string, number>} {
   const oldRecords = tableData.getRecords();
   const rowIdMap = new Map<string, number>(oldRecords.map(r => [uniqueId(r), r.id]));
@@ -2341,13 +2341,13 @@ function makeSuggestionExample(value: unknown): string|undefined {
   if (typeof value === "string") {
     return JSON.stringify(value);     // Make clear that this is a string value
   }
- else if (typeof value === "boolean") {
+  else if (typeof value === "boolean") {
     return value ? "True" : "False";
   }
- else if (value === null) {
+  else if (value === null) {
     return "None";
   }
- else if (value !== undefined) {
+  else if (value !== undefined) {
     return String(value);
   }
 }

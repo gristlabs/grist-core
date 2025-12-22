@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
 import { assert, driver, Key, stackWrapFunc, WebElement,
-         WebElementPromise } from 'mocha-webdriver';
+  WebElementPromise } from 'mocha-webdriver';
 import { driverCompanion, findOldTimey, waitImpl,
-         webdriverjqWrapper } from 'test/nbrowser/webdriverjq-nbrowser';
+  webdriverjqWrapper } from 'test/nbrowser/webdriverjq-nbrowser';
 import * as guBase from 'test/nbrowser/gristUtils';
 import { setupTestSuite } from 'test/nbrowser/testUtils';
 import { server } from 'test/nbrowser/testServer';
@@ -123,7 +123,7 @@ const gu = {
       (_, colIndex) => dataMatrix.map(row => row[colIndex])
     );
     return gu.enterGridRows({col: startColIndex,
-                             rowNum: startRowIndex + 1}, transpose);
+      rowNum: startRowIndex + 1}, transpose);
   },
 
   async openSidePane(tabName) {
@@ -161,7 +161,7 @@ const gu = {
 
   async getGridLabels(sectionName) {
     return gu.getSection(sectionName).findAll('[data-test-id="GridView_columnLabel"] .test-column-title-text',
-                                              label => label.getText());
+      label => label.getText());
   },
 
   /**
@@ -579,7 +579,7 @@ function applyPatchesToWebElements() {
     return new WebElementPromise(
       driver,
       driver.executeScript((elem, opts) => elem.scrollIntoView(opts),
-                           this, opts).then(() => this));
+        this, opts).then(() => this));
   }
 
   WebElement.prototype.parent = function() {

@@ -92,7 +92,7 @@ export class VisibleFieldsConfig extends Disposable {
   }));
 
   constructor(private _gristDoc: GristDoc,
-              private _section: ViewSectionRec) {
+    private _section: ViewSectionRec) {
     super();
 
     // Unselects visible fields that are hidden.
@@ -371,7 +371,7 @@ export class VisibleFieldsConfig extends Disposable {
   // A helper to set all checkboxes. Takes care of setting all checkboxes in the dom and updating
   // the selection.
   private _setCheckboxesHelper(draggable: Element, fields: IField[], selection: Set<number>,
-                               checked: boolean) {
+    checked: boolean) {
 
     findCheckboxes(draggable).forEach(el => el.checked = checked);
 
@@ -405,7 +405,7 @@ export class VisibleFieldsConfig extends Disposable {
           if (el.checked) {
             selection.add(id);
           }
- else {
+          else {
             selection.delete(id);
           }
           this._showHiddenBatchButtons.set(Boolean(selection.size));
@@ -436,7 +436,7 @@ export class VisibleFieldsConfig extends Disposable {
           if (el.checked) {
             selection.add(id);
           }
- else {
+          else {
             selection.delete(id);
           }
           this._showVisibleBatchButtons.set(Boolean(selection.size));
@@ -465,7 +465,7 @@ export class VisibleFieldsConfig extends Disposable {
 }
 
 function getFieldNewPosition(fields: KoArray<ViewFieldRec>, item: IField,
-                             nextField: ViewFieldRec|null): number|null {
+  nextField: ViewFieldRec|null): number|null {
   const index = getItemIndex(fields, nextField);
   return tableUtil.fieldInsertPositions(fields, index, 1)[0];
 }

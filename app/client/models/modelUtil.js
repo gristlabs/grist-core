@@ -20,7 +20,7 @@ function addSaveInterface(observable, saveFunc) {
   observable.saveOnly = function(value) {
     // Calls saveFunc and notifies subscribers of 'save' events.
     return Promise.try(() => saveFunc.call(this, value))
-    .tap(() => observable.notifySubscribers(value, "save"));
+      .tap(() => observable.notifySubscribers(value, "save"));
   };
   observable.save = function() {
     return this.saveOnly(this.peek());
@@ -86,11 +86,11 @@ function setSaveValue(observable, value, optOrigValue) {
     observable(value);
     if (observable.save) {
       return Promise.try(() => observable.save())
-      .catch(err => {
-        console.warn("setSaveValue %s -> %s failed: %s", orig, value, err);
-        observable(orig);
-        throw err;
-      });
+        .catch(err => {
+          console.warn("setSaveValue %s -> %s failed: %s", orig, value, err);
+          observable(orig);
+          throw err;
+        });
     }
   }
 }

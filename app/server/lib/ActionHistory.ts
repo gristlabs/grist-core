@@ -169,8 +169,8 @@ export abstract class ActionHistory {
  * @param options: options to construct the ActionGroup; see its documentation above.
  */
 export function asActionGroup(history: ActionHistory,
-                              act: LocalActionBundle,
-                              options: ActionGroupOptions): ActionGroup {
+  act: LocalActionBundle,
+  options: ActionGroupOptions): ActionGroup {
   const {summarize, clientId} = options;
   const info = act.info[1];
 
@@ -200,8 +200,8 @@ export function asActionGroup(history: ActionHistory,
 }
 
 export function asMinimalActionGroup(history: ActionHistory,
-                                     act: {actionHash: string, actionNum: number},
-                                     clientId?: string): MinimalActionGroup {
+  act: {actionHash: string, actionNum: number},
+  clientId?: string): MinimalActionGroup {
   const undoInfo = act.actionHash ? history.getActionUndoInfo(act.actionHash) : undefined;
   const fromSelf = clientId ? (undoInfo?.clientId === clientId) : false;
   return {
@@ -216,7 +216,7 @@ export function asMinimalActionGroup(history: ActionHistory,
 }
 
 export function getActionUndoInfo(act: LocalActionBundle, clientId: string,
-                                  retValues: any[]): ActionHistoryUndoInfo {
+  retValues: any[]): ActionHistoryUndoInfo {
   return {
     ...getActionUndoInfoWithoutClient(act, retValues).minimal,
     clientId,
@@ -241,7 +241,7 @@ function getActionUndoInfoWithoutClient(act: LocalActionBundle, retValues?: any[
         rowIdHint = retValue;
         break;
       }
- else if (name === 'BulkAddRecord') {
+      else if (name === 'BulkAddRecord') {
         rowIdHint = retValue[0];
         break;
       }

@@ -1,7 +1,7 @@
 import { ALL_PERMISSION_PROPS, emptyPermissionSet,
-         makePartialPermissions, mergePartialPermissions, mergePermissions,
-         MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
-         toMixed } from 'app/common/ACLPermissions';
+  makePartialPermissions, mergePartialPermissions, mergePermissions,
+  MixedPermissionSet, PartialPermissionSet, PermissionSet, TablePermissionSet,
+  toMixed } from 'app/common/ACLPermissions';
 import { ACLRuleCollection } from 'app/common/ACLRuleCollection';
 import { RuleSet } from 'app/common/GranularAccessClause';
 import { PredicateFormulaInput } from 'app/common/PredicateFormula';
@@ -152,7 +152,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   // Get permissions for "tableId:colId", defaulting to "tableId:*" and "*:*" as needed.
   // If 'mixed' is returned, different rows may have different permissions. It should never return
   // 'mixed' if the input includes `rec`.
-   // Wrap permissions with information about how they were computed.  This allows
+  // Wrap permissions with information about how they were computed.  This allows
   // us to issue more informative error messages.
   public getColumnAccess(tableId: string, colId: string): MixedPermissionSetWithContext {
     return {
@@ -199,9 +199,9 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
   protected _mergeTableAccess(access: MixedPermissionSet[]): TablePermissionSet {
     return mergePermissions(access, bits => (
       bits.every(b => b === 'allow') ? 'allow' :
-      bits.every(b => b === 'deny') ? 'deny' :
-      bits.every(b => b === 'allow' || b === 'deny') ? 'mixedColumns' :
-        'mixed'
+        bits.every(b => b === 'deny') ? 'deny' :
+          bits.every(b => b === 'allow' || b === 'deny') ? 'mixedColumns' :
+            'mixed'
     ));
   }
 
@@ -209,7 +209,7 @@ export class PermissionInfo extends RuleInfo<MixedPermissionSet, TablePermission
     return mergePermissions(access, bits => (
       bits.every(b => b === 'allow') ? 'allow' :
         bits.every(b => b === 'deny') ? 'deny' :
-        'mixed'
+          'mixed'
     ));
   }
 }
@@ -227,7 +227,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
         pset = mergePartialPermissions(pset, rule.permissions);
       }
     }
- catch (e) {
+    catch (e) {
       if (e.code === 'NEED_ROW_DATA') {
         pset = mergePartialPermissions(pset, makePartialPermissions(rule.permissions));
         if (rule.memo) {
@@ -267,7 +267,7 @@ function evaluateRule(ruleSet: RuleSet, input: PredicateFormulaInput): PartialPe
           pset = mapValues(pset, (val, perm) => val === 'denySome' && changesData(perm) ? "mixed" : val);
         }
       }
- else {
+      else {
         // Unexpected error. Interpret rule pessimistically.
         // Anything it would explicitly allow, no longer allow through this rule.
         // Anything it would explicitly deny, go ahead and deny.
@@ -296,13 +296,13 @@ function extractMemos(ruleSet: RuleSet, input: PredicateFormulaInput): MemoSet {
           if (passing && p === 'deny') {
             memos.push(rule.memo);
           }
- else if (!passing && p === 'allow') {
+          else if (!passing && p === 'allow') {
             memos.push(rule.memo);
           }
         }
       }
     }
- catch (e) {
+    catch (e) {
       if (e.code !== 'NEED_ROW_DATA') {
         // If a rule is failing unexpectedly, give some information via memos.
         // TODO: Could give a more structured result.

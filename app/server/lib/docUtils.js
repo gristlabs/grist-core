@@ -40,10 +40,10 @@ function copyFile(sourcePath, destPath) {
 
     sourceStream.pipe(destStream);
   })
-  .finally(function() {
-    if (destStream) { destStream.destroy(); }
-    if (sourceStream) { sourceStream.destroy(); }
-  });
+    .finally(function() {
+      if (destStream) { destStream.destroy(); }
+      if (sourceStream) { sourceStream.destroy(); }
+    });
 }
 exports.copyFile = copyFile;
 
@@ -62,12 +62,12 @@ function createNumbered(name, separator, creator, startNum) {
   var fullName = name + (startNum === undefined ? '' : separator + startNum);
   var nextNum = (startNum === undefined ? 2 : startNum + 1);
   return creator(fullName)
-  .then(() => fullName)
-  .catch(function(err) {
-    if (err.cause && err.cause.code !== 'EEXIST')
-      throw err;
-    return createNumbered(name, separator, creator, nextNum);
-  });
+    .then(() => fullName)
+    .catch(function(err) {
+      if (err.cause && err.cause.code !== 'EEXIST')
+        throw err;
+      return createNumbered(name, separator, creator, nextNum);
+    });
 }
 exports.createNumbered = createNumbered;
 
@@ -83,7 +83,7 @@ function createNumberedTemplate(template, creator) {
     throw new Error(`createNumberedTemplate: invalid template ${template}`);
   }
   return createNumbered(prefix, "-", (uniqPrefix) => creator(uniqPrefix + suffix))
-  .then((uniqPrefix) => uniqPrefix + suffix);
+    .then((uniqPrefix) => uniqPrefix + suffix);
 }
 exports.createNumberedTemplate = createNumberedTemplate;
 
@@ -108,10 +108,10 @@ exports.createExclusive = createExclusive;
  */
 function realPath(path) {
   return fs.realpathAsync(path)
-  .catch(() =>
-    realPath(fsPath.dirname(path))
-    .then(dir => fsPath.join(dir, fsPath.basename(path)))
-  );
+    .catch(() =>
+      realPath(fsPath.dirname(path))
+        .then(dir => fsPath.join(dir, fsPath.basename(path)))
+    );
 }
 exports.realPath = realPath;
 
@@ -122,9 +122,9 @@ exports.realPath = realPath;
  */
 function pathExists(path) {
   return fs.accessAsync(path)
-  .then(() => true)
-  .catch({code: 'ENOENT'}, () => false)
-  .catch({code: 'ENOTDIR'}, () => false);
+    .then(() => true)
+    .catch({code: 'ENOENT'}, () => false)
+    .catch({code: 'ENOTDIR'}, () => false);
 }
 exports.pathExists = pathExists;
 
@@ -139,7 +139,7 @@ function isSameFile(path1, path2) {
     }
     return false;
   })
-  .catch({code: 'ENOENT'}, () => false)
-  .catch({code: 'ENOTDIR'}, () => false);
+    .catch({code: 'ENOENT'}, () => false)
+    .catch({code: 'ENOTDIR'}, () => false);
 }
 exports.isSameFile = isSameFile;

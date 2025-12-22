@@ -395,7 +395,7 @@ export interface CustomViewSectionDef {
    * widgets available.
    */
   widgetId: modelUtil.KoSaveableObservable<string|null>;
-   /**
+  /**
     * Custom widget information. This is a record of what was
     * in a custom widget manifest entry when the widget was
     * configured. Its contents should not be relied on too much.
@@ -666,11 +666,11 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
               pinned: pinned(),
             }]);
           }
- else if (filter() === '') {
+          else if (filter() === '') {
             // Mark the saved filter for removal from the filters table.
             removedFilterIds.push(savedFilter.id());
           }
- else {
+          else {
             // Mark the saved filter for update in the filters table.
             updatedFilters.push([savedFilter.id(), {
               filter: filter(),
@@ -831,7 +831,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       const config = new LinkConfig(this);
       return LinkingState.create(this._linkingState, docModel, config);
     }
- catch (err) {
+    catch (err) {
       console.warn(err);
       // Dispose old LinkingState in case creating the new one failed.
       this._linkingState.clear();
@@ -925,13 +925,13 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
 
         result[widgetCol.name] = columns.map(c => c.colId());
       }
- else {
-         // Widget expects a single value and existing column
-         if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
-         const selectedColumn = colMap.get(mappedCol)!;
-         // Make a subscription to the column to get notified when it changes.
-         void selectedColumn.widgetOptions();
-         result[widgetCol.name] = widgetCol.canByMapped(selectedColumn.pureType()) ? selectedColumn.colId() : null;
+      else {
+        // Widget expects a single value and existing column
+        if (Array.isArray(mappedCol) || !colMap.has(mappedCol)) { continue; }
+        const selectedColumn = colMap.get(mappedCol)!;
+        // Make a subscription to the column to get notified when it changes.
+        void selectedColumn.widgetOptions();
+        result[widgetCol.name] = widgetCol.canByMapped(selectedColumn.pureType()) ? selectedColumn.colId() : null;
       }
     }
     return result;
@@ -997,8 +997,8 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
   this.showColumn = async (col: string|number, index = this.viewFields().peekLength) => {
     const parentPos = fieldInsertPositions(this.viewFields(), index, 1)[0];
     const colRef = typeof col === 'string'
-                    ? this.table().columns().all().find(c => c.colId() === col)?.getRowId()
-                    : col;
+      ? this.table().columns().all().find(c => c.colId() === col)?.getRowId()
+      : col;
     const colInfo = {
       colRef,
       parentId: this.id.peek(),
@@ -1012,7 +1012,7 @@ export function createViewSectionRec(this: ViewSectionRec, docModel: DocModel): 
       const action = ['BulkRemoveRecord', fieldRef];
       await docModel.viewFields.sendTableAction(action);
     }
- else {
+    else {
       const action = ['RemoveRecord', fieldRef];
       await docModel.viewFields.sendTableAction(action);
     }

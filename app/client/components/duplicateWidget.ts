@@ -112,10 +112,10 @@ export async function duplicateWidgets(gristDoc: GristDoc, srcViewSectionIds: nu
       // to match the newly created view sections.
       let layoutSpecUpdatePromise = Promise.resolve();
       if (isNewView) {
-          const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
-          layoutSpecUpdatePromise = gristDoc.docData.sendAction(
-            ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}],
-          );
+        const newLayoutSpec = patchLayoutSpec(sourceView.layoutSpecObj.peek(), viewSectionIdMap);
+        layoutSpecUpdatePromise = gristDoc.docData.sendAction(
+          ['UpdateRecord', '_grist_Views', resolvedDestViewId, { layoutSpec: JSON.stringify(newLayoutSpec)}],
+        );
       }
       await Promise.all([
         layoutSpecUpdatePromise,
@@ -177,15 +177,15 @@ async function copyFilters(
  * (for detail/cardlist sections), use viewSectionMap to patch the sections ids for linking.
  */
 async function updateViewSections(gristDoc: GristDoc, duplicatedViewSections: DuplicatedViewSection[],
-                                  fieldsMap: {[id: number]: number}, viewSectionMap: {[id: number]: number}) {
+  fieldsMap: {[id: number]: number}, viewSectionMap: {[id: number]: number}) {
 
   const destRowIds: number[] = [];
   const records: RowRecord[] = [];
   for (const { srcViewSection, destViewSection } of duplicatedViewSections) {
     const viewSectionLayoutSpec =
       srcViewSection.parentKey.peek() === 'form'
-          ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
-          : patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
+        ? cleanFormLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap)
+        : patchLayoutSpec(srcViewSection.layoutSpecObj.peek(), fieldsMap);
     const record = gristDoc.docData.getMetaTable('_grist_Views_section').getRecord(srcViewSection.getRowId())!;
 
     const isNewView = srcViewSection.view.peek().id.peek() != destViewSection.view.peek().id.peek();

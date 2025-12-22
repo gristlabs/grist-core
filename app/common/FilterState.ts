@@ -51,11 +51,11 @@ export function isEquivalentFilter(state: FilterState, spec: FilterSpec): boolea
       for (const val of other.values) { if (!state.values.has(val)) { return false; } }
     }
   }
- else {
+  else {
     if (isRangeFilter(state) && isRangeFilter(other)) {
       if (state.min !== other.min || state.max !== other.max) { return false; }
     }
- else {
+    else {
       return false;
     }
   }

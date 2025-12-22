@@ -38,7 +38,7 @@ export class DocStorageManager implements IDocStorageManager {
    * The file watcher is created if the optComm argument is given.
    */
   constructor(private _docsRoot: string, private _samplesRoot?: string,
-              private _comm?: Comm, shell?: IShell, private _gristServer?: GristServer) {
+    private _comm?: Comm, shell?: IShell, private _gristServer?: GristServer) {
     // If we have a way to communicate with clients, watch the docsRoot for changes.
     this._shell = shell ?? {
       trashItem() { throw new Error('Unable to move document to trash'); },
@@ -109,9 +109,9 @@ export class DocStorageManager implements IDocStorageManager {
       this._listDocs(this._docsRoot, ""),
       this._samplesRoot ? this._listDocs(this._samplesRoot, "sample") : [],
     ])
-    .spread((docsEntries: DocEntry[], samplesEntries: DocEntry[]) => {
-      return [...docsEntries, ...samplesEntries];
-    });
+      .spread((docsEntries: DocEntry[], samplesEntries: DocEntry[]) => {
+        return [...docsEntries, ...samplesEntries];
+      });
   }
 
   /**
@@ -125,10 +125,10 @@ export class DocStorageManager implements IDocStorageManager {
     if (path.extname(docPath) !== '.grist') {
       return Promise.reject(new Error("Refusing to delete path which does not end in .grist"));
     }
- else if (deletePermanently) {
+    else if (deletePermanently) {
       await fse.remove(docPath);
     }
- else {
+    else {
       await this._shell.trashItem(docPath);
     }
   }
@@ -144,20 +144,20 @@ export class DocStorageManager implements IDocStorageManager {
     const oldPath = this.getPath(oldName);
     const newPath = this.getPath(newName);
     return docUtils.createExclusive(newPath)
-    .catch(async (e: any) => {
-      if (e.code !== 'EEXIST') { throw e; }
-      const isSame = await docUtils.isSameFile(oldPath, newPath);
-      if (!isSame) { throw e; }
-    })
-    .then(() => fse.rename(oldPath, newPath))
+      .catch(async (e: any) => {
+        if (e.code !== 'EEXIST') { throw e; }
+        const isSame = await docUtils.isSameFile(oldPath, newPath);
+        if (!isSame) { throw e; }
+      })
+      .then(() => fse.rename(oldPath, newPath))
     // Send 'renameDocs' event immediately after the rename. Previously, this used to be sent by
     // DocManager after reopening the renamed doc. The extra delay caused issue T407, where
     // chokidar.watch() triggered 'removeDocs' before 'renameDocs'.
-    .then(() => { this._sendDocListAction('renameDocs', oldPath, [oldName, newName]); })
-    .catch((err: Error) => {
-      log.warn("DocStorageManager: rename %s -> %s failed: %s", oldPath, newPath, err.message);
-      throw err;
-    });
+      .then(() => { this._sendDocListAction('renameDocs', oldPath, [oldName, newName]); })
+      .catch((err: Error) => {
+        log.warn("DocStorageManager: rename %s -> %s failed: %s", oldPath, newPath, err.message);
+        throw err;
+      });
   }
 
   /**
@@ -173,27 +173,27 @@ export class DocStorageManager implements IDocStorageManager {
     let finalBakPath: string; // holds final value of path, with numbering
 
     return bluebird.Promise.try(() => this._generateBackupFilePath(docName, backupTag))
-    .then((bakPath: string) => { // make a numbered migration if necessary
+      .then((bakPath: string) => { // make a numbered migration if necessary
 
-      log.debug(`DocStorageManager: trying to make backup at ${bakPath}`);
+        log.debug(`DocStorageManager: trying to make backup at ${bakPath}`);
 
-      // create a file at bakPath, adding numbers if necessary
-      ext = path.extname(bakPath); // persists to makeBackup closure
-      const bakPathPrefix = bakPath.slice(0, -ext.length);
-      return docUtils.createNumbered(bakPathPrefix, '-',
-        (pathPrefix: string) => docUtils.createExclusive(pathPrefix + ext),
-      );
-    }).tap((numberedBakPathPrefix: string) => { // do the copying, but return bakPath anyway
-      finalBakPath = numberedBakPathPrefix + ext;
-      log.info(`Backing up ${docName} to ${finalBakPath}`);
-      return this._safeCopy(docName, { output: finalBakPath });
-    }).then(() => {
-      log.debug("DocStorageManager: Backup made successfully at: %s", finalBakPath);
-      return finalBakPath;
-    }).catch((err: Error) => {
-      log.error("DocStorageManager: Backup %s %s failed: %s", docName, err.message);
-      throw err;
-    });
+        // create a file at bakPath, adding numbers if necessary
+        ext = path.extname(bakPath); // persists to makeBackup closure
+        const bakPathPrefix = bakPath.slice(0, -ext.length);
+        return docUtils.createNumbered(bakPathPrefix, '-',
+          (pathPrefix: string) => docUtils.createExclusive(pathPrefix + ext),
+        );
+      }).tap((numberedBakPathPrefix: string) => { // do the copying, but return bakPath anyway
+        finalBakPath = numberedBakPathPrefix + ext;
+        log.info(`Backing up ${docName} to ${finalBakPath}`);
+        return this._safeCopy(docName, { output: finalBakPath });
+      }).then(() => {
+        log.debug("DocStorageManager: Backup made successfully at: %s", finalBakPath);
+        return finalBakPath;
+      }).catch((err: Error) => {
+        log.error("DocStorageManager: Backup %s %s failed: %s", docName, err.message);
+        throw err;
+      });
   }
 
   /**
@@ -266,7 +266,7 @@ export class DocStorageManager implements IDocStorageManager {
   }
 
   public async getFsFileSize(docName: string): Promise<number> {
-      return (await fse.stat(this.getPath(docName))).size;
+    return (await fse.stat(this.getPath(docName))).size;
   }
 
   /**
@@ -277,21 +277,21 @@ export class DocStorageManager implements IDocStorageManager {
   private _listDocs(dirPath: string, tag: DocEntryTag): Promise<any[]> {
     return fse.readdir(dirPath)
     // Filter out for .grist files, and strip the .grist extension.
-    .then(entries => Promise.all(
-      entries.filter(e => (path.extname(e) === '.grist'))
-      .map((e) => {
-        const docPath = path.resolve(dirPath, e);
-        return fse.stat(docPath)
-        .then(stat => getDocListFileInfo(docPath, stat, tag));
-      }),
-    ))
+      .then(entries => Promise.all(
+        entries.filter(e => (path.extname(e) === '.grist'))
+          .map((e) => {
+            const docPath = path.resolve(dirPath, e);
+            return fse.stat(docPath)
+              .then(stat => getDocListFileInfo(docPath, stat, tag));
+          }),
+      ))
     // Sort case-insensitively.
-    .then(entries => entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())))
+      .then(entries => entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())))
     // If the root directory is missing, just return an empty array.
-    .catch((err) => {
-      if (err.cause && err.cause.code === 'ENOENT') { return []; }
-      throw err;
-    });
+      .catch((err) => {
+        if (err.cause && err.cause.code === 'ENOENT') { return []; }
+        throw err;
+      });
   }
 
   /**
@@ -305,13 +305,13 @@ export class DocStorageManager implements IDocStorageManager {
     const dateString = moment().format("YYYY-MM-DD");
 
     return docUtils.realPath(this.getPath(docName))
-    .then((filePath: string) => {
-      const fileName = path.basename(filePath);
-      const fileDir = path.dirname(filePath);
+      .then((filePath: string) => {
+        const fileName = path.basename(filePath);
+        const fileDir = path.dirname(filePath);
 
-      const bakName = `${fileName}.${dateString}.${backupTag}.bak`;
-      return path.join(fileDir, bakName);
-    });
+        const bakName = `${fileName}.${dateString}.${backupTag}.bak`;
+        return path.join(fileDir, bakName);
+      });
   }
 
   /**

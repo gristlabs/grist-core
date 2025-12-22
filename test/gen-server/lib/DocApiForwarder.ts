@@ -89,7 +89,7 @@ describe('DocApiForwarder', function() {
     // create and register forwarder
     const docApiForwarder = new DocApiForwarder(docWorkerMapStub, dbManager, null as any);
     app.use("/api", addRequestUser.bind(null, dbManager, getDocWorkerMap().getPermitStore('internal'),
-                                        {gristServer: createDummyGristServer()} as any));
+      {gristServer: createDummyGristServer()} as any));
     docApiForwarder.addEndpoints(app);
     app.use('/api', jsonErrorHandler);
   });
@@ -128,7 +128,7 @@ describe('DocApiForwarder', function() {
     assert.equal(req.get('Authorization'), 'Bearer api_key_for_chimpy');
     assert.equal(req.get('Content-Type'), 'application/json');
     assert.equal(req.originalUrl,
-                 '/dw/foo/api/docs/sampledocid_16/tables/table1/data?filter=%7B%22FOO%22%3A%5B%22bar%22%5D%7D');
+      '/dw/foo/api/docs/sampledocid_16/tables/table1/data?filter=%7B%22FOO%22%3A%5B%22bar%22%5D%7D');
     assert.equal(req.method, 'GET');
   });
 
@@ -156,7 +156,7 @@ describe('DocApiForwarder', function() {
 
   it('should forward PATCH /api/docs/:did/tables/:tid/data', async function() {
     resp = await axios.patch(`${homeUrl}/api/docs/sampledocid_16/tables/table1/data`,
-                             {message: 'golden pears'}, chimpy);
+      {message: 'golden pears'}, chimpy);
     assert.equal(resp.status, 200);
     assert.equal(resp.data, 'mango tree');
     assert(docWorkerStub.calledOnce);

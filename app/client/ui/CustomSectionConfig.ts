@@ -78,11 +78,11 @@ class ColumnPicker extends Disposable {
       void use(refreshTrigger);
 
       const columnsAsOptions: IOption<number|null>[] = use(canBeMapped)
-                                              .map(col => ({
-                                                value: col.getRowId(),
-                                                label: col.label.peek(),
-                                                icon: 'FieldColumn',
-                                              }));
+        .map(col => ({
+          value: col.getRowId(),
+          label: col.label.peek(),
+          icon: 'FieldColumn',
+        }));
 
       // For optional mappings, add 'Blank' option but only if the value is set.
       // This option will allow to clear the selection.
@@ -102,8 +102,8 @@ class ColumnPicker extends Disposable {
     });
 
     const defaultLabel = this._column.typeDesc != "any"
-        ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc})
-        : t("Pick a column");
+      ? t("Pick a {{columnType}} column", {"columnType": this._column.typeDesc})
+      : t("Pick a column");
 
     return [
       cssGroupLabel(
@@ -115,49 +115,49 @@ class ColumnPicker extends Disposable {
         this._column.description,
         testId('help-for-' + this._column.name),
       ) : null,
-        dom.maybe(not(isDisabled), () => [
-          cssRow(
-            dom.update(
-              select(
-                properValue,
-                options,
-                {
-                  defaultLabel,
-                  renderOptionArgs : (opt) => {
-                    // If there is a label, render it.
-                    // Otherwise show the 'Clear selection' label as a greyed out text.
-                    // This is the continuation of the hack from above - were we added an option
-                    // without a label.
-                    return (opt.label) ? null : [
-                      cssBlank(t("Clear selection")),
-                      testId('clear-selection'),
-                    ];
-                  },
+      dom.maybe(not(isDisabled), () => [
+        cssRow(
+          dom.update(
+            select(
+              properValue,
+              options,
+              {
+                defaultLabel,
+                renderOptionArgs : (opt) => {
+                  // If there is a label, render it.
+                  // Otherwise show the 'Clear selection' label as a greyed out text.
+                  // This is the continuation of the hack from above - were we added an option
+                  // without a label.
+                  return (opt.label) ? null : [
+                    cssBlank(t("Clear selection")),
+                    testId('clear-selection'),
+                  ];
                 },
-              ),
-              dom.on('click', () => {
-                // When the menu is opened or closed, refresh the options.
-                refreshTrigger.set(!refreshTrigger.get());
-              }),
-            ),
-            testId('mapping-for-' + this._column.name),
-            testId('enabled'),
-          ),
-        ]),
-        dom.maybe(isDisabled, () => [
-          cssRow(
-            cssDisabledSelect(
-              Observable.create(this, null),
-              [], {
-                disabled: true,
-                defaultLabel: t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc}),
               },
             ),
-            hoverTooltip(t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})),
-            testId('mapping-for-' + this._column.name),
-            testId('disabled'),
+            dom.on('click', () => {
+              // When the menu is opened or closed, refresh the options.
+              refreshTrigger.set(!refreshTrigger.get());
+            }),
           ),
-        ]),
+          testId('mapping-for-' + this._column.name),
+          testId('enabled'),
+        ),
+      ]),
+      dom.maybe(isDisabled, () => [
+        cssRow(
+          cssDisabledSelect(
+            Observable.create(this, null),
+            [], {
+              disabled: true,
+              defaultLabel: t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc}),
+            },
+          ),
+          hoverTooltip(t("No {{columnType}} columns in table.", {"columnType": this._column.typeDesc})),
+          testId('mapping-for-' + this._column.name),
+          testId('disabled'),
+        ),
+      ]),
     ];
   }
 }
@@ -206,10 +206,10 @@ class ColumnListPicker extends Disposable {
             const wrongTypeCount = notMapped.get().length - typedColumns.get().length;
             return [
               ...typedColumns.get()
-              .map(col => menuItem(
-                () => this._addColumn(col),
-                col.label.peek(),
-              )),
+                .map(col => menuItem(
+                  () => this._addColumn(col),
+                  col.label.peek(),
+                )),
               wrongTypeCount > 0 ? menuText(
                 t("{{wrongTypeCount}} non-{{columnType}} columns are not shown", {
                   wrongTypeCount,
@@ -277,7 +277,7 @@ class ColumnListPicker extends Disposable {
     if (value) {
       this._value.set(value);
     }
- else {
+    else {
       let current = (this._value.get() || []) as number[];
       // Ignore if the saved value is not a number list.
       if (!Array.isArray(current)) {
@@ -410,7 +410,7 @@ export class CustomSectionConfig extends Disposable {
       const pluginId = use(this._section.customDef.pluginId);
       return (pluginId || '') + ':' + widgetId;
     }
- else {
+    else {
       return CUSTOM_URL_WIDGET_ID;
     }
   });
@@ -541,7 +541,7 @@ export class CustomSectionConfig extends Disposable {
         if (use(this._isCustomUrlWidget)) {
           visibleText = t('Custom URL');
         }
- else {
+        else {
           const widget = use(this._selectedWidget) ?? use(this._section.customDef.widgetDef);
           visibleText = widget ? getWidgetName(widget) : use(this._widgetId);
         }
@@ -584,10 +584,10 @@ export class CustomSectionConfig extends Disposable {
           ),
         );
       }
- else if (!widget?.description && !widget?.authors?.[0] && !widget?.lastUpdatedAt) {
+      else if (!widget?.description && !widget?.authors?.[0] && !widget?.lastUpdatedAt) {
         return cssDetailsMessage(t('Missing description and author information.'));
       }
- else {
+      else {
         return cssWidgetDetails(
           !widget?.description ? null : cssWidgetDescription(
             widget.description,

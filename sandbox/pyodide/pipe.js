@@ -38,7 +38,7 @@ class GristPipe {
     this.pyodide.setStdin({
       stdin: () => {
         const result = fs.readSync(INCOMING_FD, this.incomingBuffer, 0,
-                                   this.incomingBuffer.byteLength);
+          this.incomingBuffer.byteLength);
         if (result > 0) {
           const buf = Buffer.allocUnsafe(result, 0, 0, result);
           this.incomingBuffer.copy(buf);

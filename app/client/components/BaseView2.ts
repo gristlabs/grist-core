@@ -61,7 +61,7 @@ export async function parsePasteForView(
       if (targetType !== "Any") {
         typeMatches = typeMatches && colType === targetType;
       }
- else if (docIdMatches && colRef) {
+      else if (docIdMatches && colRef) {
         // Try copying source column type and options into empty columns
         const sourceColRec = gristDoc.docModel.columns.getRowModel(colRef);
         const sourceType = sourceColRec.type();

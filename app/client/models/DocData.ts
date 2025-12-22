@@ -68,7 +68,7 @@ export class DocData extends BaseDocData {
     try {
       return await this.docComm.findColFromValues(values, n, optTableId);
     }
- catch (e) {
+    catch (e) {
       gristNotify(`Error finding matching columns: ${e.message}`);
       return [];
     }
@@ -125,7 +125,7 @@ export class DocData extends BaseDocData {
         this._shouldIncludeInBundle = undefined;
         await options.finalize();
       }
- finally {
+      finally {
         // In all cases, reset the bundle-specific values we set above
         this._shouldIncludeInBundle = undefined;
         this._triggerBundleFinalize = undefined;
@@ -145,7 +145,7 @@ export class DocData extends BaseDocData {
   // If nestInActiveBundle is true, and there is an active bundle, then simply calls callback()
   // without starting a new bundle.
   public async bundleActions<T>(desc: string|null, callback: () => T|Promise<T>,
-                                options: {nestInActiveBundle?: boolean} = {}): Promise<T> {
+    options: {nestInActiveBundle?: boolean} = {}): Promise<T> {
     if (options.nestInActiveBundle && this._bundlesPending) {
       return await callback();
     }
@@ -158,7 +158,7 @@ export class DocData extends BaseDocData {
     try {
       return await bundlingInfo.preparePromise;
     }
- finally {
+    finally {
       bundlingInfo.triggerFinalize();
       await bundlingInfo.completionPromise;
     }
@@ -255,12 +255,12 @@ class BundleSender {
     this._actions.push(...actions);
     const end = this._actions.length;
     return this._getSendPromise()
-    .then(result => ({
-      actionNum: result.actionNum,
-      actionHash: result.actionHash,
-      retValues: result.retValues.slice(start, end),
-      isModification: result.isModification,
-    }));
+      .then(result => ({
+        actionNum: result.actionNum,
+        actionHash: result.actionHash,
+        retValues: result.retValues.slice(start, end),
+        isModification: result.isModification,
+      }));
   }
 
   public _getSendPromise(): Promise<ApplyUAResult> {
@@ -268,13 +268,13 @@ class BundleSender {
       // Note that the first Promise.resolve() ensures that the next step (actual send) happens on
       // the next tick. By that time, more actions may have been added to this._actions array.
       this._sendPromise = Promise.resolve()
-      .then(() => {
-        this._sendPromise = undefined;
-        const ret = this._docComm.applyUserActions(this._actions, this._options);
-        this._options = {};
-        this._actions = [];
-        return ret;
-      });
+        .then(() => {
+          this._sendPromise = undefined;
+          const ret = this._docComm.applyUserActions(this._actions, this._options);
+          this._options = {};
+          this._actions = [];
+          return ret;
+        });
     }
     return this._sendPromise;
   }

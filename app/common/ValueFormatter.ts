@@ -48,16 +48,16 @@ export function formatDecoded(value: unknown, isTopLevel: boolean = true): strin
       if (!isTopLevel || hasNestedObjects(value)) {
         return '[' + value.map(v => formatDecoded(v, false)).join(', ') + ']';
       }
- else {
+      else {
         return csvEncodeRow(value.map(v => formatDecoded(v, true)), {prettier: true});
       }
     }
- else if (isPlainObject(value)) {
+    else if (isPlainObject(value)) {
       const obj: any = value;
       const items = Object.keys(obj).map(k => `${JSON.stringify(k)}: ${formatDecoded(obj[k], false)}`);
       return '{' + items.join(', ') + '}';
     }
- else if (isTopLevel && value instanceof GristDateTime) {
+    else if (isTopLevel && value instanceof GristDateTime) {
       return moment(value).tz(value.timezone).format("YYYY-MM-DD HH:mm:ssZ");
     }
     return String(value);
@@ -352,10 +352,10 @@ export function createVisibleColFormatterRaw(
   if (!referencedTableId) {
     return createFormatter(type, widgetOpts, docSettings);
   }
- else if (visibleColType) {
+  else if (visibleColType) {
     return createFormatter(visibleColType, visibleColWidgetOpts, docSettings);
   }
- else {
+  else {
     // This column displays the Row ID, e.g. Table1[2]
     // Make referencedTableId empty if the table is hidden
     const tablesData = docData.getMetaTable("_grist_Tables");

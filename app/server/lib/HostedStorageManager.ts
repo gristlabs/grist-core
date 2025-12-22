@@ -156,15 +156,15 @@ export class HostedStorageManager implements IDocStorageManager {
       // Whichever store we have, we use checksums to deal with
       // eventual consistency.
       this._ext = this._getChecksummedExternalStorage('doc', this._baseStore,
-                                                      this._latestVersions, options);
+        this._latestVersions, options);
 
       const baseStoreMeta = creator('meta');
       if (!baseStoreMeta) {
         throw new Error('bug: external storage should be created for "meta" if it is created for "doc"');
       }
       this._extMeta = this._getChecksummedExternalStorage('meta', baseStoreMeta,
-                                                          this._latestMetaVersions,
-                                                          options);
+        this._latestMetaVersions,
+        options);
 
       this._inventory = new DocSnapshotInventory(
         this._ext,
@@ -185,7 +185,7 @@ export class HostedStorageManager implements IDocStorageManager {
       this._pruner = new DocSnapshotPruner(this._inventory, {
         delayBeforeOperationMs: 0,  // prune as soon as we've made a first upload.
         minDelayBetweenOperationsMs: secondsBeforePush * 4000,  // ... but wait awhile before
-                                                                // pruning again.
+        // pruning again.
       });
     }
   }
@@ -261,7 +261,7 @@ export class HostedStorageManager implements IDocStorageManager {
       const isNew = !(await this._claimDocument(docName, srcDocName));
       return isNew;
     }
- finally {
+    finally {
       this._prepareFiles.delete(docName);
     }
   }
@@ -282,8 +282,8 @@ export class HostedStorageManager implements IDocStorageManager {
   public async prepareFork(srcDocName: string, destDocName: string): Promise<string> {
     await this.prepareLocalDoc(destDocName, srcDocName);
     this.markAsChanged(destDocName);  // Make sure fork is actually stored in S3, even
-                                      // if no changes are made, since we'd refuse to
-                                      // create it later.
+    // if no changes are made, since we'd refuse to
+    // create it later.
     return this.getPath(destDocName);
   }
 
@@ -322,7 +322,7 @@ export class HostedStorageManager implements IDocStorageManager {
         });
         return;
       }
- else {
+      else {
         throw new Error(`cannot find ${docId}`);
       }
     }
@@ -350,12 +350,12 @@ export class HostedStorageManager implements IDocStorageManager {
       // Invalidate usage; it'll get re-computed the next time the document is opened.
       this.scheduleUsageUpdate(docId, null, true);
     }
- catch (err) {
+    catch (err) {
       this._log.error(docId, "problem replacing doc: %s", err);
       await fse.move(tmpPath, docPath, {overwrite: true});
       throw err;
     }
- finally {
+    finally {
       // NOTE: fse.remove succeeds also when the file does not exist.
       await fse.remove(tmpPath);
     }
@@ -520,7 +520,7 @@ export class HostedStorageManager implements IDocStorageManager {
       }
       this._uploads.addOperation(docName);
     }
- finally {
+    finally {
       if (reason === 'edit') {
         this._markAsEdited(docName, timestamp);
       }
@@ -617,7 +617,7 @@ export class HostedStorageManager implements IDocStorageManager {
    * are skipped.
    */
   private async _claimDocument(docName: string,
-                               srcDocName?: string): Promise<boolean> {
+    srcDocName?: string): Promise<boolean> {
     // AsyncCreate.mapGetOrSet ensures we don't start multiple promises to talk to S3/Redis
     // and that we clean up the failed key in case of failure.
     return mapGetOrSet(this._localFiles, docName, async () => {
@@ -666,12 +666,12 @@ export class HostedStorageManager implements IDocStorageManager {
             // by this worker - so wipe local version and defer to S3.
             await this._wipeCache(docName);
           }
- else {
+          else {
             // Go ahead and use local version.
             return true;
           }
         }
- else {
+        else {
           // Doc exists locally and in S3 (according to redis).
           // Make sure the checksum matches.
           const checksum = await this._getHash(await this._prepareBackup(docName));
@@ -679,7 +679,7 @@ export class HostedStorageManager implements IDocStorageManager {
             // Fine, accept the doc as existing on our file system.
             return true;
           }
- else {
+          else {
             this._log.info(docName, "Local hash does not match redis: %s vs %s", checksum, docStatus.docMD5);
             // The file that exists locally does not match S3.  But S3 is the canonical version.
             // On the assumption that the local file is outdated, delete it.
@@ -722,9 +722,9 @@ export class HostedStorageManager implements IDocStorageManager {
    * fork a fork will result in a new fork of the original trunk.
    */
   private async _fetchFromS3(destId: string, options: {sourceDocId?: string,
-                                                       trunkId?: string,
-                                                       snapshotId?: string,
-                                                       canCreateFork?: boolean}): Promise<boolean> {
+    trunkId?: string,
+    snapshotId?: string,
+    canCreateFork?: boolean}): Promise<boolean> {
     const destIdWithoutSnapshot = buildUrlId({...parseUrlId(destId), snapshotId: undefined});
     let sourceDocId = options.sourceDocId || destIdWithoutSnapshot;
     if (!await this._ext.exists(destIdWithoutSnapshot)) {
@@ -820,12 +820,12 @@ export class HostedStorageManager implements IDocStorageManager {
         await this._onInventoryChange(docId);
       }
     }
- catch (e) {
+    catch (e) {
       snapshotProgress.errors++;
       // Snapshot window completion time deliberately not set.
       throw e;
     }
- finally {
+    finally {
       // Clean up backup.
       // NOTE: fse.remove succeeds also when the file does not exist.
       if (tmpPath) { await fse.remove(tmpPath); }
@@ -853,7 +853,7 @@ export class HostedStorageManager implements IDocStorageManager {
       const n = actionQuery?.actionNum;
       if (n) { result.n = String(n); }
     }
- catch (e) {
+    catch (e) {
       // Tolerate files that don't have _gristsys_* yet (although we don't need to).
     }
     try {
@@ -861,7 +861,7 @@ export class HostedStorageManager implements IDocStorageManager {
       const tz = tzQuery?.timezone;
       if (tz) { result.tz = tz; }
     }
- catch (e) {
+    catch (e) {
       // Tolerate files that don't have _grist_DocInfo yet.
     }
     await db.close();
@@ -871,8 +871,8 @@ export class HostedStorageManager implements IDocStorageManager {
   // Wrap external storage in a checksum-aware decorator this will retry until
   // consistency.
   private _getChecksummedExternalStorage(family: string, core: ExternalStorage,
-                                         versions: Map<string, string>,
-                                         options: HostedStorageOptions) {
+    versions: Map<string, string>,
+    options: HostedStorageOptions) {
     return new ChecksummedExternalStorage(family, core, {
       maxRetries: 4,
       initialDelayMs: options.secondsBeforeFirstRetry * 1000,

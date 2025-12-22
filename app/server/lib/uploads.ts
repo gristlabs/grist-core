@@ -3,7 +3,7 @@ import {InactivityTimer} from 'app/common/InactivityTimer';
 import {FetchUrlOptions, FileUploadResult, UPLOAD_URL_PATH, UploadResult} from 'app/common/uploads';
 import {getUrlFromPrefix} from 'app/common/UserAPI';
 import {getAuthorizedUserId, getTransitiveHeaders, getUserId, isSingleUserMode,
-        RequestWithLogin} from 'app/server/lib/Authorizer';
+  RequestWithLogin} from 'app/server/lib/Authorizer';
 import {expressWrap} from 'app/server/lib/expressWrap';
 import {downloadFromGDrive, isDriveUrl} from 'app/server/lib/GoogleImport';
 import {GristServer, RequestWithGrist} from 'app/server/lib/GristServer';
@@ -63,12 +63,12 @@ export function addUploadRoute(
       const uploadResult: UploadResult = await handleUpload(req, res);
       res.status(200).send(JSON.stringify(uploadResult));
     }
- catch (err) {
+    catch (err) {
       req.resume();
       if (err.message && /Request aborted/.test(err.message)) {
         log.warn("File upload request aborted", err);
       }
- else {
+      else {
         log.error("Error uploading file", err);
       }
       // Respond with a JSON error like jsonErrorHandler does for API calls,
@@ -85,13 +85,13 @@ export function addUploadRoute(
     const accessId = makeAccessId(req, getAuthorizedUserId(req));
     try {
       const uploadResult: UploadResult = await fetchDoc(server, docWorkerMap, docId, req, accessId,
-                                                        req.query.template === '1');
+        req.query.template === '1');
       if (name) {
         globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, name);
       }
       res.status(200).send(JSON.stringify(uploadResult));
     }
- catch(err) {
+    catch(err) {
       if ((err as ApiError).status === 403) {
         res.status(403).json({error:'Insufficient access to document to copy it entirely'});
         return;
@@ -190,7 +190,7 @@ export async function parseMultipartFormRequest(
   try {
     await finished;
   }
- finally {
+  finally {
     // Waiting for all part handlers to settle makes using this function more intuitive.
     // Need to wait for the parsing to be finished first, to ensure all part exist.
     await Promise.allSettled(partPromises);
@@ -267,7 +267,7 @@ export interface UploadInfo {
   files: FileUploadInfo[];      // List of all files included in the upload.
 
   tmpDir: string|null;          // Temporary directory to remove, containing this upload.
-                                // If present, all files must be direct children of this directory.
+  // If present, all files must be direct children of this directory.
 
   cleanupCallback: CleanupCB;   // Callback to clean up this upload, including removing tmpDir.
   cleanupTimer: InactivityTimer;
@@ -284,7 +284,7 @@ export class UploadSet {
    * Register a new upload.
    */
   public registerUpload(files: FileUploadInfo[], tmpDir: string|null, cleanupCallback: CleanupCB,
-                        accessId: string|null): number {
+    accessId: string|null): number {
     const uploadId = this._nextId++;
     const cleanupTimer = new InactivityTimer(() => this.cleanup(uploadId), Deps.INACTIVITY_CLEANUP_MS);
     this._uploads.set(uploadId, {uploadId, files, tmpDir, cleanupCallback, cleanupTimer, accessId});
@@ -328,7 +328,7 @@ export class UploadSet {
         info.cleanupTimer.disable();
         await info.cleanupCallback();
       }
- catch (err) {
+      catch (err) {
         log.warn(`Error cleaning upload ${info.uploadId}: ${err}`);
       }
     }
@@ -391,7 +391,7 @@ export async function moveUpload(uploadInfo: UploadInfo, newDir: string): Promis
   try {
     await uploadInfo.cleanupCallback();
   }
- catch (err) {
+  catch (err) {
     // This is unexpected, but if the move succeeded, let's warn but not fail on cleanup error.
     log.warn(`Error cleaning upload ${uploadInfo.uploadId} after move: ${err}`);
   }
@@ -426,7 +426,7 @@ export async function createTmpDir(options: tmp.DirOptions): Promise<TmpDirResul
       // this directory and doesn't try to delete it again on exit.
       await tmpCleanup();
     }
- catch (err) {
+    catch (err) {
       // OK if it fails because the dir is already removed.
     }
   }
@@ -454,7 +454,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
       response = await downloadFromGDrive(url, code);
       fileName = ''; // Read the file name from headers.
     }
- else {
+    else {
       response = await Deps.fetch(url, {
         redirect: 'follow',
         follow: 10,
@@ -487,7 +487,7 @@ async function _fetchURL(url: string, accessId: string|null, options?: FetchUrlO
     const uploadId = globalUploadSet.registerUpload([uploadedFile], tmpDir, cleanupCallback, accessId);
     return {uploadId, files: [pick(uploadedFile, ['origName', 'size', 'ext'])]};
   }
- catch(err) {
+  catch(err) {
     if (err?.code === "EPROTO" || // https vs http error
         err?.code === "ECONNREFUSED" || // server does not listen
         err?.code === "ENOTFOUND") { // could not resolve domain
@@ -538,21 +538,21 @@ async function _checkForError(response: FetchResponse) {
         throw new ApiError("Importing directly from a Google Drive URL is not supported yet. " +
         'Use the "Import from Google Drive" menu option instead.', 403);
       }
- else {
+      else {
         throw new ApiError("Could not import the requested file, check if you have all required permissions.", 403);
       }
     }
     return;
-   }
+  }
   const body = await response.json().catch(() => ({}));
   if (response.status === 404) {
     throw new ApiError("File can't be found at the requested URL.", 404);
   }
- else if (response.status >= 500 && response.status < 600) {
+  else if (response.status >= 500 && response.status < 600) {
     throw new ApiError(`Remote server returned an error (${body.error || response.statusText})`,
       response.status, body.details);
   }
- else {
+  else {
     throw new ApiError(body.error || response.statusText, response.status, body.details);
   }
 }
@@ -570,10 +570,10 @@ export function makeAccessId(worker: string|Request|GristServer, userId: number|
   if (typeof worker === 'string') {
     host = worker;
   }
- else if ('getHost' in worker) {
+  else if ('getHost' in worker) {
     host = worker.getHost();
   }
- else {
+  else {
     const gristServer = (worker as RequestWithGrist).gristServer;
     if (!gristServer) { throw new Error('Problem accessing server with upload'); }
     host = gristServer.getHost();

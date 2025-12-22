@@ -13,10 +13,10 @@ describe('ObservableSet', function() {
     assert.deepEqual(set.all(), []);
 
     var obs1 = ko.observable(true), val1 = { foo: 5 },
-        obs2 = ko.observable(false), val2 = { foo: 17 };
+      obs2 = ko.observable(false), val2 = { foo: 17 };
 
     var sub1 = set.add(obs1, val1),
-        sub2 = set.add(obs2, val2);
+      sub2 = set.add(obs2, val2);
 
     assert.equal(set.count(), 1);
     assert.deepEqual(set.all(), [val1]);

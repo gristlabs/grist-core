@@ -46,7 +46,7 @@ export abstract class InstallAdmin {
       }
       next();
     }
- catch (err) {
+    catch (err) {
       next(err);
     }
   }

@@ -149,8 +149,8 @@ function tag(name, attrs, content) {
   const attrStr = Object.keys(attrs).map((key) => ` ${key}="${escape(String(attrs[key]))}"`).join('');
   return (
     content === undefined ? `<${name}${attrStr}/>` :
-    content === UNCLOSED ? `<${name}${attrStr}>` :
-    `<${name}${attrStr}>${content}</${name}>`
+      content === UNCLOSED ? `<${name}${attrStr}>` :
+        `<${name}${attrStr}>${content}</${name}>`
   );
 }
 

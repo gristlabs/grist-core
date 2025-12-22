@@ -57,7 +57,7 @@ async function setupDb() {
     const {createInitialDb} = require('test/gen-server/seed');
     await createInitialDb();
   }
- else {
+  else {
     await updateDb();
   }
   const db = new HomeDBManager();
@@ -73,7 +73,7 @@ async function setupDb() {
         includeSupport: false,
       }, org));
     }
- catch(e) {
+    catch(e) {
       if (!String(e).match(/organization not found/)) {
         throw e;
       }

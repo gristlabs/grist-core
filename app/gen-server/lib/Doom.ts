@@ -18,8 +18,8 @@ import fetch from 'node-fetch';
  */
 export class Doom {
   constructor(private _dbManager: HomeDBManager, private _permitStore: IPermitStore,
-              private _notifier: Pick<INotifier, "deleteUser">, private _loginSystem: GristLoginSystem,
-              private _homeApiUrl: string) {
+    private _notifier: Pick<INotifier, "deleteUser">, private _loginSystem: GristLoginSystem,
+    private _homeApiUrl: string) {
   }
 
   /**
@@ -69,7 +69,7 @@ export class Doom {
           throw new ApiError(`failed to delete document ${doc.id}: ${result.status} ${JSON.stringify(info)}`, 500);
         }
       }
- finally {
+      finally {
         await this._permitStore.removePermit(permitKey);
       }
     }
@@ -159,7 +159,7 @@ export class Doom {
   // List the sites a user has access to.
   private async _getOrgs(userId: number) {
     const orgs = this._dbManager.unwrapQueryResult(await this._dbManager.getOrgs(userId, null,
-                                                                                 {ignoreEveryoneShares: true}));
+      {ignoreEveryoneShares: true}));
     return orgs;
   }
 
@@ -167,7 +167,7 @@ export class Doom {
   private async _getWorkspace(workspaceId: number) {
     const workspace = this._dbManager.unwrapQueryResult(
       await this._dbManager.getWorkspace({userId: this._dbManager.getPreviewerUserId(),
-                                          showAll: true}, workspaceId));
+        showAll: true}, workspaceId));
     return workspace;
   }
 
@@ -175,7 +175,7 @@ export class Doom {
   private async _getWorkspaces(orgKey: number) {
     const org = this._dbManager.unwrapQueryResult(
       await this._dbManager.getOrgWorkspaces({userId: this._dbManager.getPreviewerUserId(),
-                                              includeSupport: false, showAll: true}, orgKey));
+        includeSupport: false, showAll: true}, orgKey));
     return org;
   }
 
@@ -202,7 +202,7 @@ export class Doom {
         throw new ApiError(`failed to delete customer: ${result.status} ${JSON.stringify(info)}`, result.status);
       }
     }
- finally {
+    finally {
       await this._permitStore.removePermit(permitKey);
     }
     await this._dbManager.updateBillingAccount(

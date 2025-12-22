@@ -30,7 +30,7 @@ import { addAbortHandler } from "app/server/lib/requestUtils";
 export class DocApiForwarder {
 
   constructor(private _docWorkerMap: IDocWorkerMap, private _dbManager: HomeDBManager,
-              private _gristServer: GristServer) {
+    private _gristServer: GristServer) {
   }
 
   public addEndpoints(app: express.Application) {

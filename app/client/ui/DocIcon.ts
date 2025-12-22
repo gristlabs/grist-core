@@ -24,7 +24,7 @@ export function buildDocIcon(options: DocIconOptions, ...args: DomElementArg[]) 
       if (isEmoji(emoji)) {
         return cssEmoji(emoji);
       }
- else {
+      else {
         return cssInitials(getIconFromName(useBindable(use, docName)));
       }
     }),

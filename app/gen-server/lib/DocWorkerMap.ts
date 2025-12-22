@@ -92,7 +92,7 @@ class DummyDocWorkerMap implements IDocWorkerMap {
         if (ttlMs) {
           _permits.setWithCustomTTL(key, JSON.stringify(permit), ttlMs);
         }
- else {
+        else {
           _permits.set(key, JSON.stringify(permit));
         }
         return key;
@@ -223,7 +223,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         // Do not accept work not associated with the specified group.
         await this._client.setAsync(`worker-${info.id}-group`, info.group);
       }
- else {
+      else {
         // Figure out if worker should belong to a group via elections.
         // Be careful: elections happen within a single deployment, so are somewhat
         // unintuitive in behavior. For example, if a document is assigned to a group
@@ -246,7 +246,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         }
       }
     }
- finally {
+    finally {
       await lock.unlock();
     }
   }
@@ -273,9 +273,9 @@ export class DocWorkerMap implements IDocWorkerMap {
           if (elected.length !== newElected.length) {
             if (newElected.length > 0) {
               await this._client.hsetAsync(`elections-${this._deploymentKey}`, group,
-                                           JSON.stringify(newElected));
+                JSON.stringify(newElected));
             }
- else {
+            else {
               await this._client.hdelAsync(`elections-${this._deploymentKey}`, group);
               delete elections[group];
             }
@@ -303,7 +303,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       // Forget about this worker completely.
       await this._client.sremAsync('workers', workerId);
     }
- finally {
+    finally {
       await lock.unlock();
     }
   }
@@ -328,7 +328,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         await this._client.saddAsync('workers-available', workerId);
       }
     }
- else {
+    else {
       await this._client.sremAsync('workers-available', workerId);
       // TODO: remove `workers-available-${group}`.
       await this._client.sremAsync(`workers-available-${group}`, workerId);
@@ -416,7 +416,7 @@ export class DocWorkerMap implements IDocWorkerMap {
           isActive: false,
         };
       }
- finally {
+      finally {
         await lock.unlock();
       }
     }
@@ -460,7 +460,7 @@ export class DocWorkerMap implements IDocWorkerMap {
         }
         if (!workerId) { throw new Error('no doc workers available'); }
       }
-  else {
+      else {
         if (!await this._client.sismemberAsync('workers-available', workerId)) {
           throw new Error(`worker ${workerId} not known or not available`);
         }
@@ -487,7 +487,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       log.info(`DocWorkerMap.assignDocWorker ${docId} assigned to ${newDocStatus.docWorker.id}`);
       return newDocStatus;
     }
- finally {
+    finally {
       await lock.unlock();
     }
   }
@@ -564,7 +564,7 @@ export class DocWorkerMap implements IDocWorkerMap {
       await this._client.setexAsync(redisKey, Math.ceil(durationInMs / 1000.0), electionKey);
       return electionKey;
     }
- finally {
+    finally {
       await lock.unlock();
     }
   }
@@ -577,11 +577,11 @@ export class DocWorkerMap implements IDocWorkerMap {
       if (current === electionKey) {
         await this._client.delAsync(redisKey);
       }
- else if (current !== null) {
+      else if (current !== null) {
         throw new Error('could not remove election');
       }
     }
- finally {
+    finally {
       await lock.unlock();
     }
   }
@@ -641,7 +641,7 @@ export class DocWorkerMap implements IDocWorkerMap {
     if (isAffirmative(process.env.GRIST_EXPERIMENTAL_WORKER_ASSIGNMENT)) {
       return await this._getAvailableWorkerIdByLoad(group);
     }
- else {
+    else {
       return await this._client.srandmemberAsync(`workers-available-${group}`);
     }
   }
@@ -717,7 +717,7 @@ export function getDocWorkerMap(): IDocWorkerMap {
     log.info("Creating Redis-based DocWorker");
     return new DocWorkerMap();
   }
- else {
+  else {
     log.info("Creating local/dummy DocWorker");
     dummyDocWorkerMap = dummyDocWorkerMap || new DummyDocWorkerMap();
     return dummyDocWorkerMap;

@@ -18,7 +18,7 @@ async function openMainPage() {
         return;
       }
     }
- catch (e) {
+    catch (e) {
       // don't worry about transients.
     }
     await driver.sleep(10);

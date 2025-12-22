@@ -52,7 +52,7 @@ function setLevels(level: string) {
       return holder;
     };
   }
- else {
+  else {
     notify = show(level);
   }
 }
@@ -103,7 +103,7 @@ function setupTest() {
         if (errHolder1.isEmpty()) {
           errHolder1.autoDispose(notify(`Workspace name is duplicated (clear on click)`));
         }
- else {
+        else {
           errHolder1.clear();
         }
       }),
@@ -116,7 +116,7 @@ function setupTest() {
           errHolder2.autoDispose(notify(`Workspace name is duplicated (no expire)`,
             { expireSec: 0 }));
         }
- else {
+        else {
           errHolder2.clear();
         }
       }),
@@ -140,12 +140,12 @@ function setupTest() {
       'Unexpected error',
       dom.on('click', () => {
         notify("10:03:10 Cannot read property of null (reading 'callback')",
-        {
-          title : "Unexpected error",
-          actions : ['report-problem'],
-          expireSec: 0,
-          canUserClose: true,
-        });
+          {
+            title : "Unexpected error",
+            actions : ['report-problem'],
+            expireSec: 0,
+            canUserClose: true,
+          });
       }),
     ),
     dom('hr'),
@@ -189,19 +189,19 @@ function setupTest() {
         multiHolder = new MultiHolder();
         const noExp = { expireSec: 0, canUserClose: true };
         let n = notifier.createUserMessage("10:03:10 Cannot read property of null (reading 'callback')",
-        {
-          title : "Unexpected error",
-          actions : ['report-problem'],
-          level: 'error',
-          ...noExp,
-        });
+          {
+            title : "Unexpected error",
+            actions : ['report-problem'],
+            level: 'error',
+            ...noExp,
+          });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Blocked by table update access rules", noExp);
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("No more documents permitted", {
-           title: "Reached plan limit",
-           actions : ['upgrade'],
-           ...noExp,
+          title: "Reached plan limit",
+          actions : ['upgrade'],
+          ...noExp,
         });
         multiHolder.autoDispose(n);
         n = notifier.createUserMessage("Still working ...", noExp);

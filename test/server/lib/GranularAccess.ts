@@ -56,10 +56,10 @@ describe('GranularAccess', function() {
    * Add some actions directly into document history, so they can be used as an undo.
    */
   async function addFakeBundle(actions: DocAction[],
-                               options?: {
-                                 user?: string,
-                                 time?: number,
-                               }) {
+    options?: {
+      user?: string,
+      time?: number,
+    }) {
     const doc = await docManager.getActiveDoc(docId);
     const history = doc?.getActionHistory();
     const actionNum = fakeActionNum;
@@ -86,10 +86,10 @@ describe('GranularAccess', function() {
    * them from there.
    */
   async function applyAsUndo(client: GristClient, actions: DocAction[],
-                             options?: {
-                               user?: string,
-                               time?: number,
-                             }) {
+    options?: {
+      user?: string,
+      time?: number,
+    }) {
     const {actionNum, actionHash} = await addFakeBundle(actions, options);
     const result = await client.send("applyUserActionsById", 0, [actionNum], [actionHash], true);
     return result;
@@ -171,7 +171,7 @@ describe('GranularAccess', function() {
       await cliEditor.openDocOnConnect(docId);
       await cliOwner.openDocOnConnect(docId);
     }
- catch (_e) {
+    catch (_e) {
       // doc may be unusable
     }
   }
@@ -474,8 +474,8 @@ describe('GranularAccess', function() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ['AddTable', 'Table1', [{id: 'A', type: 'Int'},
-                              {id: 'B', type: 'Int'},
-                              {id: 'C', type: 'Int'}]],
+        {id: 'B', type: 'Int'},
+        {id: 'C', type: 'Int'}]],
       ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Table1', colIds: 'C'}],
       // Add at least one access rule. Otherwise the test would succeed
       // trivially, via shortcuts in place when the GranularAccess
@@ -493,7 +493,7 @@ describe('GranularAccess', function() {
     await editor.applyUserActions(docId, [
       ['AddColumn', 'Table1', 'gristHelper_Converted', {type: 'Text', isFormula: false, visibleCol: 0, formula: ''}],
       ['AddColumn', 'Table1', 'gristHelper_Transform',
-       {type: 'Text', isFormula: true, visibleCol: 0, formula: 'rec.gristHelper_Converted'}],
+        {type: 'Text', isFormula: true, visibleCol: 0, formula: 'rec.gristHelper_Converted'}],
       ["ConvertFromColumn", "Table1", "A", "gristHelper_Converted", "Text", "", 0],
       ["CopyFromColumn", "Table1", "gristHelper_Transform", "A", "{}"],
     ]);
@@ -510,13 +510,13 @@ describe('GranularAccess', function() {
     const transformation = [
       ['AddColumn', 'Table1', 'gristHelper_Converted2', {type: 'Text', isFormula: false, visibleCol: 0, formula: ''}],
       ['AddColumn', 'Table1', 'gristHelper_Transform2',
-       {type: 'Text', isFormula: true, visibleCol: 0, formula: 'rec.gristHelper_Converted2'}],
+        {type: 'Text', isFormula: true, visibleCol: 0, formula: 'rec.gristHelper_Converted2'}],
       ["ConvertFromColumn", "Table1", "B", "gristHelper_Converted2", "Text", "", 0],
       ["CopyFromColumn", "Table1", "gristHelper_Transform", "B", "{}"],
     ];
     // Should fail for editor.
     await assert.isRejected(editor.applyUserActions(docId, transformation),
-                            /Blocked by full structure access rules/);
+      /Blocked by full structure access rules/);
     // Should go through if run as owner.
     await assert.isFulfilled(owner.applyUserActions(docId, transformation));
   });
@@ -717,7 +717,7 @@ describe('GranularAccess', function() {
       cliOwner.flush();
       await assertFlux(editor.getDocAPI(docId).updateRows('Table1', {id: [1], B: [2]}));
     }
- finally {
+    finally {
       stub.restore();
     }
     assert.equal((await cliEditor.readMessage()).type, 'docShutdown');
@@ -895,7 +895,7 @@ describe('GranularAccess', function() {
       }],
       ['AddRecord', '_grist_ACLRules', null, {
         resource: -1,   // Used to have -2, but table-specific rules cannot specify schemaEdit
-                        // permission today; it now gets ignored if they do.
+        // permission today; it now gets ignored if they do.
         aclFormula: 'True',
         permissionsText: '-S',
         memo: 'rule_s',
@@ -907,7 +907,7 @@ describe('GranularAccess', function() {
     await assertDeniedFor(owner.getDocAPI(docId).removeRows('Table1', [1]), []);
     await assertDeniedFor(owner.getDocAPI(docId).removeRows('Table1', [2]), ['rule_d1', 'rule_d2']);
     await assertDeniedFor(owner.getDocAPI(docId).updateRows('Table1', {id: [2], A: ['x']}),
-                          ['rule_u']);
+      ['rule_u']);
     await assertDeniedFor(owner.applyUserActions(docId, [
       ['AddVisibleColumn', 'Table2', 'B', {}],
     ]), ['rule_s']);
@@ -1250,7 +1250,7 @@ describe('GranularAccess', function() {
     // Try a modification that would have a detectable side-effect even if reverted.
     await assert.isRejected(editor.applyUserActions(docId, [
       ["ModifyColumn", "Table1", "A", {"isFormula": true, formula: "datetime.MAXYEAR=1234",
-                                       type: 'Int'}],
+        type: 'Int'}],
     ]), /Blocked by full structure access rules/);
 
     await assert.isRejected(editor.applyUserActions(docId, [
@@ -1272,7 +1272,7 @@ describe('GranularAccess', function() {
     // Make sure that the poison formula was never evaluated.
     await owner.applyUserActions(docId, [
       ["ModifyColumn", "Table1", "A", {"isFormula": true, formula: "datetime.MAXYEAR",
-                                       type: 'Int'}],
+        type: 'Int'}],
     ]);
     assert.deepEqual((await owner.getDocAPI(docId).getRows('Table1')).A, [9999]);
   });
@@ -1621,8 +1621,8 @@ describe('GranularAccess', function() {
     // Make a table, and limit non-owner access to some rows.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A'},
-                            {id: 'B'},
-                            {id: 'Public', isFormula: true, formula: '$B == "clear"'}]],
+        {id: 'B'},
+        {id: 'Public', isFormula: true, formula: '$B == "clear"'}]],
       ['AddRecord', 'Data1', null, {A: 1, B: 'clear'}],
       ['AddRecord', 'Data1', null, {A: 2, B: 'notclear'}],
       ['AddRecord', 'Data1', null, {A: 3, B: 'clear'}],
@@ -1660,7 +1660,7 @@ describe('GranularAccess', function() {
     // Make a table, and allow update of rows matching a condition.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddRecord', 'Data1', null, {A: 1, B: 100}],
       ['AddRecord', 'Data1', null, {A: 2, B: 200}],
       ['AddRecord', 'Data1', null, {A: 3, B: 300}],
@@ -1685,12 +1685,12 @@ describe('GranularAccess', function() {
     // Owner limits their own row access to a certain table.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddRecord', 'Data1', null, {A: 1, B: 100}],
       ['AddRecord', 'Data1', null, {A: 2, B: 200}],
       ['AddRecord', 'Data1', null, {A: 3, B: 100}],
       ['AddTable', 'Data2', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddRecord', 'Data2', null, {A: 1, B: 100}],
       ['AddRecord', 'Data2', null, {A: 2, B: 200}],
       ['AddRecord', 'Data2', null, {A: 3, B: 100}],
@@ -1755,9 +1755,9 @@ describe('GranularAccess', function() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddTable', 'Sensitive', [{id: 'A', type: 'Numeric'},
-                                 {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Data1', colIds: '*'}],
       ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Sensitive', colIds: '*'}],
       ['AddRecord', '_grist_ACLRules', null, {
@@ -1842,29 +1842,29 @@ describe('GranularAccess', function() {
     const workspaceId = (await editor.getOrgWorkspaces('current'))[0].id;
     const copyDocId = (await worker.importDocToWorkspace(uploadId, workspaceId)).id;
     assert.deepEqual(await editor.getDocAPI(copyDocId).getRows('_grist_ACLResources'),
-                     { id: [1, 2, 3, 4],
-                       colIds: ['', '*', '*', 'AccessRules'],
-                       tableId: ['', 'Data3', 'Sensitive', '*SPECIAL'] });
+      { id: [1, 2, 3, 4],
+        colIds: ['', '*', '*', 'AccessRules'],
+        tableId: ['', 'Data3', 'Sensitive', '*SPECIAL'] });
     assert.deepEqual((await editor.getDocAPI(copyDocId).getRows('_grist_ACLRules')).resource,
-                     [1, 2, 3, 1, 1, 4]);
+      [1, 2, 3, 1, 1, 4]);
 
     // Similarly for a fork.
     cliEditor.flush();
     const forkDocId = (await cliEditor.send("fork", 0)).data.docId as string;
     assert.deepEqual(await editor.getDocAPI(forkDocId).getRows('_grist_ACLResources'),
-                     { id: [1, 2, 3, 4],
-                       colIds: ['', '*', '*', 'AccessRules'],
-                       tableId: ['', 'Data3', 'Sensitive', '*SPECIAL'] });
+      { id: [1, 2, 3, 4],
+        colIds: ['', '*', '*', 'AccessRules'],
+        tableId: ['', 'Data3', 'Sensitive', '*SPECIAL'] });
     assert.deepEqual((await editor.getDocAPI(copyDocId).getRows('_grist_ACLRules')).resource,
-                     [1, 2, 3, 1, 1, 4]);
+      [1, 2, 3, 1, 1, 4]);
 
     // Original doc should be unchanged.
     assert.deepEqual(await editor.getDocAPI(docId).getRows('_grist_ACLResources'),
-                     { id: [1, 2, 3, 4, 5],
-                       colIds: ['', '*', '*', 'AccessRules', 'FullCopies'],
-                       tableId: ['', 'Data3', 'Sensitive', '*SPECIAL', '*SPECIAL'] });
+      { id: [1, 2, 3, 4, 5],
+        colIds: ['', '*', '*', 'AccessRules', 'FullCopies'],
+        tableId: ['', 'Data3', 'Sensitive', '*SPECIAL', '*SPECIAL'] });
     assert.deepEqual((await editor.getDocAPI(docId).getRows('_grist_ACLRules')).resource,
-                     [1, 2, 3, 1, 1, 4, 5]);
+      [1, 2, 3, 1, 1, 4, 5]);
   });
 
   it('handles fork ownership gracefully', async function() {
@@ -1885,20 +1885,20 @@ describe('GranularAccess', function() {
 
     // Check editor can write to public table in regular document mode.
     assert.equal((await cliEditor.send('applyUserActions', 0,
-                                       [['AddRecord', 'Data1', null, {A: 99}]])).error,
-                 undefined);
+      [['AddRecord', 'Data1', null, {A: 99}]])).error,
+    undefined);
     // Check editor cannot read sensitive data.
     assert.match((await cliEditor.send('fetchTable', 0, 'Sensitive')).error!,
-                 /Blocked by table read access rules/);
+      /Blocked by table read access rules/);
     // Check that in fork mode, editor still cannot read sensitive data.
     await reopenClients({openMode: 'fork'});
     assert.match((await cliEditor.send('fetchTable', 0, 'Sensitive')).error!,
-                 /Blocked by table read access rules/);
+      /Blocked by table read access rules/);
     // Nor can editor write in (pre)-fork mode.  Need to send an explicit "fork" command
     // to create a different doc to write to (tested elsewhere).
     assert.match((await cliEditor.send('applyUserActions', 0,
-                                       [['AddRecord', 'Data1', null, {A: 99}]])).error!,
-                 /No write access/);
+      [['AddRecord', 'Data1', null, {A: 99}]])).error!,
+    /No write access/);
 
     // Grant editor special access to copy/download/fork document.
     await owner.applyUserActions(docId, [
@@ -1911,24 +1911,24 @@ describe('GranularAccess', function() {
     // Check editor can still write to public table in regular document mode.
     await reopenClients();
     assert.equal((await cliEditor.send('applyUserActions', 0,
-                                       [['AddRecord', 'Data1', null, {A: 99}]])).error,
-                 undefined);
+      [['AddRecord', 'Data1', null, {A: 99}]])).error,
+    undefined);
     // Editor still cannot read sensitive data in regular mode (although they could download
     // it, tested elsewhere).
     assert.match((await cliEditor.send('fetchTable', 0, 'Sensitive')).error!,
-                 /Blocked by table read access rules/);
+      /Blocked by table read access rules/);
 
     // But now, if opening in fork mode, editor reads as owner, as if they' already
     // copied everything and become its owner.
     await reopenClients({openMode: 'fork'});
     assert.deepEqual((await cliEditor.send('fetchTable', 0, 'Sensitive')).data.tableData[3],
-                     { manualSort: [1, 2], A: [16, 17] });
+      { manualSort: [1, 2], A: [16, 17] });
     // Modifications remain forbidden.  Were we to send the 'fork' message,
     // (tested elsewhere) we'd get back a new docId to switch to, and there
     // the editor would be a true owner.
     assert.match((await cliEditor.send('applyUserActions', 0,
-                                       [['AddRecord', 'Data1', null, {A: 99}]])).error!,
-                 /No write access/);
+      [['AddRecord', 'Data1', null, {A: 99}]])).error!,
+    /No write access/);
   });
 
   it('handles outgoing actions when an action triggers changes in other tables', async function() {
@@ -2109,7 +2109,7 @@ describe('GranularAccess', function() {
     // Make a table, and allow creation of rows only matching a condition.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddRecord', 'Data1', null, {A: 100, B: 50}],
       ['AddRecord', 'Data1', null, {A: 200, B: 150}],
       ['AddRecord', 'Data1', null, {A: 300, B: 250}],
@@ -2133,8 +2133,8 @@ describe('GranularAccess', function() {
     // Make a table, and allow creation of rows only matching a condition.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'},
-                             {id: 'Good', isFormula: true, formula: '$A > $B'}]],
+        {id: 'B', type: 'Numeric'},
+        {id: 'Good', isFormula: true, formula: '$A > $B'}]],
       ['AddRecord', 'Data1', null, {A: 100, B: 50}],
       ['AddRecord', 'Data1', null, {A: 200, B: 150}],
       ['AddRecord', 'Data1', null, {A: 300, B: 250}],
@@ -2158,8 +2158,8 @@ describe('GranularAccess', function() {
     // Make a table, and allow creation of rows only matching a condition.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'},
-                             {id: 'Good', isFormula: true, formula: '$A > $B'}]],
+        {id: 'B', type: 'Numeric'},
+        {id: 'Good', isFormula: true, formula: '$A > $B'}]],
       ['AddRecord', 'Data1', null, {A: 100, B: 50}],
       ['AddRecord', 'Data1', null, {A: 200, B: 250}],
       ['AddRecord', 'Data1', null, {A: 300, B: 250}],
@@ -2183,7 +2183,7 @@ describe('GranularAccess', function() {
     // Make a table, and allow creation or update of rows with unique keys.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'Count', isFormula: true, formula: 'len(Data1.lookupRecords(A=$A))'}]],
+        {id: 'Count', isFormula: true, formula: 'len(Data1.lookupRecords(A=$A))'}]],
       ['AddRecord', 'Data1', null, {A: 100}],
       ['AddRecord', 'Data1', null, {A: 200}],
       ['AddRecord', 'Data1', null, {A: 300}],
@@ -2205,17 +2205,17 @@ describe('GranularAccess', function() {
     assert.equal((await owner.getDocAPI(docId).getRows('Data1')).id.length, 4);
     // Adding a row with a duplicated key should fail.
     await noop(assertDeniedFor(owner.getDocAPI(docId).addRows( 'Data1', { A: [200] }),
-                               ['duplicate check']));
+      ['duplicate check']));
     assert.equal((await owner.getDocAPI(docId).getRows('Data1')).id.length, 4);
     // If original is removed, adding the row should now succeed.
     await assert.isFulfilled(owner.getDocAPI(docId).removeRows('Data1', [2]));
     await assert.isFulfilled(owner.getDocAPI(docId).addRows('Data1', { A: [200] }));
     // Updating a row to duplicate an existing key should fail.
     await noop(assert.isRejected(owner.getDocAPI(docId).updateRows('Data1',
-                                                                         { id: [1], A: [200] })));
+      { id: [1], A: [200] })));
     // Updating a row to have a new key should succeed.
     await assert.isFulfilled(owner.getDocAPI(docId).updateRows('Data1',
-                                                               { id: [1], A: [500] }));
+      { id: [1], A: [500] }));
     // Adding rows containing a new duplicate should fail.
     await noop(assert.isRejected(owner.getDocAPI(docId).addRows('Data1', { A: [600, 600] })));
 
@@ -2255,7 +2255,7 @@ describe('GranularAccess', function() {
     // Make a table with a data column A, and a formula column Count.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'Count', isFormula: true, formula: 'len(Data1.lookupRecords(A=$A))'}]],
+        {id: 'Count', isFormula: true, formula: 'len(Data1.lookupRecords(A=$A))'}]],
       ['AddRecord', 'Data1', null, {A: 100}],
       ['AddRecord', 'Data1', null, {A: 200}],
       ['AddRecord', 'Data1', null, {A: 300}],
@@ -2273,15 +2273,15 @@ describe('GranularAccess', function() {
 
     // Make a change in data column.
     await assert.isFulfilled(owner.getDocAPI(docId).updateRows('Data1',
-                                                               { id: [1], A: [200] }));
+      { id: [1], A: [200] }));
 
     // Check that formula column changed as expected.
     assert.deepEqual((await owner.getDocAPI(docId).getRows('Data1')).Count, [2, 2, 1]);
 
     // Check that we cannot write to the formula column.
     await assert.isRejected(owner.getDocAPI(docId).updateRows('Data1',
-                                                              { id: [1], Count: [200] }),
-                            /Can't save value to formula column/);
+      { id: [1], Count: [200] }),
+    /Can't save value to formula column/);
   });
 
   it('permits indirect changes via type conversion', async function() {
@@ -2309,8 +2309,8 @@ describe('GranularAccess', function() {
 
     // Try to make a change in data column.
     await assertDeniedFor(owner.getDocAPI(docId).updateRows('Data1',
-                                                              { id: [1], A: [200] }),
-                          ['COMPUTER SAYS NO']);
+      { id: [1], A: [200] }),
+    ['COMPUTER SAYS NO']);
 
     // Convert column in bulk - we have +S bit so we can do this.
     await owner.applyUserActions(docId, [
@@ -2335,9 +2335,9 @@ describe('GranularAccess', function() {
 
     // Get tableRef and colRef of column 'G' so we can make a summary table.
     const tableRef = (await owner.getDocAPI(docId).getRows('_grist_Tables',
-                                                           {filters: { tableId: ['Data1'] }})).id[0];
+      {filters: { tableId: ['Data1'] }})).id[0];
     const colRef = (await owner.getDocAPI(docId).getRows('_grist_Tables_column',
-                                                         {filters: { colId: ['G'] }})).id[0];
+      {filters: { colId: ['G'] }})).id[0];
 
     // Make a summary table.
     await owner.applyUserActions(docId, [
@@ -2391,9 +2391,9 @@ describe('GranularAccess', function() {
 
     // Get tableRef and colRef of column 'G' so we can make a summary table.
     const tableRef = (await owner.getDocAPI(docId).getRows('_grist_Tables',
-                                                           {filters: { tableId: ['Data1'] }})).id[0];
+      {filters: { tableId: ['Data1'] }})).id[0];
     const colRef = (await owner.getDocAPI(docId).getRows('_grist_Tables_column',
-                                                         {filters: { colId: ['G'] }})).id[0];
+      {filters: { colId: ['G'] }})).id[0];
 
     // Make a summary table.
     await owner.applyUserActions(docId, [
@@ -2506,11 +2506,11 @@ describe('GranularAccess', function() {
 
     // Cannot add a row with even A.
     await assertDeniedFor(owner.getDocAPI(docId).addRows('Data1', {A: [500]}),
-                          ['STOP1', 'STOP2']);
+      ['STOP1', 'STOP2']);
 
     // Cannot remove a row with even A.
     await assertDeniedFor(owner.getDocAPI(docId).removeRows('Data1', [1]),
-                          ['STOP1', 'STOP2']);
+      ['STOP1', 'STOP2']);
 
     // Can add a row with odd A.
     await assert.isFulfilled(owner.getDocAPI(docId).addRows('Data1', {A: [501]}));
@@ -2523,15 +2523,15 @@ describe('GranularAccess', function() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', isFormula: true, formula: '$A + 1'},
-                             {id: 'C'}]],
+        {id: 'B', isFormula: true, formula: '$A + 1'},
+        {id: 'C'}]],
       ['AddRecord', 'Data1', null, {A: 101}],
       ['AddRecord', 'Data1', null, {A: 201}],
       ['AddRecord', 'Data1', null, {A: 301}],
       ['AddRecord', 'Data1', null, {A: 401}],
       ['AddRecord', 'Data1', null, {A: 501}],
       ['AddTable', 'Data2', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', isFormula: true, formula: '$A + 1'}]],
+        {id: 'B', isFormula: true, formula: '$A + 1'}]],
       ['AddRecord', 'Data2', null, {A: 101}],
       ['AddRecord', 'Data2', null, {A: 201}],
       ['AddRecord', 'Data2', null, {A: 301}],
@@ -2582,7 +2582,7 @@ describe('GranularAccess', function() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
       ['AddRecord', 'Data1', null, {A: 0, B: 0}],
       ['AddTable', 'Data2', [{id: 'A', type: 'Numeric'}]],
 
@@ -2623,8 +2623,8 @@ describe('GranularAccess', function() {
     // only modification allowed to that column being to increment it.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'Status', type: 'Choice'},
-                             {id: 'StatusIndex', isFormula: true,
-                              formula: 'try:\n\treturn ["PENDING", "STARTED", "FINISHED"]' +
+        {id: 'StatusIndex', isFormula: true,
+          formula: 'try:\n\treturn ["PENDING", "STARTED", "FINISHED"]' +
                               '.index($Status)\nexcept:\n\treturn -1'}]],
       ['AddRecord', 'Data1', null, {Status: 'PENDING'}],
       ['AddRecord', 'Data1', null, {Status: 'STARTED'}],
@@ -2770,8 +2770,8 @@ describe('GranularAccess', function() {
     // Make a table with 4 columns, only 2 of which should be available to non-owners.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'}, {id: 'B', type: 'Numeric'},
-                             {id: 'C', isFormula: true, formula: '$A + $B'},
-                             {id: 'D', isFormula: true, formula: '$A - $B'}]],
+        {id: 'C', isFormula: true, formula: '$A + $B'},
+        {id: 'D', isFormula: true, formula: '$A - $B'}]],
       ['AddRecord', 'Data1', null, {A: 10, B: 4}],
       ['AddRecord', 'Data1', null, {A: 20, B: 5}],
       ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Data1', colIds: 'A,C'}],
@@ -2803,8 +2803,8 @@ describe('GranularAccess', function() {
     // share).
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'}, {id: 'B', type: 'Numeric'},
-                             {id: 'C', isFormula: true, formula: '$A + $B'},
-                             {id: 'D', isFormula: true, formula: '$A - $B'}]],
+        {id: 'C', isFormula: true, formula: '$A + $B'},
+        {id: 'D', isFormula: true, formula: '$A - $B'}]],
       ['AddRecord', 'Data1', null, {A: 10, B: 4}],
       ['AddRecord', 'Data1', null, {A: 20, B: 5}],
       ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Data1', colIds: '*'}],
@@ -2912,11 +2912,11 @@ describe('GranularAccess', function() {
 
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Int'},  // editor has full rights
-                             {id: 'B', type: 'Int'},  // editor can read only
-                             {id: 'C', type: 'Int'},  // editor can edit on some rows
-                             {id: 'D', type: 'Int'},  // editor can edit on some rows
-                             {id: 'E', type: 'Int'},  // editor cannot view or edit
-                             {id: 'F', isFormula: true, formula: '$A'}]],  // read only
+        {id: 'B', type: 'Int'},  // editor can read only
+        {id: 'C', type: 'Int'},  // editor can edit on some rows
+        {id: 'D', type: 'Int'},  // editor can edit on some rows
+        {id: 'E', type: 'Int'},  // editor cannot view or edit
+        {id: 'F', isFormula: true, formula: '$A'}]],  // read only
       ['AddRecord', 'Data1', null, {A: 10, B: 10, C: 10, D: 10, E: 10}], //  x  x
       ['AddRecord', 'Data1', null, {A: 11, B: 11, C: 11, D: 11, E: 11}],
       ['AddRecord', 'Data1', null, {A: 12, B: 12, C: 12, D: 12, E: 12}], //  x
@@ -2967,9 +2967,9 @@ describe('GranularAccess', function() {
 
     // Check that changes to specific cells the user cannot edit are also stripped.
     await applyAsUndo(cliEditor, [['BulkUpdateRecord', 'Data1', [1, 2, 3, 4],
-                                   {A: [60, 71, 81, 90],
-                                    C: [100, 110, 120, 130],
-                                    D: [140, 150, 160, 170]}]]);
+      {A: [60, 71, 81, 90],
+        C: [100, 110, 120, 130],
+        D: [140, 150, 160, 170]}]]);
     expected.F[0] = expected.A[0] = 60;
     expected.F[1] = expected.A[1] = 71;
     expected.F[2] = expected.A[2] = 81;
@@ -3087,7 +3087,7 @@ describe('GranularAccess', function() {
     // permissionn to change the schema, then the column conversion will be permitted.
     // (this test used to be more elaborate before this was true).
     await assert.isFulfilled(editor.applyUserActions(docId,
-       [['UpdateRecord', '_grist_Tables_column', colRef, {type: 'Numeric'}]]));
+      [['UpdateRecord', '_grist_Tables_column', colRef, {type: 'Numeric'}]]));
   });
 
   // Checks for a bug in filtering first row.
@@ -3095,8 +3095,8 @@ describe('GranularAccess', function() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'},
-                             {id: 'Sum', isFormula: true, formula: '$A + $A'}]],
+        {id: 'B', type: 'Numeric'},
+        {id: 'Sum', isFormula: true, formula: '$A + $A'}]],
       ['AddRecord', 'Data1', null, {A: 100, B: 50}],
       ['AddRecord', 'Data1', null, {A: 200, B: 150}],
       ['AddRecord', 'Data1', null, {A: 300, B: 250}],
@@ -3162,9 +3162,9 @@ describe('GranularAccess', function() {
       await freshDoc();
       await owner.applyUserActions(docId, [
         ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                               {id: 'B', type: 'Numeric'},
-                               {id: 'C', type: 'Numeric'},
-                               {id: 'D', type: 'Numeric'}]],
+          {id: 'B', type: 'Numeric'},
+          {id: 'C', type: 'Numeric'},
+          {id: 'D', type: 'Numeric'}]],
         ['AddRecord', 'Data1', null, {A: 100, B: 1, C: 40, D: 300}],
         ['AddRecord', 'Data1', null, {A: 200, B: 2, C: 45, D: 200}],
         ['AddRecord', 'Data1', null, {A: 300, B: 3, C: 50, D: 100}],
@@ -3190,101 +3190,101 @@ describe('GranularAccess', function() {
       cliOwner.flush();
       await owner.getDocAPI(docId).addRows('Data1', {A: [300, 150], B: [1, 1], C: [1, 1], D: [1, 1]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['BulkAddRecord',
-                           'Data1',
-                           [4, 5],
-                           { A: [300, 150], manualSort: [4, 5], B: [1, 1],
-                             C: [1, [GristObjCode.Censored]],
-                             D: [1, [GristObjCode.Censored]] }]]);
+        [['BulkAddRecord',
+          'Data1',
+          [4, 5],
+          { A: [300, 150], manualSort: [4, 5], B: [1, 1],
+            C: [1, [GristObjCode.Censored]],
+            D: [1, [GristObjCode.Censored]] }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['BulkAddRecord',
-                           'Data1',
-                           [4, 5],
-                           { A: [300, 150], manualSort: [4, 5], B: [1, 1], C: [1, 1], D: [1, 1] }]]);
+        [['BulkAddRecord',
+          'Data1',
+          [4, 5],
+          { A: [300, 150], manualSort: [4, 5], B: [1, 1], C: [1, 1], D: [1, 1] }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [100]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 100 }],
-                         ['BulkUpdateRecord', 'Data1', [4], {
-                           C: [[GristObjCode.Censored]],
-                           D: [[GristObjCode.Censored]],
-                         }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 100 }],
+          ['BulkUpdateRecord', 'Data1', [4], {
+            C: [[GristObjCode.Censored]],
+            D: [[GristObjCode.Censored]],
+          }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 100 }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 100 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [600]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 600 }],
-                         ['BulkUpdateRecord', 'Data1', [4], {
-                           C: [1],
-                           D: [1],
-                         }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 600 }],
+          ['BulkUpdateRecord', 'Data1', [4], {
+            C: [1],
+            D: [1],
+          }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A:600 }]]);
+        [['UpdateRecord', 'Data1', 4, { A:600 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [3]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 3 }],
-                         ['BulkUpdateRecord', 'Data1', [4], {
-                           C: [[GristObjCode.Censored]],
-                           D: [[GristObjCode.Censored]],
-                         }],
-                         ['BulkUpdateRecord', 'Data1', [4], { B: [[GristObjCode.Censored]] }],
-                       ]);
+        [['UpdateRecord', 'Data1', 4, { A: 3 }],
+          ['BulkUpdateRecord', 'Data1', [4], {
+            C: [[GristObjCode.Censored]],
+            D: [[GristObjCode.Censored]],
+          }],
+          ['BulkUpdateRecord', 'Data1', [4], { B: [[GristObjCode.Censored]] }],
+        ]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 3 }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 3 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], A: [75]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 75 }],
-                         ['BulkUpdateRecord', 'Data1', [4], { B: [1] }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 75 }],
+          ['BulkUpdateRecord', 'Data1', [4], { B: [1] }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { A: 75 }]]);
+        [['UpdateRecord', 'Data1', 4, { A: 75 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], B: [99]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['BulkRemoveRecord', 'Data1', [4]]]);
+        [['BulkRemoveRecord', 'Data1', [4]]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { B: 99 }]]);
+        [['UpdateRecord', 'Data1', 4, { B: 99 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [4], B: [98]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['BulkAddRecord',
-                           'Data1',
-                           [4],
-                           { manualSort: [4],
-                             A: [75],
-                             B: [98],
-                             C: [[GristObjCode.Censored]],
-                             D: [[GristObjCode.Censored]] }]]);
+        [['BulkAddRecord',
+          'Data1',
+          [4],
+          { manualSort: [4],
+            A: [75],
+            B: [98],
+            C: [[GristObjCode.Censored]],
+            D: [[GristObjCode.Censored]] }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 4, { B: 98 }]]);
+        [['UpdateRecord', 'Data1', 4, { B: 98 }]]);
       cliEditor.flush();
       cliOwner.flush();
       await owner.getDocAPI(docId).updateRows('Data1', {id: [1, 2, 4], A: [1, 75, 200]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['BulkUpdateRecord',
-                           'Data1',
-                           [1, 2, 4],
-                           { A: [1, 75, 200] }],
-                         ['BulkUpdateRecord',
-                           'Data1',
-                           [2, 4],
-                           { C: [[GristObjCode.Censored], 1],
-                             D: [[GristObjCode.Censored], 1] }],
-                         ['BulkUpdateRecord', 'Data1', [1], { B: [[GristObjCode.Censored]] }],
-                       ]);
+        [['BulkUpdateRecord',
+          'Data1',
+          [1, 2, 4],
+          { A: [1, 75, 200] }],
+        ['BulkUpdateRecord',
+          'Data1',
+          [2, 4],
+          { C: [[GristObjCode.Censored], 1],
+            D: [[GristObjCode.Censored], 1] }],
+        ['BulkUpdateRecord', 'Data1', [1], { B: [[GristObjCode.Censored]] }],
+        ]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['BulkUpdateRecord',
-                           'Data1',
-                           [1, 2, 4],
-                           { A: [1, 75, 200] }]]);
+        [['BulkUpdateRecord',
+          'Data1',
+          [1, 2, 4],
+          { A: [1, 75, 200] }]]);
 
       // Add a formula column to simulate a reported bug (not actually needed to tickle problem)
       // where a censored cell for one user could show up as censored for another.
@@ -3300,11 +3300,11 @@ describe('GranularAccess', function() {
 
       await editor.getDocAPI(docId).updateRows('Data1', {id: [2], C: [999]});
       assert.deepEqual(await cliEditor.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 2, { C: [GristObjCode.Censored] }],
-                         ['UpdateRecord', 'Data1', 2, { E: [GristObjCode.Censored] }]]);
+        [['UpdateRecord', 'Data1', 2, { C: [GristObjCode.Censored] }],
+          ['UpdateRecord', 'Data1', 2, { E: [GristObjCode.Censored] }]]);
       assert.deepEqual(await cliOwner.readDocUserAction(),
-                       [['UpdateRecord', 'Data1', 2, { C: 999 }],
-                         ['UpdateRecord', 'Data1', 2, { E: 999 }]]);
+        [['UpdateRecord', 'Data1', 2, { C: 999 }],
+          ['UpdateRecord', 'Data1', 2, { E: 999 }]]);
 
       // Check that only the owner can evaluate the formula.
       let response = await cliOwner.send('getFormulaError', 0, 'Data1', 'E', 2);
@@ -3320,7 +3320,7 @@ describe('GranularAccess', function() {
     await freshDoc();
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A', type: 'Numeric'},
-                             {id: 'B', type: 'Numeric'}]],
+        {id: 'B', type: 'Numeric'}]],
     ]);
 
     // Set timeout negative, so broadcasts fail reliably, and see
@@ -3336,7 +3336,7 @@ describe('GranularAccess', function() {
       assert.equal(cliEditor.isOpen(), false);
       assert.equal(cliOwner.isOpen(), false);
     }
- finally {
+    finally {
       timeoutStub.restore();
     }
   });
@@ -3358,12 +3358,12 @@ describe('GranularAccess', function() {
         ];
         // Check the action is unchanged if row is not specified for filtering.
         assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 99, xRemove),
-                         [action1]);
+          [action1]);
         // Check the action is filtered as expected if row is specified.  Action set returned
         // is suboptimal, but nevertheless as expected.
         assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 0, xRemove),
-                         [[actType, 'Table1', [], {a: [], b: [], c: []}],
-                          [actType, 'Table1', [1], {b: ['b']}]]);
+          [[actType, 'Table1', [], {a: [], b: [], c: []}],
+            [actType, 'Table1', [1], {b: ['b']}]]);
         // Prepare a multi-row bulk action.
         const action2: typeof action1 = [
           actType,
@@ -3376,9 +3376,9 @@ describe('GranularAccess', function() {
         // Check filtering is as expected: one retained row, two new actions for the
         // two new permutations of columns.
         assert.deepEqual(filterColValues(cloneDeep(action2), idx => idx % 2 === 0, xRemove),
-                         [[actType, 'Table1', [2], {a: ['a'], b: ['b'], c: ['c']}],
-                          [actType, 'Table1', [3], {a: ['a'], b: ['b']}],
-                          [actType, 'Table1', [1], {b: ['b']}]]);
+          [[actType, 'Table1', [2], {a: ['a'], b: ['b'], c: ['c']}],
+            [actType, 'Table1', [3], {a: ['a'], b: ['b']}],
+            [actType, 'Table1', [1], {b: ['b']}]]);
         // Prepare a many-row bulk action, and check filtering is as expected.
         const action3: typeof action1 = [
           actType,
@@ -3391,14 +3391,14 @@ describe('GranularAccess', function() {
           },
         ];
         assert.deepEqual(filterColValues(cloneDeep(action3), idx => ![0, 8].includes(idx), xRemove),
-                         [[actType, 'Table1', [1, 9], {a: ['a', 'A'], b: ['b', 'B'], c: ['c', 'C']}],
-                          [actType, 'Table1', [8], {}],
-                          [actType, 'Table1', [4, 12], {a: ['a', 'A']}],
-                          [actType, 'Table1', [2, 10], {a: ['a', 'A'], b: ['b', 'B']}],
-                          [actType, 'Table1', [3, 11], {a: ['a', 'A'], c: ['c', 'C']}],
-                          [actType, 'Table1', [6], {b: ['b']}],
-                          [actType, 'Table1', [5], {b: ['b'], c: ['c']}],
-                          [actType, 'Table1', [7], {c: ['c']}]]);
+          [[actType, 'Table1', [1, 9], {a: ['a', 'A'], b: ['b', 'B'], c: ['c', 'C']}],
+            [actType, 'Table1', [8], {}],
+            [actType, 'Table1', [4, 12], {a: ['a', 'A']}],
+            [actType, 'Table1', [2, 10], {a: ['a', 'A'], b: ['b', 'B']}],
+            [actType, 'Table1', [3, 11], {a: ['a', 'A'], c: ['c', 'C']}],
+            [actType, 'Table1', [6], {b: ['b']}],
+            [actType, 'Table1', [5], {b: ['b'], c: ['c']}],
+            [actType, 'Table1', [7], {c: ['c']}]]);
       });
     }
 
@@ -3413,10 +3413,10 @@ describe('GranularAccess', function() {
           },
         ];
         assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 0, xRemove),
-                         [[actType, 'Table1', 1, {b: 'b'}]]);
+          [[actType, 'Table1', 1, {b: 'b'}]]);
         // shouldFilterRow is somewhat arbitrarily ignored for non-bulk changes.
         assert.deepEqual(filterColValues(cloneDeep(action1), idx => idx === 99, xRemove),
-                         [[actType, 'Table1', 1, {b: 'b'}]]);
+          [[actType, 'Table1', 1, {b: 'b'}]]);
       });
     }
 
@@ -3464,24 +3464,24 @@ describe('GranularAccess', function() {
     ]);
     // Check that exceptional session has full access to Table1 anyway.
     assert.deepEqual((await activeDoc.fetchTable(systemSession, 'Table1')).tableData,
-                     ['TableData', 'Table1', [1],
-                       { manualSort: [1], A: ['2021'], B: ['kangaroo'] }]);
+      ['TableData', 'Table1', [1],
+        { manualSort: [1], A: ['2021'], B: ['kangaroo'] }]);
     // Check that regular session does not have access to Table1.
     await assert.isRejected(activeDoc.fetchTable(userSession, 'Table1'),
-                            /Blocked by table read access rules/);
+      /Blocked by table read access rules/);
     // Check that exceptional session has full access to Table2 anyway.
     assert.deepEqual((await activeDoc.fetchTable(systemSession, 'Table2')).tableData,
-                     ['TableData', 'Table2', [1, 2],
-                       { manualSort: [1, 2], A: ['2022', '-1'], B: ['wallaby', 'koala'] }]);
+      ['TableData', 'Table2', [1, 2],
+        { manualSort: [1, 2], A: ['2022', '-1'], B: ['wallaby', 'koala'] }]);
     // Check that regular session does not have full access to Table2.
     assert.deepEqual((await activeDoc.fetchTable(userSession, 'Table2')).tableData,
-                     ['TableData', 'Table2', [1],
-                       { manualSort: [1], A: ['2022'] }]);
+      ['TableData', 'Table2', [1],
+        { manualSort: [1], A: ['2022'] }]);
   });
 
   for (const flags of ['-R', '-RS']) {
     it(`can receive metadata updates even if there is a default ${flags} rule`, async function() {
-    await freshDoc();
+      await freshDoc();
       // Make a document with a default rule forbidding editor from reading anything.
       await owner.applyUserActions(docId, [
         ['AddTable', 'Private', [{id: 'A'}]],
@@ -3503,7 +3503,7 @@ describe('GranularAccess', function() {
       // Make sure everything we saw was metadata, and the Private2 AddTable
       // action itself did not slip through.
       assert.equal((msg?.data?.docActions as Array<DocAction>)
-                     .every(a => a[1].startsWith('_grist')), true);
+        .every(a => a[1].startsWith('_grist')), true);
     });
   }
 
@@ -3529,7 +3529,7 @@ describe('GranularAccess', function() {
     ]);
     assert.deepEqual(perm.attributeTableUsers, []);
     assert.deepEqual(perm.exampleUsers[0],
-                     { id: 0, email: 'owner@example.com', name: 'Owner', access: 'owners' });
+      { id: 0, email: 'owner@example.com', name: 'Owner', access: 'owners' });
 
     // Add a user attribute table mentioning some users the doc is shared with and
     // some novel users.
@@ -3578,7 +3578,7 @@ describe('GranularAccess', function() {
       { id: 0, email: 'slow@speed.com', name: 'slow', access: 'editors' },
     ]);
     assert.deepEqual(perm.exampleUsers[0],
-                     { id: 0, email: 'owner@example.com', name: 'Owner', access: 'owners' });
+      { id: 0, email: 'owner@example.com', name: 'Owner', access: 'owners' });
 
     // Add a second user attribute table, this time also with names and access levels.
     await owner.applyUserActions(docId, [
@@ -3614,8 +3614,8 @@ describe('GranularAccess', function() {
     await reopenClients({linkParameters: {aclAsUser: 'fast@speed.com'}});
     cliOwner.flush();
     assert.deepEqual((await cliOwner.send('fetchTable', 0, 'Leads')).data.tableData,
-                     ['TableData', 'Leads', [3],
-                       { manualSort: [3], Place: ['Cambridge'], Name: ['Tao Ping'] }]);
+      ['TableData', 'Leads', [3],
+        { manualSort: [3], Place: ['Cambridge'], Name: ['Tao Ping'] }]);
     let res = await cliOwner.send("applyUserActions", 0, [
       ["UpdateRecord", "Leads", 3, { Name: "Tao" }],
     ]);
@@ -3634,28 +3634,28 @@ describe('GranularAccess', function() {
       },
     );
     assert.match((await cliOwner.send('applyUserActions', 0,
-                                     [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
-                 /Blocked by row update access rules/);
+      [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
+    /Blocked by row update access rules/);
 
     // Check that doing a "View As" as a user from the second user attribute table works
     // as expected (the user has the specified access level, "viewers" in this case).
     await reopenClients({linkParameters: {aclAsUser: 'blue@color.com'}});
     cliOwner.flush();
     assert.deepEqual((await cliOwner.send('fetchTable', 0, 'Leads')).data.tableData,
-                     ['TableData', 'Leads', [1, 2, 3],
-                       { manualSort: [1, 2, 3],
-                         Place: ['Seattle', 'Boston', 'Cambridge'],
-                         Name: ['Yi Wen', 'Zeng Hua', 'Tao'] }]);
+      ['TableData', 'Leads', [1, 2, 3],
+        { manualSort: [1, 2, 3],
+          Place: ['Seattle', 'Boston', 'Cambridge'],
+          Name: ['Yi Wen', 'Zeng Hua', 'Tao'] }]);
     assert.match((await cliOwner.send('applyUserActions', 0,
-                                      [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
-                 /Blocked by table update access rules/);
+      [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
+    /Blocked by table update access rules/);
 
     // Check that doing a "View As" as a dummy user works as expected.
     await reopenClients({linkParameters: {aclAsUser: 'viewer@example.com'}});
     cliOwner.flush();
     assert.match((await cliOwner.send('applyUserActions', 0,
-                                      [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
-                 /Blocked by table update access rules/);
+      [['UpdateRecord', 'Leads', 2, {Name: 'Zao'}]])).error!,
+    /Blocked by table update access rules/);
     await reopenClients({linkParameters: {aclAsUser: 'owner@example.com'}});
     cliOwner.flush();
     res = await cliOwner.send("applyUserActions", 0, [
@@ -3678,23 +3678,23 @@ describe('GranularAccess', function() {
     await reopenClients({linkParameters: {aclAsUser: 'unknown@example.com'}});
     cliOwner.flush();
     assert.match((await cliOwner.send('applyUserActions', 0,
-                                     [['UpdateRecord', 'Leads', 2, {Name: 'Gao'}]])).error!,
-                 /Blocked by table update access rules/);
+      [['UpdateRecord', 'Leads', 2, {Name: 'Gao'}]])).error!,
+    /Blocked by table update access rules/);
     assert.match((await cliOwner.send('fetchTable', 0, 'Leads')).error!,
-                 /Blocked by table read access rules/);
+      /Blocked by table read access rules/);
 
     // Check that doing a "View As" a user the doc is shared with works as expected.
     await reopenClients({linkParameters: {aclAsUser: 'charon@getgrist.com'}});
     cliOwner.flush();
     assert.deepEqual((await cliOwner.send('fetchTable', 0, 'Leads')).data.tableData,
-                     ['TableData', 'Leads', [2],
-                       { manualSort: [2], Place: ['Boston'], Name: ['Zao'] }]);
+      ['TableData', 'Leads', [2],
+        { manualSort: [2], Place: ['Boston'], Name: ['Zao'] }]);
 
     // Check that doing a "View As" an unknown user works reasonably
     await reopenClients({linkParameters: {aclAsUser: 'mystery@getgrist.com'}});
     cliOwner.flush();
     assert.match((await cliOwner.send('fetchTable', 0, 'Leads')).error!,
-                 /Blocked by table read access rules/);
+      /Blocked by table read access rules/);
   });
 
   it('controls read and write access to attachment content', async function() {
@@ -3703,9 +3703,9 @@ describe('GranularAccess', function() {
     // Make a table, with attachments, and with non-owners missing access to a row.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A'},
-                             {id: 'B'},
-                             {id: 'Texts', type: 'Attachments'},
-                             {id: 'Public', isFormula: true, formula: '$B == "clear"'}]],
+        {id: 'B'},
+        {id: 'Texts', type: 'Attachments'},
+        {id: 'Public', isFormula: true, formula: '$B == "clear"'}]],
       ['AddRecord', 'Data1', null, {A: 'near', B: 'clear'}],
       ['AddRecord', 'Data1', null, {A: 'far', B: 'notclear'}],
       ['AddRecord', 'Data1', null, {A: 'in a motor car', B: 'clear'}],
@@ -3724,7 +3724,7 @@ describe('GranularAccess', function() {
     await owner.getDocAPI(docId).updateRows('Data1', {id: [2], Texts: [[GristObjCode.List, i3]]});
     await owner.getDocAPI(docId).updateRows('Data1', {id: [3], Texts: [[GristObjCode.List, i4]]});
 
-     // Share the document with everyone as an editor.
+    // Share the document with everyone as an editor.
     await owner.updateDocPermissions(docId, { users: { 'everyone@getgrist.com': 'editors' } });
 
     // Check an editor can only access the attachments we expect.
@@ -3736,7 +3736,7 @@ describe('GranularAccess', function() {
     // Add another table with an attachment column, leaving access open.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data2', [{id: 'MoreTexts', type: 'Attachments'},
-                             {id: 'Unrelated', type: 'RefList:Data2'}]],
+        {id: 'Unrelated', type: 'RefList:Data2'}]],
       ['AddRecord', 'Data2', null, {}],
     ]);
 
@@ -3797,15 +3797,15 @@ describe('GranularAccess', function() {
     };
     // Owner mismatch case.
     assert.match((await applyAsUndo(cliEditor, [['UpdateRecord', 'Data2', 1, {MoreTexts: [GristObjCode.List, i6]}]],
-                                    ownerInfo))?.error || '',
-                 /Cannot access attachment/);
+      ownerInfo))?.error || '',
+    /Cannot access attachment/);
     // Old action case.
     assert.match((await applyAsUndo(cliEditor, [['UpdateRecord', 'Data2', 1, {MoreTexts: [GristObjCode.List, i6]}]],
-                                    {...editorInfo, time: editorInfo.time - 48 * 60 * 60 * 1000}))?.error || '',
-                 /Cannot access attachment/);
+      {...editorInfo, time: editorInfo.time - 48 * 60 * 60 * 1000}))?.error || '',
+    /Cannot access attachment/);
     // Good case.
     assert.equal((await applyAsUndo(cliEditor, [['UpdateRecord', 'Data2', 1, {MoreTexts: [GristObjCode.List, i6]}]],
-                                    editorInfo))?.error || '', '');
+      editorInfo))?.error || '', '');
 
     // Check that adding an attachment to a cell a user has access to
     // will grant them access to the attachment's contents.
@@ -3820,7 +3820,7 @@ describe('GranularAccess', function() {
     // Make a table, with attachments, and with row-level edit rights.
     await owner.applyUserActions(docId, [
       ['AddTable', 'Data1', [{id: 'A'},
-                             {id: 'Texts', type: 'Attachments'}]],
+        {id: 'Texts', type: 'Attachments'}]],
       ['AddRecord', 'Data1', null, {A: 'edit'}],
       ['AddRecord', 'Data1', null, {A: 'read'}],
       ['AddRecord', 'Data1', null, {A: ''}],
@@ -3849,7 +3849,7 @@ describe('GranularAccess', function() {
     // Add an attachment as an owner.
     const i1 = await owner.getDocAPI(docId).uploadAttachment('content1', '1.txt');
     await owner.getDocAPI(docId).updateRows('Data1', {id: [1],
-                                                      Texts: [[GristObjCode.List, i1]]});
+      Texts: [[GristObjCode.List, i1]]});
 
     await cliOwner.waitForServer();
     await cliEditor.waitForServer();
@@ -3868,7 +3868,7 @@ describe('GranularAccess', function() {
     let msg = await cliOwner.readMessage();
     let gristAttachmentAction: any[] = msg.data.docActions[0];
     assert.deepEqual(gristAttachmentAction.slice(0, 3),
-                     ['AddRecord', '_grist_Attachments', 2]);
+      ['AddRecord', '_grist_Attachments', 2]);
     await cliOwner.waitForServer();
     await cliEditor.waitForServer();
     attachments = cliOwner.getMetaRecords('_grist_Attachments');
@@ -3884,16 +3884,16 @@ describe('GranularAccess', function() {
     gristAttachmentAction = msg.data.docActions[0];
     const gristCellAction: any[] = msg.data.docActions[1];
     assert.deepEqual(gristAttachmentAction.slice(0, 3),
-                     ['BulkAddRecord', '_grist_Attachments', [1, 2]]);
+      ['BulkAddRecord', '_grist_Attachments', [1, 2]]);
     assert.deepEqual(gristCellAction.slice(0, 3),
-                     ['UpdateRecord', 'Data1', 1]);
+      ['UpdateRecord', 'Data1', 1]);
     await cliEditor.waitForServer();
     attachments = cliEditor.getMetaRecords('_grist_Attachments');
     assert.lengthOf(attachments, 2);
 
     // Check an editor cannot add an attachment on a forbidden row.
     await assert.isRejected(editor.getDocAPI(docId).updateRows('Data1', {id: [2], Texts: [[GristObjCode.List, i2]]}),
-                            /Blocked by row update access rules/);
+      /Blocked by row update access rules/);
 
     // Check if an attachment is added to a cell the editor cannot read, they aren't
     // told about it.
@@ -3910,7 +3910,7 @@ describe('GranularAccess', function() {
     msg = await cliEditor.readMessage();
     gristAttachmentAction = msg.data.docActions[0];
     assert.deepEqual(gristAttachmentAction.slice(0, 3),
-                     ['BulkAddRecord', '_grist_Attachments', [3]]);
+      ['BulkAddRecord', '_grist_Attachments', [3]]);
     await cliEditor.waitForServer();
     attachments = cliEditor.getMetaRecords('_grist_Attachments');
     assert.lengthOf(attachments, 3);
@@ -3948,7 +3948,7 @@ describe('GranularAccess', function() {
       result = await anonym.send('applyUserActions', 0, [['AddRecord', 'Data', null, {}]]);
       assert.equal(result.errorCode, 'ACL_DENY');
     }
- finally {
+    finally {
       anonym.flush();
       await closeClient(anonym);
     }
@@ -3972,11 +3972,11 @@ describe('GranularAccess', function() {
 
     // Try to modify _grist_Attachments by shady means.
     await assert.isRejected(owner.getDocAPI(docId).addRows('_grist_Attachments', {fileName: ['A', 'B']}),
-                            /_grist_Attachments modification is not allowed/);
+      /_grist_Attachments modification is not allowed/);
     await assert.isRejected(owner.getDocAPI(docId).updateRows('_grist_Attachments', {id: [1], fileName: ['A']}),
-                            /_grist_Attachments modification is not allowed/);
+      /_grist_Attachments modification is not allowed/);
     await assert.isRejected(owner.getDocAPI(docId).removeRows('_grist_Attachments', [1]),
-                            /_grist_Attachments modification is not allowed/);
+      /_grist_Attachments modification is not allowed/);
   });
 
   describe('shares', function() {
@@ -3997,7 +3997,7 @@ describe('GranularAccess', function() {
       assert.lengthOf(shares, 1);
       assert.equal(shares[0].link_id, 'x');
       assert.deepEqual(JSON.parse(shares[0].options),
-                       { publish: true });
+        { publish: true });
       assert.isAtLeast(shares[0].key.length, 12);
 
       // Check that user data is not yet available via the share.
@@ -4013,7 +4013,7 @@ describe('GranularAccess', function() {
       // Form-share a section.
       await owner.applyUserActions(docId, [
         ['UpdateRecord', '_grist_Views_section', 1,
-         {shareOptions: '{"publish": true, "form": true}'}],
+          {shareOptions: '{"publish": true, "form": true}'}],
         ['UpdateRecord', '_grist_Pages', 1, {shareRef: 1}],
         ['AddRecord', 'Table1', null, {A: 1, B: 1, C: 1}],
       ]);
@@ -4070,7 +4070,7 @@ describe('GranularAccess', function() {
       shares = await home.dbManager.connection.query('select * from shares');
       assert.lengthOf(shares, 1);
       assert.deepEqual(JSON.parse(shares[0].options),
-                       {publish: true, test: true});
+        {publish: true, test: true});
 
       // Unpublish at share level, and make sure data access
       // is now forbidden.
@@ -4104,7 +4104,7 @@ describe('GranularAccess', function() {
       await owner.applyUserActions(docId, [
         // Turn on sharing on Friends widget on Friends page.
         ['UpdateRecord', '_grist_Views_section', 7,
-         {shareOptions: '{"publish": true, "form": true}'}],
+          {shareOptions: '{"publish": true, "form": true}'}],
         ['UpdateRecord', '_grist_Pages', 2, {shareRef: 1}],
         // Add some access rules too - there was a bug where references were
         // null if a multi-column table rule was present.
@@ -4182,7 +4182,7 @@ describe('GranularAccess', function() {
       ]);
       await owner.applyUserActions(docId, [
         ['UpdateRecord', '_grist_Views_section', 7,
-         {shareOptions: '{"publish": true, "form": true}'}],
+          {shareOptions: '{"publish": true, "form": true}'}],
         ['UpdateRecord', '_grist_Pages', 2, {shareRef: 1}],
       ]);
       const ham = await home.createHomeApi('ham', 'docs', true);
@@ -4259,10 +4259,10 @@ describe('GranularAccess', function() {
         ['UpdateRecord', '_grist_Pages', 7, {shareRef: 1}],
         // Turn on form-sharing on "FILM" section
         ['UpdateRecord', '_grist_Views_section', 19,
-         {shareOptions: '{"publish": true, "form": true}'}],
+          {shareOptions: '{"publish": true, "form": true}'}],
         // Turn on form-sharing on "CUSTOMER" section
         ['UpdateRecord', '_grist_Views_section', 20,
-         {shareOptions: '{"publish": true, "form": true}'}],
+          {shareOptions: '{"publish": true, "form": true}'}],
       ]);
 
       const ham = await home.createHomeApi('kiwi', 'docs', true);
@@ -4373,7 +4373,7 @@ describe('GranularAccess', function() {
       ]);
       await owner.applyUserActions(docId, [
         ['UpdateRecord', '_grist_Views_section', 1,
-         {shareOptions: '{"publish": true, "form": true}'},
+          {shareOptions: '{"publish": true, "form": true}'},
         ],
         ['UpdateRecord', '_grist_Pages', 1, {shareRef: 1}],
         ['AddRecord', 'Table1', null, {A: 1, B: 1}],
@@ -4393,7 +4393,7 @@ describe('GranularAccess', function() {
       // are present in the referring table anyway, but it is more
       // consistent if it is granted).
       assert.deepEqual(await hamShare.getRecords('Table2'),
-                       [{id: 1, fields: {}}]);
+        [{id: 1, fields: {}}]);
     });
   });
 
@@ -4496,7 +4496,7 @@ async function assertDeniedFor(check: Promise<any>, memos: string[], test = /acc
     await check;
     throw new Error('not denied');
   }
- catch (e) {
+  catch (e) {
     assert.match(e?.details?.userError, test);
     assert.deepEqual(e?.details?.memos ?? [], memos);
   }
@@ -4518,7 +4518,7 @@ async function assertFlux(check: Promise<any>) {
     await check;
     throw new Error('not denied');
   }
- catch (e) {
+  catch (e) {
     assert.match(e?.details?.userError, /Document in flux/);
   }
 }

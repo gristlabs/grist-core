@@ -17,7 +17,7 @@ describe('CellFormat', function() {
 
     // Alignment should be left.
     assert.equal(await driver.find(`.test-alignment-select .test-select-button:first-child`)
-                 .matches('[class*=-selected]'), true);
+      .matches('[class*=-selected]'), true);
 
     // Click on center aligmment.
     await (await driver.findAll('.test-alignment-select .test-select-button'))[1].click();
@@ -25,7 +25,7 @@ describe('CellFormat', function() {
 
     // Alignment should no longer be left.
     assert.equal(await driver.find(`.test-alignment-select .test-select-button:first-child`)
-                 .matches('[class*=-selected]'), false);
+      .matches('[class*=-selected]'), false);
 
     // Reload document.
     await session.loadDocMenu('/');
@@ -33,7 +33,7 @@ describe('CellFormat', function() {
 
     // Alignment should still not be left.
     assert.equal(await driver.find(`.test-alignment-select .test-select-button:first-child`)
-                 .matches('[class*=-selected]'), false);
+      .matches('[class*=-selected]'), false);
   });
 
   it('should open hyperlinks in new tabs only when needed', async function () {

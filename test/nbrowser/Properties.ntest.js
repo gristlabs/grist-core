@@ -116,25 +116,25 @@ describe('Properties.ntest', function() {
     await gu.setType('Text');
 
     await gu.enterGridValues(0, 3, [[
-                       "25",
-                       "",
-                       "asdf",
-                       "ValueError()",
-                       "__import__('sys').exit(3)",
-                       'u"résumé 三"',
-                       "12/(2-1-1)",
-                       "[1,2,3]"]]);
+      "25",
+      "",
+      "asdf",
+      "ValueError()",
+      "__import__('sys').exit(3)",
+      'u"résumé 三"',
+      "12/(2-1-1)",
+      "[1,2,3]"]]);
     await gu.waitForServer();
 
     assert.deepEqual(await gu.getVisibleGridCells(4, [1, 2, 3, 4, 5, 6, 7, 8]), [
-        "25",
-        "#SyntaxError",
-        "#NameError",
-        "ValueError()",
-        "#SystemExit",
-        'résumé 三',
-        "#DIV/0!",
-        "1, 2, 3",
+      "25",
+      "#SyntaxError",
+      "#NameError",
+      "ValueError()",
+      "#SystemExit",
+      'résumé 三',
+      "#DIV/0!",
+      "1, 2, 3",
     ]);
 
     assert.deepEqual(

@@ -153,7 +153,7 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       if (focusedSearchElement) {
         focusedSearchElement.focus();
       }
- else {
+      else {
         inputElem.focus();
       }
     }
@@ -188,11 +188,11 @@ export function searchBar(model: SearchModel, testId: TestId = noTestId, regionF
       }
     // when we close the searchbar: focus back where we were and cleanup
     }
- else {
+    else {
       if (regionIdOnOpen === 'main') {
         regionFocusSwitcher?.focusRegion('main');
       }
- else {
+      else {
         buttonElem.focus();
       }
       regionIdOnOpen = undefined;

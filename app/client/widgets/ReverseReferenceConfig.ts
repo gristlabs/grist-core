@@ -154,11 +154,11 @@ export class ReverseReferenceConfig extends Disposable {
     const explanation = t(
       'This will delete the reference column {{refCol}} in table {{refTable}}. The reference column \
 {{myName}} will remain in the current table {{myTable}}.', {
-      refCol: dom('b', refCol),
-      refTable: cssCode(refTable),
-      myName: dom('b', myName),
-      myTable: cssCode(myTable),
-    });
+        refCol: dom('b', refCol),
+        refTable: cssCode(refTable),
+        myName: dom('b', myName),
+        myTable: cssCode(myTable),
+      });
 
     confirmModal(
       promptTitle,
@@ -178,7 +178,7 @@ export class ReverseReferenceConfig extends Disposable {
     const reverseColId = this._field.column.peek().reverseColModel.peek().colId.peek();
     if (!reverseColId) { return; } // might happen if it is censored.
     const targetField = rawViewSection.viewFields.peek().all()
-                                      .find(f => f.colId.peek() === reverseColId);
+      .find(f => f.colId.peek() === reverseColId);
     if (!targetField) { return; }
     await allCommands.setCursor.run(null, targetField);
   }

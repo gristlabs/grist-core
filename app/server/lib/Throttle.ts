@@ -27,21 +27,21 @@ import pidusage from 'pidusage';
  */
 export interface ThrottleTiming {
   dutyCyclePositiveMs: number;        // when throttling, how much uninterrupted time to give
-                                      // the process before pausing it.  The length of the
-                                      // non-positive cycle is chosen to achieve the desired
-                                      // cpu usage.
+  // the process before pausing it.  The length of the
+  // non-positive cycle is chosen to achieve the desired
+  // cpu usage.
   samplePeriodMs: number;             // how often to sample cpu usage and update throttling
   targetAveragingPeriodMs: number;    // (rough) time span to average cpu usage over.
   minimumAveragingPeriodMs: number;   // minimum time span before throttling is considered.
-                                      // No throttling will occur before a process has run
-                                      // for at least this length of time.
+  // No throttling will occur before a process has run
+  // for at least this length of time.
   minimumLogPeriodMs: number;         // minimum time between log messages about throttling.
   targetRate: number;                 // when throttling, aim for this fraction of cpu usage
-                                      // per unit time.
+  // per unit time.
   maxThrottle: number;                // maximum ratio of negative duty cycle phases to
-                                      // positive.
+  // positive.
   traceNudgeOffset: number;           // milliseconds to wait before sending a second signal
-                                      // to a traced process.
+  // to a traced process.
 }
 
 /**
@@ -164,7 +164,7 @@ export class Throttle {
     try {
       cpuDuration = (await pidusage(this._options.readPid || this._options.pid)).ctime;
     }
- catch (e) {
+    catch (e) {
       // process may have disappeared.
       this._log(`Throttle measurement error: ${e}`, this._options.logMeta);
       return;
@@ -234,9 +234,9 @@ export class Throttle {
     if (!this._lastLogTime || now - this._lastLogTime > this._timing.minimumLogPeriodMs) {
       this._lastLogTime = now;
       this._log('throttle', {...this._options.logMeta,
-                             throttle: Math.round(this._throttleFactor),
-                             throttledRate: Math.round(rate * 100),
-                             rate: Math.round(rateWithoutThrottling * 100)});
+        throttle: Math.round(this._throttleFactor),
+        throttledRate: Math.round(rate * 100),
+        rate: Math.round(rateWithoutThrottling * 100)});
     }
   }
 
@@ -273,7 +273,7 @@ export class Throttle {
         }
       }
     }
- catch (e) {
+    catch (e) {
       // process may have disappeared
       this._log(`Throttle error: ${e}`, this._options.logMeta);
     }

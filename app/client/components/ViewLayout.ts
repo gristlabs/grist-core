@@ -124,7 +124,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       .extend({rateLimit: 0}));
 
     this.layout = this.autoDispose(Layout.create(this.layoutSpec(),
-                                                 this._buildLeafContent.bind(this), true));
+      this._buildLeafContent.bind(this), true));
 
 
     // When the layoutSpec changes by some means other than the layout editor, rebuild.
@@ -229,7 +229,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
       if (!sectionId) {
         this._onResize();
       }
- else {
+      else {
         // Otherwise resize only active one (the one in popup).
         const section = this.viewModel.activeSection.peek();
         if (!section.isDisposed() && section.id.peek()) {
@@ -279,7 +279,7 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     try {
       return await promise;
     }
- finally {
+    finally {
       this._freeze = false;
       this.rebuildLayout(this.layoutSpec.peek());
     }
@@ -336,11 +336,11 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
     const notInAnyOtherSection = () => {
       // Get all viewSection we have access to, and check if the table is used in any of them.
       const others = this.gristDoc.docModel.viewSections.rowModels
-                      .filter(vs => !vs.isDisposed())
-                      .filter(vs => vs.id.peek() !== viewSectionRowId)
-                      .filter(vs => vs.isRaw.peek() === false)
-                      .filter(vs => vs.isRecordCard.peek() === false)
-                      .filter(vs => vs.tableId.peek() === viewSection.tableId.peek());
+        .filter(vs => !vs.isDisposed())
+        .filter(vs => vs.id.peek() !== viewSectionRowId)
+        .filter(vs => vs.isRaw.peek() === false)
+        .filter(vs => vs.isRecordCard.peek() === false)
+        .filter(vs => vs.tableId.peek() === viewSection.tableId.peek());
       return others.length === 0;
     };
 
@@ -396,10 +396,10 @@ export class ViewLayout extends DisposableWithEvents implements IDomComponent {
 
   private _buildLeafContent(sectionRowId: number) {
     return buildViewSectionDom({
-       gristDoc: this.gristDoc,
-       sectionRowId,
-       isResizing: this.isResizing,
-       viewModel: this.viewModel,
+      gristDoc: this.gristDoc,
+      sectionRowId,
+      isResizing: this.isResizing,
+      viewModel: this.viewModel,
     });
   }
 

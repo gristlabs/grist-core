@@ -160,7 +160,7 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       // Show the error as a message
       _notifier.createUserMessage(message, options);
     }
- else if (err.name === 'UserError' || (typeof status === 'number' && status >= 400 && status < 500)) {
+    else if (err.name === 'UserError' || (typeof status === 'number' && status >= 400 && status < 500)) {
       // This is explicitly a user error, or one in the "Client Error" range, so treat it as user
       // error rather than a bug. Using message as the key causes same-message notifications to
       // replace previous ones rather than accumulate.
@@ -171,26 +171,26 @@ export function reportError(err: Error|string, ev?: ErrorEvent): void {
       }
       _notifier.createUserMessage(message, options);
     }
- else if (err.name === 'NeedUpgradeError') {
+    else if (err.name === 'NeedUpgradeError') {
       // Show the error as a message
       _notifier.createUserMessage(err.message, {actions: ['upgrade'], key: 'NEED_UPGRADE'});
     }
- else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
+    else if (code === 'AUTH_NO_EDIT' || code === 'ACL_DENY') {
       // Show the error as a message
       _notifier.createUserMessage(err.message, {key: code, memos: details?.memos});
     }
- else if (message.match(/\[Sandbox\].*between formula and data/)) {
+    else if (message.match(/\[Sandbox\].*between formula and data/)) {
       // Show nicer error message for summary tables.
       _notifier.createUserMessage(ErrorTooltips.summaryFormulas, {key: 'summary'});
     }
- else {
+    else {
       // If we don't recognize it, consider it an application error (bug) that the user should be
       // able to report.
       if (details?.userError) {
         // If we have user friendly error, show it instead.
         _notifier.createAppError(Error(details.userError));
       }
- else {
+      else {
         _notifier.createAppError(err);
       }
     }

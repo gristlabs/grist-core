@@ -292,7 +292,7 @@ KoArray.prototype.arraySplice = function(start, optDeleteCount, arrToInsert) {
 
   this._preChange();
   var ret = (optDeleteCount === void 0 ? array.splice(start) :
-             array.splice(start, optDeleteCount));
+    array.splice(start, optDeleteCount));
   gutil.arraySplice(array, startIndex, arrToInsert);
   this._prepareSpliceEvent(startIndex, arrToInsert.length, ret);
   this._postChange();

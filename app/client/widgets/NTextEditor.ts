@@ -29,30 +29,30 @@ export class NTextEditor extends NewBaseEditor {
     super(options);
 
     const initialValue: string = undef(
-        options.state as string | undefined,
-        options.editValue, String(options.cellValue ?? ""));
+      options.state as string | undefined,
+      options.editValue, String(options.cellValue ?? ""));
     this.editorState = Observable.create<string>(this, initialValue);
 
     this.commandGroup = this.autoDispose(createGroup(options.commands, this, true));
     this._alignment = options.field.widgetOptionsJson.peek().alignment || 'left';
     this._dom =
-    dom('div.default_editor',
+      dom('div.default_editor',
       // add readonly class
-      dom.cls("readonly_editor", options.readonly),
-      this.cellEditorDiv = dom('div.celleditor_cursor_editor',
-        testId('widget-text-editor'),
-        this._contentSizer = dom('div.celleditor_content_measure'),
-        this.textInput = dom('textarea',
-          dom.cls('celleditor_text_editor'),
-          dom.style('text-align', this._alignment),
-          dom.prop('value', initialValue),
-          dom.boolAttr('readonly', options.readonly),
-          this.commandGroup.attach(),
-          dom.on('input', () => this.onInput()),
+        dom.cls("readonly_editor", options.readonly),
+        this.cellEditorDiv = dom('div.celleditor_cursor_editor',
+          testId('widget-text-editor'),
+          this._contentSizer = dom('div.celleditor_content_measure'),
+          this.textInput = dom('textarea',
+            dom.cls('celleditor_text_editor'),
+            dom.style('text-align', this._alignment),
+            dom.prop('value', initialValue),
+            dom.boolAttr('readonly', options.readonly),
+            this.commandGroup.attach(),
+            dom.on('input', () => this.onInput()),
+          ),
         ),
-      ),
-      createMobileButtons(options.commands),
-    );
+        createMobileButtons(options.commands),
+      );
   }
 
   public attach(cellElem: Element): void {

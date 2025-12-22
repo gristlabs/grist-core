@@ -48,7 +48,7 @@ export async function updateGristServerLatestVersion(
   const envvarEnabled = isAffirmative(process.env.GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING);
   const doIt = (envvarEnabled && prefEnabled) || forceCheck;
   if (!doIt) {
-      return null;
+    return null;
   }
 
   const response = await checkForUpdates(gristServer);

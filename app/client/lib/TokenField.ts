@@ -297,18 +297,18 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       // Delete token.
       this._tokens.splice(idx, 1);
     }
- else {
+    else {
       const fromIdx = this._selectionAnchor ? this._tokens.get().indexOf(this._selectionAnchor) : -1;
       if (ev.shiftKey && fromIdx >= 0) {
         // Shift+Click selects range from selectionAnchor to the clicked token.
         const [first, last] = fromIdx <= idx ? [fromIdx, idx] : [idx, fromIdx];
         this._selection.set(new Set(this._tokens.get().slice(first, last + 1)));
       }
- else if (ev[modKeyProp()] && fromIdx >= 0) {
+      else if (ev[modKeyProp()] && fromIdx >= 0) {
         // Ctrl+Click (or Command+Click on mac) toggles the clicked token.
         this._toggleTokenSelection(t);
       }
- else {
+      else {
         // Plain click, or any click in the absence of an anchor element, sets the anchor and
         // selects just this element.
         this._resetTokenSelection(t);
@@ -333,7 +333,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     if (this._selection.get().size === 0) {
       this._textInput.focus();
     }
- else {
+    else {
       this._hiddenInput.focus();
     }
   }
@@ -346,7 +346,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
       if (this._selection.get().size === 0) {
         this._tokens.pop();
       }
- else {
+      else {
         this._deleteTokens(this._selection.get(), -1);
       }
     }
@@ -384,13 +384,13 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         this._setFocus();
       }
     }
- else {
+    else {
       // For arrow keys, move to the next token after the selection.
       let next: TokenWrap<Token>|null = null;
       if (this._selection.get().size > 0) {
         next = this._getNextToken(this._selection.get(), advance);
       }
- else if (advance < 0 && tokens.length > 0) {
+      else if (advance < 0 && tokens.length > 0) {
         next = tokens[tokens.length - 1];
       }
       // If no next token and we are moving to the right, we should end up back in the text input.
@@ -408,7 +408,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     if (selection.has(token)) {
       selection.delete(token);
     }
- else {
+    else {
       selection.add(token);
     }
     // We use .setAndTrigger() to set a value that's identical (by reference) to the previous one.
@@ -456,7 +456,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     if (this._options.tokensToClipboard) {
       this._options.tokensToClipboard(tokens.map(t => t.token), ev.clipboardData);
     }
- else {
+    else {
       const values = tokens.map(t => t.token.label);
       ev.clipboardData.setData('text/plain', csvEncodeRow(values, {prettier: true}));
     }
@@ -476,7 +476,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     if (this._options.clipboardToTokens) {
       tokens = this._options.clipboardToTokens(ev.clipboardData);
     }
- else {
+    else {
       const text = ev.clipboardData.getData('text/plain');
       const values = csvDecodeRow(text);
       tokens = values.map(v => this._options.createToken(v)).filter((t): t is Token => Boolean(t));
@@ -493,7 +493,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         this._selectionAnchor = wrappedTokens[0];
         this._selection.set(new Set(wrappedTokens));
       }
- else {
+      else {
         this._tokens.push(...wrappedTokens);
         this._resetTokenSelection(null);
       }
@@ -602,7 +602,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
     try {
       callback();
     }
- finally {
+    finally {
       if (this._undoStack.length > nextAction + 1) {
         // If multiple actions were added, combine them into one.
         const actions = this._undoStack.slice(nextAction);
@@ -623,7 +623,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         this._undoStack[this._undoIndex].undo();
         this._undoIndex--;
       }
- finally {
+      finally {
         this._inUndoRedo = false;
       }
     }
@@ -638,7 +638,7 @@ export class TokenField<Token extends IToken = IToken> extends Disposable {
         this._undoIndex += 1;
         this._undoStack[this._undoIndex].redo();
       }
- finally {
+      finally {
         this._inUndoRedo = false;
       }
     }

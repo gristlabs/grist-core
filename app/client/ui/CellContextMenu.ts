@@ -45,7 +45,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
     colOptions.isFormula ?
       null :
       menuItemCmd(allCommands.clearValues, nameClearCells, disableForReadonlyColumn),
-      menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
+    menuItemCmd(allCommands.clearColumns, nameClearColumns, disableForReadonlyColumn),
 
     ...(
       (numColumns > 1 || numRows > 1) ? [] : [
@@ -57,7 +57,7 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         menuDivider(),
         menuItemCmd(allCommands.filterByThisCellValue, t("Filter by this value")),
         menuItemCmd(allCommands.openDiscussion, t('Comment'), dom.cls('disabled', (
-         isReadonly || numRows === 0 || numColumns === 0 || onlyAddRowSelected
+          isReadonly || numRows === 0 || numColumns === 0 || onlyAddRowSelected
         ))),
       ]
     ),
@@ -71,19 +71,19 @@ export function CellContextMenu(cellOptions: ICellContextMenu, colOptions: IMult
         // bottom. It could be very confusing for users who might expect the record to stay above or
         // below the active row. Thus in this case we show a single `insert row` command.
         [menuItemCmd(allCommands.insertRecordAfter, t("Insert row"),
-                    dom.cls('disabled', disableInsert))] :
+          dom.cls('disabled', disableInsert))] :
 
         [menuItemCmd(allCommands.insertRecordBefore, t("Insert row above"),
-                     dom.cls('disabled', disableInsert)),
-         menuItemCmd(allCommands.insertRecordAfter, t("Insert row below"),
-                     dom.cls('disabled', disableInsert))]
+          dom.cls('disabled', disableInsert)),
+        menuItemCmd(allCommands.insertRecordAfter, t("Insert row below"),
+          dom.cls('disabled', disableInsert))]
     ),
     menuItemCmd(allCommands.duplicateRows, t("Duplicate rows", {count: numRows}),
-        dom.cls('disabled', disableInsert || numRows === 0)),
+      dom.cls('disabled', disableInsert || numRows === 0)),
     menuItemCmd(allCommands.insertFieldBefore, t("Insert column to the left"),
-                disableForReadonlyView),
+      disableForReadonlyView),
     menuItemCmd(allCommands.insertFieldAfter, t("Insert column to the right"),
-                disableForReadonlyView),
+      disableForReadonlyView),
 
 
     menuDivider(),

@@ -197,7 +197,7 @@ export class Assistant extends Disposable {
           bannerCssClass: cssBanner.className,
         });
       }
- else if (
+      else if (
         numCredits !== null &&
         numCredits <= LOW_CREDITS_WARNING_BANNER_THRESHOLD &&
         use(this._showApproachingLimitBanner)
@@ -217,7 +217,7 @@ export class Assistant extends Disposable {
           bannerCssClass: cssBanner.className,
         });
       }
- else if (use(this._showUpgradeBanner)) {
+      else if (use(this._showUpgradeBanner)) {
         return dom.create(Banner, {
           content: buildBannerMessage(
             t("Upgrade to Grist Enterprise to try the new Grist Assistant. {{learnMoreLink}}", {
@@ -259,7 +259,7 @@ export class Assistant extends Disposable {
           if (canUpgradeSite) {
             this._gristDoc.appModel.showUpgradeModal().catch(reportError);
           }
- else {
+          else {
             await urlState().pushUrl({ billing: "billing" });
           }
         }),
@@ -311,7 +311,7 @@ export class Assistant extends Disposable {
         if (lastFormula && this._options.onApplyFormula) {
           return t("Press Enter to apply suggested formula.");
         }
- else {
+        else {
           return t("What do you need help with?");
         }
       }),
@@ -382,7 +382,7 @@ export class Assistant extends Disposable {
     ) {
       this._options.onApplyFormula(lastFormula).catch(reportError);
     }
- else {
+    else {
       this._ask().catch(reportError);
     }
   }
@@ -395,7 +395,7 @@ export class Assistant extends Disposable {
     if (limit && limit.limit >= 0) {
       this._numRemainingCredits.set(Math.max(limit.limit - limit.usage, 0));
     }
- else {
+    else {
       this._numRemainingCredits.set(null);
     }
     if ("suggestedFormula" in response) {
@@ -443,7 +443,7 @@ export class Assistant extends Disposable {
 
       this._addResponse(response);
     }
- catch (err: unknown) {
+    catch (err: unknown) {
       if (this.isDisposed() || this._lastSendPromise !== sendPromise) {
         return;
       }
@@ -462,7 +462,7 @@ export class Assistant extends Disposable {
 
       throw err;
     }
- finally {
+    finally {
       if (!this.isDisposed() && this._lastSendPromise === sendPromise) {
         this._conversation.thinking.set(false);
       }
@@ -618,7 +618,7 @@ class AssistantConversation extends Disposable {
     if (sync) {
       this._element.scroll(scrollToOptions);
     }
- else {
+    else {
       setTimeout(() => this._element.scroll(scrollToOptions), 0);
     }
   }
@@ -639,13 +639,13 @@ class AssistantConversation extends Disposable {
                 cssAvatar(buildAvatar(this._gristDoc)),
               );
             }
- else if (entry.error) {
+            else if (entry.error) {
               return cssAiMessage(
                 cssAvatar(cssAiImage()),
                 this._buildErrorMessage(entry.error),
               );
             }
- else {
+            else {
               return dom("div",
                 cssAiMessage(
                   cssAvatar(cssAiImage()),
@@ -658,16 +658,16 @@ class AssistantConversation extends Disposable {
                 !this._options.onApplyFormula
                   ? null
                   : cssAiMessageButtonsRow(
-                      cssAiMessageButtons(
-                        primaryButton(
-                          t("Apply"),
-                          dom.on("click", () => {
-                            this._options.onApplyFormula?.(entry.formula!);
-                          }),
-                        ),
+                    cssAiMessageButtons(
+                      primaryButton(
+                        t("Apply"),
+                        dom.on("click", () => {
+                          this._options.onApplyFormula?.(entry.formula!);
+                        }),
                       ),
-                      dom.show(Boolean(entry.formula)),
                     ),
+                    dom.show(Boolean(entry.formula)),
+                  ),
               );
             }
           }),
@@ -766,7 +766,7 @@ function buildAvatar(grist: GristDoc) {
   if (user) {
     return createUserImage(user, "medium");
   }
- else {
+  else {
     // TODO: this will not happen, as this should be only for logged in users.
     return dom("div", "");
   }

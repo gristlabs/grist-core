@@ -211,7 +211,7 @@ export const SYSTEM_ACTIONS = new Set([
 export function getNumRows(action: DocAction): number {
   return !isDataAction(action) ? 0
     : Array.isArray(action[2]) ? action[2].length
-    : 1;
+      : 1;
 }
 
 // Convert from TableColValues (used by DocStorage and external APIs) to TableDataAction (used
@@ -280,7 +280,7 @@ export function getColValuesFromDocAction(docAction: RemoveRecord | BulkRemoveRe
   if (Array.isArray(docAction[2])) {
     return cellValues as CellValue[];
   }
- else {
+  else {
     return [cellValues as CellValue];
   }
 }
@@ -296,19 +296,19 @@ export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|Repla
       yield ['AddRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
     }
   }
- else if (isBulkRemoveRecord(a)) {
+  else if (isBulkRemoveRecord(a)) {
     const [, tableId, rowIds] = a;
     for (const rowId of rowIds) {
       yield ['RemoveRecord', tableId, rowId];
     }
   }
- else if (isBulkUpdateRecord(a)) {
+  else if (isBulkUpdateRecord(a)) {
     const [, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
       yield ['UpdateRecord', tableId, rowIds[i], getRowFromBulkColValues(colValues, i)];
     }
   }
- else if (a[0] === 'TableData' || a[0] === 'ReplaceTableData') {
+  else if (a[0] === 'TableData' || a[0] === 'ReplaceTableData') {
     const [actionName, tableId, rowIds, colValues] = a;
     for (let i = 0; i < rowIds.length; i++) {
       yield [actionName, tableId, [rowIds[i]],
@@ -316,7 +316,7 @@ export function* getSingleAction(a: DataAction): Iterable<SingleDataAction|Repla
       ];
     }
   }
- else {
+  else {
     yield a;
   }
 }

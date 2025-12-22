@@ -21,7 +21,7 @@ export function addToSort(sortSpecObs: ko.Observable<Sort.SortSpec>, colRef: num
   if (index !== -1) {
     spec.splice(index, 1, withDirection);
   }
- else {
+  else {
     spec.push(withDirection);
   }
   sortSpecObs(spec);

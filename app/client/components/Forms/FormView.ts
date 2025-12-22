@@ -140,7 +140,7 @@ export class FormView extends BaseView {
         // This is already a form layout. Let's keep it.
         return layoutSpec;
       }
- else {
+      else {
         // Overwrite old layout with a clean form layout
         return buildDefaultFormLayout(this._formFields.get());
       }
@@ -196,7 +196,7 @@ export class FormView extends BaseView {
           if (!this.selectedBox.get()) {
             this.selectedBox.set(this._root.insert(boxInClipboard, 0));
           }
- else {
+          else {
             this.selectedBox.set(this.selectedBox.get()!.insertBefore(boxInClipboard));
           }
           const maybeCutBox = this._root.find(boxInClipboard.id);
@@ -215,12 +215,12 @@ export class FormView extends BaseView {
         if (!current) {
           this.selectedBox.set(all[0]);
         }
- else {
+        else {
           const next = all[all.indexOf(current) + 1];
           if (next) {
             this.selectedBox.set(next);
           }
- else {
+          else {
             this.selectedBox.set(all[0]);
           }
         }
@@ -232,12 +232,12 @@ export class FormView extends BaseView {
         if (!current) {
           this.selectedBox.set(all[all.length - 1]);
         }
- else {
+        else {
           const next = all[all.indexOf(current) - 1];
           if (next) {
             this.selectedBox.set(next);
           }
- else {
+          else {
             this.selectedBox.set(all[all.length - 1]);
           }
         }
@@ -271,7 +271,7 @@ export class FormView extends BaseView {
         if ('add' in what || 'show' in what) {
           this.addNewQuestion(selected.placeBeforeMe(), what).catch(reportError);
         }
- else {
+        else {
           selected.insertBefore(components.defaultElement(what.structure));
           this.save().catch(reportError);
         }
@@ -283,7 +283,7 @@ export class FormView extends BaseView {
         if ('add' in what || 'show' in what) {
           this.addNewQuestion(place, what).catch(reportError);
         }
- else {
+        else {
           place(components.defaultElement(what.structure));
           this.save().catch(reportError);
         }
@@ -294,7 +294,7 @@ export class FormView extends BaseView {
         if ('add' in what || 'show' in what) {
           this.addNewQuestion(selected.placeAfterMe(), what).catch(reportError);
         }
- else {
+        else {
           selected.insertAfter(components.defaultElement(what.structure));
           this.save().catch(reportError);
         }
@@ -346,12 +346,12 @@ export class FormView extends BaseView {
           if (selected instanceof components.SectionModel) {
             boxes.forEach(b => selected.append(b));
           }
- else {
+          else {
             const topLevel = this._root.kids().reverse().find(b => b instanceof components.SectionModel);
             if (topLevel) {
               boxes.forEach(b => topLevel.append(b));
             }
- else {
+            else {
               boxes.forEach(b => this._root.append(b));
             }
           }
@@ -386,7 +386,7 @@ export class FormView extends BaseView {
         const remoteShare = await this.gristDoc.docComm.getShare(use(share.linkId));
         return remoteShare ?? null;
       }
- catch(ex) {
+      catch(ex) {
         // TODO: for now ignore the error, but the UI should be updated to not show editor
         // for non owners.
         if (ex.code === 'AUTH_NO_OWNER') { return null; }
@@ -475,7 +475,7 @@ export class FormView extends BaseView {
       if ('show' in action) {
         fieldRef = await this.showColumn(action.show);
       }
- else {
+      else {
         const result = await this.insertColumn(null, {
           colInfo: {
             type: action.add,
@@ -502,7 +502,7 @@ export class FormView extends BaseView {
       this._savedLayout = newVersion;
       await this._layoutSpec.setAndSave(newVersion);
     }
- finally {
+    finally {
       this._saving = false;
     }
   }
@@ -511,7 +511,7 @@ export class FormView extends BaseView {
     if (this.gristDoc.appModel.dismissedPopups.get().includes('publishForm')) {
       await this._publishForm();
     }
- else {
+    else {
       confirmModal(t('Publish your form?'),
         t('Publish'),
         async (dontShowAgain) => {
@@ -553,11 +553,11 @@ fields, such as reference and choice columns.',
     // If page is shared, make sure home server is aware of it.
     if (validShare) {
       try {
-      const pageShare = page.share();
-      const serverShare = await this.gristDoc.docComm.getShare(pageShare.linkId());
-      validShare = !!serverShare;
+        const pageShare = page.share();
+        const serverShare = await this.gristDoc.docComm.getShare(pageShare.linkId());
+        validShare = !!serverShare;
       }
- catch(ex) {
+      catch(ex) {
         // TODO: for now ignore the error, but the UI should be updated to not show editor
         if (ex.code === 'AUTH_NO_OWNER') {
           return;
@@ -587,7 +587,7 @@ fields, such as reference and choice columns.',
         ]);
         await this.gristDoc.docModel.docData.sendAction(['UpdateRecord', '_grist_Pages', page.id(), {shareRef}]);
       }
- else {
+      else {
         const share = page.share();
         share.optionsObj.update({publish: true});
         await share.optionsObj.save();
@@ -606,7 +606,7 @@ fields, such as reference and choice columns.',
     if (this.gristDoc.appModel.dismissedPopups.get().includes('unpublishForm')) {
       await this._unpublishForm();
     }
- else {
+    else {
       confirmModal(t('Unpublish your form?'),
         t('Unpublish'),
         async (dontShowAgain) => {
@@ -693,13 +693,13 @@ your form via that link will see an error.',
                   this._openingForm.set(true);
                   window.open(await this._getFormUrl());
                 }
- finally {
+                finally {
                   this._openingForm.set(false);
                 }
               }),
             );
           }
- else {
+          else {
             return style.cssSmallLinkButton(
               testId('preview'),
               icon('EyeShow'),
@@ -791,25 +791,25 @@ your form via that link will see an error.',
     ctl.autoDispose(showEmbedCode.addListener(() => ctl.update()));
 
     this._getFormUrl()
-    .then((url) => {
-      if (ctl.isDisposed()) { return; }
+      .then((url) => {
+        if (ctl.isDisposed()) { return; }
 
-      formUrl.set(url);
-    })
-    .catch((e) => {
-      ctl.close();
-      reportError(e);
-    });
+        formUrl.set(url);
+      })
+      .catch((e) => {
+        ctl.close();
+        reportError(e);
+      });
 
     return style.cssShareMenu(
       dom.cls(menuCssClass),
-        style.cssShareMenuHeader(
-          style.cssShareMenuCloseButton(
-            icon('CrossBig'),
-            dom.on('click', () => ctl.close()),
-          ),
+      style.cssShareMenuHeader(
+        style.cssShareMenuCloseButton(
+          icon('CrossBig'),
+          dom.on('click', () => ctl.close()),
         ),
-        style.cssShareMenuBody(
+      ),
+      style.cssShareMenuBody(
         dom.domComputed((use) => {
           const url = use(formUrl);
           const code = use(embedCode);
@@ -856,7 +856,7 @@ your form via that link will see an error.',
                   ),
                 );
               }
- else {
+              else {
                 return dom('div',
                   style.cssShareMenuSectionHeading(t('Embed this form')),
                   dom.maybe(showEmbedCode, () => style.cssShareMenuCodeBlock(

@@ -29,7 +29,7 @@ describe('gutil', function() {
 
     it("should override values for duplicate keys", function() {
       assert.deepEqual(gutil.mapToObject(["foo", "bar", "foo"], function(val, i) { return i; }),
-                       { "foo": 2, "bar": 1 });
+        { "foo": 2, "bar": 1 });
     });
   });
 
@@ -76,7 +76,7 @@ describe('gutil', function() {
       var sort3 = [_.propertyOf(firstName), _.propertyOf(lastName), _.propertyOf(age)];
       var compare2 = gutil.multiCompareFunc(sort2, [gutil.nativeCompare, gutil.nativeCompare], [1, 1]);
       var compare3 = gutil.multiCompareFunc(sort3,
-                       [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare], [1, 1, -1]);
+        [gutil.nativeCompare, gutil.nativeCompare, gutil.nativeCompare], [1, 1, -1]);
 
       assert.equal(compare2(0, 1), 0); // John Smith, 20 = John Smith, 30
       assert.equal(compare2(1, 2), 0); // John Smith, 30 = John Smith, 21
@@ -147,9 +147,9 @@ describe('gutil', function() {
   describe("isSubset", function() {
     it("should determine the subset relationship for Sets", function() {
       let sEmpty = new Set(),
-          sFoo = new Set([1]),
-          sBar = new Set([2, 3]),
-          sBaz = new Set([1, 2, 3]);
+        sFoo = new Set([1]),
+        sBar = new Set([2, 3]),
+        sBaz = new Set([1, 2, 3]);
 
       assert.isTrue(gutil.isSubset(sEmpty, sFoo));
       assert.isFalse(gutil.isSubset(sFoo, sEmpty));
@@ -169,21 +169,21 @@ describe('gutil', function() {
     it("should grow the matrix to the desired size", function() {
       let matrix = [["a", 1], ["b", 2], ["c", 3]];
       assert.deepEqual(gutil.growMatrix(matrix, 4, 4),
-       [["a", 1, "a", 1],
-        ["b", 2, "b", 2],
-        ["c", 3, "c", 3],
-        ["a", 1, "a", 1]]);
+        [["a", 1, "a", 1],
+          ["b", 2, "b", 2],
+          ["c", 3, "c", 3],
+          ["a", 1, "a", 1]]);
       assert.deepEqual(gutil.growMatrix(matrix, 3, 4),
-       [["a", 1, "a", 1],
-        ["b", 2, "b", 2],
-        ["c", 3, "c", 3]]);
+        [["a", 1, "a", 1],
+          ["b", 2, "b", 2],
+          ["c", 3, "c", 3]]);
       assert.deepEqual(gutil.growMatrix(matrix, 6, 2),
-       [["a", 1],
-        ["b", 2],
-        ["c", 3],
-        ["a", 1],
-        ["b", 2],
-        ["c", 3]]);
+        [["a", 1],
+          ["b", 2],
+          ["c", 3],
+          ["a", 1],
+          ["b", 2],
+          ["c", 3]]);
     });
   });
 
@@ -197,24 +197,24 @@ describe('gutil', function() {
       gutil.sortedScan(a, b, (ai, bi) => { callArgs.push([ai, bi]); });
 
       assert.deepEqual(callArgs,
-       [[1, null], [2, 2], [null, 3], [4, 4],
-        [5, 5], [7, null], [8, null], [9, 9],
-        [10, null], [11, 11], [15, null], [17, null],
-        [null, 19]]);
+        [[1, null], [2, 2], [null, 3], [4, 4],
+          [5, 5], [7, null], [8, null], [9, 9],
+          [10, null], [11, 11], [15, null], [17, null],
+          [null, 19]]);
     });
 
     it("should callback on the correct items for object arrays", function() {
       const a = [{ id: 1,  fruit: 'apple'     },
-                 { id: 2,  fruit: 'banana'    },
-                 { id: 4,  fruit: 'orange'    },
-                 { id: 5,  fruit: 'peach'     },
-                 { id: 6,  fruit: 'plum'      }];
+        { id: 2,  fruit: 'banana'    },
+        { id: 4,  fruit: 'orange'    },
+        { id: 5,  fruit: 'peach'     },
+        { id: 6,  fruit: 'plum'      }];
       const b = [{ id: 2,  fruit: 'apple'     },
-                 { id: 3,  fruit: 'avocado'   },
-                 { id: 4,  fruit: 'peach'     },
-                 { id: 6,  fruit: 'pear'      },
-                 { id: 9,  fruit: 'plum'      },
-                 { id: 10, fruit: 'raspberry' }];
+        { id: 3,  fruit: 'avocado'   },
+        { id: 4,  fruit: 'peach'     },
+        { id: 6,  fruit: 'pear'      },
+        { id: 9,  fruit: 'plum'      },
+        { id: 10, fruit: 'raspberry' }];
 
       // Run the scan function.
       let fruitArgs = [];
@@ -223,9 +223,9 @@ describe('gutil', function() {
       }, item => item.id);
 
       assert.deepEqual(fruitArgs,
-       [['apple', ''], ['banana', 'apple'], ['', 'avocado'],
-        ['orange', 'peach'], ['peach', ''], ['plum', 'pear'],
-        ['', 'plum'], ['', 'raspberry']]);
+        [['apple', ''], ['banana', 'apple'], ['', 'avocado'],
+          ['orange', 'peach'], ['peach', ''], ['plum', 'pear'],
+          ['', 'plum'], ['', 'raspberry']]);
 
       // Run the scan function again, using fruit as the key.
       let idArgs = [];
@@ -234,8 +234,8 @@ describe('gutil', function() {
       }, item => item.fruit);
 
       assert.deepEqual(idArgs,
-       [[1, 2], [0, 3], [2, 0], [4, 0],
-        [5, 4], [0, 6], [6, 9], [0, 10]]);
+        [[1, 2], [0, 3], [2, 0], [4, 0],
+          [5, 4], [0, 6], [6, 9], [0, 10]]);
     });
   });
 

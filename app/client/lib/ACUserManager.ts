@@ -61,7 +61,7 @@ export function buildACMemberEmail(
     if (isOpen()) {
       commitIfValid();
     }
- else {
+    else {
       acOpen();
     }
   };
@@ -81,10 +81,10 @@ export function buildACMemberEmail(
         finish();
       }
     }
- catch (e) {
+    catch (e) {
       emailInput.setCustomValidity(e.message);
     }
- finally {
+    finally {
       emailInput.reportValidity();
     }
   };

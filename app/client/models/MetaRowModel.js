@@ -90,8 +90,8 @@ MetaRowModel.Floater = function(tableModel, rowIdObs) {
 
       // If the underlying observable supports saving, forward save calls too.
       if (propValue.saveOnly) {
-          modelUtil.addSaveInterface(this[propName], (value =>
-            this._underlyingRowModel()[propName].saveOnly(value)));
+        modelUtil.addSaveInterface(this[propName], (value =>
+          this._underlyingRowModel()[propName].saveOnly(value)));
       }
     }
   }, this);

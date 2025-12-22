@@ -62,9 +62,9 @@ function setupTest() {
       dummyButton('Add New', dom.cls('tour-add-new')),
       dummyButton('Export', {id: 'export'}),
       dom('button', 'Start',
-          dom.on('click', () => startOnBoarding(message, () => log('On Boarding FINISHED!')))),
+        dom.on('click', () => startOnBoarding(message, () => log('On Boarding FINISHED!')))),
       dom('button', 'Reset logs',
-          dom.on('click', () => logs.set([]))),
+        dom.on('click', () => logs.set([]))),
       dom.cls('tour-left-panel'),
     ),
     Share('Share#sharing', dom.cls('tour-sharing')),
@@ -74,8 +74,8 @@ function setupTest() {
     ),
     dom.domComputed(logs, logsArray => (
       dom('div', {style: 'position: absolute; margin-top: 300px;'},
-          logsArray.map(msg => dom('div', msg, testId('logs'))),
-         )
+        logsArray.map(msg => dom('div', msg, testId('logs'))),
+      )
     )),
   ];
 }

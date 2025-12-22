@@ -727,10 +727,10 @@ const isConfigured = async () => {
 };
 
 const addReverseColumn = () => driver.findWait('.test-add-reverse-columm', 100)
-                              .click().then(() => gu.waitForServer());
+  .click().then(() => gu.waitForServer());
 
 const removeTwoWay = () => driver.findWait('.test-remove-reverse-column', 100).click()
-                                  .then(() => gu.waitForServer());
+  .then(() => gu.waitForServer());
 
 const configText = async () => {
   const text = await driver.findWait('.test-reverse-column-label', 100).getText();

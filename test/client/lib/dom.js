@@ -35,9 +35,9 @@ describe('dom', function() {
 
     it("should set children", function() {
       var elem = dom('div',
-                     "foo", dom('a#a'),
-                     [dom('a#b'), "bar", dom('a#c')],
-                     dom.frag(dom('a#d'), "baz", dom('a#e')));
+        "foo", dom('a#a'),
+        [dom('a#b'), "bar", dom('a#c')],
+        dom.frag(dom('a#d'), "baz", dom('a#e')));
       assert.equal(elem.childNodes.length, 8);
       assert.equal(elem.childNodes[0].data, "foo");
       assert.equal(elem.childNodes[1].id, "a");

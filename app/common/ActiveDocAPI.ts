@@ -19,10 +19,10 @@ export interface ApplyUAOptions {
 export interface ApplyUAExtendedOptions extends ApplyUAOptions {
   bestEffort?: boolean; // If set, action may be applied in part if it cannot be applied completely.
   fromOwnHistory?: boolean; // If set, action is confirmed to be a redo/undo taken from history, from
-                            // an action marked as being by the current user.
+  // an action marked as being by the current user.
   oldestSource?: number;  // If set, gives the timestamp of the oldest source the undo/redo
-                          // action was built from, expressed as number of milliseconds
-                          // elapsed since January 1, 1970 00:00:00 UTC
+  // action was built from, expressed as number of milliseconds
+  // elapsed since January 1, 1970 00:00:00 UTC
   attachment?: boolean;   // If set, allow actions on attachments.
 }
 
@@ -402,19 +402,19 @@ export interface ActiveDocAPI {
    * rather than by value.
    */
   applyUserActionsById(actionNums: number[], actionHashes: string[],
-                       undo: boolean, options?: ApplyUAOptions): Promise<ApplyUAResult>;
+    undo: boolean, options?: ApplyUAOptions): Promise<ApplyUAResult>;
 
   /**
    * Imports files, removes previously created temporary hidden tables and creates the new ones.
    */
   importFiles(dataSource: DataSourceTransformed,
-              parseOptions: ImportParseOptions, prevTableIds: string[]): Promise<ImportResult>;
+    parseOptions: ImportParseOptions, prevTableIds: string[]): Promise<ImportResult>;
 
   /**
    * Finishes import files, creates the new tables, and cleans up temporary hidden tables and uploads.
    */
   finishImportFiles(dataSource: DataSourceTransformed, prevTableIds: string[],
-                    options: ImportOptions): Promise<ImportResult>;
+    options: ImportOptions): Promise<ImportResult>;
 
   /**
    * Cancels import files, cleans up temporary hidden tables and uploads.
@@ -426,7 +426,7 @@ export interface ActiveDocAPI {
    * if the data from `hiddenTableId` is imported with the specified `mergeOptions`.
    */
   generateImportDiff(hiddenTableId: string, transformRule: TransformRule,
-                      mergeOptions: MergeOptions): Promise<DocStateComparison>;
+    mergeOptions: MergeOptions): Promise<DocStateComparison>;
 
   /**
    * Saves attachments from a given upload and creates an entry for them in the database. It

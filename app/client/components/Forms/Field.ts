@@ -134,23 +134,23 @@ export class FieldModel extends BoxModel {
     }));
 
     return buildEditor({
-        box: this,
-        overlay,
-        removeIcon: 'CrossBig',
-        removeTooltip: t('Hide'),
-        editMode: this.edit,
-        content,
-      },
-      dom.on('dblclick', () => this.selected.get() && this.edit.set(true)),
-      dom.style('opacity', (use) => {
-        if ((use(use(this.field).widgetOptionsJson) as FormFieldOptions).formIsHidden) {
-          return '50%';
-        }
- else {
-          return '';
-        }
-      }),
-      ...args,
+      box: this,
+      overlay,
+      removeIcon: 'CrossBig',
+      removeTooltip: t('Hide'),
+      editMode: this.edit,
+      content,
+    },
+    dom.on('dblclick', () => this.selected.get() && this.edit.set(true)),
+    dom.style('opacity', (use) => {
+      if ((use(use(this.field).widgetOptionsJson) as FormFieldOptions).formIsHidden) {
+        return '50%';
+      }
+      else {
+        return '';
+      }
+    }),
+    ...args,
     );
   }
 
@@ -385,7 +385,7 @@ class ChoiceModel extends Question {
       if (!Array.isArray(choices) || choices.some(choice => typeof choice !== 'string')) {
         return [];
       }
- else {
+      else {
         const sort = use(this._sortOrder);
         if (sort !== 'default') {
           choices.sort((a, b) => a.localeCompare(b));
@@ -404,7 +404,7 @@ class ChoiceModel extends Question {
         if (format === 'select') {
           return this._renderSelectInput();
         }
- else {
+        else {
           return this._renderRadioInput();
         }
       }),
@@ -492,7 +492,7 @@ class BoolModel extends Question {
       if (format === 'switch') {
         return this._renderSwitchInput();
       }
- else {
+      else {
         return this._renderCheckboxInput();
       }
     });
@@ -642,7 +642,7 @@ class RefModel extends RefListModel {
         if (format === 'select') {
           return this._renderSelectInput();
         }
- else {
+        else {
           return this._renderRadioInput();
         }
       }),

@@ -38,8 +38,8 @@ describe('SafeBrowser', function() {
       .withArgs('testing-plugin', 'unsafeNode', 'func1')
       .callsFake( (...args) => 'From Russia ' + args[3][0] + "!");
     callPluginFunction
-       .withArgs('testing-plugin', 'unsafeNode', 'funkyName')
-       .throws();
+      .withArgs('testing-plugin', 'unsafeNode', 'funkyName')
+      .throws();
     clientScope = new ClientScope();
 
     browserProcesses = [];
@@ -152,10 +152,10 @@ describe('SafeBrowser', function() {
   function createProcess(safeBrowser: SafeBrowser, _rpc: Rpc, src: string) {
     const path: string = basename(url.parse(src).pathname!);
     const rpc = new Rpc({logger: LOG_RPC ? {
-        // let's prepend path to the console 'info' and 'warn' channels
-        info: console.info.bind(console, path),   // tslint:disable-line:no-console
-        warn: console.warn.bind(console, path),   // tslint:disable-line:no-console
-      } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc)});
+      // let's prepend path to the console 'info' and 'warn' channels
+      info: console.info.bind(console, path),   // tslint:disable-line:no-console
+      warn: console.warn.bind(console, path),   // tslint:disable-line:no-console
+    } : {}, sendMessage: _rpc.receiveMessage.bind(_rpc)});
     _rpc.setSendMessage(msg => rpc.receiveMessage(msg));
     const api = rpc.getStub<GristAPI>(RPC_GRISTAPI_INTERFACE, checkers.GristAPI);
     function ready() {

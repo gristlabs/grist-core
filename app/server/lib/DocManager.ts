@@ -9,7 +9,7 @@ import {mapSetOrClear, MapWithTTL} from 'app/common/AsyncCreate';
 import {BrowserSettings} from 'app/common/BrowserSettings';
 import {delay} from 'app/common/delay';
 import {DocCreationInfo, DocEntry, DocListAPI,
-        OpenDocMode, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
+  OpenDocMode, OpenDocOptions, OpenLocalDocResult} from 'app/common/DocListAPI';
 import {FilteredDocUsageSummary} from 'app/common/DocUsage';
 import {parseUrlId} from 'app/common/gristUrls';
 import {tbind} from 'app/common/tbind';
@@ -24,7 +24,7 @@ import {
 } from 'app/server/lib/AttachmentStoreProvider';
 import {Client} from 'app/server/lib/Client';
 import {DocSessionPrecursor,
-        makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
+  makeExceptionalDocSession, makeOptDocSession, OptDocSession} from 'app/server/lib/DocSession';
 import * as docUtils from 'app/server/lib/docUtils';
 import {GristServer} from 'app/server/lib/GristServer';
 import {IDocStorageManager} from 'app/server/lib/IDocStorageManager';
@@ -218,7 +218,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public importDocWithFreshId(docSession: OptDocSession, userId: number, uploadId: number): Promise<DocCreationInfo> {
     const accessId = this.makeAccessId(userId);
     return this._doImportDoc(docSession, globalUploadSet.getUploadInfo(uploadId, accessId),
-                             {naming: 'saved'});
+      {naming: 'saved'});
   }
 
   /**
@@ -286,7 +286,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async importNewDoc(filepath: string): Promise<DocCreationInfo> {
     const uploadId = globalUploadSet.registerUpload([await getFileUploadInfo(filepath)], null, noop, null);
     return await this._doImportDoc(makeOptDocSession(null), globalUploadSet.getUploadInfo(uploadId, null),
-                                   {naming: 'classic'});
+      {naming: 'classic'});
   }
 
   /**
@@ -329,7 +329,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    */
   @insightLogDecorate("DocManager")
   public async openDoc(client: Client, docId: string,
-                       options?: OpenDocOptions): Promise<OpenLocalDocResult> {
+    options?: OpenDocOptions): Promise<OpenLocalDocResult> {
     if (typeof options === 'string') {
       throw new Error('openDoc call with outdated parameter type');
     }
@@ -362,7 +362,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         throw new Error(`openDoc expected docId ${docAuth.docId} not urlId ${docId}`);
       }
     }
- else {
+    else {
       log.debug(`DocManager.openDoc not using authorization for ${docId} because GRIST_SINGLE_USER`);
       auth = new DummyAuthorizer('owners', docId);
     }
@@ -394,7 +394,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
           docSession.forkingAsOwner = true;
           activeDoc.flushAccess(docSession);
         }
- else {
+        else {
           // TODO: it would be kind to pass on a message to the client
           // to let them know they won't be able to fork.  They'll get
           // an error when they make their first change.  But currently
@@ -415,7 +415,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       try {
         docUsage = await activeDoc.getFilteredDocUsageSummary(docSession);
       }
- catch (e) {
+      catch (e) {
         log.warn("DocManager.openDoc failed to get doc usage", e);
       }
       insightLog?.mark("getDocUsage");
@@ -470,7 +470,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
     try {
       await this.storageManager.closeStorage();
     }
- catch (err) {
+    catch (err) {
       log.error('DocManager had problem shutting down storage: %s', err.message);
     }
 
@@ -533,7 +533,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       this._activeDocs.delete(oldName);
       this.unregisterSQLiteDB(oldName);
     }
- else {
+    else {
       await this.storageManager.renameDoc(oldName, newName);
     }
   }
@@ -558,8 +558,8 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
   public async createNewEmptyDoc(docSession: OptDocSession, basenameHint: string): Promise<ActiveDoc> {
     const docName = await this._createNewDoc(basenameHint);
     return mapSetOrClear(this._activeDocs, docName,
-                         this._createActiveDoc(docSession, docName)
-                         .then(newDoc => newDoc.createEmptyDoc(docSession)));
+      this._createActiveDoc(docSession, docName)
+        .then(newDoc => newDoc.createEmptyDoc(docSession)));
   }
 
   /**
@@ -567,7 +567,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * wait for another.
    */
   public async fetchDoc(docSession: OptDocSession, docName: string,
-                        wantRecoveryMode?: boolean): Promise<ActiveDoc> {
+    wantRecoveryMode?: boolean): Promise<ActiveDoc> {
     log.debug('DocManager.fetchDoc', docName);
     return this._withUnmutedDoc(docSession, docName, async () => {
       const activeDoc = await this._fetchPossiblyMutedDoc(docSession, docName, wantRecoveryMode);
@@ -601,7 +601,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * is found to be muted, in which case we retry.
    */
   private async _withUnmutedDoc<T>(docSession: OptDocSession, docName: string,
-                                   op: () => Promise<{ result: T, activeDoc: ActiveDoc }>): Promise<T> {
+    op: () => Promise<{ result: T, activeDoc: ActiveDoc }>): Promise<T> {
     // Repeat until we acquire an ActiveDoc that is not muted (shutting down).
     let markedAsMuted = false;
     for (;;) {
@@ -618,7 +618,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
 
   // Like fetchDoc(), but doesn't check if ActiveDoc returned is unmuted.
   private async _fetchPossiblyMutedDoc(docSession: OptDocSession, docName: string,
-                                       wantRecoveryMode?: boolean): Promise<ActiveDoc> {
+    wantRecoveryMode?: boolean): Promise<ActiveDoc> {
     if (this._activeDocs.has(docName) && wantRecoveryMode !== undefined) {
       const activeDoc = await this._activeDocs.get(docName);
       if (activeDoc && activeDoc.recoveryMode !== wantRecoveryMode && await activeDoc.isOwner(docSession)) {
@@ -641,7 +641,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
             return newDoc.loadDoc(docSession);
           }));
     }
- else {
+    else {
       activeDoc = await this._activeDocs.get(docName)!;
     }
     return activeDoc;
@@ -659,7 +659,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
       // rather than using this._homeDbManager which may exist and then it turns out the document itself doesn't.
       db = this.gristServer.getHomeDBManager();
     }
- catch (e) {
+    catch (e) {
       if (e.message === "no db") {
         return;
       }
@@ -683,7 +683,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         docApiUrl: await this.gristServer.getResourceUrl(doc, 'api'),
       };
     }
- catch (e) {
+    catch (e) {
       // If there is no home url, we cannot construct links.  Accept this, for the benefit
       // of legacy tests.
       if (e.message !== "need APP_HOME_URL") {
@@ -707,11 +707,11 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
    * document.
    */
   private async _doImportDoc(docSession: OptDocSession, uploadInfo: UploadInfo,
-                             options: {
-                               naming: 'classic'|'saved'|'unsaved',
-                               register?: (docId: string, uploadBaseFilename: string) => Promise<void>,
-                               userId?: number,
-                             }): Promise<DocCreationInfo> {
+    options: {
+      naming: 'classic'|'saved'|'unsaved',
+      register?: (docId: string, uploadBaseFilename: string) => Promise<void>,
+      userId?: number,
+    }): Promise<DocCreationInfo> {
     try {
       const fileCount = uploadInfo.files.length;
       const hasGristDoc = Boolean(uploadInfo.files.find(f => extname(f.origName) === '.grist'));
@@ -733,7 +733,7 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
           if (!this._homeDbManager) { throw new Error("HomeDbManager not available"); }
           const isAnonymous = userId === this._homeDbManager.getAnonymousUserId();
           id = makeForkIds({userId, isAnonymous, trunkDocId: NEW_DOCUMENT_CODE,
-                            trunkUrlId: NEW_DOCUMENT_CODE}).docId;
+            trunkUrlId: NEW_DOCUMENT_CODE}).docId;
           break;
         }
         case 'classic':
@@ -763,18 +763,18 @@ export class DocManager extends EventEmitter implements IMemoryLoadEstimator {
         this.storageManager.markAsChanged(docName, 'edit');
         return {title: basename, id: docName};
       }
- else {
+      else {
         const doc = await this.createNewEmptyDoc(docSession, id);
         await doc.oneStepImport(docSession, uploadInfo);
         return {title: basename, id: doc.docName};
       }
     }
- catch (err) {
+    catch (err) {
       throw new ApiError(err.message, err.status || 400, {
         tips: [{action: 'ask-for-help', message: 'Ask for help'}],
       });
     }
- finally {
+    finally {
       await globalUploadSet.cleanup(uploadInfo.uploadId);
     }
   }
@@ -857,7 +857,7 @@ async function updateDocumentSettingsInPlace(
       docInfoRow.id,
     );
   }
- finally {
+  finally {
     await db.close();
   }
 }

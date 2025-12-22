@@ -44,7 +44,7 @@ function timeFormatHelper(out: string[], format: string, date: Date) {
     if (helper) {
       helper(out, date);
     }
- else {
+    else {
       out.push(c);
     }
   }

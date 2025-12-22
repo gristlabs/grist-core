@@ -109,7 +109,7 @@ export function textInput(label: Observable<string>, save: SaveFunc, ...args: Ar
  * A helper that implements all the saving logic for both editableLabel and textInput.
  */
 export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange: () => void,
-                             ...args: Array<DomArg<HTMLInputElement>>) {
+  ...args: Array<DomArg<HTMLInputElement>>) {
   let status: Status = Status.NORMAL;
   let inputEl: HTMLInputElement;
 
@@ -133,11 +133,11 @@ export function rawTextInput(value: Observable<string>, save: SaveFunc, onChange
       inputEl.disabled = true;
       // Ignore errors; save() callback is expected to handle their reporting.
       try { await save(inputEl.value); }
- catch (e) { /* ignore */ }
+      catch (e) { /* ignore */ }
       inputEl.disabled = false;
       revertToSaved();
     }
- else if (status === Status.NORMAL) {
+    else if (status === Status.NORMAL) {
       // If we are not editing, nothing to save, but lets end in the expected blurred state.
       inputEl.blur();
     }

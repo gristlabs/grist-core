@@ -43,7 +43,7 @@ export class DocRequests {
         await this._activeDoc.applyUserActions(makeExceptionalDocSession("system"), [action]);
       }
     }
- finally {
+    finally {
       this._numPending -= numRequests;
       if (this._numPending === 0) {
         log.debug(`Removing DocRequests._cacheDir: ${this._cacheDir!.name}`);
@@ -68,7 +68,7 @@ export class DocRequests {
       result.content = Buffer.from(result.content, "base64");
       return result;
     }
- catch {
+    catch {
       const result = await this._handleSingleRequestRaw(request);
       const resultForJson = {...result} as any;
       if ('content' in result) {
@@ -103,7 +103,7 @@ export class DocRequests {
         headers: fromPairs([...response.headers]),
       };
     }
- catch (e) {
+    catch (e) {
       return {error: String(e)};
     }
   }

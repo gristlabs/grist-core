@@ -42,7 +42,7 @@ export function getUnpackedAppRoot(appRoot: string = getAppRoot()): string {
   }
   if (path.dirname(appRoot).endsWith('app.asar')) {
     return path.resolve(path.dirname(path.dirname(appRoot)),
-                        'app.asar.unpacked', 'core');
+      'app.asar.unpacked', 'core');
   }
   return path.resolve(path.dirname(appRoot), path.basename(appRoot, '.asar'));
 }

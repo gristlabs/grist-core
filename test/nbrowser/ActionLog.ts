@@ -50,7 +50,7 @@ describe('ActionLog', function() {
     // Open the action-log tab.
     await driver.findWait('.test-tools-log', 1000).click();
     await gu.waitToPass(() =>   // Click might not work while panel is sliding out to open.
-        driver.findContentWait('.test-doc-history-tabs .test-select-button', 'Activity', 500).click());
+      driver.findContentWait('.test-doc-history-tabs .test-select-button', 'Activity', 500).click());
 
     // Make sure history is blocked.
     await driver.findContentWait('p', /History blocked/, 1000);
@@ -224,7 +224,7 @@ describe('ActionLog', function() {
     await gu.getPageItem('Table3').click();
     assert.equal(await getActionLogItem(0).find("table:not([style*='display: none']) caption").getText(), 'Table3 >');
 
-      // Now show all tables and make sure the result is a longer (visible) log.
+    // Now show all tables and make sure the result is a longer (visible) log.
     const filteredCount = (await getActionLogItems()).length;
     await driver.findContent('.action_log label', /All tables/).find('input').click();
     const fullCount = (await getActionLogItems()).length;

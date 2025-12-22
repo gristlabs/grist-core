@@ -42,7 +42,7 @@ describe('Sandbox', function () {
         );
         assert.equal(result, 'Hello world');
       }
- finally {
+      finally {
         await sandbox.shutdown();
       }
     });
@@ -58,7 +58,7 @@ describe('Sandbox', function () {
         assert.match(stderr, /Traceback \(most recent call last\):/);
         assert.match(stderr, /Exception: Hello world/);
       }
- finally {
+      finally {
         await sandbox.shutdown();
       }
     });
@@ -79,7 +79,7 @@ describe('Sandbox', function () {
         assert.deepEqual(output.stdout, []);
         assert.deepEqual(output.stderr, []);
       }
- finally {
+      finally {
         await sandbox.shutdown();
       }
     });
@@ -107,7 +107,7 @@ describe('Sandbox', function () {
           /PipeToSandbox is closed/,
           "When sandbox has exited, pyCall should not succeed");
       }
- finally {
+      finally {
         await sandbox.shutdown();
       }
     });
@@ -144,7 +144,7 @@ describe('Sandbox', function () {
         assert(delta < 100, "Should really be around 20ms, but took " + delta);
         assert.equal(value, bigString);
       }
- finally {
+      finally {
         await sandbox.shutdown();
       }
     });
@@ -251,7 +251,7 @@ describe('Sandbox', function () {
           );
           assert.equal(result, 'Hello world');
         }
- finally {
+        finally {
           await sandbox.shutdown();
         }
       });

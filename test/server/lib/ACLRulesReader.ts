@@ -214,7 +214,7 @@ describe('ACLRulesReader', function() {
       // Add some default, table, and column rules.
       await activeDoc.applyUserActions(fakeSession, [
         ['UpdateRecord', '_grist_Views_section', 7,
-         {shareOptions: '{"publish": true, "form": true}'}],
+          {shareOptions: '{"publish": true, "form": true}'}],
         ['UpdateRecord', '_grist_Pages', 2, {shareRef: 1}],
         ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Films', colIds: 'Title,Poster,PosterDup'}],
         ['AddRecord', '_grist_ACLResources', -2, {tableId: 'Films', colIds: '*'}],

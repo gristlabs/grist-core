@@ -25,7 +25,7 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
     try {
       userProfiles = await this._docComm.listActiveUserProfiles();
     }
- catch(e) {
+    catch(e) {
       reportError(e);
       reportError(`Unable to fetch current active user list`);
     }
@@ -43,10 +43,10 @@ export class UserPresenceModelImpl extends DisposableWithEvents implements UserP
     if (!data.profile) {
       newProfiles.splice(index, 1);
     }
- else if (index < 0) {
+    else if (index < 0) {
       newProfiles.push(data.profile);
     }
- else {
+    else {
       newProfiles[index] = data.profile;
     }
     this.userProfiles.set(newProfiles);

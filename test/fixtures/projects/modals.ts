@@ -79,7 +79,7 @@ function setupTest() {
                 });
               });
             }
- finally {
+            finally {
               saving.set(saving.get() - 1);
             }
           }
@@ -102,7 +102,7 @@ function setupTest() {
       dom('span', ' Modal ', dom.text(use => use(isSaveModalOpen) ? "Open" : "Closed"),
         testId('save-modal-is-open'),
       ),
-       ),
+    ),
 
     dom(
       'div',
@@ -121,9 +121,9 @@ function setupTest() {
       dom.maybe(asyncTask, ({resolve}) => cssResolve(
         'Async Taks',
         dom('button', 'Resolve',
-            dom.on('click', () => { resolve(); asyncTask.set(null); }),
-            testId('resolve-spinner-task'),
-           ),
+          dom.on('click', () => { resolve(); asyncTask.set(null); }),
+          testId('resolve-spinner-task'),
+        ),
       )),
     ),
   );

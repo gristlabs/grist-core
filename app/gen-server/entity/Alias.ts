@@ -1,5 +1,5 @@
 import {BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne,
-        PrimaryColumn} from 'typeorm';
+  PrimaryColumn} from 'typeorm';
 import {Document} from 'app/gen-server/entity/Document';
 import {Organization} from 'app/gen-server/entity/Organization';
 

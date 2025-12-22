@@ -91,15 +91,15 @@ describe('ImportReferences', function() {
       await gu.getVisibleGridCells({section: 'TASKS', cols: [0, 1, 2, 3, 4], rowNums: [4, 5, 6, 7, 8, 9], mapper}), [
       // Label, PName,   PIndex,   PDate,          PRowID
       // Previous data in the fixture, in row 4
-      'Zoo',  'Clean',   '2,000',  '27 Mar 2023',  'Projects[3]',
-      // New rows (values like "!Project[2]" are invalid, which may be fixed in the future).
-      'Foo2', 'Clean',   '1,000',  '27 Mar 2023',  '',
-      'Bar2', 'Wash',    '3,000',  '',             '!Projects[2]',
-      'Baz2', '!Build2', '',       '!2023-03-20',  '!Projects[1]',
-      'Zoo2', 'Clean',   '2,000',  '24 Apr 2023',  '!Projects[3]',
-      // 'Add New' row
-      '', '', '', '', '',
-    ]);
+        'Zoo',  'Clean',   '2,000',  '27 Mar 2023',  'Projects[3]',
+        // New rows (values like "!Project[2]" are invalid, which may be fixed in the future).
+        'Foo2', 'Clean',   '1,000',  '27 Mar 2023',  '',
+        'Bar2', 'Wash',    '3,000',  '',             '!Projects[2]',
+        'Baz2', '!Build2', '',       '!2023-03-20',  '!Projects[1]',
+        'Zoo2', 'Clean',   '2,000',  '24 Apr 2023',  '!Projects[3]',
+        // 'Add New' row
+        '', '', '', '', '',
+      ]);
 
     await gu.undo();
   });
@@ -183,15 +183,15 @@ describe('ImportReferences', function() {
       await gu.getVisibleGridCells({section: 'TASKS', cols: [0, 1, 2, 3, 4], rowNums: [4, 5, 6, 7, 8, 9], mapper}), [
       // Label, PName,   PIndex,   PDate,          PRowID
       // Previous data in the fixture, in row 4
-      'Zoo',  'Clean',   '2,000',  '27 Mar 2023',  'Projects[3]',
-      // New rows; PRowID values are valid.
-      'Foo2', 'Clean',   '1,000',   '27 Mar 2023',  '',
-      'Bar2', 'Wash',    '2,000',   '',             'Projects[2]',
-      'Baz2', '!Build2', '!2.0',    '!2023-03-20',  'Projects[1]',
-      'Zoo2', 'Clean',   '!4000.0', '24 Apr 2023',  'Projects[3]',
-      // 'Add New' row
-      '', '', '', '', '',
-    ]);
+        'Zoo',  'Clean',   '2,000',  '27 Mar 2023',  'Projects[3]',
+        // New rows; PRowID values are valid.
+        'Foo2', 'Clean',   '1,000',   '27 Mar 2023',  '',
+        'Bar2', 'Wash',    '2,000',   '',             'Projects[2]',
+        'Baz2', '!Build2', '!2.0',    '!2023-03-20',  'Projects[1]',
+        'Zoo2', 'Clean',   '!4000.0', '24 Apr 2023',  'Projects[3]',
+        // 'Add New' row
+        '', '', '', '', '',
+      ]);
 
     await gu.undo();
   });

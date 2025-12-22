@@ -42,7 +42,7 @@ describe('textUtils', function() {
       'montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. ' +
       'Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. ' +
       'In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium.',
-      2_964_896_417);
+    2_964_896_417);
   });
 
   it('simpleStringHash should produce correct hashes', function() {
@@ -74,7 +74,7 @@ describe('textUtils', function() {
 | [link](https://example.com) | [link](https://example.com) |
 | --- | --- |
 | [link](https://example.com) | [link](https://example.com) |`.trim(),
-       `
+      `
 | link | link |
 | --- | --- |
 | link | link |`.trim()],

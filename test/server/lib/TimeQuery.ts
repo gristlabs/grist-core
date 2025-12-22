@@ -48,14 +48,14 @@ describe("TimeQuery", function() {
     // Now read out the current state.
     await fish.update();
     assert.sameDeepMembers(fish.all(),
-                           [{id: 1, age: '111'}]);
+      [{id: 1, age: '111'}]);
 
     // Go back one step in time.
     cursor.prepend(summary2);
     await fish.update();
     assert.sameDeepMembers(fish.all(),
-                           [{id: 1, age: '11'},
-                            {id: 2, age: '22'}]);
+      [{id: 1, age: '11'},
+        {id: 2, age: '22'}]);
 
     // and one more step
     cursor.prepend(summary1);
@@ -112,7 +112,7 @@ describe("TimeQuery", function() {
     cursor.prepend(summary1);
     await layout.update();
     assert.throws(() => layout.getColumnOrder("Fish_"),
-                  /could not find/);
+      /could not find/);
   });
 
   it('can handle renames', async function() {

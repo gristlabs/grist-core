@@ -164,12 +164,12 @@ export class TreeNodeRecord implements TreeNode {
         const index = nextChild.index;
         upperPos = this._records[index].pagePos;
       }
- else {
+      else {
         const lastIndex = this.findLastIndex();
         if (lastIndex !== "root") {
           upperPos = (this._records[lastIndex + 1] || {pagePos: null}).pagePos;
         }
- else {
+        else {
           upperPos = null;
         }
       }

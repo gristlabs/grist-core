@@ -75,7 +75,7 @@ export class VirtualTableData extends TableData {
 
   public override async sendTableActions(userActions: UserAction[]): Promise<any[]> {
     const actions = await this._sendTableActionsCore(userActions,
-                                                     {isUser: true});
+      {isUser: true});
     await this.ext.afterEdit?.(this._editor(actions));
     return actions.map(action => action.retValues);
   }
@@ -140,7 +140,7 @@ export class VirtualTableData extends TableData {
           getRecordNew: rowId => newTable.getRecord(rowId),
         });
       }
- catch (e) {
+      catch (e) {
         actions.reverse();
         for (const action of actions) {
           await this.cache.sendTableActions(action.undo);

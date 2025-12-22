@@ -46,8 +46,8 @@ export class UnsafeNodeComponent extends BaseComponent {
    *
    */
   constructor(plugin: LocalPlugin, pluginRpc: Rpc, private _mainPath: string, public appRoot: string,
-              private _gristDocPath: string,
-              rpcLogger = createRpcLogger(log, `PLUGIN ${plugin.id}/${_mainPath} UnsafeNode:`)) {
+    private _gristDocPath: string,
+    rpcLogger = createRpcLogger(log, `PLUGIN ${plugin.id}/${_mainPath} UnsafeNode:`)) {
     super(plugin.manifest, rpcLogger);
     this._pluginPath = plugin.path;
     this._pluginId = plugin.id;
@@ -119,9 +119,9 @@ export class UnsafeNodeComponent extends BaseComponent {
     // Important to use exitPromise() before events from child may be received, so don't call
     // yield or await between fork and here.
     this._exited = exitPromise(child)
-    .then(code => log.info("unsafeNode[%s] exited with %s", child.pid, code))
-    .catch(err => log.warn("unsafeNode[%s] failed with %s", child.pid, err))
-    .then(() => { this._child = undefined; });
+      .then(code => log.info("unsafeNode[%s] exited with %s", child.pid, code))
+      .catch(err => log.warn("unsafeNode[%s] failed with %s", child.pid, err))
+      .then(() => { this._child = undefined; });
 
     child.stdout!.on('data', makeLinePrefixer('PLUGIN stdout: '));
     child.stderr!.on('data', makeLinePrefixer('PLUGIN stderr: '));
@@ -139,7 +139,7 @@ export class UnsafeNodeComponent extends BaseComponent {
     if (!this._child) {
       log.info('unsafeNode deactivating: no child process');
     }
- else {
+    else {
       log.info('unsafeNode[%s] deactivate: disconnecting child', this._child.pid);
       this._child.disconnect();
       if (await timeoutReached(2000, this._exited)) {
@@ -149,7 +149,7 @@ export class UnsafeNodeComponent extends BaseComponent {
       if (await timeoutReached(5000, this._exited)) {
         log.warn("unsafeNode[%s] deactivate: child still has not exited", this._child.pid);
       }
- else {
+      else {
         log.info("unsafeNode deactivate: child exited");
       }
     }

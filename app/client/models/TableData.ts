@@ -31,7 +31,7 @@ export class TableData extends TableDataBase {
    * @param {Object} columnTypes: A map of colId to colType.
    */
   constructor(public readonly docData: DocData,
-              tableId: string, tableData: TableDataAction|null, columnTypes: ColTypeMap) {
+    tableId: string, tableData: TableDataAction|null, columnTypes: ColTypeMap) {
     super(tableId, tableData, columnTypes);
   }
 

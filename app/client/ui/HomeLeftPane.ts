@@ -207,18 +207,18 @@ function addMenu(home: HomeModel, creating: Observable<boolean>): DomElementArg[
     ),
     domComputed(home.importSources, importSources => ([
       ...importSources.map((source, i) =>
-      menuItem(() => newDocMethods.importFromPluginAndOpen(home, source),
-        menuIcon('Import'),
-        source.importSource.label,
-        dom.cls('disabled', !home.newDocWorkspace.get()),
-        testId(`dm-import-plugin`),
-      )),
+        menuItem(() => newDocMethods.importFromPluginAndOpen(home, source),
+          menuIcon('Import'),
+          source.importSource.label,
+          dom.cls('disabled', !home.newDocWorkspace.get()),
+          testId(`dm-import-plugin`),
+        )),
     ])),
     // For workspaces: if ACL says we can create them, but product says we can't,
     // then offer an upgrade link.
     upgradableMenuItem(needUpgrade, () => creating.set(true), menuIcon('Folder'), t("Create workspace"),
-             dom.cls('disabled', use => !roles.canEdit(orgAccess) || !use(home.available)),
-             testId("dm-new-workspace"),
+      dom.cls('disabled', use => !roles.canEdit(orgAccess) || !use(home.available)),
+      testId("dm-new-workspace"),
     ),
     upgradeText(needUpgrade, () => home.app.showUpgradeModal()),
   ];
@@ -239,7 +239,7 @@ function workspaceMenu(home: HomeModel, ws: Workspace, renaming: Observable<Work
           // There was only one workspace, navigate to all docs.
           await urlState().pushUrl({homePage: 'all'});
         }
- else {
+        else {
           // Maintain the index.
           const newIndex = Math.max(0, Math.min(index, all.length - 1));
           await urlState().pushUrl({ws: all[newIndex].id});

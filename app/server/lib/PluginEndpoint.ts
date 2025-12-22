@@ -16,14 +16,14 @@ export function getUntrustedContentHost(origin: string|undefined): string|undefi
 export function addPluginEndpoints(server: FlexServer, pluginManager: PluginManager) {
   if (server.servesPlugins()) {
     server.app.get(/^\/plugins\/(installed|builtIn)\/([^/]+)\/(.+)/, (req, res) =>
-                   servePluginContent(req, res, pluginManager, server));
+      servePluginContent(req, res, pluginManager, server));
   }
 }
 
 // Serve content for plugins with various checks that it is being accessed as we expect.
 function servePluginContent(req: express.Request, res: express.Response,
-                            pluginManager: PluginManager,
-                            gristServer: GristServer) {
+  pluginManager: PluginManager,
+  gristServer: GristServer) {
   const pluginUrl = gristServer.getPluginUrl();
   const untrustedContentHost = getUntrustedContentHost(pluginUrl);
   if (!untrustedContentHost) {
@@ -47,7 +47,7 @@ function servePluginContent(req: express.Request, res: express.Response,
       mimeTypes.lookup(path.extname(pluginPath)) === "application/javascript") {
     const dirs = pluginManager.dirs();
     const contentRoot = pluginKind === "installed" ? dirs.installed :
-        (pluginKind === "builtIn" ? dirs.builtIn : dirs.bundled);
+      (pluginKind === "builtIn" ? dirs.builtIn : dirs.bundled);
     // Note that pluginPath may not be safe, but `sendFile` with the "root" option restricts
     // relative paths to be within the root folder (see the 3rd party library unit-test:
     // https://github.com/pillarjs/send/blob/3daa901cf731b86187e4449fa2c52f971e0b3dbc/test/send.js#L1363)
@@ -60,7 +60,7 @@ function servePluginContent(req: express.Request, res: express.Response,
 
 // Middleware to restrict some assets to untrusted host.
 export function limitToPlugins(gristServer: GristServer,
-                               handler: express.RequestHandler) {
+  handler: express.RequestHandler) {
   return function(req: express.Request, resp: express.Response, next: express.NextFunction) {
     const pluginUrl = gristServer.getPluginUrl();
     const host = getUntrustedContentHost(pluginUrl);

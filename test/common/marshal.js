@@ -45,7 +45,7 @@ describe("marshal", function() {
         currentMarshaller.marshal(value);
         var marshalled = currentMarshaller.dump();
         assert.deepEqual(marshalled, expected,
-                         "Wrong serialization of " + JSON.stringify(value) +
+          "Wrong serialization of " + JSON.stringify(value) +
                            "\n        actual: " + escape(arrayToBinString(marshalled)) + "\n" +
                            "\n      expected: " + escape(arrayToBinString(expected)));
       }

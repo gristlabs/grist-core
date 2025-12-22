@@ -92,7 +92,7 @@ describe('DocApi2', function() {
           assert.equal(docInfo.workspace.id, toWsId);
 
         }
- finally {
+        finally {
           // Clean up: delete the document and workspace
           await owner.deleteDoc(docId);
           await owner.deleteWorkspace(toWsId);
@@ -158,7 +158,7 @@ describe('DocApi2', function() {
             assert.equal(docInfo.workspace.id, destWsId);
 
           }
- finally {
+          finally {
             // Clean up: delete the document
             await destOwner.deleteDoc(docId);
           }
@@ -173,7 +173,7 @@ describe('DocApi2', function() {
         assert.isAtMost(largeDocTime, smallDocTime * 9); // As for 20251008 on my machine it is ~4x
 
       }
- finally {
+      finally {
         // Clean up: delete the destination org
         await destApi.deleteOrg('dest-org');
       }

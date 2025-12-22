@@ -24,11 +24,11 @@ export function getDataLimitInfo(params: GetDataLimitStatusParams): DataLimitInf
     if (daysRemaining > 0) {
       return {status: 'gracePeriod', daysRemaining};
     }
- else {
+    else {
       return {status: 'deleteOnly'};
     }
   }
- else if (ratio > APPROACHING_LIMIT_RATIO) {
+  else if (ratio > APPROACHING_LIMIT_RATIO) {
     return {status: 'approachingLimit'};
   }
 

@@ -188,7 +188,7 @@ describe('GridViewNewColumnMenu', function () {
 
 
     describe('on desktop', function () {
-        gu.bigScreen();
+      gu.bigScreen();
 
       it('should show "Add Column With type" option', async function () {
         // open add new colum menu
@@ -287,7 +287,7 @@ describe('GridViewNewColumnMenu', function () {
 
         it(`should show referenceColumnsConfig in right Column section
          when ${optionsTriggeringMenu.type} type is chosen`,
-          async function(){
+        async function(){
           //close right panel just in case.
           await gu.toggleSidePanel("right", "close");
           await gu.enableTips(session.email);
@@ -313,9 +313,9 @@ describe('GridViewNewColumnMenu', function () {
             await driver.findContentWait(
               '.test-behavioral-prompt-title',
               'Reference Columns',
-               STANDARD_WAITING_TIME*2,
-               ).isDisplayed(),
-            ), 5000);
+              STANDARD_WAITING_TIME*2,
+            ).isDisplayed(),
+          ), 5000);
           await gu.dismissBehavioralPrompts();
           await gu.toggleSidePanel("right", "close");
           await gu.undo(1);
@@ -326,7 +326,7 @@ describe('GridViewNewColumnMenu', function () {
     describe('on mobile', function () {
       gu.narrowScreen();
       for (const optionsTriggeringMenu of optionsToBeDisplayed.filter(option =>
-      columnsThatShouldTriggerSideMenu.includes(option.type))) {
+        columnsThatShouldTriggerSideMenu.includes(option.type))) {
         it('should not show Right Menu when user is on the mobile/narrow screen', async function() {
           await gu.enableTips(session.email);
           //close right panel just in case.
@@ -958,7 +958,7 @@ describe('GridViewNewColumnMenu', function () {
 
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
-                                                el => el.getText());
+            el => el.getText());
           switch(column) {
             case "Age":
               assert.deepEqual(functions, ['sum', 'average', 'min', 'max']);
@@ -1076,7 +1076,7 @@ describe('GridViewNewColumnMenu', function () {
 
           // Make sure we see proper list.
           const functions = await driver.findAll('.test-new-columns-menu-revlookup-column-function',
-                                                el => el.getText());
+            el => el.getText());
           switch(column) {
             case "Age":
               assert.deepEqual(functions, ['sum', 'average', 'min', 'max']);

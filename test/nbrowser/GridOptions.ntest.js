@@ -15,7 +15,7 @@ describe("GridOptions.ntest", function() {
 
   let secNames = ["COUNTRY", "CITY", "COUNTRYLANGUAGE"];
   let switchTo = (i) =>
-        gu.actions.viewSection(secNames[i]).selectSection();
+    gu.actions.viewSection(secNames[i]).selectSection();
 
   /* Test that styles on the given section match the specified flags
    * sec: index into secNames
@@ -23,7 +23,7 @@ describe("GridOptions.ntest", function() {
    */
   async function assertHVZ(sec, hor, vert, zebra) {
     let testClasses =
-        ['record-hlines', 'record-vlines', 'record-zebra'];
+      ['record-hlines', 'record-vlines', 'record-zebra'];
     let flags = [hor, vert, zebra];
 
     let cell = await gu.getCell({rowNum: 1, col: 0, section: secNames[sec]});
@@ -119,7 +119,7 @@ describe("GridOptions.ntest", function() {
 
   it('should set .record-even on even-numbered rows', async function() {
     let rowClasses = row =>
-        gu.getCell({rowNum: row, col: 0}).closest('.record').classList();
+      gu.getCell({rowNum: row, col: 0}).closest('.record').classList();
 
     await switchTo(0);
     assert.notInclude(await rowClasses(1), 'record-even', "row 1 should be odd");

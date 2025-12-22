@@ -120,7 +120,7 @@ export class FieldEditor extends Disposable {
         this._isFormula  = true;
         editValue = gutil.removePrefix(startVal, '=') as string;
       }
- else {
+      else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
         offerToMakeFormula = true;
       }
@@ -136,7 +136,7 @@ export class FieldEditor extends Disposable {
           // was re-sorted after editing.
           if (!jumped) { commands.allCommands.fieldEditSave.run(); }
         })
-        .catch(reportError);
+          .catch(reportError);
       },
       fieldEditSaveHere: () => { this._saveEdit().catch(reportError); },
       fieldEditCancel: () => { this._cancelEdit(); },
@@ -191,7 +191,7 @@ export class FieldEditor extends Disposable {
     if (!options.readonly) {
       setupEditorCleanup(this, this._gristDoc, this._field.editingFormula, onCleanup);
     }
- else {
+    else {
       setupReadonlyEditorCleanup(this, this._gristDoc, this._field, () => this._cancelEdit());
     }
   }
@@ -217,7 +217,7 @@ export class FieldEditor extends Disposable {
     if (this._isFormula) {
       cellValue = column.formula();
     }
- else if (Array.isArray(cellCurrentValue) && cellCurrentValue[0] === 'C') {
+    else if (Array.isArray(cellCurrentValue) && cellCurrentValue[0] === 'C') {
       // This cell value is censored by access control rules
       // Really the rules should also block editing, but in case they don't, show a blank value
       // rather than a 'C'. However if the user tries to edit the cell and then clicks away
@@ -225,7 +225,7 @@ export class FieldEditor extends Disposable {
       // We should probably just automatically block updates where reading is not allowed.
       cellValue = '';
     }
- else {
+    else {
       cellValue = cellCurrentValue;
     }
 
@@ -334,7 +334,7 @@ export class FieldEditor extends Disposable {
         this.rebuildEditor(editor.getTextValue(), 0);
         return false;
       }
- else {
+      else {
         // If we typed '=' on a non-empty column, only suggest to convert it to a formula.
         this._offerToMakeFormula();
       }
@@ -426,13 +426,13 @@ export class FieldEditor extends Disposable {
           ]);
         }
       }
- else {
+      else {
         const value = editor.getCellValue();
         if (col.isRealFormula()) {
           // tslint:disable-next-line:no-console
           console.warn(t("It should be impossible to save a plain data value into a formula column"));
         }
- else {
+        else {
           // This could still be an isFormula column if it's empty (isEmpty is true), but we don't
           // need to toggle isFormula in that case, since the data engine takes care of that.
           waitPromise = setAndSave(this._editRow, this._field, value);

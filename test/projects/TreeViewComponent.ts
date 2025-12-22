@@ -17,12 +17,12 @@ describe('TreeViewComponent', () => {
       ['Page1', 'Page2', 'Page3', 'Page4', 'Page5', 'Page6']);
     // check pages shown with right indentation
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
-                                          e => e.getCssValue('width')),
-      ['0px', '10px', '10px', '20px', '0px', '0px']);
+      e => e.getCssValue('width')),
+    ['0px', '10px', '10px', '20px', '0px', '0px']);
     // check pages shown with correct arrows
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
-        async e => await e.getCssValue('visibility') === 'visible'),
-      [true, false, true, false, false, false]);
+      async e => await e.getCssValue('visibility') === 'visible'),
+    [true, false, true, false, false, false]);
   });
 
   it('should reflect model update', async function() {
@@ -31,22 +31,22 @@ describe('TreeViewComponent', () => {
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper', e => e.getText()),
       ['Page1', 'Page2', 'Page3', 'Page4', 'Page5', 'Page6', 'New Page']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
-                                          e => e.getCssValue('width')),
-      ['0px', '10px', '10px', '20px', '0px', '0px', '0px']);
+      e => e.getCssValue('width')),
+    ['0px', '10px', '10px', '20px', '0px', '0px', '0px']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
-        async e => await e.getCssValue('visibility') === 'visible'),
-      [true, false, true, false, false, false, false]);
+      async e => await e.getCssValue('visibility') === 'visible'),
+    [true, false, true, false, false, false, false]);
 
     // test insertion in a subfolder
     await driver.find('input.subInsert').doClick();
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper', e => e.getText()),
       ['Page1', 'Page2', 'Page3', 'Page4', 'New Page 5', 'Page5', 'Page6', 'New Page']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
-                                          e => e.getCssValue('width')),
-      ['0px', '10px', '10px', '20px', '10px', '0px', '0px', '0px']);
+      e => e.getCssValue('width')),
+    ['0px', '10px', '10px', '20px', '10px', '0px', '0px', '0px']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
-        async e => await e.getCssValue('visibility') === 'visible'),
-      [true, false, true, false, false, false, false, false]);
+      async e => await e.getCssValue('visibility') === 'visible'),
+    [true, false, true, false, false, false, false, false]);
 
     // removing the last of a group should remove the arrow of that group.
     assert.deepEqual(await findItem(/Page3/).find('.test-treeview-itemArrow').getCssValue('visibility'), 'visible');
@@ -71,7 +71,7 @@ describe('TreeViewComponent', () => {
     // check that Page2 is being dragged
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper.dragged', e => e.getText()), ['Page2']);
 
-     // moving cursor few pixels up should moves handle same amount up
+    // moving cursor few pixels up should moves handle same amount up
     const oldTop = (await handle.rect()).top;
     // 1px
     await driver.mouseMoveBy({y: 1});
@@ -336,20 +336,20 @@ describe('TreeViewComponent', () => {
     await driver.find('input.reset').doClick();
 
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
-                                          e => e.getCssValue('display')),
-      ['block', 'block', 'block', 'block', 'block', 'block']);
+      e => e.getCssValue('display')),
+    ['block', 'block', 'block', 'block', 'block', 'block']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
-        e => e.getCssValue('display')),
-      ['flex', 'flex', 'flex', 'flex', 'flex', 'flex']);
+      e => e.getCssValue('display')),
+    ['flex', 'flex', 'flex', 'flex', 'flex', 'flex']);
 
     await driver.find('input.isOpen').doClick();
 
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-offset',
-                                          e => e.getCssValue('display')),
-      ['none', 'none', 'none', 'none', 'none', 'none']);
+      e => e.getCssValue('display')),
+    ['none', 'none', 'none', 'none', 'none', 'none']);
     assert.deepEqual(await driver.findAll('.test-treeview-itemHeaderWrapper .test-treeview-itemArrow',
-        e => e.getCssValue('display')),
-      ['none', 'none', 'none', 'none', 'none', 'none']);
+      e => e.getCssValue('display')),
+    ['none', 'none', 'none', 'none', 'none', 'none']);
 
     // un-flatten the tree
     await driver.find('input.isOpen').doClick();
@@ -470,7 +470,7 @@ describe('TreeViewComponent', () => {
 });
 
 function startDrag(item: RegExp) {
- return driver.withActions(actions => actions
+  return driver.withActions(actions => actions
     .move({origin: findItem(item)})
     .move({origin: findItem(item).find('.test-treeview-handle')})
     .press());
@@ -486,7 +486,7 @@ async function moveTo(item: RegExp, opt: {y: number} = {y: 0}) {
 }
 
 async function assertTargetPos(targetRect: ClientRect, zone: 'above'|'below',
-                               item: {header: ClientRect, label: ClientRect}) {
+  item: {header: ClientRect, label: ClientRect}) {
   // on the left, the target should starts where the label starts
   assert.closeTo(targetRect.left, item.label.left, 1, 'wrong left offset');
   // on the right, the target should end at the end of the header
@@ -501,7 +501,7 @@ function findItem(pattern: RegExp) {
 async function findItemRectangles(pattern: RegExp) {
   const item = findItem(pattern);
   return {header: await item.find('.test-treeview-itemHeader').rect(),
-          label: await item.find('.test-treeview-label').rect()};
+    label: await item.find('.test-treeview-label').rect()};
 }
 
 function findTarget() {

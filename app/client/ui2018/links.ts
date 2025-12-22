@@ -97,13 +97,13 @@ export function makeLinks(text: string) {
       if (isLink) {
         domElements.push(gristIconLink(value));
       }
- else {
+      else {
         domElements.push(value);
       }
     }
     return domElements;
   }
- catch(ex) {
+  catch(ex) {
     // In case when something went wrong, simply log and return original text, as showing
     // links is not that important.
     console.warn("makeLinks failed", ex);
@@ -133,7 +133,7 @@ function withAclAsUserParam(href: string) {
     }
     hrefWithParams = url.href;
   }
- catch {
+  catch {
     return href;
   }
 

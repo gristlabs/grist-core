@@ -164,12 +164,12 @@ describe('koForm', function() {
 
       // Ensure that after delay value were changed
       return clientUtil.waitForChange(obs, 350)
-      .then(() => {
-        assert.equal(obs(), 'helloworld');
-        assert.equal(input.value, 'helloworld');
-        // Ensure that selection is the same and cursor didn't jump to the end
-        assert.equal(input.value.substring(input.selectionStart, input.selectionEnd), 'lowo');
-      });
+        .then(() => {
+          assert.equal(obs(), 'helloworld');
+          assert.equal(input.value, 'helloworld');
+          // Ensure that selection is the same and cursor didn't jump to the end
+          assert.equal(input.value.substring(input.selectionStart, input.selectionEnd), 'lowo');
+        });
     });
   });
 

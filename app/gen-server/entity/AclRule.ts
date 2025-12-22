@@ -1,5 +1,5 @@
 import {BaseEntity, ChildEntity, Column, Entity, JoinColumn, ManyToOne, OneToOne,
-        PrimaryGeneratedColumn, RelationId, TableInheritance} from "typeorm";
+  PrimaryGeneratedColumn, RelationId, TableInheritance} from "typeorm";
 
 import {Document} from "app/gen-server/entity/Document";
 import {Group} from "app/gen-server/entity/Group";

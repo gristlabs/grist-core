@@ -42,5 +42,5 @@ export function getCollapsedSection(section: string|RegExp) {
     section = gu.exactMatch(section, 'i');
   }
   return driver.findContentWait('.test-collapsed-section .test-collapsed-section-title', section, 100)
-               .findClosest('.test-collapsed-section');
+    .findClosest('.test-collapsed-section');
 }

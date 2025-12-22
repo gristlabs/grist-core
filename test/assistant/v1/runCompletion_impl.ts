@@ -172,62 +172,62 @@ export async function runCompletion() {
           where c.colId = ?
             and t.tableId = ?
         `, rec.col_id, rec.table_id);
-          formula = colInfo?.formula;
+        formula = colInfo?.formula;
 
-          const result = await assistant!.getAssistance(session, activeDoc, {
-            conversationId: 'conversationId',
-            context: {
-              tableId,
-              colId,
-              evaluateCurrentFormula: Boolean(followUp) && FOLLOWUP_EVALUATE,
-              rowId,
-            },
-            state: history,
-            text: followUp || description,
-          });
-          if (result.state) {
-            history = result.state;
-          }
-          if (rec.no_formula == "1") {
-            success = result.suggestedActions.length === 0;
-            return;
-          }
-          suggestedActions = result.suggestedActions;
-          if (!suggestedActions.length) {
-            success = false;
-            return;
-          }
+        const result = await assistant!.getAssistance(session, activeDoc, {
+          conversationId: 'conversationId',
+          context: {
+            tableId,
+            colId,
+            evaluateCurrentFormula: Boolean(followUp) && FOLLOWUP_EVALUATE,
+            rowId,
+          },
+          state: history,
+          text: followUp || description,
+        });
+        if (result.state) {
+          history = result.state;
+        }
+        if (rec.no_formula == "1") {
+          success = result.suggestedActions.length === 0;
+          return;
+        }
+        suggestedActions = result.suggestedActions;
+        if (!suggestedActions.length) {
+          success = false;
+          return;
+        }
 
-          // apply modification
-          const {actionNum} = await activeDoc.applyUserActions(session, suggestedActions);
+        // apply modification
+        const {actionNum} = await activeDoc.applyUserActions(session, suggestedActions);
 
-          // get new values
-          newValues = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
+        // get new values
+        newValues = activeDoc.docData!.getTable(rec.table_id)!.getColValues(rec.col_id)!.slice();
 
-          // compare values
-          success = isEqual(expected, newValues);
+        // compare values
+        success = isEqual(expected, newValues);
 
-          if (!success && SIMULATE_CONVERSATION) {
-            for (let i = 0; i < expected.length; i++) {
-              const e = expected[i];
-              const v = newValues[i];
-              if (String(e) !== String(v)) {
-                const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
+        if (!success && SIMULATE_CONVERSATION) {
+          for (let i = 0; i < expected.length; i++) {
+            const e = expected[i];
+            const v = newValues[i];
+            if (String(e) !== String(v)) {
+              const txt = `I got \`${v}\` where I expected \`${e}\`\n` +
                   'Please answer with the code block you (the assistant) just gave, ' +
                   'revised based on this information. Your answer must include a code ' +
                   'block. If you have to explain anything, do it after.\n';
-                const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
-                const rowId = rowIds[i];
-                if (followUp) {
-                  lastFollowUp = txt;
-                }
- else {
-                  await sendMessage(txt, rowId);
-                }
-                break;
+              const rowIds = activeDoc.docData!.getTable(rec.table_id)!.getRowIds();
+              const rowId = rowIds[i];
+              if (followUp) {
+                lastFollowUp = txt;
               }
+              else {
+                await sendMessage(txt, rowId);
+              }
+              break;
             }
           }
+        }
         // revert modification
         const [bundle] = await activeDoc.getActions([actionNum]);
         await activeDoc.applyUserActionsById(session, [bundle!.actionNum], [bundle!.actionHash!], true);
@@ -236,7 +236,7 @@ export async function runCompletion() {
       try {
         await sendMessage();
       }
- catch (e) {
+      catch (e) {
         console.error(e);
       }
 
@@ -246,7 +246,7 @@ export async function runCompletion() {
       if (success) {
         successCount++;
       }
- else {
+      else {
         // TODO: log the difference between expected and actual, similar to what mocha does on
         // failure.
         // console.log('expected=', expected);
@@ -271,7 +271,7 @@ export async function runCompletion() {
       caseCount++;
     }
   }
- finally {
+  finally {
     await docTools.after();
     log.transports.file.level = 'debug';
     console.log(`Ai assistance requests stats: ${fetcher.callCount} calls`);

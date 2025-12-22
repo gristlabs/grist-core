@@ -80,7 +80,7 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
       sectionsCount++;
     }
   }
- else {
+  else {
     await cycle();
     await assertPanelFocus('main');
   }
@@ -96,7 +96,7 @@ const assertCycleThroughRegions = async ({ sections = 1 }: { sections?: number }
       sectionsCount++;
     }
   }
- else {
+  else {
     await cycle('backward');
     await assertPanelFocus('main');
   }

@@ -174,8 +174,8 @@ class SaveableSetup extends Disposable {
             testId('strikethrough-server-value'),
           ),
           dom('input', {type: 'button', value: 'Update'}, testId('server-update'),
-              dom.on('click', () => this.onServerUpdate()),
-              testId('server-update')),
+            dom.on('click', () => this.onServerUpdate()),
+            testId('server-update')),
         ),
         cssItem(
           dom('h3', dom.text('Client')),
@@ -193,22 +193,22 @@ class SaveableSetup extends Disposable {
             ),
           ),
           colorSelect({
-              textColor: new ColorOption({color:this.textColor}),
-              fillColor: new ColorOption({color:this.fillColor}),
-              fontBold: this.fontBold,
-              fontItalic: this.fontItalic,
-              fontUnderline: this.fontUnderline,
-              fontStrikethrough: this.fontStrikethrough,
-            }, {
-              onSave: () => this.makeSaveCall(),
-            }),
+            textColor: new ColorOption({color:this.textColor}),
+            fillColor: new ColorOption({color:this.fillColor}),
+            fontBold: this.fontBold,
+            fontItalic: this.fontItalic,
+            fontUnderline: this.fontUnderline,
+            fontStrikethrough: this.fontStrikethrough,
+          }, {
+            onSave: () => this.makeSaveCall(),
+          }),
         ),
       ),
       testBox(
         cssItem(
           dom('div', "Call Log"),
           dom('ul', testId('call-log'),
-              dom.forEach(this.callLog, val => dom('li', val))),
+            dom.forEach(this.callLog, val => dom('li', val))),
         ),
       ),
     ];

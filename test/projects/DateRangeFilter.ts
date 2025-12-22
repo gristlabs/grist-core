@@ -119,7 +119,7 @@ describe('DateRangeFilter', function() {
 
     // check 19, 22, 31 have .range class
     assert.deepEqual(await fu.findCalendarDates('.range'),
-                     range(19, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
+      range(19, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
   });
 
   it('should show infinite range when min is unbound', async function() {
@@ -133,7 +133,7 @@ describe('DateRangeFilter', function() {
 
     // check 1, 3, 8 have .range class
     assert.deepEqual(await fu.findCalendarDates('.range'),
-                     [28, 29, 30, 31].concat(range(1, 18)).map(n => n.toString()));
+      [28, 29, 30, 31].concat(range(1, 18)).map(n => n.toString()));
   });
 
   it('should allow to convert to relative date', async function() {
@@ -149,7 +149,7 @@ describe('DateRangeFilter', function() {
     // check range is still correct
     assert.deepEqual(await fu.findCalendarDates('.range-start'), ['18']);
     assert.deepEqual(await fu.findCalendarDates('.range'),
-                     range(19, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
+      range(19, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
 
     // check menus till offer 2 days ago
     await fu.openRelativeOptionsMenu('min');
@@ -170,7 +170,7 @@ describe('DateRangeFilter', function() {
     // check range is still correct
     assert.deepEqual(await fu.findCalendarDates('.range-start'), ['24']);
     assert.deepEqual(await fu.findCalendarDates('.range'),
-                     range(25, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
+      range(25, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
 
     // check menus still offer 4 days from now
     await fu.openRelativeOptionsMenu('min');
@@ -229,7 +229,7 @@ describe('DateRangeFilter', function() {
     // check range is still correct
     assert.deepEqual(await fu.findCalendarDates('.range-start'), ['18']);
     assert.deepEqual(await fu.findCalendarDates('.range'),
-                     range(19, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
+      range(19, 31).concat([1, 2, 3, 4, 5, 6, 7, 8]).map(n => n.toString()));
   });
 
   it('should update relative date', async function() {

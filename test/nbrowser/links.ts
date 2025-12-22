@@ -65,7 +65,7 @@ describe("links", function () {
         assert.equal(await driver.getCurrentUrl(), href.split("#")[0]);
       }, 1000);
     }
- finally {
+    finally {
       await driver.close();
       await driver.switchTo().window(currentTab);
     }
@@ -76,10 +76,10 @@ describe("links", function () {
       if (type === "TextBox") {
         return href;
       }
- else if (type === "HyperLink") {
+      else if (type === "HyperLink") {
         return `Link ${href}`;
       }
- else {
+      else {
         return `[Link](${href})`;
       }
     }
@@ -105,7 +105,7 @@ describe("links", function () {
             "https://google.com/",
           );
         }
- else {
+        else {
           assert.isFalse(await gu.getCell(0, 1).find("a").isPresent());
         }
       });
@@ -120,7 +120,7 @@ describe("links", function () {
             type === "Markdown" ? null : "about:blank",
           );
         }
- else {
+        else {
           assert.isFalse(await gu.getCell(0, 1).find("a").isPresent());
         }
       });

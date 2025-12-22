@@ -8,10 +8,10 @@ import { optimize } from 'svgo';
 
 async function main() {
   program
-  .description('Generate CSS library of icons')
-  .usage('[options] <paths...>')
-  .option('-t --tsfile [tsfile]', 'Output TypeScript type definition')
-  .parse(process.argv);
+    .description('Generate CSS library of icons')
+    .usage('[options] <paths...>')
+    .option('-t --tsfile [tsfile]', 'Output TypeScript type definition')
+    .parse(process.argv);
 
   const inputPaths = program.args;
 

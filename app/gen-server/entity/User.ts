@@ -3,7 +3,7 @@ import {UserType} from 'app/common/User';
 import {nativeValues} from 'app/gen-server/lib/values';
 import {makeId} from 'app/server/lib/idUtils';
 import {BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne,
-        PrimaryGeneratedColumn} from "typeorm";
+  PrimaryGeneratedColumn} from "typeorm";
 
 import {Group} from "app/gen-server/entity/Group";
 import {Login} from "app/gen-server/entity/Login";

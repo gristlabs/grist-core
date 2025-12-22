@@ -144,7 +144,7 @@ export class DataTables extends Disposable {
         ].filter(p => Boolean(p?.trim())).join(' ');
         return cssTableName(tableName);
       }
- else {
+      else {
         return cssFlexRow(
           dom.domComputed(fromKo(table.rawViewSection), vs =>
             buildTableName(vs, {isEditing}, cssRenamableTableName.cls(''), testId('widget-title')),
@@ -205,7 +205,7 @@ export class DataTables extends Disposable {
               if (isDisabled) {
                 await this._enableRecordCard(table);
               }
- else {
+              else {
                 await this._disableRecordCard(table);
               }
             },

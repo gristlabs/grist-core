@@ -41,7 +41,7 @@ async function assertRole(name: string, roleLabel: string|null, inherited: boole
   if (!roleLabel) {
     assert.isTrue(!(await row.isPresent()) || await row.find(".test-um-member-undo").isPresent());
   }
- else {
+  else {
     assert.equal(await row.find(`.test-um-member-role`).getText(), roleLabel);
     if (inherited !== null) {
       await row.find(`.test-um-member-role`).click();
@@ -62,7 +62,7 @@ const assertAccessDetails = stackWrapFunc(async function(name: string, role: str
   if (annotation) {
     assert.equal(await row.find('.test-um-member-annotation').getText(), annotation);
   }
- else {
+  else {
     assert.isFalse(await row.find('.test-um-member-annotation').isPresent());
   }
 });
@@ -836,7 +836,7 @@ describe('UserManager', function() {
       assert.includeMembers(docUsers, ['mario@getgrist.com']);
       assert.notInclude(docUsers, 'luigi@getgrist.com');
     }
- finally {
+    finally {
       // Remove users we added.
       await api.updateOrgPermissions('current', {
         users: fromPairs(users.map(u => [`${u}@getgrist.com`, null])),

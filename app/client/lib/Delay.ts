@@ -13,9 +13,9 @@ export class Delay extends Disposable {
    * E.g. wrapWithDelay(10, cb)(1,2,3) will call cb(1,2,3) in 10ms.
    */
   public static wrapWithDelay(ms: number, cb: (this: void, ...args: any[]) => any,
-                              optContext?: any): (...args: any[]) => void;
+    optContext?: any): (...args: any[]) => void;
   public static wrapWithDelay<T>(ms: number, cb: (this: T, ...args: any[]) => any,
-                                 optContext: T): (...args: any[]) => void {
+    optContext: T): (...args: any[]) => void {
     return function(this: any, ...args: any[]) {
       const ctx = optContext || this;
       setTimeout(() => cb.apply(ctx, args), ms);
@@ -27,9 +27,9 @@ export class Delay extends Disposable {
    * returned callback may be disposed to cancel the delayed execution.
    */
   public static untilAnimationFrame(cb: (this: void, ...args: any[]) => void,
-                                    optContext?: any): DisposableCB;
+    optContext?: any): DisposableCB;
   public static untilAnimationFrame<T>(cb: (this: T, ...args: any[]) => void,
-                                       optContext: T): DisposableCB {
+    optContext: T): DisposableCB {
     let reqId: number|null = null;
     const f = function(...args: any[]) {
       if (reqId === null) {

@@ -15,7 +15,7 @@ export class OnDemandActions extends AlternateActions {
   private _columnsMeta: TableData = this._docData.getMetaTable('_grist_Tables_column');
 
   constructor(_storage: OnDemandStorage, private _docData: DocData,
-              private _forceOnDemand: boolean = false) {
+    private _forceOnDemand: boolean = false) {
     super(_storage);
   }
 

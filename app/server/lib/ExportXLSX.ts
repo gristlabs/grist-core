@@ -40,7 +40,7 @@ const exportPool = new Piscina({
  * Converts `activeDoc` to XLSX and sends to the given outputStream.
  */
 export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
-                                 outputStream: Writable, options: ExportParameters) {
+  outputStream: Writable, options: ExportParameters) {
   log.debug(`Generating .xlsx file`);
   const testDates = (req.hostname === 'localhost');
 
@@ -78,13 +78,13 @@ export async function streamXLSX(activeDoc: ActiveDoc, req: express.Request,
       await run('makeXLSXFromOptions', options);
       log.debug('XLSX file generated');
     }
- catch (e) {
+    catch (e) {
       // We fiddle with errors in workerExporter to preserve extra properties like 'status'. Make
       // the result an instance of Error again here (though we won't know the exact class).
       throw (e instanceof Error) ? e : Object.assign(new Error(e.message), e);
     }
   }
- finally {
+  finally {
     port1.close();
     port2.close();
   }

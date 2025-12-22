@@ -50,14 +50,14 @@ export class DateTimeEditor extends DateEditor {
       if (!isValid) {
         // do nothing - DateEditor will show correct error
       }
- else {
+      else {
         // append time format or a placeholder
         const time = (formatted || placeholder);
         const sep = time ? ' ' : '';
         this.textInput.value = this.textInput.value + sep + time;
       }
     }
- else {
+    else {
       const widgetElem = this.getDom();
       dom.update(widgetElem, dom.cls('celleditor_datetime'));
       dom.update(this.cellEditorDiv, dom.cls('celleditor_datetime_editor'));
@@ -84,7 +84,7 @@ export class DateTimeEditor extends DateEditor {
         this._timeInput.value = time;
         this._onChange();
       }
- catch(e) {
+      catch(e) {
         console.error("DateTimeEditor can't restore its previous state");
       }
     }

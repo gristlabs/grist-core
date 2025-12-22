@@ -11,7 +11,7 @@ export type ColumnFilterFunc = (value: CellValue) => boolean;
 // Returns a filter function for a particular column: the function takes a cell value and returns
 // whether it's accepted according to the given FilterState.
 export function makeFilterFunc(state: FilterState,
-                               columnType: string = ''): ColumnFilterFunc {
+  columnType: string = ''): ColumnFilterFunc {
 
   if (isRangeFilter(state)) {
     let {min, max} = state;
@@ -32,7 +32,7 @@ export function makeFilterFunc(state: FilterState,
         );
       };
     }
- else {
+    else {
       // Although it is not possible to set a range filter for non numeric columns, this still can
       // happen as a result of a column type conversion. In this case, let's include all values.
       return () => true;
@@ -59,15 +59,15 @@ export function makeFilterFunc(state: FilterState,
 
 // Given a JSON string, returns a ColumnFilterFunc
 export function buildColFilter(filterJson: string | undefined,
-                               columnType?: string): ColumnFilterFunc | null {
+  columnType?: string): ColumnFilterFunc | null {
   return filterJson ? makeFilterFunc(makeFilterState(filterJson), columnType) : null;
 }
 
 // Returns the unix timestamp for date in timezone. Function support relative date. Also support
 // optional mod argument that let you modify date as a moment instance.
 function changeTimezone(date: IRangeBoundType,
-                        timezone: string,
-                        mod: (m: Moment) => void = noop): number|undefined {
+  timezone: string,
+  mod: (m: Moment) => void = noop): number|undefined {
   if (date === undefined) { return undefined; }
   const val = isRelativeBound(date) ? relativeDateToUnixTimestamp(date) : date;
   const m = moment.tz(val * 1000, timezone);

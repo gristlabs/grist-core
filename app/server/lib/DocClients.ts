@@ -112,8 +112,8 @@ export class DocClients extends EventEmitter {
    * @param {Object} filterMessage: Optional callback to filter message per client.
    */
   public async broadcastDocMessage(client: Client|null, type: CommDocEventType, messageData: any,
-                                   filterMessage?: (docSession: DocSession,
-                                                    messageData: any) => Promise<any>): Promise<void> {
+    filterMessage?: (docSession: DocSession,
+      messageData: any) => Promise<any>): Promise<void> {
     const send = async (target: DocSession) => {
       const msg = await this._prepareMessage(target, type, messageData, filterMessage);
       if (msg) {
@@ -136,7 +136,7 @@ export class DocClients extends EventEmitter {
     if (Deps.BROADCAST_ORDER === 'parallel') {
       await Promise.all(this._docSessions.map(send));
     }
- else {
+    else {
       for (const session of this._docSessions) {
         await send(session);
       }
@@ -161,27 +161,27 @@ export class DocClients extends EventEmitter {
       if (!filterMessage) {
         return {type, data: messageData};
       }
- else {
+      else {
         try {
           const filteredMessageData = await filterMessage(target, messageData);
           if (filteredMessageData) {
             return {type, data: filteredMessageData};
           }
- else {
+          else {
             this._log.debug(target, 'skip broadcastDocMessage because it is not allowed for this client');
           }
         }
- catch (e) {
+        catch (e) {
           if (e.code && e.code === 'NEED_RELOAD') {
             return {type: 'docShutdown', data: null};
           }
- else {
+          else {
             return {type: 'docUserAction', data: {error: String(e)}};
           }
         }
       }
     }
- catch (e) {
+    catch (e) {
       if (e.code === 'AUTH_NO_VIEW') {
         // Skip sending data to this user, they have no view access.
         this._log.debug(target, 'skip broadcastDocMessage because AUTH_NO_VIEW');
@@ -189,7 +189,7 @@ export class DocClients extends EventEmitter {
         // access again later.
         return {type: 'docShutdown', data: null};
       }
- else {
+      else {
         // Propagate any totally unexpected exceptions.
         throw e;
       }

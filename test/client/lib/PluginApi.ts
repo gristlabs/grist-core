@@ -39,7 +39,7 @@ describe('PluginApi', function () {
     assert.deepEqual(mapColumnNames(record, {mappings, columns}), {id: 1, Foo: 1, Bar: [1, 2], Baz: 2});
     assert.deepEqual(mapColumnNames([record], {mappings, columns}), [{id: 1, Foo: 1, Bar: [1, 2], Baz: 2}]);
     assert.deepEqual(mapColumnNamesBack([{id: 1, Foo: 1, Bar: [1, 2], Baz: 5}], {mappings, columns}),
-                     [{id: 1, A: 1, B: 5}]);
+      [{id: 1, A: 1, B: 5}]);
   });
   it('should ignore when there are not mappings requested', function () {
     const columns: ColumnsToMap|undefined = undefined;

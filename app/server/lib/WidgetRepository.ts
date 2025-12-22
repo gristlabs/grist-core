@@ -41,8 +41,8 @@ export interface IWidgetRepository {
  */
 export class DiskWidgetRepository implements IWidgetRepository {
   constructor(private _widgetFile: string,
-              private _widgetBaseUrl: string,
-              private _source?: any) {}
+    private _widgetBaseUrl: string,
+    private _source?: any) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
     const txt = await fse.readFile(this._widgetFile, { encoding: 'utf8' });
@@ -100,7 +100,7 @@ export class CombinedWidgetRepository implements IWidgetRepository {
  */
 export class UrlWidgetRepository implements IWidgetRepository {
   constructor(private _staticUrl = Deps.STATIC_URL,
-              private _required: boolean = true) {}
+    private _required: boolean = true) {}
 
   public async getWidgets(): Promise<ICustomWidget[]> {
     if (!this._staticUrl) {
@@ -117,7 +117,7 @@ export class UrlWidgetRepository implements IWidgetRepository {
         if (response.status === 404) {
           throw new ApiError('WidgetRepository: Remote widget list not found', 404);
         }
- else {
+        else {
           const body = await response.text().catch(() => '');
           throw new ApiError(
             `WidgetRepository: Remote server returned an error: ${body || response.statusText}`, response.status,
@@ -131,14 +131,14 @@ export class UrlWidgetRepository implements IWidgetRepository {
       fixUrls(widgets, this._staticUrl);
       return widgets;
     }
- catch (err) {
+    catch (err) {
       if (this._required) {
         if (!(err instanceof ApiError)) {
           throw new ApiError(String(err), 500);
         }
         throw err;
       }
- else {
+      else {
         log.error("WidgetRepository: Error fetching widget list - " +
             String(err));
         return [];
@@ -192,7 +192,7 @@ export class WidgetRepositoryImpl implements IWidgetRepository {
     if (this._staticUrl) {
       const optional = isAffirmative(process.env.GRIST_WIDGET_LIST_URL_OPTIONAL);
       this._urlWidgets = new UrlWidgetRepository(this._staticUrl,
-                                                 !optional);
+        !optional);
       repos.push(this._urlWidgets);
     }
     if (this._diskWidgets) { repos.push(this._diskWidgets); }
@@ -234,9 +234,9 @@ class CachedWidgetRepository extends WidgetRepositoryImpl {
  * Returns widget repository implementation.
  */
 export function buildWidgetRepository(gristServer?: GristServer,
-                                      options?: {
-                                        localOnly: boolean
-                                      }) {
+  options?: {
+    localOnly: boolean
+  }) {
   return new CachedWidgetRepository({
     gristServer,
     ...(options?.localOnly ? { staticUrl: '' } : undefined),
@@ -269,7 +269,7 @@ export interface CustomWidgetsInPlugin {
  * Get a list of widgets available locally via plugins.
  */
 export function getWidgetsInPlugins(gristServer: GristServer,
-                                    pluginUrl?: string) {
+  pluginUrl?: string) {
   const places: CustomWidgetsInPlugin[] = [];
   const plugins = gristServer.getPlugins();
   pluginUrl = pluginUrl ?? gristServer.getPluginUrl();
@@ -278,7 +278,7 @@ export function getWidgetsInPlugins(gristServer: GristServer,
     const components = plugin.manifest.components;
     if (!components.widgets) { continue; }
     const urlBase =
-        removeTrailingSlash(pluginUrl) + '/v/' +
+      removeTrailingSlash(pluginUrl) + '/v/' +
         gristServer.getTag() + '/widgets/' + plugin.id + '/';
     places.push({
       urlBase,

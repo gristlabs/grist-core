@@ -199,38 +199,38 @@ describe('CustomView', function() {
         const iframe = gu.getSection('Friends record').find('iframe');
         await driver.switchTo().frame(iframe);
         assert.deepEqual(readJson(await driver.find('#placeholder').getText()),
-                         withAccess({ Name: ["Tom"],
-                                      Favorite_Film: ["Toy Story"],
-                                      Age: ["25"],
-                                      id: [2] }, null));
+          withAccess({ Name: ["Tom"],
+            Favorite_Film: ["Toy Story"],
+            Age: ["25"],
+            id: [2] }, null));
         assert.equal(await driver.find('#rowId').getText(), withAccess('2', ''));
         assert.equal(await driver.find('#tableId').getText(), withAccess('Friends', ''));
         assert.deepEqual(readJson(await driver.find('#records').getText()),
-                         withAccess([{ Name: "Tom",  // not a list!
-                                       Favorite_Film: "Toy Story",
-                                       Age: "25",
-                                       id: 2 }], null));
+          withAccess([{ Name: "Tom",  // not a list!
+            Favorite_Film: "Toy Story",
+            Age: "25",
+            id: 2 }], null));
         await driver.switchTo().defaultContent();
 
         // Switch row in source section, and see if data updates correctly.
         await gu.getCell({section: 'Performances record', col: 0, rowNum: 5}).click();
         await driver.switchTo().frame(iframe);
         assert.deepEqual(readJson(await driver.find('#placeholder').getText()),
-                         withAccess({ Name: ["Roger", "Evan"],
-                                      Favorite_Film: ["Forrest Gump", "Forrest Gump"],
-                                      Age: ["22", "35"],
-                                      id: [1, 5] }, null));
+          withAccess({ Name: ["Roger", "Evan"],
+            Favorite_Film: ["Forrest Gump", "Forrest Gump"],
+            Age: ["22", "35"],
+            id: [1, 5] }, null));
         assert.equal(await driver.find('#rowId').getText(), withAccess('1', ''));
         assert.equal(await driver.find('#tableId').getText(), withAccess('Friends', ''));
         assert.deepEqual(readJson(await driver.find('#records').getText()),
-                         withAccess([{ Name: "Roger",
-                                       Favorite_Film: "Forrest Gump",
-                                       Age: "22",
-                                       id: 1 },
-                                     { Name: "Evan",
-                                       Favorite_Film: "Forrest Gump",
-                                      Age: "35",
-                                       id: 5 }], null));
+          withAccess([{ Name: "Roger",
+            Favorite_Film: "Forrest Gump",
+            Age: "22",
+            id: 1 },
+          { Name: "Evan",
+            Favorite_Film: "Forrest Gump",
+            Age: "35",
+            id: 5 }], null));
         await driver.switchTo().defaultContent();
       });
 
@@ -255,13 +255,13 @@ describe('CustomView', function() {
         const iframe = gu.getSection('Friends custom').find('iframe');
         await driver.switchTo().frame(iframe);
         assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name,
-                         withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
+          withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
         assert.equal(await driver.find('#rowId').getText(), withAccess('1', ''));
         assert.equal(await driver.find('#tableId').getText(), withAccess('Friends', ''));
         assert.equal(readJson(await driver.find('#record').getText())?.Name,
-                     withAccess('Roger', undefined));
+          withAccess('Roger', undefined));
         assert.deepEqual(readJson(await driver.find('#records').getText())?.[0]?.Name,
-                         withAccess('Roger', undefined));
+          withAccess('Roger', undefined));
 
         // Change row in Friends
         await driver.switchTo().defaultContent();
@@ -270,13 +270,13 @@ describe('CustomView', function() {
         // Check that rowId is updated
         await driver.switchTo().frame(iframe);
         assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name,
-                         withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
+          withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
         assert.equal(await driver.find('#rowId').getText(), withAccess('2', ''));
         assert.equal(await driver.find('#tableId').getText(), withAccess('Friends', ''));
         assert.equal(readJson(await driver.find('#record').getText())?.Name,
-                     withAccess('Tom', undefined));
+          withAccess('Tom', undefined));
         assert.deepEqual(readJson(await driver.find('#records').getText())?.[0]?.Name,
-                         withAccess('Roger', undefined));
+          withAccess('Roger', undefined));
         await driver.switchTo().defaultContent();
 
         // Change a cell in Friends
@@ -289,13 +289,13 @@ describe('CustomView', function() {
         // Check the data in view updates
         await driver.switchTo().frame(iframe);
         assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name,
-                         withAccess(['Rabbit', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
+          withAccess(['Rabbit', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
         assert.equal(await driver.find('#rowId').getText(), withAccess('1', ''));
         assert.equal(await driver.find('#tableId').getText(), withAccess('Friends', ''));
         assert.equal(readJson(await driver.find('#record').getText())?.Name,
-                     withAccess('Rabbit', undefined));
+          withAccess('Rabbit', undefined));
         assert.deepEqual(readJson(await driver.find('#records').getText())?.[0]?.Name,
-                         withAccess('Rabbit', undefined));
+          withAccess('Rabbit', undefined));
         await driver.switchTo().defaultContent();
 
         // Select new row and test if custom view has noticed it.
@@ -337,7 +337,7 @@ describe('CustomView', function() {
         await gu.sendKeys(Key.chord(await gu.modKey(), 'z'));
         await gu.waitToPass(async () => {
           assert.deepEqual(readJson(await driver.find('#placeholder').getText())?.Name,
-          withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
+            withAccess(['Roger', 'Tom', 'Sydney', 'Bill', 'Evan', 'Mary'], undefined));
         }, 1000);
 
         await driver.switchTo().defaultContent();
@@ -386,7 +386,7 @@ describe('CustomView', function() {
           assert.equal(cell, 'zap');
           assert.match(outcome, /zap succeeded/);
         }
- else {
+        else {
           assert.notEqual(cell, 'zap');
           assert.match(outcome, /zap failed/);
         }

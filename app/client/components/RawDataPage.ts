@@ -75,7 +75,7 @@ export class RawDataPopup extends Disposable {
     private _gristDoc: GristDoc,
     private _viewSection: ViewSectionRec,
     private _onClose: () => void,
-    ) {
+  ) {
     super();
     const commandGroup = {
       cancel: () => { this._onClose(); },

@@ -74,13 +74,13 @@ export class Gristifier {
         await this._createView(docSession, activeDoc, tableId, Object.keys(table), columnDefs);
         outcomes.push({tableId, viewed: true, reason: 'id complications'});
       }
- else {
+      else {
         await this._registerTable(docSession, activeDoc, tableId, columnDefs);
         if (options.addSort) {
           await this._addManualSort(activeDoc, tableId);
           outcomes.push({tableId, addManualSort: true});
         }
- else {
+        else {
           outcomes.push({tableId});
         }
       }
@@ -138,11 +138,11 @@ export class Gristifier {
       if (options.json) {
         console.log(JSON.stringify(decodedResults, null, 2));
       }
- else {
+      else {
         console.table(decodedResults);
       }
     }
- finally {
+    finally {
       await db.close();
     }
   }
@@ -186,7 +186,7 @@ export class Gristifier {
    * but this is helpful for now.
    */
   private async _createView(docSession: OptDocSession, activeDoc: ActiveDoc, tableId: string,
-                            cols: string[], columnDefs: Record<string, ColInfoWithId>) {
+    cols: string[], columnDefs: Record<string, ColInfoWithId>) {
     const newName = `GristView_${tableId}`;
     function quote(name: string) {
       return quoteIdent(name === 'id' ? 'id2' : name);
@@ -214,7 +214,7 @@ export class Gristifier {
         `${quoteIdent(col)} = NEW.${quote(col)} ` +
         ` WHERE OLD.${quote(col)} <> NEW.${quote(col)} ` +
         ` AND ${quoteIdent(tableId)}.ROWID = NEW.ROWID`,
-              ).join('; ') +
+      ).join('; ') +
       `; END`;
     await activeDoc.docStorage.exec(updateTrigger);
 
@@ -241,10 +241,10 @@ export class Gristifier {
     const id = result.retValues[0].id;
     await activeDoc.docStorage.run('update _grist_Views_section set title = ? ' +
       'where id in (select rawViewSectionRef from _grist_Tables where id = ?)',
-                                   [tableId, id]);
+    [tableId, id]);
     await activeDoc.docStorage.run('update _grist_Views set name = ? ' +
       'where id in (select primaryViewId from _grist_Tables where id = ?)',
-                                   [tableId, id]);
+    [tableId, id]);
   }
 
   private async _getUserTables(): Promise<DBMetadata> {
@@ -270,7 +270,7 @@ export class Gristifier {
   }
 
   private async _registerTable(docSession: OptDocSession, activeDoc: ActiveDoc,
-                               tableId: string, args: Record<string, ColInfoWithId>) {
+    tableId: string, args: Record<string, ColInfoWithId>) {
     delete args.id;
     activeDoc.onlyAllowMetaDataActionsOnDb(true);
     const result = await activeDoc.applyUserActions(docSession, [

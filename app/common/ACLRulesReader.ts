@@ -51,7 +51,7 @@ export class TableWithOverlay<T extends keyof SchemaTypes> {
       // Reroute negative IDs to our local stash of records.
       return this._extraRecordsById.get(id);
     }
- else {
+    else {
       // Everything else, we just pass along.
       return this._originalTable.getRecord(id);
     }
@@ -285,12 +285,12 @@ export class ACLRulesReader {
    * Allow creating records in a table.
    */
   private _shareTableForForm(table: MetaRowRecord<'_grist_Tables'>,
-                             shareContext: ShareContext) {
+    shareContext: ShareContext) {
     const { shareRef } = shareContext;
     const resource = this._findOrAddResource({
       tableId: table.tableId,
       colIds: '*',  // At creation, allow all columns to be
-                    // initialized.
+      // initialized.
     });
     let aclFormula = `user.ShareRef == ${shareRef}`;
     let aclFormulaParsed = JSON.stringify([
@@ -323,13 +323,13 @@ export class ACLRulesReader {
    * Give read access to referenced columns.
    */
   private _shareTableReferencesForForm(table: MetaRowRecord<'_grist_Tables'>,
-                                       shareContext: ShareContext) {
+    shareContext: ShareContext) {
     const { shareRef } = shareContext;
 
     const tables = this.docData.getMetaTable('_grist_Tables');
     const columns = this.docData.getMetaTable('_grist_Tables_column');
     const tableColumns = shareContext.columns.filter(c =>
-        c.parentId === table.id &&
+      c.parentId === table.id &&
         (c.type.startsWith('Ref:') || c.type.startsWith('RefList:')));
     for (const column of tableColumns) {
       let tableId: string;
@@ -345,7 +345,7 @@ export class ACLRulesReader {
         tableId = referencedTable.tableId;
         colId = visibleCol.colId;
       }
- else {
+      else {
         const info = extractInfoFromColType(column.type);
         if (info.type !== 'Ref' && info.type !== 'RefList') {
           // should never happen

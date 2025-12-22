@@ -416,21 +416,21 @@ export const groups: CommendGroupDef[] = [{
   group: 'Selection',
   commands: [
     {
-     name: 'shiftDown',
-     keys: ['Shift+Down'],
-     desc: () => t('Adds the element below the cursor to the selected range'),
+      name: 'shiftDown',
+      keys: ['Shift+Down'],
+      desc: () => t('Adds the element below the cursor to the selected range'),
     }, {
-     name: 'shiftUp',
-     keys: ['Shift+Up'],
-     desc: () => t('Adds the element above the cursor to the selected range'),
+      name: 'shiftUp',
+      keys: ['Shift+Up'],
+      desc: () => t('Adds the element above the cursor to the selected range'),
     }, {
-     name: 'shiftRight',
-     keys: ['Shift+Right'],
-     desc: () => t('Adds the element to the right of the cursor to the selected range'),
+      name: 'shiftRight',
+      keys: ['Shift+Right'],
+      desc: () => t('Adds the element to the right of the cursor to the selected range'),
     }, {
-     name: 'shiftLeft',
-     keys: ['Shift+Left'],
-     desc: () => t('Adds the element to the left of the cursor to the selected range'),
+      name: 'shiftLeft',
+      keys: ['Shift+Left'],
+      desc: () => t('Adds the element to the left of the cursor to the selected range'),
     }, {
       name: 'ctrlShiftDown',
       keys: ['Mod+Shift+Down'],

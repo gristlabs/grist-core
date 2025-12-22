@@ -110,14 +110,14 @@ describe('HomeIntro', function() {
     if (options.team) {
       assert.equal(await driver.find('.test-topbar-manage-team').getText(), 'Manage team');
     }
- else {
+    else {
       assert.equal(await driver.find('.test-topbar-manage-team').isPresent(), false);
     }
 
     if (options.anon) {
       assert.isFalse(await driver.find('.test-welcome-menu').isPresent());
     }
- else {
+    else {
       await driver.find('.test-welcome-menu').click();
       await driver.find('.test-welcome-menu-only-show-documents').click();
       await gu.waitForServer();
@@ -172,7 +172,7 @@ describe('HomeIntro', function() {
         // There is no original of this document.
         assert.equal(await driver.find('.test-open-original').isPresent(), false);
       }
- else {
+      else {
         assert.equal(await driver.find('.test-tb-share-action').isPresent(), false);
       }
     });

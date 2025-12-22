@@ -150,7 +150,7 @@ const {
 } = t.createCheckers(DocApiTypesTI, GristDataTI);
 
 for (const checker of [RecordsPatch, RecordsPost, RecordsPut, ColumnsPost, ColumnsPatch,
-                       SqlPost, TablesPost, TablesPatch]) {
+  SqlPost, TablesPost, TablesPatch]) {
   checker.setReportedPath("body");
 }
 
@@ -172,13 +172,13 @@ function validate(checker: Checker): RequestHandler {
 }
 
 function validateCore(checker: Checker, req: Request, body: any) {
-    try {
-      checker.check(body);
-    }
- catch(err) {
-      log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
-      throw new ApiError('Invalid payload', 400, {userError: String(err)});
-    }
+  try {
+    checker.check(body);
+  }
+  catch(err) {
+    log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
+    throw new ApiError('Invalid payload', 400, {userError: String(err)});
+  }
 }
 
 export class DocWorkerApi {
@@ -201,9 +201,9 @@ export class DocWorkerApi {
     });
 
   constructor(private _app: Application, private _docWorker: DocWorker,
-              private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
-              private _dbManager: HomeDBManager, private _attachmentStoreProvider: IAttachmentStoreProvider,
-              private _grist: GristServer) {}
+    private _docWorkerMap: IDocWorkerMap, private _docManager: DocManager,
+    private _dbManager: HomeDBManager, private _attachmentStoreProvider: IAttachmentStoreProvider,
+    private _grist: GristServer) {}
 
   /**
    * Adds endpoints for the doc api.
@@ -384,19 +384,19 @@ export class DocWorkerApi {
             actions: JSON.stringify([webhookAction]),
           }]]));
         return {
-            unsubscribeKey,
-            triggerId: sandboxRes.retValues[0],
-            webhookId,
+          unsubscribeKey,
+          triggerId: sandboxRes.retValues[0],
+          webhookId,
         };
 
       }
- catch (err) {
+      catch (err) {
 
         // remove webhook
         await this._dbManager.removeWebhook(webhookId, activeDoc.docName, '', false);
         throw err;
       }
- finally {
+      finally {
         await activeDoc.sendWebhookNotification();
       }
     };
@@ -422,7 +422,7 @@ export class DocWorkerApi {
     };
 
     async function getWebhookSettings(activeDoc: ActiveDoc, req: RequestWithLogin,
-                                      webhookId: string|null, webhook: WebhookFields) {
+      webhookId: string|null, webhook: WebhookFields) {
       const metaTables = await getMetaTables(activeDoc, req);
       const tablesTable = activeDoc.docData!.getMetaTable("_grist_Tables");
       const trigger = webhookId ? activeDoc.triggers.getWebhookTriggerRecord(webhookId) : undefined;
@@ -449,7 +449,7 @@ export class DocWorkerApi {
             // if the tableId changed, we need to reset the watchedColIds
             fields.watchedColRefList = [GristObjCode.List];
           }
- else {
+          else {
             if (!tableId) {
               throw new ApiError(`Cannot find columns "${watchedColIds}" because table is not known`, 404);
             }
@@ -460,7 +460,7 @@ export class DocWorkerApi {
               )];
           }
         }
- else {
+        else {
           fields.watchedColRefList = [GristObjCode.List];
         }
         fields.tableRef = tableIdToRef(metaTables, tableId);
@@ -476,11 +476,11 @@ export class DocWorkerApi {
           }
           fields.isReadyColRef = colIdToReference(metaTables, currentTableId, isReadyColumn);
         }
- else {
+        else {
           fields.isReadyColRef = 0;
         }
       }
- else if (tableId) {
+      else if (tableId) {
         // When isReadyColumn is undefined but tableId was changed, let's unset the ready column
         fields.isReadyColRef = 0;
       }
@@ -620,7 +620,7 @@ export class DocWorkerApi {
       try {
         await archive.packInto(res, { endDestStream: false });
       }
- catch(err) {
+      catch(err) {
         // This only behaves sensibly if the 'download' attribute is on the <a> tag.
         // Otherwise you get a poor user experience, such as:
         // - No data written to the stream: open a new tab with a 500 error.
@@ -637,7 +637,7 @@ export class DocWorkerApi {
         if (err?.code === "ERR_STREAM_PREMATURE_CLOSE") {
           log.rawWarn("Client closed archive download stream before completion", meta);
         }
- else {
+        else {
           log.rawError(`Error while packing attachment archive: ${err.stack ?? err.message}`, meta);
         }
       }
@@ -665,7 +665,7 @@ export class DocWorkerApi {
       try {
         res.json(await archivePromise);
       }
- catch(err) {
+      catch(err) {
         if (err instanceof Error && err.message === "Unexpected end of data") {
           throw new Error("File is not a valid .tar");
         }
@@ -858,19 +858,19 @@ export class DocWorkerApi {
           // broken files for diagnosis/recovery.
           return await this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
         }
- catch (e) {
+        catch (e) {
           if (e.message && e.message.match(/does not exist yet/)) {
             // The document has never been seen on file system / s3.  It may be new, so
             // we try again after having created an ActiveDoc for the document.
             await this._getActiveDoc(req);
             return this._docWorker.downloadDoc(req, res, this._docManager.storageManager, filename);
           }
- else {
+          else {
             throw e;
           }
         }
       }
- else {
+      else {
         // If the user is not an owner, we load the document as an ActiveDoc, and then
         // check if the user has download permissions.
         const activeDoc = await this._getActiveDoc(req);
@@ -1019,7 +1019,7 @@ export class DocWorkerApi {
             updateActions.push( ['UpdateRecord', '_grist_Tables_column', id, col.fields] );
             updatedColumnsIds.add( id );
           }
- else {
+          else {
             addActions.push( ['AddVisibleColumn', tableId, col.id, col.fields] );
           }
         }
@@ -1196,7 +1196,7 @@ export class DocWorkerApi {
         if (permanent) {
           this._logDeleteDocumentEvents(req, data);
         }
- else {
+        else {
           this._logRemoveDocumentEvents(req, data);
         }
       }
@@ -1282,7 +1282,7 @@ export class DocWorkerApi {
         if (group.trim() === '') {
           await this._docWorkerMap.removeDocGroup(docId);
         }
- else {
+        else {
           await this._docWorkerMap.updateDocGroup(docId, group);
         }
       }
@@ -1512,7 +1512,7 @@ export class DocWorkerApi {
           params.uploadId = formResult.upload.uploadId;
         }
       }
- else {
+      else {
         params = req.body;
       }
 
@@ -1575,13 +1575,13 @@ export class DocWorkerApi {
       const options: DownloadOptions = (!_.isEmpty(req.query) && !_.isEqual(Object.keys(req.query), ["title"]))
         ? await this._getDownloadOptions(req)
         : {
-        filename: await this._getDownloadFilename(req),
-        tableId: '',
-        viewSectionId: undefined,
-        filters: [],
-        sortOrder: [],
-        header: 'label',
-      };
+          filename: await this._getDownloadFilename(req),
+          tableId: '',
+          viewSectionId: undefined,
+          filters: [],
+          sortOrder: [],
+          header: 'label',
+        };
       await downloadXLSX(activeDoc, req, res, options);
     }));
 
@@ -1592,10 +1592,10 @@ export class DocWorkerApi {
      * usage of the assistant for the billing account in case of success.
      */
     this._app.post('/api/docs/:docId/assistant', canView, withDoc(async (activeDoc, req, res) => {
-        const docSession = docSessionFromRequest(req);
-        const request = req.body;
-        res.json(await activeDoc.getAssistance(docSession, request));
-      }),
+      const docSession = docSessionFromRequest(req);
+      const request = req.body;
+      res.json(await activeDoc.getAssistance(docSession, request));
+    }),
     );
 
     /**
@@ -1628,7 +1628,7 @@ export class DocWorkerApi {
         }
         parameters = formResult.parameters || {};
       }
- else {
+      else {
         parameters = req.body;
       }
 
@@ -1648,7 +1648,7 @@ export class DocWorkerApi {
           asTemplate: optBooleanParam(parameters.asTemplate, 'asTemplate'),
         });
       }
- else if (uploadId !== undefined) {
+      else if (uploadId !== undefined) {
         const result = await this._importDocumentToWorkspace(mreq, {
           userId,
           uploadId,
@@ -1659,13 +1659,13 @@ export class DocWorkerApi {
         docId = result.id;
         this._logImportDocumentEvents(mreq, result);
       }
- else if (workspaceId !== undefined) {
+      else if (workspaceId !== undefined) {
         docId = await this._createNewSavedDoc(req, {
           workspaceId: workspaceId,
           documentName: optStringParam(parameters.documentName, 'documentName'),
         });
       }
- else {
+      else {
         docId = await this._createNewUnsavedDoc(req, {
           userId,
           browserSettings,
@@ -1773,7 +1773,7 @@ export class DocWorkerApi {
 
             refColId = refCol.colId as string;
           }
- else {
+          else {
             refColId = 'id';
           }
           if (!refTableId || typeof refTableId !== 'string' || !refColId) { return []; }
@@ -1839,7 +1839,7 @@ export class DocWorkerApi {
       if (!activeDoc.isTimingOn) {
         res.json({status: 'disabled'});
       }
- else {
+      else {
         const timing =  await activeDoc.getTimings();
         const status = timing ? 'active' : 'pending';
         res.json({status, timing});
@@ -1924,7 +1924,7 @@ export class DocWorkerApi {
       uploadResult = await fetchDoc(this._grist, this._docWorkerMap, sourceDocumentId, req, accessId, asTemplate);
       globalUploadSet.changeUploadName(uploadResult.uploadId, accessId, `${documentName}.grist`);
     }
- catch (err) {
+    catch (err) {
       if ((err as ApiError).status === 403) {
         throw new ApiError('Insufficient access to document to copy it entirely', 403);
       }
@@ -2075,8 +2075,8 @@ export class DocWorkerApi {
    * Access to a document must already have been authorized.
    */
   private _apiThrottle(callback: (req: RequestWithLogin,
-                                  resp: Response,
-                                  next: NextFunction) => void | Promise<void>): RequestHandler {
+    resp: Response,
+    next: NextFunction) => void | Promise<void>): RequestHandler {
     return async (req, res, next) => {
       const docId = getDocId(req);
       try {
@@ -2093,16 +2093,16 @@ export class DocWorkerApi {
 
         await callback(req as RequestWithLogin, res, next);
       }
- catch (err) {
+      catch (err) {
         next(err);
       }
- finally {
+      finally {
         const count = this._currentUsage.get(docId);
         if (count) {
           if (count === 1) {
             this._currentUsage.delete(docId);
           }
- else {
+          else {
             this._currentUsage.set(docId, count - 1);
           }
         }
@@ -2191,14 +2191,14 @@ export class DocWorkerApi {
   }
 
   private async _assertAccess(role: 'viewers'|'editors'|'owners'|null, allowRemovedOrDisabled: boolean,
-                              req: Request, res: Response, next: NextFunction) {
+    req: Request, res: Response, next: NextFunction) {
     const scope = getDocScope(req);
     allowRemovedOrDisabled = scope.showAll || scope.showRemoved || allowRemovedOrDisabled;
     const docAuth = await getOrSetDocAuth(req as RequestWithLogin, this._dbManager, this._grist, scope.urlId);
     if (role) {
- assertAccess(role, docAuth, {
-      allowRemoved: allowRemovedOrDisabled,
-      allowDisabled: allowRemovedOrDisabled});
+      assertAccess(role, docAuth, {
+        allowRemoved: allowRemovedOrDisabled,
+        allowDisabled: allowRemovedOrDisabled});
     }
     next();
   }
@@ -2243,7 +2243,7 @@ export class DocWorkerApi {
         await callback(activeDoc, req as RequestWithLogin, res);
         if (!res.headersSent) { this._checkForMute(activeDoc); }
       }
- catch (err) {
+      catch (err) {
         this._checkForMute(activeDoc);
         throw err;
       }
@@ -2290,7 +2290,7 @@ export class DocWorkerApi {
       this._dbManager.checkQueryResult(result);
       await sendReply(req, res, {...result, data: result.data!.id});
     }
- else {
+    else {
       result = await this._dbManager.softDeleteDocument(scope);
       await sendOkReply(req, res);
     }
@@ -2345,18 +2345,18 @@ export class DocWorkerApi {
         ),
       });
     }
- catch (e) {
+    catch (e) {
       if (e?.code === 'SQLITE_INTERRUPT') {
         res.status(400).json({
           error: "a slow statement resulted in a database interrupt",
         });
       }
- else if (e?.code === 'SQLITE_ERROR') {
+      else if (e?.code === 'SQLITE_ERROR') {
         res.status(400).json({
           error: e?.message,
         });
       }
- else {
+      else {
         throw e;
       }
     }
@@ -2481,8 +2481,8 @@ export class DocWorkerApi {
         ...(snapshotId
           ? { snapshot: { id: snapshotId } }
           : sourceDocId
-          ? { fork: { document_id: sourceDocId } }
-          : undefined),
+            ? { fork: { document_id: sourceDocId } }
+            : undefined),
       },
     });
   }
@@ -2623,11 +2623,11 @@ export class DocWorkerApi {
   }
 
   private async _compareDoc(req: RequestWithLogin, activeDoc: ActiveDoc,
-                            options: {
-                              showDetails: boolean,
-                              docId2: string,
-                              maxRows: number|null|undefined,
-                            }) {
+    options: {
+      showDetails: boolean,
+      docId2: string,
+      maxRows: number|null|undefined,
+    }) {
     const {showDetails, docId2, maxRows} = options;
     const docSession = docSessionFromRequest(req);
     const {states} = await this._getStates(docSession, activeDoc);
@@ -2652,7 +2652,7 @@ export class DocWorkerApi {
     const leftChanged = parent && parent.h !== left.h;
     const rightChanged = parent && parent.h !== right.h;
     const summary = leftChanged ? (rightChanged ? 'both' : 'left') :
-        (rightChanged ? 'right' : (parent ? 'same' : 'unrelated'));
+      (rightChanged ? 'right' : (parent ? 'same' : 'unrelated'));
     const comparison: DocStateComparison = {
       left, right, parent, summary,
     };
@@ -2703,8 +2703,8 @@ export function addDocApiRoutes(
  */
 export interface QueryParameters {
   sort?: string[];  // Columns names to sort by (ascending order by default,
-                    // prepend "-" for descending order, can contain flags,
-                    // see more in Sort.SortSpec).
+  // prepend "-" for descending order, can contain flags,
+  // see more in Sort.SortSpec).
   limit?: number;   // Limit on number of rows to return.
 }
 
@@ -2954,7 +2954,7 @@ export interface WebhookSubscription {
  * Converts `activeDoc` to XLSX and sends the converted data through `res`.
  */
 export async function downloadXLSX(activeDoc: ActiveDoc, req: Request,
-                                   res: Response, options: DownloadOptions) {
+  res: Response, options: DownloadOptions) {
   const {filename} = options;
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', contentDisposition(filename + '.xlsx'));

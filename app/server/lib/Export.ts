@@ -206,7 +206,7 @@ export async function doExportTable(
   if (options.tableRef) {
     tableRef = options.tableRef;
   }
- else {
+  else {
     if (!options.tableId) { throw new Error('doExportTable: tableRef or tableId must be given'); }
     tableRef = tables.findRow('tableId', options.tableId);
     if (tableRef === 0) {
@@ -224,20 +224,20 @@ export async function doExportTable(
 
   // Produce a column description matching what user will see / expect to export
   const columns: ExportColumn[] = tableColumns
-  .filter(tc => !gristTypes.isHiddenCol(tc.colId))    // Exclude helpers
-  .map<ExportColumn>((tc) => {
+    .filter(tc => !gristTypes.isHiddenCol(tc.colId))    // Exclude helpers
+    .map<ExportColumn>((tc) => {
     // for reference columns, return display column, and copy settings from visible column
-    const displayCol = metaColumns.getRecord(tc.displayCol) || tc;
-    return {
-      id: displayCol.id,
-      colId: displayCol.colId,
-      label: tc.label,
-      type: tc.type,
-      formatter: createFullFormatterFromDocData(docData, tc.id),
-      parentPos: tc.parentPos,
-      description: tc.description,
-    };
-  });
+      const displayCol = metaColumns.getRecord(tc.displayCol) || tc;
+      return {
+        id: displayCol.id,
+        colId: displayCol.colId,
+        label: tc.label,
+        type: tc.type,
+        formatter: createFullFormatterFromDocData(docData, tc.id),
+        parentPos: tc.parentPos,
+        description: tc.description,
+      };
+    });
 
   // fetch actual data
   const tableData = await activeDocSource.fetchTable(table.tableId);

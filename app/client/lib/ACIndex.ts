@@ -271,7 +271,7 @@ function highlightMatches(searchWords: string[], text: string): string[] {
     if (prefixLen === 0) {
       outputs[outputs.length - 1] += word + separator;
     }
- else {
+    else {
       // Split into unicode 'characters' that keep diacritics combined
       const chars = split(word, '');
       outputs.push(

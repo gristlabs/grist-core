@@ -73,7 +73,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
       if (process.env.TESTDIR) {
         this.testDir = path.join(process.env.TESTDIR, workerIdText);
       }
- else {
+      else {
         // Create a testDir of the form grist_test_{USER}_{SERVER_NAME}_{WORKER_ID}, removing any previous one.
         const username = process.env.USER || "nobody";
         this.testDir = path.join(tmpdir(), `grist_test_${username}_${this._name}_${workerIdText}`);
@@ -170,11 +170,11 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
 
     // Try to be more helpful when server exits by printing out the tail of its log.
     this._exitPromise.then((code) => {
-        if (this._server.killed || quiet) { return; }
-        log.error("Server died unexpectedly, with code", code);
-        const output = execFileSync('tail', ['-30', nodeLogPath]);
-        log.info(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
-      })
+      if (this._server.killed || quiet) { return; }
+      log.error("Server died unexpectedly, with code", code);
+      const output = execFileSync('tail', ['-30', nodeLogPath]);
+      log.info(`\n===== BEGIN SERVER OUTPUT ====\n${output}\n===== END SERVER OUTPUT =====`);
+    })
       .catch(() => undefined);
 
     await this.waitServerReady(60000);
@@ -209,7 +209,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     try {
       await callback();
     }
- finally {
+    finally {
       log.info("Resuming node server");
       this.resume();
     }
@@ -253,7 +253,7 @@ export class TestServerMerged extends EventEmitter implements IMochaServer {
     try {
       return (await fetch(`${this._serverUrl}/status/hooks`, {timeout: 1000})).ok;
     }
- catch (err) {
+    catch (err) {
       return false;
     }
   }

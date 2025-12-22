@@ -46,7 +46,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       options.name,
       testId(`admin-panel-item-name-${options.id}`),
       dom.attr('id', options.id),  // Add an id for use as an anchor,
-                                   // although it needs tricks (below)
+      // although it needs tricks (below)
       prefix.length ? cssItemName.cls('-prefixed') : null,
       cssItemName.cls('-full', options.description === undefined),
       () => {
@@ -92,7 +92,7 @@ export function AdminSectionItem(owner: IDisposableOwner, options: {
       testId(`admin-panel-item-${options.id}`),
     );
   }
- else {
+  else {
     return cssItem(
       cssItemShort(itemContent(),
         cssItemShort.cls('-disabled', Boolean(options.disabled)),

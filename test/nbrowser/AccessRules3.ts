@@ -55,7 +55,7 @@ describe("AccessRules3", function() {
       await assertSaved();
       await getRules(seedRule);
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'Everyone', perm: '' }]);
+        [{ formula: 'Everyone', perm: '' }]);
       assert.equal(await hasExtraAdd(seedRule), false);
 
       // Adding rules for a new table/column should look the same as always.
@@ -64,13 +64,13 @@ describe("AccessRules3", function() {
       await assertChanged();
       let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'Everyone', perm: '', res: 'All' }]);
+        [{ formula: 'Everyone', perm: '', res: 'All' }]);
       await fin.find('.test-rule-table-menu-btn').click();
       await gu.findOpenMenuItem('li', /Add column rule/).click();
       await findRuleSetWait(/FinancialsTable/, 1).isPresent();
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'Everyone', perm: '', res: '[Add Column]' },
-                        { formula: 'Everyone', perm: '', res: 'All' + tooltipMarker }]);
+        [{ formula: 'Everyone', perm: '', res: '[Add Column]' },
+          { formula: 'Everyone', perm: '', res: 'All' + tooltipMarker }]);
       await removeTable(/FinancialsTable/);
       await assertSaved();
 
@@ -79,7 +79,7 @@ describe("AccessRules3", function() {
       await gu.waitForServer();
       await assertChanged();
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
       assert.equal(await hasExtraAdd(seedRule), true);
 
       // New table rules should start off with that rule.
@@ -88,8 +88,8 @@ describe("AccessRules3", function() {
       await gu.waitForMenuToClose();
       fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
-                        { formula: 'Everyone Else', perm: '', res: 'All' }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
+          { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
 
       // New column rules should start off with that rule.
@@ -98,26 +98,26 @@ describe("AccessRules3", function() {
       await gu.waitForMenuToClose();
 
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
-                        { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker },
-                        { formula: 'Everyone Else', perm: '', res: 'All' + tooltipMarker }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
+          { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker },
+          { formula: 'Everyone Else', perm: '', res: 'All' + tooltipMarker }]);
 
       // Make sure that removing and re-adding default rules works as expected.
       await removeRules(findDefaultRuleSet(/FinancialsTable/));
       assert.equal(await findDefaultRuleSet(/FinancialsTable/).isPresent(), false);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
-                        { formula: 'Everyone Else', perm: '', res: '[Add Column]' }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
+          { formula: 'Everyone Else', perm: '', res: '[Add Column]' }]);
       await fin.find('.test-rule-table-menu-btn').click();
       await gu.findOpenMenuItem('li', /Add table-wide rule/).click();
       await gu.waitForMenuToClose();
 
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
-                        { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker },
-                        { formula: 'Everyone Else', perm: '', res: 'All' + tooltipMarker }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: '[Add Column]' },
+          { formula: 'Everyone Else', perm: '', res: '[Add Column]' },
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker },
+          { formula: 'Everyone Else', perm: '', res: 'All' + tooltipMarker }]);
       await removeTable(/FinancialsTable/);
 
       // Check that we can tweak the seed rules if we want.
@@ -132,9 +132,9 @@ describe("AccessRules3", function() {
 
       fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
-                        { formula: 'Everyone Else', perm: '', res: 'All' }]);
+        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
+          { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
       await removeTable(/FinancialsTable/);
       await gu.waitForServer();
@@ -159,7 +159,7 @@ describe("AccessRules3", function() {
       await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
       assert.lengthOf(await seedRule.findAll('.test-rule-set'), 1);
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'Everyone', perm: '' }]);
+        [{ formula: 'Everyone', perm: '' }]);
       await assertSaved();
     });
 
@@ -179,7 +179,7 @@ describe("AccessRules3", function() {
       await assertChanged();
       await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
       assert.equal(await hasExtraAdd(seedRule), true);
 
       // Tweak the seed rule to refer to a column.
@@ -192,9 +192,9 @@ describe("AccessRules3", function() {
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       let fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'rec.Year == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
-                        { formula: 'Everyone Else', perm: '', res: 'All' }]);
+        [{ formula: 'rec.Year == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1'},
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
+          { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
       await removeTable(/FinancialsTable/);
 
@@ -207,10 +207,10 @@ describe("AccessRules3", function() {
       await gu.findOpenMenuItem('li', /FinancialsTable/, 3000).click();
       fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'rec.Unreal == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1',
-                          error: 'Invalid columns: Unreal' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
-                        { formula: 'Everyone Else', perm: '', res: 'All' }]);
+        [{ formula: 'rec.Unreal == 1', perm: '-R-U-C-D', res: 'All', memo: 'memo1',
+          error: 'Invalid columns: Unreal' },
+        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' },
+        { formula: 'Everyone Else', perm: '', res: 'All' }]);
       assert.equal(await hasExtraAdd(fin), false);
       await removeTable(/FinancialsTable/);
 
@@ -234,7 +234,7 @@ describe("AccessRules3", function() {
       await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
       assert.lengthOf(await seedRule.findAll('.test-rule-set'), 1);
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'Everyone', perm: '' }]);
+        [{ formula: 'Everyone', perm: '' }]);
       await assertSaved();
     });
 
@@ -264,7 +264,7 @@ describe("AccessRules3", function() {
       // Expand and ensure we see the expected rule.
       await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
       assert.equal(await hasExtraAdd(seedRule), true);
 
       // Now unselect the checkbox, and make sure that we can save+reload.
@@ -278,7 +278,7 @@ describe("AccessRules3", function() {
       await assertSaved();
       await driver.find('.test-rule-special-SeedRule .test-rule-special-expand').click();
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'Everyone', perm: '' }]);
+        [{ formula: 'Everyone', perm: '' }]);
       assert.equal(await hasExtraAdd(seedRule), false);
 
       // Select the checkbox again, and save. Then make a custom change.
@@ -294,8 +294,8 @@ describe("AccessRules3", function() {
       await enterRulePart(seedRule, 1, 'user.Access in [EDITOR]', 'Deny all', 'memo2');
       assert.equal(await checkbox.getAttribute('disabled'), 'true');
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', memo: 'memo2' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
+        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', memo: 'memo2' },
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
       await assertChanged();
 
       // Save the custom change, and make sure we can reload it.
@@ -306,8 +306,8 @@ describe("AccessRules3", function() {
       assert.equal(await checkbox.isSelected(), false);
       assert.equal(await checkbox.getAttribute('disabled'), 'true');
       assert.deepEqual(await getRules(seedRule),
-                       [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', memo: 'memo2' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
+        [{ formula: 'user.Access in [EDITOR]', perm: '-R-U-C-D', memo: 'memo2' },
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D' }]);
       await assertSaved();
 
       // Undo; should now again have the simple checked checkbox for seed rules.
@@ -337,10 +337,10 @@ describe("AccessRules3", function() {
       await ruleSet.find('.test-rule-resource .test-select-open').click();
       await gu.findOpenMenuItem('li', 'Year').click();
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year\n[Add Column]' },
-                        { formula: 'Everyone Else', perm: '', res: 'Year\n[Add Column]' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker },
-                        { formula: 'Everyone Else', perm: '', res: 'All' + tooltipMarker }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year\n[Add Column]' },
+          { formula: 'Everyone Else', perm: '', res: 'Year\n[Add Column]' },
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker },
+          { formula: 'Everyone Else', perm: '', res: 'All' + tooltipMarker }]);
 
       // Check that the Save button is enabled, and save.
       await gu.userActionsCollect();
@@ -369,8 +369,8 @@ describe("AccessRules3", function() {
       // Rules still look correct after saving.
       fin = findTableWait(/FinancialsTable/);
       assert.deepEqual(await getRules(fin),
-                       [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year' },
-                        { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker }]);
+        [{ formula: 'user.Access in [OWNER]', perm: '+R+U', res: 'Year' },
+          { formula: 'user.Access in [OWNER]', perm: '+R+U+C+D', res: 'All' + tooltipMarker }]);
     });
   });
 

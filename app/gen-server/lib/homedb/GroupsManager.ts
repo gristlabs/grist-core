@@ -181,7 +181,7 @@ export class GroupsManager {
    * key, so we make the update using explicit deletes and inserts.
    */
   public async setGroupUsers(manager: EntityManager, groupId: number, usersBefore: User[],
-                               usersAfter: User[]) {
+    usersAfter: User[]) {
     const userIdsBefore = new Set(usersBefore.map(u => u.id));
     const userIdsAfter = new Set(usersAfter.map(u => u.id));
     const toDelete = [...userIdsBefore].filter(id => !userIdsAfter.has(id));
@@ -481,15 +481,15 @@ export class GroupsManager {
    * @returns The QueryBuilder for fetching groups with their members.
    */
   private _getGroupsQueryBuilder(optManager: EntityManager, opts: {aclRule?: boolean} = {}) {
-      let queryBuilder = optManager.createQueryBuilder()
-        .select('groups')
-        .addSelect('groups.type')
-        .addSelect('memberGroups.type')
-        .from(Group, 'groups')
-        .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
-        .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
+    let queryBuilder = optManager.createQueryBuilder()
+      .select('groups')
+      .addSelect('groups.type')
+      .addSelect('memberGroups.type')
+      .from(Group, 'groups')
+      .leftJoinAndSelect('groups.memberUsers', 'memberUsers')
+      .leftJoinAndSelect('groups.memberGroups', 'memberGroups');
     if (opts.aclRule) {
-       queryBuilder = queryBuilder
+      queryBuilder = queryBuilder
         .leftJoinAndSelect('groups.aclRule', 'aclRule');
     }
     return queryBuilder;

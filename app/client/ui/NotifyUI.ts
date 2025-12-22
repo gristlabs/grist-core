@@ -27,7 +27,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
         return cssToastAction(t("Upgrade Plan"), dom.on('click', () =>
           appModel.showUpgradeModal()));
       }
- else {
+      else {
         return dom('a', cssToastAction.cls(''), t("Upgrade Plan"), {target: '_blank'},
           {href: commonUrls.plans});
       }
@@ -43,7 +43,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
           !appModel.currentOrg.billingAccount.isManager) { return null; }
       // Otherwise return a link to the billing page.
       return dom('a', cssToastAction.cls(''), t("Renew"), {target: '_blank'},
-                 {href: urlState().makeUrl({billing: 'billing'})});
+        {href: urlState().makeUrl({billing: 'billing'})});
 
     case 'personal':
       if (!appModel) { return null; }
@@ -76,7 +76,7 @@ function buildAction(action: NotifyAction, item: Notification, options: IBeaconO
 }
 
 function notificationIcon(item: Notification) {
- let iconName: IconName|null = null;
+  let iconName: IconName|null = null;
   switch(item.options.level) {
     case "error":   iconName = "Warning"; break;
     case "warning": iconName = "Warning"; break;
@@ -165,12 +165,12 @@ function buildNotifyDropdown(ctl: IOpenController, notifier: Notifier, appModel:
       cssDropdownHeader(
         cssDropdownHeaderTitle(t("Notifications")),
         !isFeatureEnabled("helpCenter") ? null :
-        cssDropdownFeedbackLink(
-          cssDropdownFeedbackIcon('Feedback'),
-          t("Give feedback"),
-          dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
-          testId('feedback'),
-        ),
+          cssDropdownFeedbackLink(
+            cssDropdownFeedbackIcon('Feedback'),
+            t("Give feedback"),
+            dom.on('click', () => beaconOpenMessage({appModel, onOpen: () => ctl.close(), route: '/ask/message/'})),
+            testId('feedback'),
+          ),
       ),
       dom.maybe(disconnectMsg, msg =>
         cssDropdownStatus(

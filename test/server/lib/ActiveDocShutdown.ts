@@ -137,7 +137,7 @@ describe('ActiveDocShutdown', function() {
       await waitForIt(async () => assert.equal(docTools.getDocManager().numOpenDocs(), 0), 10 * timeout);
 
     }
- finally {
+    finally {
       // Restore the stubbed method.
       _sandbox.restore();
     }
@@ -304,7 +304,7 @@ return c
       // It should fail by reloadDoc()'s return, but it's asynchronous, so allow a little wait.
       await waitForIt(() =>
         assert.isTrue(messages.some(m => /ActiveDoc failed to update current time/.test(m))),
-        500, 50);
+      500, 50);
     });
 
     const totalMsec = Date.now() - start;

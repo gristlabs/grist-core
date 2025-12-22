@@ -244,13 +244,13 @@ describe('CopyPaste2.ntest', function() {
         // Firefox and Chrome actually produce slightly different html, so we just check the part that
         // matters: that angle brackets and ampersand got escaped.
         assert.include(await driver.executeScript(() => window.copiedClipboardData['text/html']),
-                      '<td>A1</td><td>&lt;tag&gt; for\nyou &amp; me;</td>');
+          '<td>A1</td><td>&lt;tag&gt; for\nyou &amp; me;</td>');
 
         // Check the contents of text that got copied to the clipboard
         assert.equal(await driver.executeScript(() => window.copiedClipboardData['text/plain']),
-                    'A1\t"<tag> for\nyou & me;"\n' +
+          'A1\t"<tag> for\nyou & me;"\n' +
                     'A2\tB2'
-                    );
+        );
 
         // We can check that we also accept such text correctly by pasting as text inside a cell, and
         // then copy-pasting from there.

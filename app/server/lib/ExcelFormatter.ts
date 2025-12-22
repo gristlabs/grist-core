@@ -73,13 +73,13 @@ class BaseFormatter {
           ?? "$";
         style.numFmt = `"${currencySymbol} "#,##0.000`;
       }
- else if (this.widgetOptions.numMode === 'percent') {
+      else if (this.widgetOptions.numMode === 'percent') {
         style.numFmt = '0.00%';
       }
- else if (this.widgetOptions.numMode === 'decimal') {
+      else if (this.widgetOptions.numMode === 'decimal') {
         style.numFmt = '0.00';
       }
- else if (this.widgetOptions.numMode === 'scientific') {
+      else if (this.widgetOptions.numMode === 'scientific') {
         style.numFmt = '0.00E+00';
       }
     }
@@ -248,7 +248,7 @@ function excelDateFormat(format: string, def: string) {
     if (mapping.has(chunk)) {
       chunks[i] = mapping.get(chunk)!;
     }
- else {
+    else {
       // fail on first mismatch
       return def;
     }

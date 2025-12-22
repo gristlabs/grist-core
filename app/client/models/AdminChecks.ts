@@ -95,9 +95,9 @@ export interface AdminCheckRequest {
  */
 export class AdminCheckRunner {
   constructor(private _installAPI: InstallAPI,
-              public id: string,
-              public results: Map<string, Observable<BootProbeResult>>,
-              public parent: Disposable) {
+    public id: string,
+    public results: Map<string, Observable<BootProbeResult>>,
+    public parent: Disposable) {
     this._installAPI.runCheck(id).then((result) => {
       if (parent.isDisposed()) { return; }
       const ob = results.get(id);

@@ -6,7 +6,7 @@
 export class KeyedOps {
   private _operations = new Map<string, OperationStatus>();  // status of operations
   private _history = new Map<string, OperationHistory>();    // history of operations
-                                                             // (will accumulate without limit)
+  // (will accumulate without limit)
   private _changed = new Set<string>();    // set when key needs an operation
   private _operating = new Set<string>();  // set when operation is in progress for key
   private _stopped: boolean = false;       // set to prohibit all new operations or retries
@@ -99,7 +99,7 @@ export class KeyedOps {
     while (this.hasPendingOperations()) {
       if (repeats && logRepeat) { logRepeat(repeats); }
       await Promise.all([...this._operating.keys(), ...this._changed.keys()]
-                        .map(key => this.expediteOperationAndWait(key)));
+        .map(key => this.expediteOperationAndWait(key)));
       repeats++;
     }
   }
@@ -217,7 +217,7 @@ export class KeyedOps {
       if (this._changed.has(key)) {
         this._schedule(key);
       }
- else {
+      else {
         // No event information left to track, we can delete our OperationStatus entry.
         if (status.failures === 0 && !status.timeout) {
           this._operations.delete(key);

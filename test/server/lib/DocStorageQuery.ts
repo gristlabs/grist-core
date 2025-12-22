@@ -50,48 +50,48 @@ describe('DocStorageQuery', function() {
   it('should construct correct query from normally expected fields', async function() {
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {}, limit: 4}),
-      [['allMarshal', 'SELECT * FROM "foo" LIMIT 4', []]]);
+    [['allMarshal', 'SELECT * FROM "foo" LIMIT 4', []]]);
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {tag: [1, 2, 3], X: ['Y']}}),
-      [['allMarshal', 'SELECT * FROM "foo" WHERE ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
-        [1, 2, 3, 'Y']]]);
+    [['allMarshal', 'SELECT * FROM "foo" WHERE ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
+      [1, 2, 3, 'Y']]]);
   });
 
   it('should reject invalid identifiers', async function() {
     // This is to ensure "identifiers" can't be used as a vector for an SQL injection attacks.
     await assert.isRejected(getFetchQueryDbCalls(docStorage,
       {tableId: 'foo"; DROP TABLE foo', filters: {}}),
-      /SQL identifier is not valid/);
+    /SQL identifier is not valid/);
 
     await assert.isRejected(getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {'bar"; DROP TABLE foo;': [1]}}),
-      /SQL identifier is not valid/);
+    /SQL identifier is not valid/);
   });
 
   it('should ignore non-numeric limit', async function() {
     // This is to ensure "limit" can't be used as a vector for an SQL injection attack.
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {}, limit: '5; DROP TABLE foo' as any}),
-      [['allMarshal', 'SELECT * FROM "foo"', []]]);
+    [['allMarshal', 'SELECT * FROM "foo"', []]]);
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {bar: [1]}, limit: {foo: 'bar'} as any}),
-      [['allMarshal', 'SELECT * FROM "foo" WHERE ("foo"."bar" IN (?))', [1]]]);
+    [['allMarshal', 'SELECT * FROM "foo" WHERE ("foo"."bar" IN (?))', [1]]]);
   });
 
   it('should combine where clause and filters correctly', async function() {
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {}, limit: 4, where: {clause: 'age IS NULL OR age > ?', params: [18]}}),
-      [['allMarshal', 'SELECT * FROM "foo" WHERE (age IS NULL OR age > ?) LIMIT 4', [18]]]);
+    [['allMarshal', 'SELECT * FROM "foo" WHERE (age IS NULL OR age > ?) LIMIT 4', [18]]]);
 
     assert.deepEqual(await getFetchQueryDbCalls(docStorage,
       {tableId: 'foo', filters: {tag: [1, 2, 3], X: ['Y']},
         where: {clause: "name LIKE ? OR ? = ?", params: ['J%', 4, 5]},
       }),
-      [['allMarshal',
-        'SELECT * FROM "foo" WHERE (name LIKE ? OR ? = ?) AND ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
-        ['J%', 4, 5, 1, 2, 3, 'Y']]]);
+    [['allMarshal',
+      'SELECT * FROM "foo" WHERE (name LIKE ? OR ? = ?) AND ("foo"."tag" IN (?, ?, ?)) AND ("foo"."X" IN (?))',
+      ['J%', 4, 5, 1, 2, 3, 'Y']]]);
   });
 
   it('should construct correct query for many-valued filters', async function() {
@@ -114,7 +114,7 @@ describe('DocStorageQuery', function() {
         /^SELECT \* FROM "foo" WHERE /.source +
         /\("foo"\."values" IN \(SELECT data FROM (?<table1>_grist_tmp\w+)\)\) AND /.source +
         /\("foo"\."ages" IN \(SELECT data FROM (?<table2>_grist_tmp\w+)\)\)/.source),
-        [],
+      [],
       ],
       ['exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/],
       ['exec', /^DROP TABLE (?<table2>_grist_tmp\w+)$/],
@@ -138,7 +138,7 @@ describe('DocStorageQuery', function() {
       ['allMarshal', new RegExp(
         /^SELECT \* FROM "foo" WHERE \(name LIKE \? OR \? = \?\) AND /.source +
         /\("foo"\."bars" IN \(SELECT data FROM (?<table1>_grist_tmp\w+)\)\)/.source),
-        ['J%', 4, 5],
+      ['J%', 4, 5],
       ],
       ['exec', /^DROP TABLE (?<table1>_grist_tmp\w+)$/],
       ['exec', 'COMMIT'],
@@ -171,13 +171,13 @@ function assertMatches(calls: Array<unknown[]>, expected: Array<Array<unknown|Re
             if (groups.has(name)) {
               assert.equal(value, groups.get(name), `in call #${n} while matching: ${actualPart}`);
             }
- else {
+            else {
               groups.set(name, value);
             }
           }
         }
       }
- else {
+      else {
         assert.deepEqual(actualPart, expectedPart);
       }
     }

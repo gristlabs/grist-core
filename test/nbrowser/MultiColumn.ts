@@ -60,7 +60,7 @@ describe('MultiColumn', function() {
       if (this.currentTest?.state !== 'failed') {
         await revertEach();
       }
- else {
+      else {
         failed = true;
       }
     });
@@ -469,39 +469,39 @@ describe('MultiColumn', function() {
         if (['Toggle', 'Date', 'DateTime', 'Attachment'].includes(right)) {
           assert.equal(await wrapDisabled(), true);
         }
- else {
+        else {
           assert.equal(await wrapDisabled(), false);
           assert.equal(await wrap(), false);
         }
         if (['Toggle', 'Attachment'].includes(right)) {
           assert.equal(await alignmentDisabled(), true);
         }
- else {
+        else {
           assert.equal(await alignmentDisabled(), false);
         }
         if (['Integer', 'Numeric'].includes(right)) {
           assert.equal(await alignment(), 'right');
         }
- else if (['Toggle', 'Attachment'].includes(right)) {
+        else if (['Toggle', 'Attachment'].includes(right)) {
           // With toggle, alignment is unset.
         }
- else {
+        else {
           assert.equal(await alignment(), null);
         }
         if (['Toggle', 'Attachment'].includes(right)) {
           // omit tests for alignment
         }
- else {
+        else {
           await testAlignment();
         }
         if (['Toggle', 'Date', 'DateTime', 'Attachment'].includes(right)) {
           // omit tests for wrap
         }
- else if (['Choice'].includes(right)) {
+        else if (['Choice'].includes(right)) {
           // Choice column doesn't support wrapping.
           await testSingleWrapping();
         }
- else {
+        else {
           await testWrapping();
         }
         await selectColumns('Left', 'Right');
@@ -559,7 +559,7 @@ describe('MultiColumn', function() {
           if (right === 'Numeric') {
             assert.isNaN(await minDecimals());
           }
- else {
+          else {
             assert.equal(await minDecimals(), 0);
           }
 
@@ -571,7 +571,7 @@ describe('MultiColumn', function() {
           await selectColumns('Right');
           assert.isNaN(await maxDecimals()); // default value that is empty
         }
- else {
+        else {
           assert.isTrue(await numberFormattingDisabled());
         }
       });
@@ -596,7 +596,7 @@ describe('MultiColumn', function() {
           if (['Choice', 'Choice List'].includes(right)) {
             await testChoices();
           }
- else {
+          else {
             assert.isTrue(await choiceEditorDisabled());
           }
 
@@ -604,7 +604,7 @@ describe('MultiColumn', function() {
             if (['Toggle', 'Date', 'DateTime', 'Attachment'].includes(right)) {
               assert.equal(await wrapDisabled(), true);
             }
- else {
+            else {
               assert.equal(await wrapDisabled(), false);
               assert.equal(await wrap(), false);
             }
@@ -613,22 +613,22 @@ describe('MultiColumn', function() {
           if (['Toggle', 'Attachment'].includes(right)) {
             assert.equal(await alignmentDisabled(), true);
           }
- else {
+          else {
             assert.equal(await alignmentDisabled(), false);
           }
           if (['Integer', 'Numeric'].includes(right)) {
             assert.equal(await alignment(), null);
           }
- else if (['Toggle', 'Attachment'].includes(right)) {
+          else if (['Toggle', 'Attachment'].includes(right)) {
             // With toggle, alignment is unset.
           }
- else {
+          else {
             assert.equal(await alignment(), 'left');
           }
           if (['Toggle', 'Attachment'].includes(right)) {
             // omit tests for alignment
           }
- else {
+          else {
             await testAlignment();
           }
 
@@ -637,11 +637,11 @@ describe('MultiColumn', function() {
             if (['Toggle', 'Date', 'DateTime', 'Attachment'].includes(right)) {
               // omit tests for wrap
             }
- else if (['Choice'].includes(right)) {
+            else if (['Choice'].includes(right)) {
               // Choice column doesn't support wrapping.
               await testSingleWrapping();
             }
- else {
+            else {
               await testWrapping();
             }
           }
@@ -691,28 +691,28 @@ describe('MultiColumn', function() {
         if (['Date', 'DateTime'].includes(right)) {
           assert.isFalse(await dateFormatDisabled());
         }
- else {
+        else {
           assert.isTrue(await dateFormatDisabled());
         }
         if (['Toggle', 'Attachment'].includes(right)) {
           assert.equal(await alignmentDisabled(), true);
         }
- else {
+        else {
           assert.equal(await alignmentDisabled(), false);
         }
         if (['Integer', 'Numeric'].includes(right)) {
           assert.equal(await alignment(), null);
         }
- else if (['Toggle', 'Attachment'].includes(right)) {
+        else if (['Toggle', 'Attachment'].includes(right)) {
           // With toggle, alignment is unset.
         }
- else {
+        else {
           assert.equal(await alignment(), 'left');
         }
         if (['Toggle', 'Attachment'].includes(right)) {
           // omit tests for alignment
         }
- else {
+        else {
           await testAlignment();
         }
       });
@@ -793,7 +793,7 @@ describe('MultiColumn', function() {
             assert.equal(await gu.getFieldWidgetType(), mode);
           }
         }
- else {
+        else {
           await selectColumns('Left', 'Right');
           assert.isTrue(await widgetTypeDisabled());
         }
@@ -821,7 +821,7 @@ describe('MultiColumn', function() {
             if (right === 'Text') {
               assert.isFalse(await widgetTypeDisabled());
             }
- else {
+            else {
               assert.isTrue(await widgetTypeDisabled());
             }
           }
@@ -850,7 +850,7 @@ describe('MultiColumn', function() {
         if (right !== 'Attachment') {
           assert.isTrue(await sliderDisabled());
         }
- else {
+        else {
           assert.isFalse(await sliderDisabled());
           // Test it works as expected
           await slider(16); // min value
@@ -1141,39 +1141,39 @@ async function commonTestsForAny(right: string) {
   if (['Toggle', 'Date', 'DateTime', 'Attachment'].includes(right)) {
     assert.equal(await wrapDisabled(), true);
   }
- else {
+  else {
     assert.equal(await wrapDisabled(), false);
     assert.equal(await wrap(), false);
   }
   if (['Toggle', 'Attachment'].includes(right)) {
     assert.equal(await alignmentDisabled(), true);
   }
- else {
+  else {
     assert.equal(await alignmentDisabled(), false);
   }
   if (['Integer', 'Numeric'].includes(right)) {
     assert.equal(await alignment(), null);
   }
- else if (['Toggle', 'Attachment'].includes(right)) {
+  else if (['Toggle', 'Attachment'].includes(right)) {
     // With toggle, alignment is unset.
   }
- else {
+  else {
     assert.equal(await alignment(), 'left');
   }
   if (['Toggle', 'Attachment'].includes(right)) {
     // omit tests for alignment
   }
- else {
+  else {
     await testAlignment();
   }
   if (['Toggle', 'Date', 'DateTime', 'Attachment'].includes(right)) {
     // omit tests for wrap
   }
- else if (['Choice'].includes(right)) {
+  else if (['Choice'].includes(right)) {
     // Choice column doesn't support wrapping.
     await testSingleWrapping();
   }
- else {
+  else {
     await testWrapping();
   }
 }
@@ -1184,7 +1184,7 @@ async function selectColumns(col1: string, col2?: string) {
   if (col2 === undefined) {
     await gu.selectColumn(col1);
   }
- else {
+  else {
     // First make sure we start with col1 selected.
     await gu.selectColumnRange(col1, col2);
   }
@@ -1355,12 +1355,12 @@ async function modDecimals(selector: string, value?: number|null) {
   if (value === undefined) {
     return parseInt(await element.value());
   }
- else {
+  else {
     await element.click();
     if (value !== null) {
       await element.sendKeys(value.toString());
     }
- else {
+    else {
       await element.doClear();
     }
     await driver.sendKeys(Key.ENTER);
@@ -1380,17 +1380,17 @@ async function numMode(value?: 'currency' | 'percent' | 'exp' | 'decimal') {
         await driver.findContent('.test-numeric-mode .test-select-button', /\$/).click();
       }
     }
- else if (value === 'percent') {
+    else if (value === 'percent') {
       if (await numMode() !== 'percent') {
         await driver.findContent('.test-numeric-mode .test-select-button', /%/).click();
       }
     }
- else if (value === 'decimal') {
+    else if (value === 'decimal') {
       if (await numMode() !== 'decimal') {
         await driver.findContent('.test-numeric-mode .test-select-button', /,/).click();
       }
     }
- else if (value === 'exp') {
+    else if (value === 'exp') {
       if (await numMode() !== 'exp') {
         await driver.findContent('.test-numeric-mode .test-select-button', /Exp/).click();
       }

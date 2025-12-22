@@ -267,7 +267,7 @@ export function showUndoDiscardNotification(doc: GristDoc, onClick: () => void) 
       discardNotification(
         dom.on("click", onClick),
       ),
-    },
+  },
   );
   return notification;
 }

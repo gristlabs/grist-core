@@ -92,10 +92,10 @@ export function searchableMenu(
         if (item.label && item.action) {
           return menuItem(item.action, item.label, ...(item.args || []));
         }
- else if (item.builder) {
+        else if (item.builder) {
           return item.builder();
         }
- else {
+        else {
           throw new Error('Invalid menu item');
         }
       });
@@ -266,7 +266,7 @@ export interface SelectOptions<T> extends weasel.ISelectUserOptions {
  * forms, and that formSelect should be used for this purpose.
  */
 export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
-                          options: SelectOptions<T> = {}) {
+  options: SelectOptions<T> = {}) {
   const {renderOptionArgs, ...weaselOptions} = options;
   const _menu = cssSelectMenuElem(testId('select-menu'));
   const _btn = cssSelectBtn(testId('select-open'));
@@ -294,7 +294,7 @@ export function select<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption
  * Same as select(), but the main element looks like a link rather than a button.
  */
 export function linkSelect<T>(obs: Observable<T>, optionArray: MaybeObsArray<IOption<T>>,
-                              options: weasel.ISelectUserOptions = {}) {
+  options: weasel.ISelectUserOptions = {}) {
   const _btn = cssSelectBtnLink(testId('select-open'));
   return select(obs, optionArray, {buttonCssClass: _btn.className, ...options});
 }
@@ -312,9 +312,9 @@ export interface IMultiSelectUserOptions {
  * These may either be strings, or {label, value} objects.
  */
 export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
-                               availableOptions: MaybeObsArray<IOption<T>>,
-                               options: IMultiSelectUserOptions = {},
-                               ...domArgs: DomElementArg[]) {
+  availableOptions: MaybeObsArray<IOption<T>>,
+  options: IMultiSelectUserOptions = {},
+  ...domArgs: DomElementArg[]) {
   const selectedOptionsSet = Computed.create(null, selectedOptions, (_use, opts) => new Set(opts));
 
   const selectedOptionsText = Computed.create(null, selectedOptionsSet, (use, selectedOpts) => {
@@ -358,7 +358,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
                 if (elem.checked) {
                   selectedOptions.push(fullOption.value);
                 }
- else {
+                else {
                   selectedOpts.delete(fullOption.value);
                   selectedOptions.set([...selectedOpts]);
                 }
@@ -412,7 +412,7 @@ export function multiSelect<T>(selectedOptions: MutableObsArray<T>,
  *    formSelect(fruit, ["apple", "banana", "mango"], {defLabel: "Select fruit:"});
  */
 export function formSelect(obs: Observable<string>, optionArray: MaybeObsArray<IOption<string>>,
-                           options: {defaultLabel?: string} = {}) {
+  options: {defaultLabel?: string} = {}) {
   const {defaultLabel = ""} = options;
   const container: Element = cssSelectBtnContainer(
     dom('select', {class: cssSelectBtn.className, style: 'height: 42px; padding: 12px 30px 12px 12px;'},
@@ -436,7 +436,7 @@ export function inputMenu(createFunc: weasel.MenuCreateFunc, options?: weasel.IM
       if ((triggerElem as HTMLInputElement).value.length > 0) {
         ctl.open();
       }
- else {
+      else {
         ctl.close();
       }
     });
@@ -454,7 +454,7 @@ export function upgradableMenuItem(needUpgrade: boolean, action: () => void, ...
   if (needUpgrade) {
     return menuItem(() => reportError(new NeedUpgradeError()), ...rem, " *");
   }
- else {
+  else {
     return menuItem(action, ...rem);
   }
 }
@@ -527,21 +527,21 @@ export function selectMenu(
 export function listOfMenuItems(items: () => DomElementArg[]) {
   const _menu = cssSelectMenuElem(testId('select-menu'));
   return menu(
-      items,
-      {
-        ...weasel.defaultMenuOptions,
-        menuCssClass: _menu.className + ' ' + gristFloatingMenuClass,
-        menuWrapCssClass: cssMenuWrapElem.className,
-        stretchToSelector: `.${cssSelectBtn.className}`,
-        trigger: [(triggerElem, ctl) => {
-          const isDisabled = () => triggerElem.classList.contains('disabled');
-          dom.onElem(triggerElem, 'click', () => isDisabled() || ctl.toggle());
-          dom.onKeyElem(triggerElem as HTMLElement, 'keydown', {
-            ArrowDown: () => isDisabled() || ctl.open(),
-            ArrowUp: () => isDisabled() || ctl.open(),
-          });
-        }],
-      },
+    items,
+    {
+      ...weasel.defaultMenuOptions,
+      menuCssClass: _menu.className + ' ' + gristFloatingMenuClass,
+      menuWrapCssClass: cssMenuWrapElem.className,
+      stretchToSelector: `.${cssSelectBtn.className}`,
+      trigger: [(triggerElem, ctl) => {
+        const isDisabled = () => triggerElem.classList.contains('disabled');
+        dom.onElem(triggerElem, 'click', () => isDisabled() || ctl.toggle());
+        dom.onKeyElem(triggerElem as HTMLElement, 'keydown', {
+          ArrowDown: () => isDisabled() || ctl.open(),
+          ArrowUp: () => isDisabled() || ctl.open(),
+        });
+      }],
+    },
   );
 }
 
@@ -613,8 +613,8 @@ export function menuItemCmd(
   return menuItem(
     () => cmd.run(),
     typeof label === 'string'
-          ? dom('span', label, testId('cmd-name'))
-          : dom('div', label(), testId('cmd-name')),
+      ? dom('span', label, testId('cmd-name'))
+      : dom('div', label(), testId('cmd-name')),
     cmd.humanKeys?.length ? cssCmdKey(cmd.humanKeys[0]) : null,
     cssMenuItemCmd.cls(''), // overrides some menu item styles
     ...args,
@@ -890,7 +890,7 @@ export function* buildMenuItems(current: Array<MenuItem>): IterableIterator<Elem
       yield menuSubHeaderMenu(() => [...buildMenuItems(item.submenu!)], {}, item.header ?? item.label);
       continue;
     }
- else if (isHeader) {
+    else if (isHeader) {
       yield menuSubHeader(item.header ?? item.label);
       continue;
     }

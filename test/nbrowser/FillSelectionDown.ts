@@ -54,7 +54,7 @@ describe('FillSelectionDown', function () {
       ]);
       await gu.checkForErrors();
     }
- finally {
+    finally {
       await revert();
     }
   });
@@ -79,7 +79,7 @@ describe('FillSelectionDown', function () {
 
       await gu.checkForErrors();
     }
- finally {
+    finally {
       await revert();
     }
   });
@@ -116,7 +116,7 @@ describe('FillSelectionDown', function () {
         '', '', '', '',
       ]);
     }
- finally {
+    finally {
       await gu.userActionsCollect(false);
       await revert();
     }

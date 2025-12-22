@@ -267,7 +267,7 @@ export class UsersManager {
         newUser.isFirstTimeUser = false;
         await manager.save(newUser);
       }
- else {
+      else {
         // Else update profile and login information from external profile.
         let updated = false;
         let login: Login = existing.logins[0];
@@ -366,7 +366,7 @@ export class UsersManager {
     try {
       return await this.getUserByLogin(email, options);
     }
- catch (e) {
+    catch (e) {
       if (e.name === 'QueryFailedError' && e.detail &&
           e.detail.match(/Key \(email\)=[^ ]+ already exists/)) {
         // This is a postgres-specific error message. This problem cannot arise in sqlite,
@@ -436,7 +436,7 @@ export class UsersManager {
         login.user = user;
         needUpdate = true;
       }
- else {
+      else {
         login = user.logins[0];
       }
 
@@ -547,7 +547,7 @@ export class UsersManager {
    * @param name: optional cross-check, delete only if user name matches this
    */
   public async deleteUser(scope: Scope, userIdToDelete: number,
-                          name?: string): Promise<QueryResult<User>> {
+    name?: string): Promise<QueryResult<User>> {
     const userIdDeleting = scope.userId;
     if (userIdDeleting !== userIdToDelete) {
       throw new ApiError('not permitted to delete this user', 403);
@@ -585,7 +585,7 @@ export class UsersManager {
 
     return await this._connection.transaction(async (manager) => {
       const user = await manager.findOne(User, {where: {id: userIdToDelete},
-                                                relations: ["logins", "personalOrg", "prefs"]});
+        relations: ["logins", "personalOrg", "prefs"]});
       if (!user) { throw new ApiError('user not found', 404); }
       if (name) {
         if (user.name !== name) {
@@ -603,7 +603,7 @@ export class UsersManager {
           // transaction but one snuck back in? Just bail.
           throw new ApiError('Untimely document addition? Please retry.', 503);
         }
- else {
+        else {
           doc.createdBy = null;
         }
       });
@@ -724,7 +724,7 @@ export class UsersManager {
     this._mergeIndistinguishableEmails(delta);
     const hasInherit = 'maxInheritedRole' in delta;
     const hasUsers = delta.users; // allow zero actual changes; useful to reduce special
-                                  // cases in scripts
+    // cases in scripts
     if ((isOrg && (hasInherit || !hasUsers)) || (!isOrg && !hasInherit && !hasUsers)) {
       throw new ApiError('Bad request: invalid permission delta', 400);
     }
@@ -784,7 +784,7 @@ export class UsersManager {
           }
           foundUserIdDelta[user.id] = role;
         }
- else {
+        else {
           notFoundUserEmailDelta[email] = role!;
         }
       }
@@ -954,7 +954,7 @@ export class UsersManager {
         user.apiKey = apiKeyGenerator();
         return await manager.save(User, user);
       }
- else {
+      else {
         throw new ApiError("An apikey is already set, use `{force: true}` to override it.", 400);
       }
     });

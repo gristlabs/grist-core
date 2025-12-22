@@ -43,8 +43,8 @@ class ScimUserController extends BaseController {
   public async getUsers(resource: UserResource, context: RequestContext): Promise<UserSchema[]> {
     return this.runAndHandleErrors(context, async (): Promise<UserSchema[]> => {
       const scimmyUsers = (await this.dbManager.getUsers())
-                          .filter(user => user.type === 'login')
-                          .map(user => toSCIMMYUser(user));
+        .filter(user => user.type === 'login')
+        .map(user => toSCIMMYUser(user));
       return this.maybeApplyFilter(scimmyUsers, resource.filter);
     });
   }

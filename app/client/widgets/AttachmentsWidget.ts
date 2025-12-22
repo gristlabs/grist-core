@@ -188,7 +188,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
         }
       }, 750);
     }
- else {
+    else {
       states[rowId] = false;
       this._uploadingStatesObs.set({...states});
     }
@@ -211,14 +211,14 @@ export class AttachmentsWidget extends NewAbstractWidget {
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
     }
- catch (error) {
+    catch (error) {
       this._setUploadingState(rowId, false);
       throw error;
     }
   }
 
   private async _uploadAndSave(row: DataRowModel, value: KoSaveableObservable<CellValue>,
-        files: FileList): Promise<void> {
+    files: FileList): Promise<void> {
     // keep a copy of the row id at the beginning ; because the given row may change while uploading
     // (example: user starts uploading in card 2/10, then switches to card 3/10, the upload must save to card 2/10)
     const rowId = row.getRowId();
@@ -238,14 +238,14 @@ export class AttachmentsWidget extends NewAbstractWidget {
       this._setUploadingState(rowId, false);
       return this._save(rowId, value, uploadResult);
     }
- catch (error) {
+    catch (error) {
       this._setUploadingState(rowId, false);
       throw error;
     }
   }
 
   private async _save(rowId: UIRowId, value: KoSaveableObservable<CellValue>,
-        uploadResult: UploadResult|null,
+    uploadResult: UploadResult|null,
   ): Promise<void> {
     if (!uploadResult) { return; }
 
@@ -274,7 +274,7 @@ export class AttachmentsWidget extends NewAbstractWidget {
     const formatted: CellValue = value() ? value() : [GristObjCode.List];
     const newValue = (formatted as number[]).concat(rowIds) as CellValue;
     await tableData.sendTableAction(["UpdateRecord", rowId, {
-        [this.field.colId()]: newValue,
+      [this.field.colId()]: newValue,
     }]);
   }
 }

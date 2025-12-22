@@ -16,8 +16,8 @@ import {createClient} from 'redis';
 export const cookieName = process.env.GRIST_SESSION_COOKIE || 'grist_sid';
 
 export const COOKIE_MAX_AGE =
-      process.env.COOKIE_MAX_AGE === 'none' ? null :
-      isNumber(process.env.COOKIE_MAX_AGE || '') ? Number(process.env.COOKIE_MAX_AGE) :
+  process.env.COOKIE_MAX_AGE === 'none' ? null :
+    isNumber(process.env.COOKIE_MAX_AGE || '') ? Number(process.env.COOKIE_MAX_AGE) :
       90 * 24 * 60 * 60 * 1000;  // 90 days in milliseconds
 
 // RedisStore and SqliteStore are expected to provide a set/get interface for sessions.
@@ -75,7 +75,7 @@ function createSessionStoreFactory(sessionsDB: string): () => SessionStore {
         }});
     };
   }
- else {
+  else {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const SQLiteStore = require('@gristlabs/connect-sqlite3')(session);
     promisifyAll(SQLiteStore.prototype);

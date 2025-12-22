@@ -407,7 +407,7 @@ describe('Comm', function() {
           try {
             return await stubSendToWebsocket.wrappedMethod.apply(this, arguments);
           }
- catch (err) {
+          catch (err) {
             if (options.closeHappensFirst) { await delay(100); }
             eventsSeen.push('failedSend');
             throw err;
@@ -478,7 +478,7 @@ describe('Comm', function() {
         // get one without.)
         await waitForCondition(() =>
           (clientConnectSpy.callCount > 0 && clientConnectSpy.lastCall.args[0].needReload === false),
-          3000);
+        3000);
       });
 
       // This test helper is used for 3 different situations. Check that we observed that
@@ -487,7 +487,7 @@ describe('Comm', function() {
         if (options.useSmallMsgs) {
           assert.deepEqual(eventsSeen, ['close']);
         }
- else {
+        else {
           // Make sure to have waited long enough for the 'close' event we may have delayed
           await delay(20);
 
@@ -495,11 +495,11 @@ describe('Comm', function() {
           assert.deepEqual(eventsSeen, ['close', 'close']);
         }
       }
- else if (options.closeHappensFirst) {
+      else if (options.closeHappensFirst) {
         assert.equal(eventsSeen[0], 'close');
         assert.include(eventsSeen, 'failedSend');
       }
- else {
+      else {
         assert.equal(eventsSeen[0], 'failedSend');
         assert.include(eventsSeen, 'close');
       }
@@ -536,7 +536,7 @@ describe('Comm', function() {
       if (allowed) {
         await assert.isFulfilled(promise, `${headers.host} should allow ${headers.origin}`);
       }
- else {
+      else {
         await assert.isRejected(promise, /.*/, `${headers.host} should reject ${headers.origin}`);
       }
     }

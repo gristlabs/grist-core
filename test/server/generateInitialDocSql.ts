@@ -35,9 +35,9 @@ describe('generateInitialDocSql', function() {
     ], { env: process.env });
 
     assert.equal(normaliseSQLiteInfinity((await fse.readFile(newSchemaTs)).toString()),
-                 normaliseSQLiteInfinity((await fse.readFile(currentSchemaTs)).toString()));
+      normaliseSQLiteInfinity((await fse.readFile(currentSchemaTs)).toString()));
     assert.equal(normaliseSQLiteInfinity((await fse.readFile(newSqlTs)).toString()),
-                 normaliseSQLiteInfinity((await fse.readFile(currentSqlTs)).toString()));
+      normaliseSQLiteInfinity((await fse.readFile(currentSqlTs)).toString()));
   });
 });
 

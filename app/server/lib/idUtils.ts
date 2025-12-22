@@ -21,7 +21,7 @@ export function makeId(): string {
  * If the userId is null, the user will be treated as the anonymous user.
  */
 export function makeForkIds(options: { userId: number|null, isAnonymous: boolean,
-                                       trunkDocId: string, trunkUrlId: string }): ForkResult {
+  trunkDocId: string, trunkUrlId: string }): ForkResult {
   const forkId = makeId();
   const forkUserId = options.isAnonymous ? undefined :
     (options.userId !== null ? options.userId : undefined);

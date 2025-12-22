@@ -109,7 +109,7 @@ describe('AttachedCustomWidget', function () {
       const editor = await driver.findContentWait('body', "Calendar", 1000);
       assert.exists(editor);
     }
- finally {
+    finally {
       await driver.switchTo().defaultContent();
     }
   });

@@ -42,7 +42,7 @@ export function signal() {
       try {
         return await this.wait();
       }
- finally {
+      finally {
         this.reset();
       }
     },

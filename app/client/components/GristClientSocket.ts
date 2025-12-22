@@ -44,7 +44,7 @@ export class GristClientSocket {
     if (this._wsSocket) {
       this._wsSocket.close();
     }
- else {
+    else {
       this._eioSocket!.close();
     }
   }
@@ -53,7 +53,7 @@ export class GristClientSocket {
     if (this._wsSocket) {
       this._wsSocket.send(data);
     }
- else {
+    else {
       this._eioSocket!.send(data);
     }
   }
@@ -82,7 +82,7 @@ export class GristClientSocket {
     if (typeof document !== 'undefined') {
       this._wsSocket = new WebSocket(this._url);
     }
- else {
+    else {
       this._wsSocket = new WS(this._url, undefined, this._options);
     }
     this._wsSocket.onmessage = this._onWSMessage.bind(this);

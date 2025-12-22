@@ -243,7 +243,7 @@ export default class BaseView extends DisposableWithEvents {
       if (_enableAddRow) {
         this.sortedRows.subscribeTo(this._newRowSource);
       }
- else {
+      else {
         this.sortedRows.unsubscribeFrom(this._newRowSource);
       }
     };
@@ -424,7 +424,7 @@ export default class BaseView extends DisposableWithEvents {
       const selectedCell = this.viewPane.querySelector(".selected_cursor") || this.viewPane;
       buildConfirmDelete(selectedCell, onSave, rowIds.length <= 1);
     }
- else {
+    else {
       return onSave().then(() => {
         if (!this.isDisposed()) {
           reportUndo(this.gristDoc, `You deleted ${rowIds.length} row${rowIds.length > 1 ? 's' : ''}.`);
@@ -449,7 +449,7 @@ export default class BaseView extends DisposableWithEvents {
     if (!this._isLoading.peek() || immediate) {
       this.cursor.setCursorPos(cursorPos, isFromLink);
     }
- else {
+    else {
       // This is the first step; the second happens in onTableLoaded.
       this._pendingCursorPos = cursorPos;
       this.cursor.setLive(false);
@@ -563,7 +563,7 @@ export default class BaseView extends DisposableWithEvents {
         filterValues = [colType === "ChoiceList" ? "" : null];
       }
     }
- else {
+    else {
       if (Array.isArray(value)) {
         value = JSON.stringify(value);
       }
@@ -589,13 +589,13 @@ export default class BaseView extends DisposableWithEvents {
       this.tableModel.tableData.getValue(rowId, 'manualSort') : null;
 
     return this.sendTableAction(['AddRecord', null, { 'manualSort': insertPos }])!
-    .then((rowId) => {
-      if (!this.isDisposed()) {
-        this._exemptFromFilterRows.addExemptRow(rowId);
-        this.setCursorPos({rowId});
-      }
-      return rowId;
-    });
+      .then((rowId) => {
+        if (!this.isDisposed()) {
+          this._exemptFromFilterRows.addExemptRow(rowId);
+          this.setCursorPos({rowId});
+        }
+        return rowId;
+      });
   }
 
   private _getDefaultColValues() {
@@ -616,7 +616,7 @@ export default class BaseView extends DisposableWithEvents {
       Object.assign(colValues, action[2]);
       return [action[0], rowIds, colValues];
     }
- else {
+    else {
       return action;
     }
   }
@@ -675,7 +675,7 @@ export default class BaseView extends DisposableWithEvents {
       // Use document timezone. Don't forget to use uppercase HH for 24-hour time.
       value = moment.tz(now, docTimezone).format('YYYY-MM-DD' + (withTime ? ' HH:mm:ss' : ''));
     }
- else if (type === 'Date') {
+    else if (type === 'Date') {
       // Get UTC midnight for the current date (as seen in docTimezone). This is a bit confusing. If
       // it's "2019-11-14 23:30 -05:00", then it's "2019-11-15 04:30" in UTC. Since we measure time
       // from Epoch UTC, we want the UTC time to have the correct date, so need to add the offset
@@ -683,10 +683,10 @@ export default class BaseView extends DisposableWithEvents {
       const offsetMinutes = moment.tz(now, docTimezone).utcOffset();
       value = roundDownToMultiple(now / 1000 + offsetMinutes * 60, 24*3600);
     }
- else if (type === 'DateTime') {
+    else if (type === 'DateTime') {
       value = now / 1000;
     }
- else {
+    else {
       // Ignore the shortcut when in a column of an inappropriate type.
       return;
     }
@@ -714,16 +714,16 @@ export default class BaseView extends DisposableWithEvents {
 
       return editRowModel.updateColValues(colValues)
       // Once we know the new row's rowId, add it to column filters to make sure it's displayed.
-      .then((rowId) => {
-        if (!this.isDisposed()) {
-          this._exemptFromFilterRows.addExemptRow(rowId);
-          this.setCursorPos({rowId});
-        }
-        return rowId;
-      })
-      .finally(() => !this.isDisposed() && this.cursor.setLive(true));
+        .then((rowId) => {
+          if (!this.isDisposed()) {
+            this._exemptFromFilterRows.addExemptRow(rowId);
+            this.setCursorPos({rowId});
+          }
+          return rowId;
+        })
+        .finally(() => !this.isDisposed() && this.cursor.setLive(true));
     }
- else {
+    else {
       const rowId = editRowModel.getRowId();
       // We are editing the floating "edit" rowModel, but to ensure that we see data in the main view
       // (when the editor closes), we immediately update the main view's rowModel, if such exists.
@@ -806,7 +806,7 @@ export default class BaseView extends DisposableWithEvents {
         }).catch(reportError);
         throw new MutedError();
       }
- else {
+      else {
         throw ex;
       }
     });
@@ -972,7 +972,7 @@ export default class BaseView extends DisposableWithEvents {
       if (columns[colId].every(gristTypes.isCensored)) {
         delete columns[colId];
       }
- else {
+      else {
         // else remove only censored values
         columns[colId].forEach((val, i) => {
           if (gristTypes.isCensored(val)) {

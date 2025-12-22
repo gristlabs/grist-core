@@ -192,7 +192,7 @@ describe('OIDCConfig', () => {
             await assert.isRejected(promise, ctx.errorMsg);
             assert.isFalse(isInitializedLogCalled());
           }
- else {
+          else {
             await assert.isFulfilled(promise);
             assert.isTrue(isInitializedLogCalled());
           }
@@ -241,7 +241,7 @@ describe('OIDCConfig', () => {
           if (ctx.expectedErrorMsg) {
             await assert.isRejected(promise, ctx.expectedErrorMsg);
           }
- else {
+          else {
             await assert.isFulfilled(promise, 'initOIDC should have been fulfilled');
             assert.isTrue(setHttpOptionsDefaultsStub.calledOnce, 'Should have called custom.setHttpOptionsDefaults');
             assert.deepEqual(setHttpOptionsDefaultsStub.firstCall.args[0], ctx.expectedUserDefinedHttpOptions);
@@ -809,7 +809,7 @@ describe('OIDCConfig', () => {
             status: 500,
           });
         }
- else {
+        else {
           assert.isFalse(logErrorStub.called, 'no error should be logged. Got: ' + logErrorStub.firstCall?.args[0]);
           assert.isTrue(fakeRes.redirect.calledOnce, 'should redirect');
           assert.isTrue(clientStub.callback.calledOnce);
@@ -831,11 +831,11 @@ describe('OIDCConfig', () => {
     it('should log err.response when userinfo fails to parse response body', async () => {
       // See https://github.com/panva/node-openid-client/blob/47a549cb4e36ffe2ebfe2dc9d6b69a02643cc0a9/lib/client.js#L1293
       setEnvVars();
-        const clientStub = new ClientStub();
-        const sendAppPageStub = Sinon.stub().resolves();
-        const config = await OIDCConfigStubbed.build(
-          sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient(),
-        );
+      const clientStub = new ClientStub();
+      const sendAppPageStub = Sinon.stub().resolves();
+      const config = await OIDCConfigStubbed.build(
+        sendAppPageStub as SendAppPageFunction, undefined, clientStub.asClient(),
+      );
       const req = {
         session: DEFAULT_SESSION,
       } as unknown as express.Request;

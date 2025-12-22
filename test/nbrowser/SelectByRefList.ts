@@ -186,7 +186,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
   if (selectByTable === 'REFLISTS') {
     await gu.clickReferenceListCell(cell);
   }
- else {
+  else {
     await cell.click();
   }
 
@@ -216,7 +216,7 @@ async function checkSelectingRecords(selectBy: string, sourceData: string[][], n
     if (selectByTable === 'REFLISTS') {
       await gu.clickReferenceListCell(cell);
     }
- else {
+    else {
       await cell.click();
     }
     await checkSourceGroup(i);

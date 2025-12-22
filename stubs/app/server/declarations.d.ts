@@ -17,7 +17,7 @@ declare module "@gristlabs/sqlite3" {
   export class DatabaseWithBackup extends Database {
     public backup(filename: string, callback?: (err: Error|null) => void): Backup;
     public backup(filename: string, destDbName: 'main', srcDbName: 'main',
-                  filenameIsDest: boolean, callback?: (err: Error|null) => void): Backup;
+      filenameIsDest: boolean, callback?: (err: Error|null) => void): Backup;
   }
 }
 

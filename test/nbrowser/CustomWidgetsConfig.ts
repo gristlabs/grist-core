@@ -95,7 +95,7 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
   if (state === 'modified' || state === 'emptyNotSaved') {
     assert.isTrue(await driver.find('.active_section .test-section-menu-wrapper').matches('[class*=-unsaved]'));
   }
- else {
+  else {
     assert.isFalse(await driver.find('.active_section .test-section-menu-wrapper').matches('[class*=-unsaved]'));
   }
   // open menu
@@ -104,24 +104,24 @@ async function checkSortMenu(state: 'empty' | 'modified' | 'customized' | 'empty
   if (state === 'modified' || state === 'emptyNotSaved') {
     assert.isTrue(await driver.find('.test-section-menu-btn-save').isPresent());
   }
- else {
+  else {
     assert.isFalse(await driver.find('.test-section-menu-btn-save').isPresent());
   }
   const text = await driver.find('.test-section-menu-custom-options').getText();
   if (state === 'empty' || state === 'emptyNotSaved') {
     assert.equal(text, '(empty)');
   }
- else if (state === 'modified') {
+  else if (state === 'modified') {
     assert.equal(text, '(modified)');
   }
- else if (state === 'customized') {
+  else if (state === 'customized') {
     assert.equal(text, '(customized)');
   }
   // there should be option to delete custom options
   if (state === 'empty' || state === 'emptyNotSaved') {
     assert.isFalse(await driver.find('.test-section-menu-btn-remove-options').isPresent());
   }
- else {
+  else {
     assert.isTrue(await driver.find('.test-section-menu-btn-remove-options').isPresent());
   }
   await driver.sendKeys(Key.ESCAPE);
@@ -236,7 +236,7 @@ describe('CustomWidgetsConfig', function () {
     ]);
 
     assert.include(await driver.findWait('.test-custom-widget-not-mapped', 2000).getText(),
-        "Some required columns aren't mapped");
+      "Some required columns aren't mapped");
 
     // Now map it.
     await toggleDrop(pickerDrop('Column'));
@@ -1278,7 +1278,7 @@ const widget = {
       // Rethrow the error.
       throw new Error(parsed.error);
     }
- else {
+    else {
       // Or return result.
       return parsed;
     }

@@ -1,7 +1,7 @@
 import {createGroup} from 'app/client/components/commands';
 import {GristDoc} from 'app/client/components/GristDoc';
 import {ACIndexImpl, ACItem, ACResults,
-        buildHighlightedDom, HighlightFunc, normalizeText} from 'app/client/lib/ACIndex';
+  buildHighlightedDom, HighlightFunc, normalizeText} from 'app/client/lib/ACIndex';
 import {IAutocompleteOptions} from 'app/client/lib/autocomplete';
 import {makeT} from 'app/client/lib/localization';
 import {IToken, TokenField, tokenFieldStyles} from 'app/client/lib/TokenField';
@@ -66,7 +66,7 @@ export class ChoiceListEditor extends NewBaseEditor {
         const dropdownConditionFilter = this._buildDropdownConditionFilter();
         acItems = acItems.filter(item => dropdownConditionFilter(item));
       }
- catch (e) {
+      catch (e) {
         acItems = [];
         this._dropdownConditionError = e.message;
       }
@@ -259,10 +259,10 @@ export class ChoiceListEditor extends NewBaseEditor {
     if (this._dropdownConditionError) {
       return t('Error in dropdown condition');
     }
- else if (this._hasDropdownCondition) {
+    else if (this._hasDropdownCondition) {
       return t('No choices matching condition');
     }
- else {
+    else {
       return t('No choices to select');
     }
   }

@@ -136,12 +136,12 @@ declare module "app/client/models/modelUtil" {
   function objObservable<T>(obs: ko.KoSaveableObservable<T>): SaveableObjObservable<T>;
   function objObservable<T>(obs: ko.Observable<T>): ObjObservable<T>;
   function jsonObservable(obs: KoSaveableObservable<string|undefined>,
-                          modifierFunc?: any, optContext?: any): SaveableObjObservable<any>;
+    modifierFunc?: any, optContext?: any): SaveableObjObservable<any>;
   function jsonObservable(obs: ko.Observable<string>|ko.Computed<string>,
-                          modifierFunc?: any, optContext?: any): ObjObservable<any>;
+    modifierFunc?: any, optContext?: any): ObjObservable<any>;
 
   function fieldWithDefault<T>(fieldObs: KoSaveableObservable<T|undefined>, defaultOrFunc: T | (() => T)):
-    KoSaveableObservable<T>;
+  KoSaveableObservable<T>;
 
   function customValue<T>(obs: KoSaveableObservable<T>): CustomComputed<T>;
 
@@ -231,7 +231,7 @@ declare module "app/client/models/DataTableModel" {
 
     constructor(docModel: DocModel, tableData: TableData, tableMetaRow: TableRec);
     public createLazyRowsModel(sortedRowSet: SortedRowSet, optRowModelClass?: any):
-      DataTableModel.LazyArrayModel<DataRowModel>;
+    DataTableModel.LazyArrayModel<DataRowModel>;
     public createFloatingRowModel(optRowModelClass?: any): DataRowModel;
   }
   export = DataTableModel;

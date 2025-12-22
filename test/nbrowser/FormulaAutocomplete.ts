@@ -83,15 +83,15 @@ describe('FormulaAutocomplete', function() {
   it('shows example values with proper padding', async function() {
 
     await api.applyUserActions(docId, [
-        ['AddTable', 'LongColumns', [
-          {id: 'aaa', type: 'Ref:LongColumns'},
-          {id: 'bbbbbb', type: 'Numeric'},
-          {id: 'ccccccccc', type: 'Numeric'},
-          {id: 'dddddddddddd', type: 'Numeric'},
-          {id: 'formula', isFormula: true},
-        ]],
-        ['AddRecord', 'LongColumns', null, {aaa: 1, bbbbbb: 2, ccccccccc: 3, dddddddddddd: 4}],
-      ],
+      ['AddTable', 'LongColumns', [
+        {id: 'aaa', type: 'Ref:LongColumns'},
+        {id: 'bbbbbb', type: 'Numeric'},
+        {id: 'ccccccccc', type: 'Numeric'},
+        {id: 'dddddddddddd', type: 'Numeric'},
+        {id: 'formula', isFormula: true},
+      ]],
+      ['AddRecord', 'LongColumns', null, {aaa: 1, bbbbbb: 2, ccccccccc: 3, dddddddddddd: 4}],
+    ],
     );
     await gu.waitForServer();
     await gu.getPageItem('LongColumns').click();

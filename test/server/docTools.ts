@@ -42,11 +42,11 @@ const noCleanup = Boolean(process.env.NO_CLEANUP);
  * @param useFixturePlugins Use the plugins in `test/fixtures/plugins`
  */
 export function createDocTools(options: {persistAcrossCases?: boolean,
-                                         useFixturePlugins?: boolean,
-                                         storageManager?: IDocStorageManager,
-                                         server?: () => GristServer,
-                                         createAttachmentStoreProvider?: () => Promise<IAttachmentStoreProvider>
-                                        } = {}) {
+  useFixturePlugins?: boolean,
+  storageManager?: IDocStorageManager,
+  server?: () => GristServer,
+  createAttachmentStoreProvider?: () => Promise<IAttachmentStoreProvider>
+} = {}) {
   let tmpDir: string;
   let docManager: DocManager;
   let attachmentStoreProvider: IAttachmentStoreProvider;
@@ -59,7 +59,7 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
       : new AttachmentStoreProvider([], "TEST_INSTALL");
 
     docManager = await createDocManager({tmpDir, pluginManager, storageManager: options.storageManager,
-                                         server: options.server?.(), attachmentStoreProvider});
+      server: options.server?.(), attachmentStoreProvider});
   }
 
   async function doAfter() {
@@ -144,11 +144,11 @@ export function createDocTools(options: {persistAcrossCases?: boolean,
  *    that loads built-in modules.
  */
 export async function createDocManager(
-    options: {tmpDir?: string, pluginManager?: PluginManager,
-              storageManager?: IDocStorageManager,
-              server?: GristServer,
-              attachmentStoreProvider?: IAttachmentStoreProvider,
-             } = {}): Promise<DocManager> {
+  options: {tmpDir?: string, pluginManager?: PluginManager,
+    storageManager?: IDocStorageManager,
+    server?: GristServer,
+    attachmentStoreProvider?: IAttachmentStoreProvider,
+  } = {}): Promise<DocManager> {
   // Set Grist home to a temporary directory, and wipe it out on exit.
   const tmpDir = options.tmpDir || await createTmpDir();
   const docStorageManager = options.storageManager || await create.createLocalDocStorageManager(tmpDir);

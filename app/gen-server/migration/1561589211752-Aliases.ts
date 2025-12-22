@@ -49,9 +49,9 @@ export class Aliases1561589211752 implements MigrationInterface {
 
     // Add preferred alias to docs.  Not quite a foreign key (we'd need org as well)
     await queryRunner.addColumn('docs', new TableColumn({
-        name: 'url_id',
-        type: 'varchar',
-        isNullable: true,
+      name: 'url_id',
+      type: 'varchar',
+      isNullable: true,
     }));
     await queryRunner.createIndex("docs", new TableIndex({
       name: "docs__url_id",

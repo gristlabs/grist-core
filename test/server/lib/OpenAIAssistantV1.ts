@@ -116,34 +116,34 @@ describe('OpenAIAssistantV1', function () {
     const systemMessageContent = requestMessages[0].content;
     assert.match(systemMessageContent, /def C\(rec: Table1\)/);
     assert.deepEqual(requestMessages, [
-        {
-          role: "system",
-          content: systemMessageContent,
-        },
-        {
-          role: "user",
-          content: userMessageContent,
-        },
-      ],
+      {
+        role: "system",
+        content: systemMessageContent,
+      },
+      {
+        role: "user",
+        content: userMessageContent,
+      },
+    ],
     );
     const suggestedFormula = "a = int($A)\nb=int($B)\n\nstr(a + b)";
     const replyWithSuggestedFormula = "Here's a formula that adds columns A and B:\n\n"
       + "```python\na = int($A)\nb=int($B)\n\nstr(a + b)\n```"
       + "\n\nLet me know if there's anything else I can help with.";
     assert.deepEqual(result, {
-        suggestedActions: [
-          ["ModifyColumn", table1Id, colId, {formula: suggestedFormula}],
-        ],
-        suggestedFormula,
-        reply: replyWithSuggestedFormula,
-        state: {
-          messages: [...requestMessages, replyMessage],
-        },
+      suggestedActions: [
+        ["ModifyColumn", table1Id, colId, {formula: suggestedFormula}],
+      ],
+      suggestedFormula,
+      reply: replyWithSuggestedFormula,
+      state: {
+        messages: [...requestMessages, replyMessage],
       },
+    },
     );
   });
 
-   it('does not use the trusted proxy when not configured', async function () {
+  it('does not use the trusted proxy when not configured', async function () {
     const agentsFake = {trusted: undefined, untrusted: undefined};
     sinon.replace(DEPS, 'agents', agentsFake);
     await checkGetAssistance();
@@ -191,13 +191,13 @@ describe('OpenAIAssistantV1', function () {
     const {messages: requestMessages} = JSON.parse(request.body);
     const suggestedFormula = undefined;
     assert.deepEqual(result, {
-        suggestedActions: [],
-        suggestedFormula,
-        reply,
-        state: {
-          messages: [...requestMessages, replyMessage],
-        },
+      suggestedActions: [],
+      suggestedFormula,
+      reply,
+      state: {
+        messages: [...requestMessages, replyMessage],
       },
+    },
     );
   });
 
@@ -280,7 +280,7 @@ describe('OpenAIAssistantV1', function () {
         assert.notMatch(systemMessageContent, /def lookupOne/);
         assert.lengthOf(systemMessageContent, 1001);
       }
- else {
+      else {
         assert.match(systemMessageContent, /class Table1/);
         assert.match(systemMessageContent, /class Table2/);
         assert.match(systemMessageContent, /def lookupOne/);
@@ -343,12 +343,12 @@ describe('OpenAIAssistantV1', function () {
           status: 400,
         };
       }
- else if (fakeFetch.callCount === 2) {
+      else if (fakeFetch.callCount === 2) {
         return {
           status: 500,
         };
       }
- else {
+      else {
         return {
           "choices": [{
             "index": 0,

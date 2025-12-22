@@ -22,7 +22,7 @@ describe('mergedOrgs', function() {
     setUpDB(this);
     await createInitialDb();
     mergedServer = await MergedServer.create(0, ["home", "docs"],
-                                  {logToConsole: false, externalStorage: false});
+      {logToConsole: false, externalStorage: false});
     home = mergedServer.flexServer;
     await mergedServer.run();
     dbManager = home.getHomeDBManager();
@@ -95,13 +95,13 @@ describe('mergedOrgs', function() {
 
   it('can access a document under merged domain', async function() {
     let resp = await axios.get(`${homeUrl}/o/docs/api/docs/${sharedDocId}/tables/Table1/data`,
-                               configForUser('chimpy'));
+      configForUser('chimpy'));
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/o/${sharedOrgDomain}/api/docs/${sharedDocId}/tables/Table1/data`,
-                           configForUser('chimpy'));
+      configForUser('chimpy'));
     assert.equal(resp.status, 200);
     resp = await axios.get(`${homeUrl}/o/nasa/api/docs/${sharedDocId}/tables/Table1/data`,
-                           configForUser('chimpy'));
+      configForUser('chimpy'));
     assert.equal(resp.status, 404);
   });
 });

@@ -664,7 +664,7 @@ describe('ChoiceList', function() {
       await getCellTokenStyles(await gu.getCell({rowNum: 3, col: 'B'})),
       [
         {fillColor: DARK_GREEN_FILL, textColor: WHITE_TEXT, ...VALID_CHOICE,
-         strikethrough, underline, bold},
+          strikethrough, underline, bold},
       ],
     );
   });
@@ -681,7 +681,7 @@ describe('ChoiceList', function() {
       if (method === 'button') {
         await driver.find('.test-choice-list-entry-cancel').click();
       }
- else {
+      else {
         await gu.sendKeys(Key.ESCAPE);
       }
 

@@ -33,11 +33,11 @@ describe('ColumnFilterMenu3', function() {
       ['SetDisplayFormula', 'Test', null, retValues[4].colRef, '$Ref.Date'],
       ['SetDisplayFormula', 'Test', null, retValues[5].colRef, '$RefList.Date'],
       ['AddRecord', 'Test', null, {Date: '22-12-2011', Numeric: 2,  Int: 2,  Ref: 1,
-                                   RefList: ['L', 1, 2]}],
+        RefList: ['L', 1, 2]}],
       ['AddRecord', 'Test', null, {Date: '20-12-2021', Numeric: 22, Int: 22, Ref: 2,
-                                   RefList: ['L', 1]}],
+        RefList: ['L', 1]}],
       ['AddRecord', 'Test', null, {Date: '20-12-2011', Numeric: 3,  Int: 3,  Ref: 3,
-                                   RefList: ['L', 1, 2, 3]}],
+        RefList: ['L', 1, 2, 3]}],
     ]);
     await mainSession.loadDoc(`/doc/${docId}/p/2`);
   });

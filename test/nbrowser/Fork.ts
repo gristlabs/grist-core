@@ -77,8 +77,8 @@ describe("Fork", function() {
         const user2 = gu.session().user('user2').email;
         const user3 = gu.session().user('user3').email;
         await api.updateDocPermissions(doc.id, {users: {'anon@getgrist.com': 'viewers',
-                                                        [user3]: 'viewers',
-                                                        [user2]: 'owners'}});
+          [user3]: 'viewers',
+          [user2]: 'owners'}});
 
         // Optionally set a urlId
         if (idType === 'urlId') {
@@ -96,15 +96,15 @@ describe("Fork", function() {
               visitedSites = ['@Guest'];
               await personal.anon.login();
             }
- else {
+            else {
               visitedSites = ['Test Grist', `@${personal.name}`];
               await personal.login();
             }
             const anonApi = personal.anon.createHomeApi();
             const activeApi = (mode === 'anonymous') ? anonApi : api;
             const id = await (content === 'empty' ? activeApi.newUnsavedDoc() :
-                              activeApi.importUnsavedDoc(Buffer.from('A,B\n999,2\n'),
-                                                         {filename: 'foo.csv'}));
+              activeApi.importUnsavedDoc(Buffer.from('A,B\n999,2\n'),
+                {filename: 'foo.csv'}));
             await personal.loadDoc(`/doc/${id}`);
             await gu.dismissWelcomeTourIfNeeded();
             await gu.toggleSidePanel('left', 'open');
@@ -117,7 +117,7 @@ describe("Fork", function() {
             if (content === 'imported') {
               assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '999');
             }
- else {
+            else {
               assert.equal(await gu.getCell({rowNum: 1, col: 0}).getText(), '');
             }
             // editing should work
@@ -170,7 +170,7 @@ describe("Fork", function() {
         // Check that we show some indicators of what's happening to the user in notification toasts
         // (but allow for possibility that things are changing fast).
         await driver.findContentWait('.test-notifier-toast-message',
-                                     /(Preparing your copy)|(You are now.*your own copy)/, 2000);
+          /(Preparing your copy)|(You are now.*your own copy)/, 2000);
         await gu.waitForServer();
         await driver.findContentWait('.test-notifier-toast-message', /You are now.*your own copy/, 2000);
         assert.equal(await driver.findContent('.test-notifier-toast-message', /Preparing/).isPresent(), false);
@@ -243,7 +243,7 @@ describe("Fork", function() {
       });
 
       for (const user of [{access: 'viewers', name: 'user3'},
-                          {access: 'editors', name: 'user2'}]) {
+        {access: 'editors', name: 'user2'}]) {
         it(`allows a logged in user with ${user.access} permissions to fork`, async function() {
           const userSession = await gu.session().teamSite.user(user.name as any).login();
           await userSession.loadDoc(`/doc/${doc.id}/m/fork`);
@@ -553,7 +553,7 @@ describe("Fork", function() {
         await assert.isRejected(docApi.replace({sourceDocId: altDoc.id}), /not found/);
         // replacement should fail for document not accessible
         await assert.isRejected(personal.createHomeApi().getDocAPI(doc.id).replace({sourceDocId: altDoc.id}),
-                                /access denied/);
+          /access denied/);
 
         // check cell content does not change
         await altSession.loadDoc(`/doc/${altDoc.id}`);
@@ -623,7 +623,7 @@ describe("Fork", function() {
         confirmButton = driver.findWait('.test-modal-confirm', 3000);
         assert.equal(await confirmButton.getText(), 'Update');
         assert.match(await driver.find('.test-modal-dialog').getText(),
-                     /already identical/);
+          /already identical/);
         await gu.refreshDismiss();
       });
 
@@ -659,7 +659,7 @@ describe("Fork", function() {
           await assert.isRejected(driver.findWait('.test-modal-dialog', 500), /Waiting for element/);
           await gu.refreshDismiss();
         }
- finally {
+        finally {
           await api.updateDocPermissions(doc.id, {users: {[altSession.email]: null}});
         }
       });

@@ -72,7 +72,7 @@ export class ProposedChangesPage extends Disposable {
         if (init === 'slow') {
           return loadingSpinner();
         }
- else {
+        else {
           return this.body.buildDom();
         }
       }),
@@ -589,15 +589,15 @@ function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): Table
       if (cell === null) {
         item = '...';
       }
- else if (!Array.isArray(cell)) {
+      else if (!Array.isArray(cell)) {
         item = cell;
       }
- else {
+      else {
         const [pre, post] = cell;
         if (!pre && !post) {
           item = '';
         }
- else {
+        else {
           item = ['V', {
             parent: pre?.[0],
             remote: post?.[0],
@@ -614,11 +614,11 @@ function convertTabularDiffToTableData(table: string, tdiff: TabularDiff): Table
 }
 
 function buildComparisonDetails(
-    owner: MultiHolder,
-    gristDoc: GristDoc,
-    origDetails: DocStateComparisonDetails,
-    origComparison: DocStateComparison | undefined,
-  ) {
+  owner: MultiHolder,
+  gristDoc: GristDoc,
+  origDetails: DocStateComparisonDetails,
+  origComparison: DocStateComparison | undefined,
+) {
   // The change we want to render is based on a calculation
   // done on the fork document. The calculation treated the
   // fork as the local/left document, and the trunk as the

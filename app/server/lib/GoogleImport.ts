@@ -33,7 +33,7 @@ export async function downloadFromGDrive(url: string, code?: string) {
       {responseType: 'stream'},
     ), filename);
   }
- else {
+  else {
     return await asFetchResponse(googleDrive.files.get(
       {key, fileId, alt: 'media'},
       {responseType: 'stream'},
@@ -68,14 +68,14 @@ async function asFetchResponse(req: GaxiosPromise<Readable>, filename?: string |
       statusText: res.statusText,
     });
   }
- catch (err) {
+  catch (err) {
     const error: GaxiosError<Readable> = err;
     if (!error.response) {
       // Fetch throws exception on network error.
       // https://github.com/node-fetch/node-fetch/blob/master/docs/ERROR-HANDLING.md
       throw new FetchError(error.message, "system", error);
     }
- else {
+    else {
       // Fetch returns failure response on http error
       const resInit = error.response ? {
         status: error.response.status,

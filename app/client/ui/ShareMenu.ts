@@ -60,17 +60,17 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuExports(doc, pageModel),
       ], {buttonAction: backToCurrent});
     }
- else if (doc.isTutorialFork) {
+    else if (doc.isTutorialFork) {
       return shareButton(t("Save copy"), () => [
         menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
         menuOriginal(doc, pageModel, {isTutorialFork: true}),
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     }
- else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
+    else if ((doc.isPreFork || doc.isBareFork) && !isProposable) {
       // A new unsaved document, or a fiddle, or a public example.
       const saveActionTitle =
-          doc.isBareFork ? t("Save Document") :
+        doc.isBareFork ? t("Save Document") :
           isProposable ? t("Suggest Changes") : t("Save copy");
       return shareButton(saveActionTitle, () => [
         menuManageUsers(doc, pageModel),
@@ -78,12 +78,12 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         menuExports(doc, pageModel),
       ], {buttonAction: saveCopy});
     }
- else if (doc.isFork) {
+    else if (doc.isFork) {
       if (isProposable) {
         return shareButton([
           t("Suggest Changes"),
           dom.maybe(pageModel.proposalNewChangesCount,
-                    changes => cssChangeCount(` (${changes})`)),
+            changes => cssChangeCount(` (${changes})`)),
         ], () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
@@ -107,7 +107,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
           menuExports(doc, pageModel),
         ], {buttonAction: saveCopy});
       }
- else {
+      else {
         return shareButton(t("Unsaved"), () => [
           menuManageUsers(doc, pageModel),
           menuSaveCopy({pageModel, doc, saveActionTitle: t("Save copy")}),
@@ -116,7 +116,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
         ]);
       }
     }
- else {
+    else {
       return shareButton(null, () => [
         menuManageUsers(doc, pageModel),
         menuSaveCopy({pageModel, doc, saveActionTitle: t("Duplicate document")}),
@@ -133,7 +133,7 @@ export function buildShareMenuButton(pageModel: DocPageModel): DomContents {
  * visible extension of the icon that opens the menu.
  */
 function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFunc,
-                     options: {buttonAction?: () => void} = {},
+  options: {buttonAction?: () => void} = {},
 ) {
   if (!buttonText) {
     // Regular circular button that opens a menu.
@@ -144,7 +144,7 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
       testId('tb-share'),
     );
   }
- else if (options.buttonAction) {
+  else if (options.buttonAction) {
     // Split button: the left text part calls `buttonAction`, and the circular icon opens menu.
     return cssShareButton(
       cssShareAction(buttonText,
@@ -159,7 +159,7 @@ function shareButton(buttonText: DomContents|null, menuCreateFunc: MenuCreateFun
       ),
     );
   }
- else {
+  else {
     // Combined button: the left text part and circular icon open the menu as a single button.
     return cssShareButton(
       cssShareButton.cls('-combined'),
@@ -334,7 +334,7 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
     (isElectron ?
       menuItem(() => gristDoc.app.comm.showItemInFolder(doc.name),
         t("Show in folder"), testId('tb-share-option')) :
-        menuItem(() => downloadDocModal(doc, pageModel.appModel),
+      menuItem(() => downloadDocModal(doc, pageModel.appModel),
         menuIcon('Download'), t("Download document..."), testId('tb-share-option'))
     ),
     menuItem(
@@ -362,9 +362,9 @@ function menuExports(doc: Document, pageModel: DocPageModel) {
         menuItemLink(
           onClick,
           hooks.maybeModifyLinkAttrs({
-          href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
-          target: '_blank', download: '',
-        }), t("Microsoft Excel (.xlsx)"), testId('tb-share-option')),
+            href: pageModel.appModel.api.getDocAPI(doc.id).getDownloadXlsxUrl(),
+            target: '_blank', download: '',
+          }), t("Microsoft Excel (.xlsx)"), testId('tb-share-option')),
       ],
       {},
       menuIcon('Download'),

@@ -55,7 +55,7 @@ describe('UnhandledErrors', function() {
         await assert.isRejected(fetch(`${server.serverUrl}/status`), /(request.*failed)|(ECONNREFUSED)/);
 
       }
- finally {
+      finally {
         await server.stop();
       }
     });

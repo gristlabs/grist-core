@@ -142,16 +142,16 @@ export class DropdownConditionConfig extends Disposable {
                   if (value.trim() === '') {
                     delete widgetOptions.dropdownCondition;
                   }
- else {
+                  else {
                     widgetOptions.dropdownCondition = {text: value};
                   }
                   await this._field.widgetOptionsJson.setAndSave(widgetOptions);
                 }
- catch (e) {
+                catch (e) {
                   if (e?.code === 'ACL_DENY') {
                     reportError(e);
                   }
- else {
+                  else {
                     this._saveError.set(e.message.replace(/^\[Sandbox\]/, '').trim());
                   }
                 }
@@ -200,12 +200,12 @@ function getUserCompletions(user: UserInfo) {
     if (key === 'LinkKey') {
       return 'user.LinkKey.';
     }
- else if (isPlainObject(value)) {
+    else if (isPlainObject(value)) {
       return Object.keys(value as {[key: string]: any})
         .filter(valueKey => valueKey !== 'manualSort')
         .map(valueKey => `user.${key}.${valueKey}`);
     }
- else {
+    else {
       return `user.${key}`;
     }
   });

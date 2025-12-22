@@ -75,9 +75,9 @@ export function makeOptDocSession(client: Client|null): OptDocSession {
  *  - system: user is treated as owner (because of some operation bypassing access control)
  */
 export function makeExceptionalDocSession(mode: 'nascent'|'plugin'|'system'|'share',
-                                          options: {client?: Client,
-                                                    req?: RequestWithLogin,
-                                                    browserSettings?: BrowserSettings} = {}): OptDocSession {
+  options: {client?: Client,
+    req?: RequestWithLogin,
+    browserSettings?: BrowserSettings} = {}): OptDocSession {
   const docSession = new OptDocSession(options);
   docSession.mode = mode;
   return docSession;

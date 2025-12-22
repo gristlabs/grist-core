@@ -132,19 +132,19 @@ describe('ColumnFilter', function() {
 
     assert.equal(filter.makeFilterJson(), filterJson);
     assert.deepEqual(data.filter(filter.filterFunc.get()),
-                     [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bob']]);
+      [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bob']]);
     assert.isFalse(filter.hasChanged()); // `hasChanged` compares to the original JSON used to initialize ColumnFilter
 
     filter.add('Bar');
     assert.equal(filter.makeFilterJson(), '{"included":["Alice","Bar","Bob"]}');
     assert.deepEqual(data.filter(filter.filterFunc.get()),
-                     [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bar'], [L, 'Bob']]);
+      [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bar'], [L, 'Bob']]);
     assert.isTrue(filter.hasChanged());
 
     filter.delete('Alice');
     assert.equal(filter.makeFilterJson(), '{"included":["Bar","Bob"]}');
     assert.deepEqual(data.filter(filter.filterFunc.get()),
-                     [[L, 'Alice', 'Bob'], [L, 'Bar'], [L, 'Bob']]);
+      [[L, 'Alice', 'Bob'], [L, 'Bar'], [L, 'Bob']]);
     assert.isTrue(filter.hasChanged());
 
     filter.selectAll();
@@ -160,7 +160,7 @@ describe('ColumnFilter', function() {
     filter.delete('Alice');
     assert.equal(filter.makeFilterJson(), '{"excluded":["Alice"]}');
     assert.deepEqual(data.filter(filter.filterFunc.get()),
-                     [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bar'], [L, 'Bob'], null]);
+      [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bar'], [L, 'Bob'], null]);
     assert.isTrue(filter.hasChanged());
 
     filter.clear();
@@ -171,13 +171,13 @@ describe('ColumnFilter', function() {
     filter.add('Alice');
     assert.equal(filter.makeFilterJson(), '{"included":["Alice"]}');
     assert.deepEqual(data.filter(filter.filterFunc.get()),
-                     [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob']]);
+      [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob']]);
     assert.isTrue(filter.hasChanged());
 
     filter.add('Bob');
     assert.equal(filter.makeFilterJson(), '{"included":["Alice","Bob"]}');
     assert.deepEqual(data.filter(filter.filterFunc.get()),
-                     [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bob']]);
+      [[L, 'Alice', 'Carol'], [L, 'Alice', 'Bob'], [L, 'Bob']]);
     assert.isFalse(filter.hasChanged()); // We're back to the same state, so `hasChanged()` should be false
   });
 });

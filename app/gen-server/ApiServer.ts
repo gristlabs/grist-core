@@ -22,7 +22,7 @@ import {User} from 'app/gen-server/entity/User';
 import {Workspace} from 'app/gen-server/entity/Workspace';
 import {BillingOptions, HomeDBManager, Scope} from 'app/gen-server/lib/homedb/HomeDBManager';
 import {DocumentAccessChanges, OrgAccessChanges, PreviousAndCurrent,
-        QueryResult, WorkspaceAccessChanges} from 'app/gen-server/lib/homedb/Interfaces';
+  QueryResult, WorkspaceAccessChanges} from 'app/gen-server/lib/homedb/Interfaces';
 import {Permissions} from 'app/gen-server/lib/Permissions';
 import {appSettings} from 'app/server/lib/AppSettings';
 import {getAuthorizedUserId, getUserId, getUserProfiles, RequestWithLogin} from 'app/server/lib/Authorizer';
@@ -32,7 +32,7 @@ import {RequestWithOrg} from 'app/server/lib/extractOrg';
 import {GristServer} from 'app/server/lib/GristServer';
 import {getTemplateOrg} from 'app/server/lib/gristSettings';
 import {clearSessionCacheIfNeeded, getDocScope, getScope, integerParam,
-        isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
+  isParameterOn, optStringParam, sendOkReply, sendReply, stringParam} from 'app/server/lib/requestUtils';
 import {getCookieDomain} from 'app/server/lib/gristSessions';
 import log from 'app/server/lib/log';
 
@@ -54,7 +54,7 @@ function validateStrict(checker: t.Checker): express.RequestHandler {
     try {
       checker.strictCheck(req.body);
     }
- catch(err) {
+    catch(err) {
       log.warn(`Error during api call to ${req.path}: Invalid payload: ${String(err)}`);
       throw new ApiError('Invalid payload', 400, {userError: String(err)});
     }
@@ -95,7 +95,7 @@ export function getOrgKey(req: Request): string|number {
   if (!orgKey) {
     throw new ApiError("No organization chosen", 400);
   }
- else if (/^\d+$/.test(orgKey)) {
+  else if (/^\d+$/.test(orgKey)) {
     return parseInt(orgKey, 10);
   }
   return orgKey;
@@ -232,7 +232,7 @@ export class ApiServer {
       if (ALLOW_DEPRECATED_BARE_ORG_DELETE) {
         await this._deleteOrg(req, res, 'force-delete');
       }
- else {
+      else {
         throw new ApiError(
           "This endpoint is no longer supported. Use DELETE /api/orgs/:oid/:name instead.",
           410,
@@ -277,7 +277,7 @@ export class ApiServer {
         await this._hardDeleteWorkspace(req, wsId);
         return sendReply(req, res, {status: 200, data: wsId});
       }
- else {
+      else {
         const {data} = await this._dbManager.softDeleteWorkspace(getScope(req), wsId);
         if (data) { this._logRemoveWorkspaceEvents(req, data); }
         return sendOkReply(req, res);
@@ -542,7 +542,7 @@ export class ApiServer {
         const apiKey = await this._dbManager.getApiKey(userId);
         res.status(200).send(apiKey);
       }
- catch (e) {
+      catch (e) {
         throw new ApiError(e, 400);
       }
     }));
@@ -566,7 +566,7 @@ export class ApiServer {
         this._logDeleteUserAPIKeyEvents(req, user);
         res.sendStatus(200);
       }
- catch (e) {
+      catch (e) {
         throw new ApiError(e, 400);
       }
     }));
@@ -609,7 +609,7 @@ export class ApiServer {
         clearSessionCacheIfNeeded(req, {sessionID: mreq.sessionID});
         return sendOkReply(req, res, {email});
       }
- catch (e) {
+      catch (e) {
         throw new ApiError('email not available', 403);
       }
     }));
@@ -809,7 +809,7 @@ export class ApiServer {
       this._logDeleteSiteEvents(req, org);
       return sendReply(req, res, {status: 200, data: org.id});
     }
- catch (e) {
+    catch (e) {
       this._logDeleteSiteEvents(req, org, String(e));
       throw e;
     }
@@ -886,7 +886,7 @@ export class ApiServer {
       await doom.deleteWorkspace(ws.id);
       this._logDeleteWorkspaceEvents(req, ws);
     }
- catch (error) {
+    catch (error) {
       this._logDeleteWorkspaceEvents(req, ws, error);
       throw error;
     }
@@ -1214,7 +1214,7 @@ export class ApiServer {
   }
 
   private _logDeleteSiteEvents(req: Request, org: Organization,
-                               error?: string) {
+    error?: string) {
     this._gristServer.getAuditLogger().logEvent(req as RequestWithLogin, {
       action: "site.delete",
       details: {

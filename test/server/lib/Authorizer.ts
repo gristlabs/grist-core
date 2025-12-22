@@ -62,7 +62,7 @@ describe('Authorizer', function() {
   testUtils.setTmpLogLevel('fatal');
 
   const docTools = createDocTools({persistAcrossCases: true, useFixturePlugins: false,
-                                   server: () => (server = new FlexServer(0, 'test docWorker'))});
+    server: () => (server = new FlexServer(0, 'test docWorker'))});
   const docs: {[name: string]: {id: string}} = {};
 
   // Loads the fixtures documents so that they are available to the doc worker under the correct
@@ -73,7 +73,7 @@ describe('Authorizer', function() {
       if (fixtureDoc) {
         await docTools.loadFixtureDocAs(fixtureDoc, docId);
       }
- else {
+      else {
         await docTools.createDoc(docId);
       }
       docs[docName] = {id: docId};
@@ -130,7 +130,7 @@ describe('Authorizer', function() {
     assert.equal(resp2.status, 404);
     assert.notMatch(resp.data, /sampledocid_6/);
     assert.deepEqual(withoutTimestamp(resp.data),
-                     withoutTimestamp(resp2.data));
+      withoutTimestamp(resp2.data));
   });
 
   it("viewer can access title", async function() {
@@ -180,8 +180,8 @@ describe('Authorizer', function() {
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
-                                            0,
-                                            [["UpdateRecord", "Table1", 1, {A: nonce}], {}]);
+      0,
+      [["UpdateRecord", "Table1", 1, {A: nonce}], {}]);
     assert.lengthOf(cli.messages, 0);  // no user actions pushed to client
     assert.match(applyUserActions.error!, /No write access/);
     assert.match(applyUserActions.errorCode!, /AUTH_NO_EDIT/);
@@ -199,8 +199,8 @@ describe('Authorizer', function() {
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
-                                            0,
-                                            [["UpdateRecord", "Table1", 1, {A: nonce}]]);
+      0,
+      [["UpdateRecord", "Table1", 1, {A: nonce}]]);
     // Skip messages with no actions (since docUsage may or may not appear by now)
     const messagesWithActions = cli.messages.filter(m => m.data.docActions);
     assert.lengthOf(messagesWithActions, 1);  // user actions pushed to client
@@ -241,8 +241,8 @@ describe('Authorizer', function() {
     assert.equal(openDoc.error, undefined);
     const nonce = uuidv4();
     const applyUserActions = await cli.send("applyUserActions",
-                                            0,
-                                            [["UpdateRecord", "Table1", 1, {A: nonce}], {}]);
+      0,
+      [["UpdateRecord", "Table1", 1, {A: nonce}], {}]);
     assert.lengthOf(cli.messages, 0);  // no user actions pushed to client
     assert.match(applyUserActions.error!, /No write access/);
     assert.match(applyUserActions.errorCode!, /AUTH_NO_EDIT/);
@@ -328,7 +328,7 @@ describe('Authorizer', function() {
         resp = await axios.get(`${serverUrl}/`, auth);
         assert.equal(resp.status, 403, 'home page denied!');
       }
- finally {
+      finally {
         // It's okay, chimpy, you learned your lesson
         sadChimpy.disabledAt = null;
         await sadChimpy.save();

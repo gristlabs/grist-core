@@ -125,24 +125,24 @@ describe('RecordCards', function() {
     });
 
     it('shows an unavailable message if the row is blocked by ACL rules', async function() {
-       await api.applyUserActions(docId, [
-         ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Country', colIds: '*'}],
-         ['AddRecord', '_grist_ACLRules', null, {
-           resource: -1,
-           aclFormula: 'rec.Code == "ZWE"',
-           permissionsText: '-R',
-           memo: 'Block ZWE records',
-         }],
-       ]);
+      await api.applyUserActions(docId, [
+        ['AddRecord', '_grist_ACLResources', -1, {tableId: 'Country', colIds: '*'}],
+        ['AddRecord', '_grist_ACLRules', null, {
+          resource: -1,
+          aclFormula: 'rec.Code == "ZWE"',
+          permissionsText: '-R',
+          memo: 'Block ZWE records',
+        }],
+      ]);
 
-       await gu.reloadDoc();
+      await gu.reloadDoc();
 
-       await gu.getCell(0, 745).find('.test-ref-link-icon').click();
+      await gu.getCell(0, 745).find('.test-ref-link-icon').click();
 
-       assert.include(
-         await driver.find('.test-record-card-popup-wrapper').getText(),
-         "This row is unavailable or does not exist",
-       );
+      assert.include(
+        await driver.find('.test-record-card-popup-wrapper').getText(),
+        "This row is unavailable or does not exist",
+      );
 
       await gu.sendKeys(Key.ESCAPE);
     });

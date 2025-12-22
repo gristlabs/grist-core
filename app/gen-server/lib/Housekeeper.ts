@@ -71,7 +71,7 @@ export class Housekeeper {
   private _telemetry = this._server.getTelemetry();
 
   public constructor(private _dbManager: HomeDBManager, private _server: GristServer,
-                     private _permitStore: IPermitStore, private _electionStore: IElectionStore) {
+    private _permitStore: IPermitStore, private _electionStore: IElectionStore) {
   }
 
   /**
@@ -144,11 +144,11 @@ export class Housekeeper {
       try {
         await this._server.hardDeleteDoc(doc.id);
       }
- catch (err) {
+      catch (err) {
         if (err instanceof ApiError) {
           log.error(`failed to delete document ${doc.id}: error status ${err.status} ${err.message}`);
         }
- else {
+        else {
           log.error(`failed to delete document ${doc.id}: error status ${String(err)}`);
         }
       }
@@ -192,7 +192,7 @@ export class Housekeeper {
           log.error(`failed to delete fork ${docId}: error status ${result.status}`);
         }
       }
- finally {
+      finally {
         await this._permitStore.removePermit(permitKey);
       }
     }
@@ -228,7 +228,7 @@ export class Housekeeper {
         status: response.status,
       });
     }
- else {
+    else {
       log.rawError('testProxyUrl failed', {
         url,
         status: response.status,
@@ -304,7 +304,7 @@ export class Housekeeper {
 
   public async checkVersionUpdatesExclusively() {
     const electionKey = await this._electionStore.getElection('checkVersionUpdates',
-                                                              Timings.VERSION_CHECK_PERIOD_MS / 2.0);
+      Timings.VERSION_CHECK_PERIOD_MS / 2.0);
     if (!electionKey) {
       log.info('Skipping checkVersionUpdates since another server is working on it or worked on it recently');
       return false;
@@ -500,7 +500,7 @@ export class Housekeeper {
         // Return JSON result, or an empty object if no result provided.
         res.json(await result.json().catch(() => ({})));
       }
- finally {
+      finally {
         await this._permitStore.removePermit(permitKey);
       }
     });

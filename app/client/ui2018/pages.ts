@@ -214,7 +214,7 @@ export function splitPageInitial(name: string): {initial: string, displayName: s
   if (m && !/^\d$/.test(m[0])) {
     return {initial: m[0], displayName: name.slice(m[0].length).trim(), hasEmoji: true};
   }
- else {
+  else {
     return {initial: Array.from(name)[0], displayName: name.trim(), hasEmoji: false};
   }
 }
@@ -311,7 +311,7 @@ function onHoverSupport(yesNo: boolean) {
   if (isDesktop()) {
     return yesNo ? 'all' : 'not all';
   }
- else {
+  else {
     return yesNo ? '(hover: hover)' : '(hover: none)';
   }
 }

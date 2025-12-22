@@ -165,10 +165,10 @@ describe('CustomWidgets', function () {
 
   // Get rendered content from custom section.
   const content = async () => {
-      return gu.doInIframe(await getCustomWidgetFrame(), async () => {
-        const text = await driver.find('body').getText();
-        return text;
-      });
+    return gu.doInIframe(await getCustomWidgetFrame(), async () => {
+      const text = await driver.find('body').getText();
+      return text;
+    });
   };
 
   async function execute(
@@ -187,7 +187,7 @@ describe('CustomWidgets', function () {
           }
           done(result);
         }
- catch (e) {
+        catch (e) {
           done(String(e.message || e));
         }
       };
@@ -221,7 +221,7 @@ describe('CustomWidgets', function () {
       const currentAccess = await driver.find('.test-config-widget-access .test-select-open').getText();
       return Object.entries(text).find(e => e[1] === currentAccess)![0];
     }
- else {
+    else {
       await driver.find('.test-config-widget-access .test-select-open').click();
       await gu.findOpenMenuItem('li', text[level]).click();
       await gu.waitForServer();

@@ -90,7 +90,7 @@ export class UpdateManager {
       try {
         new URL(Deps.DOCKER_ENDPOINT);
       }
- catch (err) {
+      catch (err) {
         throw new Error(
           `Invalid value for GRIST_UPDATE_DOCKER_URL, expected URL: ${Deps.DOCKER_ENDPOINT}`,
         );
@@ -165,7 +165,7 @@ export class UpdateManager {
         try {
           resData.isCritical = semver.gt(oldestVersion, currentVersion);
         }
- catch (e) {
+        catch (e) {
           throw new ApiError(
             `/api/version got a bad version number ${currentVersion} (incomparable with ${oldestVersion})`,
             400,
@@ -227,7 +227,7 @@ export async function getLatestStableDockerVersion(signal: AbortSignal): Promise
       updateURL: Deps.DOCKER_IMAGE_SITE,
     };
   }
- catch (err) {
+  catch (err) {
     // Make sure to throw only ApiErrors (cache depends on that).
     if (err instanceof ApiError) {
       throw err;

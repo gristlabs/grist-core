@@ -1,7 +1,7 @@
 import { AddRecord, BulkAddRecord, BulkRemoveRecord, BulkUpdateRecord,
-         getColIdsFromDocAction, getColValuesFromDocAction,
-         getTableId, RemoveRecord, ReplaceTableData, TableDataAction,
-         UpdateRecord } from 'app/common/DocActions';
+  getColIdsFromDocAction, getColValuesFromDocAction,
+  getTableId, RemoveRecord, ReplaceTableData, TableDataAction,
+  UpdateRecord } from 'app/common/DocActions';
 import { DocData } from 'app/common/DocData';
 import { isNumber } from 'app/common/gutil';
 
@@ -66,17 +66,17 @@ export function gatherAttachmentIds(
       if (typeof v === 'number') {
         attIds.add(v);
       }
- else if (Array.isArray(v)) {
+      else if (Array.isArray(v)) {
         for (const p of v) {
           if (typeof p === 'number') {
             attIds.add(p);
           }
         }
       }
- else if (typeof v === 'boolean' || v === null) {
+      else if (typeof v === 'boolean' || v === null) {
         // Nothing obvious to do here.
       }
- else if (isNumber(v)) {
+      else if (isNumber(v)) {
         attIds.add(Math.round(parseFloat(v)));
       }
     }

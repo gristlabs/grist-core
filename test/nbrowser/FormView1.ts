@@ -454,7 +454,7 @@ describe('FormView1', function() {
           assert.deepEqual(
             await driver.findAll('.test-sd-searchable-list-item', e => e.getText()), ['Foo', 'Bar', 'Baz'],
           ),
-          500);
+        500);
         await gu.sendKeys('Baz', Key.ENTER);
         assert.equal(await driver.find('select[name="D"]').value(), 'Baz');
         await driver.find('.test-form-reset').click();
@@ -1456,7 +1456,7 @@ describe('FormView1', function() {
           await doTestStruct('Insert section above');
           await doTestStruct('Insert section below');
         }
- else {
+        else {
           await doTestStruct();
         }
       });

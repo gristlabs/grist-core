@@ -12,8 +12,8 @@ interface IWidgetOptions {
   onDelete: () => Promise<void>;
   onCreate: () => Promise<void>;
   anonymous?: boolean; // Configure appearance and available options for anonymous use.
-                       // When anonymous, no modifications are permitted to profile information.
-                       // TODO: add browser test for this option.
+  // When anonymous, no modifications are permitted to profile information.
+  // TODO: add browser test for this option.
   inputArgs?: IDomArgs<HTMLInputElement>;
 }
 
@@ -92,7 +92,7 @@ make API calls for your own account."), testId('description')),
     try {
       await promise;
     }
- finally {
+    finally {
       this._loading.set(false);
     }
   }

@@ -31,7 +31,7 @@ function testParse(dateFormat: string|null, input: string, expectedDateStr: stri
   if (fallback) {
     assert.isEmpty(strict);
   }
- else if (dateFormat) {
+  else if (dateFormat) {
     assert.equal(strict.size, 1);
   }
 

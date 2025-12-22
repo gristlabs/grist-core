@@ -1,7 +1,7 @@
 import * as sqlite3 from '@gristlabs/sqlite3';
 import { fromCallback } from 'app/server/lib/serverUtils';
 import { Backup, MinDB, MinDBOptions, PreparedStatement,
-         ResultRow, SqliteVariant } from 'app/server/lib/SqliteCommon';
+  ResultRow, SqliteVariant } from 'app/server/lib/SqliteCommon';
 import { OpenMode, RunResult } from 'app/server/lib/SQLiteDB';
 
 export class NodeSqliteVariant implements SqliteVariant {
@@ -58,7 +58,7 @@ export class NodeSqlite3DatabaseAdapter implements MinDB {
         if (err) {
           reject(err);
         }
- else {
+        else {
           resolve(this);
         }
       }

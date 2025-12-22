@@ -41,7 +41,7 @@ export function buildConfirmDelete(
       dom('div', single ?
         t(`Are you sure you want to delete this record?`)
         : t(`Are you sure you want to delete these records?`),
-        dom.style('margin-bottom', '10px'),
+      dom.style('margin-bottom', '10px'),
       ),
       dom('div',
         labeledSquareCheckbox(remember, t("Don't ask again."), testId('confirm-remember')),

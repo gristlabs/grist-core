@@ -266,8 +266,8 @@ class MentionPicker extends Disposable {
       const access = use(_props.access);
       if (!access) { return null; }
       return new ACIndexImpl<UserItem>(access.users
-                              .sort(orderBy(n => n.name || n.email))
-                              .map(x => new UserItemImpl(x, access)));
+        .sort(orderBy(n => n.name || n.email))
+        .map(x => new UserItemImpl(x, access)));
     });
 
     // Focus layer.

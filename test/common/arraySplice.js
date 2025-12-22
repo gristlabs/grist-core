@@ -79,7 +79,7 @@ function spliceCopyWithTail(helpers) {
 // non-contiguously.
 function spliceFwdBackCopy(helpers) {
   var copyForward = helpers.copyForward,
-      copyBackward = helpers.copyBackward;
+    copyBackward = helpers.copyBackward;
   return function(target, start, arrayToInsert) {
     var count = arrayToInsert.length;
     copyBackward(target, start + count, target, start, target.length - start);
@@ -94,8 +94,8 @@ function spliceFwdBackCopy(helpers) {
 // contiguously, then filling in the gap.
 function spliceAppendCopy(helpers) {
   var appendFunc = helpers.append,
-      copyForward = helpers.copyForward,
-      copyBackward = helpers.copyBackward;
+    copyForward = helpers.copyForward,
+    copyBackward = helpers.copyBackward;
   return function(target, start, arrToInsert) {
     var origLen = target.length;
     var tailLen = origLen - start;

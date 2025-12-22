@@ -49,7 +49,7 @@ describe('ColumnFilterMenu', function() {
     // Check that everything is selected
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
     assert.equal(await driver.find('.fixture-all-values').getText(),
-    await driver.find('.fixture-displayed-values').getText());
+      await driver.find('.fixture-displayed-values').getText());
 
     // Check menu offers bulk-action
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action', e => e.getText()), ['All', 'None']);
@@ -82,7 +82,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check that only 'None' is disabled
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
-                     ['None']);
+      ['None']);
 
     // Verify that no values are display
     assert.equal(await driver.find('.fixture-displayed-values').getText(), '[]');
@@ -102,30 +102,30 @@ describe('ColumnFilterMenu', function() {
     // Select all, check values
     await driver.findContent('.test-filter-menu-bulk-action', /All/).click();
     assert.deepEqual(await driver.findAll('.test-filter-menu-bulk-action[aria-disabled="true"]', e => e.getText()),
-                     ['All']);
+      ['All']);
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
     assert.equal(await driver.find('.fixture-all-values').getText(),
-    await driver.find('.fixture-displayed-values').getText());
+      await driver.find('.fixture-displayed-values').getText());
   });
 
   it('should offer a working `Future Values` option', async () => {
     // Check `Future Values` is present
     assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).isPresent(),
-                 true, 'Future Values not present');
+      true, 'Future Values not present');
 
     // Check all values are selected
     assert.equal(await driver.find('.fixture-json').getText(), JSON.stringify({excluded: []}));
 
     // Check `Future Values` is selected
     assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
-                 true, 'Future values should be selected');
+      true, 'Future values should be selected');
 
     // Uncheck `Apple`
     await driver.findContent('.test-filter-menu-list label', /Apples/).click();
 
     // Check the filter spec
     assert.equal(await driver.find('.fixture-json').getText(),
-                 JSON.stringify({excluded: ['Apples']}), 'Spec not correct');
+      JSON.stringify({excluded: ['Apples']}), 'Spec not correct');
 
     // Uncheck the `Future Values` checkbox
     await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
@@ -137,7 +137,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check `Future Values` is unselected
     assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
-                 false);
+      false);
 
     // Check again the `Future Values`
     await driver.findContent('.test-filter-menu-summary', /Future values/).find('label').click();
@@ -147,7 +147,7 @@ describe('ColumnFilterMenu', function() {
 
     // Check `Future Values` is selected
     assert.equal(await driver.findContent('.test-filter-menu-summary', /Future values/).find('input').isSelected(),
-                 true);
+      true);
   });
 
   it('should update filter in response to filter menu', async () => {

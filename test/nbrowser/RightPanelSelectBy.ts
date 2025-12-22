@@ -120,9 +120,9 @@ describe('RightPanelSelectBy', function() {
     // Check that the linked table reflects the selected row.
     assert.deepEqual(await gu.getVisibleGridCells(
       {section: 'Performances', cols: ['Actor', 'Film'], rowNums: [1, 2]}), [
-        'Sigourney Weaver', 'Alien',
-        '', '',
-      ]);
+      'Sigourney Weaver', 'Alien',
+      '', '',
+    ]);
 
     // Change a value in FRIENDS.Favorite_Film column.
     await gu.sendKeys('Toy');
@@ -132,11 +132,11 @@ describe('RightPanelSelectBy', function() {
     // Check that the linked table of Performances got updated.
     assert.deepEqual(await gu.getVisibleGridCells(
       {section: 'Performances', cols: ['Actor', 'Film'], rowNums: [1, 2, 3, 4]}), [
-        'Tom Hanks', 'Toy Story',
-        'Tim Allen', 'Toy Story',
-        'Don Rickles', 'Toy Story',
-        '', '',
-      ]);
+      'Tom Hanks', 'Toy Story',
+      'Tim Allen', 'Toy Story',
+      'Don Rickles', 'Toy Story',
+      '', '',
+    ]);
 
     await gu.undo(2);
   });

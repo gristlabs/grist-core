@@ -83,18 +83,18 @@ describe('CopyPasteColumnOptions', function() {
     const cols = await api.getRecords("_grist_Tables_column");
     const cleanCols = cols.map(
       ({
-         id,
-         fields: {
-           parentId,
-           colId,
-           type,
-           visibleCol,
-           displayCol,
-           rules,
-           widgetOptions,
-           formula,
-         },
-       }) => ({
+        id,
+        fields: {
+          parentId,
+          colId,
+          type,
+          visibleCol,
+          displayCol,
+          rules,
+          widgetOptions,
+          formula,
+        },
+      }) => ({
         id,
         parentId,
         colId,

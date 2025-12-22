@@ -3,7 +3,7 @@
  */
 import {ActionDispatcher} from 'app/common/ActionDispatcher';
 import {BulkAddRecord, BulkColValues, CellValue, ColInfo, ColInfoWithId, ColValues, DocAction,
-        isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from 'app/common/DocActions';
+  isSchemaAction, ReplaceTableData, RowRecord, TableDataAction} from 'app/common/DocActions';
 import {getDefaultForType} from 'app/common/gristTypes';
 import {arrayRemove, arraySplice, getDistinctValues} from 'app/common/gutil';
 import {SchemaTypes} from 'app/common/schema';
@@ -259,7 +259,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
    * not actually present in the table, a row of nulls will be returned for it.
    */
   public getTableDataAction(desiredRowIds?: number[],
-                            colIds?: string[]): TableDataAction {
+    colIds?: string[]): TableDataAction {
     colIds = colIds || this.getColIds();
     const colIdSet = new Set<string>(colIds);
     const rowIds = desiredRowIds || this.getRowIds();
@@ -277,16 +277,16 @@ export class TableData extends ActionDispatcher implements SkippableRows {
         }
       }
     }
- else {
+    else {
       bulkColValues = fromPairs(
         colIds
           .filter(colId => colId !== 'id')
           .map(colId => [colId, this.getColValues(colId)! as CellValue[]]));
     }
     return ['TableData',
-            this.tableId,
-            rowIds as number[],
-            bulkColValues];
+      this.tableId,
+      rowIds as number[],
+      bulkColValues];
   }
 
   public getBulkAddRecord(desiredRowIds?: number[]): BulkAddRecord {
@@ -439,7 +439,7 @@ export class TableData extends ActionDispatcher implements SkippableRows {
           }
         }
       }
- else {
+      else {
         this._rowMap.set(rowIds[i], destIndex);
         this._rowIdCol[destIndex] = rowIds[i];
         for (const {colId, defl, values} of this._colArray) {

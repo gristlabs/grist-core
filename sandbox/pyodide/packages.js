@@ -17,10 +17,10 @@ async function listLibs(src) {
   for (const [lib, version] of Object.entries(libs)) {
     const nlib = lib.replace(/-/g, '_');
     const info = {
-        name: lib,
-        standardName: nlib,
-        version: version,
-      }
+      name: lib,
+      standardName: nlib,
+      version: version,
+    }
     try {
       const found = material.filter(m => m.startsWith(`${nlib}-${version}-`));
       if (found.length !== 1) {

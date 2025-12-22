@@ -196,7 +196,7 @@ export class BaseCreate implements ICreate {
             const storage = this.ExternalStorage('attachments', '');
             return storage ? storageSupportsAttachments(storage) : false;
           }
- catch(e) {
+          catch(e) {
             if (e instanceof UnsupportedPurposeError) {
               return false;
             }
@@ -208,7 +208,7 @@ export class BaseCreate implements ICreate {
           // This *should* always pass due to the `isAvailable` check above being run earlier.
           if (!(storage && storageSupportsAttachments(storage))) {
             throw new AttachmentStoreCreationError('snapshots', storeId,
-                                                   'External storage does not support attachments');
+              'External storage does not support attachments');
           }
           return new ExternalStorageAttachmentStore(
             storeId,

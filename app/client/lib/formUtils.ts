@@ -46,10 +46,10 @@ export function handleSubmit<T>(
       const result = await onSubmit(formDataToObj(form), form, e);
       onSuccess(result);
     }
- catch (err) {
+    catch (err) {
       onError(err);
     }
- finally {
+    finally {
       if (pending && !pending.isDisposed()) {
         pending.set(false);
       }
@@ -92,7 +92,7 @@ export function handleFormError(err: unknown, errObs: Observable<string|null>) {
   ) {
     errObs.set(err.details?.userError ?? err.message);
   }
- else {
+  else {
     reportError(err as Error|string);
   }
 }
@@ -142,7 +142,7 @@ export class TypedFormData {
     if (['Ref', 'RefList'].includes(String(this.type(key)))) {
       return values.map(v => Number(v));
     }
- else {
+    else {
       return values;
     }
   }

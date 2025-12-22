@@ -149,7 +149,7 @@ function setupTest() {
     { value: "attachment", label: "Attachment", icon: "FieldAttachment"                },
     { value: "any",        label: "Any",        icon: "FieldAny",       disabled: true },
     { value: "fakeType",   label: "A very very long fake label for a very fake type",
-                                                icon: "FieldText"},
+      icon: "FieldText"},
   ];
   // If 4 or more items are selected in the multiSelect, turn on the error flag for testing purposes.
   const multiSelectError = Computed.create(null, types, (_use, ts) => ts.length >= 4);

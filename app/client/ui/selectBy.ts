@@ -52,7 +52,7 @@ type MaybeSection = ViewSectionRec|IPageWidget;
 // only when linking from a reference column, as opposed to linking from the table directly. And the
 // <target-col-name> shows only when both <section_name>[.<source-col-name>] is ambiguous.
 export function selectBy(docModel: DocModel, sources: ViewSectionRec[],
-                         target: MaybeSection): Array<IOptionFull<string>> {
+  target: MaybeSection): Array<IOptionFull<string>> {
   const sourceNodes = createNodesFromViewSections(docModel, sources);
   const targetNodes = isViewSectionRec(target)
     ? createNodesFromViewSections(docModel, [target])
@@ -174,7 +174,7 @@ function createNodesFromPageWidget(docModel: DocModel, pageWidget: IPageWidget):
       // The selected source table and groupby columns correspond to this existing summary table.
       table = summaryTable;
     }
- else {
+    else {
       // This summary table doesn't exist yet. `fromColumns` will be using columns from the source table.
       // Make sure it only uses columns that are in the selected groupby columns.
       // The resulting targetColRef will incorrectly be from the source table,

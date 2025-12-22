@@ -46,14 +46,14 @@ describe("ActionSummary", function() {
     ]);
     const sum = await summarizeLastAction(doc);
     assert.sameDeepMembers(sum.tableRenames,
-                           [[null, "Frogs"],
-                            [null, "Moons"],
-                            ["Ducks", null],
-                            ["Bricks", "Blocks"]]);
+      [[null, "Frogs"],
+        [null, "Moons"],
+        ["Ducks", null],
+        ["Bricks", "Blocks"]]);
     // Last change touched content of Ducks, Frogs, and Moons.  Bricks was renamed but had
     // no column or row changes.  Ducks was removed, so it is referred to as "-Ducks".
     assert.sameDeepMembers(Object.keys(sum.tableDeltas).filter(name => !(name[0] === '_')),
-                           ["-Ducks", "Frogs", "Moons"]);
+      ["-Ducks", "Frogs", "Moons"]);
   });
 
   it('summarizes column-level changes', async function() {
@@ -70,9 +70,9 @@ describe("ActionSummary", function() {
     ]);
     const sum = await summarizeLastAction(doc);
     assert.sameDeepMembers(sum.tableDeltas.Ducks.columnRenames,
-                           [["place", "location"],
-                            [null, "wings"],
-                            ["color", null]]);
+      [["place", "location"],
+        [null, "wings"],
+        ["color", null]]);
   });
 
   it('summarizes row-level changes', async function() {
@@ -140,7 +140,7 @@ describe("ActionSummary", function() {
     const sum = await summarizeLastAction(doc);
     const tabularDiffs = asTabularDiffs(sum, {});
     assert.sameDeepMembers(tabularDiffs.Frogs.header,
-                           ['species', 'color', 'place']);
+      ['species', 'color', 'place']);
     assert.lengthOf(tabularDiffs.Frogs.cells, 3);
     const rowTypes = tabularDiffs.Frogs.cells.map(row => row.type);
     assert.sameDeepMembers(rowTypes, ['+', '-', '→']);
@@ -164,16 +164,16 @@ describe("ActionSummary", function() {
     // add many rows
     await doc.applyUserActions(session, [
       ["BulkAddRecord", "Frogs", ids,
-       {
-        species: ids.map(x => 'species ' + x),
-        color: ids.map(x => 'color ' + x),
-        place: ids.map(x => 'place ' + x),
-      }],
+        {
+          species: ids.map(x => 'species ' + x),
+          color: ids.map(x => 'color ' + x),
+          place: ids.map(x => 'place ' + x),
+        }],
     ]);
     const sum = await summarizeLastAction(doc);
     const tabularDiffs = asTabularDiffs(sum, {});
     assert.sameDeepMembers(tabularDiffs.Frogs.header,
-                           ['species', 'color', 'place']);
+      ['species', 'color', 'place']);
     assert(tabularDiffs.Frogs.cells.length < ids.length);
     const rowTypes = tabularDiffs.Frogs.cells.map(row => row.type);
     assert.equal(rowTypes.length - 1, rowTypes.filter(label => label === '+').length);
@@ -200,8 +200,8 @@ describe("ActionSummary", function() {
     const tabularDiffs = asTabularDiffs(sum, {});
     assert.lengthOf(tabularDiffs.Duck.cells, 2);
     assert.sameDeepMembers(tabularDiffs.Duck.cells,
-                           [{type: "-", rowId: 1, cellDeltas: [[["yellow"], null]]},
-                            {type: "+", rowId: 1, cellDeltas: [[null, ["red"]]]}]);
+      [{type: "-", rowId: 1, cellDeltas: [[["yellow"], null]]},
+        {type: "+", rowId: 1, cellDeltas: [[null, ["red"]]]}]);
   });
 
   it('summarizes ReplaceTableData actions', async function() {
@@ -214,7 +214,7 @@ describe("ActionSummary", function() {
     ]);
     await doc.applyUserActions(session, [
       ["ReplaceTableData", "Frogs", [1],
-       {species: ["bouncers"], color: ["blue"], place: ["Bouncy Castle"]}],
+        {species: ["bouncers"], color: ["blue"], place: ["Bouncy Castle"]}],
     ]);
     const sum = await summarizeLastAction(doc);
     assert.deepEqual(sum, {
@@ -262,7 +262,7 @@ describe("ActionSummary", function() {
     const [firstAction] = await history.getActions([118]);
     const summary = summarizeAction(firstAction!);
     assert.deepEqual(summary.tableDeltas.Performances.columnDeltas.Character[6],
-                     [["Captain America"], ["Steve Rogers"]]);
+      [["Captain America"], ["Steve Rogers"]]);
   });
 
   it('includes adequate information about table deletions', async function() {
@@ -288,11 +288,11 @@ describe("ActionSummary", function() {
   it('can compose table renames', async function() {
     const summary1: ActionSummary = {
       tableRenames: [[null, 'Frogs'],        // created in summary1
-                     ['Spaces', 'Spices'],   // renamed in s1
-                     ['Dinosaurs', null],    // removed in s1
-                     ['Fish', 'Sharks'],     // renamed in both
-                     [null, 'Transients'],   // created in s1, removed in s2
-                     ['Doppelganger', null]], // removed in s1, same name created in s2
+        ['Spaces', 'Spices'],   // renamed in s1
+        ['Dinosaurs', null],    // removed in s1
+        ['Fish', 'Sharks'],     // renamed in both
+        [null, 'Transients'],   // created in s1, removed in s2
+        ['Doppelganger', null]], // removed in s1, same name created in s2
       tableDeltas: {
         "Frogs": makeTableDelta('Frogs'),
         "Spices": makeTableDelta('Spices'),
@@ -305,12 +305,12 @@ describe("ActionSummary", function() {
     };
     const summary2: ActionSummary = {
       tableRenames: [[null, 'Ducks'],        // created in s2
-                     ['Colours', 'Colors'],  // renamed in s2
-                     ['Trilobytes', null],   // removed in s2
-                     ['Sharks', 'GreatWhites'],  // renamed in both
-                     ['Transients', null],   // created in s1, removed in s2
-                     [null, 'Doppelganger'], // removed in s1, same name created in s2
-                     ['Koalas', 'Pajamas']],  // mentioned in s1, renamed here
+        ['Colours', 'Colors'],  // renamed in s2
+        ['Trilobytes', null],   // removed in s2
+        ['Sharks', 'GreatWhites'],  // renamed in both
+        ['Transients', null],   // created in s1, removed in s2
+        [null, 'Doppelganger'], // removed in s1, same name created in s2
+        ['Koalas', 'Pajamas']],  // mentioned in s1, renamed here
       tableDeltas: {
         "Ducks": makeTableDelta('Ducks'),
         "Colors": makeTableDelta('Colors'),
@@ -322,15 +322,15 @@ describe("ActionSummary", function() {
     };
     const summary3: ActionSummary = {
       tableRenames: [[null, 'Doppelganger'],
-                     [null, 'Ducks'],
-                     [null, 'Frogs'],
-                     ['Colours', 'Colors'],
-                     ['Dinosaurs', null],
-                     ['Doppelganger', null],
-                     ['Fish', 'GreatWhites'],
-                     ['Koalas', 'Pajamas'],
-                     ['Spaces', 'Spices'],
-                     ['Trilobytes', null]],
+        [null, 'Ducks'],
+        [null, 'Frogs'],
+        ['Colours', 'Colors'],
+        ['Dinosaurs', null],
+        ['Doppelganger', null],
+        ['Fish', 'GreatWhites'],
+        ['Koalas', 'Pajamas'],
+        ['Spaces', 'Spices'],
+        ['Trilobytes', null]],
       tableDeltas: {
         "Frogs": makeTableDelta('Frogs'),
         "Ducks": makeTableDelta('Ducks'),
@@ -358,9 +358,9 @@ describe("ActionSummary", function() {
           addRows: [],
           columnDeltas: {},
           columnRenames: [['age', 'years'],
-                          [null, 'color'],
-                          ['depth', null],
-                          [null, 'transient']],
+            [null, 'color'],
+            ['depth', null],
+            [null, 'transient']],
         },
       },
     };
@@ -373,9 +373,9 @@ describe("ActionSummary", function() {
           addRows: [],
           columnDeltas: {},
           columnRenames: [['years', 'minutes'],
-                          [null, 'weight'],
-                          ['anger', null],
-                          ['transient', null]],
+            [null, 'weight'],
+            ['anger', null],
+            ['transient', null]],
         },
       },
     };
@@ -388,10 +388,10 @@ describe("ActionSummary", function() {
           addRows: [],
           columnDeltas: {},
           columnRenames: [[null, 'color'],
-                          [null, 'weight'],
-                          ['age', 'minutes'],
-                          ['anger', null],
-                          ['depth', null]],
+            [null, 'weight'],
+            ['age', 'minutes'],
+            ['anger', null],
+            ['depth', null]],
         },
       },
     };
@@ -478,30 +478,30 @@ describe("ActionSummary", function() {
     const renames = sums.map(s => s.tableRenames).filter(rn => rn.length > 0);
     // Check the sequence of table renames recovered.
     assert.deepEqual(renames,
-                     [[[null, 'Table1']],
-                      [['Table1', 'Films']],
-                      [[null, 'Table']],
-                      [['Table', 'Actors']],
-                      [[null, 'Table']],
-                      [['Table', 'Friends']],
-                      [['Actors', 'Performances']],
-                      [['Films', 'Films_']],
-                      [['Films_', 'Films']],
-                      [['Friends', 'Friends_']],
-                      [['Friends_', 'Friends']],
-                      [['Performances', 'Performances2']],
-                      [['Performances2', 'Performances']]]);
+      [[[null, 'Table1']],
+        [['Table1', 'Films']],
+        [[null, 'Table']],
+        [['Table', 'Actors']],
+        [[null, 'Table']],
+        [['Table', 'Friends']],
+        [['Actors', 'Performances']],
+        [['Films', 'Films_']],
+        [['Films_', 'Films']],
+        [['Friends', 'Friends_']],
+        [['Friends_', 'Friends']],
+        [['Performances', 'Performances2']],
+        [['Performances2', 'Performances']]]);
     const sum = concatenateSummariesCleanly(sums);
     // at the end of history, we have three tables
     assert.deepEqual(sum.tableRenames,
-                     [[null, 'Films'],
-                      [null, 'Friends'],
-                      [null, 'Performances']]);
+      [[null, 'Films'],
+        [null, 'Friends'],
+        [null, 'Performances']]);
     // all columns should be created, since nothing existed beforehand
     assert.deepEqual(sum.tableDeltas.Films.columnRenames,
-                     [[null, 'Budget_millions'],
-                      [null, 'Release_Date'],
-                      [null, 'Title']]);
+      [[null, 'Budget_millions'],
+        [null, 'Release_Date'],
+        [null, 'Title']]);
   });
 
   it('summarizes partially uncached changes consistently', async function() {
@@ -622,11 +622,11 @@ describe("ActionSummary", function() {
     const ids = [3, 4, 5, 6, 7, 8];
     await doc.applyUserActions(session, [
       ["BulkAddRecord", "Frogs", ids,
-       {
-        species: ids.map(x => 'species ' + x),
-        color: ids.map(x => 'color ' + x),
-        place: ids.map(x => 'place ' + x),
-      }],
+        {
+          species: ids.map(x => 'species ' + x),
+          color: ids.map(x => 'color ' + x),
+          place: ids.map(x => 'place ' + x),
+        }],
     ]);
 
     // Request a summarization with no row limit.
@@ -681,7 +681,7 @@ describe("ActionSummary", function() {
 
     // Request a summarization with a row limit but full preservation of some columns.
     const sum2 = await summarizeLastAction(doc, {alwaysPreserveColIds: ['color', 'species'],
-                                                maximumInlineRows: 4});
+      maximumInlineRows: 4});
 
     // Check result is as expected, with full color and species, but other columns curtailed.
     sum.tableDeltas.Frogs.columnDeltas.manualSort = {
@@ -749,7 +749,7 @@ describe("ActionSummary", function() {
       });
       assertRebase({
         trunk: { renames: [['table1', 'table2']],
-                 deltas: { table2: empty } },
+          deltas: { table2: empty } },
       });
     });
 

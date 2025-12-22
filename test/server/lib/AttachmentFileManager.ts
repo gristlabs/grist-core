@@ -173,7 +173,7 @@ describe("AttachmentFileManager", function() {
   });
 
   async function deleteFileFromStore(docId: string, storeId: string, fileIdent: string,
-                                     provider: IAttachmentStoreProvider = defaultProvider) {
+    provider: IAttachmentStoreProvider = defaultProvider) {
     const store = await provider.getStore(storeId);
     assert.isTrue(await store?.exists(docId, fileIdent));
     await store?.delete(docId, fileIdent);

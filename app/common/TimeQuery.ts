@@ -73,9 +73,9 @@ export class TimeQuery {
   private _pastRows: ResultRow[];
 
   constructor(public tc: TimeCursor,
-              public tableId: string,
-              public colIds: string[] | '*',
-              public rowIds?: number[]) {
+    public tableId: string,
+    public colIds: string[] | '*',
+    public rowIds?: number[]) {
   }
 
   public reset(tableId: string, colIds: string[] | '*', rowIds?: number[]) {
@@ -105,16 +105,16 @@ export class TimeQuery {
     const td = this.tc.summary.tableDeltas[tableRenamed] || createEmptyTableDelta();
 
     const columnForwardRenames: Record<string, string|null> =
-        Object.fromEntries(td.columnRenames.filter(delta => delta[0]));
+      Object.fromEntries(td.columnRenames.filter(delta => delta[0]));
     const columnBackwardRenames: Record<string, string|null> =
-        Object.fromEntries(td.columnRenames.map(([a, b]) => [b, a]).filter(delta => delta[0]));
+      Object.fromEntries(td.columnRenames.map(([a, b]) => [b, a]).filter(delta => delta[0]));
 
     const colIdsExpanded = this.colIds === '*' ?
-        (await this.tc.db.getColIds(tableRenamed)).map(colId => columnBackwardRenames[colId] ?? colId) :
-        this.colIds;
+      (await this.tc.db.getColIds(tableRenamed)).map(colId => columnBackwardRenames[colId] ?? colId) :
+      this.colIds;
 
     const colIdsRenamed =
-        colIdsExpanded.map(colId => columnForwardRenames[colId] ?? colId).filter(colId => colId);
+      colIdsExpanded.map(colId => columnForwardRenames[colId] ?? colId).filter(colId => colId);
     this._currentRows = await this.tc.db.fetch(
       tableRenamed,
       ['id', ...colIdsRenamed],
@@ -142,7 +142,7 @@ export class TimeQuery {
     const additions = new Set(td.addRows);
     const pastRowIds =
       new Set([...this._currentRows.map(r => r.id as number).filter(r => !additions.has(r)),
-               ...td.removeRows]);
+        ...td.removeRows]);
 
     // Now prepare a row for every expected rowId, using current db data if available
     // and relevant, and overlaying past data when available.
@@ -202,7 +202,7 @@ export class TimeLayout {
   constructor(public tc: TimeCursor) {
     this.tables = new TimeQuery(tc, '_grist_Tables', ['tableId', 'primaryViewId', 'rawViewSectionRef']);
     this.fields = new TimeQuery(tc, '_grist_Views_section_field',
-                                ['parentId', 'parentPos', 'colRef']);
+      ['parentId', 'parentPos', 'colRef']);
     this.columns = new TimeQuery(tc, '_grist_Tables_column', ['parentId', 'colId']);
     this.views = new TimeQuery(tc, '_grist_Views', ['id', 'name']);
     this.sections = new TimeQuery(tc, '_grist_Views_section', ['id', 'title']);

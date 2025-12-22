@@ -52,24 +52,24 @@ describe("#checksumFile", function() {
 });
 
 describe("HashPassthroughStream", function() {
-    async function testStreamHash(contents: string, hash: string, algorithm?: string) {
-      const contentBuffer = Buffer.from(contents);
-      const sourceStream = stream.Readable.from(contentBuffer);
-      const hashStream = new HashPassthroughStream(algorithm);
-      const destination = new MemoryWritableStream();
-      await stream.promises.pipeline(sourceStream, hashStream, destination);
-      assert.equal(hashStream.getDigest(), hash);
-      assert(destination.getBuffer().equals(contentBuffer));
-    }
+  async function testStreamHash(contents: string, hash: string, algorithm?: string) {
+    const contentBuffer = Buffer.from(contents);
+    const sourceStream = stream.Readable.from(contentBuffer);
+    const hashStream = new HashPassthroughStream(algorithm);
+    const destination = new MemoryWritableStream();
+    await stream.promises.pipeline(sourceStream, hashStream, destination);
+    assert.equal(hashStream.getDigest(), hash);
+    assert(destination.getBuffer().equals(contentBuffer));
+  }
 
-    const testCases: (keyof typeof testValues)[] = ["small", "empty"];
-    for (const testCase of testCases) {
-      it(`can hash a stream (${testCase})`, async function() {
-        const values = testValues[testCase];
-        await testStreamHash(values.contents, values.hashes.sha1);
-        await testStreamHash(values.contents, values.hashes.md5, "md5");
-      });
-    }
+  const testCases: (keyof typeof testValues)[] = ["small", "empty"];
+  for (const testCase of testCases) {
+    it(`can hash a stream (${testCase})`, async function() {
+      const values = testValues[testCase];
+      await testStreamHash(values.contents, values.hashes.sha1);
+      await testStreamHash(values.contents, values.hashes.md5, "md5");
+    });
+  }
 
   it(`errors if the stream isn't finished`, async function() {
     const sourceStream = stream.Readable.from(Buffer.from("Doesn't matter"));

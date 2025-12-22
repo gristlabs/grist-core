@@ -294,7 +294,7 @@ async function assertPromptTitle(title: string | null) {
       assert.equal(await driver.find('.test-behavioral-prompt').isPresent(), false);
     });
   }
- else {
+  else {
     await gu.waitToPass(async () => {
       assert.equal(await driver.find('.test-behavioral-prompt-title').getText(), title);
     });

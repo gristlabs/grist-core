@@ -123,8 +123,8 @@ export class FormulaEditor extends NewBaseEditor {
         return null;
       }
       const error = isRaisedException(formulaError) ?
-                    decodeObject(formulaError) as RaisedException:
-                    new RaisedException(["Unknown error"]);
+        decodeObject(formulaError) as RaisedException:
+        new RaisedException(["Unknown error"]);
       return error;
     });
     const errorText = Computed.create(this, raisedException, (_, error) => {
@@ -157,7 +157,7 @@ export class FormulaEditor extends NewBaseEditor {
       if (isDetached) {
         options.gristDoc.getUndoStack().disable();
       }
- else {
+      else {
         options.gristDoc.getUndoStack().enable();
       }
     });
@@ -337,13 +337,13 @@ export class FormulaEditor extends NewBaseEditor {
     if (!shouldShowPlaceholder) {
       editor.renderer.emptyMessageNode = null;
     }
- else {
+    else {
       const withAiButton =
         this._canDetach &&
         !this.isDetached.get() &&
         getGristConfig().assistant?.version === 1;
       editor.renderer.emptyMessageNode = cssFormulaPlaceholder(
-          !withAiButton
+        !withAiButton
           ? t('Enter formula.')
           : t('Enter formula or {{button}}.', {
             button: cssUseAssistantButton(
@@ -437,7 +437,7 @@ export class FormulaEditor extends NewBaseEditor {
       // If text selected, replace whole selection
       aceObj.session.replace(aceObj.selection.getRange(), '$' + colId);
     }
- else {
+    else {
       // Not a selection, gotta figure out what to replace
       const pos = aceObj.getCursorPosition();
       const line = aceObj.session.getLine(pos.row);
@@ -447,7 +447,7 @@ export class FormulaEditor extends NewBaseEditor {
         aceObj.insert('$' + colId);
         // We are touching an identifier
       }
- else if (result.ident.startsWith('$')) {
+      else if (result.ident.startsWith('$')) {
         // If ident is a colId, replace it
         const idRange = AceEditor.makeRange(pos.row, result.start, pos.row, result.end);
         aceObj.session.replace(idRange, '$' + colId);
@@ -471,20 +471,20 @@ export class FormulaEditor extends NewBaseEditor {
 // returns whether the column in that line is inside or adjacent to an identifier
 // if yes, returns {start, end, ident}, else null
 function _isInIdentifier(line: string, column: number) {
-    // If cursor is in or after an identifier, scoot back to the start of it
-    const prefix = line.slice(0, column);
-    let startOfIdent = prefix.search(/[$A-Za-z0-9_]+$/);
-    if (startOfIdent < 0) { startOfIdent = column; } // if no match, maybe we're right before it
+  // If cursor is in or after an identifier, scoot back to the start of it
+  const prefix = line.slice(0, column);
+  let startOfIdent = prefix.search(/[$A-Za-z0-9_]+$/);
+  if (startOfIdent < 0) { startOfIdent = column; } // if no match, maybe we're right before it
 
-    // We're either before an ident or nowhere near one. Try to match to its end
-    const match = line.slice(startOfIdent).match(/^[$a-zA-Z0-9_]+/);
-    if (match) {
-        const ident = match[0];
-        return { ident, start: startOfIdent, end: startOfIdent + ident.length};
-    }
- else {
-        return null;
-    }
+  // We're either before an ident or nowhere near one. Try to match to its end
+  const match = line.slice(startOfIdent).match(/^[$a-zA-Z0-9_]+/);
+  if (match) {
+    const ident = match[0];
+    return { ident, start: startOfIdent, end: startOfIdent + ident.length};
+  }
+  else {
+    return null;
+  }
 }
 
 /**
@@ -520,7 +520,7 @@ export function openFormulaEditor(options: {
   if (options.field) {
     options.column = options.field.origCol();
   }
- else if (options.canDetach) {
+  else if (options.canDetach) {
     throw new Error('Field is required for detached editor');
   }
 
@@ -543,12 +543,12 @@ export function openFormulaEditor(options: {
       if (options.onSave) {
         await options.onSave(column, formula);
       }
- else {
+      else {
         await column.updateColValues({formula});
       }
       editor.dispose();
     }
- else {
+    else {
       editor.dispose();
       options.onCancel?.();
     }
@@ -625,7 +625,7 @@ export function getFormulaError(owner: Disposable, options: {
     onValueChange(editRow.cells[colId].peek());
     return formulaError;
   }
- else {
+  else {
 
     // We can't rely on the editRow we got, as this is owned by the view. When we will be detached the view will be
     // gone. So, we will create our own observable that will be updated when the row is updated.
@@ -683,7 +683,7 @@ function errorMonitor(
           }
         });
     }
- else {
+    else {
       formulaError.set(undefined);
     }
   };
@@ -708,12 +708,12 @@ export function createFormulaErrorObs(owner: MultiHolder, gristDoc: GristDoc, or
       const numErrors = tableData.countErrors(colId) || 0;
       errorMessage.set(
         (numErrors === 0) ? '' :
-        (numCells === 1) ? t(`Error in the cell`) :
-        (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
-        t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells}),
+          (numCells === 1) ? t(`Error in the cell`) :
+            (numErrors === numCells) ? t(`Errors in all {{numErrors}} cells`, {numErrors}) :
+              t(`Errors in {{numErrors}} of {{numCells}} cells`, {numErrors, numCells}),
       );
     }
- else {
+    else {
       errorMessage.set('');
     }
   }

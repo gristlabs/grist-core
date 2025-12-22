@@ -82,7 +82,7 @@ export interface Backup {
   remaining: number;
   failed: boolean;
   step(pages: number,
-       callback?: (err: Error | null) => void): void;
+    callback?: (err: Error | null) => void): void;
   finish(callback?: (err: Error | null) => void): void;
 }
 
@@ -106,7 +106,7 @@ export const gristMarshal = {
       accum.names = row.map(value => String(value));
       accum.values = row.map(() => []);
     }
- else {
+    else {
       for (const [i, v] of row.entries()) {
         accum.values[i].push(v);
       }

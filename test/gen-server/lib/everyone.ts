@@ -39,7 +39,7 @@ describe('everyone', function() {
     const docId = await api.newDoc({name: 'an example'}, wsId);
     await api.updateWorkspacePermissions(wsId, {
       users: {'everyone@getgrist.com': 'viewers',
-              'anon@getgrist.com': 'viewers'},
+        'anon@getgrist.com': 'viewers'},
     });
 
     // Check a fresh user can see that workspace
@@ -160,9 +160,9 @@ describe('everyone', function() {
     // Check test user can only list the documents shared with them
     // through a route other than public sharing
     assert.deepEqual((await altApi.getOrgWorkspaces('current'))[0].docs.map(doc => doc.name),
-                     ['another example']);
+      ['another example']);
     assert.deepEqual((await altApi.getWorkspace(wsId)).docs.map(doc => doc.name),
-                     ['another example']);
+      ['another example']);
 
     // Check also that test user can only get doc prefs for documents shared with them through a
     // route other than public sharing. No API endpoint here, so use DB method directly.
@@ -183,6 +183,6 @@ describe('everyone', function() {
     await assert.isFulfilled(altApi2.getDoc(docId));
     await assert.isFulfilled(altApi2.getDoc(docId2));
     assert.sameMembers((await altApi2.getWorkspace(wsId)).docs.map(doc => doc.name),
-                       ['an example', 'another example']);
+      ['an example', 'another example']);
   });
 });

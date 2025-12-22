@@ -26,15 +26,15 @@ import {DocPageModel} from 'app/client/models/DocPageModel';
 import {reportError} from 'app/client/models/errors';
 import {urlState} from 'app/client/models/gristUrlState';
 import {IEditableMember, IMemberSelectOption, IOrgMemberSelectOption,
-        Resource} from 'app/client/models/UserManagerModel';
+  Resource} from 'app/client/models/UserManagerModel';
 import {UserManagerModel, UserManagerModelImpl} from 'app/client/models/UserManagerModel';
 import {getResourceParent, ResourceType} from 'app/client/models/UserManagerModel';
 import {shadowScroll} from 'app/client/ui/shadowScroll';
 import {hoverTooltip, ITooltipControl, showTransientTooltip, withInfoTooltip} from 'app/client/ui/tooltips';
 import {createUserImage} from 'app/client/ui/UserImage';
 import {cssMemberBtn, cssMemberImage, cssMemberListItem,
-        cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
-        cssRemoveIcon} from 'app/client/ui/UserItem';
+  cssMemberPrimary, cssMemberSecondary, cssMemberText, cssMemberType, cssMemberTypeProblem,
+  cssRemoveIcon} from 'app/client/ui/UserItem';
 import {basicButton, bigBasicButton, bigPrimaryButton} from 'app/client/ui2018/buttons';
 import {mediaXSmall, testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {icon} from 'app/client/ui2018/icons';
@@ -42,7 +42,7 @@ import {cssLink} from 'app/client/ui2018/links';
 import {loadingSpinner} from 'app/client/ui2018/loaders';
 import {menu, menuItem, menuText} from 'app/client/ui2018/menus';
 import {confirmModal, cssAnimatedModal, cssModalBody, cssModalButtons, cssModalTitle,
-        IModalControl, modal} from 'app/client/ui2018/modals';
+  IModalControl, modal} from 'app/client/ui2018/modals';
 
 const t = makeT('UserManager');
 
@@ -102,7 +102,7 @@ export function showUserManagerModal(userApi: UserAPI, options: IUserManagerOpti
           window.location.reload();
         }
       }
- catch (err) {
+      catch (err) {
         reportError(err);
       }
     };
@@ -120,7 +120,7 @@ from someone else with sufficient access to the {{resourceType}}.`, { resourceTy
         },
       );
     }
- else {
+    else {
       tryToSaveChanges().catch(reportError);
     }
   }
@@ -182,17 +182,17 @@ function buildUserManagerModal(
           ),
           (model.resourceType === 'document' && model.gristDoc && !model.isPersonal
             ? withInfoTooltip(
-                cssLink({href: urlState().makeUrl({docPage: 'acl'})},
-                  dom.text(use => use(model.isAnythingChanged) ? t('Save & ') : ''),
-                  t('Open Access Rules'),
-                  dom.on('click', (ev) => {
-                    ev.preventDefault();
-                    return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
-                  }),
-                  testId('um-open-access-rules'),
-                ),
-                'openAccessRules',
-                {domArgs: [cssAccessLink.cls('')]},
+              cssLink({href: urlState().makeUrl({docPage: 'acl'})},
+                dom.text(use => use(model.isAnythingChanged) ? t('Save & ') : ''),
+                t('Open Access Rules'),
+                dom.on('click', (ev) => {
+                  ev.preventDefault();
+                  return onConfirm(ctl).then(() => urlState().pushUrl({docPage: 'acl'}));
+                }),
+                testId('um-open-access-rules'),
+              ),
+              'openAccessRules',
+              {domArgs: [cssAccessLink.cls('')]},
             )
             : null
           ),
@@ -224,7 +224,7 @@ export class UserManager extends Disposable {
       prompt?: {email: string},
       resource?: Resource,
       isReadonly?: boolean,
-  }) {
+    }) {
     super();
   }
 
@@ -266,7 +266,7 @@ export class UserManager extends Disposable {
     if (maybeMember) {
       maybeMember.access.set(role);
     }
- else {
+    else {
       this._onAdd(email, role);
     }
   }
@@ -411,7 +411,7 @@ export class UserManager extends Disposable {
           t(`{{limitAt}} of {{limitTop}} {{collaborator}}s`, { limitAt: limit.at, limitTop: limit.top, collaborator })),
         );
       }
- else {
+      else {
         elements.push(cssMemberTypeProblem(
           t(`{{collaborator}} limit exceeded`, { collaborator: capitalizeFirstWord(collaborator) })),
         );
@@ -426,13 +426,13 @@ export class UserManager extends Disposable {
             if (this._options.appModel) {
               e.preventDefault();
               manageTeam(this._options.appModel,
-                         () => this._model.reloadAnnotations(),
-                         { email: member.email }).catch(reportError);
+                () => this._model.reloadAnnotations(),
+                { email: member.email }).catch(reportError);
             }
           }),
           t(`Add {{member}} to your team`, { member: member.name || t('member') })));
       }
- else if (limit.at >= limit.top) {
+      else if (limit.at >= limit.top) {
         elements.push(cssLink({href: commonUrls.plans, target: '_blank'},
           t('Create a team to share with more people')));
       }
@@ -450,13 +450,13 @@ export class UserManager extends Disposable {
       if (annotation.isSupport) {
         memberType = t('Grist support');
       }
- else if (annotation.isMember && annotations.hasTeam) {
+      else if (annotation.isMember && annotations.hasTeam) {
         memberType = t('Team member');
       }
- else if (annotations.hasTeam) {
+      else if (annotations.hasTeam) {
         memberType = t('Outside collaborator');
       }
- else {
+      else {
         memberType = t('Collaborator');
       }
 
@@ -584,7 +584,7 @@ set 'Inherit access' option to 'None'.`, { parent: getResourceParent(this._model
         dom.maybe(use => !this._model.isOrg && use(role) === roles.GUEST, () => menuText(
           t(`User has view access to {{resource}} resulting from manually-set access \
 to resources inside. If removed here, this user will lose access to resources inside.`,
-            { resource: this._model.resourceType }))),
+          { resource: this._model.resourceType }))),
         this._model.isOrg ? menuText(t(`No default access allows access to be \
 granted to individual documents or workspaces, rather than the full team site.`)) : null,
       ]),
@@ -704,8 +704,8 @@ async function copyLink(elem: HTMLElement, link: string) {
 }
 
 async function manageTeam(appModel: AppModel,
-                          onSave?: () => Promise<void>,
-                          prompt?: { email: string }) {
+  onSave?: () => Promise<void>,
+  prompt?: { email: string }) {
   await urlState().pushUrl({manageUsers: false});
   const user = appModel.currentValidUser;
   const currentOrg = appModel.currentOrg;

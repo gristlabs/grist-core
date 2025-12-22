@@ -31,7 +31,7 @@ import {unstyledButton} from 'app/client/ui2018/unstyled';
 import {buildOpenAssistantButton} from 'app/client/widgets/AssistantPopup';
 import {isOwner} from 'app/common/roles';
 import {Computed, computed, Disposable, dom, makeTestId,
-        Observable, observable, styled} from 'grainjs';
+  Observable, observable, styled} from 'grainjs';
 import noop from 'lodash/noop';
 
 const testId = makeTestId('test-tools-');
@@ -108,21 +108,21 @@ export function tools(owner: Disposable, gristDoc: GristDoc, leftPanelOpen: Obse
     ),
     dom.maybe(
       trunkAcceptsProposals, () => {
-      return cssPageEntry(
-        cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'suggestions'),
-        cssPageLink(
-          cssPageIcon('MobileChat'),
-          dom.domComputed((use) => {
-            const proposable = use(canMakeProposal);
-            const changes = proposable ? use(docPageModel.proposalNewChangesCount) : 0;
-            const text = proposable ? t("Suggest Changes") : t("Suggestions");
-            return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
-          }),
-          testId('proposals'),
-          urlState().setLinkUrl({docPage: 'suggestions'}),
-        ),
-      );
-    }),
+        return cssPageEntry(
+          cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'suggestions'),
+          cssPageLink(
+            cssPageIcon('MobileChat'),
+            dom.domComputed((use) => {
+              const proposable = use(canMakeProposal);
+              const changes = proposable ? use(docPageModel.proposalNewChangesCount) : 0;
+              const text = proposable ? t("Suggest Changes") : t("Suggestions");
+              return cssLinkText(changes ? [text, cssChangeCount(` (${changes})`)] : text);
+            }),
+            testId('proposals'),
+            urlState().setLinkUrl({docPage: 'suggestions'}),
+          ),
+        );
+      }),
     cssPageEntry(
       cssPageEntry.cls('-selected', use => use(gristDoc.activeViewId) === 'code'),
       cssPageLink(cssPageIcon('Code'),

@@ -104,10 +104,10 @@ describe('commands', function() {
       return _.chain(callCounts2).mapObject(function(count, name) {
         return count - callCounts1[name];
       })
-      .pick(function(count, name) {
-        return count > 0;
-      })
-      .value();
+        .pick(function(count, name) {
+          return count > 0;
+        })
+        .value();
     }
 
     /**

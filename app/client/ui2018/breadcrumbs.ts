@@ -106,97 +106,97 @@ export function docBreadcrumbs(
     isProposable?: Observable<boolean>,
     isReadonly?: Observable<boolean>,
   },
-  ): Element {
-    const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
-    return cssBreadcrumbs(
-      !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace|null]>(
-        use => [use(options.isBareFork), use(workspace)],
-        ([isBareFork, ws]) => {
-          if (isBareFork || !ws) { return null; }
-          return [
-            cssIcon('Home',
-              testId('bc-home'),
-              cssHideForNarrowScreen.cls('')),
-            cssWorkspaceName(
-              urlState().setLinkUrl({ws: ws.id}),
-              dom.text(ws.name),
-              testId('bc-workspace'),
-              cssHideForNarrowScreen.cls(''),
-            ),
-            cssWorkspaceNarrowScreen(
-              'Expand',
-              urlState().setLinkUrl({ws: ws.id}),
-              testId('bc-workspace-ns'),
-            ),
-            separator(' / ',
-                      testId('bc-separator'),
-                      cssHideForNarrowScreen.cls('')),
-          ];
-        },
-      ),
-      editableLabel(docName, {
-        save: options.docNameSave,
-        inputArgs: [
-          testId('bc-doc'),
-          cssEditableName.cls(''),
-          dom.boolAttr('disabled', options.isDocNameReadOnly || false),
-        ],
-      }),
-      dom.maybe(options.isPublic, () => cssPublicIcon('PublicFilled', testId('bc-is-public'))),
-      dom.domComputed((use) => {
-        if (options.isSnapshot && use(options.isSnapshot)) {
-          return cssTag(t("snapshot"), testId('snapshot-tag'));
+): Element {
+  const shouldShowWorkspace = !(options.isTemplate && options.isAnonymous);
+  return cssBreadcrumbs(
+    !shouldShowWorkspace ? null : dom.domComputed<[boolean, PartialWorkspace|null]>(
+      use => [use(options.isBareFork), use(workspace)],
+      ([isBareFork, ws]) => {
+        if (isBareFork || !ws) { return null; }
+        return [
+          cssIcon('Home',
+            testId('bc-home'),
+            cssHideForNarrowScreen.cls('')),
+          cssWorkspaceName(
+            urlState().setLinkUrl({ws: ws.id}),
+            dom.text(ws.name),
+            testId('bc-workspace'),
+            cssHideForNarrowScreen.cls(''),
+          ),
+          cssWorkspaceNarrowScreen(
+            'Expand',
+            urlState().setLinkUrl({ws: ws.id}),
+            testId('bc-workspace-ns'),
+          ),
+          separator(' / ',
+            testId('bc-separator'),
+            cssHideForNarrowScreen.cls('')),
+        ];
+      },
+    ),
+    editableLabel(docName, {
+      save: options.docNameSave,
+      inputArgs: [
+        testId('bc-doc'),
+        cssEditableName.cls(''),
+        dom.boolAttr('disabled', options.isDocNameReadOnly || false),
+      ],
+    }),
+    dom.maybe(options.isPublic, () => cssPublicIcon('PublicFilled', testId('bc-is-public'))),
+    dom.domComputed((use) => {
+      if (options.isSnapshot && use(options.isSnapshot)) {
+        return cssTag(t("snapshot"), testId('snapshot-tag'));
+      }
+      if (use(options.isFork) && !use(options.isTutorialFork)) {
+        if (options.isProposable && use(options.isProposable)) {
+          return cssTag(t("suggesting"), testId('proposing-changes-tag'));
         }
-        if (use(options.isFork) && !use(options.isTutorialFork)) {
-          if (options.isProposable && use(options.isProposable)) {
-            return cssTag(t("suggesting"), testId('proposing-changes-tag'));
-          }
- else {
-            return cssTag(t("unsaved"), testId('unsaved-tag'));
-          }
+        else {
+          return cssTag(t("unsaved"), testId('unsaved-tag'));
         }
-        if (use(options.isRecoveryMode)) {
-          return cssAlertTag(t("recovery mode"),
-                             dom('a', dom.on('click', () => options.cancelRecoveryMode()),
-                                 icon('CrossSmall')),
-                             testId('recovery-mode-tag'));
-        }
-        if (use(options.isFiddle)) {
-          if (options.isProposable && use(options.isProposable)) {
-            return cssTag(t("suggesting"), tooltip({title: t(`You may make edits,
+      }
+      if (use(options.isRecoveryMode)) {
+        return cssAlertTag(t("recovery mode"),
+          dom('a', dom.on('click', () => options.cancelRecoveryMode()),
+            icon('CrossSmall')),
+          testId('recovery-mode-tag'));
+      }
+      if (use(options.isFiddle)) {
+        if (options.isProposable && use(options.isProposable)) {
+          return cssTag(t("suggesting"), tooltip({title: t(`You may make edits,
 but they will not affect the original document.
 You can propose them as suggestions.`)}), testId('fiddle-tag'));
-          }
- else {
-            return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
+        }
+        else {
+          return cssTag(t("fiddle"), tooltip({title: t(`You may make edits, but they will create a new copy and will
 not affect the original document.`)}), testId('fiddle-tag'));
-          }
         }
-        if (options.isProposable && use(options.isProposable)) {
-          if (options.isReadonly && use(options.isReadonly)) {
-            return cssAlertTag('',
-                               dom('a', dom.on('click', () => options.proposeChanges?.()),
-                                   'suggesting ', icon('Pencil')),
-                               testId('propose-changes-tag'));
-          }
- else {
-            return cssTag(t("editing"), tooltip({
-              title: 'Editing directly. Work on a copy if you want to propose changes.',
-            }), testId('direct-tag'));
-          }
+      }
+      if (options.isProposable && use(options.isProposable)) {
+        if (options.isReadonly && use(options.isReadonly)) {
+          return cssAlertTag('',
+            dom('a', dom.on('click', () => options.proposeChanges?.()),
+              'suggesting ', icon('Pencil')),
+            testId('propose-changes-tag'));
         }
-      }),
-      separator(' / ',
-                testId('bc-separator'),
-                cssHideForNarrowScreen.cls('')),
-      editableLabel(pageName, {
-        save: options.pageNameSave,
-        inputArgs: [
-          testId('bc-page'),
-          cssEditableName.cls(''),
-          dom.boolAttr('disabled', options.isPageNameReadOnly || false),
-          dom.cls(cssHideForNarrowScreen.className),
-        ],
-      }),
-    );
+        else {
+          return cssTag(t("editing"), tooltip({
+            title: 'Editing directly. Work on a copy if you want to propose changes.',
+          }), testId('direct-tag'));
+        }
+      }
+    }),
+    separator(' / ',
+      testId('bc-separator'),
+      cssHideForNarrowScreen.cls('')),
+    editableLabel(pageName, {
+      save: options.pageNameSave,
+      inputArgs: [
+        testId('bc-page'),
+        cssEditableName.cls(''),
+        dom.boolAttr('disabled', options.isPageNameReadOnly || false),
+        dom.cls(cssHideForNarrowScreen.className),
+      ],
+    }),
+  );
 }

@@ -210,4 +210,4 @@ describe('ShiftSelection', function () {
     await gu.sendKeys(Key.chord(ctrlKey, Key.SHIFT, Key.UP));
     await assertCellSelection({colStart: 3, colEnd: 4, rowStart: 4, rowEnd: 6});
   });
- });
+});

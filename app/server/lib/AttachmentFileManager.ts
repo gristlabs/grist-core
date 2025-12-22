@@ -207,7 +207,7 @@ export class AttachmentFileManager extends EventEmitter {
         throw new MismatchedFileHashError(fileIdent, fileHash);
       }
     }
- else {
+    else {
       const hashStream = new HashPassthroughStream();
       const bufferStream = new MemoryWritableStream();
       await stream.promises.pipeline(fileData, hashStream, bufferStream);
@@ -386,11 +386,11 @@ export class AttachmentFileManager extends EventEmitter {
             }
             this._successes++;
           }
- catch (e) {
+          catch (e) {
             this._failures++;
             this._log.warn({fileIdent, storeId: targetStoreId}, `transfer failed: ${e.message}`);
           }
- finally {
+          finally {
             // If a transfer request comes in mid-transfer, it will need re-running.
             if (this._pendingFileTransfers.get(fileIdent) === targetStoreId) {
               this._pendingFileTransfers.delete(fileIdent);
@@ -399,7 +399,7 @@ export class AttachmentFileManager extends EventEmitter {
         }
       }
     }
- finally {
+    finally {
       if (!this._loopAbort.aborted) {
         await this._docStorage.requestVacuum();
         await this._notifyAboutEnd();
@@ -444,9 +444,9 @@ export class AttachmentFileManager extends EventEmitter {
     fileIdent: string,
     fileData: Buffer,
   ): Promise<AddFileResult> {
-      this._log.info({
-        fileIdent,
-      }, `adding file to document storage`);
+    this._log.info({
+      fileIdent,
+    }, `adding file to document storage`);
 
     const fileInfoNoData = await this._docStorage.getFileInfoNoData(fileIdent);
     const fileExists = fileInfoNoData !== null;
@@ -631,7 +631,7 @@ export class AttachmentFileManager extends EventEmitter {
     try {
       return await store.download(this._getDocPoolId(), fileIdent);
     }
- catch(e) {
+    catch(e) {
       throw new AttachmentRetrievalError(store.id, fileIdent, e);
     }
   }

@@ -147,7 +147,7 @@ export class ReferenceListEditor extends NewBaseEditor {
         autocomplete.search();
       }
     })
-    .catch(reportError);
+      .catch(reportError);
   }
 
   public attach(cellElem: Element): void {
@@ -265,7 +265,7 @@ export class ReferenceListEditor extends NewBaseEditor {
    *
    * Also see: prepForSave.
    */
-   private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
+  private async _doSearch(text: string): Promise<ACResults<ReferenceItem>> {
     const {items, selectIndex, highlightFunc} = this._utils.autocompleteSearch(text, this.options.rowId);
     const result: ACResults<ReferenceItem> = {
       selectIndex,

@@ -50,7 +50,7 @@ export function transition<T>(obs: BindableValue<T>, trans: ITransitionLogic<T>)
     if (watcher) {
       watcher.reschedule();
     }
- else {
+    else {
       watcher = new TransitionWatcher(elem);
       watcher.onDispose(() => {
         watcher = null;

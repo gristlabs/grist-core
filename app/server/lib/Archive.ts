@@ -108,7 +108,7 @@ export function create_tar_archive(
       // Passthrough stream is needed as the tar-stream library doesn't implement the 'end' parameter,
       // piping to the passthrough stream fixes this and prevents `destination` being closed.
       const pipeline = stream.promises.pipeline(archive, passthrough, destination,
-                                                { end: options.endDestStream });
+        { end: options.endDestStream });
 
       // Zip packing had issues where adding archive entries could hang indefinitely in error states.
       // While that hasn't been observed with .tar archives, this block isn't awaited as a precaution.
@@ -163,7 +163,7 @@ export async function unpackTarArchive(
       // No sensible behaviour when an error is thrown by onFile - it's onFile's responsibility
       // to handle it.
     ).catch(() => {})
-     .finally(() => { next(); });
+      .finally(() => { next(); });
   });
 
   extractor.on('error', (err: any) => { rejectFinished(err); });

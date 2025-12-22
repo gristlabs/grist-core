@@ -268,46 +268,46 @@ RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
     return Promise.try(() => {
       return addColNum > 0 ? docModel.dataTables[tableId].sendTableActions(addActions) : [];
     })
-    .then(results => {
-      let colRefs = results.map(r => r.colRef).concat(hiddenColRefs);
-      const addFieldNum = colRefs.length;
-      // Add fields for newly added columns and previously hidden columns.
-      return addFieldNum > 0 ?
-        docModel.viewFields.sendTableAction(["BulkAddRecord", gutil.arrayRepeat(addFieldNum, null), {
-          parentId: gutil.arrayRepeat(addFieldNum, this.viewSection.getRowId()),
-          colRef: colRefs,
-          parentPos: positions
-        }]) : [];
-    })
-    .each((fieldRef, i) => {
+      .then(results => {
+        let colRefs = results.map(r => r.colRef).concat(hiddenColRefs);
+        const addFieldNum = colRefs.length;
+        // Add fields for newly added columns and previously hidden columns.
+        return addFieldNum > 0 ?
+          docModel.viewFields.sendTableAction(["BulkAddRecord", gutil.arrayRepeat(addFieldNum, null), {
+            parentId: gutil.arrayRepeat(addFieldNum, this.viewSection.getRowId()),
+            colRef: colRefs,
+            parentPos: positions
+          }]) : [];
+      })
+      .each((fieldRef, i) => {
       // Call the stored callback for each fieldRef, which each set the correct layoutSpec leaf
       // to the newly obtained fieldRef.
-      callbacks[i](fieldRef);
-    })
-    .then(addedRefs => {
-      let actions = [];
+        callbacks[i](fieldRef);
+      })
+      .then(addedRefs => {
+        let actions = [];
 
-      // Records present before that were not present after editing must be removed.
-      let finishedRefs = new Set(existingRefs.concat(addedRefs));
-      let removed = origRefs.filter(fieldRef => !finishedRefs.has(fieldRef));
-      if (removed.length > 0) {
-        actions.push(["BulkRemoveRecord", "_grist_Views_section_field", removed]);
-      }
+        // Records present before that were not present after editing must be removed.
+        let finishedRefs = new Set(existingRefs.concat(addedRefs));
+        let removed = origRefs.filter(fieldRef => !finishedRefs.has(fieldRef));
+        if (removed.length > 0) {
+          actions.push(["BulkRemoveRecord", "_grist_Views_section_field", removed]);
+        }
 
-      // Positions must be updated for fields which were not added/removed.
-      if (existingRefs.length > 0) {
-        actions.push(["BulkUpdateRecord", "_grist_Views_section_field", existingRefs, {
-          "parentPos": existingPositions
+        // Positions must be updated for fields which were not added/removed.
+        if (existingRefs.length > 0) {
+          actions.push(["BulkUpdateRecord", "_grist_Views_section_field", existingRefs, {
+            "parentPos": existingPositions
+          }]);
+        }
+
+        // And update the layoutSpecObj itself.
+        actions.push(["UpdateRecord", "_grist_Views_section", this.viewSection.getRowId(), {
+          "layoutSpec": JSON.stringify(layoutSpec)
         }]);
-      }
 
-      // And update the layoutSpecObj itself.
-      actions.push(["UpdateRecord", "_grist_Views_section", this.viewSection.getRowId(), {
-        "layoutSpec": JSON.stringify(layoutSpec)
-      }]);
-
-      return docData.sendActions(actions);
-    })
+        return docData.sendActions(actions);
+      })
   });
 };
 

@@ -361,7 +361,7 @@ class Seed {
         members,
       };
     }
- else {
+    else {
       return {
         owners,
         editors,
@@ -468,7 +468,7 @@ class Seed {
   }
 
   public async addDocs(orgs: Array<{name: string, domain?: string, host?: string, product?: string,
-                                    workspaces: Array<{name: string, docs: string[]}>}>) {
+    workspaces: Array<{name: string, docs: string[]}>}>) {
     let docId = 1;
     for (const org of orgs) {
       const o = new Organization();
@@ -583,7 +583,7 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
   // (so we fail if a connection has already been made).  If the
   // sqlite db is in memory (":memory:") there's nothing to delete.
   const uncommitted = !connection;  // has user already created a connection?
-                                    // if so we won't be able to delete sqlite db
+  // if so we won't be able to delete sqlite db
   connection = connection || await getOrCreateConnection();
   const opt = connection.driver.options;
   if (process.env.TEST_CLEAN_DATABASE) {
@@ -602,12 +602,12 @@ export async function createInitialDb(connection?: Connection, migrateAndSeedDat
         connection = await getOrCreateConnection();
       }
     }
- else if (opt.type === 'postgres') {
+    else if (opt.type === 'postgres') {
       // recreate schema, destroying everything that was inside it
       await connection.query("DROP SCHEMA public CASCADE;");
       await connection.query("CREATE SCHEMA public;");
     }
- else {
+    else {
       throw new Error(`do not know how to clean a ${opt.type} db`);
     }
   }
@@ -700,7 +700,7 @@ export function setUpDB(context?: Context) {
   if (!process.env.TYPEORM_DATABASE) {
     process.env.TYPEORM_DATABASE = ":memory:";
   }
- else {
+  else {
     if (context) { context.timeout(60000); }
   }
 }
@@ -711,25 +711,25 @@ async function main() {
     await createInitialDb();
     return;
   }
- else if (cmd === 'benchmark') {
+  else if (cmd === 'benchmark') {
     const connection = await getOrCreateConnection();
     await createInitialDb(connection, false);
     await createBenchmarkDb(connection);
     return;
   }
- else if (cmd === 'migrate') {
+  else if (cmd === 'migrate') {
     process.env.TYPEORM_LOGGING = 'true';
     const connection = await getOrCreateConnection();
     await runMigrations(connection);
     return;
   }
- else if (cmd === 'revert') {
+  else if (cmd === 'revert') {
     process.env.TYPEORM_LOGGING = 'true';
     const connection = await getOrCreateConnection();
     await undoLastMigration(connection);
     return;
   }
- else if (cmd === 'serve') {
+  else if (cmd === 'serve') {
     const home = await createServer(3000);
     // tslint:disable-next-line:no-console
     console.log(`Home API demo available at ${home.getOwnUrl()}`);

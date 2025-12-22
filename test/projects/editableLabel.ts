@@ -77,7 +77,7 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-saved-value').getText(), "foo");
 
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                       ['Called: foo', 'Resolved']);
+        ['Called: foo', 'Resolved']);
     });
 
     it("should save on blur", async function() {
@@ -103,7 +103,7 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-edit-label').value(), "BlurTest");
       assert.equal(await driver.find('.test-saved-value').getText(), "BlurTest");
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                       ['Called: BlurTest', 'Resolved']);
+        ['Called: BlurTest', 'Resolved']);
     });
 
 
@@ -113,7 +113,7 @@ describe('editableLabel', function() {
 
       // Check that no calls are made.
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                       []);
+        []);
     });
 
     it("should revert on Escape", async function() {
@@ -126,7 +126,7 @@ describe('editableLabel', function() {
 
       // Check that no calls are made.
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                       []);
+        []);
     });
 
     it("should reflect the value on the server", async function() {
@@ -175,7 +175,7 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-edit-label').value(), "foo2");
 
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                       ['Called: foo', 'Resolved']);
+        ['Called: foo', 'Resolved']);
     });
 
     it("should show the server value if save failed", async function() {
@@ -191,7 +191,7 @@ describe('editableLabel', function() {
       assert.equal(await driver.find('.test-edit-label').value(), "Hello");
 
       assert.deepEqual(await driver.findAll('.test-call-log li', el => el.getText()),
-                       ['Called: foo', 'Rejected: FakeError']);
+        ['Called: foo', 'Rejected: FakeError']);
     });
 
     it("should not reflect server changes while being edited", async function() {

@@ -64,7 +64,7 @@ describe("DocWorkerLoadTracker", function () {
         Deps[depsProperty] = path;
         await fs.writeFile(path, value.toString(), 'utf-8');
       }
- else {
+      else {
         Deps[depsProperty] = undefined;
       }
     }
@@ -97,7 +97,7 @@ describe("DocWorkerLoadTracker", function () {
       itMsg: 'should let the DocManager compute an estimation of the memory used when '
         + 'GRIST_DOC_WORKER_USED_MEMORY_BYTES_PATH is not provided',
       setup() {
-          getTotalMemoryUsedStub.returns(128);
+        getTotalMemoryUsedStub.returns(128);
       },
       maxFromFile: bytesToMb(512),
       result: 128/512,

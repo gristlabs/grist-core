@@ -210,11 +210,11 @@ class WebhookExternalTable implements IExternalTable {
           values.webhookId = webhookId;
           notes.push("Added");
         }
- catch (e) {
+        catch (e) {
           notes.push("Incomplete" + ' | ' + this._getErrorString(e).replace(/^Error: /, '').replace('\n', ' | '));
         }
       }
- else {
+      else {
         notes.push("Updated");
       }
       if (!values.status) {
@@ -255,7 +255,7 @@ class WebhookExternalTable implements IExternalTable {
           ['UpdateRecord', this.name, rowId, values],
         );
       }
- else {
+      else {
         actions.push(
           ['AddRecord', this.name, null, values],
         );

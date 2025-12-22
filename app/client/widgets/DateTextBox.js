@@ -59,7 +59,7 @@ DateTextBox.prototype.buildDateConfigDom = function() {
     kd.maybe(() => !this.mixedDateFormat() && this.isCustomDateFormat(), () => {
       return cssRow(dom(
         textbox(this.dateFormat, { disabled }),
-      dom.testId("Widget_dateCustomFormat")));
+        dom.testId("Widget_dateCustomFormat")));
     })
   );
 };

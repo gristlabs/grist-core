@@ -24,7 +24,7 @@ export interface TableOperations {
    * Add or update a record or records.
    */
   upsert(records: Types.AddOrUpdateRecord|Types.AddOrUpdateRecord[],
-         options?: UpsertOptions): Promise<void>;
+    options?: UpsertOptions): Promise<void>;
 
   /**
    * Determine the tableId of the table.

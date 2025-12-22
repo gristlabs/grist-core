@@ -46,7 +46,7 @@ describe('SqliteSettings', function() {
             A: ['test1', 'test2'],
           });
           assert.deepEqual((await api.getDocAPI(docId).getRows('Table1')).A,
-                           ['test1', 'test2']);
+            ['test1', 'test2']);
           const docPath = (await home.server.getDocManager().getActiveDoc(docId))?.docStorage.docPath;
           if (!docPath) { throw new Error('doc should exist'); }
           assert.equal(await fse.pathExists(docPath), true);
@@ -61,17 +61,17 @@ describe('SqliteSettings', function() {
             A: ['test1', 'test2'],
           });
           assert.deepEqual((await api.getDocAPI(docId).getRows('Table1')).A,
-                           ['test1', 'test2']);
+            ['test1', 'test2']);
           const fork = await api.getDocAPI(docId).fork();
           assert.include(fork.docId, '~');
           assert.deepEqual((await api.getDocAPI(fork.docId).getRows('Table1')).A,
-                           ['test1', 'test2']);
+            ['test1', 'test2']);
           const storage = home.server.getStorageManager();
           const snapshots = storage.getSnapshotProgress(docId);
           if (externalStorage) {
             assert.isAtLeast(snapshots.pushes, 1);
           }
- else {
+          else {
             assert.equal(snapshots.pushes, 0);
           }
         });
@@ -83,13 +83,13 @@ describe('SqliteSettings', function() {
             A: ['test1', 'test2'],
           });
           assert.deepEqual((await api.getDocAPI(docId).getRows('Table1')).A,
-                           ['test1', 'test2']);
+            ['test1', 'test2']);
           const copyDocId = await api.copyDoc(docId, wsId, {
             documentName: 'copy',
           });
           assert.notEqual(copyDocId, docId);
           assert.deepEqual((await api.getDocAPI(copyDocId).getRows('Table1')).A,
-                           ['test1', 'test2']);
+            ['test1', 'test2']);
         });
       });
     }

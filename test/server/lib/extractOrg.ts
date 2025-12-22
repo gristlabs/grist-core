@@ -60,7 +60,7 @@ describe("extractOrg", function() {
       if (!values.isCustomHost) { delete values.isCustomHost; }
       return {...values, STATUS: resp.status};
     }
- catch (e) {
+    catch (e) {
       return {STATUS: resp.status};
     }
   }

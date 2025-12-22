@@ -41,7 +41,7 @@ export function describeDocActions(docActions: DocAction[], docData: DocData): D
     if (!isMetadataTable(tableId)) {
       userTableNameSet.add(getTableName(tableId, docData) || tableId);
     }
- else {
+    else {
       const category = categoryMap[tableId as keyof SchemaTypes] || "metadata";
       if (category === IGNORE) { continue; }
       categorySet.add(category);

@@ -266,7 +266,7 @@ describe('Webhooks-Proxy', function () {
           assert.isTrue(testProxyServer.wasProxyCalled());
         });
       }
- else {
+      else {
         it("Should not call proxy", async function () {
           //Run standard subscribe-modify data-check response - unsubscribe scenario, we are not mutch
           // intrested in it, only want to check if proxy was used

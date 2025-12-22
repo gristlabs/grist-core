@@ -74,7 +74,7 @@ export function translateLocale(locale: string) {
     const languageNames = new Intl.DisplayNames([locale], {type: 'language'});
     return languageNames.of(locale) || null;
   }
- catch (err) {
+  catch (err) {
     return null;
   }
 }

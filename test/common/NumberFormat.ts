@@ -33,7 +33,7 @@ describe("NumberFormat", function() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
       // style: 'percent',  // In node v14.17.0 style is 'decimal' (unclear why)
-                            // so we check final formatting instead in this case.
+      // so we check final formatting instead in this case.
       useGrouping: useGroupingAuto,
     });
     assert.equal(buildNumberFormat({numMode: 'percent'}, defaultDocSettings).format(0.5), '50%');

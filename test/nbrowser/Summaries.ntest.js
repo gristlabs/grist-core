@@ -32,13 +32,13 @@ describe('Summaries.ntest', function() {
 
     // Check a few numbers from 'Credit/Debit By Category' section.
     assert.deepEqual(await gu.getGridValues({section: 'Credit/Debit By Category', rowNums: [3, 9],
-                                             cols: [1, 3]}),
-      [ 'Fees & Adjustments-Fees & Adjustments', '-472.03',
-        'Business Services-Office Supplies',     '526.45' ]);
+      cols: [1, 3]}),
+    [ 'Fees & Adjustments-Fees & Adjustments', '-472.03',
+      'Business Services-Office Supplies',     '526.45' ]);
     assert.deepEqual(await gu.getGridValues({section: 'Credit/Debit By Category', rowNums: [3, 9],
-                                             cols: [0], mapper: e => e.find('.widget_checkmark').getCssValue('display') }),
-                     [ 'block',
-                       'none' ]);
+      cols: [0], mapper: e => e.find('.widget_checkmark').getCssValue('display') }),
+    [ 'block',
+      'none' ]);
   });
 
 
@@ -216,9 +216,9 @@ describe('Summaries.ntest', function() {
       [ 'Business Services-Mailing & Shipping',      '341.84',
         'Merchandise & Supplies-Internet Purchase',  '1200.87' ]);              // Up by 177.40
     assert.deepEqual(await gu.getGridValues({section: 'By Date/Category',
-                                       rowNums:[151, 152], cols:[0, 1, 3]}),
-      [ '2015-12-04', 'Travel-Lodging',                          '2844.14',    // Down by 177.40
-        '2015-12-04', 'Merchandise & Supplies-Internet Purchase', '177.40' ]);  // New row
+      rowNums:[151, 152], cols:[0, 1, 3]}),
+    [ '2015-12-04', 'Travel-Lodging',                          '2844.14',    // Down by 177.40
+      '2015-12-04', 'Merchandise & Supplies-Internet Purchase', '177.40' ]);  // New row
 
     // Undo and check that summarized values got restored.
     await $(".test-undo").click();
@@ -243,19 +243,19 @@ describe('Summaries.ntest', function() {
     await gu.waitForServer();
     assert.equal(await gu.getGridLastRowText(), '210');
     assert.deepEqual(await gu.getGridValues({cols: [0, 1, 2], rowNums: [209]}),
-     ['2016-01-01', '100.00', 'Business Services-Office Supplies']);
+      ['2016-01-01', '100.00', 'Business Services-Office Supplies']);
 
     // Check that numbers have changed.
     assert.deepEqual(await gu.getGridValues({section: 'Credit/Debit By Category', rowNums: [2, 3, 9],
       cols: [1, 3]}),
-      [ 'Business Services-Office Supplies',    '-4.56',      // <-- no change
-        'Fees & Adjustments-Fees & Adjustments', '-472.03',
-        'Business Services-Office Supplies',     '626.45' ]);  // <-- does change
+    [ 'Business Services-Office Supplies',    '-4.56',      // <-- no change
+      'Fees & Adjustments-Fees & Adjustments', '-472.03',
+      'Business Services-Office Supplies',     '626.45' ]);  // <-- does change
     assert.deepEqual(await gu.getGridValues({section: 'Credit/Debit By Category', rowNums: [2, 3, 9],
-                                             cols: [0], mapper: e => e.find('.widget_checkmark').getCssValue('display')}),
-                     [ 'block',
-                       'block',
-                       'none']);  // <-- does change
+      cols: [0], mapper: e => e.find('.widget_checkmark').getCssValue('display')}),
+    [ 'block',
+      'block',
+      'none']);  // <-- does change
 
     // Go to last data record.
     await gu.sendKeys([$.MOD, $.UP]);
@@ -270,13 +270,13 @@ describe('Summaries.ntest', function() {
 
     assert.deepEqual(await gu.getGridValues({section: 'Credit/Debit By Category', rowNums: [2, 3, 9],
       cols: [1, 3]}),
-      [ 'Business Services-Office Supplies',    '-4.56',
-        'Fees & Adjustments-Fees & Adjustments', '-472.03',
-        'Business Services-Office Supplies',     '526.45' ]);
+    [ 'Business Services-Office Supplies',    '-4.56',
+      'Fees & Adjustments-Fees & Adjustments', '-472.03',
+      'Business Services-Office Supplies',     '526.45' ]);
     assert.deepEqual(await gu.getGridValues({section: 'Credit/Debit By Category', rowNums: [2, 3, 9],
-                                             cols: [0], mapper: e => e.find('.widget_checkmark').getCssValue('display')}),
-      [ 'block',
-        'block',
-        'none' ]);
+      cols: [0], mapper: e => e.find('.widget_checkmark').getCssValue('display')}),
+    [ 'block',
+      'block',
+      'none' ]);
   });
 });

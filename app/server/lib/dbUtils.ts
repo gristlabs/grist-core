@@ -16,7 +16,7 @@ export async function getMigrations(dataSource: DataSource): Promise<MigrationSu
   try {
     migrationsInDb = (await dataSource.query('select name from migrations')).map((rec: any) => rec.name);
   }
- catch (e) {
+  catch (e) {
     // If no migrations have run, there'll be no migrations table - which is fine,
     // it just means 0 migrations run yet.  Sqlite+Postgres report this differently,
     // so any query error that mentions the name of our table is treated as ok.
@@ -132,7 +132,7 @@ export async function withSqliteForeignKeyConstraintDisabled<T>(
   try {
     return await cb();
   }
- finally {
+  finally {
     if (sqlite) { await dataSource.query("PRAGMA foreign_keys = ON;"); }
   }
 }
@@ -163,9 +163,9 @@ export function getTypeORMSettings(overrideConf?: Partial<DataSourceOptions>): D
   return {
     "name": getConnectionName(),
     "type": (process.env.TYPEORM_TYPE as any) || "sqlite",  // officially, TYPEORM_CONNECTION -
-                                                   // but if we use that, this file will never
-                                                   // be read, and we can't configure
-                                                   // caching otherwise.
+    // but if we use that, this file will never
+    // be read, and we can't configure
+    // caching otherwise.
     "database": process.env.TYPEORM_DATABASE || "landing.db",
     "username": process.env.TYPEORM_USERNAME || undefined,
     "password": process.env.TYPEORM_PASSWORD || undefined,

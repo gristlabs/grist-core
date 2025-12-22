@@ -103,7 +103,7 @@ describe('DocSnapshots', async function() {
       assert.equal(snapshots[0].snapshotId, remaining[0].snapshotId);
       // Check that the oldest versions differ by at most a day
       assert.isAtMost(maxDiff([remaining[remaining.length - 1],
-                               snapshots[snapshots.length - 1]], 'days'), 1.0);
+        snapshots[snapshots.length - 1]], 'days'), 1.0);
     });
 
     it('selects reasonable versions to prune in a 100 day history', async function() {
@@ -127,7 +127,7 @@ describe('DocSnapshots', async function() {
       assert.equal(snapshots[0].snapshotId, remaining[0].snapshotId);
       // Check that the oldest versions differ by at most a month
       assert.isAtMost(maxDiff([remaining[remaining.length - 1],
-                               snapshots[snapshots.length - 1]], 'days'), 31.0);
+        snapshots[snapshots.length - 1]], 'days'), 31.0);
     });
 
     it('selects versions that allow gaps', async function() {
@@ -321,5 +321,5 @@ describe('DocSnapshots', async function() {
       ];
       await checkDecisions(times, {window: {count: 1, unit: 'month'}});
     });
-});
+  });
 });

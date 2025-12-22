@@ -110,16 +110,16 @@ const testId = makeTestId('test-wselect-');
 // The picker disables some choices that do not make much sense. This function return the list of
 // compatible types given the tableId and whether user is creating a new page or not.
 function getCompatibleTypes(tableId: TableRef,
-                            {isNewPage, summarize}: ICompatibleTypes): IWidgetType[] {
+  {isNewPage, summarize}: ICompatibleTypes): IWidgetType[] {
   let compatibleTypes: Array<IWidgetType> = [];
   if (tableId !== 'New Table') {
     compatibleTypes = ['record', 'single', 'detail', 'chart', 'custom', 'custom.calendar', 'form'];
   }
- else if (isNewPage) {
+  else if (isNewPage) {
     // New view + new table means we'll be switching to the primary view.
     compatibleTypes = ['record', 'form'];
   }
- else {
+  else {
     // The type 'chart' makes little sense when creating a new table.
     compatibleTypes = ['record', 'single', 'detail', 'form'];
   }
@@ -135,8 +135,8 @@ function isSummaryCompatible(widgetType: IWidgetType): boolean {
 
 // Whether table and type make for a valid selection whether the user is creating a new page or not.
 function isValidSelection(table: TableRef,
-                          type: IWidgetType,
-                          {isNewPage, summarize}: ICompatibleTypes) {
+  type: IWidgetType,
+  {isNewPage, summarize}: ICompatibleTypes) {
   return table !== null && getCompatibleTypes(table, {isNewPage, summarize}).includes(type);
 }
 
@@ -149,7 +149,7 @@ const DELAY_BEFORE_SPINNER_MS = 500;
 
 // Attaches the page widget picker to elem to open on 'click' on the left.
 export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,
-                                       options: IOptions = {}) {
+  options: IOptions = {}) {
   // Overrides .placement, this is needed to enable the page widget to update position when user
   // expand the `Group By` panel.
   // TODO: remove .placement from the options of this method (note: breaking buildPageWidgetPicker
@@ -168,7 +168,7 @@ export function attachPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, on
 
 // Open page widget widget picker on the right of element.
 export function openPageWidgetPicker(elem: HTMLElement, gristDoc: GristDoc, onSave: ISaveFunc,
-                                     options: IOptions = {}) {
+  options: IOptions = {}) {
   popupOpen(elem, ctl => buildPageWidgetPicker(
     ctl, gristDoc, onSave, options,
   ), { placement: 'right' });
@@ -226,7 +226,7 @@ export function buildPageWidgetPicker(
       // Adding empty table will show a prompt, so we don't want to wait for it.
       await savePromise;
     }
- else {
+    else {
       // If savePromise throws an error, before or after timeout, we let the error propagate as it
       // should be handle by the caller.
       if (await isLongerThan(savePromise, DELAY_BEFORE_SPINNER_MS)) {
@@ -384,20 +384,20 @@ export class PageWidgetSelect extends Disposable {
           dom.forEach(this._tables, table => dom('div',
             cssEntryWrapper(
               cssEntry(cssIcon('TypeTable'),
-                       cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
-                       dom.on('click', () => this._selectTable(table.id())),
-                       cssEntry.cls('-selected', use => use(this._value.table) === table.id()),
-                       testId('table-label'),
+                cssLabel(dom.text(table.tableNameDef), overflowTooltip()),
+                dom.on('click', () => this._selectTable(table.id())),
+                cssEntry.cls('-selected', use => use(this._value.table) === table.id()),
+                testId('table-label'),
               ),
-                cssPivot(
-                  cssBigIcon('Pivot'),
-                  cssEntry.cls('-selected', use => use(this._value.summarize) &&
+              cssPivot(
+                cssBigIcon('Pivot'),
+                cssEntry.cls('-selected', use => use(this._value.summarize) &&
                                                      use(this._value.table) === table.id(),
-                  ),
-                  cssEntry.cls('-disabled', this._isSummaryDisabled),
-                  dom.on('click', (_ev, el) =>
-                    !this._isSummaryDisabled.get() && this._selectPivot(table.id(), el as HTMLElement)),
-                  testId('pivot'),
+                ),
+                cssEntry.cls('-disabled', this._isSummaryDisabled),
+                dom.on('click', (_ev, el) =>
+                  !this._isSummaryDisabled.get() && this._selectPivot(table.id(), el as HTMLElement)),
+                testId('pivot'),
               ),
               testId('table'),
             ),
@@ -429,7 +429,7 @@ export class PageWidgetSelect extends Disposable {
               cssSelectBy(
                 cssSmallLabel(t('SELECT BY')),
                 dom.update(cssSelect(this._value.link, this._selectByOptions!),
-                          testId('selectby')),
+                  testId('selectby')),
               ),
               'selectBy',
               {popupOptions: {attach: null}, domArgs: [
@@ -492,7 +492,7 @@ export class PageWidgetSelect extends Disposable {
     if (this._isSelected(pivotEl)) {
       this._closeSummarizePanel();
     }
- else {
+    else {
       if (tid !== this._value.table.get()) {
         this._value.columns.set([]);
         this._value.table.set(tid);

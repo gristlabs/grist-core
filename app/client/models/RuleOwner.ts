@@ -33,7 +33,7 @@ export async function removeRule(docModel: DocModel, owner: RuleOwner, index: nu
   if (newStyles.length >= index) {
     newStyles.splice(index, 1);
   }
- else {
+  else {
     console.debug(`There are not style options at index ${index}`);
   }
   await docModel.docData.bundleActions("Remove conditional rule", () =>

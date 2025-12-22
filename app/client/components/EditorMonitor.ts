@@ -69,13 +69,13 @@ export class EditorMonitor extends Disposable {
     if (doc.isReadonly.get() || doc.hasCustomNav.get()) {
       this._store.clear();
       return;
-     }
+    }
     // if we are on raw data view, we need to set the position manually
     // as currentView observable will not be changed.
     if (doc.activeViewId.get() === 'data') {
       await this._doRestorePosition(doc);
     }
- else {
+    else {
       // on view shown
       this.autoDispose(oneTimeListener(doc.currentView, async () => {
         await this._doRestorePosition(doc);
@@ -93,7 +93,7 @@ export class EditorMonitor extends Disposable {
     if (!isViewDocPage(viewId)) {
       this._store.clear();
       return;
-     }
+    }
     const lastEdit = this._store.readValue();
     if (lastEdit) {
       // set the cursor at right cell
@@ -172,7 +172,7 @@ class EditMemoryStorage {
         this._entry = entry;
         this._timestamp = timestamp;
       }
- catch (e) {
+      catch (e) {
         console.error("[EditMemory] Can't deserialize date from local storage");
       }
     }
@@ -192,7 +192,7 @@ class EditMemoryStorage {
       const data = { timestamp: this._timestamp, entry: this._entry };
       storage.setItem(this._storageKey(), JSON.stringify(data));
     }
- catch (ex) {
+    catch (ex) {
       console.error("Can't save current edited cell state. Error message: " + ex?.message);
     }
   }

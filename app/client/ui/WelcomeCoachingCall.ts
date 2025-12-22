@@ -4,7 +4,7 @@ import {AppModel} from 'app/client/models/AppModel';
 import {bigBasicButton, bigPrimaryButtonLink} from 'app/client/ui2018/buttons';
 import {testId, theme, vars} from 'app/client/ui2018/cssVars';
 import {cardPopup, cssPopupBody, cssPopupButtons, cssPopupCloseButton,
-        cssPopupTitle} from 'app/client/ui2018/popups';
+  cssPopupTitle} from 'app/client/ui2018/popups';
 import {icon} from 'app/client/ui2018/icons';
 import {cssLink} from 'app/client/ui2018/links';
 import {getGristConfig} from 'app/common/urlUtils';
@@ -54,7 +54,7 @@ export function showWelcomeCoachingCall(triggerElement: Element, appModel: AppMo
             : null,
         });
       }
- else {
+      else {
         Object.assign(coachingPopup, {
           lastDismissedAt: Date.now(),
           timesDismissed: coachingPopup.timesDismissed + 1,
@@ -97,12 +97,12 @@ We can show you the Grist basics, or start working with your data right away to 
           dom('div',
             t("You may also check out our introductory webinar, {{ourWeeklyWebinars}}, designed to help new users \
 navigate the fundamentals of Grist.",
-              {
-                ourWeeklyWebinars: cssLink(
-                  {href: commonUrls.webinars, target: '_blank'},
-                  t('Grist 101'),
-                ),
-              },
+            {
+              ourWeeklyWebinars: cssLink(
+                {href: commonUrls.webinars, target: '_blank'},
+                t('Grist 101'),
+              ),
+            },
             ),
             testId('popup-body-webinar'),
           ),

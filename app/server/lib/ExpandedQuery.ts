@@ -91,31 +91,31 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
                       `${quoteIdent(query.tableId)}.${quoteIdent(formula.refColId)}`);
             sqlFormula = `${quoteIdent(alias)}.${quoteIdent(formula.colId)}`;
           }
- else {
+          else {
             error = "Cannot find column";
           }
         }
- else {
+        else {
           error = "Cannot find table";
         }
       }
- else if (formula.kind === 'column') {
+      else if (formula.kind === 'column') {
         const altColumn = columns.filterRecords({parentId: tableRef, isFormula: false, colId: formula.colId});
         // TODO: deal with a formula column.
         if (altColumn.length > 0) {
           sqlFormula = `${quoteIdent(query.tableId)}.${quoteIdent(formula.colId)}`;
         }
- else {
+        else {
           error = "Cannot find column";
         }
       }
- else if (formula.kind === 'literalNumber') {
+      else if (formula.kind === 'literalNumber') {
         sqlFormula = `${formula.value}`;
       }
- else if (formula.kind === 'error') {
+      else if (formula.kind === 'error') {
         error = formula.msg;
       }
- else {
+      else {
         throw new Error('Unrecognized type of formula');
       }
       if (error) {
@@ -129,7 +129,7 @@ export function expandQuery(iquery: ServerQuery, docData: DocData, onDemandFormu
       }
     }
   }
- else {
+  else {
     // Select all data and formula columns.
     selects.add(`${quoteIdent(query.tableId)}.*`);
   }
@@ -149,7 +149,7 @@ export function getFormulaErrorForExpandQuery(docData: DocData, tableId: string,
   const constantValue = expanded.constants?.[colId];
   if (constantValue?.length === 2) {
     return [GristObjCode.Exception, constantValue[1],
-`Not supported in on-demand tables.
+      `Not supported in on-demand tables.
 
 This table is marked as an on-demand table. Such tables don't support most formulas. \
 For proper formula support, unmark it as on-demand.
@@ -182,7 +182,7 @@ For proper formula support, unmark it as on-demand.
  * @returns {ExpandedQuery} The constructed query.
  */
 export function buildComparisonQuery(leftTableId: string, rightTableId: string, selectColumns: Map<string, string[]>,
-                                     joinColumns: Map<string, string>): ExpandedQuery {
+  joinColumns: Map<string, string>): ExpandedQuery {
   const query: ExpandedQuery = { tableId: leftTableId, filters: {} };
 
   // Start accumulating the JOINS, SELECTS and WHERES needed for the query.

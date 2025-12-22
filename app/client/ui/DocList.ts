@@ -60,7 +60,7 @@ export class DocList extends Disposable {
       if (page === "all") {
         return ["recent", "pinned", "all"];
       }
- else {
+      else {
         return ["all", "pinned"];
       }
     },
@@ -74,7 +74,7 @@ export class DocList extends Disposable {
       icon: this._tabIconsAndLabels[tab].icon,
       link: { homePageTab: tab },
     }),
-  ));
+    ));
   private readonly _viewSettings =
     this._options.viewSettings ?? this._options.home;
   private readonly _tab = Computed.create(
@@ -315,12 +315,12 @@ export function makeDocOptionsMenu(home: HomeModel, doc: Document) {
     // to support when the document is open.
     // TODO: support showItemInFolder with electron in a better way.
     (isElectron ? null :
-        menuItem(
-          () => downloadDocModal(doc, home.app),
-          menuIcon('Download'), t("Download document..."),
-          dom.cls("disabled", doc.disabledAt !== undefined),
-          testId('tb-share-option'))
-        ),
+      menuItem(
+        () => downloadDocModal(doc, home.app),
+        menuIcon('Download'), t("Download document..."),
+        dom.cls("disabled", doc.disabledAt !== undefined),
+        testId('tb-share-option'))
+    ),
   ];
 }
 
@@ -402,7 +402,7 @@ function sortAndFilterDocs(
   if (sort === "date" || tab === "recent") {
     docs = sortBy(docs, doc => doc.removedAt || doc.updatedAt).reverse();
   }
- else {
+  else {
     docs = sortBy(docs, doc => doc.name.toLowerCase());
   }
   return docs;
@@ -413,7 +413,7 @@ export async function renameDoc(home: HomeModel, doc: Document, val: string) {
     try {
       await home.renameDoc(doc.id, val);
     }
- catch (err) {
+    catch (err) {
       reportError(err as Error);
     }
   }

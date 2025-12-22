@@ -56,7 +56,7 @@ function getStorageJsonObs<T>(store: Storage, key: string, defaultValue: T): Obs
 /**
  * Helper to create a JSON observable whose state is stored in localStorage.
  */
- export function localStorageJsonObs<T>(key: string, defaultValue: T): Observable<T> {
+export function localStorageJsonObs<T>(key: string, defaultValue: T): Observable<T> {
   return getStorageJsonObs(getStorage(), key, defaultValue);
 }
 

@@ -338,10 +338,10 @@ describe('gristUrlState', function() {
     assert.equal(state.makeUrl(prevState =>
       merge(omit(prevState, 'params.style', 'params.linkParameters.foo'),
         {params: {linkParameters: {baz: 'C'}}})),
-      'https://bar.example.com/doc/DOC/p/5?bar_=B&baz_=C');
+    'https://bar.example.com/doc/DOC/p/5?bar_=B&baz_=C');
     assert.equal(state.makeUrl(prevState =>
       merge(omit(prevState, 'params.style'), {docPage: 44, params: {linkParameters: {foo: 'X'}}})),
-      'https://bar.example.com/doc/DOC/p/44?foo_=X&bar_=B');
+    'https://bar.example.com/doc/DOC/p/44?foo_=X&bar_=B');
     await state.pushUrl(prevState => omit(prevState, 'params'));
     assert.equal(mockWindow.location.href, 'https://bar.example.com/doc/DOC/p/5');
   });

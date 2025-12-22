@@ -989,20 +989,20 @@ describe('UsersManager', function () {
         });
         // Grant everyone access to org.
         await db.updateOrgPermissions({userId: support.id},
-                                      'deleteuser-org', {
-                                        users: {
-                                          'everyone@getgrist.com': 'owners',
-                                        },
-                                      });
+          'deleteuser-org', {
+            users: {
+              'everyone@getgrist.com': 'owners',
+            },
+          });
         // Get the default workspace.
         const ws = db.unwrapQueryResult(
           await db.getOrgWorkspaces({userId: support.id},
-                                    'deleteuser-org'),
+            'deleteuser-org'),
         )[0];
         // Add a document to the workspace.
         const doc = db.unwrapQueryResult(
           await db.addDocument({userId: support.id}, ws.id,
-                               {name: 'doc-name'}),
+            {name: 'doc-name'}),
         );
         // Have our user-to-delete fork the document.
         const forkId = db.unwrapQueryResult(
@@ -1272,15 +1272,15 @@ describe('UsersManager', function () {
         });
         // Grant everyone access to org.
         await db.updateOrgPermissions({userId: support.id},
-                                      'deleteuser-org-multi', {
-                                        users: {
-                                          'everyone@getgrist.com': 'owners',
-                                        },
-                                      });
+          'deleteuser-org-multi', {
+            users: {
+              'everyone@getgrist.com': 'owners',
+            },
+          });
         // Get the default workspace.
         const ws = db.unwrapQueryResult(
           await db.getOrgWorkspaces({userId: support.id},
-                                    'deleteuser-org-multi'),
+            'deleteuser-org-multi'),
         )[0];
         // Add a document to the workspace.
         // Created by user-to-delete, but belongs to workspace.

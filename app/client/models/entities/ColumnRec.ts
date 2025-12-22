@@ -2,7 +2,7 @@ import {KoArray} from 'app/client/lib/koArray';
 import {localStorageJsonObs} from 'app/client/lib/localStorageObs';
 import {ChatHistory} from 'app/client/models/ChatHistory';
 import {CellRec, DocModel, IRowModel, recordSet,
-        refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
+  refRecord, TableRec, ViewFieldRec} from 'app/client/models/DocModel';
 import {urlState} from 'app/client/models/gristUrlState';
 import {jsonObservable, ObjObservable} from 'app/client/models/modelUtil';
 import * as gristTypes from 'app/common/gristTypes';
