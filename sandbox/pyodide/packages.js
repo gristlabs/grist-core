@@ -20,7 +20,7 @@ async function listLibs(src) {
       name: lib,
       standardName: nlib,
       version: version,
-    }
+    };
     try {
       const found = material.filter(m => m.startsWith(`${nlib}-${version}-`));
       if (found.length !== 1) {

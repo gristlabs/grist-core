@@ -98,9 +98,9 @@ ViewConfigTab.prototype._makeOnDemand = function(table) {
             if (!err.message.includes('GristWSConnection disposed')) {
               throw err;
             }
-          })
+          });
       });
-  }
+  };
 
   if (table.onDemand()) {
     confirmModal('Unmark table On-Demand?', 'Unmark On-Demand', onConfirm, {

@@ -74,7 +74,7 @@ const volCreate = (name, vol) => runAction(`flyctl volumes create ${vol} -s 1 -r
 const volList = (name) => runFetch(`flyctl volumes list -a ${name} -j`).then(({stdout}) => JSON.parse(stdout));
 const appDeploy = async (name) => {
   try {
-    await runAction("flyctl auth docker")
+    await runAction("flyctl auth docker");
     await runAction(`docker image tag grist-core:preview ${getDockerTag(name)}`);
     await runAction(`docker push ${getDockerTag(name)}`);
     await runAction(`flyctl deploy --app ${name} --image ${getDockerTag(name)}`);

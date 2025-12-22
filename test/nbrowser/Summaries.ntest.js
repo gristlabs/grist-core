@@ -116,7 +116,7 @@ describe('Summaries.ntest', function() {
     await gu.actions.viewSection('By Category').selectSection();
     assert.deepEqual(await gu.actions.getTabs().array().text(), ['Summaries', 'Sheet1']);
 
-    await $('.test-detach-button').click()
+    await $('.test-detach-button').click();
     await gu.waitForServer();
     await assert.equal(await $(".test-pwc-groupedBy").isDisplayed(), false);
 

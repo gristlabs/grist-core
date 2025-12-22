@@ -35,5 +35,5 @@ if (process.env.MOCHA_WORKER_ID === undefined) {
       }
       done();
     }
-  }
+  };
 }

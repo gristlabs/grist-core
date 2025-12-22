@@ -27,4 +27,4 @@ window.loadTests = function() {
   require('test/client/models/modelUtil');
   require('test/client/models/rowset');
   require('test/client/lib/localStorageObs');
-}
+};

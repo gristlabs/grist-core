@@ -121,7 +121,7 @@ RecordLayoutEditor.prototype.buildFinishButtons = function() {
       {style: 'margin-left: 8px'},
     ),
   ];
-}
+};
 
 RecordLayoutEditor.prototype.buildLeafDom = function() {
   return dom('div.layout_grabbable.g_record_layout_editing',

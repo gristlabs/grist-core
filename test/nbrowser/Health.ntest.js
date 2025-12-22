@@ -9,7 +9,7 @@ describe('Health.ntest', function() {
   });
 
   it('make sure the health check endpoint returns something', async function() {
-    await driver.get(server.getHost() + "/status")
+    await driver.get(server.getHost() + "/status");
     const txt = await driver.getPageSource();
     assert.match(txt, /Grist .* is alive/);
   });

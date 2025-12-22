@@ -800,8 +800,8 @@ describe('ActiveDocImport', function() {
         'DateTime:America/New_York',
         'DateTime:America/New_York',
       ]);
-      await activeDoc.finishImportFiles(fakeSession, dataSource, [], {})
-      const result = await activeDoc.fetchTable(docSession, 'Sheet1')
+      await activeDoc.finishImportFiles(fakeSession, dataSource, [], {});
+      const result = await activeDoc.fetchTable(docSession, 'Sheet1');
       const tableData = result.tableData;
       assert.deepEqual(tableData[3], {
         A: [

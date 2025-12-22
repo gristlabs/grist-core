@@ -307,7 +307,7 @@ RecordLayout.prototype.saveLayoutSpec = async function(layoutSpec) {
         }]);
 
         return docData.sendActions(actions);
-      })
+      });
   });
 };
 

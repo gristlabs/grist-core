@@ -403,11 +403,11 @@ WebdriverJQ.prototype.waitCore = function(chained, optTimeoutSec, func, ...extra
 
 WebdriverJQ.prototype.wait = function(...args) {
   return this.waitCore(true, ...args);
-}
+};
 
 WebdriverJQ.prototype.waitDrop = function(...args) {
   return this.waitCore(false, ...args);
-}
+};
 
 
 /**

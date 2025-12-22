@@ -27,7 +27,7 @@ async function applyPatchesToJquerylikeObject($) {
   };
   $.wait = (timeoutMs, conditionFunc) => {
     return waitImpl(timeoutMs, conditionFunc);
-  }
+  };
   for (const key of Object.keys(Key)) {
     $[key] = Key[key];
   }
@@ -516,13 +516,13 @@ function applyPatchesToWebElements() {
           }
         }).then(() => this));
     }
-  }
+  };
 
   WebElement.prototype.selected = function(val) {
     return driver.executeScript((elem, val) => {
       elem.selected = val;
     }, this, val);
-  }
+  };
 
   WebElement.prototype.attr = function(key, val) {
     if (val !== undefined) {
@@ -531,28 +531,28 @@ function applyPatchesToWebElements() {
       }, this, key, val);
     }
     return this.getAttribute(key);
-  }
+  };
 
   WebElement.prototype.classList = async function() {
     return (await this.getAttribute('className')).split(' ');
-  }
+  };
 
   // Lists of WebElements work differently - if we did a find() we
   // already have just the first match.
   WebElement.prototype.first = function() {
     return this;
-  }
+  };
 
   WebElement.prototype.text = function() {
     return this.getText();
-  }
+  };
 
   WebElement.prototype.val = function(newVal) {
     if (newVal === undefined) {
       return this.getAttribute('value');
     }
     return gu.setValue(this, newVal);
-  }
+  };
 
   WebElement.prototype.css = function(key, val) {
     if (val === undefined) {
@@ -564,15 +564,15 @@ function applyPatchesToWebElements() {
         elem.style[key] = val;
       }, this)
     );
-  }
+  };
 
   WebElement.prototype.is = function(selector) {
     return this.matches(selector);
-  }
+  };
 
   WebElement.prototype.hasClass = async function(className) {
     return (await this.classList()).includes(className);
-  }
+  };
 
   WebElement.prototype.scrollIntoView = function(opts) {
     opts = opts || {behavior: 'auto'};
@@ -580,7 +580,7 @@ function applyPatchesToWebElements() {
       driver,
       driver.executeScript((elem, opts) => elem.scrollIntoView(opts),
         this, opts).then(() => this));
-  }
+  };
 
   WebElement.prototype.parent = function() {
     return new WebElementPromise(
@@ -589,11 +589,11 @@ function applyPatchesToWebElements() {
         return elem.parentNode.closest('*');
       }, this)
     );
-  }
+  };
 
   WebElement.prototype.closest = function(key) {
     return this.findClosest(key);
-  }
+  };
 
   WebElement.prototype.children = async function(mapper) {
     // Collect children.
@@ -611,21 +611,21 @@ function applyPatchesToWebElements() {
     }
     // Result is a single promise.
     return Promise.all(result);
-  }
+  };
 
   WebElement.prototype.trimmedText = async function() {
     const text = await this.getText();
     return text.trim();
-  }
+  };
 
   // A version of find() that supports some old timey syntax.
   WebElement.prototype.findOldTimey = function(key) {
     return findOldTimey(this, key);
-  }
+  };
 
   WebElement.prototype.findAllOldTimey = function(key, mapper) {
     return findOldTimey(this, key, true, mapper);
-  }
+  };
 }
 
 /**

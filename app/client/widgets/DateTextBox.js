@@ -98,7 +98,7 @@ DateTextBox.prototype.buildDom = function(row) {
 const cssClean = styled('div', `
   flex: 1;
   margin: 0px;
-`)
+`);
 
 // override focus - to look like modern ui
 const cssFocus = styled('div', `
@@ -107,7 +107,7 @@ const cssFocus = styled('div', `
     box-shadow: 0 0 3px 2px var(--grist-color-cursor);
     border: 1px solid transparent;
   }
-`)
+`);
 
 // helper method to create old style textbox that looks like a new one
 function textbox(value, options) {

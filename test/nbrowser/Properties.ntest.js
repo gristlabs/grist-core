@@ -69,7 +69,7 @@ describe('Properties.ntest', function() {
     // Go to column "c", and change type to Numeric.
     await $("$GridView_columnLabel:nth-child(3)").click();
     assert.equal(await $(".test-field-label").val(), 'C');
-    await gu.setType('Numeric', {apply: true})
+    await gu.setType('Numeric', {apply: true});
 
     // Remove focus from FieldBuilder type dropdown, so that sentKeys go to the main app.
     await $("body").click();

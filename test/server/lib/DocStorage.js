@@ -129,7 +129,7 @@ describe('DocStorage', function() {
     it('should allow writing', async function() {
       let pastTime = new Date('2016/1/1');
 
-      const docName = await testUtils.useFixtureDoc('Hello.grist', docStorageManager)
+      const docName = await testUtils.useFixtureDoc('Hello.grist', docStorageManager);
       const doc = new DocStorage(docStorageManager, docName);
       // before measuring stats, open/close for WAL mode.
       await doc.openFile();
@@ -394,8 +394,8 @@ describe('DocStorage', function() {
     var docStorage;
     it("should create attachment blob", function() {
       docStorage = new DocStorage(docStorageManager, 'test_Attachments');
-      const correctFileContents = "Hello, world!"
-      const replacementFileContents = "Another file"
+      const correctFileContents = "Hello, world!";
+      const replacementFileContents = "Another file";
       return docStorage.createFile()
         .then(() => docStorage.attachFileIfNew( "hello_world.txt", Buffer.from(correctFileContents)))
         .then(result => assert.isTrue(result))
@@ -559,7 +559,7 @@ describe('DocStorage', function() {
     const encoded = (v) => {
       marshaller.marshal(v);
       return marshaller.dump();
-    }
+    };
 
     it("Should modify the column type", function() {
       let docStorage = new DocStorage(docStorageManager, 'test_ModifyColumn');

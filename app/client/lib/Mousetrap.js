@@ -83,7 +83,7 @@ if (typeof window === 'undefined') {
 
   Mousetrap.markAlwaysOnShortcut = function(combo) {
     alwaysOnCallbacks[combo] = true;
-  }
+  };
 
   module.exports = Mousetrap;
 }

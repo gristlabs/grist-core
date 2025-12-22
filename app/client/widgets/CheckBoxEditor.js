@@ -17,9 +17,9 @@ CheckBoxEditor.skipEditor = function(typedVal, cellVal, {event}) {
     // this indicate that the editor should not open.
     return !cellVal;
   }
-}
+};
 
 // For documentation, see NewBaseEditor.ts
-CheckBoxEditor.supportsReadonly = function() { return false; }
+CheckBoxEditor.supportsReadonly = function() { return false; };
 
 module.exports = CheckBoxEditor;

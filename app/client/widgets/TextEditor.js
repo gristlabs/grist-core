@@ -95,8 +95,8 @@ TextEditor.prototype.getCellValue = function() {
 TextEditor.prototype.onChange = function() {
   if (this.editorState)
     this.editorState.set(this.getTextValue());
-  this._resizeInput()
-}
+  this._resizeInput();
+};
 
 TextEditor.prototype.getTextValue = function() {
   return this.textInput.value;

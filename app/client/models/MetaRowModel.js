@@ -61,7 +61,7 @@ MetaRowModel.Floater = function(tableModel, rowIdObs) {
   if (!this.constructor.prototype.getRowId) {
     this.constructor.prototype.getRowId = function() {
       return this.rowIdObs();
-    }
+    };
   }
 
   // Note that ._index isn't supported because it doesn't make sense for a floating row model.

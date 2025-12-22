@@ -57,7 +57,7 @@ exports.mochaHooks = {
 function getTimings() {
   const timings = new Map();
   try {
-    const content = fs.readFileSync(timingsFile, {encoding: 'utf8'})
+    const content = fs.readFileSync(timingsFile, {encoding: 'utf8'});
     for (const line of content.split(/\r?\n/)) {
       const [bigSuite, fileSuite, duration] = line.split(/\s+/);
       if (bigSuite === testSuite && !isNaN(Number(duration))) {

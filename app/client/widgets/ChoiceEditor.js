@@ -81,7 +81,7 @@ ChoiceEditor.prototype.getCellValue = function() {
   } else {
     return TextEditor.prototype.getCellValue.call(this);
   }
-}
+};
 
 ChoiceEditor.prototype.renderACItem = function(item, highlightFunc) {
   const options = this.choiceOptions[item.label];
@@ -99,7 +99,7 @@ ChoiceEditor.prototype.renderACItem = function(item, highlightFunc) {
     ),
     testId('choice-editor-item'),
   );
-}
+};
 
 ChoiceEditor.prototype.attach = function(cellElem) {
   TextEditor.prototype.attach.call(this, cellElem);
@@ -107,7 +107,7 @@ ChoiceEditor.prototype.attach = function(cellElem) {
   if (this.options.readonly) { return; }
 
   this.autocomplete = Autocomplete.create(this, this.textInput, this._acOptions);
-}
+};
 
 /**
  * Updates list of valid choices with any new ones that may have been
@@ -119,7 +119,7 @@ ChoiceEditor.prototype.prepForSave = async function() {
     const choices = this.widgetOptionsJson.prop('choices');
     await choices.saveOnly([...(choices.peek() || []), selectedItem.label]);
   }
-}
+};
 
 ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
   const dropdownConditionCompiled = this.options.field.dropdownConditionCompiled.get();
@@ -133,7 +133,7 @@ ChoiceEditor.prototype.buildDropdownConditionFilter = function() {
     tableId: this.options.field.tableId(),
     rowId: this.options.rowId,
   });
-}
+};
 
 ChoiceEditor.prototype.buildNoItemsMessage = function() {
   if (this.dropdownConditionError) {
@@ -143,7 +143,7 @@ ChoiceEditor.prototype.buildNoItemsMessage = function() {
   } else {
     return t('No choices to select');
   }
-}
+};
 
 /**
  * If the search text does not match anything exactly, adds 'new' item to it.
@@ -172,7 +172,7 @@ ChoiceEditor.prototype.maybeShowAddNew = function(result, text) {
   this.showAddNew = true;
 
   return result;
-}
+};
 
 const cssChoiceEditIcon = styled(icon, `
   background-color: ${theme.lightText};

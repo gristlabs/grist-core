@@ -622,7 +622,7 @@ Scrolly.prototype._updateRange = function() {
   const begin = this.rowOffsetTree.getIndex(this.scrollTop) - this.numBuffered;
   this.begin = gutil.clamp(begin, 0, this.numRows - this.numRendered);
   this.end = gutil.clamp(this.begin + this.numRendered, 0, this.numRows);
-}
+};
 
 //----------------------------------------------------------------------
 

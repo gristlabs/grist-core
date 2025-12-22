@@ -49,7 +49,7 @@ describe('Export.ntest', function() {
 
   it('should respect active sort', async function() {
     await gu.openColumnMenu('Doing Business As');
-    await $('.grist-floating-menu .test-sort-dsc').click()
+    await $('.grist-floating-menu .test-sort-dsc').click();
     await $('.test-tb-share').click();
     // Once the menu opens, get the href of the link.
     await $('.grist-floating-menu').wait();

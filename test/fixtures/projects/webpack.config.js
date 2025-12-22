@@ -93,7 +93,7 @@ module.exports = {
       devServer.app.get('/', (req, res) =>
         res.send(Object.keys(entries).map((e) => `<a href="${e}">${e}</a><br>\n`).join('')));
       devServer.app.get(Object.keys(entries).map((e) => `/${e}`), (req, res) => {
-        return res.send(htmlTemplate.replace('<NAME>', path.basename(req.url.split('?')[0])))
+        return res.send(htmlTemplate.replace('<NAME>', path.basename(req.url.split('?')[0])));
       });
       return middlewares;
     },
@@ -109,4 +109,4 @@ module.exports = {
     // silence webpack when it's looking for jquery. It's available when it's needed.
     jquery: 'jQuery'
   }
-}
+};
