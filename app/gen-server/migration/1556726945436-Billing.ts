@@ -213,7 +213,7 @@ export class Billing1556726945436 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<any> {
     // this is a bit ugly, but is the documented way to remove a foreign key
     const table = await queryRunner.getTable('orgs');
-    const foreignKey = table!.foreignKeys.find(fk => fk.columnNames.indexOf('billing_account_id') !== -1);
+    const foreignKey = table!.foreignKeys.find(fk => fk.columnNames.includes('billing_account_id'));
     await queryRunner.dropForeignKey('orgs', foreignKey!);
 
     await queryRunner.dropColumn('orgs', 'billing_account_id');

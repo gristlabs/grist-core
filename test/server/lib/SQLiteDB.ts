@@ -326,7 +326,7 @@ describe('SQLiteDB', function() {
     await sdb.close();
 
     // Check that the only file with test4A is our file, i.e. no extra files got created.
-    assert.deepEqual((await fse.readdir(tmpDir)).filter(d => /test4A/.test(d)), ['test4A']);
+    assert.deepEqual((await fse.readdir(tmpDir)).filter(d => d.includes('test4A')), ['test4A']);
 
     // Check also that if we open READONLY with a bad migration, we only get discrepancy warnings.
     msgs = await testUtils.captureLog('info', async () => {

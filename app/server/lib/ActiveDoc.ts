@@ -3643,7 +3643,7 @@ export async function getRealTableId(
       options.metaTables :
       await getMetaTables(options.activeDoc, options.req);
     const [, , tableRefs, tableData] = metaTables._grist_Tables;
-    if (tableRefs.indexOf(parseInt(tableId)) >= 0) {
+    if (tableRefs.includes(parseInt(tableId))) {
       const tableRowIndex = tableRefs.indexOf(parseInt(tableId));
       return tableData.tableId[tableRowIndex]!.toString();
     }

@@ -75,7 +75,7 @@ describe('DocTutorial', function() {
       await driver.find('.test-dm-basic-tutorial').click();
       await driver.wait(async () => {
         forkUrl = await driver.getCurrentUrl();
-        return /~/.test(forkUrl);
+        return forkUrl.includes('~');
       });
     });
 
@@ -306,7 +306,7 @@ describe('DocTutorial', function() {
       let otherForkUrl: string;
       await driver.wait(async () => {
         otherForkUrl = await driver.getCurrentUrl();
-        return /~/.test(forkUrl);
+        return forkUrl.includes('~');
       });
       editorSession = await gu.session().customTeamSite('templates').user('user1').login();
       await driver.navigate().to(otherForkUrl!);
@@ -454,7 +454,7 @@ describe('DocTutorial', function() {
       let currentUrl: string;
       await driver.wait(async () => {
         currentUrl = await driver.getCurrentUrl();
-        return /~/.test(forkUrl);
+        return forkUrl.includes('~');
       });
       assert.equal(currentUrl!, forkUrl);
       assert.deepEqual(await gu.getVisibleGridCells({ cols: [0], rowNums: [1] }), ['Redacted']);

@@ -33,7 +33,7 @@ export function startsWith(str: string, prefix: string): boolean {
 
 // Returns whether str ends with suffix.
 export function endsWith(str: string, suffix: string): boolean {
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+  return str.includes(suffix, str.length - suffix.length);
 }
 
 // If str starts with prefix, removes it and returns what remains. Otherwise, returns null.

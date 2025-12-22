@@ -77,7 +77,7 @@ export function limitToPlugins(gristServer: GristServer,
 function matchHost(host1: string | undefined, host2: string) {
   if (!host1) { return false; }
   if (host1 === host2) { return true; }
-  if (host1.indexOf(':') === -1) { host1 += ":443"; }
-  if (host2.indexOf(':') === -1) { host2 += ":443"; }
+  if (!host1.includes(':')) { host1 += ":443"; }
+  if (!host2.includes(':')) { host2 += ":443"; }
   return host1 === host2;
 }

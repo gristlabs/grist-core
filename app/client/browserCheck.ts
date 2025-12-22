@@ -12,7 +12,7 @@ const version = bowser.getParser(window.navigator.userAgent);
 (window as any)._parsedBrowserVersion = version;
 
 // Skip if user has already dismissed a warning from us.
-if (document && window && document.cookie.indexOf("gristbrowser=accept") === -1) {
+if (document && window && !document.cookie.includes("gristbrowser=accept")) {
   const isHappyBrowser = version.satisfies({
     desktop: {
       chrome: ">=72.0.3626",   // first 2019 version
@@ -45,7 +45,7 @@ if (document && window && document.cookie.indexOf("gristbrowser=accept") === -1)
         // people on mobile or old Safari may get prompted more often than we'd like. See
         // https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/
 
-        if (document.location.href.indexOf(".getgrist.com") !== -1) {
+        if (document.location.href.includes(".getgrist.com")) {
           // on *.getgrist.com, set cookie domain to getgrist.com
           cookie += "; Domain=.getgrist.com";
         }

@@ -157,7 +157,7 @@ export class CellSelector extends Disposable {
   }
 
   private _isCurrentType(currentType: ElemType, elemType: ElemType): boolean {
-    console.assert([ROW, COL, CELL, NONE].indexOf(elemType) !== -1);
+    console.assert([ROW, COL, CELL, NONE].includes(elemType));
     return currentType === elemType;
   }
 }

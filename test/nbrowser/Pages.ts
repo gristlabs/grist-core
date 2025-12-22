@@ -504,7 +504,7 @@ describe('Pages', function() {
     await gu.removePage(/New page/);
 
     // check that url has no p/<...> and 'Table1' is now selected
-    await driver.wait(async () => !/\/p\//.test(await driver.getCurrentUrl()), 2000);
+    await driver.wait(async () => !(await driver.getCurrentUrl()).includes('/p/'), 2000);
     assert.match(await driver.find('.test-treeview-itemHeader.selected').getText(), /Table1/);
 
     // check that corresponding view is removed

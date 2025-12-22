@@ -76,7 +76,7 @@ describe('RelativeDatesOptions', function() {
         label: 'Wednesday of 5 weeks ago',
         spec: [{ quantity: -5, unit: 'week' }, { quantity: 3, unit: 'day' }],
       });
-      assert.notOk(getOptions('2022-08-24').find(o => /Wednesday/.test(o.label)));
+      assert.notOk(getOptions('2022-08-24').find(o => o.label.includes('Wednesday')));
 
       checkOption(getOptions('2022-09-29'), 'Thursday of this week', [
         { quantity: 0, unit: 'week' }, { quantity: 4, unit: 'day' }]);

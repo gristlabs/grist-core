@@ -302,7 +302,7 @@ return c
       // Check that we did trigger a time update, just to be sure we haven't failed to test that.
       // It should fail by reloadDoc()'s return, but it's asynchronous, so allow a little wait.
       await waitForIt(() =>
-        assert.isTrue(messages.some(m => /ActiveDoc failed to update current time/.test(m))),
+        assert.isTrue(messages.some(m => m.includes('ActiveDoc failed to update current time'))),
       500, 50);
     });
 

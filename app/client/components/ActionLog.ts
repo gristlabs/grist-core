@@ -624,7 +624,7 @@ export function traceCell(cell: { rowId: number, colId: string, tableId: string 
   }
 
   // Check is this row was removed - if so there's no reason to go on.
-  if (td.removeRows.indexOf(rowId) >= 0) {
+  if (td.removeRows.includes(rowId)) {
     reportDeletion({ thisRow: true });
     return null;
   }
