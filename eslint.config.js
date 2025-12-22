@@ -162,6 +162,12 @@ module.exports = defineConfig([
       "@stylistic/multiline-ternary": "off",
       "@stylistic/semi": ["error", "always"],
       "@stylistic/semi-spacing": "warn",
+      "@stylistic/space-before-function-paren": ["error", {
+        anonymous: "never",
+        named: "never",
+        asyncArrow: "always",
+        catch: "always"
+      }],
       "@stylistic/space-infix-ops": "error",
       "@stylistic/spaced-comment": "error",
       "@stylistic/switch-colon-spacing": "error",
