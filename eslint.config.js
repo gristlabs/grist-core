@@ -150,6 +150,7 @@ module.exports = defineConfig([
         ignoreRegExpLiterals: true,
         ignoreTemplateLiterals: true,
       }],
+      "@stylistic/no-multi-spaces": "off",
       "@stylistic/no-trailing-spaces": "warn",
       "@stylistic/no-whitespace-before-property": "error",
       "@stylistic/quotes": ["error", "double", {
