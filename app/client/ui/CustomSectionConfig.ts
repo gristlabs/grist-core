@@ -52,7 +52,7 @@ class ColumnPicker extends Disposable {
   constructor(
     private _value: Observable<number|number[]|null>,
     private _column: ColumnToMapImpl,
-    private _section: ViewSectionRec){
+    private _section: ViewSectionRec) {
     super();
   }
 
@@ -322,7 +322,7 @@ class ColumnListPicker extends Disposable {
   }
 }
 
-class CustomSectionConfigurationConfig extends Disposable{
+class CustomSectionConfigurationConfig extends Disposable {
   private readonly _hasConfiguration = Computed.create(this, use =>
     Boolean(use(this._section.hasCustomOptions) || use(this._section.columnsToMap)));
 

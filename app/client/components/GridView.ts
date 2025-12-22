@@ -1042,7 +1042,7 @@ export default class GridView extends BaseView {
     // we want to show creator panel in some cases, but only when "rename panel" is dismissed
     const sub = this.currentEditingColumnIndex.subscribe((state) => {
       // if no column is edited we can assume that rename panel is closed
-      if (state<0){
+      if (state<0) {
         options.onPopupClose?.();
         sub.dispose();
       }
@@ -1051,7 +1051,7 @@ export default class GridView extends BaseView {
   }
 
   protected async makeHeadersFromRow(selection: CopySelection) {
-    if (this._getRowContextMenuOptions().disableMakeHeadersFromRow){
+    if (this._getRowContextMenuOptions().disableMakeHeadersFromRow) {
       return;
     }
     const record = this.tableModel.tableData.getRecord(selection.rowIds[0] as number)!;
@@ -1681,7 +1681,7 @@ export default class GridView extends BaseView {
 
           dom.on("mouseleave", (ev) => {
             // Leave only when leaving record row.
-            if (!ev.relatedTarget || !(ev.relatedTarget as HTMLElement).classList.contains("record")){
+            if (!ev.relatedTarget || !(ev.relatedTarget as HTMLElement).classList.contains("record")) {
               this.changeHover(-1);
             }
           }),

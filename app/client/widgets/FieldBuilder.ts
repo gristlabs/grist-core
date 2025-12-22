@@ -232,7 +232,7 @@ export class FieldBuilder extends Disposable {
 
     this.autoDispose(commands.createGroup({
       showPopup: (args: any) => {
-        if (args.popup==='referenceColumnsConfig'){
+        if (args.popup==='referenceColumnsConfig') {
           this._showRefConfigPopup(true);
         }
       },

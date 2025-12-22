@@ -233,7 +233,7 @@ export class FormulaEditor extends NewBaseEditor {
               hide ? 'Expand' : 'Collapse',
               testId('formula-error-expand'),
               dom.on('click', () => {
-                if (errorDetails.get()){
+                if (errorDetails.get()) {
                   hideErrDetails.set(!hideErrDetails.get());
                   this._aceEditor.resize();
                 }

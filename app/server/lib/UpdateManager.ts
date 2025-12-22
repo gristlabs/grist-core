@@ -247,7 +247,7 @@ interface DockerResponse {
 
 // https://docs.docker.com/docker-hub/api/latest/#tag/repositories/
 // paths/~1v2~1namespaces~1%7Bnamespace%7D~1repositories~1%7Brepository%7D~1tags/get
-async function listRepositoryTags(signal: AbortSignal): Promise<DockerTag[]>{
+async function listRepositoryTags(signal: AbortSignal): Promise<DockerTag[]> {
   const tags: DockerTag[] = [];
 
   // In case of rate limiting, we will retry the request 20 times.

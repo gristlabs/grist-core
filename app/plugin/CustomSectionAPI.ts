@@ -68,7 +68,7 @@ export interface InteractionOptionsRequest {
 /**
  * Widget configuration set and approved by Grist, sent as part of ready message.
  */
-export interface InteractionOptions{
+export interface InteractionOptions {
   /**
    * Granted access level.
    */

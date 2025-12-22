@@ -1566,7 +1566,7 @@ describe('GranularAccess', function() {
     await admin.disableUser(editorProfile.id);
     home.dbManager.flushDocAuthCache();
 
-    function assertResponseDenied(resp: any){
+    function assertResponseDenied(resp: any) {
       assert.equal(resp.errorCode, 'AUTH_NO_VIEW');
       assert.equal(resp.error, 'No view access');
     }

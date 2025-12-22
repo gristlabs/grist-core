@@ -290,7 +290,7 @@ class WebhookExternalTable implements IExternalTable {
       }]);
   }
 
-  private _initalizeWebhookList(webhooks: WebhookSummary[]){
+  private _initalizeWebhookList(webhooks: WebhookSummary[]) {
     this.webhooks.removeAll();
     this.webhooks.push(
       ...webhooks.map((webhook) => {

@@ -55,7 +55,7 @@ class ScimGroupController extends BaseController {
    * @param data The data to create the group with
    * @param context The request context
    */
-  public async createGroup(data: GroupSchema, context: RequestContext): Promise<GroupSchema>{
+  public async createGroup(data: GroupSchema, context: RequestContext): Promise<GroupSchema> {
     return this.runAndHandleErrors(context, async () => {
       const groupDescriptor = toGroupDescriptor(data);
       const group = await this.dbManager.createGroup(groupDescriptor);
@@ -88,7 +88,7 @@ class ScimGroupController extends BaseController {
    * @param context The request context
    *
    */
-  public async deleteGroup(resource: GroupResource, context: RequestContext): Promise<void>{
+  public async deleteGroup(resource: GroupResource, context: RequestContext): Promise<void> {
     return this.runAndHandleErrors(context, async () => {
       const id = this.getIdFromResource(resource);
       await this.dbManager.deleteGroup(id, Group.TEAM_TYPE);

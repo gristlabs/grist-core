@@ -45,7 +45,7 @@ describe('updateChecker', function() {
       });
       const originalSetMethod = FlexServer.prototype.setLatestVersionAvailable;
       sandbox.stub(FlexServer.prototype, 'setLatestVersionAvailable')
-        .callsFake(function (this: FlexServer, ...args){
+        .callsFake(function (this: FlexServer, ...args) {
           originalSetMethod.apply(this, args);
           setVersionResolved();
         });

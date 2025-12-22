@@ -71,7 +71,7 @@ export function buildNumberFormat(options: NumberFormatOptions, docSettings: Doc
 // Safari 13 and some other browsers don't support narrowSymbol option:
 // https://github.com/mdn/browser-compat-data/issues/8985
 // https://caniuse.com/?search=currencyDisplay
-const currencyDisplay = (function(){
+const currencyDisplay = (function() {
   try {
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' });
     return 'narrowSymbol';

@@ -64,17 +64,17 @@ describe("DocTypeConversion", function () {
     await checkDisplayedLabel(to);
   }
 
-  async function isRegular(){
+  async function isRegular() {
     assert.isFalse(await saveCopyButton.present());
     assert.isFalse(await fiddleTag.present());
   }
 
-  async function isTemplate(){
+  async function isTemplate() {
     await assertExistsButton(saveCopyButton, "Save copy");
     assert.isTrue(await fiddleTag.visible());
   }
 
-  async function isTutorial(){
+  async function isTutorial() {
     await assertExistsButton(saveCopyButton, "Save copy");
     assert.isFalse(await fiddleTag.present());
   }

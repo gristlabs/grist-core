@@ -7,7 +7,7 @@ describe('SelectBySummaryRef', function() {
   setupTestSuite();
   addToRepl('gu2', gu);
 
-  before(async function(){
+  before(async function() {
     await server.simulateLogin("Chimpy", "chimpy@getgrist.com", 'nasa');
     const doc = await gu.importFixturesDoc('chimpy', 'nasa', 'Horizon',
       'SelectBySummaryRef.grist', false);

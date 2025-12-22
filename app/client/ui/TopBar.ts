@@ -26,7 +26,7 @@ import { Computed, dom, DomElementArg, makeTestId, MultiHolder, Observable, styl
 
 const t = makeT('TopBar');
 
-export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean) => Promise<unknown>){
+export function createTopBarHome(appModel: AppModel, onSave?: (personal: boolean) => Promise<unknown>) {
   const isAnonymous = !appModel.currentValidUser;
 
   return [

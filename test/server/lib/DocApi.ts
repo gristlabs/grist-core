@@ -2319,7 +2319,7 @@ function testDocApi(settings: {
 
     it("validates request schema", async function () {
       const url = `${serverUrl}/api/docs/${docIds.TestDoc}/tables/Foo/records`;
-      async function failsWithError(payload: any, error: { error: string, details?: { userError: string } }){
+      async function failsWithError(payload: any, error: { error: string, details?: { userError: string } }) {
         const resp = await axios.patch(url, payload, chimpy);
         checkError(400, error, resp);
       }
@@ -3997,7 +3997,7 @@ function testDocApi(settings: {
       }
     }
 
-    interface SubscriptionInfo{
+    interface SubscriptionInfo {
       unsubscribeKey: string;
       webhookId: string;
     }
@@ -4058,7 +4058,7 @@ function testDocApi(settings: {
     }
 
     it("POST /docs/{did}/webhooks is adding new webhook to table "+
-      "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function(){
+      "and DELETE /docs/{did}/webhooks/{wid} is removing new webhook from table", async function() {
       const registeredWebhook = await postWebhookCheck({ webhooks: [{ fields: { tableId: "Table1", eventTypes: ["add"], url: "https://example.com" } }] }, 200);
       let webhookList = await getRegisteredWebhooks();
       assert.equal(webhookList.length, 1);
@@ -4068,7 +4068,7 @@ function testDocApi(settings: {
       assert.equal(webhookList.length, 0);
     });
 
-    it("POST /docs/{did}/webhooks is adding new webhook should be able to add many webhooks at once", async function(){
+    it("POST /docs/{did}/webhooks is adding new webhook should be able to add many webhooks at once", async function() {
       const response = await postWebhookCheck(
         {
           webhooks: [

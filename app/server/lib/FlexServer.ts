@@ -2070,7 +2070,7 @@ export class FlexServer implements GristServer {
   public async startCopy(name2: string, port2: number): Promise<{
     serverPort: number,
     httpsServerPort?: number,
-  }>{
+  }> {
     const servers = this._createServers();
     return this._startServers(servers.server, servers.httpsServer, name2, port2, true);
   }

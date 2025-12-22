@@ -237,7 +237,7 @@ export class FieldEditor extends Disposable {
 
     // For readonly mode use the default behavior of Formula Editor
     // TODO: cleanup this flag - it gets modified in too many places
-    if (!this._readonly){
+    if (!this._readonly) {
       // Enter formula-editing mode (e.g. click-on-column inserts its ID) only if we are opening the
       // editor by typing into it (and overriding previous formula). In other cases (e.g. double-click),
       // we defer this mode until the user types something.

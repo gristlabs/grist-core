@@ -150,7 +150,7 @@ describe('UsersManager', function () {
     });
 
     describe('getUsersWithRole()', function () {
-      function makeGroups(groupDefinition: { [k in NonGuestGroup['name']]?: User[] | undefined }){
+      function makeGroups(groupDefinition: { [k in NonGuestGroup['name']]?: User[] | undefined }) {
         const entries = Object.entries(groupDefinition) as [NonGuestGroup['name'], User[] | undefined][];
 
         return entries.map(([groupName, users], index) => {

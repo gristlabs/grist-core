@@ -3613,7 +3613,7 @@ export class HomeDBManager implements HomeDBAuth {
     return this._serviceAccountsManager.updateServiceAccount(serviceId, partial, options);
   }
 
-  public async deleteServiceAccount(serviceId: number, options: { expectedOwnerId?: number } = {}){
+  public async deleteServiceAccount(serviceId: number, options: { expectedOwnerId?: number } = {}) {
     return this._serviceAccountsManager.deleteServiceAccount(serviceId, options);
   }
 

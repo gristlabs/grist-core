@@ -76,7 +76,7 @@ export class SortConfig extends Disposable {
     super();
 
     this.autoDispose(this._colRefs.addListener((curr, prev) => {
-      if (!isEqual(curr, prev)){
+      if (!isEqual(curr, prev)) {
         this._sortRows.assign(curr);
       }
     }));

@@ -2301,7 +2301,7 @@ export class DocWorkerApi {
    * for admin access. We therefore assume admin access in the body of
    * this function.
    */
-  private async _toggleDisabledStatus(req: Request, res: Response, action: 'enable'|'disable'){
+  private async _toggleDisabledStatus(req: Request, res: Response, action: 'enable'|'disable') {
     const mreq = req as RequestWithLogin;
     const docId = req.params.docId || req.params.did;
 

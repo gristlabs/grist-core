@@ -1,4 +1,4 @@
-export interface WebhookSubscribeCollection{
+export interface WebhookSubscribeCollection {
   webhooks: Array<Webhook>
 }
 

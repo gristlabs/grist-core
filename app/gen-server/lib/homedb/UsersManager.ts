@@ -299,7 +299,7 @@ export class UsersManager {
     });
   }
 
-  public async updateUser(userId: number, props: UserProfileChange){
+  public async updateUser(userId: number, props: UserProfileChange) {
     return await this._connection.transaction(async (manager) => {
       let isWelcomed = false;
       let needsSave = false;
@@ -396,7 +396,7 @@ export class UsersManager {
     emails: string[],
     manager?: EntityManager,
   ): Promise<User[]> {
-    if (emails.length === 0){
+    if (emails.length === 0) {
       return [];
     }
     return await this._buildExistingUsersByLoginRequest(emails, manager)

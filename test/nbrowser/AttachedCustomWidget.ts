@@ -25,7 +25,7 @@ describe('AttachedCustomWidget', function () {
   // Holds widgets manifest content.
   let widgets: ICustomWidget[] = [];
 
-  async function buildWidgetServer(){
+  async function buildWidgetServer() {
     // Create simple widget server that serves manifest.json file, some widgets and some error pages.
     const widgetServer = await serveSomething((app) => {
       app.get(widgetEndpoint, (req, res) =>

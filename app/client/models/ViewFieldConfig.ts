@@ -328,7 +328,7 @@ export class ViewFieldConfig {
 
   // Helper for Choice/ChoiceList columns, that saves widget options and renames values in a document
   // in one bundle
-  public async updateChoices(renames: Record<string, string>, options: any){
+  public async updateChoices(renames: Record<string, string>, options: any) {
     const hasRenames = !!Object.entries(renames).length;
     const tableId = this._field.column.peek().table.peek().tableId.peek();
     if (this.multiselect.peek()) {

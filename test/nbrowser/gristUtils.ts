@@ -327,7 +327,7 @@ namespace gristUtils {
  */
   export async function getVisibleGridCellsFast(col: string, rowNums: number[]): Promise<string[]>;
   export async function getVisibleGridCellsFast(options: { cols: string[], rowNums: number[] }): Promise<string[]>;
-  export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: number[]): Promise<string[]>{
+  export async function getVisibleGridCellsFast(colOrOptions: any, rowNums?: number[]): Promise<string[]> {
     if (rowNums) {
       return getVisibleGridCellsFast({ cols: [colOrOptions], rowNums });
     }

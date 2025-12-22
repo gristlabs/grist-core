@@ -96,7 +96,7 @@ export class FloatingPopup extends Disposable {
   constructor(protected _options: PopupOptions) {
     super();
 
-    if (_options.stopClickPropagationOnMove){
+    if (_options.stopClickPropagationOnMove) {
       // weasel.js registers a 'click' listener that closes any open popups that
       // are outside the click target. We capture the click event here, stopping
       // propagation in a few scenarios where closing popups is undesirable.

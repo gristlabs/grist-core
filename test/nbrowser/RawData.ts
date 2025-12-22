@@ -875,7 +875,7 @@ async function waitForRawData() {
   await gu.waitForServer();
 }
 
-async function isRemovable(tableId: string){
+async function isRemovable(tableId: string) {
   await openMenu(tableId);
   const disabledItems = await driver.findAll('.test-raw-data-menu-remove-table.disabled');
   await gu.sendKeys(Key.ESCAPE);

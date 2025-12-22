@@ -402,7 +402,7 @@ export default class BaseView extends DisposableWithEvents {
     }
 
     const rowIds = this.selectedRows();
-    if (this.viewSection.disableAddRemoveRows() || rowIds.length === 0){
+    if (this.viewSection.disableAddRemoveRows() || rowIds.length === 0) {
       return;
     }
     const isKeyboard = source instanceof KeyboardEvent;

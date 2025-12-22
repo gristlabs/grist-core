@@ -2289,7 +2289,7 @@ describe('ApiServer', function() {
       });
     }
 
-    function bodyToExpectedProperties(body: PostServiceAccount){
+    function bodyToExpectedProperties(body: PostServiceAccount) {
       const expectedProperties = { ...body };
       expectedProperties.expiresAt += "T00:00:00.000Z";
       return expectedProperties;

@@ -200,7 +200,7 @@ describe('GridViewNewColumnMenu', function () {
         assert.equal(await addWithType.getText(), 'Add column with type');
       });
 
-      it('should display reference column popup when opened for the first time', async function(){
+      it('should display reference column popup when opened for the first time', async function() {
         await gu.enableTips(session.email);
         // open add new colum menu
         await clickAddColumn();
@@ -255,7 +255,7 @@ describe('GridViewNewColumnMenu', function () {
 
       for (const optionsTriggeringMenu of optionsToBeDisplayed.filter(option =>
         columnsThatShouldTriggerSideMenu.includes(option.type))) {
-        it(`should open Right Menu on Column section after choosing ${optionsTriggeringMenu.type}`, async function(){
+        it(`should open Right Menu on Column section after choosing ${optionsTriggeringMenu.type}`, async function() {
           await gu.enableTips(session.email);
           //close right panel just in case.
           await gu.toggleSidePanel("right", "close");
@@ -286,7 +286,7 @@ describe('GridViewNewColumnMenu', function () {
 
         it(`should show referenceColumnsConfig in right Column section
          when ${optionsTriggeringMenu.type} type is chosen`,
-        async function(){
+        async function() {
           //close right panel just in case.
           await gu.toggleSidePanel("right", "close");
           await gu.enableTips(session.email);
@@ -355,7 +355,7 @@ describe('GridViewNewColumnMenu', function () {
     });
   });
 
-  describe('create formula column', function(){
+  describe('create formula column', function() {
     revertThis();
 
     before(async function() {
