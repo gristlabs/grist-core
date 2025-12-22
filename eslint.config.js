@@ -175,6 +175,11 @@ module.exports = defineConfig([
 
       "@typescript-eslint/ban-types": "off",
       "@typescript-eslint/consistent-indexed-object-style": "off",
+      "@typescript-eslint/dot-notation": ["error", {
+        allowPrivateClassPropertyAccess: true,
+        allowProtectedClassPropertyAccess: true,
+        allowIndexSignaturePropertyAccess: true,
+      }],
       "@typescript-eslint/explicit-member-accessibility": ["error", {
         overrides: {
           constructors: "off",
