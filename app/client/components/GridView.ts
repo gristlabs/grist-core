@@ -2388,10 +2388,7 @@ export default class GridView extends BaseView {
 
     bundleChanges(() => {
       fields.forEach((field, index) => {
-        const recordedWidth = fieldMaxWidths.get(index) || 100;
-        // If field can be wrapped, we will use 100 as minimum width.
-        const fareWidth = field.wrap.peek() ? Math.max(recordedWidth, 100) : recordedWidth;
-        const maxWidth = fareWidth || 100;
+        const maxWidth = fieldMaxWidths.get(index) || 100;
         field.width(maxWidth + 20);
       });
     });
